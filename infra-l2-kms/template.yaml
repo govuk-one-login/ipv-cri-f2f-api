@@ -1,0 +1,156 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  infra-l2-kms
+
+  A set of KMS resources that should be deployed up the environments.
+
+Parameters:
+  Environment:
+    Description: "The environment type"
+    Type: "String"
+    Default: dev
+    AllowedValues:
+      - "dev"
+      - "build"
+      - "staging"
+      - "integration"
+      - "production"
+
+  CodeSigningConfigArn:
+    Type: String
+    Description: >
+      The ARN of the Code Signing Config to use, provided by the deployment pipeline
+    Default: "none"
+
+  PermissionsBoundary:
+    Type: String
+    Description: >
+      The ARN of the permissions boundary to apply to any role created by the template
+    Default: "none"
+
+  KmsPendingWindowInDays:
+    Type: Number
+    Description: Number of days to retain KMS in pending deletion state when deleted
+    Default: 30
+
+Conditions:
+  UseCodeSigning:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref CodeSigningConfigArn
+          - "none"
+
+  UsePermissionsBoundary:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref PermissionsBoundary
+          - "none"
+
+Globals:
+  Function:
+    CodeSigningConfigArn: !If
+      - UseCodeSigning
+      - !Ref CodeSigningConfigArn
+      - !Ref AWS::NoValue
+    PermissionsBoundary: !If
+      - UsePermissionsBoundary
+      - !Ref PermissionsBoundary
+      - !Ref AWS::NoValue
+
+Resources:
+  KMSSigningKey:
+    Type: AWS::KMS::Key
+    #checkov:skip=CKV_AWS_7:Automatic key rotation can only be enabled on symmetric keys.
+    Properties:
+      Description: !Sub "${AWS::StackName} VC signing key"
+      Enabled: true
+      EnableKeyRotation: false
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - "kms:*"
+            Resource:
+              - "*"
+      KeySpec: ECC_NIST_P256
+      KeyUsage: SIGN_VERIFY
+      MultiRegion: false
+      PendingWindowInDays: !Ref KmsPendingWindowInDays
+      Tags:
+        - Key: KeyType
+          Value: VC Signing Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+        - Key: CheckovRulesToSkip
+          Value: CKV_AWS_7
+
+  KMSSigningKeyAlias:
+    Type: 'AWS::KMS::Alias'
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-vc-signing-key"
+      TargetKeyId: !Ref KMSSigningKey
+
+  KMSEncryptionKey:
+    Type: AWS::KMS::Key
+    #checkov:skip=CKV_AWS_7:Automatic key rotation can only be enabled on symmetric keys.
+    Properties:
+      Description: !Sub "${AWS::StackName} CRI encryption key"
+      Enabled: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "Allow the account to manage the key"
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: "kms:*"
+            Resource: "*"
+      KeySpec: RSA_2048
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      PendingWindowInDays: !Ref KmsPendingWindowInDays
+      Tags:
+        - Key: KeyType
+          Value: Encryption Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+        - Key: CheckovRulesToSkip
+          Value: CKV_AWS_7
+
+  KMSEncryptionKeyAlias:
+    Type: 'AWS::KMS::Alias'
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-encryption-key"
+      TargetKeyId: !Ref KMSEncryptionKey
+
+Outputs:
+  SigningKeyArn:
+    Description: "The Arn of the VC signing key"
+    Value: !GetAtt KMSSigningKey.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-vc-signing-key"
+  SigningKeyId:
+    Description: "The Id of the VC signing key"
+    Value: !Ref KMSSigningKey
+    Export:
+      Name: !Sub "${AWS::StackName}-vc-signing-key-id"
+  SigningKeyAlias:
+    Description: "The Alias of the VC signing key"
+    Value: !Ref KMSSigningKeyAlias
+  EncryptionKeyArn:
+    Description: "The ARN of the encryption key"
+    Value: !GetAtt KMSEncryptionKey.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-encryption-key"
+  EncryptionKeyId:
+    Description: "The Id of the encryption key"
+    Value: !Ref KMSEncryptionKey
+    Export:
+      Name: !Sub "${AWS::StackName}-encryption-key-id"
+  EncryptionKeyAlias:
+    Description: "The ARN of the encryption key"
+    Value: !Ref KMSEncryptionKeyAlias

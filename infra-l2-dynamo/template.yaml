@@ -1,0 +1,247 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  infra-l2-dynamo
+
+  Dynamo DB tables for long term session state storage
+
+Parameters:
+  Environment:
+    Description: "The environment type"
+    Type: "String"
+    Default: dev
+    AllowedValues:
+      - "dev"
+      - "build"
+      - "staging"
+      - "integration"
+      - "production"
+  CodeSigningConfigArn:
+    Type: String
+    Description: >
+      The ARN of the Code Signing Config to use, provided by the deployment pipeline
+    Default: "none"
+    
+  PermissionsBoundary:
+    Type: String
+    Description: >
+      The ARN of the permissions boundary to apply to any role created by the template
+    Default: "none"
+
+  KmsPendingWindowInDays:
+    Type: Number
+    Description: Number of days to retain KMS in pending deletion state when deleted
+    Default: 30
+    
+Conditions:
+  UseCodeSigning:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref CodeSigningConfigArn
+          - "none"
+
+  UsePermissionsBoundary:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref PermissionsBoundary
+          - "none"
+
+Globals:
+  Function:
+    CodeSigningConfigArn: !If
+      - UseCodeSigning
+      - !Ref CodeSigningConfigArn
+      - !Ref AWS::NoValue
+    PermissionsBoundary: !If
+      - UsePermissionsBoundary
+      - !Ref PermissionsBoundary
+      - !Ref AWS::NoValue
+
+Resources:
+  SessionTable:
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TableName: !Sub "session-${AWS::StackName}"
+      BillingMode: "PAY_PER_REQUEST"
+      AttributeDefinitions:
+        - AttributeName: "sessionId"
+          AttributeType: "S"
+        - AttributeName: "authorizationCode"
+          AttributeType: "S"
+        - AttributeName: "accessToken"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "sessionId"
+          KeyType: "HASH"
+      GlobalSecondaryIndexes:
+        - IndexName: "authorizationCode-index"
+          KeySchema:
+            - AttributeName: "authorizationCode"
+              KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "sessionId"
+              - "redirectUri"
+              - "clientId"
+            ProjectionType: "INCLUDE"
+        - IndexName: "access-token-index"
+          KeySchema:
+            - AttributeName: "accessToken"
+              KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "sessionId"
+              - "subject"
+            ProjectionType: "INCLUDE"
+      TimeToLiveSpecification:
+        AttributeName: expiryDate
+        Enabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        KMSMasterKeyId: !Ref SessionTableKey
+        SSEEnabled: true
+        SSEType: KMS
+
+  SessionTableKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: !Sub "${AWS::StackName} session table key"
+      Enabled: true
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      PendingWindowInDays: !Ref KmsPendingWindowInDays
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "Allow the account to manage the key"
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName} session table key"
+        - Key: Product
+          Value: Gov.UK Sign On
+        - Key: System
+          Value: Claimed Identity Collector
+        - Key: Environment
+          Value: !Ref Environment
+
+  SessionTableKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-session-table-key"
+      TargetKeyId: !Ref SessionTableKey
+
+  PersonIdentityTable:
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "person-identity-${AWS::StackName}"
+      BillingMode: "PAY_PER_REQUEST"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: "sessionId"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "sessionId"
+          KeyType: "HASH"
+      TimeToLiveSpecification:
+        AttributeName: expiryDate
+        Enabled: true
+      SSESpecification:
+        KMSMasterKeyId: !Ref PersonIdentityTableKey
+        SSEEnabled: true
+        SSEType: KMS
+
+  PersonIdentityTableKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: !Sub "${AWS::StackName} person identity table key"
+      Enabled: true
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      PendingWindowInDays: !Ref KmsPendingWindowInDays
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "Allow the account to manage the key"
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName} person identity table key"
+        - Key: Product
+          Value: Gov.UK Sign On
+        - Key: System
+          Value: Claimed Identity Collector
+        - Key: Environment
+          Value: !Ref Environment
+
+  PersonIdentityTableKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-person-identity-table-key"
+      TargetKeyId: !Ref PersonIdentityTableKey
+
+Outputs:
+  SessionTableName:
+    Description: "The name of the DynamoDB Session table"
+    Value: !Ref SessionTable
+    Export:
+      Name: !Sub "${AWS::StackName}-session-table-name"
+  SessionTableArn:
+    Description: "The Arn of the DynamoDB Session table"
+    Value: !GetAtt SessionTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-session-table-arn"
+  SessionTableKeyArn:
+    Description: "The Arn of the session table encryption key"
+    Value: !GetAtt SessionTableKey.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-session-table-key-arn"
+  SessionTableKeyId:
+    Description: "The Id of the session table encryption key"
+    Value: !Ref SessionTableKey
+    Export:
+      Name: !Sub "${AWS::StackName}-session-table-key-id"
+  SessionTableKeyAlias:
+    Description: "The Alias of the session table encryption key"
+    Value: !Ref SessionTableKeyAlias
+  PersonIdentityTableName:
+    Description: "The name of the DynamoDB Person Identity table"
+    Value: !Ref PersonIdentityTable
+    Export:
+      Name: !Sub "${AWS::StackName}-person-identity-table-name"
+  PersonIdentityTableArn:
+    Description: "The Arn of the DynamoDB Person Identity table"
+    Value: !GetAtt PersonIdentityTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-person-identity-table-arn"
+  PersonIdentityTableKeyArn:
+    Description: "The Arn of the personIdentity table encryption key"
+    Value: !GetAtt PersonIdentityTableKey.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-person-identity-table-key-arn"
+  PersonIdentityTableKeyId:
+    Description: "The Id of the person identity table encryption key"
+    Value: !Ref PersonIdentityTableKey
+    Export:
+      Name: !Sub "${AWS::StackName}-person-identity-table-key-id"
+  PersonIdentityTableKeyAlias:
+    Description: "The Alias of the person identity table encryption key"
+    Value: !Ref PersonIdentityTableKeyAlias
