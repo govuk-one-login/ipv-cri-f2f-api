@@ -40,7 +40,7 @@ jobs:
       - name: Checks if commiting secrets to repo
         uses: pre-commit/action@v3.0.0
         with:
-          extra_args: "detect-secrets > .secrets.baseline"
+          extra_args: "detect-secrets scan > .secrets.baseline"
 
       - name: Setup nodeJS v18
         uses: actions/setup-node@v3
@@ -65,7 +65,7 @@ jobs:
 
       - name: Run Tests
         run: npm run test:unit
-        
+
       - name: Run Infra checks
         run: npm run test:infra
   sam-validate:
