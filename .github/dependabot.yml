@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/src'
+    schedule:
+      interval: daily
+      time: "03:00"
+    target-branch: main
+    labels:
+    - dependabot
+    ignore:
+      - dependency-name: "node"
+        versions: ["17.x","18.x"]
+    commit-message:
+      prefix: BAU
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    target-branch: main
+    labels:
+    - dependabot
