@@ -5,20 +5,20 @@
 
 export default {
   transform: {
-    '^.+\\.ts?$': [
-      'esbuild-jest',
+    "^.+\\.ts?$": [
+      "esbuild-jest",
       {
-        sourcemap: true
-      }
-    ]
+        sourcemap: true,
+      },
+    ],
   },
   clearMocks: true,
   reporters: [
-    'default',
-    ['jest-junit', { outputDirectory: 'results', outputName: 'report.xml' }]
+    "default",
+    ["jest-junit", { outputDirectory: "results", outputName: "report.xml" }],
   ],
   collectCoverage: false,
-  coverageProvider: 'v8',
-  testMatch: ['**/*.test.ts'],
-  testEnvironment: 'node'
-}
+  coverageProvider: "v8",
+  testMatch: ["**/*.test.ts"],
+  testEnvironment: "node",
+};
