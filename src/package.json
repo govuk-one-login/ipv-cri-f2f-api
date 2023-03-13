@@ -1,0 +1,11 @@
+{
+    "name": "F2F",
+    "version": "1.0.0",
+    "description": "OneLogin F2F CRI",
+    "repository": "https://github.com/alphagov/di-ipv-cri-f2f-api",
+    "author": "GDS",
+    "license": "MIT",
+    "engines": {
+        "node": "^18.0.0"
+    }
+}
