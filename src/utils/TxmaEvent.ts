@@ -3,9 +3,8 @@ import { ISessionItem } from "../models/ISessionItem";
 import { absoluteTimeNow } from "./DateTimeUtils";
 
 export type TxmaEventName =
-	"CIC_CRI_START"
-	| "CIC_CRI_AUTH_CODE_ISSUED"
-	| "CIC_CRI_VC_ISSUED";
+	"F2F_CRI_START"
+	| "F2F_CRI_AUTH_CODE_ISSUED";
 
 export interface TxmaUser {
 	"user_id": string;

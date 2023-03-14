@@ -3,3 +3,4 @@ coverage/
 dist/
 .aws-sam
 reports/
+build/

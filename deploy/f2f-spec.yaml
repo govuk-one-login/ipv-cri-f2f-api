@@ -116,96 +116,6 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
-  # /userInfo:
-  #   post:
-  #     operationId: postUserInfo
-  #     summary: Retrieve the JWT contained the Verified Credential(s) for a given Auth Session.
-  #     description: >-
-  #       Returns a JWT containing the user information and associated verified credentials as supplied by the
-  #       biometrics vendor. Requires an access token as issued by `POST /token`, and can only be called once.
-  #     tags:
-  #       - Backend - CI CRI specific
-  #     parameters:
-  #       - $ref: '#/components/parameters/Authorization'
-  #     responses:
-  #       "200":
-  #         description: >-
-  #           OK - Signed Verified Credential returned as a JWT
-  #         headers:
-  #           Cache-Control:
-  #             schema:
-  #               type: "string"
-  #           Content-Type:
-  #             schema:
-  #               type: "string"
-  #           Strict-Transport-Security:
-  #             schema:
-  #               type: "string"
-  #           X-Content-Type-Options:
-  #             schema:
-  #               type: "string"
-  #           X-Frame-Options:
-  #             schema:
-  #               type: "string"
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/UserInfoJwt"
-  #       "401":
-  #         description: Unauthorized
-  #         headers:
-  #           Cache-Control:
-  #             schema:
-  #               type: "string"
-  #           Content-Type:
-  #             schema:
-  #               type: "string"
-  #           Strict-Transport-Security:
-  #             schema:
-  #               type: "string"
-  #           X-Content-Type-Options:
-  #             schema:
-  #               type: "string"
-  #           X-Frame-Options:
-  #             schema:
-  #               type: "string"
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/OAuthErrorResponse"
-  #       "500":
-  #         description: Internal Server Error
-  #         headers:
-  #           Cache-Control:
-  #             schema:
-  #               type: "string"
-  #           Content-Type:
-  #             schema:
-  #               type: "string"
-  #           Strict-Transport-Security:
-  #             schema:
-  #               type: "string"
-  #           X-Content-Type-Options:
-  #             schema:
-  #               type: "string"
-  #           X-Frame-Options:
-  #             schema:
-  #               type: "string"
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/OAuthErrorResponse"
-  #     x-amazon-apigateway-request-validator: "both"
-  #     x-amazon-apigateway-integration:
-  #       httpMethod: "POST"
-  #       uri:
-  #         Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:User-Info-${AWS::StackName}:live/invocations
-  #       responses:
-  #         default:
-  #           statusCode: "200"
-  #       passthroughBehavior: "when_no_match"
-  #       contentHandling: "CONVERT_TO_TEXT"
-  #       type: "aws_proxy"
   /authorization:
     get:
       operationId: getAuthorization
@@ -388,116 +298,13 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: "POST"
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ClaimedIdentityFunction.Arn}:live/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TokenFunction.Arn}:live/invocations
         responses:
           default:
             statusCode: "200"
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
-
-  # /claimedIdentity:
-  #   post:
-  #     operationId: postClaimedIdentity
-  #     summary: submit claimed identity information
-  #     description: >-
-  #       submit the claimed identity information gathered via the CI CRI UI
-  #     tags:
-  #       - Backend - CI CRI specific
-  #     requestBody:
-  #       required: true
-  #       content:
-  #         application/json:
-  #           schema:
-  #             $ref: '#/components/schemas/ClaimedIdentityRequest'
-  #     parameters:
-  #       - $ref: '#/components/parameters/SessionId'
-  #     responses:
-  #       "200":
-  #         description: >-
-  #           OK - claimed identity data has been received and accepted
-  #         headers:
-  #           Cache-Control:
-  #             schema:
-  #               type: "string"
-  #           Content-Type:
-  #             schema:
-  #               type: "string"
-  #           Strict-Transport-Security:
-  #             schema:
-  #               type: "string"
-  #           X-Content-Type-Options:
-  #             schema:
-  #               type: "string"
-  #           X-Frame-Options:
-  #             schema:
-  #               type: "string"
-  #       "400":
-  #         description: >-
-  #           Bad Request - claimed identity data failed validation and has not been persisted
-  #         headers:
-  #           Cache-Control:
-  #             schema:
-  #               type: "string"
-  #           Content-Type:
-  #             schema:
-  #               type: "string"
-  #           Strict-Transport-Security:
-  #             schema:
-  #               type: "string"
-  #           X-Content-Type-Options:
-  #             schema:
-  #               type: "string"
-  #           X-Frame-Options:
-  #             schema:
-  #               type: "string"
-  #       "401":
-  #         description: Unauthorized
-  #         headers:
-  #           Cache-Control:
-  #             schema:
-  #               type: "string"
-  #           Content-Type:
-  #             schema:
-  #               type: "string"
-  #           Strict-Transport-Security:
-  #             schema:
-  #               type: "string"
-  #           X-Content-Type-Options:
-  #             schema:
-  #               type: "string"
-  #           X-Frame-Options:
-  #             schema:
-  #               type: "string"
-  #       "500":
-  #         description: Internal Server Error
-  #         headers:
-  #           Cache-Control:
-  #             schema:
-  #               type: "string"
-  #           Content-Type:
-  #             schema:
-  #               type: "string"
-  #           Strict-Transport-Security:
-  #             schema:
-  #               type: "string"
-  #           X-Content-Type-Options:
-  #             schema:
-  #               type: "string"
-  #           X-Frame-Options:
-  #             schema:
-  #               type: "string"
-  #     x-amazon-apigateway-request-validator: "both"
-  #     x-amazon-apigateway-integration:
-  #       httpMethod: "POST"
-  #       uri:
-  #         Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:F2F-ClaimedIdentity-${AWS::StackName}:live/invocations
-  #       responses:
-  #         default:
-  #           statusCode: "200"
-  #       passthroughBehavior: "when_no_match"
-  #       contentHandling: "CONVERT_TO_TEXT"
-  #       type: "aws_proxy"
 
   /.well-known/jwks.json:
     get:
@@ -776,39 +583,39 @@ components:
           example: jwt_bearer
           description: >-
             Client assertion type (use for client credentials flow, not supported here)
-    # ClaimedIdentityRequest:
-    #   type: object
-    #   additionalProperties: false
-    #   required:
-    #     - full_name
-    #     - date_of_birth
-    #     - document_selected
-    #     - date_of_expiry
-    #   properties:
-    #     full_name:
-    #       type: string
-    #       example: Frederick Joseph Flintstone
-    #       description: claimed full legal name
-    #     date_of_birth:
-    #       type: string
-    #       format: date
-    #       example: "1970-01-01"
-    #       description: claimed Date of Birth
-    #     document_selected:
-    #       type: string
-    #       example: driversPermit
-    #       description: >-
-    #         specifies which of the available supported document types the user elected to present for offline
-    #         verification
-    #       enum:
-    #         - driversPermit
-    #         - passport
-    #         - biometricResidentsPermit
-    #     date_of_expiry:
-    #       type: string
-    #       format: date
-    #       example: "1970-01-01"
-    #       description: claimed expiry date for the document to be presented at the post office
+    ClaimedIdentityRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - full_name
+        - date_of_birth
+        - document_selected
+        - date_of_expiry
+      properties:
+        full_name:
+          type: string
+          example: Frederick Joseph Flintstone
+          description: claimed full legal name
+        date_of_birth:
+          type: string
+          format: date
+          example: "1970-01-01"
+          description: claimed Date of Birth
+        document_selected:
+          type: string
+          example: driversPermit
+          description: >-
+            specifies which of the available supported document types the user elected to present for offline
+            verification
+          enum:
+            - driversPermit
+            - passport
+            - biometricResidentsPermit
+        date_of_expiry:
+          type: string
+          format: date
+          example: "1970-01-01"
+          description: claimed expiry date for the document to be presented at the post office
     JWKSFile:
       type: object
       required:

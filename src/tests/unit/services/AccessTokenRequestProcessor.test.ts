@@ -1,7 +1,7 @@
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { CicService } from "../../../services/CicService";
+import { F2fService } from "../../../services/F2fService";
 import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { ISessionItem } from "../../../models/ISessionItem";
@@ -18,8 +18,8 @@ import { randomUUID } from "crypto";
 import { AppError } from "../../../utils/AppError";
 
 let accessTokenRequestProcessorTest: AccessTokenRequestProcessor;
-const mockCicService = mock<CicService>();
-let mockSession : ISessionItem;
+const mockF2fService = mock<F2fService>();
+let mockSession: ISessionItem;
 jest.mock("../../../utils/KmsJwtAdapter");
 const passingKmsJwtAdapterFactory = (_signingKeys: string) => new MockKmsSigningTokenJwtAdapter();
 const failingKmsJwtSigningAdapterFactory = (_signingKeys: string) => new MockFailingKmsSigningJwtAdapter();
@@ -27,16 +27,16 @@ const failingKmsJwtSigningAdapterFactory = (_signingKeys: string) => new MockFai
 
 const logger = new Logger({
 	logLevel: "DEBUG",
-	serviceName: "CIC",
+	serviceName: "F2F",
 });
-const metrics = new Metrics({ namespace: "CIC" });
+const metrics = new Metrics({ namespace: "F2F" });
 const ENCODED_REDIRECT_URI = encodeURIComponent("http://localhost:8085/callback");
 const AUTHORIZATION_CODE = randomUUID();
-let request : APIGatewayProxyEvent;
+let request: APIGatewayProxyEvent;
 
-function getMockSessionItem() : ISessionItem {
+function getMockSessionItem(): ISessionItem {
 	const sess: ISessionItem = {
-		sessionId : "b0668808-67ce-8jc7-a2fc-132b81612111",
+		sessionId: "b0668808-67ce-8jc7-a2fc-132b81612111",
 		clientId: "ipv-core-stub",
 		accessToken: "AbCdEf123456",
 		clientSessionId: "sdfssg",
@@ -51,11 +51,7 @@ function getMockSessionItem() : ISessionItem {
 		persistentSessionId: "sdgsdg",
 		clientIpAddress: "127.0.0.1",
 		attemptCount: 1,
-		full_name: "test user",
-		date_of_birth: "09-08-1961",
-		document_selected: "Passport",
-		date_of_expiry: "23-04-1027",
-		authSessionState: AuthSessionState.CIC_AUTH_CODE_ISSUED,
+		authSessionState: AuthSessionState.F2F_AUTH_CODE_ISSUED,
 	};
 	return sess;
 }
@@ -65,7 +61,7 @@ describe("AccessTokenRequestProcessor", () => {
 		mockSession = getMockSessionItem();
 		accessTokenRequestProcessorTest = new AccessTokenRequestProcessor(logger, metrics);
 		// @ts-ignore
-		accessTokenRequestProcessorTest.cicService = mockCicService;
+		accessTokenRequestProcessorTest.f2fService = mockF2fService;
 		request = VALID_ACCESSTOKEN;
 	});
 
@@ -76,15 +72,15 @@ describe("AccessTokenRequestProcessor", () => {
 		// Setting the request body with a valid params
 		request.body = `code=${AUTHORIZATION_CODE}&grant_type=authorization_code&redirect_uri=${ENCODED_REDIRECT_URI}`;
 		mockSession = getMockSessionItem();
-		mockCicService.getSessionByAuthorizationCode.mockResolvedValue(mockSession);
+		mockF2fService.getSessionByAuthorizationCode.mockResolvedValue(mockSession);
 	});
 
 	it("Return bearer access token response when grant_type, code, and redirect_uri parameters are provided", async () => {
-		mockCicService.getSessionByAuthorizationCode.mockResolvedValue(mockSession);
+		mockF2fService.getSessionByAuthorizationCode.mockResolvedValue(mockSession);
 
 		const out: Response = await accessTokenRequestProcessorTest.processRequest(request);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockCicService.getSessionByAuthorizationCode).toHaveBeenCalledTimes(1);
+		expect(mockF2fService.getSessionByAuthorizationCode).toHaveBeenCalledTimes(1);
 
 		expect(out.body).toEqual(JSON.stringify({
 			"access_token": "ACCESS_TOKEN",
@@ -105,7 +101,7 @@ describe("AccessTokenRequestProcessor", () => {
 		[`grant_type=authorization_code&redirect_uri=${ENCODED_REDIRECT_URI}`, "Invalid request: Missing code parameter"],
 		[`code=${AUTHORIZATION_CODE}&redirect_uri=${ENCODED_REDIRECT_URI}`, "Invalid grant_type parameter"],
 		[`code=${AUTHORIZATION_CODE}&grant_type=authorization_code`, "Invalid request: Missing redirect_uri parameter"],
-	])("When parameters are not provided in the body, it returns 401 Unauthorized response", async (body, errMsg ) => {
+	])("When parameters are not provided in the body, it returns 401 Unauthorized response", async (body, errMsg) => {
 		request.body = body;
 		const out: Response = await accessTokenRequestProcessorTest.processRequest(request);
 
@@ -130,12 +126,12 @@ describe("AccessTokenRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 	});
 
-	it("Return 401 Unauthorized response when AuthSessionState is not CIC_AUTH_CODE_ISSUED", async () => {
-		mockSession.authSessionState = AuthSessionState.CIC_ACCESS_TOKEN_ISSUED;
-		mockCicService.getSessionByAuthorizationCode.mockResolvedValue(mockSession);
+	it("Return 401 Unauthorized response when AuthSessionState is not F2F_AUTH_CODE_ISSUED", async () => {
+		mockSession.authSessionState = AuthSessionState.F2F_ACCESS_TOKEN_ISSUED;
+		mockF2fService.getSessionByAuthorizationCode.mockResolvedValue(mockSession);
 		const out: Response = await accessTokenRequestProcessorTest.processRequest(request);
 
-		expect(out.body).toBe("AuthSession is in wrong Auth state: Expected state- CIC_AUTH_CODE_ISSUED, actual state- CIC_ACCESS_TOKEN_ISSUED");
+		expect(out.body).toBe("AuthSession is in wrong Auth state: Expected state- F2F_AUTH_CODE_ISSUED, actual state- F2F_ACCESS_TOKEN_ISSUED");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 	});
 
@@ -148,7 +144,7 @@ describe("AccessTokenRequestProcessor", () => {
 	});
 
 	it("Return 401 Unauthorized response when session was not found in the DB for a authorizationCode", async () => {
-		mockCicService.getSessionByAuthorizationCode.mockResolvedValue(undefined);
+		mockF2fService.getSessionByAuthorizationCode.mockResolvedValue(undefined);
 
 		const out: Response = await accessTokenRequestProcessorTest.processRequest(request);
 
@@ -167,7 +163,7 @@ describe("AccessTokenRequestProcessor", () => {
 
 	it("Return 401 when getting session from dynamoDB errors", async () => {
 		// @ts-ignore
-		mockCicService.getSessionByAuthorizationCode.mockImplementation(() => {
+		mockF2fService.getSessionByAuthorizationCode.mockImplementation(() => {
 			throw new Error("Error while retrieving the session");
 		});
 		const out: Response = await accessTokenRequestProcessorTest.processRequest(request);
@@ -178,7 +174,7 @@ describe("AccessTokenRequestProcessor", () => {
 
 	it("Return 500 when updating the session returns an error", async () => {
 		// @ts-ignore
-		mockCicService.updateSessionWithAccessTokenDetails.mockImplementation(() => {
+		mockF2fService.updateSessionWithAccessTokenDetails.mockImplementation(() => {
 			throw new AppError("updateItem - failed: got error saving Access token details", HttpCodesEnum.SERVER_ERROR);
 		});
 		const out: Response = await accessTokenRequestProcessorTest.processRequest(request);

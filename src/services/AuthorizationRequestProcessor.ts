@@ -1,5 +1,5 @@
 import { Response } from "../utils/Response";
-import { CicService } from "./CicService";
+import { F2fService } from "./F2fService";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { randomUUID } from "crypto";
 import { APIGatewayProxyEvent } from "aws-lambda";
@@ -25,17 +25,17 @@ export class AuthorizationRequestProcessor {
 
 	private readonly validationHelper: ValidationHelper;
 
-	private readonly cicService: CicService;
+	private readonly f2fService: F2fService;
 
 	constructor(logger: Logger, metrics: Metrics) {
 		if (!SESSION_TABLE || !TXMA_QUEUE_URL || !ISSUER) {
 			logger.error("Environment variable SESSION_TABLE or TXMA_QUEUE_URL or ISSUER is not configured");
-			throw new AppError( "Service incorrectly configured", HttpCodesEnum.SERVER_ERROR);
+			throw new AppError("Service incorrectly configured", HttpCodesEnum.SERVER_ERROR);
 		}
 		this.logger = logger;
 		this.validationHelper = new ValidationHelper();
 		this.metrics = metrics;
-		this.cicService = CicService.getInstance(SESSION_TABLE, this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(SESSION_TABLE, this.logger, createDynamoDbClient());
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics): AuthorizationRequestProcessor {
@@ -47,7 +47,7 @@ export class AuthorizationRequestProcessor {
 
 	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
 
-		const session = await this.cicService.getSessionById(sessionId);
+		const session = await this.f2fService.getSessionById(sessionId);
 
 		if (session != null) {
 			if (session.expiryDate < absoluteTimeNow()) {
@@ -56,27 +56,27 @@ export class AuthorizationRequestProcessor {
 
 			this.logger.info({ message: "found session", session });
 			this.metrics.addMetric("found session", MetricUnits.Count, 1);
-			if (session.authSessionState !== AuthSessionState.CIC_DATA_RECEIVED) {
-				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.CIC_DATA_RECEIVED}`);
+			if (session.authSessionState !== AuthSessionState.F2F_DATA_RECEIVED) {
+				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_DATA_RECEIVED}`);
 				return new Response(HttpCodesEnum.UNAUTHORIZED, `Session is in the wrong state: ${session.authSessionState}`);
 			}
 
 			const authorizationCode = randomUUID();
 
-			await this.cicService.setAuthorizationCode(sessionId, authorizationCode);
+			await this.f2fService.setAuthorizationCode(sessionId, authorizationCode);
 
 			this.metrics.addMetric("Set authorization code", MetricUnits.Count, 1);
 			try {
-				await this.cicService.sendToTXMA({
-					event_name: "CIC_CRI_AUTH_CODE_ISSUED",
+				await this.f2fService.sendToTXMA({
+					event_name: "F2F_CRI_AUTH_CODE_ISSUED",
 					...buildCoreEventFields(session, ISSUER, session.clientIpAddress, absoluteTimeNow),
 
 				});
 			} catch (error) {
-				this.logger.error("Failed to write TXMA event CIC_CRI_AUTH_CODE_ISSUED to SQS queue.");
+				this.logger.error("Failed to write TXMA event F2F_CRI_AUTH_CODE_ISSUED to SQS queue.");
 			}
 
-			const cicResp = {
+			const f2fResp = {
 				authorizationCode: {
 					value: authorizationCode,
 				},
@@ -84,7 +84,7 @@ export class AuthorizationRequestProcessor {
 				state: session?.state,
 			};
 
-			return new Response(HttpCodesEnum.OK, JSON.stringify(cicResp));
+			return new Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));
 		} else {
 			return new Response(HttpCodesEnum.UNAUTHORIZED, `No session found with the session id: ${sessionId}`);
 		}

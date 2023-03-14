@@ -10,9 +10,9 @@ import { HttpVerbsEnum } from "./utils/HttpVerbsEnum";
 import { Constants } from "./utils/Constants";
 import { AuthorizationRequestProcessor } from "./services/AuthorizationRequestProcessor";
 
-const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.CLAIMEDID_METRICS_NAMESPACE;
+const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
-const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.CLAIMEDID_LOGGER_SVC_NAME;
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.AUTHORIZATIONCODE_LOGGER_SVC_NAME;
 
 const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
@@ -48,7 +48,7 @@ class AuthorizationCodeHandler implements LambdaInterface {
 						return await AuthorizationRequestProcessor.getInstance(logger, metrics).processRequest(event, sessionId);
 					} catch (err: any) {
 						logger.error({ message: "An error has occurred.", err });
-						if (err instanceof  AppError) {
+						if (err instanceof AppError) {
 							return new Response(err.statusCode, err.message);
 						}
 						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");

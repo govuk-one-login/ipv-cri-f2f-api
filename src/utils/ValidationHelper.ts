@@ -33,34 +33,14 @@ export class ValidationHelper {
 		});
 	}
 
-	private validateUserData(data: string | undefined, errmsg: string, logger: Logger): boolean {
-		let isValid = true;
-		if (data == null || data === undefined || data.trim().length === 0) {
-			logger.info({ message :"UserInfo missing: ", errmsg });
-			isValid = false;
-		}
-		return isValid;
-	}
-
-	validateUserInfo(session: ISessionItem, logger: Logger): boolean {
-		let isValid = true;
-		if (!this.validateUserData(session.full_name, "Full Name is missing", logger) ||
-			!this.validateUserData(session.date_of_birth, "Date of Birth is missing", logger) ||
-			!this.validateUserData(session.document_selected, "Document selection type is missing", logger) ||
-			!this.validateUserData(session.date_of_expiry, "Expiry Date is missing", logger)) {
-			isValid = false;
-		}
-		return isValid;
-	}
-
 	async eventToSubjectIdentifier(jwtAdapter: KmsJwtAdapter, event: APIGatewayProxyEvent): Promise<string> {
 		const headerValue = event.headers.authorization ?? event.headers.Authorization;
 		if (headerValue === null || headerValue === undefined) {
-			throw new AppError( "Missing header: Authorization header value is missing or invalid auth_scheme", HttpCodesEnum.UNAUTHORIZED);
+			throw new AppError("Missing header: Authorization header value is missing or invalid auth_scheme", HttpCodesEnum.UNAUTHORIZED);
 		}
 		const authHeader = event.headers.Authorization as string;
 		if (authHeader !== null && !authHeader.includes(Constants.BEARER)) {
-			throw new AppError( "Missing header: Authorization header is not of Bearer type access_token", HttpCodesEnum.UNAUTHORIZED);
+			throw new AppError("Missing header: Authorization header is not of Bearer type access_token", HttpCodesEnum.UNAUTHORIZED);
 
 		}
 		const token = headerValue.replace(/^Bearer\s+/, "");
@@ -68,7 +48,7 @@ export class ValidationHelper {
 		try {
 			isValidJwt = await jwtAdapter.verify(token);
 		} catch (err) {
-			throw new AppError( "Failed to verify signature", HttpCodesEnum.UNAUTHORIZED);
+			throw new AppError("Failed to verify signature", HttpCodesEnum.UNAUTHORIZED);
 		}
 
 		if (!isValidJwt) {
@@ -82,7 +62,7 @@ export class ValidationHelper {
 		}
 
 		if (jwt?.payload?.sub == null) {
-			throw new AppError( "sub missing", HttpCodesEnum.UNAUTHORIZED);
+			throw new AppError("sub missing", HttpCodesEnum.UNAUTHORIZED);
 		}
 
 		return jwt.payload.sub;

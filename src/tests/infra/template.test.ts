@@ -13,7 +13,7 @@ describe("Infra", () => {
 			readFileSync("../deploy/template.yaml", "utf-8"),
 			{ schema },
 		);
-		delete yamltemplate.Resources.CICRestApi.Properties.DefinitionBody; // To be removed, not SAM compatible.
+		delete yamltemplate.Resources.F2FRestApi.Properties.DefinitionBody; // To be removed, not SAM compatible.
 		template = Template.fromJSON(yamltemplate);
 	});
 
@@ -49,8 +49,8 @@ describe("Infra", () => {
 		});
 	});
 
-	it("There are 5 lambdas defined, all with a specific permission:", () => {
-		const lambdaCount = 5;
+	it("There are 3 lambdas defined, all with a specific permission:", () => {
+		const lambdaCount = 3;
 		template.resourceCountIs("AWS::Serverless::Function", lambdaCount);
 		template.resourceCountIs("AWS::Lambda::Permission", lambdaCount);
 	});

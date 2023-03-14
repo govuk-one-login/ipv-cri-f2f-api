@@ -1,11 +1,4 @@
-export interface ICicSession {
-	full_name: string;
-	date_of_birth: string;
-	document_selected: string;
-	date_of_expiry: string;
-}
-
-export interface ISessionItem extends ICicSession {
+export interface ISessionItem {
 	sessionId: string;
 	clientId: string;
 	clientSessionId: string;
