@@ -46,7 +46,7 @@ export class AccessTokenRequestValidationHelper {
 				`Invalid request: redirect uri ${redirectUri} does not match configuration uri ${sessionItem.redirectUri}`,
 				HttpCodesEnum.UNAUTHORIZED);
 		}
-		// Validate if the AuthSessionState is CIC_AUTH_CODE_ISSUED
+		// Validate if the AuthSessionState is F2F_AUTH_CODE_ISSUED
 		if (sessionItem.authSessionState !== AuthSessionState.F2F_AUTH_CODE_ISSUED) {
 			throw new AppError(`AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${sessionItem.authSessionState}`, HttpCodesEnum.UNAUTHORIZED);
 		}

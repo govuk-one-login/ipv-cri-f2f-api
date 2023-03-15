@@ -16,7 +16,7 @@ describe("AccessTokenHandler", () => {
 	it("return success response for accessToken", async () => {
 		AccessTokenRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedAccessTokenRequestProcessor);
 
-		await lambdaHandler(VALID_ACCESSTOKEN, "CIC");
+		await lambdaHandler(VALID_ACCESSTOKEN, "F2F");
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockedAccessTokenRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
@@ -25,7 +25,7 @@ describe("AccessTokenHandler", () => {
 	it("return not found when resource not found", async () => {
 		AccessTokenRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedAccessTokenRequestProcessor);
 
-		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "CIC")).rejects.toThrow(expect.objectContaining({
+		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "F2F")).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.NOT_FOUND,
 		}));
 	});

@@ -1,8 +1,8 @@
 {
-    "name": "CIC",
+    "name": "F2F",
     "version": "1.0.0",
-    "description": "OneLogin CIC CRI",
-    "repository": "https://github.com/alphagov/di-ipv-cri-cic-api",
+    "description": "OneLogin F2F CRI",
+    "repository": "https://github.com/alphagov/di-ipv-cri-f2f-api",
     "author": "GDS",
     "license": "MIT",
     "dependencies": {

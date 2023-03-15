@@ -27,7 +27,7 @@ describe("AuthorizationCodeHandler", () => {
 	it("return not found when unsupported http method tried for authorization", async () => {
 		AuthorizationRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedAuthorizationRequestProcessor);
 
-	     return expect(lambdaHandler(UNSUPPORTED_AUTHCODE, "CIC")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
+		return expect(lambdaHandler(UNSUPPORTED_AUTHCODE, "F2F")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
 	});
 
 	it("return not found when resource not found", async () => {

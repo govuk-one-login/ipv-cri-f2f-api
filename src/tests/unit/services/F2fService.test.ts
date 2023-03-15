@@ -6,7 +6,7 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 
 const logger = new Logger({
 	logLevel: "DEBUG",
-	serviceName: "CIC",
+	serviceName: "F2F",
 });
 
 let f2fService: F2fService;
@@ -18,7 +18,7 @@ const SESSION_RECORD = require("../data/db_record.json");
 
 const FAILURE_VALUE = "throw_me";
 
-describe("Cic Service", () => {
+describe("F2f Service", () => {
 	beforeEach(() => {
 		jest.resetAllMocks();
 		f2fService = new F2fService(tableName, logger, mockDynamoDbClient);
@@ -35,7 +35,7 @@ describe("Cic Service", () => {
 		return expect(f2fService.getSessionById("1234")).resolves.toBeUndefined();
 	});
 
-	it("Should not throw an error and return undefined when set AuthorizationCode CIC data doesn't exist", async () => {
+	it("Should not throw an error and return undefined when set AuthorizationCode F2F data doesn't exist", async () => {
 		return expect(f2fService.setAuthorizationCode("SESSID", randomUUID())).resolves.toBeUndefined();
 	});
 
