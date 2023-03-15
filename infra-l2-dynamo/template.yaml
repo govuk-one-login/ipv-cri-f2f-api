@@ -70,8 +70,6 @@ Resources:
           AttributeType: "S"
         - AttributeName: "authorizationCode"
           AttributeType: "S"
-        - AttributeName: "accessToken"
-          AttributeType: "S"
       KeySchema:
         - AttributeName: "sessionId"
           KeyType: "HASH"
@@ -85,15 +83,7 @@ Resources:
               - "sessionId"
               - "redirectUri"
               - "clientId"
-            ProjectionType: "INCLUDE"
-        - IndexName: "access-token-index"
-          KeySchema:
-            - AttributeName: "accessToken"
-              KeyType: "HASH"
-          Projection:
-            NonKeyAttributes:
-              - "sessionId"
-              - "subject"
+              - "authSessionState"
             ProjectionType: "INCLUDE"
       TimeToLiveSpecification:
         AttributeName: expiryDate
