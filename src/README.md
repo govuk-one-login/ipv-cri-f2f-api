@@ -1,6 +1,6 @@
-# Claimed Identity Collector
+# Face-To-Face Service
 
-Claimed identity collector
+Face-To-Face Service
 
 ## How to run build
 
