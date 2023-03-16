@@ -26,7 +26,6 @@ jobs:
   run-code-check:
     name: Code Checks
     runs-on: ubuntu-latest
-    environment: di-ipv-cri-dev
     defaults:
       run:
         shell: bash
