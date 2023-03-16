@@ -68,6 +68,8 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "sessionId"
           AttributeType: "S"
+        - AttributeName: "authorizationCode"
+          AttributeType: "S"
       KeySchema:
         - AttributeName: "sessionId"
           KeyType: "HASH"
