@@ -68,22 +68,9 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "sessionId"
           AttributeType: "S"
-        - AttributeName: "authorizationCode"
-          AttributeType: "S"
       KeySchema:
         - AttributeName: "sessionId"
           KeyType: "HASH"
-      GlobalSecondaryIndexes:
-        - IndexName: "authorizationCode-index"
-          KeySchema:
-            - AttributeName: "authorizationCode"
-              KeyType: "HASH"
-          Projection:
-            NonKeyAttributes:
-              - "sessionId"
-              - "redirectUri"
-              - "clientId"
-            ProjectionType: "INCLUDE"
       TimeToLiveSpecification:
         AttributeName: expiryDate
         Enabled: true
