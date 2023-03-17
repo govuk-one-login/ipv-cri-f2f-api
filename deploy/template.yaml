@@ -58,19 +58,19 @@ Mappings:
       apiTracingEnabled: false
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
-      ISSUER: 'https://review-c.dev.account.gov.uk'
+      ISSUER: 'https://review-o.dev.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     build:
-      ISSUER: 'https://review-c.build.account.gov.uk'
+      ISSUER: 'https://review-o.build.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     staging:
-      ISSUER: 'https://review-c.staging.account.gov.uk'
+      ISSUER: 'https://review-o.staging.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     integration:
-      ISSUER: 'https://review-c.integration.account.gov.uk'
+      ISSUER: 'https://review-o.integration.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     production:
-      ISSUER: 'https://review-c.account.gov.uk'
+      ISSUER: 'https://review-o.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
@@ -172,7 +172,7 @@ Resources:
     Type: "AWS::S3::Bucket"
     DeletionPolicy: Delete
     Properties:
-      BucketName: !Sub ${AWS::StackName}-jwks1-${Environment}
+      BucketName: !Sub ${AWS::StackName}-jwks-f2f-${Environment}
       VersioningConfiguration:
         Status: "Enabled"
       PublicAccessBlockConfiguration:
