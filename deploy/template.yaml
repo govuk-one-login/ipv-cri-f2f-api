@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: "AWS::Serverless-2016-10-31"
-Description: "Digital Identity IPV CRI CIC API"
+Description: "Digital Identity IPV CRI F2F API"
 
 Parameters:
   CodeSigningConfigArn:
@@ -32,11 +32,11 @@ Parameters:
     Description: The name of the VPC stack deployed.
   L2DynamoStackName:
     Type: String
-    Default: "cic-cri-ddb"
+    Default: "f2f-cri-ddb"
     Description: The name of the L2 DynamoDB stack deployed.
   L2KMSStackName:
     Type: String
-    Default: "cic-cri-kms"
+    Default: "f2f-cri-kms"
     Description: The name of the L2 DynamoDB stack deployed.
 
 Mappings:
@@ -58,30 +58,20 @@ Mappings:
       apiTracingEnabled: false
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
-      CLIENTS: '[{"jwksEndpoint":"https://lg0i8qtuph.execute-api.eu-west-2.amazonaws.com/dev/.well-known/jwks.json","clientId":"cd2cc8b5-304a-46e8-9b04-0e90438c18be","redirectUri":"https://www.review-b.build.account.gov.uk/stub/callback"},{"jwksEndpoint": "https://oxhi1jeu67.execute-api.eu-west-2.amazonaws.com/dev/.well-known/jwks.json", "clientId":"5C584572-9A61-4601-9E78-676713292A4E", "redirectUri": "https://oxhi1jeu67.execute-api.eu-west-2.amazonaws.com/dev/redirect"},{"jwksEndpoint":"https://ykp2os4gy2.execute-api.eu-west-2.amazonaws.com/dev/.well-known/jwks.json", "clientId":"5C584572-9A61-4601-9E78-676713292ADC", "redirectUri":"https://ykp2os4gy2.execute-api.eu-west-2.amazonaws.com/dev/redirect"}]'
+      ISSUER: 'https://review-o.dev.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      ISSUER: 'https://review-c.dev.account.gov.uk'
-      AUTHSESSIONTTL: '604800' # 7 days in seconds
     build:
-      CLIENTS: '[{"jwksEndpoint":"https://lg0i8qtuph.execute-api.eu-west-2.amazonaws.com/dev/.well-known/jwks.json","clientId":"cd2cc8b5-304a-46e8-9b04-0e90438c18be","redirectUri":"https://www.review-b.build.account.gov.uk/stub/callback"},{"jwksEndpoint":"https://vtkjzynbr9.execute-api.eu-west-2.amazonaws.com/build/.well-known/jwks.json","clientId":"BD7B2A5D-1167-4EA3-8B57-B693A850689D","redirectUri":"https://vtkjzynbr9.execute-api.eu-west-2.amazonaws.com/build/redirect"}]'
+      ISSUER: 'https://review-o.build.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      ISSUER: 'https://review-c.build.account.gov.uk'
-      AUTHSESSIONTTL: '604800' # 7 days in seconds
     staging:
-      CLIENTS: '[{"jwksEndpoint":"https://oidc.staging.account.gov.uk/.well-known/jwks.json","clientId":"authOrchestratorDocApp","redirectUri":"https://oidc.staging.account.gov.uk/doc-app-callback"},{"jwksEndpoint":"https://18zwbqzm0k.execute-api.eu-west-2.amazonaws.com/staging/.well-known/jwks.json","clientId":"ipv-core","redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=dcmaw"},{"jwksEndpoint":"https://18zwbqzm0k.execute-api.eu-west-2.amazonaws.com/staging/.well-known/jwks.json","clientId":"23d554e9-6b6e-46cb-8440-d6010635d673","redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback/dcmaw"},{"jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json","clientId":"03A5A659-17AA-453F-B905-95D2804823D1","redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback/dcmaw"},{"jwksEndpoint":"https://xqy12f7o47.execute-api.eu-west-2.amazonaws.com/staging/.well-known/jwks.json","clientId":"9CDA6F61-DCA5-4747-96D8-AFC6C6ECB068","redirectUri":"https://xqy12f7o47.execute-api.eu-west-2.amazonaws.com/staging/redirect"}]'
+      ISSUER: 'https://review-o.staging.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      ISSUER: 'https://review-c.staging.account.gov.uk'
-      AUTHSESSIONTTL: '86400' # 24 hours in seconds
     integration:
-      CLIENTS: '[{"jwksEndpoint":"https://oidc.integration.account.gov.uk/.well-known/jwks.json", "clientId":"authOrchestratorDocApp", "redirectUri":"https://oidc.integration.account.gov.uk/doc-app-callback"}, {"jwksEndpoint":"https://khcwzwwkrk.execute-api.eu-west-2.amazonaws.com/integration/.well-known/jwks.json", "clientId":"ipv-core", "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback/dcmaw"}, {"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback/dcmaw"}]'
+      ISSUER: 'https://review-o.integration.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      ISSUER: 'https://review-c.integration.account.gov.uk'
-      AUTHSESSIONTTL: '86400' # 24 hours in seconds
     production:
-      CLIENTS: '[{"jwksEndpoint":"https://oidc.account.gov.uk/.well-known/jwks.json", "clientId":"authOrchestratorDocApp", "redirectUri":"https://oidc.account.gov.uk/doc-app-callback"}, {"jwksEndpoint":"https://sxzot82ph2.execute-api.eu-west-2.amazonaws.com/production/.well-known/jwks.json", "clientId":"ipv-core", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback/dcmaw"}, {"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback/dcmaw"}]'
+      ISSUER: 'https://review-o.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      ISSUER: 'https://review-c.account.gov.uk'
-      AUTHSESSIONTTL: '86400' # 24 hours in seconds
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
     dev:
@@ -132,9 +122,9 @@ Globals:
         - !GetAtt LambdaEgressSecurityGroup.GroupId
       SubnetIds:
         - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdA"
+            "Fn::Sub": "${VpcStackName}-PrivateSubnetIdA"
         - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdB"
+            "Fn::Sub": "${VpcStackName}-PrivateSubnetIdB"
     PermissionsBoundary: !If
       - UsePermissionsBoundary
       - !Ref PermissionsBoundary
@@ -152,16 +142,15 @@ Globals:
       Variables:
         # These should always be alphabetically organised.
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
-        POWERTOOLS_LOG_LEVEL: DEBUG # The LogLevel for the AWS PowerTools LogHelper
-        POWERTOOLS_METRICS_NAMESPACE: CIC-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
+        POWERTOOLS_LOG_LEVEL: INFO # The LogLevel for the AWS PowerTools LogHelper
+        POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
         ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-        REGION: !Sub "${AWS::Region}"
         SECRET_PREFIX: !If [
           UseSecretPrefix,
           !Ref SecretPrefix,
           !Ref AWS::StackName,
         ] # What is this? @TODO
-        SQS_AUDIT_EVENT_PREFIX: CIC-F2F # The prefix to add to TxMA event messages
+        #  SQS_AUDIT_EVENT_PREFIX: CIC-F2F # The prefix to add to TxMA event messages
     AutoPublishAlias: live
 
 Resources:
@@ -179,67 +168,223 @@ Resources:
       VpcId:
         Fn::ImportValue: !Sub "${VpcStackName}-VpcId"
 
-  ### Function Definition
-
-  GovNotifyFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: GovNotifyFunctionLogGroup
+  JsonWebKeysBucket:
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: Delete
     Properties:
-      FunctionName: !Sub "F2F-GovNotify-${AWS::StackName}"
-      Handler: GovNotifyHandler.lambdaHandler
+      BucketName: !Sub ${AWS::StackName}-jwks-f2f-${Environment}
+      VersioningConfiguration:
+        Status: "Enabled"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  JWKSBucketRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyName: AccessJWKSjson
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:Get*"
+                Resource:
+                  - !Sub "arn:aws:s3:::${JsonWebKeysBucket}/.well-known/jwks.json"
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
+
+  ### Start of API Gateway definition.
+
+  F2FRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      OpenApiVersion: 3.0.1
+      AccessLogSetting:
+        Format: "$context.requestId $context.httpMethod $context.path"
+        DestinationArn: !GetAtt F2FAPIGatewayAccessLogGroup.Arn
+      EndpointConfiguration:
+        Type: REGIONAL
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: './f2f-spec.yaml'
+        OpenApiVersion: 3.0.1
+
+
+      TracingEnabled: true
+      Tags:
+        Product: GOV.UK Sign In
+        System: F2F
+        Environment: !Ref Environment
+        Service: backend
+        Name: F2FRestApi
+        Source: alphagov/di-devplatform-demo-sam-app/sam-app/template.yaml
+
+  F2FAPIGatewayAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+      # KmsKeyId: !GetAtt HelloWorldKmsKey.Arn
+      Tags:
+        - Key: Product
+          Value: GOV.UK Sign In
+        - Key: System
+          Value: Dev Platform
+        - Key: Environment
+          Value: Demo
+        - Key: Service
+          Value: backend
+        - Key: Name
+          Value: APIGatewayAccessLogGroup
+
+  ### End of API Gateway definition.
+
+  ### Function Definition
+  ## AccessToken
+  TokenFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: TokenFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "Access-Token-${AWS::StackName}"
+      Handler: AccessTokenHandler.lambdaHandler
       CodeUri: ../src/
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: GovNotifyHandler
-          S3_BUCKET_NAME: "rimisra1"
-          GOVUKNOTIFY_API_KEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
-#            Fn::ImportValue:
-#              !Sub "${L2DynamoStackName}-session-table-name"
+          POWERTOOLS_SERVICE_NAME: AccessTokenHandler
+          SESSION_TABLE:
+            Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+          KMS_KEY_ARN:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
-        - S3FullAccessPolicy:
-            BucketName: "rimisra1"
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-key-id"
+        - Statement:
+            - Sid: KMSPolicy
+              Effect: Allow
+              Action:
+                - kms:Sign
+              Resource:
+                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+      Events:
+        userInfo:
+          Type: Api
+          Properties:
+            Path: /token
+            Method: post
+            RestApiId: !Ref F2FRestApi
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - AccessTokenHandler.ts
 
-#        - AccessResultsPdf
-#          PolicyDocument:
-#             Version: "2012-10-17"
-#             Statement:
-#               - Effect: Allow
-#                 Action:
-#                  - "s3:Get*"
-#                 Resource:
-#                  - !Sub "arn:aws:s3:::rimisra/response.pdf"
-#        - DynamoDBWritePolicy:
-#            TableName:
-#              Fn::ImportValue:
-#                !Sub "${L2DynamoStackName}-session-table-name"
-#        - DynamoDBReadPolicy:
-#            TableName:
-#              Fn::ImportValue:
-#                !Sub "${L2DynamoStackName}-session-table-name"
-#        - KMSDecryptPolicy:
-#            KeyId:
-#              Fn::ImportValue:
-#                !Sub "${L2DynamoStackName}-session-table-key-id"
-#        - Statement:
-#            - Effect: Allow
-#              Action:
-#                - "sqs:SendMessage"
-#              Resource: !GetAtt TxMASQSQueue.Arn
-#            - Effect: Allow
-#              Action:
-#                - "kms:Encrypt"
-#                - "kms:Decrypt"
-#                - "kms:GenerateDataKey"
-#              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
-#      Events:
-#        authorization:
-#          Type: Api
-#          Properties:
-#            Path: /authorization
-#            Method: get
-#            RestApiId: !Ref CICRestApi
+  TokenFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/Access-Token-${AWS::StackName}"
+      RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logretentionindays ]
+
+  TokenFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsProdLikeEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref TokenFunctionLogGroup
+
+  TokenFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TokenFunction
+      Principal: apigateway.amazonaws.com
+
+  AuthorizationFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: AuthorizationFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-Authorization-${AWS::StackName}"
+      Handler: AuthorizationCodeHandler.lambdaHandler
+      CodeUri: ../src/
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: AuthorizationCodeHandler
+          SESSION_TABLE:
+            Fn::ImportValue:
+              !Sub "${L2DynamoStackName}-session-table-name"
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-key-id"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt TxMASQSQueue.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:GenerateDataKey"
+              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+      Events:
+        authorization:
+          Type: Api
+          Properties:
+            Path: /authorization
+            Method: get
+            RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
@@ -248,12 +393,12 @@ Resources:
         Target: "es2020"
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
-          - GovNotifyHandler.ts
+          - AuthorizationCodeHandler.ts
 
-  GovNotifyFunctionLogGroup:
+  AuthorizationFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/F2F-GovNotify-${AWS::StackName}"
+      LogGroupName: !Sub "/aws/lambda/F2F-Authorization-${AWS::StackName}"
       RetentionInDays:
         !FindInMap [
           EnvironmentConfiguration,
@@ -261,108 +406,164 @@ Resources:
           logretentionindays,
         ]
 
-  GovNotifyFunctionLogsSubscriptionFilterCSLS:
+  AuthorizationFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsProdLikeEnvironment
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
-      LogGroupName: !Ref GovNotifyFunctionLogGroup
+      LogGroupName: !Ref AuthorizationFunctionLogGroup
 
-  GovNotifyFunctionPermission:
+  AuthorizationFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref GovNotifyFunction
+      FunctionName: !Ref AuthorizationFunction
       Principal: apigateway.amazonaws.com
-#
-#  TxMASQSQueue:
-#    Type: AWS::SQS::Queue
-#    Properties:
-#      MessageRetentionPeriod: !FindInMap [EnvironmentVariables, !Ref Environment, MESSAGERETENTIONPERIODDAYS]
-#      VisibilityTimeout: 60
-#      KmsMasterKeyId: !Ref TxMAKeyAlias
-#      RedrivePolicy:
-#        deadLetterTargetArn:
-#          Fn::GetAtt:
-#            - "TxMASQSQueueDeadLetterQueue"
-#            - "Arn"
-#        maxReceiveCount: 5
-#
-#  TxMASQSQueuePolicy:
-#    Type: AWS::SQS::QueuePolicy
-#    Properties:
-#      Queues:
-#        - !Ref TxMASQSQueue
-#      PolicyDocument:
-#        Version: "2012-10-17"
-#        Statement:
-#          - Effect: "Allow"
-#            Action:
-#              - "sqs:DeleteMessage"
-#              - "sqs:GetQueueAttributes"
-#              - "sqs:ChangeMessageVisibility"
-#              - "sqs:ReceiveMessage"
-#            Resource:
-#              - !GetAtt TxMASQSQueue.Arn
-#            Principal:
-#              AWS:
-#                - !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
-#
-#  TxMASQSQueueDeadLetterQueue:
-#    Type: AWS::SQS::Queue
-#    Properties:
-#      MessageRetentionPeriod: 259200 # three days
-#      KmsMasterKeyId: !Sub TxMAKMSEncryptionKey
-#
-#  TxMAKMSEncryptionKey:
-#    Type: AWS::KMS::Key
-#    # KMS Key manually rotated.
-#    # checkov:skip=CKV_AWS_7: KMS Key manually rotated.
-#    Properties:
-#      Description: A KMS Key for encrypting the SQS Queue for TxMA
-#      Enabled: true
-#      KeyPolicy:
-#        Version: "2012-10-17"
-#        Statement:
-#          - Effect: Allow
-#            Principal:
-#              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-#            Action:
-#              - "kms:*"
-#            Resource:
-#              - "*"
-#          - Effect: Allow
-#            Principal:
-#              AWS: !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
-#            Action:
-#              - "kms:Encrypt"
-#              - "kms:Decrypt"
-#              - "kms:GenerateDataKey"
-#            Resource:
-#              - "*"
-#      KeySpec: SYMMETRIC_DEFAULT
-#      KeyUsage: ENCRYPT_DECRYPT
-#      MultiRegion: false
-#      PendingWindowInDays: 7
-#      Tags:
-#        - Key: KeyType
-#          Value: Encryption Key
-#        - Key: Environment
-#          Value: !Sub ${Environment}
-#
-#  TxMAKeyAlias:
-#    Type: AWS::KMS::Alias
-#    Properties:
-#      AliasName: !If
-#        - CreateDevResources
-#        - !Sub "alias/TxMAKMSEncryptionKey-${AWS::StackName}"
-#        - alias/TxMAKMSEncryptionKey
-#      TargetKeyId: !Ref TxMAKMSEncryptionKey
-#
-#Outputs:
-#  CICApiGatewayId:
-#    Description: "API GatewayID of the CIC CRI API"
-#    Value: !Sub "${CICRestApi}"
-#    Export:
-#      Name: !Sub ${AWS::StackName}-CICApiGatewayId
+
+
+  TxMASQSQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: !FindInMap [EnvironmentVariables, !Ref Environment, MESSAGERETENTIONPERIODDAYS]
+      VisibilityTimeout: 60
+      KmsMasterKeyId: !Ref TxMAKeyAlias
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - "TxMASQSQueueDeadLetterQueue"
+            - "Arn"
+        maxReceiveCount: 5
+
+  TxMASQSQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref TxMASQSQueue
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+              - "sqs:ChangeMessageVisibility"
+              - "sqs:ReceiveMessage"
+            Resource:
+              - !GetAtt TxMASQSQueue.Arn
+            Principal:
+              AWS:
+                - !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
+
+  TxMASQSQueueDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 259200 # three days
+      KmsMasterKeyId: !Sub TxMAKMSEncryptionKey
+
+  TxMAKMSEncryptionKey:
+    Type: AWS::KMS::Key
+    # KMS Key manually rotated.
+    # checkov:skip=CKV_AWS_7: KMS Key manually rotated.
+    Properties:
+      Description: A KMS Key for encrypting the SQS Queue for TxMA
+      Enabled: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource:
+              - "*"
+          - Effect: Allow
+            Principal:
+              AWS: !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource:
+              - "*"
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      PendingWindowInDays: 7
+      Tags:
+        - Key: KeyType
+          Value: Encryption Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+
+  TxMAKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !If
+        - CreateDevResources
+        - !Sub "alias/TxMAKMSEncryptionKey-${AWS::StackName}"
+        - alias/TxMAKMSEncryptionKey
+      TargetKeyId: !Ref TxMAKMSEncryptionKey
+
+  JsonWebKeysFunction:
+    Type: AWS::Serverless::Function
+    DependsOn:
+      - "JsonWebKeysLogGroup"
+    Properties:
+      FunctionName: !Sub "JsonWebKeys-${AWS::StackName}"
+      CodeUri: ../src/
+      Handler: JwksHandler.lambdaHandler
+      ReservedConcurrentExecutions: !If
+        - IsProdLikeEnvironment
+        - 80
+        - !Ref AWS::NoValue
+      Policies:
+        - AWSXRayDaemonWriteAccess
+        - S3WritePolicy:
+            BucketName: !Ref JsonWebKeysBucket
+        - S3ReadPolicy:
+            BucketName: !Ref JsonWebKeysBucket
+        - Statement:
+            - Sid: KMSSignPolicy
+              Effect: Allow
+              Action:
+                - kms:GetPublicKey
+              Resource:
+                - Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+                - Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
+      Environment:
+        Variables:
+          JWKS_BUCKET_NAME: !Ref JsonWebKeysBucket
+          SIGNING_KEY_IDS:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+          ENCRYPTION_KEY_IDS:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - JwksHandler.ts
+
+  JsonWebKeysLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/JsonWebKeys-${AWS::StackName}"
+      RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logretentionindays ]
+
+  JsonWebKeysFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt JsonWebKeysFunction.Arn
+      Principal: events.amazonaws.com
+
+Outputs:
+  F2FApiGatewayId:
+    Description: "API GatewayID of the F2F CRI API"
+    Value: !Sub "${F2FRestApi}"
+    Export:
+      Name: !Sub ${AWS::StackName}-F2FApiGatewayId
