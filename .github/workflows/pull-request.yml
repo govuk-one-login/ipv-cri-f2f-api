@@ -65,11 +65,11 @@ jobs:
       - name: Run lint
         run: npm run lint
 
-      # - name: Run Tests
-      #   run: npm run test:unit
+      - name: Run Tests
+        run: npm run test:unit
 
-      # - name: Run Infra checks
-      #   run: npm run test:infra
+      - name: Run Infra checks
+        run: npm run test:infra
         
   sam-validate:
     name: SAM Validate
