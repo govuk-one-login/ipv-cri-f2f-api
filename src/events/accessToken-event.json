@@ -1,0 +1,5 @@
+{
+  "resource": "/token",
+  "httpMethod": "POST",
+  "body" : "code=a80958d6-b39a-11ed-afa1-0242ac120002&grant_type=authorization_code&redirect_uri=http://localhost:8085/callback"
+}
