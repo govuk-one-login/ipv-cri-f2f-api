@@ -1,0 +1,4 @@
+YotiSessionCreator/node_modules/
+YotiSessionCreator/build/
+YotiSessionCreator/.env
+**/**.pem
