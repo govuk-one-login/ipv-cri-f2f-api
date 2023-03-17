@@ -121,10 +121,9 @@ paths:
       operationId: getAuthorization
       summary: Issue an authorization code for the session
       description: >-
-        Issue Authorization Code - Issue an authorization code for the frontend to use in the redircted
-        response to a `GET /authorize` call. This service will only work if the required claimed identity
-        data is recorded as being received by that session; and this service can only be used once for
-        each session.
+        Issue Authorization Code - Issue an authorization code for the frontend to use in the redirected
+        response to a `GET /authorize` call. This service will only work if the vendor data is recorded as being
+        received for that session; and this service can only be used once for each session.
       tags:
         - Backend - Common CRI Lambda
       parameters:
@@ -462,39 +461,6 @@ components:
           example: jwt_bearer
           description: >-
             Client assertion type (use for client credentials flow, not supported here)
-    ClaimedIdentityRequest:
-      type: object
-      additionalProperties: false
-      required:
-        - full_name
-        - date_of_birth
-        - document_selected
-        - date_of_expiry
-      properties:
-        full_name:
-          type: string
-          example: Frederick Joseph Flintstone
-          description: claimed full legal name
-        date_of_birth:
-          type: string
-          format: date
-          example: "1970-01-01"
-          description: claimed Date of Birth
-        document_selected:
-          type: string
-          example: driversPermit
-          description: >-
-            specifies which of the available supported document types the user elected to present for offline
-            verification
-          enum:
-            - driversPermit
-            - passport
-            - biometricResidentsPermit
-        date_of_expiry:
-          type: string
-          format: date
-          example: "1970-01-01"
-          description: claimed expiry date for the document to be presented at the post office
     JWKSFile:
       type: object
       required:
