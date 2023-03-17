@@ -4,3 +4,4 @@ dist/
 .aws-sam
 reports/
 build/
+.DS_Store
