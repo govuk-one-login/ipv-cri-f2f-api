@@ -9,7 +9,7 @@ import {Constants} from "../utils/Contants";
  * Class to read, store, and return environment variables used by this lambda
  */
 export class EnvironmentVariables {
-	private readonly EMAIL_ENABLED = process.env.EMAIL_ENABLED || "true";
+	private readonly S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 	private readonly GOVUKNOTIFY_API_KEY = process.env.GOVUKNOTIFY_API_KEY;
 	private readonly GOVUKNOTIFY_MAX_RETRIES = process.env.GOVUKNOTIFY_MAX_RETRIES;
 	private readonly GOVUKNOTIFY_BACKOFF_PERIOD_MS = process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS;
@@ -25,10 +25,10 @@ export class EnvironmentVariables {
 	 */
 	constructor(logger: Logger) {
 
-
-		if (!this.GOVUKNOTIFY_API_KEY || this.GOVUKNOTIFY_API_KEY.trim().length === 0) {
+		if (!this.GOVUKNOTIFY_API_KEY || this.GOVUKNOTIFY_API_KEY.trim().length === 0 ||
+			!this.S3_BUCKET_NAME || this.S3_BUCKET_NAME.trim().length === 0) {
 			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED, AppCodes.E7307.code);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 
 		if (!this.GOVUKNOTIFY_BACKOFF_PERIOD_MS
@@ -50,9 +50,10 @@ export class EnvironmentVariables {
 	/**
 	 * Accessor method for env variable values
 	 */
-	// emailEnabled(): boolean {
-	// 	return this.EMAIL_ENABLED !== "false";
-	// }
+
+	s3BucketName(): any {
+		return this.S3_BUCKET_NAME;
+	}
 
 	apiKey(): any {
 		return this.GOVUKNOTIFY_API_KEY;

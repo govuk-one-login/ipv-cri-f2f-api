@@ -191,6 +191,7 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
+          S3_BUCKET_NAME: "rimisra1"
           GOVUKNOTIFY_API_KEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
 #            Fn::ImportValue:
 #              !Sub "${L2DynamoStackName}-session-table-name"

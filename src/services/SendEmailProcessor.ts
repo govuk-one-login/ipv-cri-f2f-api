@@ -27,6 +27,7 @@ export class SendEmailProcessor {
         }
         return SendEmailProcessor.instance;
     }
+
     async processRequest(eventBody: any): Promise<EmailResponse> {
 
         const email = Email.parseRequest(eventBody.Message);
@@ -37,7 +38,7 @@ export class SendEmailProcessor {
 
 
         const emailResponse: EmailResponse = await govNotifyService.sendEmail(email);
-        this.logger.debug("Response after sending Email message", { emailResponse });
+        this.logger.debug("Response after sending Email message", {emailResponse});
 
         return emailResponse;
     };
