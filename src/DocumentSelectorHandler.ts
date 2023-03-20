@@ -2,8 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Response } from "./utils/Response";
-import { SessionRequestProcessor } from "./services/DocumentSelectorProcessor";
-import { ResourcesEnum } from "./models/enums/ResourcesEnum";
+import { DocumentSelectorProcessor } from "./services/DocumentSelectorProcessor";
 import { AppError } from "./utils/AppError";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
@@ -22,25 +21,19 @@ class Session implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
-		switch (event.resource) {
-			case ResourcesEnum.SESSION:
-				try {
-					logger.debug("metrics is", { metrics });
-					logger.debug("Event received", { event });
-					return await SessionRequestProcessor.getInstance(logger, metrics).processRequest(event);
-				} catch (err: any) {
-					logger.error("An error has occurred. " + err);
-					if (err instanceof AppError) {
-						return new Response(err.statusCode, err.message);
-					}
-					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+			try {
+				logger.debug("metrics is", { metrics });
+				logger.debug("Event received", { event });
+				return await DocumentSelectorProcessor.getInstance(logger, metrics).processRequest(event);
+			} catch (err: any) {
+				logger.error("An error has occurred. " + err);
+				if (err instanceof AppError) {
+					return new Response(err.statusCode, err.message);
 				}
-			default:
-				throw new AppError("Requested resource does not exist" + { resource: event.resource }, HttpCodesEnum.NOT_FOUND);
+				return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+			}
 		}
-
 	}
 
-}
 const handlerClass = new Session();
 export const lambdaHandler = handlerClass.handler.bind(handlerClass);

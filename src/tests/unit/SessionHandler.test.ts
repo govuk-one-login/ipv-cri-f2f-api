@@ -1,25 +1,25 @@
 import { lambdaHandler } from "../../DocumentSelectorHandler";
 import { mock } from "jest-mock-extended";
 import { VALID_SESSION, UNSUPPORTED_CLAIMEDID, RESOURCE_NOT_FOUND } from "./data/events";
-import { SessionRequestProcessor } from "../../services/DocumentSelectorProcessor";
+import { DocumentSelectorProcessor } from "../../services/DocumentSelectorProcessor";
 import { Response } from "../../utils/Response";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 
-const mockedSessionRequestProcessor = mock<SessionRequestProcessor>();
+const mockedDocumentSelectorProcessor = mock<DocumentSelectorProcessor>();
 
-jest.mock("../../services/SessionRequestProcessor", () => {
+jest.mock("../../services/DocumentSelectorProcessor", () => {
 	return {
-		SessionRequestProcessor: jest.fn(() => mockedSessionRequestProcessor),
+		DocumentSelectorProcessor: jest.fn(() => mockedDocumentSelectorProcessor),
 	};
 });
 
 describe("SessionHandler", () => {
 	it("return success response for session", async () => {
-		SessionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedSessionRequestProcessor);
+		DocumentSelectorProcessor.getInstance = jest.fn().mockReturnValue(mockedDocumentSelectorProcessor);
 
 		await lambdaHandler(VALID_SESSION, "CIC");
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockedSessionRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
+		expect(mockedDocumentSelectorProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
 });

@@ -1,4 +1,4 @@
-import { SessionRequestProcessor } from "../../../services/DocumentSelectorProcessor";
+import { DocumentSelectorProcessor } from "../../../services/DocumentSelectorProcessor";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -8,7 +8,7 @@ import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { KmsJwtAdapter } from "../../../utils/KmsJwtAdapter";
 
-let sessionRequestProcessorTest: SessionRequestProcessor;
+let DocumentSelectorProcessorTest: DocumentSelectorProcessor;
 const mockCicService = mock<CicService>();
 const mockKmsJwtAdapter = mock<KmsJwtAdapter>();
 
@@ -94,15 +94,15 @@ const parsedJwt = {
 	signature: "D3xEciukM-rtTmV2svwKapoedVw_1_AZW3PQh4OWpWhYq_Jh9Fc7PYEDN7Snb0p2IXd-nnkxBtQiiePMMke-mA",
 };
 
-describe("SessionRequestProcessor", () => {
+describe("DocumentSelectorProcessor", () => {
 	beforeAll(() => {
-		sessionRequestProcessorTest = new SessionRequestProcessor(logger, metrics);
+		DocumentSelectorProcessorTest = new DocumentSelectorProcessor(logger, metrics);
 		// @ts-ignore
-		sessionRequestProcessorTest.kmsDecryptor = mockKmsJwtAdapter;
+		DocumentSelectorProcessorTest.kmsDecryptor = mockKmsJwtAdapter;
 		// @ts-ignore
-		sessionRequestProcessorTest.cicService = mockCicService;
+		DocumentSelectorProcessorTest.cicService = mockCicService;
 		// @ts-ignore
-		sessionRequestProcessorTest.logger = logger;
+		DocumentSelectorProcessorTest.logger = logger;
 		
 	});
 
@@ -113,14 +113,14 @@ describe("SessionRequestProcessor", () => {
 	it("Return 200 if all checks pass", async () => {
 		mockKmsJwtAdapter.decrypt.mockResolvedValueOnce("urlEncodedJwt");
 		mockKmsJwtAdapter.decode.mockReturnValueOnce(parsedJwt);
-		const response: Response = await sessionRequestProcessorTest.processRequest(VALID_SESSION);
+		const response: Response = await DocumentSelectorProcessorTest.processRequest(VALID_SESSION);
 		
 		expect(response.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
 	it("Return 401 Unauthorised if Encoded JWT can not be Decrypted", async () => {
 		mockKmsJwtAdapter.decrypt.mockRejectedValueOnce("Failed to Decrypt");
-		const response: Response = await sessionRequestProcessorTest.processRequest(VALID_SESSION);
+		const response: Response = await DocumentSelectorProcessorTest.processRequest(VALID_SESSION);
 
 		expect(response.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 		expect(response.body).toBe(JSON.stringify({
@@ -133,7 +133,7 @@ describe("SessionRequestProcessor", () => {
 		mockKmsJwtAdapter.decrypt.mockResolvedValueOnce("urlEncodedJwt");
 		mockKmsJwtAdapter.decode.mockReturnValueOnce(parsedJwt);
 		mockCicService.createAuthSession.mockRejectedValueOnce("Failed to create session in Dynamo");
-		const response: Response = await sessionRequestProcessorTest.processRequest(VALID_SESSION);
+		const response: Response = await DocumentSelectorProcessorTest.processRequest(VALID_SESSION);
 
 		expect(response.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(response.body).toBe("Internal server error");
@@ -143,7 +143,7 @@ describe("SessionRequestProcessor", () => {
 		mockKmsJwtAdapter.decrypt.mockResolvedValueOnce("urlEncodedJwt");
 		mockKmsJwtAdapter.decode.mockReturnValueOnce(parsedJwt);
 		mockCicService.savePersonIdentity.mockRejectedValueOnce("Failed to save identity information in Dynamo");
-		const response: Response = await sessionRequestProcessorTest.processRequest(VALID_SESSION);
+		const response: Response = await DocumentSelectorProcessorTest.processRequest(VALID_SESSION);
 
 		expect(response.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(response.body).toBe("Internal server error");
