@@ -421,6 +421,56 @@ Resources:
       FunctionName: !Ref AuthorizationFunction
       Principal: apigateway.amazonaws.com
 
+  DocumentSelectionFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: DocumentSelectionLogGroup
+    Properties:
+      FunctionName: !Sub "Document-Selection-${AWS::StackName}"
+      Handler: DocumentSelectionHandler.lambdaHandler
+      CodeUri: ../src/
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+      Events:
+        documentSelection:
+          Type: Api
+          Properties:
+            Path: /documentSelection
+            Method: post
+            RestApiId: !Ref F2FRestApi
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - DocumentSelectionHandler.ts
+
+  DocumentSelectionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/Document-Selection-${AWS::StackName}"
+      RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logretentionindays ]
+
+  DocumentSelectionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsProdLikeEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref DocumentSelectionLogGroup
+
+  DocumentSelectionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DocumentSelectionFunction
+      Principal: apigateway.amazonaws.com
+
 
   TxMASQSQueue:
     Type: AWS::SQS::Queue
