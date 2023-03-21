@@ -58,19 +58,19 @@ Mappings:
       apiTracingEnabled: false
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
-      ISSUER: 'https://review-o.dev.account.gov.uk'
+      ISSUER: "https://review-o.dev.account.gov.uk"
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     build:
-      ISSUER: 'https://review-o.build.account.gov.uk'
+      ISSUER: "https://review-o.build.account.gov.uk"
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     staging:
-      ISSUER: 'https://review-o.staging.account.gov.uk'
+      ISSUER: "https://review-o.staging.account.gov.uk"
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     integration:
-      ISSUER: 'https://review-o.integration.account.gov.uk'
+      ISSUER: "https://review-o.integration.account.gov.uk"
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     production:
-      ISSUER: 'https://review-o.account.gov.uk'
+      ISSUER: "https://review-o.account.gov.uk"
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
@@ -146,10 +146,10 @@ Globals:
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
         ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
         SECRET_PREFIX: !If [
-          UseSecretPrefix,
-          !Ref SecretPrefix,
-          !Ref AWS::StackName,
-        ] # What is this? @TODO
+            UseSecretPrefix,
+            !Ref SecretPrefix,
+            !Ref AWS::StackName,
+          ] # What is this? @TODO
         #  SQS_AUDIT_EVENT_PREFIX: CIC-F2F # The prefix to add to TxMA event messages
     AutoPublishAlias: live
 
@@ -226,9 +226,8 @@ Resources:
         Fn::Transform:
           Name: AWS::Include
           Parameters:
-            Location: './f2f-spec.yaml'
+            Location: "./f2f-spec.yaml"
         OpenApiVersion: 3.0.1
-
 
       TracingEnabled: true
       Tags:
@@ -284,16 +283,13 @@ Resources:
         - AWSXrayWriteOnlyAccess
         - DynamoDBWritePolicy:
             TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
         - DynamoDBReadPolicy:
             TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
         - KMSDecryptPolicy:
             KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-key-id"
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-id"
         - Statement:
             - Sid: KMSPolicy
               Effect: Allow
@@ -321,7 +317,12 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/Access-Token-${AWS::StackName}"
-      RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logretentionindays ]
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
 
   TokenFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
@@ -349,24 +350,20 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: AuthorizationCodeHandler
           SESSION_TABLE:
-            Fn::ImportValue:
-              !Sub "${L2DynamoStackName}-session-table-name"
+            Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - DynamoDBWritePolicy:
             TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
         - DynamoDBReadPolicy:
             TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
         - KMSDecryptPolicy:
             KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-key-id"
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-id"
         - Statement:
             - Effect: Allow
               Action:
@@ -434,13 +431,15 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+
       Events:
-        documentSelection:
+        session:
           Type: Api
           Properties:
             Path: /documentSelection
             Method: post
             RestApiId: !Ref F2FRestApi
+
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -454,7 +453,12 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/Document-Selection-${AWS::StackName}"
-      RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logretentionindays ]
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
 
   DocumentSelectionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
@@ -471,11 +475,15 @@ Resources:
       FunctionName: !Ref DocumentSelectionFunction
       Principal: apigateway.amazonaws.com
 
-
   TxMASQSQueue:
     Type: AWS::SQS::Queue
     Properties:
-      MessageRetentionPeriod: !FindInMap [EnvironmentVariables, !Ref Environment, MESSAGERETENTIONPERIODDAYS]
+      MessageRetentionPeriod:
+        !FindInMap [
+          EnvironmentVariables,
+          !Ref Environment,
+          MESSAGERETENTIONPERIODDAYS,
+        ]
       VisibilityTimeout: 60
       KmsMasterKeyId: !Ref TxMAKeyAlias
       RedrivePolicy:
@@ -602,7 +610,12 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/JsonWebKeys-${AWS::StackName}"
-      RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logretentionindays ]
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
 
   JsonWebKeysFunctionPermission:
     Type: AWS::Lambda::Permission

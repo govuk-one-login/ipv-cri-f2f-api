@@ -7,6 +7,7 @@ import { ResourcesEnum } from "./models/enums/ResourcesEnum";
 import { Response } from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { AppError } from "./utils/AppError";
+import { DocumentSelectorProcessor } from "./services/DocumentSelectorProcessor";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
@@ -22,16 +23,16 @@ export class DocumentSelection implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
+		console.log('event', event);
+		return await DocumentSelectorProcessor.getInstance(logger, metrics).processRequest(event);
 		switch (event.resource) {
 			case ResourcesEnum.DOCUMENTSELECTION:
-				if (event.httpMethod === "POST") {
-					try {
-						logger.info("Got token request:", { event });
-						logger.info("Logic TODO:");
-					} catch (err) {
-						logger.error({ message: "An error has occurred. ", err });
-						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
-					}
+				try {
+					logger.info("Got token request:", { event });
+					return await DocumentSelectorProcessor.getInstance(logger, metrics).processRequest(event);
+				} catch (err) {
+					logger.error({ message: "An error has occurred. ", err });
+					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
 				return new Response(HttpCodesEnum.NOT_FOUND, "");
 
