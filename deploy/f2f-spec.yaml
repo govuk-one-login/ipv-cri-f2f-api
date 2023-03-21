@@ -387,6 +387,99 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws"
 
+  /documentSelection:
+    post:
+      operationId: postDocumentSelection
+      summary: submit information required to initiate the vendor session
+      description: >-
+        submit the post office selection, document selection and contact information required to initiate the vendor
+        session
+      tags:
+        - Backend - CI CRI specific
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentSelectionRequest'
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        "201":
+          description: >-
+            Created - the underlying vendor session has been created
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "400":
+          description: >-
+            Bad Request - claimed identity data failed validation and has not been persisted
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "401":
+          description: Unauthorized
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "500":
+          description: Internal Server Error
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+
 components:
   schemas:
     AuthorizationResponse:
