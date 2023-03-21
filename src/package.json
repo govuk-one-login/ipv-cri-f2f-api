@@ -12,6 +12,7 @@
     "@aws-sdk/client-kms": "^3.262.0",
     "@aws-sdk/client-s3": "^3.120.0",
     "@aws-sdk/client-sqs": "^3.276.0",
+    "@aws-sdk/client-ssm": "^3.301.0",
     "@aws-sdk/credential-providers": "3.245.0",
     "@aws-sdk/lib-dynamodb": "3.150.0",
     "aws-xray-sdk-core": "^3.4.1",
@@ -19,7 +20,8 @@
     "class-validator": "0.14.0",
     "ecdsa-sig-formatter": "^1.0.11",
     "esbuild": "0.14.14",
-    "node-jose": "^2.1.1"
+    "node-jose": "^2.1.1",
+    "uuid": "^9.0.0"
   },
   "scripts": {
     "unit": "./node_modules/.bin/jest --testPathPattern=tests/unit",
@@ -38,6 +40,7 @@
     "@types/js-yaml": "^4.0.5",
     "@types/node": "^18.11.18",
     "@types/node-jose": "^1.1.10",
+    "@types/uuid": "^9.0.1",
     "@typescript-eslint/eslint-plugin": "^5.50.0",
     "@typescript-eslint/eslint-plugin-tslint": "^5.50.0",
     "eslint": "^8.32.0",

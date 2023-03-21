@@ -58,22 +58,32 @@ Mappings:
       apiTracingEnabled: false
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
+      YOTIBASEURL: "https://f2f-cri-outbound-proxy-proxy.review-o.dev.account.gov.uk/yoti"
+      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     build:
+      YOTIBASEURL: "https://proxy.review-o.build.account-gov.uk/yoti"
+      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.build.account.gov.uk'
       DNSSUFFIX: review-o.build.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     staging:
+      YOTIBASEURL: "https://proxy.review-o.staging.account-gov.uk/yoti"
+      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.staging.account.gov.uk'
       DNSSUFFIX: review-o.staging.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     integration:
+      YOTIBASEURL: "https://proxy.review-o.integration.account-gov.uk/yoti"
+      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.integration.account.gov.uk'
       DNSSUFFIX: review-o.integration.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     production:
+      YOTIBASEURL: "https://proxy.review-o.account-gov.uk/yoti"
+      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.account.gov.uk'
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
@@ -127,9 +137,9 @@ Globals:
         - !GetAtt LambdaEgressSecurityGroup.GroupId
       SubnetIds:
         - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-PrivateSubnetIdA"
+            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdA"
         - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-PrivateSubnetIdB"
+            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdB"
     PermissionsBoundary: !If
       - UsePermissionsBoundary
       - !Ref PermissionsBoundary
@@ -477,9 +487,25 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
+          SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue:
+              !Sub "${L2DynamoStackName}-person-identity-table-name"
+          YOTIBASEURL: !FindInMap [EnvironmentVariables, !Ref Environment, YOTIBASEURL]
+          YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-person-identity-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-person-identity-table-key-id"
       Events:
         documentSelection:
           Type: Api
