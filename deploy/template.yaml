@@ -58,24 +58,29 @@ Mappings:
       apiTracingEnabled: false
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
+      YOTIBASEURL: "https://f2f-cri-outbound-proxy-proxy.review-o.dev.account.gov.uk/yoti"
+      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.dev.account.gov.uk'
-      DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     build:
+      YOTIBASEURL: "https://proxy.review-o.build.account-gov.uk/yoti"
+      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.build.account.gov.uk'
-      DNSSUFFIX: review-o.build.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     staging:
+      YOTIBASEURL: "https://proxy.review-o.staging.account-gov.uk/yoti"
+      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.staging.account.gov.uk'
-      DNSSUFFIX: review-o.staging.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     integration:
+      YOTIBASEURL: "https://proxy.review-o.integration.account-gov.uk/yoti"
+      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.integration.account.gov.uk'
-      DNSSUFFIX: review-o.integration.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     production:
+      YOTIBASEURL: "https://proxy.review-o.account-gov.uk/yoti"
+      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.account.gov.uk'
-      DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
@@ -127,9 +132,9 @@ Globals:
         - !GetAtt LambdaEgressSecurityGroup.GroupId
       SubnetIds:
         - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-PrivateSubnetIdA"
+            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdA"
         - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-PrivateSubnetIdB"
+            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdB"
     PermissionsBoundary: !If
       - UsePermissionsBoundary
       - !Ref PermissionsBoundary
@@ -267,47 +272,6 @@ Resources:
           Value: APIGatewayAccessLogGroup
 
   ### End of API Gateway definition.
-
-  ### API Gateway Custom Domain definition
-
-  F2FApiCustomDomainName:
-    Type: AWS::ApiGateway::DomainName
-    Properties:
-      DomainName: !Sub
-        - "api-${AWS::StackName}.${DNSSUFFIX}"
-        - DNSSUFFIX:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
-      EndpointConfiguration:
-        Types:
-          - REGIONAL
-      RegionalCertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
-      SecurityPolicy: TLS_1_2
-
-  F2FApiBasePath:
-    Type: AWS::ApiGateway::BasePathMapping
-    DependsOn: "F2FApiCustomDomainName"
-    Properties:
-      DomainName: !Sub
-        - "api-${AWS::StackName}.${DNSSUFFIX}"
-        - DNSSUFFIX:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
-      RestApiId: !Ref F2FRestApi
-      Stage: !Sub "${F2FRestApi.Stage}"
-
-  F2FApiCertificateRecord:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      Name: !Sub
-        - "api-${AWS::StackName}.${DNSSUFFIX}"
-        - DNSSUFFIX:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
-      Type: A
-      HostedZoneId: !Sub "{{resolve:ssm:/${Environment}/Platform/Route53/PrimaryZoneID}}"
-      AliasTarget:
-        DNSName: !GetAtt F2FApiCustomDomainName.RegionalDomainName
-        HostedZoneId: !GetAtt F2FApiCustomDomainName.RegionalHostedZoneId
-
-  ### End of API Gateway Custom Domain definition
 
   ### Function Definition
   ## AccessToken
@@ -477,9 +441,25 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
+          SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue:
+              !Sub "${L2DynamoStackName}-person-identity-table-name"
+          YOTIBASEURL: !FindInMap [EnvironmentVariables, !Ref Environment, YOTIBASEURL]
+          YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-person-identity-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-person-identity-table-key-id"
       Events:
         documentSelection:
           Type: Api
@@ -628,12 +608,6 @@ Resources:
               Resource:
                 - Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
                 - Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
-      Events:
-        InvocationLevel:
-          Type: Schedule
-          Properties:
-            Schedule: cron(0 * * * ? *)  
-            
       Environment:
         Variables:
           JWKS_BUCKET_NAME: !Ref JsonWebKeysBucket
@@ -669,11 +643,3 @@ Outputs:
     Value: !Sub "${F2FRestApi}"
     Export:
       Name: !Sub ${AWS::StackName}-F2FApiGatewayId
-  F2FBackendURL:
-    Description: "F2F Backend URL"
-    Value: !Sub
-      - "https://api-${AWS::StackName}.${DNSSUFFIX}/"
-      - DNSSUFFIX:
-          !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
-    Export:
-      Name: !Sub ${AWS::StackName}-F2FBackendURL
