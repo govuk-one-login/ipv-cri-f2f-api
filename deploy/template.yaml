@@ -432,13 +432,13 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
 
-      Events:
-        session:
-          Type: Api
-          Properties:
-            Path: /documentSelection
-            Method: post
-            RestApiId: !Ref F2FRestApi
+      # Events:
+      #   session:
+      #     Type: Api
+      #     Properties:
+      #       Path: /documentSelection
+      #       Method: post
+      #       RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
