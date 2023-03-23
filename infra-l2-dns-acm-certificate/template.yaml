@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >-
+  Creates the necessary components to deploy a TLS certificate for the domain used in F2F CRI.
+
+Mappings:
+  PlatformConfiguration:
+    dev:
+      DNSSUFFIX: review-o.dev.account.gov.uk
+    build:
+      DNSSUFFIX: review-o.build.account.gov.uk
+    staging:
+      DNSSUFFIX: review-o.staging.account.gov.uk
+    integration:
+      DNSSUFFIX: review-o.integration.account.gov.uk
+    production:
+      DNSSUFFIX: review-o.account.gov.uk
+
+Parameters:
+  Environment:
+    Description: The name of the environment to deploy to
+    Type: String
+    AllowedValues:
+      - dev
+      - build
+      - staging
+      - integration
+      - production
+
+# SSM /dev/Platform/Route53/PrimaryZoneID Z01708682B7XWP3ZCU52R
+# PublicHostedZoneId
+
+
+
+Resources:
+  ExternalCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Sub
+      - "${DNSSUFFIX}"
+      - DNSSUFFIX: !FindInMap [ PlatformConfiguration, !Ref Environment, DNSSUFFIX ]
+
+      SubjectAlternativeNames:
+      - !Sub
+        - "api.${DNSSUFFIX}"
+        - DNSSUFFIX: !FindInMap [ PlatformConfiguration, !Ref Environment, DNSSUFFIX ]
+      - !Sub
+        - "www.${DNSSUFFIX}"
+        - DNSSUFFIX: !FindInMap [ PlatformConfiguration, !Ref Environment, DNSSUFFIX ]
+      - !Sub
+        - "app.${DNSSUFFIX}"
+        - DNSSUFFIX: !FindInMap [ PlatformConfiguration, !Ref Environment, DNSSUFFIX ]
+      - !Sub
+        - "*.${DNSSUFFIX}"
+        - DNSSUFFIX: !FindInMap [ PlatformConfiguration, !Ref Environment, DNSSUFFIX ]
+
+      DomainValidationOptions:
+        - DomainName: !Sub
+          - "${DNSSUFFIX}"
+          - DNSSUFFIX: !FindInMap [ PlatformConfiguration, !Ref Environment, DNSSUFFIX ]
+          HostedZoneId: !ImportValue PublicHostedZoneId
+        - DomainName: !Sub
+          - "api.${DNSSUFFIX}"
+          - DNSSUFFIX: !FindInMap [ PlatformConfiguration, !Ref Environment, DNSSUFFIX ]
+          HostedZoneId: !ImportValue PublicHostedZoneId
+        - DomainName: !Sub
+          - "www.${DNSSUFFIX}"
+          - DNSSUFFIX: !FindInMap [ PlatformConfiguration, !Ref Environment, DNSSUFFIX ]
+          HostedZoneId: !ImportValue PublicHostedZoneId
+        - DomainName: !Sub
+          - "app.${DNSSUFFIX}"
+          - DNSSUFFIX: !FindInMap [ PlatformConfiguration, !Ref Environment, DNSSUFFIX ]
+          HostedZoneId: !ImportValue PublicHostedZoneId
+      ValidationMethod: DNS
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - "${DNSSUFFIX}"
+            - DNSSUFFIX: !FindInMap [ PlatformConfiguration, !Ref Environment, DNSSUFFIX ]
+        - Key: Product
+          Value: "GOV.UK Sign In"
+        - Key: System
+          Value: "F2F CRI"
+        - Key: Environment
+          Value: !Sub "${Environment}"
+
+  CertificateARNSSM:
+    Type: AWS::SSM::Parameter
+    Properties:    
+      Description: The Certificate ARN
+      Name: !Sub "/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN"
+      Type: String
+      Value: !Ref ExternalCertificate
+      Tags:
+        Name: !Sub "/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN"
+        Product: "GOV.UK Sign In"
+        System: "F2F CRI"
+        Environment: !Sub "${Environment}"
