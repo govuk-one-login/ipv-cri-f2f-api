@@ -1,0 +1,38 @@
+{
+  "name": "infra-test",
+  "description": "DCMAW-Infra",
+  "license": "MIT",
+  "scripts": {
+    "infra": "./node_modules/.bin/jest --testPathPattern=infra-test/test --testMatch **/infra-test/**/*.test.ts",
+    "test:infra": "yarn install && yarn test",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@aws-cdk/assertions": "^1.172.0",
+    "@aws-cdk/yaml-cfn": "^1.172.0",
+    "@types/jest": "^27.5.2",
+    "@types/js-yaml": "^4.0.5",
+    "@types/node": "10.17.27",
+    "@types/prettier": "2.6.0",
+    "aws-cdk": "2.51.1",
+    "jest": "^27.5.1",
+    "js-yaml": "^4.1.0",
+    "ts-jest": "^27.1.4",
+    "ts-node": "^10.9.1",
+    "typescript": "~3.9.7",
+    "yaml-cfn": "^0.3.2"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.51.1",
+    "constructs": "^10.0.0",
+    "source-map-support": "^0.5.21"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js"
+    ]
+  }
+}
