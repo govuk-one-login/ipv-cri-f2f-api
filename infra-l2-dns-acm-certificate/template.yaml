@@ -27,11 +27,6 @@ Parameters:
       - integration
       - production
 
-# SSM /dev/Platform/Route53/PrimaryZoneID Z01708682B7XWP3ZCU52R
-# PublicHostedZoneId
-
-
-
 Resources:
   ExternalCertificate:
     Type: AWS::CertificateManager::Certificate
