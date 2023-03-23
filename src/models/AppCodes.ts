@@ -29,22 +29,22 @@ export class AppCodes {
 
     readonly shouldThrow = _.isEmpty(this.subStringArray) || !_.isNil(_.find(this.subStringArray, (e: string) => e !== AppCodes.GOVAPI_RATE_LIMIT));
 
-    static readonly E5202 = new AppCodes("E5202_GEN", AppCodes.format("Endpoint has had an Internal Server Error"));
+    static readonly E5202 = new AppCodes("E5202_NOTIFY", AppCodes.format("Endpoint has had an Internal Server Error"));
 
-    static readonly E5210 = new AppCodes("E5210_GEN", AppCodes.format("Clock is out of sync with endpoint"), [AppCodes.GOVAPI_SYSTEM_CLOCK]);
+    static readonly E5210 = new AppCodes("E5210_NOTIFY", AppCodes.format("Clock is out of sync with endpoint"), [AppCodes.GOVAPI_SYSTEM_CLOCK]);
 
-    static readonly E6101 = new AppCodes("E6101_GEN", AppCodes.format("Exceeded daily limit"), [AppCodes.GOVAPI_SEND_LIMITS]);
+    static readonly E6101 = new AppCodes("E6101_NOTIFY", AppCodes.format("Exceeded daily limit"), [AppCodes.GOVAPI_SEND_LIMITS]);
 
-    static readonly E7307 = new AppCodes("E7307_GEN", "Misconfigured external API's key");
+    static readonly E7307 = new AppCodes("E7307_NOTIFY", "Misconfigured external API's key");
 
-    static readonly E7408 = new AppCodes("E7408_GEN", AppCodes.format("Using Trial Mode"), [AppCodes.GOVAPI_TRIAL_MODE]);
+    static readonly E7408 = new AppCodes("E7408_NOTIFY", AppCodes.format("Using Trial Mode"), [AppCodes.GOVAPI_TRIAL_MODE]);
 
-    static readonly E7409 = new AppCodes("E7409_GEN", AppCodes.format("Using team-only API key"), [AppCodes.GOVAPI_TEAM_ONLY]);
+    static readonly E7409 = new AppCodes("E7409_NOTIFY", AppCodes.format("Using team-only API key"), [AppCodes.GOVAPI_TEAM_ONLY]);
 
-    static readonly E8306 = new AppCodes("E8306_GEN", AppCodes.format("Using incorrect API key"), [AppCodes.GOVAPI_INC_API_KEY, AppCodes.GOVAPI_INCORRECT_DATA_TYPE_API_KEY]);
+    static readonly E8306 = new AppCodes("E8306_NOTIFY", AppCodes.format("Using incorrect API key"), [AppCodes.GOVAPI_INC_API_KEY, AppCodes.GOVAPI_INCORRECT_DATA_TYPE_API_KEY]);
 
-    static readonly E9511 = new AppCodes("E9511_GEN", AppCodes.format("Unexpected bad data rejection"));
+    static readonly E9511 = new AppCodes("E9511_NOTIFY", AppCodes.format("Unexpected bad data rejection"));
 
-    static readonly W4101 = new AppCodes("W4101_GEN", AppCodes.format("Requested to back off"), [AppCodes.GOVAPI_RATE_LIMIT]);
+    static readonly W4101 = new AppCodes("W4101_NOTIFY", AppCodes.format("Requested to back off"), [AppCodes.GOVAPI_RATE_LIMIT]);
 
 }

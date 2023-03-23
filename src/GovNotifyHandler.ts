@@ -8,7 +8,6 @@ import {LambdaInterface} from "@aws-lambda-powertools/commons";
 import {Constants} from "./utils/Contants";
 
 import {BatchItemFailure} from "./utils/BatchItemFailure";
-import {EmailStatusEnum} from "./models/enums/EmailStatusEnum";
 import {EmailResponse} from "./models/EmailResponse";
 import {SendEmailProcessor} from "./services/SendEmailProcessor";
 import {HttpCodesEnum} from "./models/enums/HttpCodesEnum";
@@ -44,10 +43,7 @@ class GovNotifyHandler implements LambdaInterface {
                     messageId: emailResponse.metadata.id,
                     batchItemFailures: [],
                 };
-                if (emailResponse.emailStatus === EmailStatusEnum.NOT_SENT) {
 
-                    return new Response(HttpCodesEnum.OK, responseBody);
-                }
                 logger.debug("Finished processing record from SQS");
                 return new Response(HttpCodesEnum.OK, responseBody);
 

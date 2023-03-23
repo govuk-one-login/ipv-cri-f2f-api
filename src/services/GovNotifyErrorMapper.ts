@@ -27,6 +27,6 @@ export class GovNotifyErrorMapper {
     	const message: string    = govNotifyError.error?.errors[0].message || "Code error";
     	const appCode = find(GovNotifyErrorMapper.errorCodeMap.get(statusCode), (el: string) => el.match(message) );
     	const shouldThrow = appCode?.shouldThrow;
-    	return new AppError(statusCode, appCode?.message!, appCode?.code!, { shouldThrow });
+    	return new AppError(statusCode, appCode?.message!, { shouldThrow });
     }
 }

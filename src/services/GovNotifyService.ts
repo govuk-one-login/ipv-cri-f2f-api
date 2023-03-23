@@ -2,7 +2,6 @@
 import {NotifyClient} from 'notifications-node-client';
 
 import {EmailResponse} from "../models/EmailResponse";
-import {EmailStatusEnum} from "../models/enums/EmailStatusEnum";
 import {Email} from "../models/Email";
 import {GovNotifyErrorMapper} from "./GovNotifyErrorMapper";
 import {EnvironmentVariables} from "./EnvironmentVariables";
@@ -135,7 +134,7 @@ export class GovNotifyService {
                 const response = await this.govNotify.sendEmail(message.templateId, message.emailAddress, options);
                 this.logger.debug("sendEmail - response data after sending Email", response.data);
                 this.logger.debug("sendEmail - response status after sending Email", GovNotifyService.name, response.status);
-                return new EmailResponse(new Date().toISOString(), "", EmailStatusEnum.SENT, response.status);
+                return new EmailResponse(new Date().toISOString(), "", response.status);
             } catch (err: any) {
                 this.logger.error(`sendEmail - GOV UK Notify threw an error`);
 
