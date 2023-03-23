@@ -2,6 +2,8 @@ import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
+import axios from "axios";
+import https from 'https'
 
 export class DocumentSelectionRequestProcessor {
 	private static instance: DocumentSelectionRequestProcessor;
@@ -26,10 +28,95 @@ export class DocumentSelectionRequestProcessor {
 	}
 
 	async processRequest() {
-		const id = await this.yotiService.createSession();
-		console.log('id', id);
 
-		return id;
+		const { signature, params } = await this.yotiService.createSession();
+
+		console.log('here', `https://api.yoti.com/idverify/v1/sessions?sdkId=${params.sdkId}&nonce=${params.nonce}&timestamp=${params.timestamp}`);
+		console.log('there', signature);
+
+
+		// const url = `https://api.yoti.com/idverify/v1/sessions?sdkId=${params.sdkId}&nonce=${params.nonce}&timestamp=${params.timestamp}`;
+		// // const data = {
+		// // 		x: 1920,
+		// // 		y: 1080,
+		// // };
+		// const customHeaders = {
+		// 	'X-Yoti-Auth-Digest': signature,
+		// 	'X-Yoti-SDK': 'Node',
+		// 	'X-Yoti-SDK-Version': 'Node-4.1.0',
+		// 	Accept: 'application/json',
+		// 	'Content-Type': 'application/json'
+		// }
+
+		// fetch(url, {
+		// 		method: "POST",
+		// 		headers: customHeaders,
+		// })
+		// .then((response) => response.json())
+		// .then((data) => {
+		// 		console.log(data);
+		// });
+
+		// const options = {
+    //   hostname: 'api.yoti.com',
+    //   port: 443,
+    //   method: 'POST',
+    //   path: `/idverify/v1/sessions?sdkId=${params.sdkId}&nonce=${params.nonce}&timestamp=${params.timestamp}`,
+    //   headers: {
+		// 		'X-Yoti-Auth-Digest': signature,
+		// 		'X-Yoti-SDK': 'Node',
+		// 		'X-Yoti-SDK-Version': 'Node-4.1.0',
+		// 		Accept: 'application/json',
+		// 		'Content-Type': 'application/json'
+		// 	}
+    // }
+
+		// await new Promise((resolve, reject) => {
+    //   const req = https.get(options, res => {
+    //     if (res.statusCode !== 200) {
+    //       return reject(new Error(`Could not retrieve public signing key from JWKS endpoint, received status: ${res.statusCode?.toString() ?? 'None'}, headers: ${JSON.stringify(res.headers)}`))
+    //     }
+
+    //     let output: Buffer = Buffer.from('')
+    //     res.on('data', data => {
+    //       output = Buffer.concat([output, data])
+		// 			console.log('output', output);
+    //     })
+
+    //     res.on('end', () => {
+    //       const response = JSON.parse(output.toString())
+
+		// 			console.log('response', response);
+    //       return resolve(response)
+    //     })
+    //   })
+    //   req.end()
+    // })
+
+
+		const { data, status } = await axios.post(
+      `https://api.yoti.com/idverify/v1/sessions?sdkId=${params.sdkId}&nonce=${params.nonce}&timestamp=${params.timestamp}`,
+      {
+        headers: {
+					'X-Yoti-Auth-Digest': signature,
+					'X-Yoti-SDK': 'Node',
+					'X-Yoti-SDK-Version': 'Node-4.1.0',
+					Accept: 'application/json',
+					'Content-Type': 'application/json'
+				},
+      },
+    );
+
+		console.log('data', data);
+		console.log('status', status);
+
+		return {
+			statusCode:200,
+			body: JSON.stringify({
+				access_token: 'accessToken',
+			}),
+		};
+	
 		// const info = await this.yotiService.fetchSessionInfo(id);
 		// console.log('info', info);
 

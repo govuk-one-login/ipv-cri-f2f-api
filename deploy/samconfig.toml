@@ -2,8 +2,8 @@ version = 0.1
 [dev]
 [dev.deploy]
 [dev.deploy.parameters]
-stack_name = "backend-viveak"
-s3_prefix = "backend-viveak"
+stack_name = "backend-viveakv"
+s3_prefix = "backend-viveakv"
 region = "eu-west-2"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
