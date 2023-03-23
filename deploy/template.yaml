@@ -59,8 +59,7 @@ Mappings:
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
       ISSUER: "https://review-o.dev.account.gov.uk"
-      MESSAGERETENTIONPERIODDAYS: 345600, # Default: 4 days
-      YOTI_BASE_URL: 'https://api.yoti.com/idverify/v1'
+      MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     build:
       ISSUER: "https://review-o.build.account.gov.uk"
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
@@ -429,7 +428,6 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
-          YOTI_BASE_URL: !FindInMap [EnvironmentVariables, !Ref Environment, YOTI_BASE_URL]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess

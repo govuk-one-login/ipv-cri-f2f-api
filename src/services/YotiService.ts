@@ -28,45 +28,14 @@ export class YotiService {
 		return sign.sign(PEM_KEY).toString("base64");
 	}
 
-	public async generateYotiRequest(CLIENT_SDK_ID: string, PEM_KEY: string, method: string, payloadJSON: string, endpoint: string) {
+	public async makeRequest2(CLIENT_SDK_ID: string, PEM_KEY: string) {
 		const nonce = uuidv4();
 		const unixTimestamp = Date.now();
 
 		const queryString = `sdkId=${CLIENT_SDK_ID}&nonce=${nonce}&timestamp=${unixTimestamp}`;
 
-		const endpointPath = `${endpoint}?${queryString}`
+		const endpointPath = `/sessions?${queryString}`
 
-		let base64String = ''
-		if (method === 'POST'){
-			base64String = `&${Buffer.from(JSON.stringify(payloadJSON)).toString('base64')}`;
-		}
-
-		// Get message signature.
-		const messageSignature = this.getRSASignatureForMessage(
-			`${method}&${endpointPath}&${base64String}`,
-			PEM_KEY
-		);
-
-		const config: AxiosRequestConfig = {
-			headers: {
-				'X-Yoti-Auth-Digest': messageSignature,
-				'X-Yoti-SDK': 'Node',
-				'X-Yoti-SDK-Version': 'Node-4.1.0',
-				Accept: 'application/json',
-			},
-		};
-
-		const url = `${process.env.YOTI_BASE_URL}${endpointPath}`;
-
-		const response = {
-			url, 
-			config
-		}
-
-		return response
-	}
-
-	public async createSession(CLIENT_SDK_ID: string, PEM_KEY: string) {
 		const payloadJSON = {
 			"session_deadline":"2023-05-05T23:59:59Z",
 			"resources_ttl":"15780000",
@@ -159,10 +128,24 @@ export class YotiService {
 				 }
 			}
 	 }
+		const base64String = Buffer.from(JSON.stringify(payloadJSON)).toString('base64');
 
-	 const yotiRequest = await this.generateYotiRequest(CLIENT_SDK_ID, PEM_KEY, 'POST', JSON.stringify(payloadJSON), '/sessions')
+		// Get message signature.
+		const messageSignature = this.getRSASignatureForMessage(
+			`POST&${endpointPath}&${base64String}`,
+			PEM_KEY
+		);
 
-		const { data, status } = await axios.post(yotiRequest.url, payloadJSON, yotiRequest.config)
+		const config: AxiosRequestConfig = {
+			headers: {
+				'X-Yoti-Auth-Digest': messageSignature,
+				'X-Yoti-SDK': 'Node',
+				'X-Yoti-SDK-Version': 'Node-4.1.0',
+				Accept: 'application/json',
+			},
+		};
+
+		const { data, status } = await axios.post(`https://api.yoti.com/idverify/v1${endpointPath}`, payloadJSON, config)
 
 		return data.session_id;
 	}
