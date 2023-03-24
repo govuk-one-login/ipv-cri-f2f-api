@@ -187,8 +187,7 @@ Resources:
         - webAcl
         - Arn
       LogDestinationConfigs:
-        - !Sub >-
-          arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:aws-waf-logs-${AWS::StackName}-${Environment}-cloudWatchLog
+        - !GetAtt cloudwatchLogsGroup.Arn
       LoggingFilter:
         DefaultBehavior: KEEP
         Filters:
