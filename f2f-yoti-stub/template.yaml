@@ -1,0 +1,327 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Digital Identity IPV CRI F2F API"
+
+Parameters:
+  CodeSigningConfigArn:
+    Type: String
+    Default: "none"
+    Description: >
+      The ARN of the Code Signing Config to use, provided by the deployment pipeline
+  Environment:
+    Description: "The environment type"
+    Type: "String"
+    AllowedValues:
+      - "dev"
+      - "build"
+      - "staging"
+      - "integration"
+      - "production"
+    ConstraintDescription: Ensure environment variable is set to one of dev, build, staging, integration or production.
+  PermissionsBoundary:
+    Description: "The ARN of the permissions boundary to apply when creating IAM roles"
+    Type: String
+    Default: "none"
+  SecretPrefix:
+    Type: String
+    Default: "none"
+    Description: Secrets name prefix
+  VpcStackName:
+    Type: String
+    Default: "vpc-cri"
+    Description: The name of the VPC stack deployed.
+  L2DynamoStackName:
+    Type: String
+    Default: "f2f-cri-ddb"
+    Description: The name of the L2 DynamoDB stack deployed.
+  L2KMSStackName:
+    Type: String
+    Default: "f2f-cri-kms"
+    Description: The name of the L2 DynamoDB stack deployed.
+
+Mappings:
+  EnvironmentConfiguration: # This is where you store per-environment settings.
+    dev:
+      logretentionindays: 3
+      apiTracingEnabled: true
+    build:
+      logretentionindays: 3
+      apiTracingEnabled: true
+    staging:
+      logretentionindays: 3
+      apiTracingEnabled: true
+    integration:
+      logretentionindays: 30
+      apiTracingEnabled: false
+    production:
+      logretentionindays: 30
+      apiTracingEnabled: false
+  EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
+    dev:
+      ISSUER: 'https://review-o.dev.account.gov.uk'
+      MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+    build:
+      ISSUER: 'https://review-o.build.account.gov.uk'
+      MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+    staging:
+      ISSUER: 'https://review-o.staging.account.gov.uk'
+      MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+    integration:
+      ISSUER: 'https://review-o.integration.account.gov.uk'
+      MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+    production:
+      ISSUER: 'https://review-o.account.gov.uk'
+      MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+  TxMAAccounts:
+    # EVENTS is used to egress to TxMA.
+    dev:
+      AUDIT: arn:aws:iam::725018305812:root
+      EVENTS: arn:aws:iam::248098332657:root
+    build:
+      AUDIT: arn:aws:iam::761029721660:root
+      EVENTS: arn:aws:iam::750703655225:root
+    staging:
+      AUDIT: arn:aws:iam::778587367904:root
+      EVENTS: arn:aws:iam::178023842775:root
+    integration:
+      AUDIT: arn:aws:iam::423448613278:root
+      EVENTS: arn:aws:iam::729485541398:root
+    production:
+      AUDIT: arn:aws:iam::348043515437:root
+      EVENTS: arn:aws:iam::451773080033:root
+
+Conditions:
+  CreateDevResources: !Equals
+    - !Ref Environment
+    - dev
+  IsProdLikeEnvironment: !Or
+    - !Equals [!Ref Environment, staging]
+    - !Equals [!Ref Environment, integration]
+    - !Equals [!Ref Environment, production]
+  UseCodeSigning:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref CodeSigningConfigArn
+          - "none"
+  UsePermissionsBoundary:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref PermissionsBoundary
+          - "none"
+  UseSecretPrefix:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref SecretPrefix
+          - "none"
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    VpcConfig:
+      SecurityGroupIds:
+        - !GetAtt LambdaEgressSecurityGroup.GroupId
+      SubnetIds:
+        - Fn::ImportValue:
+            "Fn::Sub": "${VpcStackName}-PrivateSubnetIdA"
+        - Fn::ImportValue:
+            "Fn::Sub": "${VpcStackName}-PrivateSubnetIdB"
+    PermissionsBoundary: !If
+      - UsePermissionsBoundary
+      - !Ref PermissionsBoundary
+      - !Ref AWS::NoValue
+    CodeSigningConfigArn: !If
+      - UseCodeSigning
+      - !Ref CodeSigningConfigArn
+      - !Ref AWS::NoValue
+    Timeout: 30 # seconds
+    Tracing: Active
+    MemorySize: 1024
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        # These should always be alphabetically organised.
+        AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
+        POWERTOOLS_LOG_LEVEL: INFO # The LogLevel for the AWS PowerTools LogHelper
+        POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
+        ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+        SECRET_PREFIX: !If [
+          UseSecretPrefix,
+          !Ref SecretPrefix,
+          !Ref AWS::StackName,
+        ] # What is this? @TODO
+        #  SQS_AUDIT_EVENT_PREFIX: CIC-F2F # The prefix to add to TxMA event messages
+    AutoPublishAlias: live
+
+Resources:
+  LambdaEgressSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: >-
+        Permits outbound on port 443 from within the VPC to the internet.
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow to the wider internet on port 443
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      VpcId:
+        Fn::ImportValue: !Sub "${VpcStackName}-VpcId"
+
+
+  ### Start of API Gateway definition.
+  MockYotiRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      OpenApiVersion: 3.0.1
+      AccessLogSetting:
+        Format: "$context.requestId $context.httpMethod $context.path"
+        DestinationArn: !GetAtt MockYotiAPIGatewayAccessLogGroup.Arn
+      EndpointConfiguration:
+        Type: REGIONAL
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: './yoti-spec.yaml'
+        OpenApiVersion: 3.0.2
+
+
+      TracingEnabled: true
+      Tags:
+        Product: GOV.UK Sign In
+        System: YotiMock
+        Environment: !Ref Environment
+        Service: backend
+        Name: MockYotiRestApi
+        Source: yoti
+
+  MockYotiAPIGatewayAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+      # KmsKeyId: !GetAtt HelloWorldKmsKey.Arn
+      Tags:
+        - Key: Product
+          Value: GOV.UK Sign In
+        - Key: System
+          Value: Yoti
+        - Key: Environment
+          Value: Demo
+        - Key: Service
+          Value: backend
+        - Key: Name
+          Value: APIGatewayAccessLogGroup
+
+
+  ### End of API Gateway definition.
+
+  ### Function Definition
+  ## Yoti Session
+  MockYotiSessionFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: MockYotiSessionFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "Yoti-Stub-${AWS::StackName}"
+      Handler: MockYotiSessionHandler.lambdaHandler
+      CodeUri: ./src/
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: MockYotiSessionHandler
+          # using this one temp to save incoming data
+          SESSION_TABLE:
+            Fn::ImportValue: !Sub "${L2DynamoStackName}-yoti-session-table-name"
+#          KMS_KEY_ARN:
+#            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - S3FullAccessPolicy:
+              BucketName: "rimisra1"
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-yoti-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-yoti-session-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-yoti-session-table-key-id"
+
+#        - Statement:
+#            - Sid: KMSPolicy
+#              Effect: Allow
+#              Action:
+#                - kms:Sign
+#              Resource:
+#                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+      Events:
+        sessions:
+          Type: Api
+          Properties:
+            Path: /sessions
+            Method: post
+            RestApiId: !Ref MockYotiRestApi
+        sessionsconfiguration:
+          Type: Api
+          Properties:
+            Path: /sessions/{sessionId}/configuration
+            Method: get
+            RestApiId: !Ref MockYotiRestApi
+        putinstructions:
+          Type: Api
+          Properties:
+            Path: /sessions/{sessionId}/instructions
+            Method: put
+            RestApiId: !Ref MockYotiRestApi
+        getinstructions:
+          Type: Api
+          Properties:
+            Path: /sessions/{sessionId}/instructions/pdf
+            Method: get
+            RestApiId: !Ref MockYotiRestApi
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - MockYotiSessionHandler.ts
+
+  MockYotiSessionFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/Access-Token-${AWS::StackName}"
+      RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logretentionindays ]
+
+#  YotiSessionFunctionLogsSubscriptionFilterCSLS:
+#    Type: AWS::Logs::SubscriptionFilter
+#    Condition: IsProdLikeEnvironment
+#    Properties:
+#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+#      FilterPattern: ""
+#      LogGroupName: !Ref TokenFunctionLogGroup
+
+  MockYotiSessionFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref MockYotiSessionFunction
+      Principal: apigateway.amazonaws.com
+
+Outputs:
+  MockYotiApiGatewayId:
+    Description: "API GatewayID of the Yoti API"
+    Value: !Sub "${MockYotiRestApi}"
+    Export:
+      Name: !Sub ${AWS::StackName}-MockYotiApiGatewayId
