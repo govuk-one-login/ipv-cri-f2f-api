@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import { Logger } from "@aws-lambda-powertools/logger";
 import crypto from "crypto";
-import * as jose from "node-jose";
 import { v4 as uuidv4 } from "uuid";
 import axios, { AxiosRequestConfig } from "axios";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
@@ -33,17 +32,19 @@ export class YotiService {
   }
 
   private getRSASignatureForMessage(message: string) {
-    const sign = crypto.createSign("RSA-SHA256");
-    sign.update(message);
-    return sign.sign(this.PEM_KEY).toString("base64");
+		return crypto
+		.createSign('RSA-SHA256')
+		.update(message)
+		.sign(this.PEM_KEY)
+		.toString('base64');
   }
 
-  public async generateYotiRequest(Payload: {
+  public async generateYotiRequest(generateYotiPayload: {
     method: any;
     payloadJSON?: string;
     endpoint: any;
   }) {
-    const { method, endpoint } = Payload;
+    const { method, endpoint } = generateYotiPayload;
 
     const nonce = uuidv4();
     const unixTimestamp = Date.now();
@@ -52,18 +53,20 @@ export class YotiService {
 
     const endpointPath = `${endpoint}?${queryString}`;
 
-		let base64String = ''
+    let base64String = "";
 
-    if ((method === HttpVerbsEnum.POST || method === HttpVerbsEnum.PUT) && Payload.payloadJSON) {
-      base64String = `&${Buffer.from(Payload.payloadJSON).toString(
+    if (
+      (method === HttpVerbsEnum.POST || method === HttpVerbsEnum.PUT) &&
+      generateYotiPayload.payloadJSON
+    ) {
+      base64String = `&${Buffer.from(generateYotiPayload.payloadJSON).toString(
         "base64"
       )}`;
-		}
+    }
 
-		const messageSignature = this.getRSASignatureForMessage(
-			`${method}&${endpointPath}${base64String}`
-		);
-			
+    const messageSignature = this.getRSASignatureForMessage(
+      `${method}&${endpointPath}${base64String}`
+    );
 
     const config: AxiosRequestConfig = {
       headers: {
@@ -75,7 +78,7 @@ export class YotiService {
     };
 
     const response = {
-      url: `https://api.yoti.com/idverify/v1${endpointPath}`,
+      url: `${process.env.YOTIBASEURL}${endpointPath}`,
       config,
     };
 
@@ -170,15 +173,11 @@ export class YotiService {
       },
     };
 
-    const Payload = {
+    const yotiRequest = await this.generateYotiRequest({
       method: HttpVerbsEnum.POST,
       payloadJSON: JSON.stringify(payloadJSON),
       endpoint: "/sessions",
-    };
-
-    const yotiRequest = await this.generateYotiRequest(Payload);
-
-    console.log("yotiRequest", yotiRequest);
+    });
 
     const { data } = await axios.post(
       yotiRequest.url,
@@ -189,68 +188,61 @@ export class YotiService {
     return data.session_id;
   }
 
-	public async fetchSessionInfo(sessionId: string) {
+  public async fetchSessionInfo(sessionId: string) {
+    const yotiRequest = await this.generateYotiRequest({
+      method: HttpVerbsEnum.GET,
+      endpoint: `/sessions/${sessionId}/configuration`,
+    });
 
-		const Payload = {
-			method: HttpVerbsEnum.GET,
-			endpoint: `/sessions/${sessionId}/configuration`
-		 }
+    const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
 
-    const yotiRequest = await this.generateYotiRequest(Payload)
-
-		const { data } = await axios.get(yotiRequest.url, yotiRequest.config)
-
-		console.log('fetchSessionInfo', data);
-
-		return data;
+    return data;
   }
 
-	public async generateInstructions(sessionId: string, requirements: []) {
-		const payloadJSON = {
-			"contact_profile": {
-				 "first_name": "John",
-				 "last_name": "Doe",
-				 "email": "john.doe@gmail.com"
-			},
-			"documents": requirements,
-			"branch": {
-				 "type": "UK_POST_OFFICE",
-				 "name": "UK Post Office Branch",
-				 "address": "123 Post Office Road, London",
-				 "post_code": "ABC 123",
-				 "location": {
-						"latitude": 0.34322,
-						"longitude": -42.48372
-				 }
-			}
-	 };
-		const Payload = {
-			method: HttpVerbsEnum.PUT,
-			endpoint: `/sessions/${sessionId}/instructions`,
-			payloadJSON: JSON.stringify(payloadJSON),
-		 }
+  public async generateInstructions(sessionId: string, requirements: []) {
+    const payloadJSON = {
+      contact_profile: {
+        first_name: "John",
+        last_name: "Doe",
+        email: "john.doe@gmail.com",
+      },
+      documents: requirements,
+      branch: {
+        type: "UK_POST_OFFICE",
+        name: "UK Post Office Branch",
+        address: "123 Post Office Road, London",
+        post_code: "ABC 123",
+        location: {
+          latitude: 0.34322,
+          longitude: -42.48372,
+        },
+      },
+    };
 
-    const yotiRequest = await this.generateYotiRequest(Payload)
+    const yotiRequest = await this.generateYotiRequest({
+      method: HttpVerbsEnum.PUT,
+      endpoint: `/sessions/${sessionId}/instructions`,
+      payloadJSON: JSON.stringify(payloadJSON),
+    });
 
-		const { data } = await axios.put(yotiRequest.url, payloadJSON, yotiRequest.config)
+    const { data } = await axios.put(
+      yotiRequest.url,
+      payloadJSON,
+      yotiRequest.config
+    );
 
-		console.log('generateInstructions', data);
+    return data;
+  }
 
-		return data;
- 	}
+  public async fetchInstructionsPdf(sessionId: string) {
+    const yotiRequest = await this.generateYotiRequest({
+      method: HttpVerbsEnum.GET,
+      endpoint: `/sessions/${sessionId}/instructions/pdf`,
+    });
 
-	 public async fetchInstructionsPdf(sessionId: string) {
-		const Payload = {
-			method: HttpVerbsEnum.GET,
-			endpoint: `/sessions/${sessionId}/instructions/pdf`
-		 }
+    const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
 
-    const yotiRequest = await this.generateYotiRequest(Payload)
-
-		const { data } = await axios.get(yotiRequest.url, yotiRequest.config)
-
-		console.log('fetchInstructionsPdf', data);
-
-		return data;
- 	}
+    return data;
+  }
+	
 }

@@ -58,18 +58,23 @@ Mappings:
       apiTracingEnabled: false
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
+      YOTIBASEURL: "https://api.yoti.com/idverify/v1"
       ISSUER: "https://review-o.dev.account.gov.uk"
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     build:
+      YOTIBASEURL: "https://api.yoti.com/idverify/v1"
       ISSUER: "https://review-o.build.account.gov.uk"
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     staging:
+      YOTIBASEURL: "https://api.yoti.com/idverify/v1"
       ISSUER: "https://review-o.staging.account.gov.uk"
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     integration:
+      YOTIBASEURL: "https://api.yoti.com/idverify/v1"
       ISSUER: "https://review-o.integration.account.gov.uk"
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     production:
+      YOTIBASEURL: "https://api.yoti.com/idverify/v1"
       ISSUER: "https://review-o.account.gov.uk"
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
   TxMAAccounts:
@@ -428,6 +433,7 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
+          YOTIBASEURL: !FindInMap [EnvironmentVariables, !Ref Environment, YOTIBASEURL]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
