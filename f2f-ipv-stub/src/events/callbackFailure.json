@@ -1,0 +1,27 @@
+{
+    "resource": "/",
+    "path": "/",
+    "httpMethod": "POST",
+    "requestContext": {
+        "resourcePath": "/",
+        "httpMethod": "POST",
+        "path": "/callback"
+    },
+    "headers": {
+        "accept": "application/x-www-form-urlencoded;charset=UTF-8",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        "Host": "tests.gov.uk",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36",
+        "X-Amzn-Trace-Id": "Root=1-5e66d96f-7491f09xmpl79d18acf3d050"
+    },
+    "queryStringParameters": {
+        "error": "access_denied",
+        "error_description": "duplicate session"
+    },
+    "multiValueHeaders": {},
+    "multiValueQueryStringParameters": null,
+    "pathParameters": null,
+    "stageVariables": null,
+    "body": null,
+    "isBase64Encoded": false
+}
