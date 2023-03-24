@@ -1,10 +1,9 @@
 openapi: 3.0.1
 info:
-  title:
-     Fn::Sub: "${AWS::StackName} - F2F Credential Issuer Private API"
+  title: "Face to Face CRI"
   version: "1.0"
   description: >-
-    Claimed Identity CRI - Frontend and Backend API specification
+    Face to Face CRI - Frontend and Backend API specification
   contact:
     name: Darren Dunford
     email: darren.dunford@digital.cabinet-office.gov.uk
@@ -12,14 +11,69 @@ servers:
   - url: https://www.example.com
 tags:
   - name: Backend - Common CRI Lambda
-    description: Backend endpoints implemented by the Common CRI Lambda functions
+    description: >-
+      Backend endpoints implemented by the Common CRI Lambda functions, re-implemented in TypeScript
   - name: Backend - CI CRI specific
     description: Backend endpoints implementing functions specific to the Claimed Identity CRI
   - name: Frontend
     description: Frontend endpoints implementing rendering and routing
 
 paths:
-
+  /authorize:
+    get:
+      operationId: getAuthorize
+      summary: Start a new session
+      description: >-
+        Authorize - Frontend call which is the user is redirected to with a JAR request in order to start a new
+        session. Either returns a rendered screen as the next step in the UI flow as the user enters the F2F CRI or,
+        in case of error, returns a further redirect back to the registered `redirect_uri` with an `error` and
+        optional `error_description`.
+      tags:
+        - Frontend
+      parameters:
+        - $ref: '#/components/parameters/ResponseType'
+        - $ref: '#/components/parameters/ClientId'
+        - $ref: '#/components/parameters/Request'
+      responses:
+        "200":
+          description: >-
+            OK - Rendered response beginning the F2F CRI screen flow
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "302":
+          description: >-
+            Error - redirect back to registered `redirect_uri` for the specified `client_id` with the `state`, an
+            `error` and optionally an `error_description` as query parameters
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
   /token:
     post:
       operationId: postToken
@@ -105,17 +159,86 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OAuthErrorResponse"
-      x-amazon-apigateway-request-validator: "both"
-      x-amazon-apigateway-integration:
-        httpMethod: "POST"
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Access-Token-${AWS::StackName}:live/invocations
-        responses:
-          default:
-            statusCode: "200"
-        passthroughBehavior: "when_no_match"
-        contentHandling: "CONVERT_TO_TEXT"
-        type: "aws_proxy"
+  /userinfo:
+    post:
+      operationId: postUserInfo
+      summary: Retrieve a static pending response to indicate out-of-band result delivery
+      description: >-
+        If the access token provided is valid and refers to an unexpired session in the ACCESS_TOKEN_ISSUED state
+        then return a pending response to indicate out-of-band result delivery, in line with
+        [ADR58](https://github.com/alphagov/digital-identity-architecture/blob/main/adr/0058-cri-ipv-async-result-comms.md).
+      tags:
+        - Backend - CI CRI specific
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      responses:
+        "202":
+          description: >-
+            Accepted - result will be delivered out-of-band
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfoPendingJwt"
+        "401":
+          description: Unauthorized
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthErrorResponse"
+        "500":
+          description: Internal Server Error
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthErrorResponse"
   /authorization:
     get:
       operationId: getAuthorization
@@ -195,21 +318,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OAuthErrorResponse"
-      x-amazon-apigateway-request-validator: "both"
-      x-amazon-apigateway-integration:
-        httpMethod: "POST"
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthorizationFunction.Arn}:live/invocations
-        responses:
-          default:
-            statusCode: "200"
-        passthroughBehavior: "when_no_match"
-        contentHandling: "CONVERT_TO_TEXT"
-        type: "aws_proxy"
-
   /session:
     post:
-      operationId: postVerifyAuthorizeRequest
+      operationId: postSession
       summary: Verify the incoming JAR request and initiate a Session
       description: >-
         Verify Authorization Request - Verify the [JAR request](https://datatracker.ietf.org/doc/rfc9101/)
@@ -293,100 +404,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OAuthErrorResponse"
-      x-amazon-apigateway-request-validator: "both"
-      x-amazon-apigateway-integration:
-        httpMethod: "POST"
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TokenFunction.Arn}:live/invocations
-        responses:
-          default:
-            statusCode: "200"
-        passthroughBehavior: "when_no_match"
-        contentHandling: "CONVERT_TO_TEXT"
-        type: "aws_proxy"
-
-  /.well-known/jwks.json:
-    get:
-      operationId: getWellKnownJwksJson
-      summary: Retrieve the signing public keys for JWTs issued by `POST /userinfo`.
-      description: >-
-        Return the current valid public keys used to sign JWTs issued by the service as a JSON Web Key Set
-      tags:
-        - Backend - CI CRI specific
-      responses:
-        "200":
-          description: >-
-            OK - key ring returned
-          headers:
-            Cache-Control:
-              schema:
-                type: "string"
-            Content-Type:
-              schema:
-                type: "string"
-            Strict-Transport-Security:
-              schema:
-                type: "string"
-            X-Content-Type-Options:
-              schema:
-                type: "string"
-            X-Frame-Options:
-              schema:
-                type: "string"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/JWKSFile"
-        "400":
-          description: 400 response
-          headers:
-            Cache-Control:
-              schema:
-                type: "string"
-            Content-Type:
-              schema:
-                type: "string"
-            Strict-Transport-Security:
-              schema:
-                type: "string"
-            X-Content-Type-Options:
-              schema:
-                type: "string"
-            X-Frame-Options:
-              schema:
-                type: "string"
-        "500":
-          description: Internal Server Error
-          headers:
-            Cache-Control:
-              schema:
-                type: "string"
-            Content-Type:
-              schema:
-                type: "string"
-            Strict-Transport-Security:
-              schema:
-                type: "string"
-            X-Content-Type-Options:
-              schema:
-                type: "string"
-            X-Frame-Options:
-              schema:
-                type: "string"
-      x-amazon-apigateway-request-validator: "both"
-      x-amazon-apigateway-integration:
-        httpMethod: "GET"
-        credentials:
-          Fn::GetAtt: [ "JWKSBucketRole", "Arn" ]
-        uri:
-          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${JsonWebKeysBucket}/.well-known/jwks.json"
-        responses:
-          default:
-            statusCode: "200"
-        passthroughBehavior: "when_no_match"
-        contentHandling: "CONVERT_TO_TEXT"
-        type: "aws"
-
   /documentSelection:
     post:
       operationId: postDocumentSelection
@@ -479,7 +496,283 @@ paths:
             X-Frame-Options:
               schema:
                 type: "string"
-
+  /sharedClaims/contactDetails:
+    post:
+      operationId: postSharedClaimsContactDetails
+      summary: Set the contact details for the session.
+      description: >-
+        Set an SMS contact number for the specified session. The notification email address cannot be changed, as this
+        is the GOV.UK account email address as passed in F2F CRI from Orch->IPV. Note thiscan only be set prior to the
+        call to `POST /documentSelection`.
+      tags:
+        - Backend - CI CRI specific
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SharedClaimsContactDetailsRequest'
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        "202":
+          description: >-
+            Accepted - the contact details for the session have been updated
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "400":
+          description: >-
+            Bad Request - contact details data failed validation and has not been persisted
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "401":
+          description: Unauthorized
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "500":
+          description: Internal Server Error
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+  /.well-known/jwks.json:
+    get:
+      operationId: getWellKnownJwksJson
+      summary: Retrieve the signing public keys for JWTs issued by `POST /userinfo`.
+      description: >-
+        Return the current valid public keys used to sign JWTs issued by the service as a JSON Web Key Set
+      tags:
+        - Backend - CI CRI specific
+      responses:
+        "200":
+          description: "OK - key ring returned"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Cache-Control:
+              example: "max-age=3600, must-revalidate"  # consumers can use a cached key for up to 1 hour
+              description: see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+            Content-Security-Policy:
+              schema:
+                type: "string"
+            Feature-Policy:
+              schema:
+                type: "string"
+            Referrer-Policy:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JWKSFile"
+        "500":
+          description: "Internal Server Error"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+            Content-Security-Policy:
+              schema:
+                type: "string"
+            Feature-Policy:
+              schema:
+                type: "string"
+            Referrer-Policy:
+              schema:
+                type: "string"
+  /txmaEvent:
+    post:
+      operationId: postTxmaEvent
+      summary: Writes an event to TxMA.
+      description: >-
+        Write an event to TxMA. Events can only be written if a valid `session_id` is presented, and is
+        in an accepted state, and the event to be posted is allowed for that state.
+      requestBody:
+        description: A JSON object containing a sessionId and an event name
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WriteTxmaRequest"
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      tags:
+        - Backend - CI CRI specific
+      responses:
+        "200":
+          description: OK
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+            Content-Security-Policy:
+              schema:
+                type: "string"
+            Feature-Policy:
+              schema:
+                type: "string"
+            Referrer-Policy:
+              schema:
+                type: "string"
+        "401":
+          description: Unauthorized
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+            Content-Security-Policy:
+              schema:
+                type: "string"
+            Feature-Policy:
+              schema:
+                type: "string"
+            Referrer-Policy:
+              schema:
+                type: "string"
+        "500":
+          description: Internal Server Error
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+            Content-Security-Policy:
+              schema:
+                type: "string"
+            Feature-Policy:
+              schema:
+                type: "string"
+            Referrer-Policy:
+              schema:
+                type: "string"
 components:
   schemas:
     AuthorizationResponse:
@@ -511,12 +804,12 @@ components:
           type: string
           example: abcdefgh
           description: >-
-            the OAuth client identifier which has been registered with F2F
+            the OAuth client identifier which has been registered with CIC
         request:
           type: string
           example: eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIn0.AISIEvimTkm_1gfG9gQA5btB7lHu2riU90KI-UyuH35CABCJk_KKUTsptasmNG5n6Zo6jL8vlMrj3y4A44nDrnTeH_OGLByerCd-EKNx9EZrplcsQ8VM8dip7LCUQy10OGH6ggoMGq9TbiC7lP_8md8UgvcNzd_zm6q6Ade5zd_sUzTWNSX3q6lVfpkpuMdj-2l18zk-yJEvaDArP7U1VBT8531ixxW1lUKflTHlyC-t6B-45R04o3KubhVb-_gVt7KKXo7UQUY-wmHiTUGsxWb3xrROKs6tv4Ug7Oi1MVngesL8CahjyLamvk-tdS1ji2rxn47Xs2Q21FQf3cHPtQ.9bNdWPzw2Cf6uyR_.VVj96Ejcc84yKv3gfHY6Nond9FJrQ-AoQ7pQSlmnzicoJ7hpHwyHUuNiSJNO4q631VKAblNbdprAA11PcYL3f_hcocxwORR8e3tQlDG9TFn6lxg3l9M34ccJrkD51ippIpsChQhIFqS2hU5W9BFyOPdpQhlhtc7R-d0zqbylh-z-snzxRG7Q-hVsBQpOzOLMDWcJNOCHlF8kZjp4dlWYFj3Yl_9HAa-hrY-DpoxdkvXVIrBdJarD77Bwwxo8y1IWEgCuDA8t5ZmrZMY9fxoufQg9jW5D7hB3qysgSo3S-6SFyt3rP_WD5ecezRrTCY-voDeWBtfdwuKo5UUaPidN4ut1n8SXAdoANxgbuEhyABjvMESi3AnWwZRx8yh3xEMVSwZ8kFQ4cVeBW2hrkiSXMjL1Wtz6nhhY9itFcmzBU4JMvoYfdf-ZZP-F4ph_Xh9CRS7rBzmrgUt81LahzYfCY91lS93qT7r3Wrh0OfIb0vvIkVUebDdCZw25PoG2oREty4k59z7j9ho8VqbtSS6_kpJGWx8Sikut1I-bVduk79Vf1MwEGxSRvZ_pyZHxxZDe19GPfamhctFXMcebyJoT2zwWhcW4AWFSUtm2JI36sZhFcsdRIRBfSjJ4MNXdlrHdOyhvo8SwTWpfO5lU9yyF8lANbXxjdnRSV6sR1iaBs_16slbWJX3WC6RmC76x8MlHn1fLBK_lU_IeZChZqLCwqUC3CXbk17OkTkdeCqFyZSS5rlfm-EiPvam6iW51tA-ywxrmUjkCDE_k-zZIZTVVSg.3YAfgcQ4ZkPtYPNvOzWCLQ
           description: >-
-            an JWT which has been signed with the clients signing private key and encrypted with the F2F public
+            an JWT which has been signed with the clients signing private key and encrypted with the CIC public
             encryption key.
     IssueTokenRequest:
       type: object
@@ -554,6 +847,76 @@ components:
           example: jwt_bearer
           description: >-
             Client assertion type (use for client credentials flow, not supported here)
+    DocumentSelectionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - document_selection
+      properties:
+        document_selection:
+          type: object
+          additionalProperties: false
+          required:
+            - document_selected
+            - date_of_expiry
+          properties:
+            document_selected:
+              type: string
+              example: driversPermit
+              description: >-
+                specifies which of the available supported document types the user elected to present for offline
+                verification
+              enum:
+                - driversPermit
+                - passport
+                - biometricResidentsPermit
+            date_of_expiry:
+              type: string
+              format: date
+              example: "1970-01-01"
+              description: claimed expiry date for the document to be presented at the post office
+        post_office_selection:
+          type: object
+          additionalProperties: false
+          required:
+            - address
+            - post_code
+          properties:
+            address:
+              type: string
+              description: >-
+                full address without the postcode on a single line, to be displayed literally in the instructions PDF
+              example: "1 The Street, Funkytown"
+            location:
+              type: object
+              required:
+                - latitude
+                - longitude
+              additionalProperties: false
+              properties:
+                latitude:
+                  type: number
+                  description: latitude for the Post Office location
+                  example: 0.34322
+                longitude:
+                  type: number
+                  description: longitude for the Post Office location
+                  example: -42.48372
+            post_code:
+              type: string
+              description: Post code of post office
+              example: "N1 2AA"
+              pattern: ^[A-Za-z]{1,2}\d[A-Za-z\d]?\ ?\d[a-zA-Z]{2}$|^[Gg][Ii][Rr]\s?0[Aa]{2}$|^[Bb][Ff][Pp][Oo]\ ?\d{1,4}$
+    SharedClaimsContactDetailsRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        mobile_number:
+          type: string
+          example: "+44 7123 456789"
+          description: "mobile / SMS to receive session update notifications"
+          pattern: ^[\+]?[(]?[0-9]{0,3}[)]?[-\s\.]?[0]?[0-9]{3,4}[-\s\.]?[0-9]{3,4}[0-9]{3,4}$
     JWKSFile:
       type: object
       required:
@@ -629,12 +992,12 @@ components:
                   SHA-256 thumbprint (a.k.a. digest) of the DER encoding of an X.509 certificate.
             required:
               - kty
-    UserInfoJwt:
+    UserInfoPendingJwt:
       type: object
       additionalProperties: true
       required:
         - sub
-        - 'https://vocab.account.gov.uk/v1/credentialJWT'
+        - 'https://vocab.account.gov.uk/v1/credentialStatus'
       properties:
         sub:
           type: string
@@ -642,10 +1005,13 @@ components:
           description: >-
             `sub` value - this should be the same as encoded in the signed JWT
           example: 22222222-2222-2222-2222-222222222222
-        'https://vocab.account.gov.uk/v1/credentialJWT':
+        'https://vocab.account.gov.uk/v1/credentialStatus':
           type: string
+          enum:
+            - pending
           description: >-
             Signed JWT response with user credentials including the outcome from the biometric checks
+          example: pending
     IssueTokenResponse:
       type: object
       additionalProperties: true
@@ -736,12 +1102,12 @@ components:
         event_name:
           type: string
           description: The name of the txma event being written to SQS
-          example: F2F_AUTH_CODE_ISSUED
+          example: CIC_AUTH_CODE_ISSUED
           enum:
-            - F2F_SESSION_CREATED
-            - F2F_SESSION_ABORTED
-            - F2F_AUTH_CODE_ISSUED
-            - F2F_ACCESS_TOKEN_ISSUED
+            - CIC_SESSION_CREATED
+            - CIC_SESSION_ABORTED
+            - CIC_AUTH_CODE_ISSUED
+            - CIC_ACCESS_TOKEN_ISSUED
   parameters:
     SessionHeader:
       name: session-id
@@ -772,7 +1138,7 @@ components:
       example: eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIn0.AISIEvimTkm_1gfG9gQA5btB7lHu2riU90KI-UyuH35CABCJk_KKUTsptasmNG5n6Zo6jL8vlMrj3y4A44nDrnTeH_OGLByerCd-EKNx9EZrplcsQ8VM8dip7LCUQy10OGH6ggoMGq9TbiC7lP_8md8UgvcNzd_zm6q6Ade5zd_sUzTWNSX3q6lVfpkpuMdj-2l18zk-yJEvaDArP7U1VBT8531ixxW1lUKflTHlyC-t6B-45R04o3KubhVb-_gVt7KKXo7UQUY-wmHiTUGsxWb3xrROKs6tv4Ug7Oi1MVngesL8CahjyLamvk-tdS1ji2rxn47Xs2Q21FQf3cHPtQ.9bNdWPzw2Cf6uyR_.VVj96Ejcc84yKv3gfHY6Nond9FJrQ-AoQ7pQSlmnzicoJ7hpHwyHUuNiSJNO4q631VKAblNbdprAA11PcYL3f_hcocxwORR8e3tQlDG9TFn6lxg3l9M34ccJrkD51ippIpsChQhIFqS2hU5W9BFyOPdpQhlhtc7R-d0zqbylh-z-snzxRG7Q-hVsBQpOzOLMDWcJNOCHlF8kZjp4dlWYFj3Yl_9HAa-hrY-DpoxdkvXVIrBdJarD77Bwwxo8y1IWEgCuDA8t5ZmrZMY9fxoufQg9jW5D7hB3qysgSo3S-6SFyt3rP_WD5ecezRrTCY-voDeWBtfdwuKo5UUaPidN4ut1n8SXAdoANxgbuEhyABjvMESi3AnWwZRx8yh3xEMVSwZ8kFQ4cVeBW2hrkiSXMjL1Wtz6nhhY9itFcmzBU4JMvoYfdf-ZZP-F4ph_Xh9CRS7rBzmrgUt81LahzYfCY91lS93qT7r3Wrh0OfIb0vvIkVUebDdCZw25PoG2oREty4k59z7j9ho8VqbtSS6_kpJGWx8Sikut1I-bVduk79Vf1MwEGxSRvZ_pyZHxxZDe19GPfamhctFXMcebyJoT2zwWhcW4AWFSUtm2JI36sZhFcsdRIRBfSjJ4MNXdlrHdOyhvo8SwTWpfO5lU9yyF8lANbXxjdnRSV6sR1iaBs_16slbWJX3WC6RmC76x8MlHn1fLBK_lU_IeZChZqLCwqUC3CXbk17OkTkdeCqFyZSS5rlfm-EiPvam6iW51tA-ywxrmUjkCDE_k-zZIZTVVSg.3YAfgcQ4ZkPtYPNvOzWCLQ
       required: true
       description: >-
-        an JWT which has been signed with the clients signing private key and encrypted with the F2F public
+        an JWT which has been signed with the clients signing private key and encrypted with the CIC public
         encryption key.
       schema:
         type: string
@@ -795,8 +1161,3 @@ components:
       description: >-
         `sessionId` as returned by `POST /session` endpoint
       required: true
-
-x-amazon-apigateway-request-validators:
-    both:
-      validateRequestBody: true
-      validateRequestParameters: true
