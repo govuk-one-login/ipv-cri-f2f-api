@@ -16,19 +16,19 @@ Mappings:
   EnvironmentVariables:
     dev:
       POSTOFFICEURL: "https://locations.pol-platform.co.uk"
-      POSTOFFICEPRETTYPROXYURL: "proxy.review-o.dev.account.gov.uk"
+      PRETTYPROXYURL: "proxy.review-o.dev.account.gov.uk"
     build:
       POSTOFFICEURL: "https://locations.pol-platform.co.uk"
-      POSTOFFICEPRETTYPROXYURL: "proxy.review-o.build.account.gov.uk"
+      PRETTYPROXYURL: "proxy.review-o.build.account.gov.uk"
     staging:
       POSTOFFICEURL: "https://locations.pol-platform.co.uk"
-      POSTOFFICEPRETTYPROXYURL: "proxy.review-o.staging.account.gov.uk"
+      PRETTYPROXYURL: "proxy.review-o.staging.account.gov.uk"
     integration:
       POSTOFFICEURL: "https://locations.pol-platform.co.uk"
-      POSTOFFICEPRETTYPROXYURL: "proxy.review-o.integration.account.gov.uk"
+      PRETTYPROXYURL: "proxy.review-o.integration.account.gov.uk"
     production:
       POSTOFFICEURL: "https://locations.pol-platform.co.uk"
-      POSTOFFICEPRETTYPROXYURL: "proxy.review-o.account.gov.uk"
+      PRETTYPROXYURL: "proxy.review-o.account.gov.uk"
 
 Parameters:
   Environment:
@@ -116,11 +116,11 @@ Resources:
     Properties:
       DomainName: !If
         - IsNotDevelopment
-        - !FindInMap [ EnvironmentVariables, !Ref Environment, POSTOFFICEPRETTYPROXYURL ]
+        - !FindInMap [ EnvironmentVariables, !Ref Environment, PRETTYPROXYURL ]
         - !Sub
-          - "${AWS::StackName}-${POSTOFFICEPRETTYPROXYURL}"
-          - POSTOFFICEPRETTYPROXYURL:
-              !FindInMap [ EnvironmentVariables, !Ref Environment, POSTOFFICEPRETTYPROXYURL ]
+          - "${AWS::StackName}-${PRETTYPROXYURL}"
+          - PRETTYPROXYURL:
+              !FindInMap [ EnvironmentVariables, !Ref Environment, PRETTYPROXYURL ]
       DomainNameConfigurations:
         - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
           EndpointType: REGIONAL
@@ -151,6 +151,7 @@ Outputs:
     Description: >-
       The API Gateway URL for the Outbound Proxy
     Value: !GetAtt OutboundProxyApiGatewayAPI.ApiEndpoint
+
   OutboundProxyApiGatewayId:
     Description: Outbound Proxy API Gateway ID
     Export:
@@ -159,7 +160,8 @@ Outputs:
         - "OutboundProxyApiGatewayId"
         - !Sub "${AWS::StackName}-OutboundProxyApiGatewayId"
     Value: !Ref OutboundProxyApiGatewayAPI
-  ReadIdPrettyApiUrl:
+
+  OutboundProxyPrettyApiUrl:
     Description: Pretty URL for Outbound Proxy
     Export:
       Name: !If
