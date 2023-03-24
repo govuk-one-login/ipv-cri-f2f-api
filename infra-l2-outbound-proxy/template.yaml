@@ -16,18 +16,23 @@ Mappings:
   EnvironmentVariables:
     dev:
       POSTOFFICEURL: "https://locations.pol-platform.co.uk"
+      YOTIURL: "https://api.yoti.com/idverify/v1"
       PRETTYPROXYURL: "proxy.review-o.dev.account.gov.uk"
     build:
       POSTOFFICEURL: "https://locations.pol-platform.co.uk"
+      YOTIURL: "https://api.yoti.com/idverify/v1"
       PRETTYPROXYURL: "proxy.review-o.build.account.gov.uk"
     staging:
       POSTOFFICEURL: "https://locations.pol-platform.co.uk"
+      YOTIURL: "https://api.yoti.com/idverify/v1"
       PRETTYPROXYURL: "proxy.review-o.staging.account.gov.uk"
     integration:
       POSTOFFICEURL: "https://locations.pol-platform.co.uk"
+      YOTIURL: "https://api.yoti.com/idverify/v1"
       PRETTYPROXYURL: "proxy.review-o.integration.account.gov.uk"
     production:
       POSTOFFICEURL: "https://locations.pol-platform.co.uk"
+      YOTIURL: "https://api.yoti.com/idverify/v1"
       PRETTYPROXYURL: "proxy.review-o.account.gov.uk"
 
 Parameters:
@@ -74,6 +79,29 @@ Resources:
         - /
         - - integrations
           - !Ref PostOfficeProxyApiGatewayIntegration
+
+  YotiProxyApiGatewayIntegration:
+    Type: 'AWS::ApiGatewayV2::Integration'
+    Properties:
+      ApiId: !Ref OutboundProxyApiGatewayAPI
+      Description: HTTP proxy integration with Yoti endpoints
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub
+        - "${URL}/{proxy}"
+        - URL:
+            !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIURL ]
+      PayloadFormatVersion: '1.0'
+
+  YotiProxyApiGatewayRoute:
+    Type: 'AWS::ApiGatewayV2::Route'
+    Properties:
+      ApiId: !Ref OutboundProxyApiGatewayAPI
+      RouteKey: 'ANY /yoti/{proxy+}'
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref YotiProxyApiGatewayIntegration
 
   OutboundProxyApiGatewayStageDefault:
     Type: 'AWS::ApiGatewayV2::Stage'
