@@ -25,7 +25,6 @@ class AuthorizationCodeHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
-			console.log('here');
 			return await DocumentSelectionRequestProcessor.getInstance(logger, metrics).processRequest();
 	}
 
