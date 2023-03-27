@@ -4,8 +4,8 @@ F2F Outbound Proxy API Gateway definition
 
 ## Pipeline status
 
-[![Deploy to Dev](https://github.com/alphagov/di-ipv-cri-f2f-api/actions/workflows/post-merge-outbound-proxy-to-dev.yml/badge.svg)](https://github.com/alphagov/di-ipv-dca-infra/actions/workflows/post-merge-outbound-proxy-to-dev.yml)
-[![Deploy to Build](https://github.com/alphagov/di-ipv-cri-f2f-api/actions/workflows/post-merge-outbound-proxy-to-build.yml/badge.svg)](https://github.com/alphagov/di-ipv-dca-infra/actions/workflows/post-merge-outbound-proxy-to-build.yml)
+[![Deploy to Dev](https://github.com/alphagov/di-ipv-cri-f2f-api/actions/workflows/post-merge-outbound-proxy-to-dev.yml/badge.svg)](https://github.com/alphagov/di-ipv-cri-f2f-api/actions/workflows/post-merge-outbound-proxy-to-dev.yml)
+[![Deploy to Build](https://github.com/alphagov/di-ipv-cri-f2f-api/actions/workflows/post-merge-outbound-proxy-to-build.yml/badge.svg)](https://github.com/alphagov/di-ipv-cri-f2f-api/actions/workflows/post-merge-outbound-proxy-to-build.yml)
 
 ## Developing an HTTP API as a proxy for outbound services integrated with F2F
 
