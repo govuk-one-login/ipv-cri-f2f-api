@@ -1,5 +1,5 @@
-import { Template, Match } from "aws-cdk-lib/assertions";
-import { testHelper } from "../lib/test-helper";
+import { Template, Match } from "@aws-cdk/assertions";
+import { testHelper } from "../../lib/test-helper";
 
 const helper = new testHelper();
 
@@ -9,7 +9,7 @@ it("Should contain only one Api Gateway V2 resource definition", () => {
 
 describe("Outbound Proxy Api Gateway Integration URLs", () => {
   test.each`
-    ENVIRONMENT      | POSTOFFICEURL                             | POSTOFFICEPRETTYPROXYURL
+    ENVIRONMENT      | POSTOFFICEURL                             | PRETTYPROXYURL
     ${"dev"}         | ${"https://locations.pol-platform.co.uk"} | ${"proxy.review-o.dev.account.gov.uk"}
     ${"build"}       | ${"https://locations.pol-platform.co.uk"} | ${"proxy.review-o.build.account.gov.uk"}
     ${"staging"}     | ${"https://locations.pol-platform.co.uk"} | ${"proxy.review-o.staging.account.gov.uk"}
