@@ -387,6 +387,128 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws"
 
+#
+#  /txmaEvent:
+#    post:
+#      operationId: postTxmaEvent
+#      summary: Writes an event to TxMA.
+#      description: >-
+#        Write an event to TxMA. Events can only be written if a valid `session_id` is presented, and is
+#        in an accepted state, and the event to be posted is allowed for that state.
+#      requestBody:
+#        description: A JSON object containing a sessionId and an event name
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              $ref: "#/components/schemas/WriteTxmaRequest"
+#      parameters:
+#        - $ref: '#/components/parameters/Authorization'
+#      tags:
+#        - Backend - CI CRI specific
+#      responses:
+#        "200":
+#          description: OK
+#          headers:
+#            Access-Control-Allow-Origin:
+#              schema:
+#                type: "string"
+#            Cache-Control:
+#              schema:
+#                type: "string"
+#            Content-Type:
+#              schema:
+#                type: "string"
+#            Strict-Transport-Security:
+#              schema:
+#                type: "string"
+#            X-Content-Type-Options:
+#              schema:
+#                type: "string"
+#            X-Frame-Options:
+#              schema:
+#                type: "string"
+#            Content-Security-Policy:
+#              schema:
+#                type: "string"
+#            Feature-Policy:
+#              schema:
+#                type: "string"
+#            Referrer-Policy:
+#              schema:
+#                type: "string"
+#        "401":
+#          description: Unauthorized
+#          headers:
+#            Access-Control-Allow-Origin:
+#              schema:
+#                type: "string"
+#            Cache-Control:
+#              schema:
+#                type: "string"
+#            Content-Type:
+#              schema:
+#                type: "string"
+#            Strict-Transport-Security:
+#              schema:
+#                type: "string"
+#            X-Content-Type-Options:
+#              schema:
+#                type: "string"
+#            X-Frame-Options:
+#              schema:
+#                type: "string"
+#            Content-Security-Policy:
+#              schema:
+#                type: "string"
+#            Feature-Policy:
+#              schema:
+#                type: "string"
+#            Referrer-Policy:
+#              schema:
+#                type: "string"
+#        "500":
+#          description: Internal Server Error
+#          headers:
+#            Access-Control-Allow-Origin:
+#              schema:
+#                type: "string"
+#            Cache-Control:
+#              schema:
+#                type: "string"
+#            Content-Type:
+#              schema:
+#                type: "string"
+#            Strict-Transport-Security:
+#              schema:
+#                type: "string"
+#            X-Content-Type-Options:
+#              schema:
+#                type: "string"
+#            X-Frame-Options:
+#              schema:
+#                type: "string"
+#            Content-Security-Policy:
+#              schema:
+#                type: "string"
+#            Feature-Policy:
+#              schema:
+#                type: "string"
+#            Referrer-Policy:
+#              schema:
+#                type: "string"
+#    x-amazon-apigateway-request-validator: "both"
+#    x-amazon-apigateway-integration:
+#      httpMethod: "POST"
+#      uri:
+#        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ClaimedIdentityFunction.Arn}:live/invocations
+#      responses:
+#        default:
+#          statusCode: "200"
+#      passthroughBehavior: "when_no_match"
+#      contentHandling: "CONVERT_TO_TEXT"
+#      type: "aws_proxy"
+
 components:
   schemas:
     AuthorizationResponse:
