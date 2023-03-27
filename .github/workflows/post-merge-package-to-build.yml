@@ -8,6 +8,7 @@ on:
       - 'infra-l2-dynamo/**'
       - 'infra-l2-kms/**'
       - 'infra-l2-waf/**'
+      - 'f2f-ipv-stub/**'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
