@@ -29,7 +29,7 @@ jobs:
         uses: aws-actions/setup-sam@v2
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.DEV_IPV_STUB_GH_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}

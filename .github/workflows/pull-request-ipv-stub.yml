@@ -36,7 +36,7 @@ jobs:
         with:
           submodules: true
 
-      - name: Checks if commiting secrets to repo
+      - name: Checks if committing secrets to repo
         uses: pre-commit/action@v3.0.0
         with:
           extra_args: "detect-secrets > .secrets.baseline"
@@ -83,7 +83,7 @@ jobs:
           version: 1.70.0
         
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.GH_IPV_STUB_VALIDATE_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
