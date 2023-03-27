@@ -582,6 +582,12 @@ Resources:
               Resource:
                 - Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
                 - Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
+      Events:
+        InvocationLevel:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 * * * ? *)  
+            
       Environment:
         Variables:
           JWKS_BUCKET_NAME: !Ref JsonWebKeysBucket
