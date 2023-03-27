@@ -296,7 +296,7 @@ Resources:
           CLIENT_ID: !FindInMap [Configuration, !Ref Environment, IPVStubID]
           REDIRECT_URI: !Sub "https://ipvstub.review-c.${Environment}.account.gov.uk/redirect"
           JWKS_URI: !Sub "https://api.review-c.${Environment}.account.gov.uk/.well-known/jwks.json"
-          OIDC_FRONT_BASE_URI: !Sub  "https://review-c.${Environment}.account.gov.uk"
+          OAUTH_FRONT_BASE_URI: !Sub  "https://review-c.${Environment}.account.gov.uk"
       Policies:
         - Statement:
             - Sid: KMSSignPolicy

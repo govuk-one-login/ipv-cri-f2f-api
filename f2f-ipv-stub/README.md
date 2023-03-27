@@ -10,3 +10,36 @@ If modifications are made to the test client and a new stack is being used, reme
 
 
 To fetch an ssm parameter created from this stack, use the `get-ssm-test-params.sh` by passing in the key for the ssm parameter.
+
+## Usage
+
+When you deploy this stack you will have access to 3 endpoints.
+
+To start a session use the start endpoint:
+```http 
+POST https://base.uri/stage/start
+Content-Type: application/json
+
+{
+    "target":"<OPTIONAL_TARGET_URI>",
+    "gov_uk_signin_journey_id": "<OPTIONAL_UNIQUE_IDENTIFIER>",
+    "shared_claims": <OPTIONAL_SHARED_CLAIMS>
+}
+```
+
+The callback endpoint is the intended recipient of the consumer of the Authorization flow.
+
+It will return a `200` response with a message saying whether the outcome was a success or failure, i.e to return a success message it must receive and authorization code.
+
+```http 
+POST https://base.uri/stage/callback?code=ACBCADD6-10A4-49AC-B3F9-6DBC18B79B02&state=DC19A346249E679B02
+Content-Type: application/json
+
+```
+
+To enable the authorization code flow to complete successfully the CRI must be able to read the public encryption key of the stub. These are made available on the stubs well-known endpoint:
+
+```http
+GET https://base.uri/stage/.well-known/jwks.json
+Accept: application/json
+```

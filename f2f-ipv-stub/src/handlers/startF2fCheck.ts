@@ -22,7 +22,7 @@ export const handler = async (
   const config = getConfig();
   const overrides = event.body !== null ? JSON.parse(event.body) : null;
   if (overrides?.target != null) {
-    config.oidcUri = overrides.target;
+    config.oauthUri = overrides.target;
   }
   const defaultClaims = {
     name: [
@@ -66,8 +66,11 @@ export const handler = async (
     sub: crypto.randomUUID(),
     redirect_uri: config.redirectUri,
     response_type: "code",
-    govuk_signin_journey_id: crypto.randomBytes(16).toString("hex"),
-    aud: config.oidcUri,
+    govuk_signin_journey_id:
+      overrides?.gov_uk_signin_journey_id != null
+        ? overrides?.gov_uk_signin_journey_id
+        : crypto.randomBytes(16).toString("hex"),
+    aud: config.oauthUri,
     iss: "https://ipv.core.account.gov.uk",
     client_id: config.clientId,
     state: crypto.randomBytes(16).toString("hex"),
@@ -89,7 +92,7 @@ export const handler = async (
       request,
       responseType: "code",
       clientId: config.clientId,
-      AuthorizeLocation: `${process.env.OIDC_FRONT_BASE_URI}/oauth2/authorize?request=${request}&response_type=code&client_id=${config.clientId}`,
+      AuthorizeLocation: `${process.env.OAUTH_FRONT_BASE_URI}/oauth2/authorize?request=${request}&response_type=code&client_id=${config.clientId}`,
     }),
   };
 };
@@ -99,14 +102,14 @@ export function getConfig(): {
   jwksUri: string;
   clientId: string;
   signingKey: string;
-  oidcUri: string;
+  oauthUri: string;
 } {
   if (
     process.env.REDIRECT_URI == null ||
     process.env.JWKS_URI == null ||
     process.env.CLIENT_ID == null ||
     process.env.SIGNING_KEY == null ||
-    process.env.OIDC_FRONT_BASE_URI == null
+    process.env.OAUTH_FRONT_BASE_URI == null
   ) {
     throw new Error("Missing configuration");
   }
@@ -116,18 +119,21 @@ export function getConfig(): {
     jwksUri: process.env.JWKS_URI,
     clientId: process.env.CLIENT_ID,
     signingKey: process.env.SIGNING_KEY,
-    oidcUri: process.env.OIDC_FRONT_BASE_URI,
+    oauthUri: process.env.OAUTH_FRONT_BASE_URI,
   };
 }
 
 async function getPublicEncryptionKey(config: {
-  oidcUri: string;
+  jwksUri: string;
+  oauthUri: string;
 }): Promise<CryptoKey> {
   const webcrypto = crypto.webcrypto as unknown as Crypto;
-  const oidcProviderJwks = (
-    await axios.get(`${config.oidcUri}/.well-known/jwks.json`)
+  const oauthProviderJwks = (
+    await axios.get(
+      `${config.jwksUri ?? config.oauthUri}/.well-known/jwks.json`
+    )
   ).data as Jwks;
-  const publicKey = oidcProviderJwks.keys.find((key) => key.use === "enc");
+  const publicKey = oauthProviderJwks.keys.find((key) => key.use === "enc");
   const publicEncryptionKey: CryptoKey = await webcrypto.subtle.importKey(
     "jwk",
     publicKey,
