@@ -9,24 +9,21 @@ it("Should contain only one Api Gateway V2 resource definition", () => {
 
 describe("Outbound Proxy Api Gateway Integration URLs", () => {
   test.each`
-    ENVIRONMENT      | POSTOFFICEURL                             | PRETTYPROXYURL
-    ${"dev"}         | ${"https://locations.pol-platform.co.uk"} | ${"proxy.review-o.dev.account.gov.uk"}
-    ${"build"}       | ${"https://locations.pol-platform.co.uk"} | ${"proxy.review-o.build.account.gov.uk"}
-    ${"staging"}     | ${"https://locations.pol-platform.co.uk"} | ${"proxy.review-o.staging.account.gov.uk"}
-    ${"integration"} | ${"https://locations.pol-platform.co.uk"} | ${"proxy.review-o.integration.account.gov.uk"}
-    ${"production"}  | ${"https://locations.pol-platform.co.uk"} | ${"proxy.review-o.account.gov.uk"}
+    ENVIRONMENT      | POSTOFFICEURL                             | YOTIURL                               | PRETTYPROXYURL
+    ${"dev"}         | ${"https://locations.pol-platform.co.uk"} | ${"https://api.yoti.com/idverify/v1"} | ${"proxy.review-o.dev.account.gov.uk"}
+    ${"build"}       | ${"https://locations.pol-platform.co.uk"} | ${"https://api.yoti.com/idverify/v1"} | ${"proxy.review-o.build.account.gov.uk"}
+    ${"staging"}     | ${"https://locations.pol-platform.co.uk"} | ${"https://api.yoti.com/idverify/v1"} | ${"proxy.review-o.staging.account.gov.uk"}
+    ${"integration"} | ${"https://locations.pol-platform.co.uk"} | ${"https://api.yoti.com/idverify/v1"} | ${"proxy.review-o.integration.account.gov.uk"}
+    ${"production"}  | ${"https://locations.pol-platform.co.uk"} | ${"https://api.yoti.com/idverify/v1"} | ${"proxy.review-o.account.gov.uk"}
   `(
-    `HTTP proxy integration with ReadID portal Uri for $ENVIRONMENT has correct value`,
-    ({ ENVIRONMENT, POSTOFFICEURL, POSTOFFICEPRETTYPROXYURL }) => {
+    `HTTP proxy integration with proxied URIs for $ENVIRONMENT have correct values`,
+    ({ ENVIRONMENT, POSTOFFICEURL, YOTIURL, PRETTYPROXYURL }) => {
       const mappings = helper
         .getTemplate()
         .findMappings("EnvironmentVariables");
-      const expectURL = POSTOFFICEURL + "/" + POSTOFFICEPRETTYPROXYURL;
-      const actualURL =
-        mappings.EnvironmentVariables[ENVIRONMENT].POSTOFFICEURL +
-        "/" +
-        mappings.EnvironmentVariables[ENVIRONMENT].POSTOFFICEPRETTYPROXYURL;
-      expect(actualURL).toBe(expectURL);
+      expect(mappings.EnvironmentVariables[ENVIRONMENT].POSTOFFICEURL).toBe(POSTOFFICEURL)
+      expect(mappings.EnvironmentVariables[ENVIRONMENT].YOTIURL).toBe(YOTIURL)
+      expect(mappings.EnvironmentVariables[ENVIRONMENT].PRETTYPROXYURL).toBe(PRETTYPROXYURL)
     }
   );
 })
@@ -37,6 +34,10 @@ it("The Outbound Proxy Api Gateway integration type http proxy", () => {
 
 it("The Outbound Proxy Api Gateway route any method under /postoffice - proxy", () => {
   expect_route_postoffice(helper.getTemplate());
+})
+
+it("The Outbound Proxy Api Gateway route any method under /yoti - proxy", () => {
+  expect_route_yoti(helper.getTemplate());
 })
 
 it("The Outbound Proxy API should contain default stage with this specification", () => {
@@ -62,6 +63,19 @@ const expect_route_postoffice = (template: Template) => {
       "Fn::Join": [
         "/",
         ["integrations", { Ref: "PostOfficeProxyApiGatewayIntegration" }],
+      ],
+    }),
+  });
+}
+
+const expect_route_yoti = (template: Template) => {
+  template.hasResourceProperties("AWS::ApiGatewayV2::Route", {
+    ApiId: { Ref: "OutboundProxyApiGatewayAPI" },
+    RouteKey: "ANY /yoti/{proxy+}",
+    Target: Match.objectLike({
+      "Fn::Join": [
+        "/",
+        ["integrations", { Ref: "YotiProxyApiGatewayIntegration" }],
       ],
     }),
   });
