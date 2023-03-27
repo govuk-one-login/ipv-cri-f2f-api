@@ -1,6 +1,6 @@
-name: Pull Request CI
+name: Pull Request CI - Outbound Proxy Infra
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" or "develop" branch
+  # Triggers the workflow on push or pull request events but only for the "main" branch.
   pull_request:
     branches:
       - main
@@ -9,12 +9,9 @@ on:
       - reopened
       - ready_for_review
       - synchronize
-    paths-ignore:
-      - 'infra-l2-dynamo/**'
-      - 'infra-l2-kms/**'
-      - 'infra-l2-waf/**'
+    paths:
       - 'infra-l2-outbound-proxy/**'
-      
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -23,7 +20,7 @@ permissions:
   id-token: write
   contents: read
 
-env: # Only adding the variables in that are required for
+env: # Only adding the variables in that are required for 
   AWS_REGION: eu-west-2
 
 jobs:
@@ -33,14 +30,14 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./src/
+        working-directory: infra-l2-outbound-proxy
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
         with:
           submodules: true
 
-      - name: Checks if commiting secrets to repo
+      - name: Checks if committing secrets to repo
         uses: pre-commit/action@v3.0.0
         with:
           extra_args: "detect-secrets --all-files"
@@ -63,22 +60,16 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run lint
-        run: npm run lint
-
-      - name: Run Tests
-        run: npm run test:unit
-
       - name: Run Infra checks
         run: npm run test:infra
-        
+
   sam-validate:
     name: SAM Validate
     runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
-        working-directory: ./deploy/
+        working-directory: infra-l2-outbound-proxy
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
@@ -88,21 +79,21 @@ jobs:
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
         with:
-          version: 1.70.0
-
+          version: 1.73.0
+        
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          role-to-assume: ${{ secrets.CRI_F2F_GH_VALIDATE_ROLE_ARN }}
+          role-to-assume: ${{ secrets.GH_F2F_DDB_VALIDATE_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Cache SAM builds
         uses: actions/cache@v3
         with:
           path: |
-            ./di-ipv-cri-f2f-api/.aws-sam/cache
-            ./di-ipv-cri-f2f-api/.aws-sam/deps
-            ./di-ipv-cri-f2f-api/.aws-sam/build.toml
+            ./di-ipv-cri-cic-api/.aws-sam/cache
+            ./di-ipv-cri-cic-api/.aws-sam/deps
+            ./di-ipv-cri-cic-api/.aws-sam/build.toml
           key: sam-oauth
 
       - name: SAM Validate

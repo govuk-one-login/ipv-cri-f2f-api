@@ -1,0 +1,13 @@
+# AWS SAM
+.aws-sam/
+**/.aws-sam/
+
+# Javascript / Typescript
+*.js
+!jest.config.ts
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
