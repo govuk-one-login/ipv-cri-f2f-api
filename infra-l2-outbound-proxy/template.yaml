@@ -1,0 +1,173 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  infra-l2-outbound-proxy
+
+  An HTTP API as a proxy for the F2F outbound integrations to Yoti, Post Office and Gov Notify
+
+Conditions:
+  IsNotDevelopment: !Or
+    - !Equals [ !Ref Environment, build ]
+    - !Equals [ !Ref Environment, staging ]
+    - !Equals [ !Ref Environment, integration ]
+    - !Equals [ !Ref Environment, production ]
+
+Mappings:
+  EnvironmentVariables:
+    dev:
+      POSTOFFICEURL: "https://locations.pol-platform.co.uk"
+      PRETTYPROXYURL: "proxy.review-o.dev.account.gov.uk"
+    build:
+      POSTOFFICEURL: "https://locations.pol-platform.co.uk"
+      PRETTYPROXYURL: "proxy.review-o.build.account.gov.uk"
+    staging:
+      POSTOFFICEURL: "https://locations.pol-platform.co.uk"
+      PRETTYPROXYURL: "proxy.review-o.staging.account.gov.uk"
+    integration:
+      POSTOFFICEURL: "https://locations.pol-platform.co.uk"
+      PRETTYPROXYURL: "proxy.review-o.integration.account.gov.uk"
+    production:
+      POSTOFFICEURL: "https://locations.pol-platform.co.uk"
+      PRETTYPROXYURL: "proxy.review-o.account.gov.uk"
+
+Parameters:
+  Environment:
+    Description: "The environment type"
+    Type: "String"
+    Default: dev
+    AllowedValues:
+      - "dev"
+      - "build"
+      - "staging"
+      - "integration"
+      - "production"
+
+Resources:
+  OutboundProxyApiGatewayAPI:
+    # No caching setup
+    # checkov:skip=CKV_AWS_120: Caching not required on API Gateway
+    Type: 'AWS::ApiGatewayV2::Api'
+    Properties:
+      Name: !Sub outbound-proxy-${Environment}-${AWS::StackName}
+      Description: !Sub "F2F Outbound Proxy API. ${AWS::StackName}"
+      ProtocolType: HTTP
+
+  PostOfficeProxyApiGatewayIntegration:
+    Type: 'AWS::ApiGatewayV2::Integration'
+    Properties:
+      ApiId: !Ref OutboundProxyApiGatewayAPI
+      Description: HTTP proxy integration with Post Office endpoints
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      IntegrationUri: !Sub
+        - "${URL}/{proxy}"
+        - URL:
+            !FindInMap [ EnvironmentVariables, !Ref Environment, POSTOFFICEURL ]
+      PayloadFormatVersion: '1.0'
+
+  PostOfficeProxyApiGatewayRoute:
+    Type: 'AWS::ApiGatewayV2::Route'
+    Properties:
+      ApiId: !Ref OutboundProxyApiGatewayAPI
+      RouteKey: 'ANY /postoffice/{proxy+}'
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref PostOfficeProxyApiGatewayIntegration
+
+  OutboundProxyApiGatewayStageDefault:
+    Type: 'AWS::ApiGatewayV2::Stage'
+    Properties:
+      ApiId: !Ref OutboundProxyApiGatewayAPI
+      StageName: $default
+      AutoDeploy: true
+      DefaultRouteSettings:
+        DataTraceEnabled: false
+        DetailedMetricsEnabled: true
+        ThrottlingBurstLimit: 400
+        ThrottlingRateLimit: 200
+      AccessLogSettings:
+        DestinationArn: !GetAtt OutboundProxyApiGatewayAccessLG.Arn
+        Format: >-
+          {
+          "requestId":"$context.requestId",
+          "ip": "$context.identity.sourceIp",
+          "requestTime":"$context.requestTime",
+          "httpMethod":"$context.httpMethod",
+          "path": "$context.path",
+          "routeKey":"$context.routeKey",
+          "status":"$context.status",
+          "protocol":"$context.protocol",
+          "responseLength":"$context.responseLength",
+          "responseLatency":"$context.responseLatency",
+          "integrationLatency":"$context.integrationLatency",
+          "userAgent": "$context.identity.userAgent"
+          }
+
+  OutboundProxyApiGatewayAccessLG:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/outbound-proxy-${Environment}-${AWS::StackName}-APIGW-Access-Log
+      RetentionInDays: 7
+      # Once validated not PII, this should also egress to CSLS
+
+  OutboundProxyApiGatewayCustomDomain:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !If
+        - IsNotDevelopment
+        - !FindInMap [ EnvironmentVariables, !Ref Environment, PRETTYPROXYURL ]
+        - !Sub
+          - "${AWS::StackName}-${PRETTYPROXYURL}"
+          - PRETTYPROXYURL:
+              !FindInMap [ EnvironmentVariables, !Ref Environment, PRETTYPROXYURL ]
+      DomainNameConfigurations:
+        - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
+          EndpointType: REGIONAL
+          SecurityPolicy: TLS_1_2
+
+  OutboundProxyApiDomainRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Ref OutboundProxyApiGatewayCustomDomain
+      Type: A
+      HostedZoneId: !Sub "{{resolve:ssm:/${Environment}/Platform/Route53/PrimaryZoneID}}"
+      AliasTarget:
+        DNSName: !GetAtt OutboundProxyApiGatewayCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt OutboundProxyApiGatewayCustomDomain.RegionalHostedZoneId
+        EvaluateTargetHealth: false
+
+  OutboundProxyApiGatewayMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      DomainName: !Ref OutboundProxyApiGatewayCustomDomain
+      ApiId: !Ref OutboundProxyApiGatewayAPI
+      Stage: "$default"
+    DependsOn:
+      - OutboundProxyApiGatewayStageDefault
+
+Outputs:
+  OutboundProxyApiUrl:
+    Description: >-
+      The API Gateway URL for the Outbound Proxy
+    Value: !GetAtt OutboundProxyApiGatewayAPI.ApiEndpoint
+
+  OutboundProxyApiGatewayId:
+    Description: Outbound Proxy API Gateway ID
+    Export:
+      Name: !If
+        - IsNotDevelopment
+        - "OutboundProxyApiGatewayId"
+        - !Sub "${AWS::StackName}-OutboundProxyApiGatewayId"
+    Value: !Ref OutboundProxyApiGatewayAPI
+
+  OutboundProxyPrettyApiUrl:
+    Description: Pretty URL for Outbound Proxy
+    Export:
+      Name: !If
+        - IsNotDevelopment
+        - "OutboundProxyApiGatewayPrettyUrl"
+        - !Sub "${AWS::StackName}-OutboundProxyApiGatewayPrettyUrl"
+    Value: !Sub
+      - "https://${URL}/"
+      - URL: !Ref OutboundProxyApiGatewayCustomDomain
