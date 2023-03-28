@@ -2,7 +2,7 @@
 # Yoti Integration
 
 ## Status
-In draft
+Decided
 
 ## Decision
 
