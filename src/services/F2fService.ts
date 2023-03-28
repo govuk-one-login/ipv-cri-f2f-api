@@ -3,6 +3,7 @@ import { ISessionItem } from "../models/ISessionItem";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
 import { DynamoDBDocument, GetCommand, QueryCommandInput, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { SSMClient, AddTagsToResourceCommand } from "@aws-sdk/client-ssm";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { getAuthorizationCodeExpirationEpoch } from "../utils/DateTimeUtils";
 import { Constants } from "../utils/Constants";
