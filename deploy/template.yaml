@@ -304,8 +304,8 @@ Resources:
       Type: A
       HostedZoneId: !Sub "{{resolve:ssm:/${Environment}/Platform/Route53/PrimaryZoneID}}"
       AliasTarget:
-        DNSName: "F2FApiCustomDomainName"
-        HostedZoneId: "F2FApiCustomDomainName"
+        DNSName: !GetAtt F2FApiCustomDomainName.RegionalDomainName
+        HostedZoneId: !GetAtt F2FApiCustomDomainName.RegionalHostedZoneId
 
   ### End of API Gateway Custom Domain definition
 
