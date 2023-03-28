@@ -34,7 +34,7 @@ jobs:
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          role-to-assume: ${{ secrets.BUILD_F2F_DDB_GH_ACTIONS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.BUILD_F2F_PROXY_GH_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: SAM Validate
@@ -46,6 +46,6 @@ jobs:
       - name: Deploy SAM app
         uses: alphagov/di-devplatform-upload-action@v3
         with:
-            artifact-bucket-name: ${{ secrets.BUILD_F2F_DDB_ARTIFACT_SOURCE_BUCKET_NAME }}
+            artifact-bucket-name: ${{ secrets.BUILD_F2F_PROXY_ARTIFACT_SOURCE_BUCKET_NAME }}
             working-directory: infra-l2-outbound-proxy
             template-file: template.yaml
