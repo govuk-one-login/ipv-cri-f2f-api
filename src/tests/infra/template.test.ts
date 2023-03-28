@@ -88,6 +88,67 @@ describe("Infra", () => {
 		});
 	});
 
+	it("Each regional API Gateway should have at least one custom domain base path mapping name defined", () => {
+		const gateways = template.findResources("AWS::Serverless::Api");
+		const gatewayList = Object.keys(gateways);
+		gatewayList.forEach((gateway) => {
+			template.hasResourceProperties("AWS::ApiGateway::BasePathMapping", {
+				RestApiId: {
+					Ref: gateway,
+				}
+			});
+		});
+	});
+
+	it("Each custom domain referenced in a BasePathMapping should be defined", () => {
+		const basePathMappings = template.findResources("AWS::ApiGateway::BasePathMapping");
+		const basePathMappingList = Object.keys(basePathMappings);
+		basePathMappingList.forEach((basePathMapping) => {
+			template.hasResourceProperties("AWS::ApiGateway::DomainName", {
+				DomainName: basePathMappings[basePathMapping].Properties.DomainName
+			});
+		});
+	});
+
+	it("should define a DNS record for each custom domain", () => {
+		const customDomainNames = template.findResources("AWS::ApiGateway::DomainName");
+		const customDomainNameList = Object.keys(customDomainNames);
+		customDomainNameList.forEach((customDomainName) => {
+			template.hasResourceProperties("AWS::Route53::RecordSet", {
+				Name: customDomainNames[customDomainName].Properties.DomainName
+			});
+		});
+	});
+
+	it("should define an output with the API Gateway ID", () => {
+		template.hasOutput("F2FApiGatewayId", {
+			Value: {
+				"Fn::Sub": "${F2FRestApi}",
+			},
+		});
+	});
+
+	it("should define an output with the F2F Backend URL using the custom domain name", () => {
+		template.hasOutput("F2FBackendURL", {
+			Value: {
+				"Fn::Sub": [
+					"https://api-${AWS::StackName}.${DNSSUFFIX}/",
+					{
+						DNSSUFFIX: {
+							"Fn::FindInMap": [
+								"EnvironmentVariables",
+								{
+									Ref: "Environment",
+								},
+								"DNSSUFFIX"
+							],
+						},
+					},
+				],
+			},
+		});
+	});
+
 	describe("Log group retention", () => {
 		it.each`
     environment      | retention
