@@ -38,7 +38,7 @@ class JwksHandler implements LambdaInterface {
 	async handler(): Promise<string> {
 		if (!SIGNING_KEY_IDS || !ENCRYPTION_KEY_IDS || !JWKS_BUCKET_NAME) {
 			logger.error({ message:"Environment variable SIGNING_KEY_IDS or ENCRYPTION_KEY_IDS or JWKS_BUCKET_NAME is not configured" });
-			throw new AppError("Service incorrectly configured", HttpCodesEnum.SERVER_ERROR );
+			throw new AppError( HttpCodesEnum.SERVER_ERROR, "Service incorrectly configured" );
 		}
 		const body: JWKSBody = { keys: [] };
 		const kmsKeyIds = [

@@ -1,9 +1,8 @@
-
 import { AppCodes } from "../models/AppCodes";
 // @ts-ignore
 import { find } from "lodash";
-import {AppError} from "../utils/AppError";
-import {HttpCodesEnum} from "../models/enums/HttpCodesEnum";
+import { AppError } from "../utils/AppError";
+import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 
 /**
  * Class to map error received from Gov Notify service to App Error object

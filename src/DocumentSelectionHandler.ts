@@ -21,7 +21,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 export class DocumentSelection implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
+	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
 		switch (event.resource) {
 			case ResourcesEnum.DOCUMENTSELECTION:
 				if (event.httpMethod === "POST") {
@@ -36,7 +36,7 @@ export class DocumentSelection implements LambdaInterface {
 				return new Response(HttpCodesEnum.NOT_FOUND, "");
 
 			default:
-				throw new AppError("Requested resource does not exist" + { resource: event.resource }, HttpCodesEnum.NOT_FOUND);
+				throw new AppError(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist" + { resource: event.resource });
 
 		}
 	}

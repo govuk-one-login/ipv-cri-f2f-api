@@ -1,7 +1,9 @@
 export class Constants {
 
     static readonly GOV_NOTIFY = "GOV_NOTIFY";
+
     static readonly ENV_VAR_UNDEFINED = "ENV Variables are undefined";
+
     static readonly EMAIL_DISABLED = "EMAIL_DISABLED";
 
     static readonly DEBUG = "DEBUG";

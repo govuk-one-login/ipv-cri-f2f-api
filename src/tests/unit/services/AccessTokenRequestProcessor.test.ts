@@ -175,7 +175,7 @@ describe("AccessTokenRequestProcessor", () => {
 	it("Return 500 when updating the session returns an error", async () => {
 		// @ts-ignore
 		mockF2fService.updateSessionWithAccessTokenDetails.mockImplementation(() => {
-			throw new AppError("updateItem - failed: got error saving Access token details", HttpCodesEnum.SERVER_ERROR);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving Access token details");
 		});
 		const out: Response = await accessTokenRequestProcessorTest.processRequest(request);
 

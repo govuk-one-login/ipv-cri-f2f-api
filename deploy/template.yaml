@@ -58,20 +58,30 @@ Mappings:
       apiTracingEnabled: false
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
-      ISSUER: 'https://review-o.dev.account.gov.uk'
+      CLIENTS: '[{"jwksEndpoint":"https://lg0i8qtuph.execute-api.eu-west-2.amazonaws.com/dev/.well-known/jwks.json","clientId":"cd2cc8b5-304a-46e8-9b04-0e90438c18be","redirectUri":"https://www.review-b.build.account.gov.uk/stub/callback"},{"jwksEndpoint": "https://oxhi1jeu67.execute-api.eu-west-2.amazonaws.com/dev/.well-known/jwks.json", "clientId":"5C584572-9A61-4601-9E78-676713292A4E", "redirectUri": "https://oxhi1jeu67.execute-api.eu-west-2.amazonaws.com/dev/redirect"},{"jwksEndpoint":"https://ykp2os4gy2.execute-api.eu-west-2.amazonaws.com/dev/.well-known/jwks.json", "clientId":"5C584572-9A61-4601-9E78-676713292ADC", "redirectUri":"https://ykp2os4gy2.execute-api.eu-west-2.amazonaws.com/dev/redirect"}]'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      ISSUER: 'https://review-c.dev.account.gov.uk'
+      AUTHSESSIONTTL: '604800' # 7 days in seconds
     build:
-      ISSUER: 'https://review-o.build.account.gov.uk'
+      CLIENTS: '[{"jwksEndpoint":"https://lg0i8qtuph.execute-api.eu-west-2.amazonaws.com/dev/.well-known/jwks.json","clientId":"cd2cc8b5-304a-46e8-9b04-0e90438c18be","redirectUri":"https://www.review-b.build.account.gov.uk/stub/callback"},{"jwksEndpoint":"https://vtkjzynbr9.execute-api.eu-west-2.amazonaws.com/build/.well-known/jwks.json","clientId":"BD7B2A5D-1167-4EA3-8B57-B693A850689D","redirectUri":"https://vtkjzynbr9.execute-api.eu-west-2.amazonaws.com/build/redirect"}]'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      ISSUER: 'https://review-c.build.account.gov.uk'
+      AUTHSESSIONTTL: '604800' # 7 days in seconds
     staging:
-      ISSUER: 'https://review-o.staging.account.gov.uk'
+      CLIENTS: '[{"jwksEndpoint":"https://oidc.staging.account.gov.uk/.well-known/jwks.json","clientId":"authOrchestratorDocApp","redirectUri":"https://oidc.staging.account.gov.uk/doc-app-callback"},{"jwksEndpoint":"https://18zwbqzm0k.execute-api.eu-west-2.amazonaws.com/staging/.well-known/jwks.json","clientId":"ipv-core","redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=dcmaw"},{"jwksEndpoint":"https://18zwbqzm0k.execute-api.eu-west-2.amazonaws.com/staging/.well-known/jwks.json","clientId":"23d554e9-6b6e-46cb-8440-d6010635d673","redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback/dcmaw"},{"jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json","clientId":"03A5A659-17AA-453F-B905-95D2804823D1","redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback/dcmaw"},{"jwksEndpoint":"https://xqy12f7o47.execute-api.eu-west-2.amazonaws.com/staging/.well-known/jwks.json","clientId":"9CDA6F61-DCA5-4747-96D8-AFC6C6ECB068","redirectUri":"https://xqy12f7o47.execute-api.eu-west-2.amazonaws.com/staging/redirect"}]'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      ISSUER: 'https://review-c.staging.account.gov.uk'
+      AUTHSESSIONTTL: '86400' # 24 hours in seconds
     integration:
-      ISSUER: 'https://review-o.integration.account.gov.uk'
+      CLIENTS: '[{"jwksEndpoint":"https://oidc.integration.account.gov.uk/.well-known/jwks.json", "clientId":"authOrchestratorDocApp", "redirectUri":"https://oidc.integration.account.gov.uk/doc-app-callback"}, {"jwksEndpoint":"https://khcwzwwkrk.execute-api.eu-west-2.amazonaws.com/integration/.well-known/jwks.json", "clientId":"ipv-core", "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback/dcmaw"}, {"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback/dcmaw"}]'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      ISSUER: 'https://review-c.integration.account.gov.uk'
+      AUTHSESSIONTTL: '86400' # 24 hours in seconds
     production:
-      ISSUER: 'https://review-o.account.gov.uk'
+      CLIENTS: '[{"jwksEndpoint":"https://oidc.account.gov.uk/.well-known/jwks.json", "clientId":"authOrchestratorDocApp", "redirectUri":"https://oidc.account.gov.uk/doc-app-callback"}, {"jwksEndpoint":"https://sxzot82ph2.execute-api.eu-west-2.amazonaws.com/production/.well-known/jwks.json", "clientId":"ipv-core", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback/dcmaw"}, {"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback/dcmaw"}]'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      ISSUER: 'https://review-c.account.gov.uk'
+      AUTHSESSIONTTL: '86400' # 24 hours in seconds
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
     dev:
@@ -616,6 +626,59 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt JsonWebKeysFunction.Arn
       Principal: events.amazonaws.com
+
+  GovNotifyFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: GovNotifyFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-GovNotify-${AWS::StackName}"
+      Handler: GovNotifyHandler.lambdaHandler
+      CodeUri: ../src/
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: GovNotifyHandler
+          GOVUKNOTIFY_API_KEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
+      #            Fn::ImportValue:
+      #              !Sub "${L2DynamoStackName}-session-table-name"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - S3FullAccessPolicy:
+            BucketName: "rimisra1"
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - GovNotifyHandler.ts
+
+  GovNotifyFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-GovNotify-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  GovNotifyFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsProdLikeEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref GovNotifyFunctionLogGroup
+
+  GovNotifyFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GovNotifyFunction
+      Principal: apigateway.amazonaws.com
 
 Outputs:
   F2FApiGatewayId:

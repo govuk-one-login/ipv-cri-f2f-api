@@ -14,22 +14,22 @@ export class AccessTokenRequestValidationHelper {
 	}
 
 	validatePayload(tokenRequestBody: string | null): AccessRequestPayload {
-		if (!tokenRequestBody) throw new AppError("Invalid request: missing body", HttpCodesEnum.UNAUTHORIZED);
+		if (!tokenRequestBody) throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Invalid request: missing body");
 		// body is an application/x-www-form-urlencoded string
 		const searchParams = new URLSearchParams(tokenRequestBody);
 		const code = searchParams.get(Constants.CODE);
 		const redirectUri = searchParams.get(Constants.REDIRECT_URL);
 		const grant_type = searchParams.get(Constants.GRANT_TYPE);
 
-		if (!redirectUri) throw new AppError("Invalid request: Missing redirect_uri parameter", HttpCodesEnum.UNAUTHORIZED);
-		if (!code) throw new AppError("Invalid request: Missing code parameter", HttpCodesEnum.UNAUTHORIZED);
+		if (!redirectUri) throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Invalid request: Missing redirect_uri parameter");
+		if (!code) throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Invalid request: Missing code parameter");
 
 		if (!grant_type || grant_type !== Constants.AUTHORIZATION_CODE) {
-			throw new AppError("Invalid grant_type parameter", HttpCodesEnum.UNAUTHORIZED);
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Invalid grant_type parameter");
 		}
 
 		if (!this.validationHelper.isValidUUID(code)) {
-			throw new AppError("AuthorizationCode must be a valid uuid", HttpCodesEnum.UNAUTHORIZED);
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, "AuthorizationCode must be a valid uuid");
 		}
 
 		return { grant_type, code, redirectUri };
@@ -42,13 +42,12 @@ export class AccessTokenRequestValidationHelper {
 			: redirectUri === encodeURIComponent(sessionItem.redirectUri);
 
 		if (!isValidRedirectUri) {
-			throw new AppError(
-				`Invalid request: redirect uri ${redirectUri} does not match configuration uri ${sessionItem.redirectUri}`,
-				HttpCodesEnum.UNAUTHORIZED);
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED,
+				`Invalid request: redirect uri ${redirectUri} does not match configuration uri ${sessionItem.redirectUri}`);
 		}
 		// Validate if the AuthSessionState is F2F_AUTH_CODE_ISSUED
 		if (sessionItem.authSessionState !== AuthSessionState.F2F_AUTH_CODE_ISSUED) {
-			throw new AppError(`AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${sessionItem.authSessionState}`, HttpCodesEnum.UNAUTHORIZED);
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${sessionItem.authSessionState}`);
 		}
 	}
 }

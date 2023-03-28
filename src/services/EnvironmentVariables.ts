@@ -1,8 +1,8 @@
 import { AppCodes } from "../models/AppCodes";
-import {Logger} from "@aws-lambda-powertools/logger";
-import {AppError} from "../utils/AppError";
-import {HttpCodesEnum} from "../models/enums/HttpCodesEnum";
-import {Constants} from "../utils/Contants";
+import { Logger } from "@aws-lambda-powertools/logger";
+import { AppError } from "../utils/AppError";
+import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
+import { Constants } from "../utils/Contants";
 
 
 /**
@@ -10,8 +10,11 @@ import {Constants} from "../utils/Contants";
  */
 export class EnvironmentVariables {
 	private readonly S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
+
 	private readonly GOVUKNOTIFY_API_KEY = process.env.GOVUKNOTIFY_API_KEY;
+
 	private readonly GOVUKNOTIFY_MAX_RETRIES = process.env.GOVUKNOTIFY_MAX_RETRIES;
+
 	private readonly GOVUKNOTIFY_BACKOFF_PERIOD_MS = process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS;
 
 	/**
