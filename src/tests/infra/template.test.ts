@@ -88,6 +88,38 @@ describe("Infra", () => {
 		});
 	});
 
+	it("Each regional API Gateway should have at least one custom domain base path mapping name defined", () => {
+		const gateways = template.findResources("AWS::Serverless::Api");
+		const gatewayList = Object.keys(gateways);
+		gatewayList.forEach((gateway) => {
+			template.hasResourceProperties("AWS::ApiGateway::BasePathMapping", {
+				RestApiId: {
+					Ref: gateway,
+				}
+			});
+		});
+	});
+
+	it("Each custom domain referenced in a BasePathMapping should be defined", () => {
+		const basePathMappings = template.findResources("AWS::ApiGateway::BasePathMapping");
+		const basePathMappingList = Object.keys(basePathMappings);
+		basePathMappingList.forEach((basePathMapping) => {
+			template.hasResourceProperties("AWS::ApiGateway::DomainName", {
+				DomainName: basePathMappings[basePathMapping].Properties.DomainName
+			});
+		});
+	});
+
+	it("should define a DNS record for the custom domain", () => {
+		const customDomainNames = template.findResources("AWS::ApiGateway::DomainName");
+		const customDomainNameList = Object.keys(customDomainNames);
+		customDomainNameList.forEach((customDomainName) => {
+			template.hasResourceProperties("AWS::Route53::RecordSet", {
+				Name: customDomainNames[customDomainName].Properties.DomainName
+			});
+		});
+	});
+
 	describe("Log group retention", () => {
 		it.each`
     environment      | retention
