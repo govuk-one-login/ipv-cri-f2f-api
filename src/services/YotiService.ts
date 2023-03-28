@@ -44,6 +44,8 @@ export class YotiService {
     payloadJSON?: string;
     endpoint: any;
   }) {
+
+		// console.log('PEM KEY', this.PEM_KEY);
     const { method, endpoint } = generateYotiPayload;
 
     const nonce = uuidv4();
