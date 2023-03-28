@@ -110,13 +110,42 @@ describe("Infra", () => {
 		});
 	});
 
-	it("should define a DNS record for the custom domain", () => {
+	it("should define a DNS record for each custom domain", () => {
 		const customDomainNames = template.findResources("AWS::ApiGateway::DomainName");
 		const customDomainNameList = Object.keys(customDomainNames);
 		customDomainNameList.forEach((customDomainName) => {
 			template.hasResourceProperties("AWS::Route53::RecordSet", {
 				Name: customDomainNames[customDomainName].Properties.DomainName
 			});
+		});
+	});
+
+	it("should define an output with the API Gateway ID", () => {
+		template.hasOutput("F2FApiGatewayId", {
+			Value: {
+				"Fn::Sub": "${F2FRestApi}",
+			},
+		});
+	});
+
+	it("should define an output with the F2F Backend URL using the custom domain name", () => {
+		template.hasOutput("F2FBackendURL", {
+			Value: {
+				"Fn::Sub": [
+					"https://api-${AWS::StackName}.${DNSSUFFIX}/",
+					{
+						DNSSUFFIX: {
+							"Fn::FindInMap": [
+								"EnvironmentVariables",
+								{
+									Ref: "Environment",
+								},
+								"DNSSUFFIX"
+							],
+						},
+					},
+				],
+			},
 		});
 	});
 

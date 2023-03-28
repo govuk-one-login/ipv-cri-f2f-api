@@ -669,3 +669,11 @@ Outputs:
     Value: !Sub "${F2FRestApi}"
     Export:
       Name: !Sub ${AWS::StackName}-F2FApiGatewayId
+  F2FBackendURL:
+    Description: "F2F Backend URL"
+    Value: !Sub
+      - "https://api-${AWS::StackName}.${DNSSUFFIX}/"
+      - DNSSUFFIX:
+          !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+    Export:
+      Name: !Sub ${AWS::StackName}-F2FBackendURL
