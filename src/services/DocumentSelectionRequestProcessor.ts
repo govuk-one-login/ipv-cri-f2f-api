@@ -49,9 +49,9 @@ export class DocumentSelectionRequestProcessor {
 
   async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
 
-		const session = await this.f2fService.getSessionById(sessionId);
-		console.log('session', session);
-		if (!session){
+		const f2fSession = await this.f2fService.getSessionById(sessionId);
+		console.log('session', f2fSession);
+		if (!f2fSession){
 			throw new AppError("Missing Session info in table", HttpCodesEnum.BAD_REQUEST);
 		}
 		if (!event.body){
@@ -61,9 +61,9 @@ export class DocumentSelectionRequestProcessor {
 		console.log('post_office_selection', postOfficeInfo);
 
 		this.logger.info('Creating new session in Yoti')
-    const sessionID = await this.yotiService.createSession(session, postOfficeInfo);
+    const sessionID = await this.yotiService.createSession(f2fSession, postOfficeInfo);
 
-		this.logger.info('Fetching Session InfoF')
+		this.logger.info('Fetching Session Info')
     const sessionInfo = await this.yotiService.fetchSessionInfo(sessionID);
 
     const requirements = sessionInfo.capture.required_resources
@@ -93,7 +93,8 @@ export class DocumentSelectionRequestProcessor {
 
 		this.logger.info('Generating Instructions PDF')
     await this.yotiService.generateInstructions(
-      session,
+			sessionID,
+      f2fSession,
       requirements,
 			postOfficeInfo
     );

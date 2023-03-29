@@ -56,12 +56,12 @@ export class YotiService {
   }
 
   private getApplicantProfile(
-    sessionInfo: ISessionItem,
+    f2fSession: ISessionItem,
     postOfficeInfo: PostOfficeInfo
   ): ApplicantProfile {
     return {
-      full_name: `${sessionInfo.given_names} ${sessionInfo.family_names}`,
-      date_of_birth: sessionInfo.date_of_birth,
+      full_name: `${f2fSession.given_names} ${f2fSession.family_names}`,
+      date_of_birth: f2fSession.date_of_birth,
       structured_postal_address:
         this.getStructuredPostalAddress(postOfficeInfo),
     };
@@ -163,7 +163,7 @@ export class YotiService {
     };
 
     const response = {
-      url: `${process.env.YOTIBASEURL}${endpointPath}`,
+      url: `https://api.yoti.com/idverify/v1${endpointPath}`,
       config,
     };
 
@@ -171,12 +171,12 @@ export class YotiService {
   }
 
   public async createSession(
-    sessionInfo: ISessionItem,
+    f2fSession: ISessionItem,
     postOfficeInfo: PostOfficeInfo
   ) {
     const callBackUrlWhenChecksComplete = "https://some-domain.example";
 
-		const { yotiDocumentType, countryCode } = this.getYotiDocumentType(sessionInfo.document_selected);
+		const { yotiDocumentType, countryCode } = this.getYotiDocumentType(f2fSession.document_selected);
 
     const payloadJSON = {
       session_deadline: "2023-05-05T23:59:59Z",
@@ -184,7 +184,7 @@ export class YotiService {
       ibv_options: {
         support: "MANDATORY",
       },
-      user_tracking_id: sessionInfo.sessionId,
+      user_tracking_id: f2fSession.sessionId,
       notifications: {
         endpoint: callBackUrlWhenChecksComplete,
         topics: ["SESSION_COMPLETION", "INSTRUCTIONS_EMAIL_REQUESTED"],
@@ -249,7 +249,7 @@ export class YotiService {
       ],
       resources: {
         applicant_profile: this.getApplicantProfile(
-          sessionInfo,
+          f2fSession,
           postOfficeInfo
         ),
       },
@@ -284,16 +284,15 @@ export class YotiService {
   }
 
   public async generateInstructions(
-    sessionInfo: ISessionItem,
+		sessionID: string,
+    f2fSession: ISessionItem,
     requirements: [],
     PostOfficeSelection: PostOfficeInfo
   ) {
-		const { yotiDocumentType, countryCode } = this.getYotiDocumentType(sessionInfo.document_selected);
-		
     const payloadJSON = {
       contact_profile: {
-        first_name: sessionInfo.given_names,
-        last_name: sessionInfo.family_names,
+        first_name: `${f2fSession.given_names[0]}`,
+        last_name: `${f2fSession.family_names}`,
         email: "john.doe@gmail.com",
       },
       documents: requirements,
@@ -311,7 +310,7 @@ export class YotiService {
 
     const yotiRequest = await this.generateYotiRequest({
       method: HttpVerbsEnum.PUT,
-      endpoint: `/sessions/${session.sessionId}/instructions`,
+      endpoint: `/sessions/${sessionID}/instructions`,
       payloadJSON: JSON.stringify(payloadJSON),
     });
 
