@@ -309,6 +309,51 @@ Resources:
 
   ### End of API Gateway Custom Domain definition
 
+
+  ### Front End API Gateway Custom Domain definition
+
+  F2FFrontCustomDomain:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      DomainName: !Sub
+        - "${AWS::StackName}.${DNSSUFFIX}"
+        - DNSSUFFIX:
+            !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      RegionalCertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
+      SecurityPolicy: TLS_1_2
+
+  F2FFrontApiRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub
+        - "${AWS::StackName}.${DNSSUFFIX}"
+        - DNSSUFFIX:
+            !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+      Type: A
+      HostedZoneId: !ImportValue PublicHostedZoneId
+      AliasTarget:
+        DNSName: !GetAtt F2FFrontCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt F2FFrontCustomDomain.RegionalHostedZoneId
+        EvaluateTargetHealth: false
+
+  F2FFrontApiMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      DomainName: !Sub
+        - "${AWS::StackName}.${DNSSUFFIX}"
+        - DNSSUFFIX:
+            !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+      ApiId:
+        Fn::ImportValue:
+          !Sub f2f-cri-front-F2FFrontGatewayId
+      Stage: "$default"
+    DependsOn:
+      - F2FFrontCustomDomain  
+
+
   ### Function Definition
   ## AccessToken
   TokenFunction:
