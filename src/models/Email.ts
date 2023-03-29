@@ -10,9 +10,10 @@ import { HttpCodesEnum } from "./enums/HttpCodesEnum";
 export class Email {
 
 	constructor(data: Partial<Email>) {
-		this.templateId = data.templateId!;
+		this.fileName = data.fileName!;
 		this.emailAddress = data.emailAddress!;
-		this.subject = data.subject!;
+		this.firstName = data.firstName!;
+		this.lastName = data.lastName!;
 		this.referenceId = randomUUID();
 	}
 
@@ -29,7 +30,7 @@ export class Email {
 
     @IsString()
     @IsNotEmpty()
-    templateId!: string;
+    fileName!: string;
 
     @IsString()
     @IsNotEmpty()
@@ -38,7 +39,11 @@ export class Email {
 
     @IsString()
     @IsOptional()
-    subject!: string;
+    firstName!: string;
+
+	@IsString()
+	@IsOptional()
+	lastName!: string;
 
     @IsString()
     @IsNotEmpty()

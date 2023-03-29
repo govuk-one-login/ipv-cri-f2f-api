@@ -13,6 +13,8 @@ export class EnvironmentVariables {
 
 	private readonly GOVUKNOTIFY_API_KEY = process.env.GOVUKNOTIFY_API_KEY;
 
+	private readonly GOVUKNOTIFY_TEMPLATE_ID = process.env.GOVUKNOTIFY_TEMPLATE_ID;
+
 	private readonly GOVUKNOTIFY_MAX_RETRIES = process.env.GOVUKNOTIFY_MAX_RETRIES;
 
 	private readonly GOVUKNOTIFY_BACKOFF_PERIOD_MS = process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS;
@@ -23,12 +25,14 @@ export class EnvironmentVariables {
 	 *
 	 * @param EMAIL_ENABLED
 	 * @param GOVUKNOTIFY_API_KEY
+	 * @param GOVUKNOTIFY_TEMPLATE_ID
 	 * @param GOVUKNOTIFY_MAX_RETRIES
 	 * @param GOVUKNOTIFY_BACKOFF_PERIOD_MS
 	 */
 	constructor(logger: Logger) {
 
 		if (!this.GOVUKNOTIFY_API_KEY || this.GOVUKNOTIFY_API_KEY.trim().length === 0 ||
+			!this.GOVUKNOTIFY_TEMPLATE_ID || this.GOVUKNOTIFY_TEMPLATE_ID.trim().length === 0 ||
 			!this.S3_BUCKET_NAME || this.S3_BUCKET_NAME.trim().length === 0) {
 			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -60,6 +64,10 @@ export class EnvironmentVariables {
 
 	apiKey(): any {
 		return this.GOVUKNOTIFY_API_KEY;
+	}
+
+	templateId(): any {
+		return this.GOVUKNOTIFY_TEMPLATE_ID;
 	}
 
 	maxRetries(): number {

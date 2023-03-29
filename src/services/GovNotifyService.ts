@@ -75,7 +75,7 @@ export class GovNotifyService {
     	let response;
 
     	const bucketName = this.environmentVariables.s3BucketName();
-    	const fileName = message.templateId + ".pdf";
+    	const fileName = message.fileName + ".pdf";
     	const input = {
     		"Bucket": bucketName,
     		"Key": fileName,
@@ -109,7 +109,8 @@ export class GovNotifyService {
 
 
     	const personalisation = {
-    		subject: message.subject,
+    		"first name": message.firstName,
+			"last name": message.lastName,
     		"link_to_file": { "file": encoded, "confirm_email_before_download": true, "retention_period": "2 weeks" },
     	};
 
@@ -125,13 +126,13 @@ export class GovNotifyService {
     	//retry for maxRetry count configured value if fails
     	while (retryCount++ < this.environmentVariables.maxRetries() + 1) {
     		this.logger.debug(`sendEmail - trying to send email message ${GovNotifyService.name} ${new Date().toISOString()}`, {
-    			templateId: message.templateId,
+    			templateId: this.environmentVariables.templateId(),
     			emailAddress: message.emailAddress,
     			options,
     		});
 
     		try {
-    			const emailResponse = await this.govNotify.sendEmail(message.templateId, message.emailAddress, options);
+    			const emailResponse = await this.govNotify.sendEmail(this.environmentVariables.templateId(), message.emailAddress, options);
     			this.logger.debug("sendEmail - response data after sending Email", emailResponse.data);
     			this.logger.debug("sendEmail - response status after sending Email", GovNotifyService.name, emailResponse.status);
     			return new EmailResponse(new Date().toISOString(), "", emailResponse.status);
