@@ -4,8 +4,8 @@ import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import axios, { AxiosRequestConfig } from "axios";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
-import { PostOfficeInfo } from "../type/YotiJourney";
 import { ISessionItem } from "../models/ISessionItem";
+import { StructuredPostalAddress, ApplicantProfile, PostOfficeInfo } from "../models/yotiPayloads";
 
 export class YotiService {
   readonly logger: Logger;
@@ -45,8 +45,9 @@ export class YotiService {
     postOfficeInfo: PostOfficeInfo
   ): StructuredPostalAddress {
     return {
-      address_format: 1,
-      address_line1: postOfficeInfo.address
+			address_format: 1,
+			building_number: "74",
+      address_line1: `${postOfficeInfo.address}`,
       town_city: "CityName",
       postal_code: `${postOfficeInfo.post_code}`,
       country_iso: "GBR",
@@ -60,7 +61,7 @@ export class YotiService {
   ): ApplicantProfile {
     return {
       full_name: `${f2fSession.given_names} ${f2fSession.family_names}`,
-      date_of_birth: f2fSession.date_of_birth,
+      date_of_birth: `${f2fSession.date_of_birth}`,
       structured_postal_address:
         this.getStructuredPostalAddress(postOfficeInfo),
     };
@@ -162,7 +163,7 @@ export class YotiService {
     };
 
     const response = {
-      url: `https://api.yoti.com/idverify/v1${endpointPath}`,
+      url: `${process.env.YOTIBASEURL}${endpointPath}`,
       config,
     };
 
@@ -179,7 +180,7 @@ export class YotiService {
 
     const payloadJSON = {
       client_session_token_ttl: "864000",
-      resources_ttl: "864000",
+      resources_ttl: "950400",
       ibv_options: {
         support: "MANDATORY",
       },
@@ -210,7 +211,7 @@ export class YotiService {
                 "scheme": "UK_DBS"
             }
         }
-    ],
+    	],
       required_documents: [
         {
           type: "ID_DOCUMENT",
@@ -233,6 +234,8 @@ export class YotiService {
         ),
       },
     };
+
+		console.log('payloadJSON', JSON.stringify(payloadJSON));
 
     const yotiRequest = await this.generateYotiRequest({
       method: HttpVerbsEnum.POST,
