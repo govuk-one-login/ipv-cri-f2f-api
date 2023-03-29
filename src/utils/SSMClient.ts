@@ -4,7 +4,7 @@ import AWSXRay from "aws-xray-sdk-core";
 
 AWSXRay.setContextMissingStrategy("LOG_ERROR");
 
-const ssmClientRaw = new SSMClient({ region: "eu-west-2" });
+const ssmClientRaw = new SSMClient({ region: process.env.REGION })
 
 const ssmClient = process.env.XRAY_ENABLED === "true" ? AWSXRay.captureAWSv3Client(ssmClientRaw as any) : ssmClientRaw;
 

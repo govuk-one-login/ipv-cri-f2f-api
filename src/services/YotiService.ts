@@ -4,6 +4,8 @@ import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import axios, { AxiosRequestConfig } from "axios";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
+import { PostOfficeInfo } from "../type/YotiJourney";
+import { ISessionItem } from "../models/ISessionItem";
 
 export class YotiService {
   readonly logger: Logger;
@@ -32,11 +34,94 @@ export class YotiService {
   }
 
   private getRSASignatureForMessage(message: string) {
-		return crypto
-		.createSign('RSA-SHA256')
-		.update(message)
-		.sign(this.PEM_KEY)
-		.toString('base64');
+    return crypto
+      .createSign("RSA-SHA256")
+      .update(message)
+      .sign(this.PEM_KEY)
+      .toString("base64");
+  }
+
+  private getStructuredPostalAddress(
+    postOfficeInfo: PostOfficeInfo
+  ): StructuredPostalAddress {
+    return {
+      address_format: 1,
+      building_number: "74",
+      address_line1: "AddressLine1",
+      town_city: "CityName",
+      postal_code: `${postOfficeInfo.post_code}`,
+      country_iso: "GBR",
+      country: "United Kingdom",
+    };
+  }
+
+  private getApplicantProfile(
+    sessionInfo: ISessionItem,
+    postOfficeInfo: PostOfficeInfo
+  ): ApplicantProfile {
+    return {
+      full_name: `${sessionInfo.given_names} ${sessionInfo.family_names}`,
+      date_of_birth: sessionInfo.date_of_birth,
+      structured_postal_address:
+        this.getStructuredPostalAddress(postOfficeInfo),
+    };
+  }
+
+  private getYotiDocumentType(selectedDocument: string) {
+    let yotiDocumentType;
+    let countryCode;
+
+    switch (selectedDocument) {
+      case "ukPassport": {
+        yotiDocumentType = "PASSPORT";
+        countryCode = "GBR";
+        break;
+      }
+      case "ukPhotocardDl": {
+        yotiDocumentType = "DRIVING_LICENCE";
+        countryCode = "GBR";
+        break;
+      }
+      case "brp": {
+        yotiDocumentType = "RESIDENCE_PERMIT";
+        countryCode = "GBR";
+        break;
+      }
+      case "otherPassport": {
+        yotiDocumentType = "PASSPORT";
+        countryCode = "";
+        break;
+      }
+      case "euPhotocardDl": {
+        yotiDocumentType = "";
+        countryCode = "";
+        break;
+      }
+      case "euIdentityCard": {
+        yotiDocumentType = "NATIONAL_ID";
+        countryCode = "";
+        break;
+      }
+      case "citizenCard": {
+        yotiDocumentType = "";
+        countryCode = "";
+        break;
+      }
+      case "youngScotNationalEntitlementCard": {
+        yotiDocumentType = "";
+        countryCode = "";
+        break;
+      }
+      default: {
+        //statements;
+        break;
+      }
+    }
+
+    return {
+      yotiDocumentType,
+			countryCode
+    };
   }
 
   public async generateYotiRequest(generateYotiPayload: {
@@ -44,8 +129,6 @@ export class YotiService {
     payloadJSON?: string;
     endpoint: any;
   }) {
-
-		// console.log('PEM KEY', this.PEM_KEY);
     const { method, endpoint } = generateYotiPayload;
 
     const nonce = uuidv4();
@@ -87,17 +170,24 @@ export class YotiService {
     return response;
   }
 
-  public async createSession() {
+  public async createSession(
+    sessionInfo: ISessionItem,
+    postOfficeInfo: PostOfficeInfo
+  ) {
+    const callBackUrlWhenChecksComplete = "https://some-domain.example";
+
+		const { yotiDocumentType, countryCode } = this.getYotiDocumentType(sessionInfo.document_selected);
+
     const payloadJSON = {
       session_deadline: "2023-05-05T23:59:59Z",
       resources_ttl: "15780000",
       ibv_options: {
         support: "MANDATORY",
       },
-      user_tracking_id: "some_id",
+      user_tracking_id: sessionInfo.sessionId,
       notifications: {
-        endpoint: "https://some-domain.example",
-        topics: ["SESSION_COMPLETION"],
+        endpoint: callBackUrlWhenChecksComplete,
+        topics: ["SESSION_COMPLETION", "INSTRUCTIONS_EMAIL_REQUESTED"],
         auth_token: "string",
         auth_type: "BASIC",
       },
@@ -150,30 +240,22 @@ export class YotiService {
             inclusion: "WHITELIST",
             documents: [
               {
-                country_codes: ["GBR"],
-                document_types: ["PASSPORT"],
+                country_codes: [countryCode],
+                document_types: [yotiDocumentType],
               },
             ],
           },
         },
       ],
       resources: {
-        applicant_profile: {
-          full_name: "John Doe",
-          date_of_birth: "1988-11-02",
-          name_prefix: "Mr",
-          structured_postal_address: {
-            address_format: 1,
-            building_number: "74",
-            address_line1: "AddressLine1",
-            town_city: "CityName",
-            postal_code: "E143RN",
-            country_iso: "GBR",
-            country: "United Kingdom",
-          },
-        },
+        applicant_profile: this.getApplicantProfile(
+          sessionInfo,
+          postOfficeInfo
+        ),
       },
     };
+
+    console.log("payloadJSON", JSON.stringify(payloadJSON));
 
     const yotiRequest = await this.generateYotiRequest({
       method: HttpVerbsEnum.POST,
@@ -201,29 +283,35 @@ export class YotiService {
     return data;
   }
 
-  public async generateInstructions(sessionId: string, requirements: []) {
+  public async generateInstructions(
+    sessionInfo: ISessionItem,
+    requirements: [],
+    PostOfficeSelection: PostOfficeInfo
+  ) {
+		const { yotiDocumentType, countryCode } = this.getYotiDocumentType(sessionInfo.document_selected);
+		
     const payloadJSON = {
       contact_profile: {
-        first_name: "John",
-        last_name: "Doe",
+        first_name: sessionInfo.given_names,
+        last_name: sessionInfo.family_names,
         email: "john.doe@gmail.com",
       },
       documents: requirements,
       branch: {
         type: "UK_POST_OFFICE",
         name: "UK Post Office Branch",
-        address: "123 Post Office Road, London",
-        post_code: "ABC 123",
+        address: PostOfficeSelection.address,
+        post_code: PostOfficeSelection.post_code,
         location: {
-          latitude: 0.34322,
-          longitude: -42.48372,
+          latitude: PostOfficeSelection.location.latitude,
+          longitude: PostOfficeSelection.location.longitude,
         },
       },
     };
 
     const yotiRequest = await this.generateYotiRequest({
       method: HttpVerbsEnum.PUT,
-      endpoint: `/sessions/${sessionId}/instructions`,
+      endpoint: `/sessions/${session.sessionId}/instructions`,
       payloadJSON: JSON.stringify(payloadJSON),
     });
 
@@ -246,5 +334,4 @@ export class YotiService {
 
     return data;
   }
-	
 }
