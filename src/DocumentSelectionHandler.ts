@@ -25,8 +25,6 @@ export class DocumentSelection implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
-		console.log('event', event);
-
 		switch (event.resource) {
 			case ResourcesEnum.DOCUMENTSELECTION:
 				if (event.httpMethod === "POST") {

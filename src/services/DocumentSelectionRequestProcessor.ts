@@ -29,9 +29,7 @@ export class DocumentSelectionRequestProcessor {
 		}
     this.logger = logger;
     this.metrics = metrics;
-    this.yotiService = YotiService.getInstance(
-      this.logger,
-      YOTI_SDK,YOTI_PRIVATE_KEY);
+    this.yotiService = YotiService.getInstance(this.logger,YOTI_SDK,YOTI_PRIVATE_KEY);
 		this.f2fService = F2fService.getInstance(SESSION_TABLE, this.logger, createDynamoDbClient());
   }
 
@@ -50,7 +48,6 @@ export class DocumentSelectionRequestProcessor {
   async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
 
 		const f2fSession = await this.f2fService.getSessionById(sessionId);
-		console.log('session', f2fSession);
 		if (!f2fSession){
 			throw new AppError("Missing Session info in table", HttpCodesEnum.BAD_REQUEST);
 		}
@@ -58,13 +55,15 @@ export class DocumentSelectionRequestProcessor {
 			throw new AppError("No body present in post request", HttpCodesEnum.BAD_REQUEST);
 		}
 		const postOfficeInfo = (JSON.parse(event.body)).post_office_selection;
-		console.log('post_office_selection', postOfficeInfo);
+		console.log('postOfficeInfo', postOfficeInfo);
 
 		this.logger.info('Creating new session in Yoti')
     const sessionID = await this.yotiService.createSession(f2fSession, postOfficeInfo);
 
 		this.logger.info('Fetching Session Info')
     const sessionInfo = await this.yotiService.fetchSessionInfo(sessionID);
+
+		console.log('sessionInfo', sessionInfo);
 
     const requirements = sessionInfo.capture.required_resources
       .filter((x: any) => x.type.includes("DOCUMENT"))

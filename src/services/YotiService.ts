@@ -46,8 +46,7 @@ export class YotiService {
   ): StructuredPostalAddress {
     return {
       address_format: 1,
-      building_number: "74",
-      address_line1: "AddressLine1",
+      address_line1: postOfficeInfo.address
       town_city: "CityName",
       postal_code: `${postOfficeInfo.post_code}`,
       country_iso: "GBR",
@@ -179,8 +178,8 @@ export class YotiService {
 		const { yotiDocumentType, countryCode } = this.getYotiDocumentType(f2fSession.document_selected);
 
     const payloadJSON = {
-      session_deadline: "2023-05-05T23:59:59Z",
-      resources_ttl: "15780000",
+      client_session_token_ttl: "864000",
+      resources_ttl: "864000",
       ibv_options: {
         support: "MANDATORY",
       },
@@ -193,45 +192,25 @@ export class YotiService {
       },
       requested_checks: [
         {
-          type: "IBV_VISUAL_REVIEW_CHECK",
-          config: {
-            manual_check: "IBV",
-          },
+            "type": "IBV_VISUAL_REVIEW_CHECK",
+            "config": {
+                "manual_check": "IBV"
+            }
         },
         {
-          type: "PROFILE_DOCUMENT_MATCH",
-          config: {
-            manual_check: "IBV",
-          },
+            "type": "PROFILE_DOCUMENT_MATCH",
+            "config": {
+                "manual_check": "IBV"
+            }
         },
         {
-          type: "DOCUMENT_SCHEME_VALIDITY_CHECK",
-          config: {
-            manual_check: "IBV",
-            scheme: "UK_DBS",
-          },
-        },
-        {
-          type: "ID_DOCUMENT_AUTHENTICITY",
-          config: {
-            manual_check: "FALLBACK",
-          },
-        },
-        {
-          type: "ID_DOCUMENT_FACE_MATCH",
-          config: {
-            manual_check: "FALLBACK",
-          },
-        },
-      ],
-      requested_tasks: [
-        {
-          type: "ID_DOCUMENT_TEXT_DATA_EXTRACTION",
-          config: {
-            manual_check: "FALLBACK",
-          },
-        },
-      ],
+            "type": "DOCUMENT_SCHEME_VALIDITY_CHECK",
+            "config": {
+                "manual_check": "IBV",
+                "scheme": "UK_DBS"
+            }
+        }
+    ],
       required_documents: [
         {
           type: "ID_DOCUMENT",
@@ -254,8 +233,6 @@ export class YotiService {
         ),
       },
     };
-
-    console.log("payloadJSON", JSON.stringify(payloadJSON));
 
     const yotiRequest = await this.generateYotiRequest({
       method: HttpVerbsEnum.POST,
