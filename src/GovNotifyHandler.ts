@@ -74,7 +74,7 @@ class GovNotifyHandler implements LambdaInterface {
 
 		} else {
 			logger.warn("Unexpected no of records received");
-			return new Response(HttpCodesEnum.BAD_REQUEST, "Unexpected no of records received");;
+			return new Response(HttpCodesEnum.BAD_REQUEST, "Unexpected no of records received");
 		}
 	}
 

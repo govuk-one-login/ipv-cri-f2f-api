@@ -15,33 +15,34 @@ export class SendEmailProcessor {
 
     private readonly validationHelper: ValidationHelper;
 
-    constructor(logger: Logger, metrics: Metrics) {
+	private readonly govNotifyService: GovNotifyService;
+
+	constructor(logger: Logger, metrics: Metrics) {
 
     	this.logger = logger;
     	this.validationHelper = new ValidationHelper();
     	this.metrics = metrics;
-    }
+		this.govNotifyService = GovNotifyService.getInstance(this.logger);
+	}
 
-    static getInstance(logger: Logger, metrics: Metrics): SendEmailProcessor {
+	static getInstance(logger: Logger, metrics: Metrics): SendEmailProcessor {
     	if (!SendEmailProcessor.instance) {
     		SendEmailProcessor.instance = new SendEmailProcessor(logger, metrics);
     	}
     	return SendEmailProcessor.instance;
-    }
+	}
 
-    async processRequest(eventBody: any): Promise<EmailResponse> {
+	async processRequest(eventBody: any): Promise<EmailResponse> {
 
     	const email = Email.parseRequest(eventBody.Message);
     	console.log("Email parsed", "Handler", email);
 
     	await this.validationHelper.validateModel(email, this.logger);
-    	const govNotifyService = GovNotifyService.getInstance(this.logger);
 
-
-    	const emailResponse: EmailResponse = await govNotifyService.sendEmail(email);
+    	const emailResponse: EmailResponse = await this.govNotifyService.sendEmail(email);
     	this.logger.debug("Response after sending Email message", { emailResponse });
 
     	return emailResponse;
-    }
+	}
 }
 

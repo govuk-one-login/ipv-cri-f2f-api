@@ -9,7 +9,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
-import axios, {AxiosRequestConfig} from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 
 /**
  * Class to send emails using gov notify service
@@ -62,18 +62,18 @@ export class GovNotifyService {
     async sendEmail(message: Email): Promise<EmailResponse> {
     	let encoded;
     	// Fetch the instructions pdf from Yoti
-		this.logger.debug("Fetching the Instructions Pdf from yoti for sessionId: ", message.yotiSessionId);
-		try{
-			const instructionsPdf = await this.fetchInstructionsPdf(message.yotiSessionId);
-			encoded = Buffer.from(instructionsPdf, "binary").toString("base64");
-		} catch (err) {
-			this.logger.error("Error while fetching Instructions pfd or encoding the pdf." + err);
-			throw err;
-		}
+    	this.logger.debug("Fetching the Instructions Pdf from yoti for sessionId: ", message.yotiSessionId);
+    	try {
+    		const instructionsPdf = await this.fetchInstructionsPdf(message.yotiSessionId);
+    		encoded = Buffer.from(instructionsPdf, "binary").toString("base64");
+    	} catch (err) {
+    		this.logger.error("Error while fetching Instructions pfd or encoding the pdf." + err);
+    		throw err;
+    	}
 
     	const personalisation = {
     		"first name": message.firstName,
-			"last name": message.lastName,
+    		"last name": message.lastName,
     		"link_to_file": { "file": encoded, "confirm_email_before_download": true, "retention_period": "2 weeks" },
     	};
 
@@ -113,11 +113,11 @@ export class GovNotifyService {
     			const appError: any = this.govNotifyErrorMapper.map(err);
 
     			if (appError.obj!.shouldThrow) {
-    				this.logger.info("sendEmail - Mapped error", GovNotifyService.name, appError.message);
+    				this.logger.error("sendEmail - Mapped error", GovNotifyService.name, appError.message);
     				throw appError;
     			} else {
-    				this.logger.info(`sendEmail - Mapped error ${GovNotifyService.name}`, { appError });
-    				this.logger.info(`sendEmail - Retrying to send the email. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${GovNotifyService.name} ${new Date().toISOString()}`, { retryCount });
+    				this.logger.error(`sendEmail - Mapped error ${GovNotifyService.name}`, { appError });
+    				this.logger.error(`sendEmail - Retrying to send the email. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${GovNotifyService.name} ${new Date().toISOString()}`, { retryCount });
     				await sleep(this.environmentVariables.backoffPeriod());
     			}
     		}
@@ -129,25 +129,26 @@ export class GovNotifyService {
     	throw new AppError(HttpCodesEnum.SERVER_ERROR, "Cannot send EMail");
     }
 
-	private async fetchInstructionsPdf(sessionId: string) {
-		// const yotiRequest = await this.generateYotiRequest({
-		// 	method: HttpVerbsEnum.GET,
-		// 	endpoint: `/sessions/${sessionId}/instructions/pdf`,
-		// });
-		const yotiUrl = "https://api.yoti.com/idverify/v1/sessions/9801a8bc-e228-421f-b7d0-b71af0308dcd/instructions/pdf?sdkId=1f9edc97-c60c-40d7-becb-c1c6a2ec4963&nonce=b966aec6-3ae8-43b0-b138-2c012de87a2b&timestamp=1680176860762"
+    async fetchInstructionsPdf(sessionId: string): Promise<any> {
+    	// const yotiRequest = await this.generateYotiRequest({
+    	// 	method: HttpVerbsEnum.GET,
+    	// 	endpoint: `/sessions/${sessionId}/instructions/pdf`,
+    	// });
+    	const yotiUrl = "https://api.yoti.com/idverify/v1/sessions/9801a8bc-e228-421f-b7d0-b71af0308dcd/instructions/pdf?sdkId=1f9edc97-c60c-40d7-becb-c1c6a2ec4963&nonce=b966aec6-3ae8-43b0-b138-2c012de87a2b&timestamp=1680176860762";
 
-		const yotiRequestConfig: AxiosRequestConfig = {
-			responseType: "arraybuffer",
-			responseEncoding: "binary",
-			headers: {
-				"X-Yoti-Auth-Digest": "ACfuuOPh6FYlqNeI8XEx6CkJ5LZRJ2c3R+FOZTuyXfBGh8JIV1MfX4QI9uyC2+xuRxZSWDnDlJ2iifYq+2edxSLVSzDJ7FZ7Le0Ni276TggcownBTrf/ZSGHlEM1/UmmFcSK10BJlhRXiqci9B5f/jc5y1a/irtoTVCZhiEcYilRSEaH/Ft8EnLUMGyMewp/uoJleL/EqwASPqnPeb8ekiz0C9TKSC1M5GvzkTB4q/6kPVr3YkMGYwdqkvpnzjBQuLIKqcqMZ6MrXbBjrqRkFhZC6Qb4uxpmRaS/FR4KQLU1OcOwwWEh2hljSDbPGcLHUlCxm6jCGMQvpCnheyALug==",
-				"X-Yoti-SDK": "Node",
-				"X-Yoti-SDK-Version": "Node-4.1.0",
-				Accept: "application/json",
-			},
-		};
-		const { data } = await axios.get(yotiUrl, yotiRequestConfig);
-
-		return data;
-	}
+    	const yotiRequestConfig: AxiosRequestConfig = {
+    		responseType: "arraybuffer",
+    		responseEncoding: "binary",
+    		headers: {
+    			"X-Yoti-Auth-Digest": "ACfuuOPh6FYlqNeI8XEx6CkJ5LZRJ2c3R+FOZTuyXfBGh8JIV1MfX4QI9uyC2+xuRxZSWDnDlJ2iifYq+2edxSLVSzDJ7FZ7Le0Ni276TggcownBTrf/ZSGHlEM1/UmmFcSK10BJlhRXiqci9B5f/jc5y1a/irtoTVCZhiEcYilRSEaH/Ft8EnLUMGyMewp/uoJleL/EqwASPqnPeb8ekiz0C9TKSC1M5GvzkTB4q/6kPVr3YkMGYwdqkvpnzjBQuLIKqcqMZ6MrXbBjrqRkFhZC6Qb4uxpmRaS/FR4KQLU1OcOwwWEh2hljSDbPGcLHUlCxm6jCGMQvpCnheyALug==",
+    			"X-Yoti-SDK": "Node",
+    			"X-Yoti-SDK-Version": "Node-4.1.0",
+    			Accept: "application/json",
+    		},
+    	};
+    	this.logger.info("getPdf - Yoti", { yotiUrl, yotiRequestConfig });
+    	const { data } = await axios.get(yotiUrl, yotiRequestConfig);
+    	this.logger.info("Instructions Pdf received successfully for Yoti sessionId: ", sessionId);
+    	return data;
+    }
 }
