@@ -46,9 +46,9 @@ export class DocumentSelection implements LambdaInterface {
 					
 						if (!YOTI_PRIVATE_KEY) {
 							logger.info({ message: "Fetching key from SSM" });
-							const command = new GetParameterCommand({ Name: `/dev/F2F/YOTI/PRIVATEKEY` })
+							const command = new GetParameterCommand({ Name: process.env.SSM_PATH });
 							const response = await ssmClient.send(command);
-							YOTI_PRIVATE_KEY = response.Parameter.Value
+							YOTI_PRIVATE_KEY = response.Parameter.Value;
 						}
 						return await DocumentSelectionRequestProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event, sessionId);
 					} catch (err) {

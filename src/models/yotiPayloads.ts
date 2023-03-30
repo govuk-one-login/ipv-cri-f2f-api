@@ -1,6 +1,6 @@
 export interface StructuredPostalAddress {
-	address_format: number,
-	building_number: string
+	address_format: number;
+	building_number: string;
 	address_line1: string;
 	town_city: string;
 	postal_code: string;
@@ -18,7 +18,7 @@ export interface PostOfficeInfo {
 	address: string;
 	post_code: string;
 	location: {
-		latitude: number,
-		longitude: number
-	}
+		latitude: number;
+		longitude: number;
+	};
 }
