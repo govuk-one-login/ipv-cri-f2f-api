@@ -28,7 +28,7 @@ class GovNotifyHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: SQSEvent, context: any): Promise<any> {
-		if (event.Records) {
+		if (event.Records.length === 1) {
 			const record: SQSRecord = event.Records[0];
 			logger.debug("Starting to process record", { record });
 			const batchFailures: BatchItemFailure[] = [];
@@ -74,7 +74,7 @@ class GovNotifyHandler implements LambdaInterface {
 
 		} else {
 			logger.warn("Unexpected no of records received");
-			return;
+			return new Response(HttpCodesEnum.BAD_REQUEST, "Unexpected no of records received");;
 		}
 	}
 
