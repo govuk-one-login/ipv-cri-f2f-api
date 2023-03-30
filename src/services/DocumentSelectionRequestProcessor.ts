@@ -55,15 +55,12 @@ export class DocumentSelectionRequestProcessor {
 			throw new AppError("No body present in post request", HttpCodesEnum.BAD_REQUEST);
 		}
 		const postOfficeInfo = (JSON.parse(event.body)).post_office_selection;
-		console.log('postOfficeInfo', postOfficeInfo);
 
 		this.logger.info('Creating new session in Yoti')
     const sessionID = await this.yotiService.createSession(f2fSession, postOfficeInfo);
 
 		this.logger.info('Fetching Session Info')
     const sessionInfo = await this.yotiService.fetchSessionInfo(sessionID);
-
-		console.log('sessionInfo', sessionInfo);
 
     const requirements = sessionInfo.capture.required_resources
       .filter((x: any) => x.type.includes("DOCUMENT"))

@@ -113,7 +113,6 @@ export class YotiService {
         break;
       }
       default: {
-        //statements;
         break;
       }
     }
@@ -176,7 +175,7 @@ export class YotiService {
   ) {
     const callBackUrlWhenChecksComplete = "https://some-domain.example";
 
-		const { yotiDocumentType, countryCode } = this.getYotiDocumentType(f2fSession.document_selected);
+		const { yotiDocumentType, countryCode } = this.getYotiDocumentType(f2fSession.document_selected ? f2fSession.document_selected : '');
 
     const payloadJSON = {
       client_session_token_ttl: "864000",
@@ -271,7 +270,7 @@ export class YotiService {
   ) {
     const payloadJSON = {
       contact_profile: {
-        first_name: `${f2fSession.given_names[0]}`,
+        first_name: `${f2fSession?.given_names?.[0]}`,
         last_name: `${f2fSession.family_names}`,
         email: "john.doe@gmail.com",
       },
