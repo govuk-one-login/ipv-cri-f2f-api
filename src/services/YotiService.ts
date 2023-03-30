@@ -41,15 +41,15 @@ export class YotiService {
       .toString("base64");
   }
 
-  private getStructuredPostalAddress(
-    postOfficeInfo: PostOfficeInfo
-  ): StructuredPostalAddress {
+
+	//TODO: Hardcoded now, will update with values from Person Identity table once /session work completed
+  private getStructuredPostalAddress(): StructuredPostalAddress {
     return {
 			address_format: 1,
 			building_number: "74",
-      address_line1: `${postOfficeInfo.address}`,
+      address_line1: "AddressLine1",
       town_city: "CityName",
-      postal_code: `${postOfficeInfo.post_code}`,
+      postal_code: "E143RN",
       country_iso: "GBR",
       country: "United Kingdom",
     };
@@ -63,7 +63,7 @@ export class YotiService {
       full_name: `${f2fSession.given_names} ${f2fSession.family_names}`,
       date_of_birth: `${f2fSession.date_of_birth}`,
       structured_postal_address:
-        this.getStructuredPostalAddress(postOfficeInfo),
+        this.getStructuredPostalAddress(),
     };
   }
 
@@ -171,11 +171,12 @@ export class YotiService {
 
   public async createSession(
     f2fSession: ISessionItem,
-    postOfficeInfo: PostOfficeInfo
+    postOfficeInfo: PostOfficeInfo,
+		selectedDocument: string,
   ) {
     const callBackUrlWhenChecksComplete = "https://some-domain.example";
 
-		const { yotiDocumentType, countryCode } = this.getYotiDocumentType(f2fSession.document_selected ? f2fSession.document_selected : '');
+		const { yotiDocumentType, countryCode } = this.getYotiDocumentType(selectedDocument);
 
     const payloadJSON = {
       client_session_token_ttl: "864000",

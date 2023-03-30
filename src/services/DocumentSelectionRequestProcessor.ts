@@ -54,10 +54,13 @@ export class DocumentSelectionRequestProcessor {
 		if (!event.body){
 			throw new AppError("No body present in post request", HttpCodesEnum.BAD_REQUEST);
 		}
-		const postOfficeInfo = (JSON.parse(event.body)).post_office_selection;
+
+		const eventBody = JSON.parse(event.body);
+		const postOfficeInfo = eventBody.post_office_selection;
+		const selectedDocument = eventBody.document_selected;
 
 		this.logger.info('Creating new session in Yoti')
-    const sessionID = await this.yotiService.createSession(f2fSession, postOfficeInfo);
+    const sessionID = await this.yotiService.createSession(f2fSession, postOfficeInfo, selectedDocument);
 
 		this.logger.info('Fetching Session Info')
     const sessionInfo = await this.yotiService.fetchSessionInfo(sessionID);
@@ -88,18 +91,13 @@ export class DocumentSelectionRequestProcessor {
       });
 
 		this.logger.info('Generating Instructions PDF')
-    await this.yotiService.generateInstructions(
+    const response = await this.yotiService.generateInstructions(
 			sessionID,
       f2fSession,
       requirements,
 			postOfficeInfo
     );
 
-		this.logger.info('Fetching Instructions PDF')
-    const pdf = await this.yotiService.fetchInstructionsPdf(
-      sessionID
-    );
-
-		return new Response(HttpCodesEnum.OK, pdf);
+		return new Response(HttpCodesEnum.OK, response);
   }
 }
