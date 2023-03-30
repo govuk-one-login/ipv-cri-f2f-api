@@ -98,10 +98,6 @@ export class DocumentSelectionRequestProcessor {
 			PostOfficeSelection,
 		);
 
-		await this.yotiService.fetchInstructionsPdf(
-			sessionID,
-		);
-
 		return new Response(HttpCodesEnum.OK, response);
 	}
 }
