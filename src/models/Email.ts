@@ -10,7 +10,7 @@ import { HttpCodesEnum } from "./enums/HttpCodesEnum";
 export class Email {
 
 	constructor(data: Partial<Email>) {
-		this.fileName = data.fileName!;
+		this.yotiSessionId = data.yotiSessionId!;
 		this.emailAddress = data.emailAddress!;
 		this.firstName = data.firstName!;
 		this.lastName = data.lastName!;
@@ -30,7 +30,7 @@ export class Email {
 
     @IsString()
     @IsNotEmpty()
-    fileName!: string;
+    yotiSessionId!: string;
 
     @IsString()
     @IsNotEmpty()

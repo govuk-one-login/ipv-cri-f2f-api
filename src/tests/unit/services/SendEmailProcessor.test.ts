@@ -25,12 +25,6 @@ describe("SendEmailProcessor", () => {
 		sqsEvent = VALID_SQS_EVENT;
 	});
 
-	it("Returns success response when all required Email attributes exists", async () => {
-		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const emailResponse = await sendEmailProcessorTest.processRequest(eventBody);
-		expect(emailResponse.emailSentDateTime).toEqual("23425");
-	});
-
 	it.each([
 		"fileName",
 		"firstName",

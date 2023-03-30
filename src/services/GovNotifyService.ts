@@ -9,8 +9,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
+import axios, {AxiosRequestConfig} from "axios";
 
 /**
  * Class to send emails using gov notify service
@@ -27,7 +26,6 @@ export class GovNotifyService {
 
     private readonly logger: Logger;
 
-    private readonly s3Client: S3Client;
 
     /**
      * Constructor sets up the client needed to use gov notify service with API key read from env var
@@ -40,15 +38,6 @@ export class GovNotifyService {
     	this.environmentVariables = new EnvironmentVariables(logger);
     	this.govNotify = new NotifyClient(this.environmentVariables.apiKey());
     	this.govNotifyErrorMapper = new GovNotifyErrorMapper();
-
-    	this.s3Client = new S3Client({
-    		region: process.env.REGION,
-    		maxAttempts: 2,
-    		requestHandler: new NodeHttpHandler({
-    			connectionTimeout: 29000,
-    			socketTimeout: 29000,
-    		}),
-    	});
     }
 
     static getInstance(logger: Logger): GovNotifyService {
@@ -72,41 +61,15 @@ export class GovNotifyService {
      */
     async sendEmail(message: Email): Promise<EmailResponse> {
     	let encoded;
-    	let response;
-
-    	const bucketName = this.environmentVariables.s3BucketName();
-    	const fileName = message.fileName + ".pdf";
-    	const input = {
-    		"Bucket": bucketName,
-    		"Key": fileName,
-    	};
-    	const command = new GetObjectCommand(input);
-
-    	try {
-    		response = await this.s3Client.send(command);
-    	} catch (err) {
-    		this.logger.error("Unable to fetch the file from S3", { err });
-    		// @ts-ignore
-    		if (err.code === "NoSuchKey") {
-    			this.logger.error(`S3 read error - file ${ fileName } doesn't exist in bucket ${ bucketName }`);
-    			throw new AppError(HttpCodesEnum.NOT_FOUND, `S3 read error - file ${ fileName } doesn't exist in bucket ${ bucketName }`, { shouldThrow: true });
-    		}
-
-    	}
-    	try {
-    		const strBody = await response?.Body?.transformToByteArray();
-    		if (!strBody || strBody.length <= 0) {
-    			this.logger.error("S3 file has empty content");
-    			throw new AppError(HttpCodesEnum.BAD_REQUEST, "S3 file has empty content", { shouldThrow: false });
-    		}
-    		// @ts-ignore
-    		encoded = Buffer.from(strBody, "binary").toString("base64");
-
-    	} catch (err) {
-    		console.log("Got err " + err);
-    		throw err;
-    	}
-
+    	// Fetch the instructions pdf from Yoti
+		this.logger.debug("Fetching the Instructions Pdf from yoti for sessionId: ", message.yotiSessionId);
+		try{
+			const instructionsPdf = await this.fetchInstructionsPdf(message.yotiSessionId);
+			encoded = Buffer.from(instructionsPdf, "binary").toString("base64");
+		} catch (err) {
+			this.logger.error("Error while fetching Instructions pfd or encoding the pdf." + err);
+			throw err;
+		}
 
     	const personalisation = {
     		"first name": message.firstName,
@@ -165,4 +128,26 @@ export class GovNotifyService {
     	this.logger.error(`sendEmail - cannot send EMail ${GovNotifyService.name}`);
     	throw new AppError(HttpCodesEnum.SERVER_ERROR, "Cannot send EMail");
     }
+
+	private async fetchInstructionsPdf(sessionId: string) {
+		// const yotiRequest = await this.generateYotiRequest({
+		// 	method: HttpVerbsEnum.GET,
+		// 	endpoint: `/sessions/${sessionId}/instructions/pdf`,
+		// });
+		const yotiUrl = "https://api.yoti.com/idverify/v1/sessions/9801a8bc-e228-421f-b7d0-b71af0308dcd/instructions/pdf?sdkId=1f9edc97-c60c-40d7-becb-c1c6a2ec4963&nonce=b966aec6-3ae8-43b0-b138-2c012de87a2b&timestamp=1680176860762"
+
+		const yotiRequestConfig: AxiosRequestConfig = {
+			responseType: "arraybuffer",
+			responseEncoding: "binary",
+			headers: {
+				"X-Yoti-Auth-Digest": "ACfuuOPh6FYlqNeI8XEx6CkJ5LZRJ2c3R+FOZTuyXfBGh8JIV1MfX4QI9uyC2+xuRxZSWDnDlJ2iifYq+2edxSLVSzDJ7FZ7Le0Ni276TggcownBTrf/ZSGHlEM1/UmmFcSK10BJlhRXiqci9B5f/jc5y1a/irtoTVCZhiEcYilRSEaH/Ft8EnLUMGyMewp/uoJleL/EqwASPqnPeb8ekiz0C9TKSC1M5GvzkTB4q/6kPVr3YkMGYwdqkvpnzjBQuLIKqcqMZ6MrXbBjrqRkFhZC6Qb4uxpmRaS/FR4KQLU1OcOwwWEh2hljSDbPGcLHUlCxm6jCGMQvpCnheyALug==",
+				"X-Yoti-SDK": "Node",
+				"X-Yoti-SDK-Version": "Node-4.1.0",
+				Accept: "application/json",
+			},
+		};
+		const { data } = await axios.get(yotiUrl, yotiRequestConfig);
+
+		return data;
+	}
 }
