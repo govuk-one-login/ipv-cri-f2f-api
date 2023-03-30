@@ -65,16 +65,16 @@ export class F2fService {
 			},
 		});
 
-		let PersonIdentity;
+		let PersonInfo;
 		try {
-			PersonIdentity = await this.dynamo.send(getPersonIdentityCommand);
+			PersonInfo = await this.dynamo.send(getPersonIdentityCommand);
 		} catch (e: any) {
 			this.logger.error({ message: "getSessionById - failed executing get from dynamodb:", e });
 			throw new AppError("Error retrieving Session", HttpCodesEnum.SERVER_ERROR);
 		}
 
-		if (PersonIdentity.Item) {
-			return PersonIdentity.Item as PersonIdentity;
+		if (PersonInfo.Item) {
+			return PersonInfo.Item as PersonIdentity;
 		}
 	}
 

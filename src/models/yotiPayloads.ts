@@ -22,3 +22,61 @@ export interface PostOfficeInfo {
 		longitude: number;
 	};
 }
+
+interface IBVclientAssessments {
+	type: string;
+	state: string;
+}
+
+export interface SessionInfo {
+	session_id: string;
+	client_session_token_ttl: number;
+	requested_checks: string[];
+	applicant_profile: {
+		media: {
+			id: string;
+			type: string;
+			created: string;
+			last_updated: string;
+		};
+	};
+	capture: {
+		required_resources: [
+			{
+				type: string;
+				id: string;
+				state: string;
+				allowed_sources: [
+					{
+						type: string;
+					},
+				];
+				requested_tasks: [];
+				ibv_client_assessments: [IBVclientAssessments[]];
+				supported_countries: [
+					{
+						code: string;
+						supported_documents: [
+							{
+								type: string;
+							},
+						];
+					},
+				];
+				allowed_capture_methods: string;
+				attempts_remaining: {
+					RECLASSIFICATION: number;
+					GENERIC: number;
+				};
+			},
+		];
+		biometric_consent: string;
+	};
+	sdk_config: {
+		primary_colour: string;
+		locale: string;
+		hide_logo: boolean;
+		allow_handoff: boolean;
+	};
+	track_ip_address: boolean;
+}

@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import axios, { AxiosRequestConfig } from "axios";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
 import { PersonIdentity } from "../models/PersonIdentity";
-import { StructuredPostalAddress, ApplicantProfile, PostOfficeInfo } from "../models/yotiPayloads";
+import { StructuredPostalAddress, ApplicantProfile, PostOfficeInfo, SessionInfo } from "../models/yotiPayloads";
 
 export class YotiService {
   readonly logger: Logger;
@@ -33,7 +33,7 @@ export class YotiService {
   	return YotiService.instance;
   }
 
-  private getRSASignatureForMessage(message: string) {
+  private getRSASignatureForMessage(message: string): string {
   	return crypto
   		.createSign("RSA-SHA256")
   		.update(message)
@@ -81,9 +81,12 @@ export class YotiService {
   	};
   }
 
-  private getYotiDocumentType(selectedDocument: string) {
-  	let yotiDocumentType;
-  	let countryCode;
+  private getYotiDocumentType(selectedDocument: string): {
+  	yotiDocumentType: string;
+  	countryCode: string;
+  } {
+  	let yotiDocumentType = "";
+  	let countryCode = "";
 
   	switch (selectedDocument) {
   		case "ukPassport": {
@@ -137,11 +140,11 @@ export class YotiService {
   	};
   }
 
-  async generateYotiRequest(generateYotiPayload: {
+  private generateYotiRequest(generateYotiPayload: {
   	method: any;
   	payloadJSON?: string;
   	endpoint: any;
-  }) {
+  }): { url: string; config: AxiosRequestConfig<any> | undefined } {
   	const { method, endpoint } = generateYotiPayload;
 
   	const nonce = uuidv4();
@@ -166,28 +169,23 @@ export class YotiService {
   		`${method}&${endpointPath}${base64String}`,
   	);
 
-  	const config: AxiosRequestConfig = {
-  		headers: {
-  			"X-Yoti-Auth-Digest": messageSignature,
-  			"X-Yoti-SDK": "Node",
-  			"X-Yoti-SDK-Version": "Node-4.1.0",
-  			Accept: "application/json",
+  	return {
+  		url: `${process.env.YOTIBASEURL}${endpointPath}`,
+  		config: {
+  			headers: {
+  				"X-Yoti-Auth-Digest": messageSignature,
+  				"X-Yoti-SDK": "Node",
+  				"X-Yoti-SDK-Version": "Node-4.1.0",
+  				Accept: "application/json",
+  			},
   		},
   	};
-
-  	const response = {
-  		url: `${process.env.YOTIBASEURL}${endpointPath}`,
-  		config,
-  	};
-
-  	return response;
   }
 
   async createSession(
   	personDetails: PersonIdentity,
   	selectedDocument: string,
-  ) {
-
+  ): Promise<string> {
   	//TODO: When we have return journey in place
   	const callBackUrlWhenChecksComplete = "https://some-domain.example";
 
@@ -249,7 +247,7 @@ export class YotiService {
   		},
   	};
 
-  	const yotiRequest = await this.generateYotiRequest({
+  	const yotiRequest = this.generateYotiRequest({
   		method: HttpVerbsEnum.POST,
   		payloadJSON: JSON.stringify(payloadJSON),
   		endpoint: "/sessions",
@@ -265,7 +263,7 @@ export class YotiService {
   }
 
   async fetchSessionInfo(sessionId: string) {
-  	const yotiRequest = await this.generateYotiRequest({
+  	const yotiRequest = this.generateYotiRequest({
   		method: HttpVerbsEnum.GET,
   		endpoint: `/sessions/${sessionId}/configuration`,
   	});
@@ -315,7 +313,7 @@ export class YotiService {
   		},
   	};
 
-  	const yotiRequest = await this.generateYotiRequest({
+  	const yotiRequest = this.generateYotiRequest({
   		method: HttpVerbsEnum.PUT,
   		endpoint: `/sessions/${sessionID}/instructions`,
   		payloadJSON: JSON.stringify(payloadJSON),
@@ -330,8 +328,8 @@ export class YotiService {
   	return data;
   }
 
-  async fetchInstructionsPdf(sessionId: string) {
-  	const yotiRequest = await this.generateYotiRequest({
+  async fetchInstructionsPdf(sessionId: string): Promise<string> {
+  	const yotiRequest = this.generateYotiRequest({
   		method: HttpVerbsEnum.GET,
   		endpoint: `/sessions/${sessionId}/instructions/pdf`,
   	});
