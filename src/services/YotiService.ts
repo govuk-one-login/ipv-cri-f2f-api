@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
 import { Logger } from "@aws-lambda-powertools/logger";
-import crypto from "crypto";
-import { v4 as uuidv4 } from "uuid";
+import crypto, { randomUUID }from "crypto";
 import axios, { AxiosRequestConfig } from "axios";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
 import { PersonIdentity } from "../models/PersonIdentity";
-import { StructuredPostalAddress, ApplicantProfile, PostOfficeInfo, SessionInfo } from "../models/yotiPayloads";
+import { StructuredPostalAddress, ApplicantProfile, PostOfficeInfo } from "../models/YotiPayloads";
+import { DocumentTypesEnum, YotiDocumentTypesEnum, YOTI_DOCUMENT_COUNTRY_CODE } from "../utils/DocumentTypesEnum";
 
 export class YotiService {
   readonly logger: Logger;
@@ -89,43 +89,43 @@ export class YotiService {
   	let countryCode = "";
 
   	switch (selectedDocument) {
-  		case "ukPassport": {
-  			yotiDocumentType = "PASSPORT";
-  			countryCode = "GBR";
+  		case DocumentTypesEnum.UKPASSPORT: {
+  			yotiDocumentType = YotiDocumentTypesEnum.UKPASSPORT;
+  			countryCode = YOTI_DOCUMENT_COUNTRY_CODE;
   			break;
   		}
-  		case "ukPhotocardDl": {
-  			yotiDocumentType = "DRIVING_LICENCE";
-  			countryCode = "GBR";
+  		case DocumentTypesEnum.UKPHOTOCARDDL: {
+  			yotiDocumentType = YotiDocumentTypesEnum.UKPHOTOCARDDL;
+  			countryCode = YOTI_DOCUMENT_COUNTRY_CODE;
   			break;
   		}
-  		case "brp": {
-  			yotiDocumentType = "RESIDENCE_PERMIT";
-  			countryCode = "GBR";
+  		case DocumentTypesEnum.BRP: {
+  			yotiDocumentType = YotiDocumentTypesEnum.BRP;
+  			countryCode = YOTI_DOCUMENT_COUNTRY_CODE;
   			break;
   		}
-  		case "otherPassport": {
-  			yotiDocumentType = "PASSPORT";
+  		case DocumentTypesEnum.OTHERPASSPORT: {
+  			yotiDocumentType = YotiDocumentTypesEnum.OTHERPASSPORT;
   			countryCode = "";
   			break;
   		}
-  		case "euPhotocardDl": {
-  			yotiDocumentType = "";
+  		case DocumentTypesEnum.EUPHOTOCARDDL: {
+  			yotiDocumentType = YotiDocumentTypesEnum.EUPHOTOCARDDL;
   			countryCode = "";
   			break;
   		}
-  		case "euIdentityCard": {
-  			yotiDocumentType = "NATIONAL_ID";
+  		case DocumentTypesEnum.EUIDENTITYCARD: {
+  			yotiDocumentType = YotiDocumentTypesEnum.EUIDENTITYCARD;
   			countryCode = "";
   			break;
   		}
-  		case "citizenCard": {
-  			yotiDocumentType = "";
+  		case DocumentTypesEnum.CITIZENCARD: {
+  			yotiDocumentType = YotiDocumentTypesEnum.CITIZENCARD;
   			countryCode = "";
   			break;
   		}
-  		case "youngScotNationalEntitlementCard": {
-  			yotiDocumentType = "";
+  		case DocumentTypesEnum.YOUNGSCOTNATIONALENTITLEMENTCARD: {
+  			yotiDocumentType = YotiDocumentTypesEnum.YOUNGSCOTNATIONALENTITLEMENTCARD;
   			countryCode = "";
   			break;
   		}
@@ -147,7 +147,7 @@ export class YotiService {
   }): { url: string; config: AxiosRequestConfig<any> | undefined } {
   	const { method, endpoint } = generateYotiPayload;
 
-  	const nonce = uuidv4();
+  	const nonce = randomUUID();
   	const unixTimestamp = Date.now();
 
   	const queryString = `sdkId=${this.CLIENT_SDK_ID}&nonce=${nonce}&timestamp=${unixTimestamp}`;
@@ -192,8 +192,8 @@ export class YotiService {
   	const { yotiDocumentType, countryCode } = this.getYotiDocumentType(selectedDocument);
 
   	const payloadJSON = {
-  		client_session_token_ttl: "864000",
-  		resources_ttl: "950400",
+  		client_session_token_ttl: 864000,
+  		resources_ttl: 950400,
   		ibv_options: {
   			support: "MANDATORY",
   		},
