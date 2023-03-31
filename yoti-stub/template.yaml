@@ -3,6 +3,10 @@ Transform: "AWS::Serverless-2016-10-31"
 Description: "Digital Identity F2F Yoti Stub"
 
 Parameters:
+  KmsPendingWindowInDays:
+    Type: Number
+    Description: Number of days to retain KMS in pending deletion state when deleted
+    Default: 30
   CodeSigningConfigArn:
     Type: String
     Default: "none"
@@ -14,30 +18,16 @@ Parameters:
     AllowedValues:
       - "dev"
       - "build"
-      - "staging"
-      - "integration"
-      - "production"
-    ConstraintDescription: Ensure environment variable is set to one of dev, build, staging, integration or production.
+
+    ConstraintDescription: Ensure environment variable is set to one of dev, build.
   PermissionsBoundary:
     Description: "The ARN of the permissions boundary to apply when creating IAM roles"
     Type: String
     Default: "none"
-  SecretPrefix:
-    Type: String
-    Default: "none"
-    Description: Secrets name prefix
   VpcStackName:
     Type: String
     Default: "vpc-cri"
     Description: The name of the VPC stack deployed.
-  L2DynamoStackName:
-    Type: String
-    Default: "f2f-cri-ddb"
-    Description: The name of the L2 DynamoDB stack deployed.
-  L2KMSStackName:
-    Type: String
-    Default: "f2f-cri-kms"
-    Description: The name of the L2 DynamoDB stack deployed.
 
 Mappings:
   EnvironmentConfiguration: # This is where you store per-environment settings.
@@ -47,50 +37,12 @@ Mappings:
     build:
       logretentionindays: 3
       apiTracingEnabled: true
-#    staging:
-#      logretentionindays: 3
-#      apiTracingEnabled: true
-#    integration:
-#      logretentionindays: 30
-#      apiTracingEnabled: false
-#    production:
-#      logretentionindays: 30
-#      apiTracingEnabled: false
+
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
-      ISSUER: 'https://review-o.dev.account.gov.uk'
-      MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       YOTISTUBURL: "yotistub.review-o.dev.account.gov.uk"
     build:
-      ISSUER: 'https://review-o.build.account.gov.uk'
-      MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      YOTISTUBURL: "yoti.review-o.dev.account.gov.uk"
-    staging:
-      ISSUER: 'https://review-o.staging.account.gov.uk'
-      MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-    integration:
-      ISSUER: 'https://review-o.integration.account.gov.uk'
-      MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-    production:
-      ISSUER: 'https://review-o.account.gov.uk'
-      MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-  TxMAAccounts:
-    # EVENTS is used to egress to TxMA.
-    dev:
-      AUDIT: arn:aws:iam::725018305812:root
-      EVENTS: arn:aws:iam::248098332657:root
-    build:
-      AUDIT: arn:aws:iam::761029721660:root
-      EVENTS: arn:aws:iam::750703655225:root
-    staging:
-      AUDIT: arn:aws:iam::778587367904:root
-      EVENTS: arn:aws:iam::178023842775:root
-    integration:
-      AUDIT: arn:aws:iam::423448613278:root
-      EVENTS: arn:aws:iam::729485541398:root
-    production:
-      AUDIT: arn:aws:iam::348043515437:root
-      EVENTS: arn:aws:iam::451773080033:root
+      YOTISTUBURL: "yotistub.review-o.dev.account.gov.uk"
 
 Conditions:
   CreateDevResources: !Equals
@@ -109,11 +61,6 @@ Conditions:
     Fn::Not:
       - Fn::Equals:
           - !Ref PermissionsBoundary
-          - "none"
-  UseSecretPrefix:
-    Fn::Not:
-      - Fn::Equals:
-          - !Ref SecretPrefix
           - "none"
 
 Globals:
@@ -146,13 +93,6 @@ Globals:
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
         POWERTOOLS_LOG_LEVEL: INFO # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
-        ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-        SECRET_PREFIX: !If [
-          UseSecretPrefix,
-          !Ref SecretPrefix,
-          !Ref AWS::StackName,
-        ] # What is this? @TODO
-        #  SQS_AUDIT_EVENT_PREFIX: CIC-F2F # The prefix to add to TxMA event messages
     AutoPublishAlias: live
 
 Resources:
@@ -170,6 +110,94 @@ Resources:
       VpcId:
         Fn::ImportValue: !Sub "${VpcStackName}-VpcId"
 
+  YotiStubPDFBucket:
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-yoti-f2f-${Environment}
+      VersioningConfiguration:
+        Status: "Enabled"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+### Yoti stub table
+  YotiSessionTable:
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TableName: !Sub "yoti-stub-${AWS::StackName}"
+      BillingMode: "PAY_PER_REQUEST"
+      AttributeDefinitions:
+        - AttributeName: "session_id"
+          AttributeType: "S"
+
+      KeySchema:
+        - AttributeName: "session_id"
+          KeyType: "HASH"
+      #      GlobalSecondaryIndexes:
+      #        - IndexName: "authorizationCode-index"
+      #          KeySchema:
+      #            - AttributeName: "authorizationCode"
+      #              KeyType: "HASH"
+      #          Projection:
+      #            NonKeyAttributes:
+      #              - "sessionId"
+      #              - "redirectUri"
+      #              - "clientId"
+      #              - "authSessionState"
+      #            ProjectionType: "INCLUDE"
+      #      TimeToLiveSpecification:
+      #        AttributeName: expiryDate
+      #        Enabled: true
+      #      PointInTimeRecoverySpecification:
+      #        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        KMSMasterKeyId: !Ref YotiSessionTableKey
+        SSEEnabled: true
+        SSEType: KMS
+
+  YotiSessionTableKey:
+      Type: AWS::KMS::Key
+      Properties:
+        Description: !Sub "${AWS::StackName} yoti session table key"
+        Enabled: true
+        KeySpec: SYMMETRIC_DEFAULT
+        KeyUsage: ENCRYPT_DECRYPT
+        MultiRegion: false
+        PendingWindowInDays: !Ref KmsPendingWindowInDays
+        EnableKeyRotation: true
+        KeyPolicy:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: "Allow the account to manage the key"
+              Effect: Allow
+              Principal:
+                AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+              Action: "kms:*"
+              Resource: "*"
+        Tags:
+          - Key: Name
+            Value: !Sub "${AWS::StackName} yoti session table key"
+          - Key: Product
+            Value: Gov.UK Sign On
+          - Key: System
+            Value: Yoti Stub
+          - Key: Environment
+            Value: !Ref Environment
+
+  YotiSessionTableKeyAlias:
+      Type: AWS::KMS::Alias
+      Properties:
+        AliasName: !Sub "alias/${AWS::StackName}-yoti-session-table-key"
+        TargetKeyId: !Ref YotiSessionTableKey
 
   ### Start of API Gateway definition.
   MockYotiRestApi:
@@ -188,8 +216,6 @@ Resources:
           Parameters:
             Location: './yoti-spec.yaml'
         OpenApiVersion: 3.0.2
-
-
       TracingEnabled: true
       Tags:
         Product: GOV.UK Sign In
@@ -237,27 +263,20 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: MockYotiSessionHandler
           # using this one temp to save incoming data
-          SESSION_TABLE:
-            Fn::ImportValue: !Sub "${L2DynamoStackName}-yoti-session-table-name"
-#          KMS_KEY_ARN:
-#            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+          SESSION_TABLE: !Ref YotiSessionTable
+          S3_BUCKET_NAME: !Ref YotiStubPDFBucket
+
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - S3FullAccessPolicy:
-              BucketName: "rimisra1"
+              BucketName: !Ref YotiStubPDFBucket
         - DynamoDBWritePolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-yoti-session-table-name"
+            TableName: !Ref YotiSessionTable
         - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-yoti-session-table-name"
+            TableName: !Ref YotiSessionTable
         - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-yoti-session-table-key-id"
+            KeyId: !Ref YotiSessionTableKey
 
       Events:
         sessions:
@@ -298,14 +317,6 @@ Resources:
     Properties:
       LogGroupName: !Sub "/aws/lambda/Access-Token-${AWS::StackName}"
       RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logretentionindays ]
-
-#  YotiSessionFunctionLogsSubscriptionFilterCSLS:
-#    Type: AWS::Logs::SubscriptionFilter
-#    Condition: IsProdLikeEnvironment
-#    Properties:
-#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-#      FilterPattern: ""
-#      LogGroupName: !Ref TokenFunctionLogGroup
 
   MockYotiSessionFunctionPermission:
     Type: AWS::Lambda::Permission

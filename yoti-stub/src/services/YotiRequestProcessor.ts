@@ -82,7 +82,7 @@ export class YotiRequestProcessor {
 		let encoded;
 		let strBody;
 		const input = {
-			"Bucket": "rimisra1",
+			"Bucket": process.env.S3_BUCKET_NAME,
 			"Key": "response.pdf"
 		};
 		const command = new GetObjectCommand(input);
