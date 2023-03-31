@@ -1,8 +1,6 @@
 export interface CredentialSubject {
-	fullName: object[];
-	dateOfBirth: string | undefined;
-	documentType: string | undefined;
-	dateOfExpiry: string | undefined;
+	name: object[];
+	birthDate: object[];
 }
 export interface VerifiedCredential {
 	"@context": string[];
@@ -11,11 +9,11 @@ export interface VerifiedCredential {
 }
 // limit to supported algs https://datatracker.ietf.org/doc/html/rfc7518
 export type Algorithm =
-    "HS256" | "HS384" | "HS512" |
-    "RS256" | "RS384" | "RS512" |
-    "ES256" | "ES384" | "ES512" |
-    "PS256" | "PS384" | "PS512" |
-    "none";
+	"HS256" | "HS384" | "HS512" |
+	"RS256" | "RS384" | "RS512" |
+	"ES256" | "ES384" | "ES512" |
+	"PS256" | "PS384" | "PS512" |
+	"none";
 export interface CredentialJwt {
 	iat: number;
 	iss: string;
@@ -60,3 +58,25 @@ export interface Jwt {
 	jwk?: Jwk;
 }
 
+export class JarPayload implements JwtPayload {
+	redirect_uri?: string;
+
+	client_id?: string;
+
+	response_type?: "code";
+
+	scope?: string;
+
+	state?: string;
+
+	nonce?: string;
+}
+
+export class JsonWebTokenError extends Error {
+	inner?: unknown;
+
+	constructor(message: string, error?: unknown) {
+		super(message);
+		this.inner = error;
+	}
+}

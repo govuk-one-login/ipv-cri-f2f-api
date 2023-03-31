@@ -1,4 +1,4 @@
-import { SQSClient } from "@aws-sdk/client-sqs";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 import AWSXRay from "aws-xray-sdk-core";
 
@@ -15,4 +15,4 @@ const sqsClientRaw = new SQSClient({
 
 const sqsClient = process.env.XRAY_ENABLED === "true" ? AWSXRay.captureAWSv3Client(sqsClientRaw as any) : sqsClientRaw;
 
-export { sqsClient };
+export { sqsClient, SendMessageCommand };
