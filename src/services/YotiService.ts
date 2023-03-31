@@ -126,7 +126,7 @@ export class YotiService {
   async createSession(
   	personDetails: PersonIdentity,
   	selectedDocument: string,
-		YOTICALLBACKURL: string,
+		YOTICALLBACKURL?: string,
   ): Promise<string> {
   	//TODO: YOTICALLBACKURL needs updating in template.yaml file within deploy folders oncer we have work completed on return journey
   	const payloadJSON = {
