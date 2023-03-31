@@ -5,7 +5,7 @@ import axios, { AxiosRequestConfig } from "axios";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
 import { PersonIdentity } from "../models/PersonIdentity";
 import { StructuredPostalAddress, ApplicantProfile, PostOfficeInfo } from "../models/YotiPayloads";
-import { DocumentTypesEnum, YotiDocumentTypesEnum, YOTI_DOCUMENT_COUNTRY_CODE } from "../utils/DocumentTypesEnum";
+import { YotiDocumentTypesEnum, YOTI_DOCUMENT_COUNTRY_CODE, REQUESTED_CHECKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
 
 export class YotiService {
   readonly logger: Logger;
@@ -43,7 +43,7 @@ export class YotiService {
 
 
   //TODO: Hardcoded now, will update with values from Person Identity table once /session work completed
-  private getStructuredPostalAddress(personDetails: PersonIdentity): StructuredPostalAddress {
+  private getStructuredPostalAddress(): StructuredPostalAddress {
   	return {
   		address_format: 1,
   		building_number: "74",
@@ -77,66 +77,7 @@ export class YotiService {
   		full_name: `${givenNames[0]} ${familyNames}`,
   		date_of_birth: `${personDetails.birthDates.map((bd) => ({ value: bd.value }))[0].value}`,
   		structured_postal_address:
-        this.getStructuredPostalAddress(personDetails),
-  	};
-  }
-
-  private getYotiDocumentType(selectedDocument: string): {
-  	yotiDocumentType: string;
-  	countryCode: string;
-  } {
-  	let yotiDocumentType = "";
-  	let countryCode = "";
-
-  	switch (selectedDocument) {
-  		case DocumentTypesEnum.UKPASSPORT: {
-  			yotiDocumentType = YotiDocumentTypesEnum.UKPASSPORT;
-  			countryCode = YOTI_DOCUMENT_COUNTRY_CODE;
-  			break;
-  		}
-  		case DocumentTypesEnum.UKPHOTOCARDDL: {
-  			yotiDocumentType = YotiDocumentTypesEnum.UKPHOTOCARDDL;
-  			countryCode = YOTI_DOCUMENT_COUNTRY_CODE;
-  			break;
-  		}
-  		case DocumentTypesEnum.BRP: {
-  			yotiDocumentType = YotiDocumentTypesEnum.BRP;
-  			countryCode = YOTI_DOCUMENT_COUNTRY_CODE;
-  			break;
-  		}
-  		case DocumentTypesEnum.OTHERPASSPORT: {
-  			yotiDocumentType = YotiDocumentTypesEnum.OTHERPASSPORT;
-  			countryCode = "";
-  			break;
-  		}
-  		case DocumentTypesEnum.EUPHOTOCARDDL: {
-  			yotiDocumentType = YotiDocumentTypesEnum.EUPHOTOCARDDL;
-  			countryCode = "";
-  			break;
-  		}
-  		case DocumentTypesEnum.EUIDENTITYCARD: {
-  			yotiDocumentType = YotiDocumentTypesEnum.EUIDENTITYCARD;
-  			countryCode = "";
-  			break;
-  		}
-  		case DocumentTypesEnum.CITIZENCARD: {
-  			yotiDocumentType = YotiDocumentTypesEnum.CITIZENCARD;
-  			countryCode = "";
-  			break;
-  		}
-  		case DocumentTypesEnum.YOUNGSCOTNATIONALENTITLEMENTCARD: {
-  			yotiDocumentType = YotiDocumentTypesEnum.YOUNGSCOTNATIONALENTITLEMENTCARD;
-  			countryCode = "";
-  			break;
-  		}
-  		default: {
-  			break;
-  		}
-  	}
-
-  	return {
-  		yotiDocumentType,
-  		countryCode,
+        this.getStructuredPostalAddress(),
   	};
   }
 
@@ -185,12 +126,9 @@ export class YotiService {
   async createSession(
   	personDetails: PersonIdentity,
   	selectedDocument: string,
+		YOTICALLBACKURL: string,
   ): Promise<string> {
-  	//TODO: When we have return journey in place
-  	const callBackUrlWhenChecksComplete = "https://some-domain.example";
-
-  	const { yotiDocumentType, countryCode } = this.getYotiDocumentType(selectedDocument);
-
+  	//TODO: YOTICALLBACKURL needs updating in template.yaml file within deploy folders oncer we have work completed on return journey
   	const payloadJSON = {
   		client_session_token_ttl: 864000,
   		resources_ttl: 950400,
@@ -199,42 +137,22 @@ export class YotiService {
   		},
   		user_tracking_id: personDetails.sessionId,
   		notifications: {
-  			endpoint: callBackUrlWhenChecksComplete,
-  			topics: ["SESSION_COMPLETION", "INSTRUCTIONS_EMAIL_REQUESTED"],
+  			endpoint: YOTICALLBACKURL,
+  			topics: YOTI_SESSION_TOPICS,
   			auth_token: "string",
   			auth_type: "BASIC",
   		},
-  		requested_checks: [
-  			{
-  				"type": "IBV_VISUAL_REVIEW_CHECK",
-  				"config": {
-  					"manual_check": "IBV",
-  				},
-  			},
-  			{
-  				"type": "PROFILE_DOCUMENT_MATCH",
-  				"config": {
-  					"manual_check": "IBV",
-  				},
-  			},
-  			{
-  				"type": "DOCUMENT_SCHEME_VALIDITY_CHECK",
-  				"config": {
-  					"manual_check": "IBV",
-  					"scheme": "UK_DBS",
-  				},
-  			},
-    	],
+  		requested_checks: [REQUESTED_CHECKS.IBV_VISUAL_REVIEW_CHECK,REQUESTED_CHECKS.PROFILE_DOCUMENT_MATCH,REQUESTED_CHECKS.DOCUMENT_SCHEME_VALIDITY_CHECK],
   		required_documents: [
   			{
   				type: "ID_DOCUMENT",
   				filter: {
   					type: "DOCUMENT_RESTRICTIONS",
-  					inclusion: "WHITELIST",
+  					inclusion: "INCLUDE",
   					documents: [
   						{
-  							country_codes: [countryCode],
-  							document_types: [yotiDocumentType],
+  							country_codes: [YOTI_DOCUMENT_COUNTRY_CODE],
+  							document_types: [Object.values(YotiDocumentTypesEnum)[Object.keys(YotiDocumentTypesEnum).indexOf(selectedDocument.toUpperCase())]],
   						},
   					],
   				},
@@ -298,12 +216,13 @@ export class YotiService {
   		contact_profile: {
   			first_name: `${givenNames[0]}`,
   			last_name: `${familyNames[0]}`,
-  			email: "john.doe@gmail.com",
+				//TODO: Update email file to be fetched from Person Identity Table once Session work completed
+  			email: "test@example.com",
   		},
   		documents: requirements,
   		branch: {
-  			type: "UK_POST_OFFICE",
-  			name: "UK Post Office Branch",
+  			type: UK_POST_OFFICE.type,
+  			name: UK_POST_OFFICE.name,
   			address: PostOfficeSelection.address,
   			post_code: PostOfficeSelection.post_code,
   			location: {

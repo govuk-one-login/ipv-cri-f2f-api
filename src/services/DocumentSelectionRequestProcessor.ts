@@ -10,6 +10,7 @@ import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 
 const PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
 const YOTI_SDK = process.env.YOTISDK;
+const YOTICALLBACKURL = process.env.YOTICALLBACKURL;
 
 export class DocumentSelectionRequestProcessor {
   private static instance: DocumentSelectionRequestProcessor;
@@ -23,8 +24,8 @@ export class DocumentSelectionRequestProcessor {
 	private readonly f2fService: F2fService;
 
 	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
-		if (!PERSON_IDENTITY_TABLE_NAME || !YOTI_SDK) {
-			logger.error("Environment variable SESSION_TABLE or YOTI_SDK is not configured");
+		if (!PERSON_IDENTITY_TABLE_NAME || !YOTI_SDK || !YOTICALLBACKURL) {
+			logger.error("Environment variable SESSION_TABLE or YOTI_SDK or YOTICALLBACKURL is not configured");
 			throw new AppError("Service incorrectly configured", HttpCodesEnum.SERVER_ERROR);
 		}
 		this.logger = logger;
@@ -60,7 +61,7 @@ export class DocumentSelectionRequestProcessor {
 		const selectedDocument = eventBody.document_selection.document_selected;
 
 		this.logger.info("Creating new session in Yoti");
-		const sessionID = await this.yotiService.createSession(personDetails, selectedDocument);
+		const sessionID = await this.yotiService.createSession(personDetails, selectedDocument, YOTICALLBACKURL);
 
 		this.logger.info("Fetching Session Info");
 		const sessionInfo = await this.yotiService.fetchSessionInfo(sessionID);
