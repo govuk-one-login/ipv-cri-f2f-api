@@ -43,6 +43,7 @@ export class YotiService {
          .withEndpoint("/sessions")
          .withPayload(new Payload({
 
+
             "ibv_options": {
                "support": "MANDATORY"
             },
@@ -95,34 +96,38 @@ export class YotiService {
                }
             ],
             "required_documents": [
-
                {
                   "type": "ID_DOCUMENT",
                   "filter": {
-                     "type": "ORTHOGONAL_RESTRICTIONS",
-                     "allow_non_latin_documents": true,
-                     "allow_expired_documents": true,
-                     "country_restriction": {
-                        "inclusion": "INCLUDE",
-                        "country_codes": [
-                           "GBR",
-                           "FRA"
-                        ]
-                     },
-                     "type_restriction": {
-                        "inclusion": "INCLUDE",
-                        "document_types": [
-                           "PASSPORT",
-                           "STATE_ID"
-                        ]
-                     }
+                     "type": "DOCUMENT_RESTRICTIONS",
+                     "inclusion": "INCLUDE",
+                     "documents": [
+                        {
+                           "country_codes": [
+                              "GBR"
+                           ],
+                           "document_types": [
+                              "PASSPORT"
+                           ]
+                        }
+                     ]
                   }
                }
             ],
-
             "resources": {
                "applicant_profile": {
-                  "additionalProp1": {}
+                  "full_name": "John Doe",
+                  "date_of_birth": "1988-11-02",
+                  "name_prefix": "Mr",
+                  "structured_postal_address": {
+                     "address_format": 1,
+                     "building_number": "74",
+                     "address_line1": "AddressLine1",
+                     "town_city": "CityName",
+                     "postal_code": "E143RN",
+                     "country_iso": "GBR",
+                     "country": "United Kingdom"
+                  }
                }
             }
          }))

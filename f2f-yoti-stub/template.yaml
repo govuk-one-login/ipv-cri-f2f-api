@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: "AWS::Serverless-2016-10-31"
-Description: "Digital Identity IPV CRI F2F API"
+Description: "Digital Identity F2F Yoti Stub"
 
 Parameters:
   CodeSigningConfigArn:
@@ -47,22 +47,24 @@ Mappings:
     build:
       logretentionindays: 3
       apiTracingEnabled: true
-    staging:
-      logretentionindays: 3
-      apiTracingEnabled: true
-    integration:
-      logretentionindays: 30
-      apiTracingEnabled: false
-    production:
-      logretentionindays: 30
-      apiTracingEnabled: false
+#    staging:
+#      logretentionindays: 3
+#      apiTracingEnabled: true
+#    integration:
+#      logretentionindays: 30
+#      apiTracingEnabled: false
+#    production:
+#      logretentionindays: 30
+#      apiTracingEnabled: false
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
       ISSUER: 'https://review-o.dev.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      YOTISTUBURL: "yotistub.review-o.dev.account.gov.uk"
     build:
       ISSUER: 'https://review-o.build.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      YOTISTUBURL: "yoti.review-o.dev.account.gov.uk"
     staging:
       ISSUER: 'https://review-o.staging.account.gov.uk'
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
@@ -257,13 +259,6 @@ Resources:
               Fn::ImportValue:
                 !Sub "${L2DynamoStackName}-yoti-session-table-key-id"
 
-#        - Statement:
-#            - Sid: KMSPolicy
-#              Effect: Allow
-#              Action:
-#                - kms:Sign
-#              Resource:
-#                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
       Events:
         sessions:
           Type: Api
@@ -318,6 +313,29 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref MockYotiSessionFunction
       Principal: apigateway.amazonaws.com
+
+  MockYotiApiGatewayCustomDomain:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !Sub
+          - "${AWS::StackName}-${YOTISTUBURL}"
+          - YOTISTUBURL:
+              !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
+      DomainNameConfigurations:
+        - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
+          EndpointType: REGIONAL
+          SecurityPolicy: TLS_1_2
+
+  MockYotiApiDomainRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Ref MockYotiApiGatewayCustomDomain
+      Type: A
+      HostedZoneId: !Sub "{{resolve:ssm:/${Environment}/Platform/Route53/PrimaryZoneID}}"
+      AliasTarget:
+        DNSName: !GetAtt MockYotiApiGatewayCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt MockYotiApiGatewayCustomDomain.RegionalHostedZoneId
+        EvaluateTargetHealth: false
 
 Outputs:
   MockYotiApiGatewayId:
