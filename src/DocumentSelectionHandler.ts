@@ -6,7 +6,9 @@ import { Constants } from "./utils/Constants";
 import { ResourcesEnum } from "./models/enums/ResourcesEnum";
 import { Response } from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
+import { DocumentSelectionRequestProcessor } from "./services/DocumentSelectionRequestProcessor";
 import { AppError } from "./utils/AppError";
+import { ssmClient, GetParameterCommand } from "./utils/SSMClient";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
@@ -18,6 +20,7 @@ const logger = new Logger({
 
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 
+let YOTI_PRIVATE_KEY: string;
 export class DocumentSelection implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
@@ -26,8 +29,28 @@ export class DocumentSelection implements LambdaInterface {
 			case ResourcesEnum.DOCUMENTSELECTION:
 				if (event.httpMethod === "POST") {
 					try {
-						logger.info("Got token request:", { event });
-						logger.info("Logic TODO:");
+						let sessionId;
+						if (event.headers) {
+							sessionId = event.headers[Constants.X_SESSION_ID];
+							if (sessionId) {
+								logger.info({ message: "Session id", sessionId });
+								if (!Constants.REGEX_UUID.test(sessionId)) {
+									return new Response(HttpCodesEnum.BAD_REQUEST, "Session id must be a valid uuid");
+								}
+							} else {
+								return new Response(HttpCodesEnum.BAD_REQUEST, "Missing header: session-id is required");
+							}
+						} else {
+							return new Response(HttpCodesEnum.BAD_REQUEST, "Empty headers");
+						}
+					
+						if (!YOTI_PRIVATE_KEY) {
+							logger.info({ message: "Fetching key from SSM" });
+							const command = new GetParameterCommand({ Name: process.env.SSM_PATH });
+							const response = await ssmClient.send(command);
+							YOTI_PRIVATE_KEY = response.Parameter.Value;
+						}
+						return await DocumentSelectionRequestProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event, sessionId);
 					} catch (err) {
 						logger.error({ message: "An error has occurred. ", err });
 						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");

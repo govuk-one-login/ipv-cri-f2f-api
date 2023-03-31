@@ -10,6 +10,7 @@ import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { sqsClient } from "../utils/SqsClient";
 import { TxmaEvent } from "../utils/TxmaEvent";
+import { PersonIdentity } from "../models/PersonIdentity";
 
 export class F2fService {
 	readonly tableName: string;
@@ -53,7 +54,28 @@ export class F2fService {
 		if (session.Item) {
 			return session.Item as ISessionItem;
 		}
+	}
 
+	async getPersonIdentityById(sessionId: string): Promise<PersonIdentity | undefined> {
+		this.logger.debug("Table name " + this.tableName);
+		const getPersonIdentityCommand = new GetCommand({
+			TableName: this.tableName,
+			Key: {
+				sessionId,
+			},
+		});
+
+		let PersonInfo;
+		try {
+			PersonInfo = await this.dynamo.send(getPersonIdentityCommand);
+		} catch (e: any) {
+			this.logger.error({ message: "getSessionById - failed executing get from dynamodb:", e });
+			throw new AppError("Error retrieving Session", HttpCodesEnum.SERVER_ERROR);
+		}
+
+		if (PersonInfo.Item) {
+			return PersonInfo.Item as PersonIdentity;
+		}
 	}
 
 	async setAuthorizationCode(sessionId: string, uuid: string): Promise<void> {
