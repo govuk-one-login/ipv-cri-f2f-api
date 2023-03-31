@@ -4,7 +4,7 @@ info:
      Fn::Sub: "${AWS::StackName} - F2F Credential Issuer Private API"
   version: "1.0"
   description: >-
-    Claimed Identity CRI - Frontend and Backend API specification
+    Face to Face CRI - Frontend and Backend API specification
   contact:
     name: Darren Dunford
     email: darren.dunford@digital.cabinet-office.gov.uk
@@ -297,7 +297,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: "POST"
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TokenFunction.Arn}:live/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SessionFunction.Arn}:live/invocations
         responses:
           default:
             statusCode: "200"

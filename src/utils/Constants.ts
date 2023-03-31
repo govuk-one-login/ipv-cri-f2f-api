@@ -26,6 +26,10 @@ export class Constants {
 
     static readonly DI_CONTEXT = "https://vocab.london.cloudapps.digital/contexts/identity-v1.jsonld";
 
+    static readonly IDENTITY_ASSERTION_CREDENTIAL = "IdentityAssertionCredential";
+
+    static readonly VERIFIABLE_CREDENTIAL = "VerifiableCredential";
+
     static readonly CODE = "code";
 
     static readonly REDIRECT_URL = "redirect_uri";

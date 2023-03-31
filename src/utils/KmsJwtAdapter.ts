@@ -1,98 +1,159 @@
 import format from "ecdsa-sig-formatter";
 import { Buffer } from "buffer";
-import { Jwt, JwtHeader, JwtPayload } from "./IVeriCredential";
+import { Jwt, JwtHeader, JwtPayload, JsonWebTokenError, Jwk } from "./IVeriCredential";
 import * as AWS from "@aws-sdk/client-kms";
 import { jwtUtils } from "./JwtUtils";
 import { DecryptCommand, DecryptCommandInput, DecryptCommandOutput } from "@aws-sdk/client-kms";
+import crypto from "crypto";
+import { importJWK, JWTPayload, jwtVerify } from "jose";
+import axios from "axios";
 
 export class KmsJwtAdapter {
-    readonly kid: string;
+	readonly kid: string;
 
-    private kms = new AWS.KMS({
-    	region: process.env.REGION,
-    });
+	private kms = new AWS.KMS({
+		region: process.env.REGION,
+	});
 
-    /**
-     * An implemention the JWS standard using KMS to sign Jwts
-     *
-     * kid: The key Id of the KMS key
-     */
-    ALG = "ECDSA_SHA_256";
+	/**
+	 * An implemention the JWS standard using KMS to sign Jwts
+	 *
+	 * kid: The key Id of the KMS key
+	 */
+	ALG = "ECDSA_SHA_256";
 
-    constructor(kid: string) {
-    	this.kid = kid;
-    }
+	constructor(kid: string) {
+		this.kid = kid;
+	}
 
-    async sign(jwtPayload: JwtPayload): Promise<string> {
-    	const jwtHeader: JwtHeader = { alg: "ES256", typ: "JWT" };
-    	const kid = this.kid.split("/").pop();
-    	if (kid != null) {
-    		jwtHeader.kid = kid;
-    	}
-    	const tokenComponents = {
-    		header: jwtUtils.base64Encode(JSON.stringify(jwtHeader)),
-    		payload: jwtUtils.base64Encode(JSON.stringify(jwtPayload)),
-    		signature: "",
-    	};
-    	const params = {
-    		Message: Buffer.from(`${tokenComponents.header}.${tokenComponents.payload}`),
-    		KeyId: this.kid,
-    		SigningAlgorithm: this.ALG,
-    		MessageType: "RAW",
-    	};
-    	const res = await this.kms.sign(params);
-    	if (res.Signature == null) {
-    		throw new Error("Failed to sign Jwt");
-    	}
-    	tokenComponents.signature = format.derToJose(Buffer.from(res.Signature).toString("base64"), "ES256");
-    	return `${tokenComponents.header}.${tokenComponents.payload}.${tokenComponents.signature}`;
-    }
+	async sign(jwtPayload: JwtPayload): Promise<string> {
+		const jwtHeader: JwtHeader = { alg: "ES256", typ: "JWT" };
+		const kid = this.kid.split("/").pop();
+		if (kid != null) {
+			jwtHeader.kid = kid;
+		}
+		const tokenComponents = {
+			header: jwtUtils.base64Encode(JSON.stringify(jwtHeader)),
+			payload: jwtUtils.base64Encode(JSON.stringify(jwtPayload)),
+			signature: "",
+		};
+		const params = {
+			Message: Buffer.from(`${tokenComponents.header}.${tokenComponents.payload}`),
+			KeyId: this.kid,
+			SigningAlgorithm: this.ALG,
+			MessageType: "RAW",
+		};
+		const res = await this.kms.sign(params);
+		if (res.Signature == null) {
+			throw new Error("Failed to sign Jwt");
+		}
+		tokenComponents.signature = format.derToJose(Buffer.from(res.Signature).toString("base64"), "ES256");
+		return `${tokenComponents.header}.${tokenComponents.payload}.${tokenComponents.signature}`;
+	}
 
-    async verify(urlEncodedJwt: string): Promise<boolean> {
-    	const [header, payload, signature] = urlEncodedJwt.split(".");
-    	const message = Buffer.from(`${header}.${payload}`);
-    	try {
-    		const derSignature = format.joseToDer(signature, "ES256");
-    		const result = await this.kms.verify({
-    			KeyId: this.kid,
-    			Message: message,
-    			MessageType: "RAW",
-    			Signature: derSignature,
-    			SigningAlgorithm: this.ALG,
-    		});
-    		return result.SignatureValid ?? false;
-    	} catch (error) {
-    		throw new Error("Failed to verify signature: " + error);
-    	}
-    }
+	async verify(urlEncodedJwt: string): Promise<boolean> {
+		const [header, payload, signature] = urlEncodedJwt.split(".");
+		const message = Buffer.from(`${header}.${payload}`);
+		try {
+			const derSignature = format.joseToDer(signature, "ES256");
+			const result = await this.kms.verify({
+				KeyId: this.kid,
+				Message: message,
+				MessageType: "RAW",
+				Signature: derSignature,
+				SigningAlgorithm: this.ALG,
+			});
+			return result.SignatureValid ?? false;
+		} catch (error) {
+			throw new Error("Failed to verify signature: " + error);
+		}
+	}
 
-    decode(urlEncodedJwt: string): Jwt {
-    	const [header, payload, signature] = urlEncodedJwt.split(".");
+	async verifyWithJwks(urlEncodedJwt: string, publicKeyEndpoint: string): Promise<JWTPayload | null> {
+		const oidcProviderJwks = (await axios.get(publicKeyEndpoint)).data;
+		const signingKey = oidcProviderJwks.keys.find((key: Jwk) => key.use === "sig");
+		const publicKey = await importJWK(signingKey, signingKey.alg);
 
-    	const result: Jwt = {
-    		header: JSON.parse(jwtUtils.base64DecodeToString(header)),
-    		payload: JSON.parse(jwtUtils.base64DecodeToString(payload)),
-    		signature,
-    	};
-    	return result;
-    }
+		try {
+			const { payload } = await jwtVerify(urlEncodedJwt, publicKey);
+			return payload;
+		} catch (error) {
+			throw new Error("Failed to verify signature: " + error);
+		}
+	}
 
-    async decrypt(encrypted: Uint8Array): Promise<Uint8Array> {
-    	const inputs: DecryptCommandInput = {
-    		CiphertextBlob: encrypted,
-    		EncryptionAlgorithm: "RSAES_OAEP_SHA_256",
-    		KeyId: this.kid,
-    	};
+	decode(urlEncodedJwt: string): Jwt {
+		const [header, payload, signature] = urlEncodedJwt.split(".");
 
-    	const output: DecryptCommandOutput = await this.kms.send(
-    		new DecryptCommand(inputs),
-    	);
+		const result: Jwt = {
+			header: JSON.parse(jwtUtils.base64DecodeToString(header)),
+			payload: JSON.parse(jwtUtils.base64DecodeToString(payload)),
+			signature,
+		};
+		return result;
+	}
 
-    	const plaintext = output.Plaintext ?? null;
+	async decrypt(serializedJwe: string): Promise<string> {
+		const jweComponents = serializedJwe.split(".");
 
-    	if (plaintext === null) {
-    		throw new Error("No Plaintext received when calling KMS to decrypt the Encryption Key");
-    	}
-    	return plaintext;
-    }
+		if (jweComponents.length !== 5) {
+			throw new JsonWebTokenError("Error decrypting JWE: Missing component");
+		}
+
+		const [
+			protectedHeader,
+			encryptedKey,
+			iv,
+			ciphertext,
+			tag,
+		] = jweComponents;
+
+		let cek: Uint8Array;
+		try {
+			const inputs: DecryptCommandInput = {
+				CiphertextBlob: jwtUtils.base64DecodeToUint8Array(encryptedKey),
+				EncryptionAlgorithm: "RSAES_OAEP_SHA_256",
+				KeyId: process.env.ENCRYPTION_KEY_IDS,
+			};
+
+			const output: DecryptCommandOutput = await this.kms.send(
+				new DecryptCommand(inputs),
+			);
+
+			const plaintext = output.Plaintext ?? null;
+
+			if (plaintext === null) {
+				throw new Error("No Plaintext received when calling KMS to decrypt the Encryption Key");
+			}
+			cek = plaintext;
+		} catch (err) {
+			throw new JsonWebTokenError("Error decrypting JWE: Unable to decrypt encryption key via KMS", err);
+		}
+
+		let payload: Uint8Array;
+		try {
+			const webcrypto = crypto.webcrypto as unknown as Crypto;
+			const cek1 = await webcrypto.subtle.importKey("raw", cek, "AES-GCM", false, ["decrypt"]);
+			const decryptedBuffer = await webcrypto.subtle.decrypt(
+				{
+					name: "AES-GCM",
+					iv: jwtUtils.base64DecodeToUint8Array(iv),
+					additionalData: new Uint8Array(Buffer.from(protectedHeader)),
+					tagLength: 128,
+				},
+				cek1,
+				Buffer.concat([new Uint8Array(jwtUtils.base64DecodeToUint8Array(ciphertext)), new Uint8Array(jwtUtils.base64DecodeToUint8Array(tag))]),
+			);
+
+			payload = new Uint8Array(decryptedBuffer);
+		} catch (err) {
+			throw new JsonWebTokenError("Error decrypting JWE: Unable to decrypt payload via Crypto", err);
+		}
+
+		try {
+			return jwtUtils.decode(payload);
+		} catch (err) {
+			throw new JsonWebTokenError("Error decrypting JWE: Unable to decode the decrypted payload", err);
+		}
+	}
 }
