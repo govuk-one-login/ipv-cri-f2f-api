@@ -13,5 +13,15 @@ module.exports = {
     // Place to specify ESLint rules. Can be used to overwrite rules specified from the extended configs
     // e.g. "@typescript-eslint/explicit-function-return-type": "off",
     "tsdoc/syntax": "warn",
+    "comma-dangle": [
+      "warn",
+      {
+        arrays: "always-multiline",
+        exports: "always-multiline",
+        functions: "never",
+        imports: "always-multiline",
+        objects: "always-multiline",
+      },
+    ],
   },
 };

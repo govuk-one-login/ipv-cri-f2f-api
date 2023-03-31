@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { handler } from "../handlers/startF2fCheck";
 import {
   expect,
@@ -79,7 +78,7 @@ describe("Start CIC Check Endpoint", () => {
     process.env.JWKS_URI = "test.com/.well-known/jwks.json";
     process.env.CLIENT_ID = "test-id";
     process.env.SIGNING_KEY = "key-id";
-    process.env.OIDC_FRONT_BASE_URI = "test-target.com";
+    process.env.OAUTH_FRONT_BASE_URI = "test-target.com";
 
     const response = await handler(startDefault);
     expect(response.statusCode).toBe(201);
