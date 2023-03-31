@@ -42,15 +42,18 @@ export class YotiService {
          .withPemString(PEM_KEY) // file path to PEM file
          .withEndpoint("/sessions")
          .withPayload(new Payload({
-
-
+            "client_session_token_ttl": 864000,
+            "resources_ttl": 950400,
             "ibv_options": {
                "support": "MANDATORY"
             },
-            "user_tracking_id": "some_id",
+            "user_tracking_id": "eb26c8e0-397b-4f5e-b7a5-62cd0c6e510b",
             "notifications": {
                "endpoint": "https://some-domain.example",
-               "topics": ["SESSION_COMPLETION"],
+               "topics": [
+                  "SESSION_COMPLETION",
+                  "INSTRUCTIONS_EMAIL_REQUESTED"
+               ],
                "auth_token": "string",
                "auth_type": "BASIC"
             },
@@ -72,26 +75,6 @@ export class YotiService {
                   "config": {
                      "manual_check": "IBV",
                      "scheme": "UK_DBS"
-                  }
-               },
-               {
-                  "type": "ID_DOCUMENT_AUTHENTICITY",
-                  "config": {
-                     "manual_check": "FALLBACK"
-                  }
-               },
-               {
-                  "type": "ID_DOCUMENT_FACE_MATCH",
-                  "config": {
-                     "manual_check": "FALLBACK"
-                  }
-               }
-            ],
-            "requested_tasks": [
-               {
-                  "type": "ID_DOCUMENT_TEXT_DATA_EXTRACTION",
-                  "config": {
-                     "manual_check": "FALLBACK"
                   }
                }
             ],
@@ -116,9 +99,8 @@ export class YotiService {
             ],
             "resources": {
                "applicant_profile": {
-                  "full_name": "John Doe",
-                  "date_of_birth": "1988-11-02",
-                  "name_prefix": "Mr",
+                  "full_name": "Frederick Flintstone",
+                  "date_of_birth": "1960-02-02",
                   "structured_postal_address": {
                      "address_format": 1,
                      "building_number": "74",

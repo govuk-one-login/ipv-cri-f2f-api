@@ -71,9 +71,9 @@ Globals:
         - !GetAtt LambdaEgressSecurityGroup.GroupId
       SubnetIds:
         - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-PrivateSubnetIdA"
+            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdA"
         - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-PrivateSubnetIdB"
+            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdB"
     PermissionsBoundary: !If
       - UsePermissionsBoundary
       - !Ref PermissionsBoundary
@@ -347,6 +347,22 @@ Resources:
         DNSName: !GetAtt MockYotiApiGatewayCustomDomain.RegionalDomainName
         HostedZoneId: !GetAtt MockYotiApiGatewayCustomDomain.RegionalHostedZoneId
         EvaluateTargetHealth: false
+
+  MockYotiApiGatewayDeployment:
+    Type: "AWS::ApiGateway::Deployment"
+    Properties:
+      Description: "${opt:stage} Environment"
+      RestApiId: !Ref MockYotiRestApi
+      StageName: !Ref Environment
+    DependsOn: MockYotiApiGatewayCustomDomain
+
+  MockYotiApiGatewayMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      DomainName: !Ref MockYotiApiGatewayCustomDomain
+      ApiId: !Ref MockYotiRestApi
+      Stage: !Ref Environment
+    DependsOn: MockYotiApiGatewayDeployment
 
 Outputs:
   MockYotiApiGatewayId:
