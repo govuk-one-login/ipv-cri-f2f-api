@@ -1,17 +1,12 @@
-name: Deploy Main to Build Env
+name: Deploy Outbound Proxy Infra to Dev
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
+  workflow_dispatch:
+  # Triggers the workflow on push event in "main" branch for the "/infra-l2-outbound-proxy" folder
   push:
     branches:
       - main
-    paths-ignore:
-      - 'infra-l2-dynamo/**'
-      - 'infra-l2-kms/**'
-      - 'infra-l2-waf/**'
+    paths:
       - 'infra-l2-outbound-proxy/**'
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -21,23 +16,25 @@ env: # Only adding the variables in that are required for
   AWS_REGION: eu-west-2
 
 jobs:
-  deploy-to-build:
-    name: Validate & Deploy SAM template to Build Envrionment
+  deploy-to-dev:
+    name: Validate & Deploy Outbound Proxy Infra template to Dev Environment
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./deploy/
+        working-directory: infra-l2-outbound-proxy
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
 
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
+        with:
+          version: 1.73.0
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          role-to-assume: ${{ secrets.BUILD_CRI_F2F_GH_ACTIONS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.DEV_F2F_PROXY_GH_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: SAM Validate
@@ -49,7 +46,6 @@ jobs:
       - name: Deploy SAM app
         uses: alphagov/di-devplatform-upload-action@v3
         with:
-            artifact-bucket-name: ${{ secrets.BUILD_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME }}
-            signing-profile-name: ${{ secrets.BUILD_CRI_F2F_SIGNING_PROFILE_NAME }}
-            working-directory: deploy
+            artifact-bucket-name: ${{ secrets.DEV_F2F_PROXY_ARTIFACT_SOURCE_BUCKET_NAME }}
+            working-directory: infra-l2-outbound-proxy
             template-file: template.yaml

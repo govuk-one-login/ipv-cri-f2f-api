@@ -49,8 +49,8 @@ describe("Infra", () => {
 		});
 	});
 
-	it("There are 3 lambdas defined, all with a specific permission:", () => {
-		const lambdaCount = 3;
+	it("There are 4 lambdas defined, all with a specific permission:", () => {
+		const lambdaCount = 4;
 		template.resourceCountIs("AWS::Serverless::Function", lambdaCount);
 		template.resourceCountIs("AWS::Lambda::Permission", lambdaCount);
 	});
@@ -85,6 +85,67 @@ describe("Infra", () => {
 		const logGroupList = Object.keys(logGroups);
 		logGroupList.forEach((logGroup) => {
 			expect(logGroups[logGroup].Properties.RetentionInDays).toBeTruthy();
+		});
+	});
+
+	it("Each regional API Gateway should have at least one custom domain base path mapping name defined", () => {
+		const gateways = template.findResources("AWS::Serverless::Api");
+		const gatewayList = Object.keys(gateways);
+		gatewayList.forEach((gateway) => {
+			template.hasResourceProperties("AWS::ApiGateway::BasePathMapping", {
+				RestApiId: {
+					Ref: gateway,
+				}
+			});
+		});
+	});
+
+	it("Each custom domain referenced in a BasePathMapping should be defined", () => {
+		const basePathMappings = template.findResources("AWS::ApiGateway::BasePathMapping");
+		const basePathMappingList = Object.keys(basePathMappings);
+		basePathMappingList.forEach((basePathMapping) => {
+			template.hasResourceProperties("AWS::ApiGateway::DomainName", {
+				DomainName: basePathMappings[basePathMapping].Properties.DomainName
+			});
+		});
+	});
+
+	it("should define a DNS record for each custom domain", () => {
+		const customDomainNames = template.findResources("AWS::ApiGateway::DomainName");
+		const customDomainNameList = Object.keys(customDomainNames);
+		customDomainNameList.forEach((customDomainName) => {
+			template.hasResourceProperties("AWS::Route53::RecordSet", {
+				Name: customDomainNames[customDomainName].Properties.DomainName
+			});
+		});
+	});
+
+	it("should define an output with the API Gateway ID", () => {
+		template.hasOutput("F2FApiGatewayId", {
+			Value: {
+				"Fn::Sub": "${F2FRestApi}",
+			},
+		});
+	});
+
+	it("should define an output with the F2F Backend URL using the custom domain name", () => {
+		template.hasOutput("F2FBackendURL", {
+			Value: {
+				"Fn::Sub": [
+					"https://api-${AWS::StackName}.${DNSSUFFIX}/",
+					{
+						DNSSUFFIX: {
+							"Fn::FindInMap": [
+								"EnvironmentVariables",
+								{
+									Ref: "Environment",
+								},
+								"DNSSUFFIX"
+							],
+						},
+					},
+				],
+			},
 		});
 	});
 

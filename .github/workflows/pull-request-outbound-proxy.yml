@@ -1,4 +1,4 @@
-name: Pull Request CI - WAF Infra
+name: Pull Request CI - Outbound Proxy Infra
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch.
   pull_request:
@@ -10,7 +10,8 @@ on:
       - ready_for_review
       - synchronize
     paths:
-      - 'infra-l2-waf/**'
+      - 'infra-l2-outbound-proxy/**'
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -29,14 +30,14 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: infra-l2-waf
+        working-directory: infra-l2-outbound-proxy
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
         with:
           submodules: true
 
-      - name: Checks if commiting secrets to repo
+      - name: Checks if committing secrets to repo
         uses: pre-commit/action@v3.0.0
         with:
           extra_args: "detect-secrets --all-files"
@@ -60,7 +61,7 @@ jobs:
         run: npm install
 
       - name: Run Infra checks
-        run: npm run test
+        run: npm run test:infra
 
   sam-validate:
     name: SAM Validate
@@ -68,7 +69,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: infra-l2-waf
+        working-directory: infra-l2-outbound-proxy
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
@@ -78,13 +79,22 @@ jobs:
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
         with:
-          version: 1.70.0
+          version: 1.73.0
         
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          role-to-assume: ${{ secrets.GH_WAF_VALIDATE_ROLE_ARN }}
+          role-to-assume: ${{ secrets.GH_F2F_PROXY_VALIDATE_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Cache SAM builds
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./di-ipv-cri-cic-api/.aws-sam/cache
+            ./di-ipv-cri-cic-api/.aws-sam/deps
+            ./di-ipv-cri-cic-api/.aws-sam/build.toml
+          key: sam-oauth
 
       - name: SAM Validate
         run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml

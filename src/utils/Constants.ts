@@ -8,6 +8,8 @@ export class Constants {
 
     static readonly AUTHORIZATIONCODE_LOGGER_SVC_NAME = "AuthorizationCodeHandler";
 
+    static readonly DOCUMENT_SELECTION_LOGGER_SVC_NAME = "DocumentSelectionHandler";
+
     static readonly F2F_METRICS_NAMESPACE = "F2F-CRI";
 
     static readonly JWKS_LOGGER_SVC_NAME = "JwksHandler";

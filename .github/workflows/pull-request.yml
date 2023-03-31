@@ -13,6 +13,7 @@ on:
       - 'infra-l2-dynamo/**'
       - 'infra-l2-kms/**'
       - 'infra-l2-waf/**'
+      - 'infra-l2-outbound-proxy/**'
       
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -42,7 +43,7 @@ jobs:
       - name: Checks if commiting secrets to repo
         uses: pre-commit/action@v3.0.0
         with:
-          extra_args: "detect-secrets > .secrets.baseline"
+          extra_args: "detect-secrets --all-files"
 
       - name: Setup nodeJS v18
         uses: actions/setup-node@v3

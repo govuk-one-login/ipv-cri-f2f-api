@@ -4,7 +4,7 @@ info:
      Fn::Sub: "${AWS::StackName} - F2F Credential Issuer Private API"
   version: "1.0"
   description: >-
-    Claimed Identity CRI - Frontend and Backend API specification
+    Face to Face CRI - Frontend and Backend API specification
   contact:
     name: Darren Dunford
     email: darren.dunford@digital.cabinet-office.gov.uk
@@ -13,7 +13,7 @@ servers:
 tags:
   - name: Backend - Common CRI Lambda
     description: Backend endpoints implemented by the Common CRI Lambda functions
-  - name: Backend - CI CRI specific
+  - name: Backend - F2F CRI specific
     description: Backend endpoints implementing functions specific to the Claimed Identity CRI
   - name: Frontend
     description: Frontend endpoints implementing rendering and routing
@@ -305,6 +305,110 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
 
+  /documentSelection:
+    post:
+      operationId: postDocumentSelection
+      summary: submit information required to initiate the vendor session
+      description: >-
+        submit the post office selection, document selection and contact information required to initiate the vendor
+        session
+      tags:
+        - Backend - F2F CRI specific
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentSelectionRequest'
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        "201":
+          description: >-
+            Created - the underlying vendor session has been created
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "400":
+          description: >-
+            Bad Request - document selection data failed validation and has not been persisted
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "401":
+          description: Unauthorized
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "500":
+          description: Internal Server Error
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DocumentSelectionFunction.Arn}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+  
   /.well-known/jwks.json:
     get:
       operationId: getWellKnownJwksJson
@@ -312,7 +416,7 @@ paths:
       description: >-
         Return the current valid public keys used to sign JWTs issued by the service as a JSON Web Key Set
       tags:
-        - Backend - CI CRI specific
+        - Backend - F2F CRI specific
       responses:
         "200":
           description: >-
@@ -461,6 +565,71 @@ components:
           example: jwt_bearer
           description: >-
             Client assertion type (use for client credentials flow, not supported here)
+    DocumentSelectionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - document_selection
+      properties:
+        document_selection:
+          type: object
+          additionalProperties: false
+          required:
+            - document_selected
+            - date_of_expiry
+          properties:
+            document_selected:
+              type: string
+              example: driversPermit
+              description: >-
+                specifies which of the available supported document types the user elected to present for offline
+                verification
+              enum:
+                - ukPassport
+                - ukPhotocardDl
+                - brp
+                - otherPassport
+                - euPhotocardDl
+                - euIdentityCard
+                - citizenCard
+                - youngScotNationalEntitlementCard
+            date_of_expiry:
+              type: string
+              format: date
+              example: "1970-01-01"
+              description: claimed expiry date for the document to be presented at the post office
+        post_office_selection:
+          type: object
+          additionalProperties: false
+          required:
+            - address
+            - post_code
+          properties:
+            address:
+              type: string
+              description: >-
+                full address without the postcode on a single line, to be displayed literally in the instructions PDF
+              example: "1 The Street, Funkytown"
+            location:
+              type: object
+              required:
+                - latitude
+                - longitude
+              additionalProperties: false
+              properties:
+                latitude:
+                  type: number
+                  description: latitude for the Post Office location
+                  example: 0.34322
+                longitude:
+                  type: number
+                  description: longitude for the Post Office location
+                  example: -42.48372
+            post_code:
+              type: string
+              description: Post code of post office
+              example: "N1 2AA"
+              pattern: ^[A-Za-z]{1,2}\d[A-Za-z\d]?\ ?\d[a-zA-Z]{2}$|^[Gg][Ii][Rr]\s?0[Aa]{2}$|^[Bb][Ff][Pp][Oo]\ ?\d{1,4}$
     JWKSFile:
       type: object
       required:
