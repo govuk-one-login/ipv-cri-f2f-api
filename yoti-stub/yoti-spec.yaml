@@ -1,0 +1,1522 @@
+openapi: 3.0.2
+info:
+  title: Yoti IBV Instructions Service
+  version: 1.0.0
+
+tags:
+  - name: Public Endpoints
+    description: Endpoints accessible by the public domain
+
+paths:
+
+  /sessions:
+    post:
+      tags:
+        - Backend Endpoints
+      summary: Create a new session
+      security:
+        - X-Yoti-Auth-Digest: []
+      parameters:
+        - $ref: "#/components/parameters/sdkId"
+        - $ref: "#/components/parameters/nonce"
+        - $ref: "#/components/parameters/timestamp"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSessionPayload"
+        required: false
+      responses:
+        201:
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateSessionResponseBody"
+        400:
+          description: Payload validation error or malformed request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                PAYLOAD_VALIDATION:
+                  value:
+                    code: PAYLOAD_VALIDATION
+                    errors:
+                      - property: requested_checks
+                        message: must not be empty
+                MALFORMED_REQUEST:
+                  $ref: "#/components/examples/MalformedRequestDigestError"
+        401:
+          $ref: "#/components/responses/401SignatureResponse"
+        403:
+          description: Unauthorised request (app is disabled or has no associated organisation_id)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                INSUFFICIENT_PERMISSION:
+                  $ref: "#/components/examples/UnauthorisedSdkIdError"
+        404:
+          description: The application for provided sdk id does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                APP_NOT_FOUND:
+                  $ref: "#/components/examples/AppNotFoundError"
+        503:
+          $ref: "#/components/responses/503Response"
+
+  /sessions/{sessionId}/configuration:
+    get:
+      tags:
+        - Backend Endpoints
+      summary: Retrieve session configuration
+      security:
+        - X-Yoti-Auth-Digest: []
+      parameters:
+        - $ref: "#/components/parameters/sdkId"
+        - $ref: "#/components/parameters/sessionId"
+        - $ref: "#/components/parameters/detectedLocale"
+        - $ref: "#/components/parameters/timestamp"
+        - $ref: "#/components/parameters/nonce"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionConfig"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                MALFORMED_REQUEST:
+                  $ref: "#/components/examples/MalformedRequestDigestError"
+        401:
+          $ref: "#/components/responses/401TokenResponse"
+        404:
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                SESSION_NOT_FOUND:
+                  $ref: "#/components/examples/SessionNotFoundError"
+        409:
+          description: Session not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                SESSION_NOT_READY:
+                  $ref: "#/components/examples/SessionNotReadyError"
+        503:
+          $ref: "#/components/responses/503Response"
+  ## ---------------------
+  ## Public Endpoints
+  ## ---------------------
+  /sessions/{sessionId}/instructions:
+    put:
+      tags:
+        - Public Endpoints
+      parameters:
+        - $ref: "#/components/parameters/sessionId"
+        - $ref: "#/components/parameters/sdkId"
+        - $ref: "#/components/parameters/nonce"
+        - $ref: "#/components/parameters/timestamp"
+      security:
+        - X-Yoti-Auth-Token: []
+        - X-Yoti-Auth-Digest: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstructionsViewRequest"
+            examples:
+              VALID_REQUEST:
+                $ref: "#/components/examples/ValidInstructionsViewRequestExample"
+      responses:
+        200:
+          description: OK
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+        503:
+          $ref: "#/components/responses/503"
+  /sessions/{sessionId}/instructions/pdf:
+    get:
+      tags:
+        - Public Endpoints
+      parameters:
+        - $ref: "#/components/parameters/sessionId"
+        - $ref: "#/components/parameters/sdkId"
+        - $ref: "#/components/parameters/nonce"
+        - $ref: "#/components/parameters/timestamp"
+      security:
+        - X-Yoti-Auth-Token: []
+        - X-Yoti-Auth-Digest: []
+      responses:
+        200:
+          description: OK
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+        503:
+          $ref: "#/components/responses/503"
+
+components:
+  ## ---------------------
+  ## Schema Definitions
+  ## ---------------------
+  schemas:
+    CreateSessionPayload:
+      type: object
+      description: Create Session Payload
+      properties:
+        client_session_token_ttl:
+          description: Number of seconds for the user to complete the whole flow.
+          type: integer
+          default: 600
+          example: 600
+        session_deadline:
+          description: The point-in-time by which the user must complete the whole flow. Expressed as a date, time and time-zone in RFC3339 format. This field may not be used with a client_session_token_ttl field.
+          type: string
+          example: 2021-08-16T13:33:03-08:00
+        resources_ttl:
+          description: Retention period for uploaded documents/images in number of seconds.
+          type: integer
+          default: 87000
+          minimum: 86700
+        user_tracking_id:
+          description: Allows to track the same user across multiple sessions. Should not contain any personal identifiable information.
+          type: string
+          nullable: true
+        ibv_options:
+          type: object
+          properties:
+            support:
+              description: Determines whether resources must be provided in-branch.
+              type: string
+              enum: [MANDATORY, NOT_ALLOWED]
+              default: MANDATORY
+        notifications:
+          $ref: "#/components/schemas/NotificationPayload"
+        requested_checks:
+          type: array
+          description: Allow checks to be specified on a given session
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/RequestedAuthenticityCheckPayload"
+              - $ref: "#/components/schemas/RequestedIdDocFaceMatchCheckPayload"
+              - $ref: "#/components/schemas/RequestedDocumentComparisonCheckPayload"
+              - $ref: "#/components/schemas/RequestedIbvVisualReviewCheckPayload"
+              - $ref: "#/components/schemas/RequestedSchemeValidityCheckPayload"
+              - $ref: "#/components/schemas/RequestedProfileDocumentMatchCheckPayload"
+            discriminator:
+              propertyName: type
+              mapping:
+                ID_DOCUMENT_AUTHENTICITY: "#/components/schemas/RequestedAuthenticityCheckPayload"
+                ID_DOCUMENT_FACE_MATCH: "#/components/schemas/RequestedIdDocFaceMatchCheckPayload"
+                ID_DOCUMENT_COMPARISON: "#/components/schemas/RequestedDocumentComparisonCheckPayload"
+                IBV_VISUAL_REVIEW_CHECK: "#/components/schemas/RequestedIbvVisualReviewCheckPayload"
+                DOCUMENT_SCHEME_VALIDITY_CHECK: "#/components/schemas/RequestedSchemeValidityCheckPayload"
+                PROFILE_DOCUMENT_MATCH: "#/components/schemas/RequestedProfileDocumentMatchCheckPayload"
+        requested_tasks:
+          type: array
+          description: Allow tasks to be specified on a given session
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/RequestedIdDocumentTextExtractionTask"
+              - $ref: "#/components/schemas/RequestedSupplementaryDocumentTextExtractionTask"
+            discriminator:
+              propertyName: type
+              mapping:
+                ID_DOCUMENT_TEXT_DATA_EXTRACTION: "#/components/schemas/RequestedIdDocumentTextExtractionTask"
+                SUPPLEMENTARY_DOCUMENT_TEXT_DATA_EXTRACTION: "#/components/schemas/RequestedSupplementaryDocumentTextExtractionTask"
+        required_documents:
+          description: |
+            Allows the Relying Business to require multiple documents and filter the list of allowable document countries/types.
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/RequiredIdDocument"
+              - $ref: "#/components/schemas/RequiredSupplementaryDocument"
+            discriminator:
+              propertyName: type
+              mapping:
+                ID_DOCUMENT: "#/components/schemas/RequiredIdDocument"
+                SUPPLEMENTARY_DOCUMENT: "#/components/schemas/RequiredSupplementaryDocument"
+        resources:
+          $ref: "#/components/schemas/ResourcePayload"
+    CreateSessionResponseBody:
+      type: object
+      description: Create Session Response Body
+      properties:
+        client_session_token_ttl:
+          $ref: "#/components/schemas/ClientSessionTokenTtl"
+        client_session_token:
+          description: client token to be used for auth of any calls made by client for this session
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+      required:
+        - client_session_token_ttl
+        - client_session_token
+        - session_id
+
+    ResourcePayload:
+      type: object
+      description: Resource payload
+      properties:
+        applicant_profile:
+          type: object
+          additionalProperties: true
+          description: An applicant profile resource
+
+    RequestedAuthenticityCheckPayload:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ID_DOCUMENT_AUTHENTICITY]
+        config:
+          type: object
+          properties:
+            manual_check:
+              $ref: "#/components/schemas/NotIbvManualCheck"
+          required:
+            - manual_check
+      required:
+        - type
+    RequestedIdDocFaceMatchCheckPayload:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ID_DOCUMENT_FACE_MATCH]
+        config:
+          type: object
+          properties:
+            manual_check:
+              $ref: "#/components/schemas/NotIbvManualCheck"
+          required:
+            - manual_check
+      required:
+        - type
+        - config
+    RequestedDocumentComparisonCheckPayload:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ID_DOCUMENT_COMPARISON]
+        config:
+          type: object
+          nullable: false
+      required:
+        - type
+
+    RequestedIbvVisualReviewCheckPayload:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [IBV_VISUAL_REVIEW_CHECK]
+        config:
+          type: object
+          properties:
+            manual_check:
+              $ref: "#/components/schemas/OnlyIbvManualCheck"
+      required:
+        - type
+        - config
+    RequestedSchemeValidityCheckPayload:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [DOCUMENT_SCHEME_VALIDITY_CHECK]
+        config:
+          type: object
+          properties:
+            manual_check:
+              $ref: "#/components/schemas/OnlyIbvManualCheck"
+            scheme:
+              type: string
+          required:
+            - manual_check
+            - scheme
+      required:
+        - type
+        - config
+    RequestedProfileDocumentMatchCheckPayload:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [PROFILE_DOCUMENT_MATCH]
+        config:
+          type: object
+          properties:
+            manual_check:
+              $ref: "#/components/schemas/OnlyIbvManualCheck"
+          required:
+            - manual_check
+      required:
+        - type
+        - config
+
+    RequestedIdDocumentTextExtractionTask:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ID_DOCUMENT_TEXT_DATA_EXTRACTION]
+        config:
+          type: object
+          properties:
+            manual_check:
+              $ref: "#/components/schemas/ManualCheck"
+            chip_data:
+              type: string
+              enum: [DESIRED, IGNORE]
+          required:
+            - manual_check
+      required:
+        - type
+        - config
+    RequestedSupplementaryDocumentTextExtractionTask:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [SUPPLEMENTARY_DOCUMENT_TEXT_DATA_EXTRACTION]
+        config:
+          type: object
+          properties:
+            manual_check:
+              $ref: "#/components/schemas/ManualCheck"
+          required:
+            - manual_check
+      required:
+        - type
+        - config
+    ClientSessionTokenTtl:
+      type: integer
+      description: remaining time the user has to complete the session
+      example: 599
+    SessionConfig:
+      type: object
+      properties:
+        client_session_token_ttl:
+          $ref: "#/components/schemas/ClientSessionTokenTtl"
+        session_id:
+          type: string
+          format: uuid
+        requested_checks:
+          type: array
+          items:
+            type: string
+        applicant_profile:
+          type: object
+          properties:
+            media:
+              $ref: "#/components/schemas/Media"
+        capture:
+          $ref: "#/components/schemas/CaptureResponse"
+        sdk_config:
+          type: object
+          properties:
+            primary_colour:
+              type: string
+              example: "#2d9fff"
+            secondary_colour:
+              type: string
+              example: "#FFFFFF"
+            font_colour:
+              type: string
+              example: "#FFFFFF"
+            locale:
+              type: string
+              example: "en-US"
+            preset_issuing_country:
+              type: string
+              example: "USA"
+            success_url:
+              type: string
+              format: uri
+            error_url:
+              type: string
+              format: uri
+            privacy_policy_url:
+              type: string
+              format: uri
+            hide_logo:
+              type: boolean
+            allow_handoff:
+              type: boolean
+      required:
+        - session_id
+    CaptureResponse:
+      type: object
+      properties:
+        biometric_consent:
+          type: string
+          enum: ["REQUIRED", "NOT_REQUIRED", "CAPTURED"]
+        required_resources:
+          type: array
+          items:
+            $ref: "#/components/schemas/RequiredResources"
+      required:
+        - biometric_consent
+        - required_resources
+
+    ShortMedia:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [IMAGE, JSON, BINARY, PDF]
+      required:
+        - id
+        - type
+    Media:
+      allOf:
+        - $ref: "#/components/schemas/ShortMedia"
+        - type: object
+      properties:
+        created:
+          $ref: "#/components/schemas/ShortDateTime"
+        last_updated:
+          $ref: "#/components/schemas/ShortDateTime"
+      required:
+        - created
+        - last_updated
+
+    RequiredIdDocumentResource:
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum: [ID_DOCUMENT]
+        id:
+          type: string
+          format: uuid
+          description: An ID for this requirement
+        state:
+          $ref: "#/components/schemas/ResourceState"
+        allowed_sources:
+          $ref: "#/components/schemas/AllowedSources"
+        supported_countries:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: 3-letter country iso code
+                example: "GBR"
+              supported_documents:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      description: the document type
+                    is_strictly_latin:
+                      type: boolean
+                      description: if the document contains strictly latin characters
+                    requirements:
+                      type: object
+                      description: additional restrictions a document must satisfy
+                      properties:
+                        date_from:
+                          type: string
+                          description: submitted document must have been issued after this date
+                  required:
+                    - type
+                example:
+                  - type: DRIVING_LICENCE
+                    requirements:
+                      date_from: "2011-10-31"
+                  - type: PASSPORT
+            required:
+              - code
+              - supported_documents
+        allowed_capture_methods:
+          $ref: "#/components/schemas/AllowedCaptureMethods"
+        ibv_client_assessments:
+          type: array
+          items:
+            anyOf:
+              - $ref: "#/components/schemas/RequiredIbvVisualReviewAssessment"
+              - $ref: "#/components/schemas/RequiredSchemeValidityAssessment"
+              - $ref: "#/components/schemas/RequiredProfileDocumentMatchAssessment"
+        requested_tasks:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [ID_DOCUMENT_TEXT_DATA_EXTRACTION]
+              state:
+                $ref: "#/components/schemas/TaskState"
+            required:
+              - type
+              - state
+        attempts_remaining:
+          type: object
+          additionalProperties:
+            type: integer
+          example:
+            GENERIC: 3
+            RECLASSIFICATION: 2
+      required:
+        - type
+        - id
+        - state
+        - supported_countries
+        - allowed_capture_methods
+        - requested_tasks
+        - attempts_remaining
+        - allowed_sources
+    RequiredSupplementaryDocumentResource:
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum: [SUPPLEMENTARY_DOCUMENT]
+        id:
+          type: string
+          format: uuid
+          description: An ID for this requirement
+        state:
+          $ref: "#/components/schemas/ResourceState"
+        allowed_sources:
+          $ref: "#/components/schemas/AllowedSources"
+        document_types:
+          type: array
+          items:
+            type: string
+          example: ["UTILITY_BILL", "BANK_STATEMENT"]
+        country_codes:
+          type: array
+          items:
+            type: string
+          example: ["GBR", "FRA"]
+        objective:
+          type: object
+          additionalProperties: false
+          properties:
+            type:
+              type: string
+        ibv_client_assessments:
+          type: array
+          items:
+            anyOf:
+              - $ref: "#/components/schemas/RequiredIbvVisualReviewAssessment"
+              - $ref: "#/components/schemas/RequiredSchemeValidityAssessment"
+              - $ref: "#/components/schemas/RequiredProfileDocumentMatchAssessment"
+        requested_tasks:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [SUPPLEMENTARY_DOCUMENT_TEXT_DATA_EXTRACTION]
+              state:
+                $ref: "#/components/schemas/TaskState"
+            required:
+              - type
+              - state
+      required:
+        - type
+        - id
+        - state
+        - document_types
+        - country_codes
+        - objective
+        - requested_tasks
+        - allowed_sources
+    RequiredFaceCaptureResource:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [FACE_CAPTURE]
+        id:
+          type: string
+          format: uuid
+          description: An ID for this requirement
+        state:
+          $ref: "#/components/schemas/ResourceState"
+        allowed_sources:
+          $ref: "#/components/schemas/AllowedSources"
+      required:
+        - type
+        - id
+        - state
+        - allowed_sources
+    RequiredApplicantProfileResource:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [APPLICANT_PROFILE]
+        id:
+          type: string
+          format: uuid
+          description: An ID for this requirement
+        state:
+          $ref: "#/components/schemas/ResourceState"
+        allowed_sources:
+          $ref: "#/components/schemas/AllowedSources"
+      required:
+        - type
+        - id
+        - state
+        - allowed_sources
+
+    AllowedSource:
+      type: object
+      properties:
+        type:
+          type: string
+      required:
+        - type
+    EndUserAllowedSource:
+      allOf:
+        - $ref: "#/components/schemas/AllowedSource"
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - END_USER
+    IbvAllowedSource:
+      allOf:
+        - $ref: "#/components/schemas/AllowedSource"
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - IBV
+    RelyingBusinessAllowedSource:
+      allOf:
+        - $ref: "#/components/schemas/AllowedSource"
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - RELYING_BUSINESS
+
+    RequiredIdDocument:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ID_DOCUMENT]
+        filter:
+          description: Any filters that results in an empty list of allowed documents will be rejected
+          type: object
+          oneOf:
+            - $ref: "#/components/schemas/OrthogonalRestrictionsFilter"
+            - $ref: "#/components/schemas/DocumentRestrictionsFilter"
+          discriminator:
+            propertyName: type
+            mapping:
+              ORTHOGONAL_RESTRICTIONS: "#/components/schemas/OrthogonalRestrictionsFilter"
+              DOCUMENT_RESTRICTIONS: "#/components/schemas/DocumentRestrictionsFilter"
+      required:
+        - type
+    RequiredSupplementaryDocument:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [SUPPLEMENTARY_DOCUMENT]
+        country_codes:
+          type: array
+          items:
+            type: string
+          nullable: false
+          example: ["GBR", "FRA"]
+        document_types:
+          type: array
+          items:
+            type: string
+          nullable: false
+          example: ["UTILITY_BILL", "BANK_STATEMENT"]
+        objective:
+          type: object
+          oneOf:
+            - $ref: "#/components/schemas/ProveAddressObjective"
+            - $ref: "#/components/schemas/UkDbsObjective"
+          discriminator:
+            propertyName: type
+            mapping:
+              PROOF_OF_ADDRESS: "#/components/schemas/ProveAddressObjective"
+              UK_DBS: "#/components/schemas/UkDbsObjective"
+      required:
+        - type
+        - objective
+    ProveAddressObjective:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [PROOF_OF_ADDRESS]
+        config:
+          type: object
+      required:
+        - type
+    UkDbsObjective:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [UK_DBS]
+        config:
+          type: object
+      required:
+        - type
+    OrthogonalRestrictionsFilter:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ORTHOGONAL_RESTRICTIONS]
+        allow_non_latin_documents:
+          type: boolean
+          nullable: true
+        allow_expired_documents:
+          type: boolean
+          nullable: true
+        country_restriction:
+          type: object
+          properties:
+            inclusion:
+              $ref: "#/components/schemas/Inclusion"
+            country_codes:
+              type: array
+              nullable: false
+              items:
+                type: string
+              example: ["GBR", "FRA"]
+          required:
+            - inclusion
+            - country_codes
+        type_restriction:
+          type: object
+          properties:
+            inclusion:
+              $ref: "#/components/schemas/Inclusion"
+            document_types:
+              type: array
+              nullable: false
+              items:
+                type: string
+              example: ["PASSPORT", "STATE_ID"]
+          required:
+            - inclusion
+            - document_types
+      required:
+        - type
+    DocumentRestrictionsFilter:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [DOCUMENT_RESTRICTIONS]
+        allow_non_latin_documents:
+          type: boolean
+          nullable: true
+        allow_expired_documents:
+          type: boolean
+          nullable: true
+        inclusion:
+          $ref: "#/components/schemas/Inclusion"
+        documents:
+          type: array
+          description: country_codes and document_types can be requested separately or together
+          items:
+            type: object
+            properties:
+              country_codes:
+                type: array
+                nullable: true
+                items:
+                  type: string
+                example: ["GBR", "FRA"]
+              document_types:
+                type: array
+                nullable: true
+                items:
+                  type: string
+                example: ["PASSPORT", "STATE_ID"]
+      required:
+        - type
+        - inclusion
+        - documents
+
+
+    AllowedCaptureMethods:
+      type: string
+      enum: [CAMERA_AND_UPLOAD, CAMERA]
+      example: "CAMERA_AND_UPLOAD"
+      description: "Acceptable values are (case-insensitive): [CAMERA_AND_UPLOAD, CAMERA]"
+
+    RequiredAssessment:
+      type: object
+      properties:
+        type:
+          type: string
+        state:
+          $ref: "#/components/schemas/AssessmentState"
+      required:
+        - type
+        - state
+    RequiredIbvVisualReviewAssessment:
+      allOf:
+        - $ref: "#/components/schemas/RequiredAssessment"
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [IBV_VISUAL_REVIEW_CHECK]
+    RequiredSchemeValidityAssessment:
+      allOf:
+        - $ref: "#/components/schemas/RequiredAssessment"
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [DOCUMENT_SCHEME_VALIDITY_CHECK]
+            scheme:
+              type: string
+      required:
+        - scheme
+    RequiredProfileDocumentMatchAssessment:
+      allOf:
+        - $ref: "#/components/schemas/RequiredAssessment"
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [PROFILE_DOCUMENT_MATCH]
+
+    AssessmentState:
+      type: string
+      enum: [REQUIRED, DONE]
+    TaskState:
+      type: string
+      enum: [REQUIRED, IN_PROGRESS, COMPLETE]
+    ResourceState:
+      type: string
+      enum: [REQUIRED, IN_PROGRESS, COMPLETE]
+    AllowedSources:
+      type: array
+      items:
+        anyOf:
+          - $ref: "#/components/schemas/EndUserAllowedSource"
+          - $ref: "#/components/schemas/RelyingBusinessAllowedSource"
+          - $ref: "#/components/schemas/IbvAllowedSource"
+
+    Topic:
+      type: string
+      enum:
+        [
+          RESOURCE_UPDATE,
+          TASK_COMPLETION,
+          CHECK_COMPLETION,
+          SESSION_COMPLETION,
+          NEW_PDF_SUPPLIED,
+          INSTRUCTIONS_EMAIL_REQUESTED,
+          CLIENT_SESSION_TOKEN_DELETED,
+        ]
+      description: "Acceptable values are (case-insensitive): [resource_update, task_completion, check_completion, session_completion, new_pdf_supplied, instructions_email_requested, client_session_token_deleted]"
+    Inclusion:
+      type: string
+      enum: [INCLUDE, EXCLUDE]
+      description: "Acceptable values are (case-insensitive): [INCLUDE, EXCLUDE].  WHITELIST and BLACKLIST are deprecated, but are still accepted and mapped to INCLUDE or EXCLUDE"
+      example: "INCLUDE"
+    ManualCheck:
+      type: string
+      enum: [NEVER, FALLBACK, ALWAYS, IBV]
+      description: "Acceptable values vary for each check type, but may be one of: [NEVER, FALLBACK, ALWAYS, IBV]"
+      example: FALLBACK
+    OnlyIbvManualCheck:
+      type: string
+      enum: [IBV]
+      description: "The values [NEVER, FALLBACK, ALWAYS] are not permitted, although they are permitted for some *other* types of check"
+      example: IBV
+
+    NotIbvManualCheck:
+      type: string
+      enum: [NEVER, FALLBACK, ALWAYS]
+      description: "The values IBV is not permitted, although it is permitted for some *other* types of check"
+      example: FALLBACK
+    RequiredResources:
+      anyOf:
+        - $ref: "#/components/schemas/RequiredIdDocumentResource"
+        - $ref: "#/components/schemas/RequiredSupplementaryDocumentResource"
+        - $ref: "#/components/schemas/RequiredFaceCaptureResource"
+        - $ref: "#/components/schemas/RequiredApplicantProfileResource"
+    ShortDateTime:
+      type: string
+      format: date-time
+      example: "2021-06-11T11:39:24Z"
+      description: "Uses the ISO8601 standard representation of date times"
+    NotificationPayload:
+      type: object
+      properties:
+        endpoint:
+          description: POST endpoint required. Update notifications are sent to this endpoint based on the selected subscription topics
+          type: string
+          format: uri
+          pattern: "^https://.+$"
+          example: "https://example.com/ibv/notification"
+        topics:
+          type: array
+          items:
+            $ref: "#/components/schemas/Topic"
+          example:
+            [
+              RESOURCE_UPDATE,
+              TASK_COMPLETION,
+              CHECK_COMPLETION,
+              SESSION_COMPLETION,
+              NEW_PDF_SUPPLIED,
+              INSTRUCTIONS_EMAIL_REQUESTED,
+            ]
+        auth_token:
+          description: If provided, Yoti will send this as a base64 encoded value for the Authorization header in the notifications
+          type: string
+        auth_type:
+          description: Determines the type of auth header to include in outbound notifications.  Defaults to BASIC
+          type: string
+          enum: [BASIC, BEARER]
+
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              property:
+                type: string
+              message:
+                type: string
+            required:
+              - property
+              - message
+      required:
+        - code
+        - message
+
+    # -----------------------------------------
+    # REQUEST OBJECTS
+    # -----------------------------------------
+
+    InstructionsViewRequest:
+      type: object
+      properties:
+        contact_profile:
+          type: object
+          nullable: false
+          description: The contact-profile for the end user
+          properties:
+            first_name:
+              type: string
+              nullable: false
+              description: The first-name of the end user
+            last_name:
+              type: string
+              nullable: false
+              description: The last-name of the end user
+            email:
+              type: string
+              nullable: false
+              description: The email address of the end user
+          required:
+            - first_name
+            - last_name
+            - email
+        documents:
+          type: array
+          nullable: false
+          description: A list of documents that the user has said they will bring to the IBV session
+          items:
+            $ref: "#/components/schemas/DocumentProposalRequest"
+        branch:
+          type: object
+          nullable: false
+          description: Information about the branch the user selected during the at-home flow
+          oneOf:
+            - $ref: "#/components/schemas/UkPostOfficeBranchRequest"
+          discriminator:
+            propertyName: type
+            mapping:
+              UK_POST_OFFICE: "#/components/schemas/UkPostOfficeBranchRequest"
+      required:
+        - contact_profile
+        - documents
+        - branch
+
+    DocumentProposalRequest:
+      type: object
+      properties:
+        requirement_id:
+          type: string
+          description: The requirement ID that the document proposal will satisfy
+          nullable: false
+        document:
+          description: The document that will be used to satisfy the requirement
+          nullable: false
+          oneOf:
+            - $ref: "#/components/schemas/SelectedIdDocumentRequest"
+            - $ref: "#/components/schemas/SelectedSupplementaryDocumentRequest"
+          discriminator:
+            propertyName: type
+            mapping:
+              ID_DOCUMENT: "#/components/schemas/SelectedIdDocumentRequest"
+              SUPPLEMENTARY_DOCUMENT: "#/components/schemas/SelectedSupplementaryDocumentRequest"
+          example:
+            value:
+              requirement_id: someRequirementId
+              document:
+                type: ID_DOCUMENT
+                country_code: GBR
+                document_type: PASSPORT
+      required:
+        - requirement_id
+        - document
+
+    SelectedIdDocumentRequest:
+      description: Represents an ID document the user has selected for the IBV session
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: false
+          enum: [ID_DOCUMENT]
+        country_code:
+          type: string
+          description: Three letter ISO country code
+          nullable: false
+          example: GBR
+        document_type:
+          type: string
+          description: Document type supported by the Yoti IBV service
+          nullable: false
+          example:
+            - PASSPORT
+            - DRIVING_LICENCE
+      required:
+        - type
+        - country_code
+        - document_type
+
+    SelectedSupplementaryDocumentRequest:
+      description: Represents a supplementary document the user has selected for the IBV session
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: false
+          enum: [SUPPLEMENTARY_DOCUMENT]
+        country_code:
+          type: string
+          description: Three letter ISO country code
+          nullable: false
+          example: GBR
+        document_type:
+          type: string
+          description: Document type supported by the Yoti IBV service
+          nullable: false
+          example:
+            - UTILITY_BILL
+            - MOBILE_PHONE_BILL
+      required:
+        - country_code
+        - document_type
+
+    UkPostOfficeBranchRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: false
+          enum: [UK_POST_OFFICE]
+        name:
+          type: string
+          nullable: false
+          description: The name of the UK Post Office branch
+        address:
+          type: string
+          nullable: false
+          description: The address of the UK Post Office branch
+        post_code:
+          type: string
+          nullable: false
+          description: The postcode of the UK Post Office branch
+        fad_code:
+          type: string
+          minLength: 7
+          maxLength: 7
+          description: The FAD code of the UK Post Office branch (7 alphanumeric characters)
+        location:
+          $ref: "#/components/schemas/BranchLocationRequest"
+      required:
+        - name
+        - address
+        - post_code
+
+    BranchLocationRequest:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+          description: The latitude of the branch
+        longitude:
+          type: number
+          format: double
+          description: The longitude of the branch
+      required:
+        - latitude
+        - longitude
+
+    # -----------------------------------------
+    # RESPONSE OBJECTS
+    # -----------------------------------------
+
+  ## ---------------------
+  ## Parameter Definitions
+  ## ---------------------
+  parameters:
+    detectedLocale:
+      name: detectedLocale
+      in: query
+      required: false
+      schema:
+        type: string
+      description: "the users locale, as detected by the client"
+      example: fr-FR
+
+    sessionId:
+      name: sessionId
+      description: The identifer of the session
+      in: path
+      required: true
+      allowEmptyValue: false
+      schema:
+        type: string
+    sdkId:
+      name: sdkId
+      description: The SDK ID used to create the session
+      in: query
+      required: false
+      allowEmptyValue: false
+      schema:
+        type: string
+    nonce:
+      name: nonce
+      description: Arbitrary number used to deter the use of replay attacks
+      in: query
+      required: false
+      allowEmptyValue: false
+      schema:
+        type: string
+    timestamp:
+      name: timestamp
+      description: The timestamp of when the digest was created
+      in: query
+      required: false
+      schema:
+        type: string
+
+
+  ## ---------------------
+  ## Response Definitions
+  ## ---------------------
+  responses:
+    401TokenResponse:
+      description: Unauthorised request (wrong or missing token)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            BAD_TOKEN:
+              $ref: "#/components/examples/BadTokenError"
+
+    401SignatureResponse:
+      description: Unauthorised request (wrong key or signature)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            MESSAGE_SIGNING:
+              $ref: "#/components/examples/MessageSigningError"
+            BAD_SDK_ID:
+              $ref: "#/components/examples/BadSdkIdError"
+
+    503Response:
+      description: The service is unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    400:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            PAYLOAD_VALIDATION:
+              $ref: "#/components/examples/PayloadValidationError"
+            MALFORMED_DIGEST:
+              $ref: "#/components/examples/MalformedRequestDigestError"
+            MALFORMED_TOKEN:
+              $ref: "#/components/examples/MalformedRequestTokenError"
+    401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            BAD_TOKEN:
+              $ref: "#/components/examples/BadTokenError"
+            BAD_SDK_ID:
+              $ref: "#/components/examples/BadSdkIdError"
+            BAD_PUBLIC_KEY:
+              $ref: "#/components/examples/BadPublicKeyError"
+            MESSAGE_SIGNING:
+              $ref: "#/components/examples/MessageSigningError"
+    404:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            APP_NOT_FOUND:
+              $ref: "#/components/examples/AppNotFoundError"
+            SESSION_NOT_FOUND:
+              $ref: "#/components/examples/SessionNotFoundError"
+            SCHEME_NOT_FOUND:
+              $ref: "#/components/examples/SchemeNotFoundError"
+            SCHEME_VALIDATION_REQUIREMENT_NOT_FOUND:
+              $ref: "#/components/examples/SchemeValidationRequirementNotFoundError"
+    409:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            SESSION_EXPIRED:
+              $ref: "#/components/examples/SessionExpiredError"
+            SESSION_LOCKED:
+              $ref: "#/components/examples/SessionLockedError"
+            INSTRUCTIONS_NOT_COMPLETE:
+              $ref: "#/components/examples/InstructionsNotCompleteError"
+    500:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            SERVER_ERROR:
+              $ref: "#/components/examples/UnexpectedServerError"
+    503:
+      description: Service Unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            TEMPORARILY_UNAVAILABLE:
+              $ref: "#/components/examples/TemporarilyUnavailableError"
+
+  ## ---------------------
+  ## Security Schemes
+  ## ---------------------
+  securitySchemes:
+    X-Yoti-Auth-Digest:
+      type: apiKey
+      name: X-Yoti-Auth-Digest
+      in: header
+      description: "Signed request performed by back-end SDKs that includes a `X-Yoti-Auth-Digest`"
+    X-Yoti-Auth-Token:
+      type: apiKey
+      name: X-Yoti-Auth-Token
+      in: header
+      description: "`X-Yoti-Auth-Token` header containing the `client_session_token` value obtained via the `Session` creation endpoint."
+    JWTS:
+      type: http
+      name: Authorization
+      in: header
+      scheme: bearer
+      bearerFormat: JWT
+      description: "`Authorization` header containing a signed jwts"
+
+  ## ---------------------
+  ## Example Definitions
+  ## ---------------------
+  examples:
+    UnauthorisedSdkIdError:
+      value:
+        code: INSUFFICIENT_PERMISSION
+        message: The Yoti App associated with this sdk_id does not have permission to use Yoti Doc Scan
+    SessionNotReadyError:
+      value:
+        code: SESSION_NOT_READY
+        message: Cannot begin this session until integrator provides all required resources (Face Capture)
+
+    PayloadValidationError:
+      value:
+        code: PAYLOAD_VALIDATION
+        message: There were errors validating the payload
+        errors:
+          - property: The JSON property name
+            message: The error message associated with the property
+    MalformedRequestDigestError:
+      value:
+        code: MALFORMED_REQUEST
+        errors:
+          - property: header.X-Yoti-Auth-Digest
+            message: must not be null or empty
+    MalformedRequestTokenError:
+      value:
+        code: MALFORMED_REQUEST
+        errors:
+          - property: header.X-Yoti-Auth-Token
+            message: must not be null or empty
+    MessageSigningError:
+      value:
+        code: MESSAGE_SIGNING
+        message: The message was not signed correctly
+    AppNotFoundError:
+      value:
+        code: APP_NOT_FOUND
+        message: The referenced application does not exist
+    SessionNotFoundError:
+      value:
+        code: SESSION_NOT_FOUND
+        message: No session found matching the sessionId provided
+    SchemeNotFoundError:
+      value:
+        code: SCHEME_NOT_FOUND
+        message: No scheme found that matches provided scheme name
+    SchemeValidationRequirementNotFoundError:
+      value:
+        code: SCHEME_VALIDATION_REQUIREMENT_NOT_FOUND
+        message: No scheme validation found for requested issuing country and/or document type
+    SessionExpiredError:
+      value:
+        code: SESSION_EXPIRED
+        message: The session has expired
+    SessionLockedError:
+      value:
+        code: SESSION_LOCKED
+        message: The session is locked or completed
+    BadSdkIdError:
+      value:
+        code: BAD_SDK_ID
+        message: Cannot authorize your request for the session with the given sdkId
+    BadTokenError:
+      value:
+        code: BAD_TOKEN
+        message: Cannot authorize your request for the session with the given token
+    BadPublicKeyError:
+      value:
+        code: BAD_PUBLIC_KEY
+        message: Cannot parse the public key provided
+    InstructionsNotCompleteError:
+      value:
+        code: INSTRUCTIONS_NOT_COMPLETE
+        message: No instructions have been provided
+
+    UnexpectedServerError:
+      value:
+        code: SERVER_ERROR
+        message: An unexpected error occurred on the server
+    TemporarilyUnavailableError:
+      value:
+        code: TEMPORARILY_UNAVAILABLE
+        message: Unable to complete your request right now.  Please try again later
+    ValidInstructionsViewRequestExample:
+      value:
+        contact_profile:
+          first_name: John
+          last_name: Doe
+          email: john.doe@gmail.com
+        documents:
+          - requirement_id: someIdDocumentRequirementId
+            document:
+              type: ID_DOCUMENT
+              country_code: GBR
+              document_type: PASSPORT
+          - requirement_id: someSupplementaryDocumentRequirementId
+            document:
+              type: SUPPLEMENTARY_DOCUMENT
+              country_code: USA
+              document_type: UTILITY_BILL
+        branch:
+          type: UK_POST_OFFICE
+          fad_code: 1234567
+          name: UK Post Office Branch
+          address: 123 Post Office Road, London
+          post_code: ABC 123
+          location:
+            latitude: 0.34322
+            longitude: -42.48372
