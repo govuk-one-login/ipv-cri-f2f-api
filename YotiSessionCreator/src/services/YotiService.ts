@@ -4,7 +4,7 @@ import 'dotenv/config';
 const { Client, RequestBuilder, Payload } = require('yoti');
 
 export class YotiService {
-   private readonly YOTI_BASE_URL = "https://3o4tr06lnb.execute-api.eu-west-2.amazonaws.com/dev";
+   private readonly YOTI_BASE_URL = "https://wn3oiwe6ji.execute-api.eu-west-2.amazonaws.com/dev";
    private readonly YOTI_SDK_ID= "1234";
    private readonly YOTI_PEM_LOCATION= "./private-key.pem";
    private readonly PDF_LOCATION="test";
@@ -38,7 +38,7 @@ export class YotiService {
 
       console.log("HERE222")
       const request = new RequestBuilder()
-         .withBaseUrl("https://3o4tr06lnb.execute-api.eu-west-2.amazonaws.com/dev")
+         .withBaseUrl("https://wn3oiwe6ji.execute-api.eu-west-2.amazonaws.com/dev")
          .withPemString(PEM_KEY) // file path to PEM file
          .withEndpoint("/sessions")
          .withPayload(new Payload({

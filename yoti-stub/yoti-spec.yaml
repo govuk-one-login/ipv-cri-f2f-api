@@ -1,99 +1,13 @@
 openapi: 3.0.2
 info:
-  title: Yoti IBV Public API
+  title: Yoti IBV Instructions Service
   version: 1.0.0
+
 tags:
-  - name: Backend Endpoints
-    description: Endpoints for the Back-End API
+  - name: Public Endpoints
+    description: Endpoints accessible by the public domain
+
 paths:
-
-  /sessions/{sessionId}/instructions:
-    put:
-      tags:
-        - Public Endpoints
-      parameters:
-        - $ref: "#/components/parameters/sessionId"
-        - $ref: "#/components/parameters/sdkId"
-        - $ref: "#/components/parameters/nonce"
-        - $ref: "#/components/parameters/timestamp"
-#      security:
-#        - X-Yoti-Auth-Token: []
-#        - X-Yoti-Auth-Digest: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/InstructionsViewRequest"
-            examples:
-              VALID_REQUEST:
-                $ref: "#/components/examples/ValidInstructionsViewRequestExample"
-      responses:
-        200:
-          description: OK
-        400:
-          $ref: "#/components/responses/400"
-        401:
-          $ref: "#/components/responses/401"
-        404:
-          $ref: "#/components/responses/404"
-        409:
-          $ref: "#/components/responses/409"
-        500:
-          $ref: "#/components/responses/500"
-        503:
-          $ref: "#/components/responses/503"
-      x-amazon-apigateway-request-validator: "both"
-      x-amazon-apigateway-integration:
-        httpMethod: "POST"
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Yoti-Stub-${AWS::StackName}:live/invocations
-        responses:
-          default:
-            statusCode: "200"
-        passthroughBehavior: "when_no_match"
-        contentHandling: "CONVERT_TO_TEXT"
-        type: "aws_proxy"
-
-
-  /sessions/{sessionId}/instructions/pdf:
-    get:
-      tags:
-        - Public Endpoints
-      parameters:
-        - $ref: "#/components/parameters/sessionId"
-        - $ref: "#/components/parameters/sdkId"
-        - $ref: "#/components/parameters/nonce"
-        - $ref: "#/components/parameters/timestamp"
-#      security:
-#        - X-Yoti-Auth-Token: []
-#        - X-Yoti-Auth-Digest: []
-      responses:
-        200:
-          description: OK
-        400:
-          $ref: "#/components/responses/400"
-        401:
-          $ref: "#/components/responses/401"
-        404:
-          $ref: "#/components/responses/404"
-        409:
-          $ref: "#/components/responses/409"
-        500:
-          $ref: "#/components/responses/500"
-        503:
-          $ref: "#/components/responses/503"
-      x-amazon-apigateway-request-validator: "both"
-      x-amazon-apigateway-integration:
-        httpMethod: "POST"
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Yoti-Stub-${AWS::StackName}:live/invocations
-        responses:
-          default:
-            statusCode: "200"
-        passthroughBehavior: "when_no_match"
-        contentHandling: "CONVERT_TO_TEXT"
-        type: "aws_proxy"
-
 
   /sessions:
     post:
@@ -230,180 +144,100 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
+  ## ---------------------
+  ## Public Endpoints
+  ## ---------------------
+  /sessions/{sessionId}/instructions:
+    put:
+      tags:
+        - Public Endpoints
+      parameters:
+        - $ref: "#/components/parameters/sessionId"
+        - $ref: "#/components/parameters/sdkId"
+        - $ref: "#/components/parameters/nonce"
+        - $ref: "#/components/parameters/timestamp"
+      security:
+        - X-Yoti-Auth-Token: []
+        - X-Yoti-Auth-Digest: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstructionsViewRequest"
+            examples:
+              VALID_REQUEST:
+                $ref: "#/components/examples/ValidInstructionsViewRequestExample"
+      responses:
+        200:
+          description: OK
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+        503:
+          $ref: "#/components/responses/503"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Yoti-Stub-${AWS::StackName}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
 
-
+  /sessions/{sessionId}/instructions/pdf:
+    get:
+      tags:
+        - Public Endpoints
+      parameters:
+        - $ref: "#/components/parameters/sessionId"
+        - $ref: "#/components/parameters/sdkId"
+        - $ref: "#/components/parameters/nonce"
+        - $ref: "#/components/parameters/timestamp"
+      security:
+        - X-Yoti-Auth-Token: []
+        - X-Yoti-Auth-Digest: []
+      responses:
+        200:
+          description: OK
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+        503:
+          $ref: "#/components/responses/503"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Yoti-Stub-${AWS::StackName}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
 
 components:
+  ## ---------------------
+  ## Schema Definitions
+  ## ---------------------
   schemas:
-
-    DocumentProposalRequest:
-      type: object
-      properties:
-        requirement_id:
-          type: string
-          description: The requirement ID that the document proposal will satisfy
-          nullable: false
-        document:
-          description: The document that will be used to satisfy the requirement
-          nullable: false
-          oneOf:
-            - $ref: "#/components/schemas/SelectedIdDocumentRequest"
-            - $ref: "#/components/schemas/SelectedSupplementaryDocumentRequest"
-#          discriminator:
-#            propertyName: type
-#            mapping:
-#              ID_DOCUMENT: "#/components/schemas/SelectedIdDocumentRequest"
-#              SUPPLEMENTARY_DOCUMENT: "#/components/schemas/SelectedSupplementaryDocumentRequest"
-          example:
-            value:
-              requirement_id: someRequirementId
-              document:
-                type: ID_DOCUMENT
-                country_code: GBR
-                document_type: PASSPORT
-      required:
-        - requirement_id
-        - document
-
-    SelectedIdDocumentRequest:
-      description: Represents an ID document the user has selected for the IBV session
-      type: object
-      properties:
-        type:
-          type: string
-          nullable: false
-          enum: [ ID_DOCUMENT ]
-        country_code:
-          type: string
-          description: Three letter ISO country code
-          nullable: false
-          example: GBR
-        document_type:
-          type: string
-          description: Document type supported by the Yoti IBV service
-          nullable: false
-          example:
-            - PASSPORT
-            - DRIVING_LICENCE
-      required:
-        - type
-        - country_code
-        - document_type
-
-    SelectedSupplementaryDocumentRequest:
-      description: Represents a supplementary document the user has selected for the IBV session
-      type: object
-      properties:
-        type:
-          type: string
-          nullable: false
-          enum: [ SUPPLEMENTARY_DOCUMENT ]
-        country_code:
-          type: string
-          description: Three letter ISO country code
-          nullable: false
-          example: GBR
-        document_type:
-          type: string
-          description: Document type supported by the Yoti IBV service
-          nullable: false
-          example:
-            - UTILITY_BILL
-            - MOBILE_PHONE_BILL
-      required:
-        - country_code
-        - document_type
-
-    InstructionsViewRequest:
-      type: object
-      properties:
-        contact_profile:
-          type: object
-          nullable: false
-          description: The contact-profile for the end user
-          properties:
-            first_name:
-              type: string
-              nullable: false
-              description: The first-name of the end user
-            last_name:
-              type: string
-              nullable: false
-              description: The last-name of the end user
-            email:
-              type: string
-              nullable: false
-              description: The email address of the end user
-          required:
-            - first_name
-            - last_name
-            - email
-        documents:
-          type: array
-          nullable: false
-          description: A list of documents that the user has said they will bring to the IBV session
-          items:
-            $ref: "#/components/schemas/DocumentProposalRequest"
-        branch:
-          type: object
-          nullable: false
-          description: Information about the branch the user selected during the at-home flow
-          oneOf:
-            - $ref: "#/components/schemas/UkPostOfficeBranchRequest"
-#          discriminator:
-#            propertyName: type
-#            mapping:
-#              UK_POST_OFFICE: "#/components/schemas/UkPostOfficeBranchRequest"
-      required:
-        - contact_profile
-        - documents
-        - branch
-    UkPostOfficeBranchRequest:
-      type: object
-      properties:
-        type:
-          type: string
-          nullable: false
-          enum: [UK_POST_OFFICE]
-        name:
-          type: string
-          nullable: false
-          description: The name of the UK Post Office branch
-        address:
-          type: string
-          nullable: false
-          description: The address of the UK Post Office branch
-        post_code:
-          type: string
-          nullable: false
-          description: The postcode of the UK Post Office branch
-        fad_code:
-          type: string
-          minLength: 7
-          maxLength: 7
-          description: The FAD code of the UK Post Office branch (7 alphanumeric characters)
-        location:
-          $ref: "#/components/schemas/BranchLocationRequest"
-      required:
-        - name
-        - address
-        - post_code
-
-    BranchLocationRequest:
-      type: object
-      properties:
-        latitude:
-          type: number
-          format: double
-          description: The latitude of the branch
-        longitude:
-          type: number
-          format: double
-          description: The longitude of the branch
-      required:
-        - latitude
-        - longitude
-
     CreateSessionPayload:
       type: object
       description: Create Session Payload
@@ -642,7 +476,6 @@ components:
       type: integer
       description: remaining time the user has to complete the session
       example: 599
-
     SessionConfig:
       type: object
       properties:
@@ -1107,29 +940,6 @@ components:
         - inclusion
         - documents
 
-    ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        errors:
-          type: array
-          items:
-            type: object
-            properties:
-              property:
-                type: string
-              message:
-                type: string
-            required:
-              - property
-              - message
-      required:
-        - code
-        - message
-
 
     AllowedCaptureMethods:
       type: string
@@ -1221,6 +1031,7 @@ components:
       enum: [IBV]
       description: "The values [NEVER, FALLBACK, ALWAYS] are not permitted, although they are permitted for some *other* types of check"
       example: IBV
+
     NotIbvManualCheck:
       type: string
       enum: [NEVER, FALLBACK, ALWAYS]
@@ -1267,15 +1078,211 @@ components:
           type: string
           enum: [BASIC, BEARER]
 
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              property:
+                type: string
+              message:
+                type: string
+            required:
+              - property
+              - message
+      required:
+        - code
+        - message
+
+    # -----------------------------------------
+    # REQUEST OBJECTS
+    # -----------------------------------------
+
+    InstructionsViewRequest:
+      type: object
+      properties:
+        contact_profile:
+          type: object
+          nullable: false
+          description: The contact-profile for the end user
+          properties:
+            first_name:
+              type: string
+              nullable: false
+              description: The first-name of the end user
+            last_name:
+              type: string
+              nullable: false
+              description: The last-name of the end user
+            email:
+              type: string
+              nullable: false
+              description: The email address of the end user
+          required:
+            - first_name
+            - last_name
+            - email
+        documents:
+          type: array
+          nullable: false
+          description: A list of documents that the user has said they will bring to the IBV session
+          items:
+            $ref: "#/components/schemas/DocumentProposalRequest"
+        branch:
+          type: object
+          nullable: false
+          description: Information about the branch the user selected during the at-home flow
+          oneOf:
+            - $ref: "#/components/schemas/UkPostOfficeBranchRequest"
+#          discriminator:
+#            propertyName: type
+#            mapping:
+#              UK_POST_OFFICE: "#/components/schemas/UkPostOfficeBranchRequest"
+      required:
+        - contact_profile
+        - documents
+        - branch
+
+    DocumentProposalRequest:
+      type: object
+      properties:
+        requirement_id:
+          type: string
+          description: The requirement ID that the document proposal will satisfy
+          nullable: false
+        document:
+          description: The document that will be used to satisfy the requirement
+          nullable: false
+          oneOf:
+            - $ref: "#/components/schemas/SelectedIdDocumentRequest"
+            - $ref: "#/components/schemas/SelectedSupplementaryDocumentRequest"
+#          discriminator:
+#            propertyName: type
+#            mapping:
+#              ID_DOCUMENT: "#/components/schemas/SelectedIdDocumentRequest"
+#              SUPPLEMENTARY_DOCUMENT: "#/components/schemas/SelectedSupplementaryDocumentRequest"
+          example:
+            value:
+              requirement_id: someRequirementId
+              document:
+                type: ID_DOCUMENT
+                country_code: GBR
+                document_type: PASSPORT
+      required:
+        - requirement_id
+        - document
+
+    SelectedIdDocumentRequest:
+      description: Represents an ID document the user has selected for the IBV session
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: false
+          enum: [ID_DOCUMENT]
+        country_code:
+          type: string
+          description: Three letter ISO country code
+          nullable: false
+          example: GBR
+        document_type:
+          type: string
+          description: Document type supported by the Yoti IBV service
+          nullable: false
+          example:
+            - PASSPORT
+            - DRIVING_LICENCE
+      required:
+        - type
+        - country_code
+        - document_type
+
+    SelectedSupplementaryDocumentRequest:
+      description: Represents a supplementary document the user has selected for the IBV session
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: false
+          enum: [SUPPLEMENTARY_DOCUMENT]
+        country_code:
+          type: string
+          description: Three letter ISO country code
+          nullable: false
+          example: GBR
+        document_type:
+          type: string
+          description: Document type supported by the Yoti IBV service
+          nullable: false
+          example:
+            - UTILITY_BILL
+            - MOBILE_PHONE_BILL
+      required:
+        - country_code
+        - document_type
+
+    UkPostOfficeBranchRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: false
+          enum: [UK_POST_OFFICE]
+        name:
+          type: string
+          nullable: false
+          description: The name of the UK Post Office branch
+        address:
+          type: string
+          nullable: false
+          description: The address of the UK Post Office branch
+        post_code:
+          type: string
+          nullable: false
+          description: The postcode of the UK Post Office branch
+        fad_code:
+          type: string
+          minLength: 7
+          maxLength: 7
+          description: The FAD code of the UK Post Office branch (7 alphanumeric characters)
+        location:
+          $ref: "#/components/schemas/BranchLocationRequest"
+      required:
+        - name
+        - address
+        - post_code
+
+    BranchLocationRequest:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+          description: The latitude of the branch
+        longitude:
+          type: number
+          format: double
+          description: The longitude of the branch
+      required:
+        - latitude
+        - longitude
+
+    # -----------------------------------------
+    # RESPONSE OBJECTS
+    # -----------------------------------------
+
+  ## ---------------------
+  ## Parameter Definitions
+  ## ---------------------
   parameters:
-
-    sessionId:
-      name: sessionId
-      in: path
-      required: true
-      schema:
-        type: string
-
     detectedLocale:
       name: detectedLocale
       in: query
@@ -1284,107 +1291,53 @@ components:
         type: string
       description: "the users locale, as detected by the client"
       example: fr-FR
-    sdkId:
-      name: sdkId
-      in: query
-      description: Required if using a Signed Request as the authentication scheme
-      required: false
+
+    sessionId:
+      name: sessionId
+      description: The identifer of the session
+      in: path
+      required: true
+      allowEmptyValue: false
       schema:
         type: string
-    timestamp:
-      name: timestamp
+    sdkId:
+      name: sdkId
+      description: The SDK ID used to create the session
       in: query
-      description: Required if using a Signed Request as the authentication scheme
       required: false
+      allowEmptyValue: false
       schema:
         type: string
     nonce:
       name: nonce
+      description: Arbitrary number used to deter the use of replay attacks
       in: query
-      description: Required if using a Signed Request as the authentication scheme
+      required: false
+      allowEmptyValue: false
+      schema:
+        type: string
+    timestamp:
+      name: timestamp
+      description: The timestamp of when the digest was created
+      in: query
       required: false
       schema:
         type: string
 
-    ## ---------------------
-    ## Response Definitions
-    ## ---------------------
-  responses:
 
-    400:
-        description: Bad Request
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            examples:
-              PAYLOAD_VALIDATION:
-                $ref: "#/components/examples/PayloadValidationError"
-              MALFORMED_DIGEST:
-                $ref: "#/components/examples/MalformedRequestDigestError"
-              MALFORMED_TOKEN:
-                $ref: "#/components/examples/MalformedRequestTokenError"
-    401:
-        description: Unauthorized
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            examples:
-              BAD_TOKEN:
-                $ref: "#/components/examples/BadTokenError"
-              BAD_SDK_ID:
-                $ref: "#/components/examples/BadSdkIdError"
-              BAD_PUBLIC_KEY:
-                $ref: "#/components/examples/BadPublicKeyError"
-              MESSAGE_SIGNING:
-                $ref: "#/components/examples/MessageSigningError"
-    404:
-        description: Not Found
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            examples:
-              APP_NOT_FOUND:
-                $ref: "#/components/examples/AppNotFoundError"
-              SESSION_NOT_FOUND:
-                $ref: "#/components/examples/SessionNotFoundError"
-              SCHEME_NOT_FOUND:
-                $ref: "#/components/examples/SchemeNotFoundError"
-              SCHEME_VALIDATION_REQUIREMENT_NOT_FOUND:
-                $ref: "#/components/examples/SchemeValidationRequirementNotFoundError"
-    409:
-        description: Conflict
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            examples:
-              SESSION_EXPIRED:
-                $ref: "#/components/examples/SessionExpiredError"
-              SESSION_LOCKED:
-                $ref: "#/components/examples/SessionLockedError"
-              INSTRUCTIONS_NOT_COMPLETE:
-                $ref: "#/components/examples/InstructionsNotCompleteError"
-    500:
-        description: Internal Server Error
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            examples:
-              SERVER_ERROR:
-                $ref: "#/components/examples/UnexpectedServerError"
-    503:
-        description: Service Unavailable
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-            examples:
-              TEMPORARILY_UNAVAILABLE:
-                $ref: "#/components/examples/TemporarilyUnavailableError"
+  ## ---------------------
+  ## Response Definitions
+  ## ---------------------
+  responses:
+    401TokenResponse:
+      description: Unauthorised request (wrong or missing token)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            BAD_TOKEN:
+              $ref: "#/components/examples/BadTokenError"
 
     401SignatureResponse:
       description: Unauthorised request (wrong key or signature)
@@ -1397,8 +1350,28 @@ components:
               $ref: "#/components/examples/MessageSigningError"
             BAD_SDK_ID:
               $ref: "#/components/examples/BadSdkIdError"
-    401TokenResponse:
-      description: Unauthorised request (wrong or missing token)
+
+    503Response:
+      description: The service is unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    400:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            PAYLOAD_VALIDATION:
+              $ref: "#/components/examples/PayloadValidationError"
+            MALFORMED_DIGEST:
+              $ref: "#/components/examples/MalformedRequestDigestError"
+            MALFORMED_TOKEN:
+              $ref: "#/components/examples/MalformedRequestTokenError"
+    401:
+      description: Unauthorized
       content:
         application/json:
           schema:
@@ -1406,15 +1379,166 @@ components:
           examples:
             BAD_TOKEN:
               $ref: "#/components/examples/BadTokenError"
-    503Response:
-      description: The service is unavailable
+            BAD_SDK_ID:
+              $ref: "#/components/examples/BadSdkIdError"
+            BAD_PUBLIC_KEY:
+              $ref: "#/components/examples/BadPublicKeyError"
+            MESSAGE_SIGNING:
+              $ref: "#/components/examples/MessageSigningError"
+    404:
+      description: Not Found
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            APP_NOT_FOUND:
+              $ref: "#/components/examples/AppNotFoundError"
+            SESSION_NOT_FOUND:
+              $ref: "#/components/examples/SessionNotFoundError"
+            SCHEME_NOT_FOUND:
+              $ref: "#/components/examples/SchemeNotFoundError"
+            SCHEME_VALIDATION_REQUIREMENT_NOT_FOUND:
+              $ref: "#/components/examples/SchemeValidationRequirementNotFoundError"
+    409:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            SESSION_EXPIRED:
+              $ref: "#/components/examples/SessionExpiredError"
+            SESSION_LOCKED:
+              $ref: "#/components/examples/SessionLockedError"
+            INSTRUCTIONS_NOT_COMPLETE:
+              $ref: "#/components/examples/InstructionsNotCompleteError"
+    500:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            SERVER_ERROR:
+              $ref: "#/components/examples/UnexpectedServerError"
+    503:
+      description: Service Unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            TEMPORARILY_UNAVAILABLE:
+              $ref: "#/components/examples/TemporarilyUnavailableError"
 
+  ## ---------------------
+  ## Security Schemes
+  ## ---------------------
+  securitySchemes:
+    X-Yoti-Auth-Digest:
+      type: apiKey
+      name: X-Yoti-Auth-Digest
+      in: header
+      description: "Signed request performed by back-end SDKs that includes a `X-Yoti-Auth-Digest`"
+    X-Yoti-Auth-Token:
+      type: apiKey
+      name: X-Yoti-Auth-Token
+      in: header
+      description: "`X-Yoti-Auth-Token` header containing the `client_session_token` value obtained via the `Session` creation endpoint."
+    JWTS:
+      type: http
+      name: Authorization
+      in: header
+      scheme: bearer
+      bearerFormat: JWT
+      description: "`Authorization` header containing a signed jwts"
+
+  ## ---------------------
+  ## Example Definitions
+  ## ---------------------
   examples:
+    UnauthorisedSdkIdError:
+      value:
+        code: INSUFFICIENT_PERMISSION
+        message: The Yoti App associated with this sdk_id does not have permission to use Yoti Doc Scan
+    SessionNotReadyError:
+      value:
+        code: SESSION_NOT_READY
+        message: Cannot begin this session until integrator provides all required resources (Face Capture)
 
+    PayloadValidationError:
+      value:
+        code: PAYLOAD_VALIDATION
+        message: There were errors validating the payload
+        errors:
+          - property: The JSON property name
+            message: The error message associated with the property
+    MalformedRequestDigestError:
+      value:
+        code: MALFORMED_REQUEST
+        errors:
+          - property: header.X-Yoti-Auth-Digest
+            message: must not be null or empty
+    MalformedRequestTokenError:
+      value:
+        code: MALFORMED_REQUEST
+        errors:
+          - property: header.X-Yoti-Auth-Token
+            message: must not be null or empty
+    MessageSigningError:
+      value:
+        code: MESSAGE_SIGNING
+        message: The message was not signed correctly
+    AppNotFoundError:
+      value:
+        code: APP_NOT_FOUND
+        message: The referenced application does not exist
+    SessionNotFoundError:
+      value:
+        code: SESSION_NOT_FOUND
+        message: No session found matching the sessionId provided
+    SchemeNotFoundError:
+      value:
+        code: SCHEME_NOT_FOUND
+        message: No scheme found that matches provided scheme name
+    SchemeValidationRequirementNotFoundError:
+      value:
+        code: SCHEME_VALIDATION_REQUIREMENT_NOT_FOUND
+        message: No scheme validation found for requested issuing country and/or document type
+    SessionExpiredError:
+      value:
+        code: SESSION_EXPIRED
+        message: The session has expired
+    SessionLockedError:
+      value:
+        code: SESSION_LOCKED
+        message: The session is locked or completed
+    BadSdkIdError:
+      value:
+        code: BAD_SDK_ID
+        message: Cannot authorize your request for the session with the given sdkId
+    BadTokenError:
+      value:
+        code: BAD_TOKEN
+        message: Cannot authorize your request for the session with the given token
+    BadPublicKeyError:
+      value:
+        code: BAD_PUBLIC_KEY
+        message: Cannot parse the public key provided
+    InstructionsNotCompleteError:
+      value:
+        code: INSTRUCTIONS_NOT_COMPLETE
+        message: No instructions have been provided
+
+    UnexpectedServerError:
+      value:
+        code: SERVER_ERROR
+        message: An unexpected error occurred on the server
+    TemporarilyUnavailableError:
+      value:
+        code: TEMPORARILY_UNAVAILABLE
+        message: Unable to complete your request right now.  Please try again later
     ValidInstructionsViewRequestExample:
       value:
         contact_profile:
@@ -1441,114 +1565,3 @@ components:
           location:
             latitude: 0.34322
             longitude: -42.48372
-
-    BadPublicKeyError:
-      value:
-        code: BAD_PUBLIC_KEY
-        message: Cannot parse the public key provided
-    MalformedRequestTokenError:
-      value:
-        code: MALFORMED_REQUEST
-        errors:
-          - property: header.X-Yoti-Auth-Token
-            message: must not be null or empty
-    TemporarilyUnavailableError:
-      value:
-        code: TEMPORARILY_UNAVAILABLE
-        message: Unable to complete your request right now.  Please try again later
-
-    SchemeNotFoundError:
-      value:
-        code: SCHEME_NOT_FOUND
-        message: No scheme found that matches provided scheme name
-    SchemeValidationRequirementNotFoundError:
-      value:
-        code: SCHEME_VALIDATION_REQUIREMENT_NOT_FOUND
-        message: No scheme validation found for requested issuing country and/or document type
-    InstructionsNotCompleteError:
-      value:
-        code: INSTRUCTIONS_NOT_COMPLETE
-        message: No instructions have been provided
-    UnexpectedServerError:
-      value:
-        code: SERVER_ERROR
-        message: An unexpected error occurred on the server
-    PayloadValidationError:
-      value:
-        code: PAYLOAD_VALIDATION
-        message: There were errors validating the payload
-        errors:
-          - property: propertyName
-            message: specificMessage
-    MalformedRequestDigestError:
-      value:
-        code: MALFORMED_REQUEST
-        errors:
-          - property: header.X-Yoti-Auth-Digest
-            message: must not be null or empty
-    MessageSigningError:
-      value:
-        code: MESSAGE_SIGNING
-        message: The message was not signed correctly
-    AppNotFoundError:
-      value:
-        code: APP_NOT_FOUND
-        message: The referenced application does not exist
-    SessionNotFoundError:
-      value:
-        code: SESSION_NOT_FOUND
-        message: No session found matching the sessionId provided
-
-    SessionExpiredError:
-      value:
-        code: SESSION_EXPIRED
-        message: The session has expired
-    BadSdkIdError:
-      value:
-        code: BAD_SDK_ID
-        message: Cannot authorize your request for the session with the given sdk id
-    UnauthorisedSdkIdError:
-      value:
-        code: INSUFFICIENT_PERMISSION
-        message: The Yoti App associated with this sdk_id does not have permission to use Yoti Doc Scan
-
-    SessionLockedError:
-      value:
-        code: SESSION_LOCKED
-        message: The session is locked while it is in progress
-
-    SessionNotReadyError:
-      value:
-        code: SESSION_NOT_READY
-        message: Cannot begin this session until integrator provides all required resources (Face Capture)
-    BadTokenError:
-      value:
-        code: BAD_TOKEN
-        message: Cannot authorize your request for the session with the given token
-
-  ## ---------------------
-  ## Security Schemes
-  ## ---------------------
-  securitySchemes:
-    X-Yoti-Auth-Digest:
-      type: apiKey
-      name: X-Yoti-Auth-Digest
-      in: header
-      description: "Signed request performed by back-end SDKs that includes a `X-Yoti-Auth-Digest`"
-    X-Yoti-Auth-Token:
-      type: apiKey
-      name: X-Yoti-Auth-Token
-      in: header
-      description: "`X-Yoti-Auth-Token` header containing the `client_session_token` value obtained via the `Session` creation endpoint."
-#    JWTS:
-#      type: http
-#      name: Authorization
-#      in: header
-#      scheme: bearer
-#      bearerFormat: JWT
-#      description: "`Authorization` header containing a signed jwts"
-
-x-amazon-apigateway-request-validators:
-  both:
-    validateRequestBody: true
-    validateRequestParameters: true
