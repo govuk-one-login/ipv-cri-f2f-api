@@ -7,10 +7,8 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
-
-const PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
-const YOTI_SDK = process.env.YOTISDK;
-const YOTICALLBACKURL = process.env.YOTICALLBACKURL;
+import {EnvironmentVariables} from "./EnvironmentVariables";
+import {Constants} from "../utils/Contants";
 
 export class DocumentSelectionRequestProcessor {
   private static instance: DocumentSelectionRequestProcessor;
@@ -21,17 +19,26 @@ export class DocumentSelectionRequestProcessor {
 
   private readonly yotiService: YotiService;
 
+	private readonly PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
+
+	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
+
+	private readonly environmentVariables: EnvironmentVariables;
+
 	private readonly f2fService: F2fService;
 
+
 	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
-		if (!PERSON_IDENTITY_TABLE_NAME || !YOTI_SDK || !YOTICALLBACKURL) {
-			logger.error("Environment variable SESSION_TABLE or YOTI_SDK or YOTICALLBACKURL is not configured");
-			throw new AppError(HttpCodesEnum.SERVER_ERROR,"Service incorrectly configured");
+		if (!this.PERSON_IDENTITY_TABLE_NAME || this.PERSON_IDENTITY_TABLE_NAME.trim().length === 0
+			|| !this.YOTICALLBACKURL || this.YOTICALLBACKURL.trim().length === 0) {
+			logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL is not configured");
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		this.logger = logger;
 		this.metrics = metrics;
-		this.yotiService = YotiService.getInstance(this.logger, YOTI_SDK, YOTI_PRIVATE_KEY);
-		this.f2fService = F2fService.getInstance(PERSON_IDENTITY_TABLE_NAME, this.logger, createDynamoDbClient());
+		this.environmentVariables = new EnvironmentVariables(logger);
+		this.yotiService = YotiService.getInstance(this.logger,this.environmentVariables.yotiSdk() , YOTI_PRIVATE_KEY);
+		this.f2fService = F2fService.getInstance(this.PERSON_IDENTITY_TABLE_NAME, this.logger, createDynamoDbClient());
 	}
 
 	static getInstance(
@@ -61,7 +68,7 @@ export class DocumentSelectionRequestProcessor {
 		const selectedDocument = eventBody.document_selection.document_selected;
 
 		this.logger.info("Creating new session in Yoti");
-		const sessionID = await this.yotiService.createSession(personDetails, selectedDocument, YOTICALLBACKURL);
+		const sessionID = await this.yotiService.createSession(personDetails, selectedDocument, this.YOTICALLBACKURL);
 
 		this.logger.info("Fetching Session Info");
 		const sessionInfo = await this.yotiService.fetchSessionInfo(sessionID);

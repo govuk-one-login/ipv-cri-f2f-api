@@ -9,7 +9,7 @@ import { EmailResponse } from "../../../models/EmailResponse";
 
 let sendEmailProcessorTest: SendEmailProcessor;
 const mockGovNotifyService = mock<GovNotifyService>();
-
+const YOTI_PRIVATE_KEY = "sdfsdf";
 const logger = new Logger({
 	logLevel: "DEBUG",
 	serviceName: "F2F",
@@ -20,7 +20,7 @@ let sqsEvent: SQSEvent;
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
 
-		sendEmailProcessorTest = new SendEmailProcessor(logger, metrics);
+		sendEmailProcessorTest = new SendEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY);
 		// @ts-ignore
 		sendEmailProcessorTest.govNotifyService = mockGovNotifyService;
 		sqsEvent = VALID_SQS_EVENT;

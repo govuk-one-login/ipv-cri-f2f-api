@@ -17,17 +17,17 @@ export class SendEmailProcessor {
 
 	private readonly govNotifyService: GovNotifyService;
 
-	constructor(logger: Logger, metrics: Metrics) {
+	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
 
     	this.logger = logger;
     	this.validationHelper = new ValidationHelper();
     	this.metrics = metrics;
-		this.govNotifyService = GovNotifyService.getInstance(this.logger);
+		this.govNotifyService = GovNotifyService.getInstance(this.logger, YOTI_PRIVATE_KEY);
 	}
 
-	static getInstance(logger: Logger, metrics: Metrics): SendEmailProcessor {
+	static getInstance(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string): SendEmailProcessor {
     	if (!SendEmailProcessor.instance) {
-    		SendEmailProcessor.instance = new SendEmailProcessor(logger, metrics);
+    		SendEmailProcessor.instance = new SendEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY);
     	}
     	return SendEmailProcessor.instance;
 	}

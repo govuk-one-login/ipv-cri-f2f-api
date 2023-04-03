@@ -252,8 +252,14 @@ export class YotiService {
   		method: HttpVerbsEnum.GET,
   		endpoint: `/sessions/${sessionId}/instructions/pdf`,
   	});
+	  const yotiRequestConfig =  yotiRequest.config!;
+	  yotiRequestConfig["responseType"] = "arraybuffer";
+	  yotiRequestConfig["responseEncoding"] = "binary";
 
-  	const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
+	  const url = yotiRequest.url;
+
+	  this.logger.debug("getPdf - Yoti", { url, yotiRequestConfig });
+	  const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
 
   	return data;
   }

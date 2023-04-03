@@ -11,9 +11,12 @@ import { EmailResponse } from "../../../models/EmailResponse";
 import { Email } from "../../../models/Email";
 import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
+import {YotiService} from "../../../services/YotiService";
 
 const mockGovNotify = mock<NotifyClient>();
+const mockYotiService = mock<YotiService>();
 let govNotifyServiceTest: GovNotifyService;
+const YOTI_PRIVATE_KEY = "sdfsdf";
 const logger = new Logger({
 	logLevel: "DEBUG",
 	serviceName: "F2F",
@@ -23,9 +26,11 @@ let sqsEvent: SQSEvent;
 
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
-		govNotifyServiceTest = GovNotifyService.getInstance(logger);
+		govNotifyServiceTest = GovNotifyService.getInstance(logger, YOTI_PRIVATE_KEY);
 		// @ts-ignore
 		govNotifyServiceTest.govNotify = mockGovNotify;
+		// @ts-ignore
+		govNotifyServiceTest.yotiService = mockYotiService;
 		sqsEvent = VALID_SQS_EVENT;
 	});
 
@@ -38,6 +43,7 @@ describe("SendEmailProcessor", () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
 
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
+		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
 		const email = Email.parseRequest(eventBody.Message);
 		const emailResponse = await govNotifyServiceTest.sendEmail(email);

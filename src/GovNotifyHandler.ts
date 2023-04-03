@@ -11,6 +11,7 @@ import { BatchItemFailure } from "./utils/BatchItemFailure";
 import { EmailResponse } from "./models/EmailResponse";
 import { SendEmailProcessor } from "./services/SendEmailProcessor";
 import { HttpCodesEnum } from "./models/enums/HttpCodesEnum";
+import {GetParameterCommand, ssmClient} from "./utils/SSMClient";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.EMAIL_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -23,7 +24,7 @@ const logger = new Logger({
 
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
-
+let YOTI_PRIVATE_KEY: string;
 class GovNotifyHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
@@ -36,8 +37,13 @@ class GovNotifyHandler implements LambdaInterface {
 			try {
 				const body = JSON.parse(record.body);
 				logger.debug("Parsed SQS event body", body);
-
-				const emailResponse: EmailResponse = await SendEmailProcessor.getInstance(logger, metrics).processRequest(body);
+				if (!YOTI_PRIVATE_KEY) {
+					logger.info({ message: "Fetching key from SSM" });
+					const command = new GetParameterCommand({ Name: process.env.SSM_PATH });
+					const response = await ssmClient.send(command);
+					YOTI_PRIVATE_KEY = response.Parameter.Value;
+				}
+				const emailResponse: EmailResponse = await SendEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
 				const responseBody = {
 					messageId: emailResponse.metadata.id,
 					batchItemFailures: [],

@@ -64,6 +64,8 @@ Mappings:
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      GOVUKNOTIFYAPIKEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
+      GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
     build:
       YOTIBASEURL: "https://proxy.review-o.build.account-gov.uk/yoti"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
@@ -71,6 +73,8 @@ Mappings:
       ISSUER: 'https://review-o.build.account.gov.uk'
       DNSSUFFIX: review-o.build.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      GOVUKNOTIFYAPIKEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
+      GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
     staging:
       YOTIBASEURL: "https://proxy.review-o.staging.account-gov.uk/yoti"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
@@ -78,6 +82,8 @@ Mappings:
       ISSUER: 'https://review-o.staging.account.gov.uk'
       DNSSUFFIX: review-o.staging.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      GOVUKNOTIFYAPIKEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
+      GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
     integration:
       YOTIBASEURL: "https://proxy.review-o.integration.account-gov.uk/yoti"
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
@@ -85,6 +91,8 @@ Mappings:
       ISSUER: 'https://review-o.integration.account.gov.uk'
       DNSSUFFIX: review-o.integration.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      GOVUKNOTIFYAPIKEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
+      GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
     production:
       YOTIBASEURL: "https://proxy.review-o.account-gov.uk/yoti"
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
@@ -92,6 +100,8 @@ Mappings:
       ISSUER: 'https://review-o.account.gov.uk'
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      GOVUKNOTIFYAPIKEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
+      GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
     dev:
@@ -165,6 +175,7 @@ Globals:
         POWERTOOLS_LOG_LEVEL: DEBUG # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
         ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+        SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
         SECRET_PREFIX: !If [
           UseSecretPrefix,
           !Ref SecretPrefix,
@@ -492,7 +503,6 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
-          SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue:
               !Sub "${L2DynamoStackName}-person-identity-table-name"
@@ -705,15 +715,15 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
-          GOVUKNOTIFY_API_KEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
-          GOVUKNOTIFY_TEMPLATE_ID: "bea2a584-4dca-4970-a90d-93977e752fdf"
-      #            Fn::ImportValue:
-      #              !Sub "${L2DynamoStackName}-session-table-name"
+          GOVUKNOTIFY_API_KEY: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPIKEY ]
+          GOVUKNOTIFY_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYTEMPLATEID ]
+          YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
+          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
-        - S3FullAccessPolicy:
-            BucketName: "rimisra1"
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:

@@ -1,4 +1,3 @@
-import { AppCodes } from "../models/AppCodes";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
@@ -9,7 +8,6 @@ import { Constants } from "../utils/Contants";
  * Class to read, store, and return environment variables used by this lambda
  */
 export class EnvironmentVariables {
-	private readonly S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 
 	private readonly GOVUKNOTIFY_API_KEY = process.env.GOVUKNOTIFY_API_KEY;
 
@@ -18,6 +16,10 @@ export class EnvironmentVariables {
 	private readonly GOVUKNOTIFY_MAX_RETRIES = process.env.GOVUKNOTIFY_MAX_RETRIES;
 
 	private readonly GOVUKNOTIFY_BACKOFF_PERIOD_MS = process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS;
+
+	private readonly YOTI_SDK = process.env.YOTISDK;
+
+	private readonly YOTIBASEURL = process.env.YOTISDK;
 
 	/**
 	 * Constructor reads all necessary environment variables and stores them as class data.
@@ -28,6 +30,8 @@ export class EnvironmentVariables {
 	 * @param GOVUKNOTIFY_TEMPLATE_ID
 	 * @param GOVUKNOTIFY_MAX_RETRIES
 	 * @param GOVUKNOTIFY_BACKOFF_PERIOD_MS
+	 * @param YOTI_SDK
+	 * @param YOTIBASEURL
 	 */
 	constructor(logger: Logger) {
 
@@ -51,15 +55,17 @@ export class EnvironmentVariables {
 			this.GOVUKNOTIFY_MAX_RETRIES = "3";
 			logger.warn("GOVUKNOTIFY_MAX_RETRIES env var is not set. Setting to default - 3");
 		}
+
+		if (!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0
+			|| !this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
+			logger.error("Environment variable YOTI_SDK or YOTIBASEURL is not configured");
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
 	}
 
 	/**
 	 * Accessor method for env variable values
 	 */
-
-	s3BucketName(): any {
-		return this.S3_BUCKET_NAME;
-	}
 
 	apiKey(): any {
 		return this.GOVUKNOTIFY_API_KEY;
@@ -76,4 +82,9 @@ export class EnvironmentVariables {
 	backoffPeriod(): number {
 		return +this.GOVUKNOTIFY_BACKOFF_PERIOD_MS!;
 	}
+
+	yotiSdk(): any {
+		return this.YOTI_SDK;
+	}
+
 }
