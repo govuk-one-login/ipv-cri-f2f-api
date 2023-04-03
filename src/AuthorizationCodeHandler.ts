@@ -24,7 +24,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 class AuthorizationCodeHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
+	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
 		switch (event.resource) {
 			case ResourcesEnum.AUTHORIZATION:
 				if (event.httpMethod === HttpVerbsEnum.GET) {

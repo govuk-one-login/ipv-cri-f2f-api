@@ -26,7 +26,7 @@ export class DocumentSelectionRequestProcessor {
 	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
 		if (!PERSON_IDENTITY_TABLE_NAME || !YOTI_SDK || !YOTICALLBACKURL) {
 			logger.error("Environment variable SESSION_TABLE or YOTI_SDK or YOTICALLBACKURL is not configured");
-			throw new AppError("Service incorrectly configured", HttpCodesEnum.SERVER_ERROR);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR,"Service incorrectly configured");
 		}
 		this.logger = logger;
 		this.metrics = metrics;
@@ -50,10 +50,10 @@ export class DocumentSelectionRequestProcessor {
 
 		const personDetails = await this.f2fService.getPersonIdentityById(sessionId);
 		if (!personDetails) {
-			throw new AppError("Missing Session info in table", HttpCodesEnum.BAD_REQUEST);
+			throw new AppError(HttpCodesEnum.BAD_REQUEST,"Missing Session info in table");
 		}
 		if (!event.body) {
-			throw new AppError("No body present in post request", HttpCodesEnum.BAD_REQUEST);
+			throw new AppError(HttpCodesEnum.BAD_REQUEST,"No body present in post request");
 		}
 
 		const eventBody = JSON.parse(event.body);

@@ -70,7 +70,7 @@ export class F2fService {
 			PersonInfo = await this.dynamo.send(getPersonIdentityCommand);
 		} catch (e: any) {
 			this.logger.error({ message: "getSessionById - failed executing get from dynamodb:", e });
-			throw new AppError("Error retrieving Session", HttpCodesEnum.SERVER_ERROR);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR,"Error retrieving Session");
 		}
 
 		if (PersonInfo.Item) {

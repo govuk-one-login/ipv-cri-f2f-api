@@ -162,7 +162,7 @@ Globals:
       Variables:
         # These should always be alphabetically organised.
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
-        POWERTOOLS_LOG_LEVEL: INFO # The LogLevel for the AWS PowerTools LogHelper
+        POWERTOOLS_LOG_LEVEL: DEBUG # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
         ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
         SECRET_PREFIX: !If [
@@ -694,6 +694,60 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt JsonWebKeysFunction.Arn
       Principal: events.amazonaws.com
+
+  GovNotifyFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: GovNotifyFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-GovNotify-${AWS::StackName}"
+      Handler: GovNotifyHandler.lambdaHandler
+      CodeUri: ../src/
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: GovNotifyHandler
+          GOVUKNOTIFY_API_KEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
+          GOVUKNOTIFY_TEMPLATE_ID: "bea2a584-4dca-4970-a90d-93977e752fdf"
+      #            Fn::ImportValue:
+      #              !Sub "${L2DynamoStackName}-session-table-name"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - S3FullAccessPolicy:
+            BucketName: "rimisra1"
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - GovNotifyHandler.ts
+
+  GovNotifyFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-GovNotify-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  GovNotifyFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsProdLikeEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref GovNotifyFunctionLogGroup
+
+  GovNotifyFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GovNotifyFunction
+      Principal: apigateway.amazonaws.com
 
 Outputs:
   F2FApiGatewayId:
