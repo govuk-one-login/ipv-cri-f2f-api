@@ -1,5 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Transform: "AWS::Serverless-2016-10-31"
+Transform:
+    - 'AWS::LanguageExtensions'
+    - 'AWS::Serverless-2016-10-31'
 Description: "Digital Identity IPV CRI F2F API"
 
 Parameters:
@@ -60,14 +62,17 @@ Mappings:
     dev:
       #YOTIBASEURL: "https://f2f-cri-outbound-proxy-proxy.review-o.dev.account.gov.uk/yoti"
       YOTIBASEURL: "https://yoti-stub-richa-yotistub.review-o.dev.account.gov.uk"
-      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
+      #YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
+      YOTISDK: "Mock1234"
       YOTICALLBACKURL: "https://some-domain.example"
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
     build:
-      YOTIBASEURL: "https://proxy.review-o.build.account-gov.uk/yoti"
-      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
+      #YOTIBASEURL: "https://proxy.review-o.build.account-gov.uk/yoti"
+      YOTIBASEURL: "https://yoti-stub-richa-yotistub.review-o.dev.account.gov.uk"
+      #YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
+      YOTISDK: "Mock1234"
       YOTICALLBACKURL: "https://some-domain.example"
       ISSUER: 'https://review-o.build.account.gov.uk'
       DNSSUFFIX: review-o.build.account.gov.uk
