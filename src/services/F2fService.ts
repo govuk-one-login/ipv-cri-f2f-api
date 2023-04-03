@@ -48,7 +48,7 @@ export class F2fService {
 			session = await this.dynamo.send(getSessionCommand);
 		} catch (e: any) {
 			this.logger.error({ message: "getSessionById - failed executing get from dynamodb:", e });
-			throw new AppError("Error retrieving Session", HttpCodesEnum.SERVER_ERROR);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session");
 		}
 
 		if (session.Item) {
@@ -98,7 +98,7 @@ export class F2fService {
 			this.logger.info({ message: "updated authorizationCode in dynamodb" });
 		} catch (e: any) {
 			this.logger.error({ message: "got error setting auth code", e });
-			throw new AppError("Failed to set authorization code ", HttpCodesEnum.SERVER_ERROR);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to set authorization code ");
 		}
 	}
 
@@ -115,7 +115,7 @@ export class F2fService {
 			this.logger.info("Sent message to TxMA");
 		} catch (error) {
 			this.logger.error("got error " + error);
-			throw new AppError("sending event - failed ", HttpCodesEnum.SERVER_ERROR);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event - failed ");
 		}
 	}
 
@@ -132,7 +132,7 @@ export class F2fService {
 		const sessionItem = await this.dynamo.query(params);
 
 		if (!sessionItem?.Items || sessionItem?.Items?.length !== 1) {
-			throw new AppError("Error retrieving Session by authorization code", HttpCodesEnum.SERVER_ERROR);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session by authorization code");
 		}
 
 		return sessionItem.Items[0] as ISessionItem;
@@ -155,7 +155,7 @@ export class F2fService {
 			this.logger.info({ message: "updated Access token details in dynamodb" });
 		} catch (error) {
 			this.logger.error({ message: "got error saving Access token details", error });
-			throw new AppError("updateItem - failed: got error saving Access token details", HttpCodesEnum.SERVER_ERROR);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving Access token details");
 		}
 	}
 }
