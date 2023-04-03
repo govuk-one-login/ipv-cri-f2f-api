@@ -234,7 +234,7 @@ Resources:
           !Ref Environment,
           logretentionindays,
         ]
-      # KmsKeyId: !GetAtt HelloWorldKmsKey.Arn
+
       Tags:
         - Key: Product
           Value: GOV.UK Sign In
