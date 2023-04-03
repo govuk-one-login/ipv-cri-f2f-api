@@ -1,6 +1,7 @@
 openapi: 3.0.2
 info:
-  title: Yoti IBV Instructions Service
+  title:
+     Fn::Sub: "${AWS::StackName} - Yoti IBV Instructions Service"
   version: 1.0.0
 
 tags:
@@ -281,15 +282,15 @@ components:
               - $ref: "#/components/schemas/RequestedIbvVisualReviewCheckPayload"
               - $ref: "#/components/schemas/RequestedSchemeValidityCheckPayload"
               - $ref: "#/components/schemas/RequestedProfileDocumentMatchCheckPayload"
-#            discriminator:
-#              propertyName: type
-#              mapping:
-#                ID_DOCUMENT_AUTHENTICITY: "#/components/schemas/RequestedAuthenticityCheckPayload"
-#                ID_DOCUMENT_FACE_MATCH: "#/components/schemas/RequestedIdDocFaceMatchCheckPayload"
-#                ID_DOCUMENT_COMPARISON: "#/components/schemas/RequestedDocumentComparisonCheckPayload"
-#                IBV_VISUAL_REVIEW_CHECK: "#/components/schemas/RequestedIbvVisualReviewCheckPayload"
-#                DOCUMENT_SCHEME_VALIDITY_CHECK: "#/components/schemas/RequestedSchemeValidityCheckPayload"
-#                PROFILE_DOCUMENT_MATCH: "#/components/schemas/RequestedProfileDocumentMatchCheckPayload"
+        #            discriminator:
+        #              propertyName: type
+        #              mapping:
+        #                ID_DOCUMENT_AUTHENTICITY: "#/components/schemas/RequestedAuthenticityCheckPayload"
+        #                ID_DOCUMENT_FACE_MATCH: "#/components/schemas/RequestedIdDocFaceMatchCheckPayload"
+        #                ID_DOCUMENT_COMPARISON: "#/components/schemas/RequestedDocumentComparisonCheckPayload"
+        #                IBV_VISUAL_REVIEW_CHECK: "#/components/schemas/RequestedIbvVisualReviewCheckPayload"
+        #                DOCUMENT_SCHEME_VALIDITY_CHECK: "#/components/schemas/RequestedSchemeValidityCheckPayload"
+        #                PROFILE_DOCUMENT_MATCH: "#/components/schemas/RequestedProfileDocumentMatchCheckPayload"
         requested_tasks:
           type: array
           description: Allow tasks to be specified on a given session
@@ -297,11 +298,11 @@ components:
             oneOf:
               - $ref: "#/components/schemas/RequestedIdDocumentTextExtractionTask"
               - $ref: "#/components/schemas/RequestedSupplementaryDocumentTextExtractionTask"
-#            discriminator:
-#              propertyName: type
-#              mapping:
-#                ID_DOCUMENT_TEXT_DATA_EXTRACTION: "#/components/schemas/RequestedIdDocumentTextExtractionTask"
-#                SUPPLEMENTARY_DOCUMENT_TEXT_DATA_EXTRACTION: "#/components/schemas/RequestedSupplementaryDocumentTextExtractionTask"
+        #            discriminator:
+        #              propertyName: type
+        #              mapping:
+        #                ID_DOCUMENT_TEXT_DATA_EXTRACTION: "#/components/schemas/RequestedIdDocumentTextExtractionTask"
+        #                SUPPLEMENTARY_DOCUMENT_TEXT_DATA_EXTRACTION: "#/components/schemas/RequestedSupplementaryDocumentTextExtractionTask"
         required_documents:
           description: |
             Allows the Relying Business to require multiple documents and filter the list of allowable document countries/types.
@@ -310,11 +311,11 @@ components:
             oneOf:
               - $ref: "#/components/schemas/RequiredIdDocument"
               - $ref: "#/components/schemas/RequiredSupplementaryDocument"
-#            discriminator:
-#              propertyName: type
-#              mapping:
-#                ID_DOCUMENT: "#/components/schemas/RequiredIdDocument"
-#                SUPPLEMENTARY_DOCUMENT: "#/components/schemas/RequiredSupplementaryDocument"
+        #            discriminator:
+        #              propertyName: type
+        #              mapping:
+        #                ID_DOCUMENT: "#/components/schemas/RequiredIdDocument"
+        #                SUPPLEMENTARY_DOCUMENT: "#/components/schemas/RequiredSupplementaryDocument"
         resources:
           $ref: "#/components/schemas/ResourcePayload"
     CreateSessionResponseBody:
@@ -803,11 +804,11 @@ components:
           oneOf:
             - $ref: "#/components/schemas/OrthogonalRestrictionsFilter"
             - $ref: "#/components/schemas/DocumentRestrictionsFilter"
-#          discriminator:
-#            propertyName: type
-#            mapping:
-#              ORTHOGONAL_RESTRICTIONS: "#/components/schemas/OrthogonalRestrictionsFilter"
-#              DOCUMENT_RESTRICTIONS: "#/components/schemas/DocumentRestrictionsFilter"
+      #          discriminator:
+      #            propertyName: type
+      #            mapping:
+      #              ORTHOGONAL_RESTRICTIONS: "#/components/schemas/OrthogonalRestrictionsFilter"
+      #              DOCUMENT_RESTRICTIONS: "#/components/schemas/DocumentRestrictionsFilter"
       required:
         - type
     RequiredSupplementaryDocument:
@@ -833,11 +834,11 @@ components:
           oneOf:
             - $ref: "#/components/schemas/ProveAddressObjective"
             - $ref: "#/components/schemas/UkDbsObjective"
-#          discriminator:
-#            propertyName: type
-#            mapping:
-#              PROOF_OF_ADDRESS: "#/components/schemas/ProveAddressObjective"
-#              UK_DBS: "#/components/schemas/UkDbsObjective"
+      #          discriminator:
+      #            propertyName: type
+      #            mapping:
+      #              PROOF_OF_ADDRESS: "#/components/schemas/ProveAddressObjective"
+      #              UK_DBS: "#/components/schemas/UkDbsObjective"
       required:
         - type
         - objective
@@ -1142,10 +1143,10 @@ components:
           description: Information about the branch the user selected during the at-home flow
           oneOf:
             - $ref: "#/components/schemas/UkPostOfficeBranchRequest"
-#          discriminator:
-#            propertyName: type
-#            mapping:
-#              UK_POST_OFFICE: "#/components/schemas/UkPostOfficeBranchRequest"
+      #          discriminator:
+      #            propertyName: type
+      #            mapping:
+      #              UK_POST_OFFICE: "#/components/schemas/UkPostOfficeBranchRequest"
       required:
         - contact_profile
         - documents
@@ -1164,11 +1165,11 @@ components:
           oneOf:
             - $ref: "#/components/schemas/SelectedIdDocumentRequest"
             - $ref: "#/components/schemas/SelectedSupplementaryDocumentRequest"
-#          discriminator:
-#            propertyName: type
-#            mapping:
-#              ID_DOCUMENT: "#/components/schemas/SelectedIdDocumentRequest"
-#              SUPPLEMENTARY_DOCUMENT: "#/components/schemas/SelectedSupplementaryDocumentRequest"
+          #          discriminator:
+          #            propertyName: type
+          #            mapping:
+          #              ID_DOCUMENT: "#/components/schemas/SelectedIdDocumentRequest"
+          #              SUPPLEMENTARY_DOCUMENT: "#/components/schemas/SelectedSupplementaryDocumentRequest"
           example:
             value:
               requirement_id: someRequirementId
