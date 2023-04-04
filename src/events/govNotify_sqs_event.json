@@ -1,0 +1,20 @@
+{
+  "Records": [
+    {
+      "messageId": "6e67a34a-94f1-493f-b9eb-3d421aa701a8",
+      "receiptHandle": "dfgsdg",
+      "body": "{\"TopicArn\": \"topic_arn\", \"Message\": \"{\\\"sessionId\\\":\\\"eb26c8e0-397b-4f5e-b7a5-62cd0c6e510b\\\",\\\"yotiSessionId\\\":\\\"586c409e-8f39-43bf-b634-e2e3947a4778\\\",\\\"emailAddress\\\":\\\"bhavana.hemanth@digital.cabinet-office.gov.uk\\\",\\\"firstName\\\":\\\"Joe Niel\\\",\\\"lastName\\\":\\\"Jacob\\\",\\\"messageType\\\":\\\"email\\\"}\", \"MessageStructure\": \"json\", \"MessageAttributes\":{\"messageType\": { \"DataType\": \"String\", \"StringValue\": \"email\" }, \"uniqueId\": { \"DataType\": \"String\", \"StringValue\": \"as67di2w\"} } }",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1588867971441",
+        "SenderId": "AIDAIVEA3AGEU7NF6DRAG",
+        "ApproximateFirstReceiveTimestamp": "1588867971443"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "24dgre",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "queue_arn",
+      "awsRegion": "eu-west-2"
+    }
+  ]
+}

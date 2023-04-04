@@ -21,6 +21,10 @@ export class EnvironmentVariables {
 
 	private readonly YOTIBASEURL = process.env.YOTISDK;
 
+	private readonly ISSUER = process.env.ISSUER;
+
+	private readonly SESSION_TABLE = process.env.SESSION_TABLE;
+
 	/**
 	 * Constructor reads all necessary environment variables and stores them as class data.
 	 * It also performs validation on env variable values. If certain variables have unexpected values the constructor will throw an error and/or log an error message
@@ -32,11 +36,15 @@ export class EnvironmentVariables {
 	 * @param GOVUKNOTIFY_BACKOFF_PERIOD_MS
 	 * @param YOTI_SDK
 	 * @param YOTIBASEURL
+	 * @param ISSUER
+	 * @param SESSION_TABLE
 	 */
 	constructor(logger: Logger) {
 
 		if (!this.GOVUKNOTIFY_API_KEY || this.GOVUKNOTIFY_API_KEY.trim().length === 0 ||
-			!this.GOVUKNOTIFY_TEMPLATE_ID || this.GOVUKNOTIFY_TEMPLATE_ID.trim().length === 0) {
+			!this.GOVUKNOTIFY_TEMPLATE_ID || this.GOVUKNOTIFY_TEMPLATE_ID.trim().length === 0 ||
+			!this.ISSUER || this.ISSUER.trim().length === 0 ||
+			!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0) {
 			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
@@ -85,6 +93,14 @@ export class EnvironmentVariables {
 
 	yotiSdk(): any {
 		return this.YOTI_SDK;
+	}
+
+	issuer(): any {
+		return this.ISSUER;
+	}
+
+	sessionTable(): any {
+		return this.SESSION_TABLE;
 	}
 
 }

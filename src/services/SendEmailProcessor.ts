@@ -3,7 +3,7 @@ import { EmailResponse } from "../models/EmailResponse";
 import { ValidationHelper } from "../utils/ValidationHelper";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
-import { GovNotifyService } from "./GovNotifyService";
+import { SendEmailService } from "./SendEmailService";
 
 export class SendEmailProcessor {
 
@@ -15,14 +15,14 @@ export class SendEmailProcessor {
 
     private readonly validationHelper: ValidationHelper;
 
-	private readonly govNotifyService: GovNotifyService;
+	private readonly govNotifyService: SendEmailService;
 
 	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
 
     	this.logger = logger;
     	this.validationHelper = new ValidationHelper();
     	this.metrics = metrics;
-		this.govNotifyService = GovNotifyService.getInstance(this.logger, YOTI_PRIVATE_KEY);
+		this.govNotifyService = SendEmailService.getInstance(this.logger, YOTI_PRIVATE_KEY);
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string): SendEmailProcessor {

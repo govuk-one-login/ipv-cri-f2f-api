@@ -10,23 +10,29 @@ import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
 import { YotiService } from "./YotiService";
+import { buildCoreEventFields } from "../utils/TxmaEvent";
+import { absoluteTimeNow } from "../utils/DateTimeUtils";
+import { F2fService } from "./F2fService";
+import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 
 /**
  * Class to send emails using gov notify service
  */
-export class GovNotifyService {
+export class SendEmailService {
 
     private govNotify: NotifyClient;
 
     private govNotifyErrorMapper: GovNotifyErrorMapper;
 
-    private static instance: GovNotifyService;
+    private static instance: SendEmailService;
 
     private readonly environmentVariables: EnvironmentVariables;
 
     private readonly logger: Logger;
 
 	private yotiService: YotiService;
+
+	private readonly f2fService: F2fService;
 
 
 	/**
@@ -41,11 +47,12 @@ export class GovNotifyService {
     	this.govNotify = new NotifyClient(this.environmentVariables.apiKey());
 		this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), YOTI_PRIVATE_KEY);
     	this.govNotifyErrorMapper = new GovNotifyErrorMapper();
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 	}
 
-	static getInstance(logger: Logger, YOTI_PRIVATE_KEY: string): GovNotifyService {
+	static getInstance(logger: Logger, YOTI_PRIVATE_KEY: string): SendEmailService {
     	if (!this.instance) {
-    		this.instance = new GovNotifyService(logger, YOTI_PRIVATE_KEY);
+    		this.instance = new SendEmailService(logger, YOTI_PRIVATE_KEY);
     	}
     	return this.instance;
 	}
@@ -86,12 +93,12 @@ export class GovNotifyService {
     		reference: message.referenceId,
     	};
 
-    	this.logger.debug("sendEmail", GovNotifyService.name);
+    	this.logger.debug("sendEmail", SendEmailService.name);
 
     	let retryCount = 0;
     	//retry for maxRetry count configured value if fails
     	while (retryCount++ < this.environmentVariables.maxRetries() + 1) {
-    		this.logger.debug(`sendEmail - trying to send email message ${GovNotifyService.name} ${new Date().toISOString()}`, {
+    		this.logger.debug(`sendEmail - trying to send email message ${SendEmailService.name} ${new Date().toISOString()}`, {
     			templateId: this.environmentVariables.templateId(),
     			emailAddress: message.emailAddress,
     			options,
@@ -100,14 +107,27 @@ export class GovNotifyService {
     		try {
     			const emailResponse = await this.govNotify.sendEmail(this.environmentVariables.templateId(), message.emailAddress, options);
     			this.logger.debug("sendEmail - response data after sending Email", emailResponse.data);
-    			this.logger.debug("sendEmail - response status after sending Email", GovNotifyService.name, emailResponse.status);
+    			this.logger.debug("sendEmail - response status after sending Email", SendEmailService.name, emailResponse.status);
+				const session = await this.f2fService.getSessionById(message.sessionId);
+				if (session != null) {
+					try {
+						await this.f2fService.sendToTXMA({
+							event_name: "F2F_YOTI_PDF_EMAILED",
+							...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow),
+						});
+					} catch (error) {
+						this.logger.error("Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.");
+					}
+				} else {
+					this.logger.error("Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue, session not found for sessionId: ", message.sessionId);
+				}
     			return new EmailResponse(new Date().toISOString(), "", emailResponse.status);
     		} catch (err: any) {
     			this.logger.error("sendEmail - GOV UK Notify threw an error");
 
     			if (err.response) {
     				// err.response.data.status_code 	err.response.data.errors
-    				this.logger.error(`GOV UK Notify error ${GovNotifyService.name}`, {
+    				this.logger.error(`GOV UK Notify error ${SendEmailService.name}`, {
     					statusCode: err.response.data.status_code,
     					errors: err.response.data.errors,
     				});
@@ -116,11 +136,11 @@ export class GovNotifyService {
     			const appError: any = this.govNotifyErrorMapper.map(err);
 
     			if (appError.obj!.shouldThrow) {
-    				this.logger.error("sendEmail - Mapped error", GovNotifyService.name, appError.message);
+    				this.logger.error("sendEmail - Mapped error", SendEmailService.name, appError.message);
     				throw appError;
     			} else {
-    				this.logger.error(`sendEmail - Mapped error ${GovNotifyService.name}`, { appError });
-    				this.logger.error(`sendEmail - Retrying to send the email. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${GovNotifyService.name} ${new Date().toISOString()}`, { retryCount });
+    				this.logger.error(`sendEmail - Mapped error ${SendEmailService.name}`, { appError });
+    				this.logger.error(`sendEmail - Retrying to send the email. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${SendEmailService.name} ${new Date().toISOString()}`, { retryCount });
     				await sleep(this.environmentVariables.backoffPeriod());
     			}
     		}
@@ -128,7 +148,7 @@ export class GovNotifyService {
 
     	// If the email couldn't be sent after the retries,
     	// an error is thrown
-    	this.logger.error(`sendEmail - cannot send EMail ${GovNotifyService.name}`);
+    	this.logger.error(`sendEmail - cannot send EMail ${SendEmailService.name}`);
     	throw new AppError(HttpCodesEnum.SERVER_ERROR, "Cannot send EMail");
 	}
 

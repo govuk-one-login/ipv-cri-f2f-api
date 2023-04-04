@@ -10,6 +10,7 @@ import { HttpCodesEnum } from "./enums/HttpCodesEnum";
 export class Email {
 
 	constructor(data: Partial<Email>) {
+		this.sessionId = data.sessionId!;
 		this.yotiSessionId = data.yotiSessionId!;
 		this.emailAddress = data.emailAddress!;
 		this.firstName = data.firstName!;
@@ -27,6 +28,10 @@ export class Email {
 			throw new AppError( HttpCodesEnum.BAD_REQUEST, "Cannot parse Email data");
 		}
 	}
+
+	@IsString()
+	@IsNotEmpty()
+	sessionId!: string;
 
     @IsString()
     @IsNotEmpty()

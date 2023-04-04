@@ -185,11 +185,14 @@ Globals:
         POWERTOOLS_LOG_LEVEL: DEBUG # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
         ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+        TXMA_QUEUE_URL: !Ref TxMASQSQueue
         SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
         YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
         YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
         CLIENT_SESSION_TOKEN_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
         RESOURCES_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
+        SESSION_TABLE:
+          Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
         SECRET_PREFIX: !If [
           UseSecretPrefix,
           !Ref SecretPrefix,
@@ -361,8 +364,6 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: AccessTokenHandler
-          SESSION_TABLE:
-            Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
       Policies:
@@ -434,10 +435,6 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: AuthorizationCodeHandler
-          SESSION_TABLE:
-            Fn::ImportValue:
-              !Sub "${L2DynamoStackName}-session-table-name"
-          TXMA_QUEUE_URL: !Ref TxMASQSQueue
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -734,6 +731,29 @@ Resources:
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-key-id"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt TxMASQSQueue.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:GenerateDataKey"
+              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:

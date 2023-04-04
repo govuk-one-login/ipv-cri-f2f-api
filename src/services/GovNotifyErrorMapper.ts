@@ -17,7 +17,7 @@ export class GovNotifyErrorMapper {
     ]);
 
     /**
-     * Method that takes an error raised by GovNotifyService and translates the error into an AppError with lambda specific AppCode
+     * Method that takes an error raised by SendEmailService and translates the error into an AppError with lambda specific AppCode
      *
      * @param govNotifyError
      */

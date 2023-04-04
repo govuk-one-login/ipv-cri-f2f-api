@@ -3,12 +3,12 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { SQSEvent } from "aws-lambda";
 import { VALID_SQS_EVENT } from "../data/sqs-events";
 import { SendEmailProcessor } from "../../../services/SendEmailProcessor";
-import { GovNotifyService } from "../../../services/GovNotifyService";
+import { SendEmailService } from "../../../services/SendEmailService";
 import { mock } from "jest-mock-extended";
 import { EmailResponse } from "../../../models/EmailResponse";
 
 let sendEmailProcessorTest: SendEmailProcessor;
-const mockGovNotifyService = mock<GovNotifyService>();
+const mockGovNotifyService = mock<SendEmailService>();
 // pragma: allowlist nextline secret
 const YOTI_PRIVATE_KEY = "sdfsdf";
 const logger = new Logger({

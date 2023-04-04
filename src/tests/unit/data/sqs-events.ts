@@ -4,7 +4,7 @@ export const VALID_SQS_EVENT = {
 			"messageId": "6e67a34a-94f1-493f-b9eb-3d421aa701a8",
 			// pragma: allowlist nextline secret
 			"receiptHandle": "AQEBDzpW+TMqnd6I8zcqmrq8g8BTsuDjI745ci0bJ46g0Ej",
-			"body": "{\"TopicArn\": \"topic_arn\", \"Message\": \"{\\\"yotiSessionId\\\":\\\"b373b3cc-d514-4119-9043-bfeee7cda000\\\",\\\"emailAddress\\\":\\\"bhavana.hemanth@digital.cabinet-office.gov.uk\\\",\\\"firstName\\\":\\\"Joe Niel\\\",\\\"lastName\\\":\\\"Jacob\\\",\\\"messageType\\\":\\\"email\\\"}\", \"MessageStructure\": \"json\", \"MessageAttributes\":{\"messageType\": { \"DataType\": \"String\", \"StringValue\": \"email\" }, \"uniqueId\": { \"DataType\": \"String\", \"StringValue\": \"as67di2w\"} } }",
+			"body": "{\"TopicArn\": \"topic_arn\", \"Message\": \"{\\\"sessionId\\\":\\\"eb26c8e0-397b-4f5e-b7a5-62cd0c6e510b\\\",\\\"yotiSessionId\\\":\\\"b373b3cc-d514-4119-9043-bfeee7cda000\\\",\\\"emailAddress\\\":\\\"bhavana.hemanth@digital.cabinet-office.gov.uk\\\",\\\"firstName\\\":\\\"Joe Niel\\\",\\\"lastName\\\":\\\"Jacob\\\",\\\"messageType\\\":\\\"email\\\"}\", \"MessageStructure\": \"json\", \"MessageAttributes\":{\"messageType\": { \"DataType\": \"String\", \"StringValue\": \"email\" }, \"uniqueId\": { \"DataType\": \"String\", \"StringValue\": \"as67di2w\"} } }",
 			"attributes": {
 				"ApproximateReceiveCount": "1",
 				"SentTimestamp": "1588867971441",

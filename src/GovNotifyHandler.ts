@@ -11,7 +11,6 @@ import { BatchItemFailure } from "./utils/BatchItemFailure";
 import { EmailResponse } from "./models/EmailResponse";
 import { SendEmailProcessor } from "./services/SendEmailProcessor";
 import { HttpCodesEnum } from "./models/enums/HttpCodesEnum";
-import { GetParameterCommand, ssmClient } from "./utils/SSMClient";
 import { getParameter } from "./utils/Config";
 import { AppError } from "./utils/AppError";
 
