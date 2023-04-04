@@ -30,7 +30,7 @@ function getMockSessionItem(): ISessionItem {
 	const sess: ISessionItem = {
 		sessionId: "sdfsdg",
 		clientId: "ipv-core-stub",
-		accessToken: "AbCdEf123456",
+		accessToken: "123456",
 		clientSessionId: "sdfssg",
 		authorizationCode: "",
 		authorizationCodeExpiryDate: 0,
