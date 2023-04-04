@@ -16,6 +16,7 @@ import { YotiService } from "../../../services/YotiService";
 const mockGovNotify = mock<NotifyClient>();
 const mockYotiService = mock<YotiService>();
 let govNotifyServiceTest: GovNotifyService;
+// pragma: allowlist nextline secret
 const YOTI_PRIVATE_KEY = "sdfsdf";
 const logger = new Logger({
 	logLevel: "DEBUG",

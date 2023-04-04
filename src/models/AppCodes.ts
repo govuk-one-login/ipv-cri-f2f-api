@@ -10,6 +10,7 @@ export class AppCodes {
 
     static readonly GOVAPI_SEND_LIMITS = "send limits";
 
+    // pragma: allowlist nextline secret
     static readonly GOVAPI_INC_API_KEY = "API key not found";
 
     static readonly GOVAPI_SYSTEM_CLOCK = "system clock";
@@ -18,6 +19,7 @@ export class AppCodes {
 
     static readonly GOVAPI_TEAM_ONLY = "team-only API key";
 
+    // pragma: allowlist nextline secret
     static readonly GOVAPI_INCORRECT_DATA_TYPE_API_KEY = "service id is not the right data type";
 
     constructor(public code: string, public message = "", public subStringArray: string[] = []) {

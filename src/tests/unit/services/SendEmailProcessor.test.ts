@@ -9,6 +9,7 @@ import { EmailResponse } from "../../../models/EmailResponse";
 
 let sendEmailProcessorTest: SendEmailProcessor;
 const mockGovNotifyService = mock<GovNotifyService>();
+// pragma: allowlist nextline secret
 const YOTI_PRIVATE_KEY = "sdfsdf";
 const logger = new Logger({
 	logLevel: "DEBUG",
