@@ -23,13 +23,13 @@ export class YotiService {
   constructor(logger: Logger, CLIENT_SDK_ID: string, PEM_KEY: string) {
 	  if (!this.CLIENT_SESSION_TOKEN_TTL
 		  || this.CLIENT_SESSION_TOKEN_TTL.trim().length === 0) {
-		  this.CLIENT_SESSION_TOKEN_TTL = "300";
-		  logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 300 seconds");
+		  this.CLIENT_SESSION_TOKEN_TTL = "604800";
+		  logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 7 days.");
 	  }
 	  if (!this.RESOURCES_TTL
 		  || this.RESOURCES_TTL.trim().length === 0) {
-		  this.RESOURCES_TTL = "86700";
-		  logger.warn("RESOURCES_TTL env var is not set. Setting to default - 86700 seconds");
+		  this.RESOURCES_TTL = "691200";
+		  logger.warn("RESOURCES_TTL env var is not set. Setting to default - 8 days.");
 	  }
 	  this.logger = logger;
 	  this.CLIENT_SDK_ID = CLIENT_SDK_ID;
