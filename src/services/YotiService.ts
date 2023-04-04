@@ -16,10 +16,24 @@ export class YotiService {
 
   readonly PEM_KEY: string;
 
+  private readonly CLIENT_SESSION_TOKEN_TTL = process.env.CLIENT_SESSION_TOKEN_TTL;
+
+  private readonly RESOURCES_TTL = process.env.RESOURCES_TTL;
+
   constructor(logger: Logger, CLIENT_SDK_ID: string, PEM_KEY: string) {
-  	this.logger = logger;
-  	this.CLIENT_SDK_ID = CLIENT_SDK_ID;
-  	this.PEM_KEY = PEM_KEY;
+	  if (!this.CLIENT_SESSION_TOKEN_TTL
+		  || this.CLIENT_SESSION_TOKEN_TTL.trim().length === 0) {
+		  this.CLIENT_SESSION_TOKEN_TTL = "300";
+		  logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 300 seconds");
+	  }
+	  if (!this.RESOURCES_TTL
+		  || this.RESOURCES_TTL.trim().length === 0) {
+		  this.RESOURCES_TTL = "86700";
+		  logger.warn("RESOURCES_TTL env var is not set. Setting to default - 86700 seconds");
+	  }
+	  this.logger = logger;
+	  this.CLIENT_SDK_ID = CLIENT_SDK_ID;
+	  this.PEM_KEY = PEM_KEY;
   }
 
   static getInstance(
@@ -130,8 +144,8 @@ export class YotiService {
   ): Promise<string> {
   	//TODO: YOTICALLBACKURL needs updating in template.yaml file within deploy folders oncer we have work completed on return journey
   	const payloadJSON = {
-  		client_session_token_ttl: 864000,
-  		resources_ttl: 950400,
+  		client_session_token_ttl: this.CLIENT_SESSION_TOKEN_TTL,
+  		resources_ttl: this.RESOURCES_TTL,
   		ibv_options: {
   			support: "MANDATORY",
   		},

@@ -11,33 +11,34 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { Constants } from "../utils/Constants";
 
 export class DocumentSelectionRequestProcessor {
-  private static instance: DocumentSelectionRequestProcessor;
 
-  private readonly logger: Logger;
+  	private static instance: DocumentSelectionRequestProcessor;
 
-  private readonly metrics: Metrics;
+  	private readonly logger: Logger;
 
-  private readonly yotiService: YotiService;
+  	private readonly metrics: Metrics;
 
-	private readonly PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
+  	private readonly yotiService: YotiService;
 
-	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
+  	private readonly PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
 
-	private readonly environmentVariables: EnvironmentVariables;
+	private readonly YOTI_SDK = process.env.YOTISDK;
 
-	private readonly f2fService: F2fService;
+  	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
+
+  	private readonly f2fService: F2fService;
 
 
 	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
 		if (!this.PERSON_IDENTITY_TABLE_NAME || this.PERSON_IDENTITY_TABLE_NAME.trim().length === 0
-			|| !this.YOTICALLBACKURL || this.YOTICALLBACKURL.trim().length === 0) {
+			|| !this.YOTICALLBACKURL || this.YOTICALLBACKURL.trim().length === 0
+			|| !this.YOTI_SDK || this.YOTI_SDK.trim().length === 0) {
 			logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL is not configured");
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		this.logger = logger;
 		this.metrics = metrics;
-		this.environmentVariables = new EnvironmentVariables(logger);
-		this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), YOTI_PRIVATE_KEY);
+		this.yotiService = YotiService.getInstance(this.logger, this.YOTI_SDK, YOTI_PRIVATE_KEY);
 		this.f2fService = F2fService.getInstance(this.PERSON_IDENTITY_TABLE_NAME, this.logger, createDynamoDbClient());
 	}
 
@@ -98,7 +99,7 @@ export class DocumentSelectionRequestProcessor {
 				}
 			});
 
-		this.logger.info("Generating Instructions PDF");
+		this.logger.info({message:"Generating Instructions PDF"},{sessionID: sessionID});
 		const response = await this.yotiService.generateInstructions(
 			sessionID,
 			personDetails,
