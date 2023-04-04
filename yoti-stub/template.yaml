@@ -393,10 +393,9 @@ Resources:
   MockYotiApiBasePathMapping:
     Type: 'AWS::ApiGateway::BasePathMapping'
     Properties:
-      Stage: !Ref Environment
+      Stage: !Ref MockYotiRestApi.Stage
       DomainName: !Ref MockYotiApiGatewayCustomDomain
       RestApiId: !Ref MockYotiRestApi
-    DependsOn: MockYotiRestApidevStage
 Outputs:
   MockYotiApiGatewayId:
     Description: "API GatewayID of the Yoti API"
