@@ -393,9 +393,13 @@ Resources:
   MockYotiApiBasePathMapping:
     Type: 'AWS::ApiGateway::BasePathMapping'
     Properties:
-      Stage: !Ref MockYotiRestApi.Stage
       DomainName: !Ref MockYotiApiGatewayCustomDomain
       RestApiId: !Ref MockYotiRestApi
+
+      # workaround for sam bug - see https://github.com/aws/serverless-application-model/issues/192#issuecomment-520893111
+      # noinspection YamlUnresolvedReferences
+      Stage: !Ref MockYotiRestApi.Stage
+
 Outputs:
   MockYotiApiGatewayId:
     Description: "API GatewayID of the Yoti API"
