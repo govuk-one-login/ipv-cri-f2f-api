@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { Logger } from "@aws-lambda-powertools/logger";
-import crypto, { randomUUID }from "crypto";
+import crypto, { randomUUID } from "crypto";
 import axios, { AxiosRequestConfig } from "axios";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
 import { PersonIdentity } from "../models/PersonIdentity";
@@ -126,7 +126,7 @@ export class YotiService {
   async createSession(
   	personDetails: PersonIdentity,
   	selectedDocument: string,
-		YOTICALLBACKURL?: string,
+  	YOTICALLBACKURL?: string,
   ): Promise<string> {
   	//TODO: YOTICALLBACKURL needs updating in template.yaml file within deploy folders oncer we have work completed on return journey
   	const payloadJSON = {
@@ -142,7 +142,7 @@ export class YotiService {
   			auth_token: "string",
   			auth_type: "BASIC",
   		},
-  		requested_checks: [REQUESTED_CHECKS.IBV_VISUAL_REVIEW_CHECK,REQUESTED_CHECKS.PROFILE_DOCUMENT_MATCH,REQUESTED_CHECKS.DOCUMENT_SCHEME_VALIDITY_CHECK],
+  		requested_checks: [REQUESTED_CHECKS.IBV_VISUAL_REVIEW_CHECK, REQUESTED_CHECKS.PROFILE_DOCUMENT_MATCH, REQUESTED_CHECKS.DOCUMENT_SCHEME_VALIDITY_CHECK],
   		required_documents: [
   			{
   				type: "ID_DOCUMENT",
@@ -180,7 +180,7 @@ export class YotiService {
   	return data.session_id;
   }
 
-  async fetchSessionInfo(sessionId: string) {
+  async fetchSessionInfo(sessionId: string): Promise<any> {
   	const yotiRequest = this.generateYotiRequest({
   		method: HttpVerbsEnum.GET,
   		endpoint: `/sessions/${sessionId}/configuration`,
@@ -196,7 +196,7 @@ export class YotiService {
   	personDetails: PersonIdentity,
   	requirements: [],
   	PostOfficeSelection: PostOfficeInfo,
-  ) {
+  ):Promise<any> {
   	const givenNames: string[] = [];
   	const familyNames: string[] = [];
 
@@ -216,7 +216,7 @@ export class YotiService {
   		contact_profile: {
   			first_name: `${givenNames[0]}`,
   			last_name: `${familyNames[0]}`,
-				//TODO: Update email file to be fetched from Person Identity Table once Session work completed
+  			//TODO: Update email file to be fetched from Person Identity Table once Session work completed
   			email: "test@example.com",
   		},
   		documents: requirements,
@@ -253,8 +253,8 @@ export class YotiService {
   		endpoint: `/sessions/${sessionId}/instructions/pdf`,
   	});
 	  const yotiRequestConfig =  yotiRequest.config!;
-	  yotiRequestConfig["responseType"] = "arraybuffer";
-	  yotiRequestConfig["responseEncoding"] = "binary";
+	  yotiRequestConfig.responseType = "arraybuffer";
+	  yotiRequestConfig.responseEncoding = "binary";
 
 	  const url = yotiRequest.url;
 

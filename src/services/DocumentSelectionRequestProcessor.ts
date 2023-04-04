@@ -7,8 +7,8 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
-import {EnvironmentVariables} from "./EnvironmentVariables";
-import {Constants} from "../utils/Contants";
+import { EnvironmentVariables } from "./EnvironmentVariables";
+import { Constants } from "../utils/Constants";
 
 export class DocumentSelectionRequestProcessor {
   private static instance: DocumentSelectionRequestProcessor;
@@ -37,7 +37,7 @@ export class DocumentSelectionRequestProcessor {
 		this.logger = logger;
 		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger);
-		this.yotiService = YotiService.getInstance(this.logger,this.environmentVariables.yotiSdk() , YOTI_PRIVATE_KEY);
+		this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), YOTI_PRIVATE_KEY);
 		this.f2fService = F2fService.getInstance(this.PERSON_IDENTITY_TABLE_NAME, this.logger, createDynamoDbClient());
 	}
 
@@ -57,10 +57,10 @@ export class DocumentSelectionRequestProcessor {
 
 		const personDetails = await this.f2fService.getPersonIdentityById(sessionId);
 		if (!personDetails) {
-			throw new AppError(HttpCodesEnum.BAD_REQUEST,"Missing Session info in table");
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing Session info in table");
 		}
 		if (!event.body) {
-			throw new AppError(HttpCodesEnum.BAD_REQUEST,"No body present in post request");
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "No body present in post request");
 		}
 
 		const eventBody = JSON.parse(event.body);

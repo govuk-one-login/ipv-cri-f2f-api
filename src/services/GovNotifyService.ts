@@ -9,7 +9,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
-import {YotiService} from "./YotiService";
+import { YotiService } from "./YotiService";
 
 /**
  * Class to send emails using gov notify service
@@ -29,40 +29,40 @@ export class GovNotifyService {
 	private yotiService: YotiService;
 
 
-    /**
-     * Constructor sets up the client needed to use gov notify service with API key read from env var
-     *
-     * @param environmentVariables
-     * @private
-     */
-    private constructor(logger: Logger, YOTI_PRIVATE_KEY: string) {
+	/**
+	 * Constructor sets up the client needed to use gov notify service with API key read from env var
+	 *
+	 * @param environmentVariables
+	 * @private
+	 */
+	private constructor(logger: Logger, YOTI_PRIVATE_KEY: string) {
     	this.logger = logger;
     	this.environmentVariables = new EnvironmentVariables(logger);
     	this.govNotify = new NotifyClient(this.environmentVariables.apiKey());
 		this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), YOTI_PRIVATE_KEY);
     	this.govNotifyErrorMapper = new GovNotifyErrorMapper();
-    }
+	}
 
-    static getInstance(logger: Logger, YOTI_PRIVATE_KEY: string): GovNotifyService {
+	static getInstance(logger: Logger, YOTI_PRIVATE_KEY: string): GovNotifyService {
     	if (!this.instance) {
     		this.instance = new GovNotifyService(logger, YOTI_PRIVATE_KEY);
     	}
     	return this.instance;
-    }
+	}
 
-    /**
-     * Method to compose send email request
-     * This method receive object containing the data to compose the email and retrieves needed field based on object type (Email | EmailMessage)
-     * it attempts to send the email.
-     * If there is a failure, it checks if the error is retryable. If it is, it retries for the configured max number of times with a cool off period after each try.
-     * If the error is not retryable, an AppError is thrown
-     * If max number of retries is exceeded an AppError is thrown
-     *
-     * @param message
-     * @returns EmailResponse
-     * @throws AppError
-     */
-    async sendEmail(message: Email): Promise<EmailResponse> {
+	/**
+	 * Method to compose send email request
+	 * This method receive object containing the data to compose the email and retrieves needed field based on object type (Email | EmailMessage)
+	 * it attempts to send the email.
+	 * If there is a failure, it checks if the error is retryable. If it is, it retries for the configured max number of times with a cool off period after each try.
+	 * If the error is not retryable, an AppError is thrown
+	 * If max number of retries is exceeded an AppError is thrown
+	 *
+	 * @param message
+	 * @returns EmailResponse
+	 * @throws AppError
+	 */
+	async sendEmail(message: Email): Promise<EmailResponse> {
     	let encoded;
     	// Fetch the instructions pdf from Yoti
     	this.logger.debug("Fetching the Instructions Pdf from yoti for sessionId: ", message.yotiSessionId);
@@ -130,6 +130,6 @@ export class GovNotifyService {
     	// an error is thrown
     	this.logger.error(`sendEmail - cannot send EMail ${GovNotifyService.name}`);
     	throw new AppError(HttpCodesEnum.SERVER_ERROR, "Cannot send EMail");
-    }
+	}
 
 }

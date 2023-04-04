@@ -11,7 +11,7 @@ import { EmailResponse } from "../../../models/EmailResponse";
 import { Email } from "../../../models/Email";
 import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-import {YotiService} from "../../../services/YotiService";
+import { YotiService } from "../../../services/YotiService";
 
 const mockGovNotify = mock<NotifyClient>();
 const mockYotiService = mock<YotiService>();

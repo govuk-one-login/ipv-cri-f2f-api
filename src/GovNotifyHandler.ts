@@ -5,13 +5,15 @@ import { Response } from "./utils/Response";
 
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 
-import { Constants } from "./utils/Contants";
+import { Constants } from "./utils/Constants";
 
 import { BatchItemFailure } from "./utils/BatchItemFailure";
 import { EmailResponse } from "./models/EmailResponse";
 import { SendEmailProcessor } from "./services/SendEmailProcessor";
 import { HttpCodesEnum } from "./models/enums/HttpCodesEnum";
-import {GetParameterCommand, ssmClient} from "./utils/SSMClient";
+import { GetParameterCommand, ssmClient } from "./utils/SSMClient";
+import { getParameter } from "./utils/Config";
+import { AppError } from "./utils/AppError";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.EMAIL_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -26,10 +28,15 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 
 let YOTI_PRIVATE_KEY: string;
 class GovNotifyHandler implements LambdaInterface {
+	private readonly SSM_PATH = process.env.SSM_PATH;
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: SQSEvent, context: any): Promise<any> {
 		if (event.Records.length === 1) {
+			if (!this.SSM_PATH || this.SSM_PATH.trim().length === 0) {
+				logger.error("Environment variable SSM_PATH is not configured");
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+			}
 			const record: SQSRecord = event.Records[0];
 			logger.debug("Starting to process record", { record });
 			const batchFailures: BatchItemFailure[] = [];
@@ -39,9 +46,12 @@ class GovNotifyHandler implements LambdaInterface {
 				logger.debug("Parsed SQS event body", body);
 				if (!YOTI_PRIVATE_KEY) {
 					logger.info({ message: "Fetching key from SSM" });
-					const command = new GetParameterCommand({ Name: process.env.SSM_PATH });
-					const response = await ssmClient.send(command);
-					YOTI_PRIVATE_KEY = response.Parameter.Value;
+					try {
+						YOTI_PRIVATE_KEY = await getParameter(this.SSM_PATH);
+					} catch (err) {
+						logger.error(`failed to get param from ssm at ${this.SSM_PATH}`, { err });
+						throw err;
+					}
 				}
 				const emailResponse: EmailResponse = await SendEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
 				const responseBody = {
