@@ -110,23 +110,6 @@ Resources:
       VpcId:
         Fn::ImportValue: !Sub "${VpcStackName}-VpcId"
 
-  YotiStubPDFBucket:
-    Type: "AWS::S3::Bucket"
-    DeletionPolicy: Delete
-    Properties:
-      BucketName: !Sub ${AWS::StackName}-yoti-f2f-${Environment}
-      VersioningConfiguration:
-        Status: "Enabled"
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-
 ### Yoti stub table
   YotiSessionTable:
     Type: "AWS::DynamoDB::Table"
@@ -205,6 +188,8 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: "dev"
+      BinaryMediaTypes:
+        - "*/*"
       OpenApiVersion: 3.0.1
       AccessLogSetting:
         Format: "$context.requestId $context.httpMethod $context.path"
@@ -225,32 +210,6 @@ Resources:
         Service: backend
         Name: MockYotiRestApi
         Source: yoti
-
-#  MockYotiAPIStageDefault:
-#    Type: 'AWS::ApiGatewayV2::Stage'
-#    Properties:
-#      ApiId: !Ref MockYotiRestApi
-#      StageName: !Ref Environment
-#      AutoDeploy: true
-#      DefaultRouteSettings:
-#        DataTraceEnabled: false
-#        DetailedMetricsEnabled: true
-#        ThrottlingBurstLimit: 400
-#        ThrottlingRateLimit: 200
-#      AccessLogSettings:
-#        DestinationArn: !GetAtt MockYotiAPIGatewayAccessLogGroup.Arn
-#        Format: >-
-#          {
-#          "requestId":"$context.requestId",
-#          "ip": "$context.identity.sourceIp",
-#          "requestTime":"$context.requestTime",
-#          "httpMethod":"$context.httpMethod",
-#          "path": "$context.path",
-#          "routeKey":"$context.routeKey",
-#          "status":"$context.status",
-#          "protocol":"$context.protocol",
-#          "responseLength":"$context.responseLength"
-#          }
 
   MockYotiAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -291,13 +250,10 @@ Resources:
           POWERTOOLS_SERVICE_NAME: MockYotiSessionHandler
           # using this one temp to save incoming data
           SESSION_TABLE: !Ref YotiSessionTable
-          S3_BUCKET_NAME: !Ref YotiStubPDFBucket
 
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
-        - S3FullAccessPolicy:
-              BucketName: !Ref YotiStubPDFBucket
         - DynamoDBWritePolicy:
             TableName: !Ref YotiSessionTable
         - DynamoDBReadPolicy:
@@ -374,20 +330,6 @@ Resources:
         DNSName: !GetAtt MockYotiApiGatewayCustomDomain.RegionalDomainName
         HostedZoneId: !GetAtt MockYotiApiGatewayCustomDomain.RegionalHostedZoneId
         EvaluateTargetHealth: false
-
-#  MockYotiApiGatewayDeployment:
-#    Type: "AWS::ApiGateway::Deployment"
-#    Properties:
-#      RestApiId: !Ref MockYotiRestApi
-#    DependsOn: MockYotiApiGatewayCustomDomain
-
-#  MockYotiApiGatewayMapping:
-#    Type: AWS::ApiGatewayV2::ApiMapping
-#    Properties:
-#      DomainName: !Ref MockYotiApiGatewayCustomDomain
-#      ApiId: !Ref MockYotiRestApi
-#      Stage: !Sub "${AWS::StackName}-${Environment}"
-#    DependsOn: MockYotiApiGatewayCustomDomain
 
   # Base Path Mapping
   MockYotiApiBasePathMapping:
