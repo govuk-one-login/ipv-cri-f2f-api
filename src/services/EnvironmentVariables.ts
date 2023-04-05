@@ -9,8 +9,6 @@ import { Constants } from "../utils/Constants";
  */
 export class EnvironmentVariables {
 
-	private readonly GOVUKNOTIFY_API_KEY = process.env.GOVUKNOTIFY_API_KEY;
-
 	private readonly GOVUKNOTIFY_TEMPLATE_ID = process.env.GOVUKNOTIFY_TEMPLATE_ID;
 
 	private readonly GOVUKNOTIFY_MAX_RETRIES = process.env.GOVUKNOTIFY_MAX_RETRIES;
@@ -29,8 +27,6 @@ export class EnvironmentVariables {
 	 * Constructor reads all necessary environment variables and stores them as class data.
 	 * It also performs validation on env variable values. If certain variables have unexpected values the constructor will throw an error and/or log an error message
 	 *
-	 * @param EMAIL_ENABLED
-	 * @param GOVUKNOTIFY_API_KEY
 	 * @param GOVUKNOTIFY_TEMPLATE_ID
 	 * @param GOVUKNOTIFY_MAX_RETRIES
 	 * @param GOVUKNOTIFY_BACKOFF_PERIOD_MS
@@ -41,8 +37,7 @@ export class EnvironmentVariables {
 	 */
 	constructor(logger: Logger) {
 
-		if (!this.GOVUKNOTIFY_API_KEY || this.GOVUKNOTIFY_API_KEY.trim().length === 0 ||
-			!this.GOVUKNOTIFY_TEMPLATE_ID || this.GOVUKNOTIFY_TEMPLATE_ID.trim().length === 0 ||
+		if (!this.GOVUKNOTIFY_TEMPLATE_ID || this.GOVUKNOTIFY_TEMPLATE_ID.trim().length === 0 ||
 			!this.ISSUER || this.ISSUER.trim().length === 0 ||
 			!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0) {
 			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
@@ -74,10 +69,6 @@ export class EnvironmentVariables {
 	/**
 	 * Accessor method for env variable values
 	 */
-
-	apiKey(): any {
-		return this.GOVUKNOTIFY_API_KEY;
-	}
 
 	templateId(): any {
 		return this.GOVUKNOTIFY_TEMPLATE_ID;

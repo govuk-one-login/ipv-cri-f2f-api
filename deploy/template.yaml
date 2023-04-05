@@ -64,7 +64,6 @@ Mappings:
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      GOVUKNOTIFYAPIKEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
       RESOURCESTTL: 691200 # Default 8 days
@@ -75,7 +74,6 @@ Mappings:
       ISSUER: 'https://review-o.build.account.gov.uk'
       DNSSUFFIX: review-o.build.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      GOVUKNOTIFYAPIKEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
       RESOURCESTTL: 691200 # Default 8 days
@@ -86,7 +84,6 @@ Mappings:
       ISSUER: 'https://review-o.staging.account.gov.uk'
       DNSSUFFIX: review-o.staging.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      GOVUKNOTIFYAPIKEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
       RESOURCESTTL: 691200 # Default 8 days
@@ -97,7 +94,6 @@ Mappings:
       ISSUER: 'https://review-o.integration.account.gov.uk'
       DNSSUFFIX: review-o.integration.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      GOVUKNOTIFYAPIKEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
       RESOURCESTTL: 691200 # Default 8 days
@@ -108,7 +104,6 @@ Mappings:
       ISSUER: 'https://review-o.account.gov.uk'
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      GOVUKNOTIFYAPIKEY: "identity-136b4dd1-cc14-40c9-a083-0a6298bf2d89-7bbc36ca-2d2c-4dfe-b9cb-0344fcd5f722"
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
       RESOURCESTTL: 691200 # Default 8 days
@@ -182,11 +177,12 @@ Globals:
       Variables:
         # These should always be alphabetically organised.
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
-        POWERTOOLS_LOG_LEVEL: DEBUG # The LogLevel for the AWS PowerTools LogHelper
+        POWERTOOLS_LOG_LEVEL: INFO # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
         ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
         TXMA_QUEUE_URL: !Ref TxMASQSQueue
-        SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+        YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+        GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
         YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
         YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
         CLIENT_SESSION_TOKEN_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
@@ -724,13 +720,14 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
-          GOVUKNOTIFY_API_KEY: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPIKEY ]
           GOVUKNOTIFY_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYTEMPLATEID ]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
         - DynamoDBWritePolicy:
             TableName:
               Fn::ImportValue:

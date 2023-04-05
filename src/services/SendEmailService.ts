@@ -34,25 +34,24 @@ export class SendEmailService {
 
 	private readonly f2fService: F2fService;
 
-
 	/**
 	 * Constructor sets up the client needed to use gov notify service with API key read from env var
 	 *
 	 * @param environmentVariables
 	 * @private
 	 */
-	private constructor(logger: Logger, YOTI_PRIVATE_KEY: string) {
+	private constructor(logger: Logger, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string) {
     	this.logger = logger;
     	this.environmentVariables = new EnvironmentVariables(logger);
-    	this.govNotify = new NotifyClient(this.environmentVariables.apiKey());
+    	this.govNotify = new NotifyClient(GOVUKNOTIFY_API_KEY);
 		this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), YOTI_PRIVATE_KEY);
     	this.govNotifyErrorMapper = new GovNotifyErrorMapper();
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 	}
 
-	static getInstance(logger: Logger, YOTI_PRIVATE_KEY: string): SendEmailService {
+	static getInstance(logger: Logger, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string): SendEmailService {
     	if (!this.instance) {
-    		this.instance = new SendEmailService(logger, YOTI_PRIVATE_KEY);
+    		this.instance = new SendEmailService(logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY);
     	}
     	return this.instance;
 	}

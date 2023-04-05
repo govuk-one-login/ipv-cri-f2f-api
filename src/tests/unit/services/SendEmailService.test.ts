@@ -23,6 +23,8 @@ const mockYotiService = mock<YotiService>();
 let sendEmailServiceTest: SendEmailService;
 // pragma: allowlist nextline secret
 const YOTI_PRIVATE_KEY = "sdfsdf";
+// pragma: allowlist nextline secret
+const GOVUKNOTIFY_API_KEY = "sdhohofsdf";
 const logger = mock<Logger>();
 let sqsEvent: SQSEvent;
 const mockF2fService = mock<F2fService>();
@@ -49,7 +51,7 @@ function getMockSessionItem(): ISessionItem {
 }
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
-		sendEmailServiceTest = SendEmailService.getInstance(logger, YOTI_PRIVATE_KEY);
+		sendEmailServiceTest = SendEmailService.getInstance(logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY);
 		// @ts-ignore
 		sendEmailServiceTest.govNotify = mockGovNotify;
 		// @ts-ignore

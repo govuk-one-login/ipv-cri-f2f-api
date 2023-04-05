@@ -8,7 +8,6 @@ import { Response } from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "./services/DocumentSelectionRequestProcessor";
 import { AppError } from "./utils/AppError";
-import { ssmClient, GetParameterCommand } from "./utils/SSMClient";
 import { getParameter } from "./utils/Config";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
@@ -23,11 +22,11 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 
 let YOTI_PRIVATE_KEY: string;
 export class DocumentSelection implements LambdaInterface {
-	private readonly SSM_PATH = process.env.SSM_PATH;
+	private readonly YOTI_KEY_SSM_PATH = process.env.YOTI_KEY_SSM_PATH;
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
-		if (!this.SSM_PATH || this.SSM_PATH.trim().length === 0) {
+		if (!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0) {
 			logger.error("Environment variable SSM_PATH is not configured");
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
@@ -53,9 +52,9 @@ export class DocumentSelection implements LambdaInterface {
 						if (!YOTI_PRIVATE_KEY) {
 							logger.info({ message: "Fetching key from SSM" });
 							try {
-								YOTI_PRIVATE_KEY = await getParameter(this.SSM_PATH);
+								YOTI_PRIVATE_KEY = await getParameter(this.YOTI_KEY_SSM_PATH);
 							} catch (err) {
-								logger.error(`failed to get param from ssm at ${this.SSM_PATH}`, { err });
+								logger.error(`failed to get param from ssm at ${this.YOTI_KEY_SSM_PATH}`, { err });
 								throw err;
 							}
 						}
