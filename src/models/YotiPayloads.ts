@@ -36,24 +36,24 @@ export interface CreateSessionPayload {
 		auth_token: string;
 		auth_type: string;
 	};
-	requested_checks: {
+	requested_checks: Array<{
 		type: string;
 		config: {
 			manual_check: string;
 			scheme?: string;
 		};
-	}[];
-	required_documents: {
+	}>;
+	required_documents: Array<{
 		type: string;
 		filter: {
 			type: string;
 			inclusion: string;
-			documents: {
+			documents: Array<{
 				country_codes: string[];
 				document_types: string[];
-			}[];
+			}>;
 		};
-	}[];
+	}>;
 	resources: {
 		applicant_profile: {
 			full_name: string;
@@ -82,31 +82,31 @@ export interface YotiSessionInfo {
 		last_updated: string;
 	}; };
 	capture: {
-		required_resources: {
+		required_resources: Array<{
 			type: string;
 			id: string;
 			state: string;
-			allowed_sources: {
+			allowed_sources: Array<{
 				type: string;
-			}[];
+			}>;
 			requested_tasks: any[];
-			ibv_client_assessments: {
+			ibv_client_assessments: Array<{
 				type: string;
 				state: string;
 				scheme?: string;
-			}[];
-			supported_countries: {
+			}>;
+			supported_countries: Array<{
 				code: string;
-				supported_documents: {
+				supported_documents: Array<{
 					type: string;
-				}[];
-			}[];
+				}>;
+			}>;
 			allowed_capture_methods: string;
 			attempts_remaining: {
 				RECLASSIFICATION: number;
 				GENERIC: number;
 			};
-		}[];
+		}>;
 		biometric_consent: string;
 	};
 	sdk_config: {
