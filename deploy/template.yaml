@@ -399,6 +399,7 @@ Resources:
 
   TokenFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
+   # Condition: IsProdLikeEnvironment
     Properties:
       DestinationArn: 
         !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
@@ -482,6 +483,7 @@ Resources:
 
   AuthorizationFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
+    # Condition: IsProdLikeEnvironment
     Properties:
       DestinationArn: 
         !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
@@ -549,6 +551,7 @@ Resources:
 
   DocumentSelectionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
+    # Condition: IsProdLikeEnvironment
     Properties:
       DestinationArn: 
         !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
