@@ -13,6 +13,7 @@ import { SendEmailProcessor } from "./services/SendEmailProcessor";
 import { HttpCodesEnum } from "./models/enums/HttpCodesEnum";
 import { getParameter } from "./utils/Config";
 import { AppError } from "./utils/AppError";
+import { EnvironmentVariables } from "./services/EnvironmentVariables";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.EMAIL_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -28,18 +29,11 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 let YOTI_PRIVATE_KEY: string;
 let GOVUKNOTIFY_API_KEY: string;
 class GovNotifyHandler implements LambdaInterface {
-	private readonly YOTI_KEY_SSM_PATH = process.env.YOTI_KEY_SSM_PATH;
-
-	private readonly GOVUKNOTIFY_API_KEY_SSM_PATH = process.env.GOVUKNOTIFY_API_KEY_SSM_PATH;
+	private readonly environmentVariables = new EnvironmentVariables(logger);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: SQSEvent, context: any): Promise<any> {
 		if (event.Records.length === 1) {
-			if (!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
-				!this.GOVUKNOTIFY_API_KEY_SSM_PATH || this.GOVUKNOTIFY_API_KEY_SSM_PATH.trim().length === 0) {
-				logger.error("Environment variable YOTI_KEY_SSM_PATH or GOVUKNOTIFY_API_KEY_SSM_PATH is not configured");
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
-			}
 			const record: SQSRecord = event.Records[0];
 			logger.debug("Starting to process record", { record });
 			const batchFailures: BatchItemFailure[] = [];
@@ -50,18 +44,18 @@ class GovNotifyHandler implements LambdaInterface {
 				if (!YOTI_PRIVATE_KEY) {
 					logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
 					try {
-						YOTI_PRIVATE_KEY = await getParameter(this.YOTI_KEY_SSM_PATH);
+						YOTI_PRIVATE_KEY = await getParameter(this.environmentVariables.yotiKeySsmPath());
 					} catch (err) {
-						logger.error(`failed to get param from ssm at ${this.YOTI_KEY_SSM_PATH}`, { err });
+						logger.error(`failed to get param from ssm at ${this.environmentVariables.yotiKeySsmPath()}`, { err });
 						throw err;
 					}
 				}
 				if (!GOVUKNOTIFY_API_KEY) {
 					logger.info({ message: "Fetching GOVUKNOTIFY_API_KEY from SSM" });
 					try {
-						GOVUKNOTIFY_API_KEY = await getParameter(this.GOVUKNOTIFY_API_KEY_SSM_PATH);
+						GOVUKNOTIFY_API_KEY = await getParameter(this.environmentVariables.govNotifyApiKeySsmPath());
 					} catch (err) {
-						logger.error(`failed to get param from ssm at ${this.GOVUKNOTIFY_API_KEY_SSM_PATH}`, { err });
+						logger.error(`failed to get param from ssm at ${this.environmentVariables.govNotifyApiKeySsmPath()}`, { err });
 						throw err;
 					}
 				}
