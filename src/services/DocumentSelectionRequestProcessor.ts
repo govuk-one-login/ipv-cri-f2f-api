@@ -7,7 +7,6 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
-import { EnvironmentVariables } from "./EnvironmentVariables";
 import { Constants } from "../utils/Constants";
 
 export class DocumentSelectionRequestProcessor {
@@ -22,12 +21,11 @@ export class DocumentSelectionRequestProcessor {
 
   	private readonly PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
 
-	private readonly YOTI_SDK = process.env.YOTISDK;
+		private readonly YOTI_SDK = process.env.YOTISDK;
 
   	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
 
   	private readonly f2fService: F2fService;
-
 
   	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
   		if (!this.PERSON_IDENTITY_TABLE_NAME || this.PERSON_IDENTITY_TABLE_NAME.trim().length === 0
@@ -57,8 +55,9 @@ export class DocumentSelectionRequestProcessor {
   	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
 
   		const personDetails = await this.f2fService.getPersonIdentityById(sessionId);
+
   		if (!personDetails) {
-  			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing Session info in table");
+  			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing person details info in table");
   		}
   		if (!event.body) {
   			throw new AppError(HttpCodesEnum.BAD_REQUEST, "No body present in post request");
@@ -67,13 +66,23 @@ export class DocumentSelectionRequestProcessor {
   		const eventBody = JSON.parse(event.body);
   		const PostOfficeSelection = eventBody.post_office_selection;
   		const selectedDocument = eventBody.document_selection.document_selected;
-
+			
+  		let sessionID, sessionInfo;
+			
   		this.logger.info("Creating new session in Yoti");
-  		const sessionID = await this.yotiService.createSession(personDetails, selectedDocument, this.YOTICALLBACKURL);
+  		sessionID = await this.yotiService.createSession(personDetails, selectedDocument, this.YOTICALLBACKURL);
+
+  		if (!sessionID) {
+  			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when creating Yoti Session");
+  		}
 
   		this.logger.info("Fetching Session Info");
-  		const sessionInfo = await this.yotiService.fetchSessionInfo(sessionID);
+  		sessionInfo = await this.yotiService.fetchSessionInfo(sessionID);
 
+  		if (!sessionInfo) {
+  			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occurred when fetching Yoti Session");
+  		}
+  		
   		const requirements = sessionInfo.capture.required_resources
   			.filter((x: any) => x.type.includes("DOCUMENT"))
   			.map((resource: any) => {
@@ -99,14 +108,22 @@ export class DocumentSelectionRequestProcessor {
   				}
   			});
 
+  		if (!requirements) {
+  			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Empty required resources in Yoti");
+  		}
+
   		this.logger.info({ message:"Generating Instructions PDF" }, { sessionID });
-  		const response = await this.yotiService.generateInstructions(
+  		const generateInstructionsResponse = await this.yotiService.generateInstructions(
   			sessionID,
   			personDetails,
   			requirements,
   			PostOfficeSelection,
   		);
 
-  		return new Response(HttpCodesEnum.OK, response);
+  		if (generateInstructionsResponse !== HttpCodesEnum.OK) {
+  			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when generating Yoti instructions pdf");
+  		}
+
+  		return new Response(HttpCodesEnum.OK, "Instructions PDF Generated");
   	}
 }

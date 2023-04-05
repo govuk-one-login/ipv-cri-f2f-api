@@ -32,7 +32,7 @@ export interface Address {
 export interface PersonIdentity {
 	names: Name[];
 	birthDates: BirthDate[];
-	address: Address[];
+	address?: Address[];
 	sessionId: string;
-	emailAdress: string;
+	emailAdress?: string;
 }
