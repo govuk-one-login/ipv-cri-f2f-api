@@ -29,10 +29,11 @@ export interface Address {
 	validUntil: string;
 }
 
+//TODO: Making emailAddress & address optinal until work on F2F-474 is completed
 export interface PersonIdentity {
 	names: Name[];
 	birthDates: BirthDate[];
-	address: Address[];
+	address?: Address[];
 	sessionId: string;
-	emailAdress: string;
+	emailAddress?: string;
 }

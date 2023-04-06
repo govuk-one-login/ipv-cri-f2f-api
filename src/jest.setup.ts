@@ -7,6 +7,5 @@ process.env.YOTISDK = "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
 process.env.YOTIBASEURL = "https://XXX-proxy.review-o.dev.account.gov.uk/yoti"
 process.env.YOTI_KEY_SSM_PATH = "/dev/YOTI/PRIVATEKEY"
 process.env.GOVUKNOTIFY_API_KEY_SSM_PATH = "/dev/f2f-gov-notify/lsdkgl"
-
-
-
+process.env.PERSON_IDENTITY_TABLE_NAME = "PERSONIDENTITYTABLE"
+process.env.YOTICALLBACKURL = "www.test.com/callback";

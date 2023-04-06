@@ -74,7 +74,9 @@ export class SendEmailService {
     	this.logger.debug("Fetching the Instructions Pdf from yoti for sessionId: ", message.yotiSessionId);
     	try {
     		const instructionsPdf = await this.yotiService.fetchInstructionsPdf(message.yotiSessionId);
-    		encoded = Buffer.from(instructionsPdf, "binary").toString("base64");
+			if (instructionsPdf) {
+				encoded = Buffer.from(instructionsPdf, "binary").toString("base64");
+			}
     	} catch (err) {
     		this.logger.error("Error while fetching Instructions pfd or encoding the pdf." + err);
     		throw err;

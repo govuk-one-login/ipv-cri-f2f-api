@@ -2,10 +2,13 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import crypto, { randomUUID } from "crypto";
 import axios, { AxiosRequestConfig } from "axios";
+import { AppError } from "../utils/AppError";
+import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
 import { PersonIdentity } from "../models/PersonIdentity";
-import { StructuredPostalAddress, ApplicantProfile, PostOfficeInfo } from "../models/YotiPayloads";
+import { ApplicantProfile, PostOfficeInfo, YotiSessionInfo, CreateSessionPayload } from "../models/YotiPayloads";
 import { YotiDocumentTypesEnum, YOTI_DOCUMENT_COUNTRY_CODE, REQUESTED_CHECKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
+import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
 export class YotiService {
 	readonly logger: Logger;
@@ -55,43 +58,15 @@ export class YotiService {
 			.toString("base64");
 	}
 
-
-	//TODO: Hardcoded now, will update with values from Person Identity table once /session work completed
-	private getStructuredPostalAddress(): StructuredPostalAddress {
-		return {
-			address_format: 1,
-			building_number: "74",
-			address_line1: "AddressLine1",
-			town_city: "CityName",
-			postal_code: "E143RN",
-			country_iso: "GBR",
-			country: "United Kingdom",
-		};
-	}
-
 	private getApplicantProfile(
 		personDetails: PersonIdentity,
 	): ApplicantProfile {
-		const givenNames: string[] = [];
-		const familyNames: string[] = [];
-
-		for (const name of personDetails.names) {
-			const nameParts = name.nameParts;
-			for (const namePart of nameParts) {
-				if (namePart.type === "GivenName") {
-					givenNames.push(namePart.value);
-				}
-				if (namePart.type === "FamilyName") {
-					familyNames.push(namePart.value);
-				}
-			}
-		}
+		const nameParts = personIdentityUtils.getNames(personDetails);
 
 		return {
-			full_name: `${givenNames[0]} ${familyNames}`,
+			full_name: `${nameParts.givenNames[0]} ${nameParts.familyNames[0]}`,
 			date_of_birth: `${personDetails.birthDates.map((bd) => ({ value: bd.value }))[0].value}`,
-			structured_postal_address:
-				this.getStructuredPostalAddress(),
+			structured_postal_address: personIdentityUtils.getYotiStructuredPostalAddress(personDetails),
 		};
 	}
 
@@ -151,17 +126,17 @@ export class YotiService {
 		personDetails: PersonIdentity,
 		selectedDocument: string,
 		YOTICALLBACKURL?: string,
-	): Promise<string> {
+	): Promise<string | undefined> {
 		//TODO: YOTICALLBACKURL needs updating in template.yaml file within deploy folders oncer we have work completed on return journey
-		const payloadJSON = {
-			client_session_token_ttl: this.CLIENT_SESSION_TOKEN_TTL,
-			resources_ttl: this.RESOURCES_TTL,
+		const payloadJSON: CreateSessionPayload = {
+			client_session_token_ttl: this.CLIENT_SESSION_TOKEN_TTL ? this.CLIENT_SESSION_TOKEN_TTL : "604800",
+			resources_ttl: this.RESOURCES_TTL ? this.RESOURCES_TTL : "691200",
 			ibv_options: {
 				support: "MANDATORY",
 			},
 			user_tracking_id: personDetails.sessionId,
 			notifications: {
-				endpoint: YOTICALLBACKURL,
+				endpoint: YOTICALLBACKURL ? YOTICALLBACKURL : "",
 				topics: YOTI_SESSION_TOPICS,
 				auth_token: "string",
 				auth_type: "BASIC",
@@ -195,53 +170,49 @@ export class YotiService {
 			endpoint: "/sessions",
 		});
 
-		const { data } = await axios.post(
-			yotiRequest.url,
-			payloadJSON,
-			yotiRequest.config,
-		);
-
-		return data.session_id;
+		try {
+			const { data } = await axios.post(
+				yotiRequest.url,
+				payloadJSON,
+				yotiRequest.config,
+			);
+	
+			return data.session_id;
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when creating Yoti session ", err });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Yoti Session");
+		}
 	}
 
-	async fetchSessionInfo(sessionId: string): Promise<any> {
+	async fetchSessionInfo(sessionId: string): Promise<YotiSessionInfo | undefined> {
 		const yotiRequest = this.generateYotiRequest({
 			method: HttpVerbsEnum.GET,
 			endpoint: `/sessions/${sessionId}/configuration`,
 		});
 
-		const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
+		try {
+			const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
 
-		return data;
+			return data;
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when fetching Yoti session ", err });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
+		}
 	}
 
 	async generateInstructions(
 		sessionID: string,
 		personDetails: PersonIdentity,
-		requirements: [],
+		requirements: Array<{ requirement_id: string; document: { type: string; country_code: string; document_type: string } } | undefined>,
 		PostOfficeSelection: PostOfficeInfo,
-	):Promise<any> {
-		const givenNames: string[] = [];
-		const familyNames: string[] = [];
-
-		for (const name of personDetails.names) {
-			const nameParts = name.nameParts;
-			for (const namePart of nameParts) {
-				if (namePart.type === "GivenName") {
-					givenNames.push(namePart.value);
-				}
-				if (namePart.type === "FamilyName") {
-					familyNames.push(namePart.value);
-				}
-			}
-		}
+	):Promise<number | undefined> {
+		const nameParts = personIdentityUtils.getNames(personDetails);
 
 		const payloadJSON = {
 			contact_profile: {
-				first_name: `${givenNames[0]}`,
-				last_name: `${familyNames[0]}`,
-				//TODO: Update email file to be fetched from Person Identity Table once Session work completed
-				email: "test@example.com",
+				first_name: `${nameParts.givenNames[0]}`,
+  			last_name: `${nameParts.familyNames[0]}`,
+  			email: personIdentityUtils.getEmailAddress(personDetails),
 			},
 			documents: requirements,
 			branch: {
@@ -262,16 +233,21 @@ export class YotiService {
 			payloadJSON: JSON.stringify(payloadJSON),
 		});
 
-		const { data } = await axios.put(
-			yotiRequest.url,
-			payloadJSON,
-			yotiRequest.config,
-		);
-
-		return data;
+		try {
+			await axios.put(
+				yotiRequest.url,
+				payloadJSON,
+				yotiRequest.config,
+			);
+	
+			return HttpCodesEnum.OK;
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when generationg Yoti instructions PDF ", err });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generationg Yoti instructions PDF");
+		}
 	}
 
-	async fetchInstructionsPdf(sessionId: string): Promise<string> {
+	async fetchInstructionsPdf(sessionId: string): Promise<string | undefined> {
 		const yotiRequest = this.generateYotiRequest({
 			method: HttpVerbsEnum.GET,
 			endpoint: `/sessions/${sessionId}/instructions/pdf`,
@@ -282,7 +258,13 @@ export class YotiService {
 
 		const url = yotiRequest.url;
 
-		this.logger.debug("getPdf - Yoti", { url, yotiRequestConfig });
-		return (await axios.get(yotiRequest.url, yotiRequest.config)).data;
+		try {
+			this.logger.debug("getPdf - Yoti", { url, yotiRequestConfig });
+			return (await axios.get(yotiRequest.url, yotiRequest.config)).data;
+
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when fetching Yoti instructions PDF ", err });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF");
+		}
 	}
 }
