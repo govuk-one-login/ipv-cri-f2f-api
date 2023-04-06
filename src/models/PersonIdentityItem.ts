@@ -29,10 +29,14 @@ export interface PersonIdentityDateOfBirth {
 	value: string;
 }
 
+export interface PersonEmailAddress {
+	value: string;
+}
+
 export interface PersonIdentityItem {
 	sessionId: string;
 	addresses: PersonIdentityAddress[];
 	names: PersonIdentityName[];
 	birthDates: PersonIdentityDateOfBirth[];
-	expiryDate: number;
+	emailAddress: string;
 }
