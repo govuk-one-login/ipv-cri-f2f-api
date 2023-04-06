@@ -22,7 +22,7 @@ export const handler = async (
   const config = getConfig();
   const overrides = event.body !== null ? JSON.parse(event.body) : null;
   if (overrides?.target != null) {
-    config.oauthUri = overrides.target;
+    config.jwksUri = overrides.target;
   }
   const defaultClaims = {
     name: [
@@ -129,9 +129,7 @@ async function getPublicEncryptionKey(config: {
 }): Promise<CryptoKey> {
   const webcrypto = crypto.webcrypto as unknown as Crypto;
   const oauthProviderJwks = (
-    await axios.get(
-      `${config.jwksUri ?? config.oauthUri}/.well-known/jwks.json`
-    )
+    await axios.get(`${config.jwksUri}/.well-known/jwks.json`)
   ).data as Jwks;
   const publicKey = oauthProviderJwks.keys.find((key) => key.use === "enc");
   const publicEncryptionKey: CryptoKey = await webcrypto.subtle.importKey(
