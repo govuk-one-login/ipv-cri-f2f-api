@@ -491,77 +491,90 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws"
     
-  /callback:
-    post:
-      operationId: postCallback
-      summary: callback endpoint for asynchronous notifications from Yoti
-      description: >-
-        Endpoint is registered as the notifications callback with Yoti in the call to `POST /session`
-      tags:
-        - Callback
-      parameters:
-        - $ref: '#/components/parameters/Authorization'
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/CallbackRequest'
-      responses:
-        "202":
-          description: Accepted
-          headers:
-            Cache-Control:
-              schema:
-                type: "string"
-            Content-Type:
-              schema:
-                type: "string"
-            Strict-Transport-Security:
-              schema:
-                type: "string"
-            X-Content-Type-Options:
-              schema:
-                type: "string"
-            X-Frame-Options:
-              schema:
-                type: "string"
-        "401":
-          description: Unauthorized
-          headers:
-            Cache-Control:
-              schema:
-                type: "string"
-            Content-Type:
-              schema:
-                type: "string"
-            Strict-Transport-Security:
-              schema:
-                type: "string"
-            X-Content-Type-Options:
-              schema:
-                type: "string"
-            X-Frame-Options:
-              schema:
-                type: "string"
-        "500":
-          description: Internal Server Error
-          headers:
-            Cache-Control:
-              schema:
-                type: "string"
-            Content-Type:
-              schema:
-                type: "string"
-            Strict-Transport-Security:
-              schema:
-                type: "string"
-            X-Content-Type-Options:
-              schema:
-                type: "string"
-            X-Frame-Options:
-              schema:
-                type: "string"
+  # /callback:
+  #   post:
+  #     operationId: postCallback
+  #     summary: callback endpoint for asynchronous notifications from Yoti
+  #     description: >-
+  #       Endpoint is registered as the notifications callback with Yoti in the call to `POST /session`
+  #     tags:
+  #       - Callback
+  #     parameters:
+  #       - $ref: '#/components/parameters/Authorization'
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/x-www-form-urlencoded:
+  #           schema:
+  #             $ref: '#/components/schemas/CallbackRequest'
+  #     responses:
+  #       "202":
+  #         description: Accepted
+  #         headers:
+  #           Cache-Control:
+  #             schema:
+  #               type: "string"
+  #           Content-Type:
+  #             schema:
+  #               type: "string"
+  #           Strict-Transport-Security:
+  #             schema:
+  #               type: "string"
+  #           X-Content-Type-Options:
+  #             schema:
+  #               type: "string"
+  #           X-Frame-Options:
+  #             schema:
+  #               type: "string"
+  #       "401":
+  #         description: Unauthorized
+  #         headers:
+  #           Cache-Control:
+  #             schema:
+  #               type: "string"
+  #           Content-Type:
+  #             schema:
+  #               type: "string"
+  #           Strict-Transport-Security:
+  #             schema:
+  #               type: "string"
+  #           X-Content-Type-Options:
+  #             schema:
+  #               type: "string"
+  #           X-Frame-Options:
+  #             schema:
+  #               type: "string"
+  #       "500":
+  #         description: Internal Server Error
+  #         headers:
+  #           Cache-Control:
+  #             schema:
+  #               type: "string"
+  #           Content-Type:
+  #             schema:
+  #               type: "string"
+  #           Strict-Transport-Security:
+  #             schema:
+  #               type: "string"
+  #           X-Content-Type-Options:
+  #             schema:
+  #               type: "string"
+  #           X-Frame-Options:
+  #             schema:
+  #               type: "string"
+  #     x-amazon-apigateway-request-validator: "both"
+  #     x-amazon-apigateway-integration:
+  #       httpMethod: "POST"
+  #       credentials:
+  #         Fn::GetAtt: [ "YotiCallbackSQSQueuePolicy", "Arn" ]
+  #       uri:
+  #         Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${JsonWebKeysBucket}/.well-known/jwks.json"
+  #       responses:
+  #         default:
+  #           statusCode: "200"
+  #       passthroughBehavior: "when_no_match"
+  #       contentHandling: "CONVERT_TO_TEXT"
+  #       type: "aws"
 
 components:
   schemas:
