@@ -8,6 +8,7 @@ import { YotiService } from "./YotiService";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { Constants } from "../utils/Constants";
+import { buildGovNotifyEventFields } from "../utils/GovNotifyEvent";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -21,7 +22,7 @@ export class DocumentSelectionRequestProcessor {
 
   	private readonly PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
 
-	private readonly YOTI_SDK = process.env.YOTISDK;
+		private readonly YOTI_SDK = process.env.YOTISDK;
 
   	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
 
@@ -67,7 +68,7 @@ export class DocumentSelectionRequestProcessor {
   		const PostOfficeSelection = eventBody.post_office_selection;
   		const selectedDocument = eventBody.document_selection.document_selected;
 			
-  		let yotiSessionID, sessionInfo;
+  		let yotiSessionID, yotiSessionInfo;
 			
   		this.logger.info("Creating new session in Yoti");
   		yotiSessionID = await this.yotiService.createSession(personDetails, selectedDocument, this.YOTICALLBACKURL);
@@ -77,13 +78,13 @@ export class DocumentSelectionRequestProcessor {
   		}
 
   		this.logger.info("Fetching Session Info");
-  		sessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionID);
+  		yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionID);
 
-  		if (!sessionInfo) {
+  		if (!yotiSessionInfo) {
   			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occurred when fetching Yoti Session");
   		}
   		
-  		const requirements = sessionInfo.capture.required_resources
+  		const requirements = yotiSessionInfo.capture.required_resources
   			.filter((x: any) => x.type.includes("DOCUMENT"))
   			.map((resource: any) => {
   				if (resource.type === "ID_DOCUMENT") {
@@ -122,6 +123,20 @@ export class DocumentSelectionRequestProcessor {
 
   		if (generateInstructionsResponse !== HttpCodesEnum.OK) {
   			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when generating Yoti instructions pdf");
+  		}
+
+  		try {
+  			await this.f2fService.sendToGovNotify({
+  				event_name: "F2F_CRI_INSTRUCTIONS_GENERATED",
+  				...buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails),
+  			});
+  		} catch (error) {
+  			this.logger.error("FAILED_TO_WRITE_GOV_NOTIFY", {
+  				yotiSessionID,
+  				reason: "Yoti session created, faled to post message to GovNotify SQS Queue",
+  				error,
+  			});
+  			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when sending message to GovNotify handler");
   		}
 
   		return new Response(HttpCodesEnum.OK, "Instructions PDF Generated");

@@ -20,9 +20,7 @@ export class Email {
 
 	static parseRequest(data: any): Email {
 		try {
-
-			const obj = JSON.parse(data);
-			return new Email(obj);
+			return new Email(data);
 		} catch (error: any) {
 			console.log("Cannot parse Email data", Email.name, "parseBody", { data });
 			throw new AppError( HttpCodesEnum.BAD_REQUEST, "Cannot parse Email data");

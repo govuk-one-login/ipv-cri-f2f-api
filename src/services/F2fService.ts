@@ -11,6 +11,7 @@ import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { sqsClient } from "../utils/SqsClient";
 import { TxmaEvent } from "../utils/TxmaEvent";
 import { PersonIdentity } from "../models/PersonIdentity";
+import { GovNotifyEvent } from "../utils/GovNotifyEvent";
 
 export class F2fService {
 	readonly tableName: string;
@@ -116,6 +117,23 @@ export class F2fService {
 		} catch (error) {
 			this.logger.error("got error " + error);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event - failed ");
+		}
+	}
+
+	async sendToGovNotify(event: GovNotifyEvent): Promise<void> {
+		const messageBody = JSON.stringify(event);
+		const params = {
+			MessageBody: messageBody,
+			QueueUrl: process.env.GOV_NOTIFY_QUEUE_URL,
+		};
+
+		this.logger.info({ message: "Sending message to Gov Notify Queue", messageBody });
+		try {
+			await sqsClient.send(new SendMessageCommand(params));
+			this.logger.info("Sent message to Gov Notify");
+		} catch (error) {
+			this.logger.error("got error " + error);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to govNotify queue - failed ");
 		}
 	}
 

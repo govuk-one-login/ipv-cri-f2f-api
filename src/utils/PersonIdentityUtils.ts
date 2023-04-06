@@ -24,7 +24,7 @@ export const personIdentityUtils = {
 	getEmailAddress(personDetails: PersonIdentity): string {
 		//TODO: Update email file to be fetched from Person Identity Table once Session work completed
 		// return personDetails.emailAddress;
-		return "test@example.com";
+		return "viveak.vadivelkarasan@digital.cabinet-office.gov.uk";
 	},
 
 	getYotiStructuredPostalAddress(personDetails: PersonIdentity) {
