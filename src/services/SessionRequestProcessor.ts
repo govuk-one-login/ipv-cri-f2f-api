@@ -158,7 +158,7 @@ export class SessionRequestProcessor {
 
 		if (jwtPayload.shared_claims) {
 			try {
-				await this.f2fService.savePersonIdentity(jwtPayload.shared_claims, sessionId, session.expiryDate);
+				await this.f2fService.savePersonIdentity(jwtPayload.shared_claims, sessionId);
 			} catch (error) {
 				this.logger.error("FAILED_SAVING_PERSON_IDENTITY", { error });
 				return GenericServerError;

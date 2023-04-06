@@ -13,7 +13,7 @@ import { sqsClient } from "../utils/SqsClient";
 import { TxmaEvent } from "../utils/TxmaEvent";
 import {
 	Address,
-	BirthDate,
+	BirthDate, EmailAddress,
 	Name,
 	PersonIdentity,
 } from "../models/PersonIdentity";
@@ -238,14 +238,13 @@ export class F2fService {
 
 	private createPersonIdentityItem(
 		sharedClaims: PersonIdentity,
-		sessionId: string,
-		sessionExpirationEpoch: number,
+		sessionId: string
 	): PersonIdentityItem {
 		return {
 			sessionId,
 			addresses: this.mapAddresses(sharedClaims.address),
 			birthDates: this.mapBirthDates(sharedClaims.birthDate),
-			expiryDate: sessionExpirationEpoch,
+			emailAddress: sharedClaims.emailAddress,
 			names: this.mapNames(sharedClaims.name),
 		};
 	}
@@ -253,12 +252,10 @@ export class F2fService {
 	async savePersonIdentity(
 		sharedClaims: PersonIdentity,
 		sessionId: string,
-		expiryDate: number,
 	): Promise<void> {
 		const personIdentityItem = this.createPersonIdentityItem(
 			sharedClaims,
-			sessionId,
-			expiryDate,
+			sessionId
 		);
 
 		const putSessionCommand = new PutCommand({
