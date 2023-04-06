@@ -32,7 +32,7 @@ export class AccessTokenRequestProcessor {
 	constructor(logger: Logger, metrics: Metrics) {
 		if (!SESSION_TABLE || !KMS_KEY_ARN || !ISSUER) {
 			logger.error("Environment variable SESSION_TABLE or KMS_KEY_ARN or ISSUER is not configured");
-			throw new AppError("Service incorrectly configured, missing some environment variables.", HttpCodesEnum.SERVER_ERROR);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Service incorrectly configured, missing some environment variables.");
 		}
 		this.logger = logger;
 		this.kmsJwtAdapter = new KmsJwtAdapter(KMS_KEY_ARN);

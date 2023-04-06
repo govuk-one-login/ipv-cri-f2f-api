@@ -408,7 +408,7 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
-  
+
   /.well-known/jwks.json:
     get:
       operationId: getWellKnownJwksJson

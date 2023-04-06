@@ -30,7 +30,7 @@ export class AuthorizationRequestProcessor {
 	constructor(logger: Logger, metrics: Metrics) {
 		if (!SESSION_TABLE || !TXMA_QUEUE_URL || !ISSUER) {
 			logger.error("Environment variable SESSION_TABLE or TXMA_QUEUE_URL or ISSUER is not configured");
-			throw new AppError("Service incorrectly configured", HttpCodesEnum.SERVER_ERROR);
+			throw new AppError( HttpCodesEnum.SERVER_ERROR, "Service incorrectly configured");
 		}
 		this.logger = logger;
 		this.validationHelper = new ValidationHelper();

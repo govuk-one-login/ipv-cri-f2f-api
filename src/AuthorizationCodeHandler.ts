@@ -24,7 +24,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 class AuthorizationCodeHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
+	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
 		switch (event.resource) {
 			case ResourcesEnum.AUTHORIZATION:
 				if (event.httpMethod === HttpVerbsEnum.GET) {
@@ -57,7 +57,7 @@ class AuthorizationCodeHandler implements LambdaInterface {
 				return new Response(HttpCodesEnum.NOT_FOUND, "");
 
 			default:
-				throw new AppError("Requested resource does not exist" + { resource: event.resource }, HttpCodesEnum.NOT_FOUND);
+				throw new AppError(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist" + { resource: event.resource });
 		}
 	}
 
