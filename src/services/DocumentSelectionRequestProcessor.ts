@@ -21,7 +21,7 @@ export class DocumentSelectionRequestProcessor {
 
   	private readonly PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
 
-		private readonly YOTI_SDK = process.env.YOTISDK;
+	private readonly YOTI_SDK = process.env.YOTISDK;
 
   	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
 
