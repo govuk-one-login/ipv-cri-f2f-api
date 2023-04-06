@@ -1447,13 +1447,13 @@ components:
       name: X-Yoti-Auth-Token
       in: header
       description: "`X-Yoti-Auth-Token` header containing the `client_session_token` value obtained via the `Session` creation endpoint."
-    JWTS:
-      type: http
-      name: Authorization
-      in: header
-      scheme: bearer
-      bearerFormat: JWT
-      description: "`Authorization` header containing a signed jwts"
+#    JWTS:
+#      type: http
+#      name: Authorization
+#      in: header
+#      scheme: bearer
+#      bearerFormat: JWT
+#      description: "`Authorization` header containing a signed jwts"
 
   ## ---------------------
   ## Example Definitions
