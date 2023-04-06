@@ -42,10 +42,10 @@ Mappings:
   Configuration:
     dev:
       IPVStubID: "5C584572"
-      JWKS_URI: "https://api-f2f-cri-api.review-o.dev.account.gov.uk"
+      JWKSURI: "https://api-f2f-cri-api.review-o.dev.account.gov.uk"
     build:
       IPVStubID: "BD7B2A5D"
-      JWKS_URI: "https://api.review-o.build.account.gov.uk"
+      JWKSURI: "https://api.review-o.build.account.gov.uk"
     staging:
       IPVStubID: "9CDA6F61"
     integration:
@@ -297,7 +297,7 @@ Resources:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
           CLIENT_ID: !FindInMap [Configuration, !Ref Environment, IPVStubID]
           REDIRECT_URI: !Sub "https://ipvstub.review-c.${Environment}.account.gov.uk/redirect"
-          JWKS_URI: !FindInMap [Configuration, !Ref Environment, JWKS_URI]
+          JWKS_URI: !FindInMap [Configuration, !Ref Environment, JWKSURI]
           OAUTH_FRONT_BASE_URI: !Sub  "https://review-c.${Environment}.account.gov.uk"
       Policies:
         - Statement:
