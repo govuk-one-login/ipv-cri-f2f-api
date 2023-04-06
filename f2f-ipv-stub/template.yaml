@@ -45,7 +45,7 @@ Mappings:
       JWKS_URI: "https://api-f2f-cri-api.review-o.dev.account.gov.uk"
     build:
       IPVStubID: "BD7B2A5D"
-      JWKS_URI: "https://api.review-0.build.account.gov.uk"
+      JWKS_URI: "https://api.review-o.build.account.gov.uk"
     staging:
       IPVStubID: "9CDA6F61"
     integration:
