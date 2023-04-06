@@ -43,11 +43,11 @@ export class Email {
     emailAddress!: string;
 
     @IsString()
-    @IsOptional()
+    @IsNotEmpty()
     firstName!: string;
 
 	@IsString()
-	@IsOptional()
+	@IsNotEmpty()
 	lastName!: string;
 
     @IsString()

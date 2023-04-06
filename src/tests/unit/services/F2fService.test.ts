@@ -3,6 +3,9 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { randomUUID } from "crypto";
 import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
+import { sqsClient } from "../../../utils/SqsClient";
+import { TxmaEvent } from "../../../utils/TxmaEvent";
+import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
 
 const logger = new Logger({
 	logLevel: "DEBUG",
@@ -12,13 +15,53 @@ const logger = new Logger({
 let f2fService: F2fService;
 const tableName = "MYTABLE";
 const sessionId = "SESSID";
-const authCode = "AUTHCODE";
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
+const mockSqsClient = jest.mocked(sqsClient);
 const SESSION_RECORD = require("../data/db_record.json");
 
 const FAILURE_VALUE = "throw_me";
 
+function getTXMAEventPayload(): TxmaEvent {
+	const txmaEventPayload: TxmaEvent = {
+		event_name: "F2F_YOTI_PDF_EMAILED",
+		user: {
+			user_id: "sessionCliendId",
+			transaction_id: "",
+			persistent_session_id: "sessionPersistentSessionId",
+			session_id: "sessionID",
+			govuk_signin_journey_id: "clientSessionId",
+			ip_address: "sourceIp",
+		},
+		client_id: "clientId",
+		timestamp: 123,
+		component_id: "issuer",
+	};
+	return txmaEventPayload;
+}
+
+function getGovNotifyEventPayload(): GovNotifyEvent {
+	const govNotifyEventPayload: GovNotifyEvent = {
+		Message : {
+			sessionId: "f2fSessionId",
+			yotiSessionId: "yotiSessionId",
+			emailAddress: "email@test.com",
+			firstName: "John",
+			lastName: "Doe",
+			messageType: "email",
+		},
+	};
+	return govNotifyEventPayload;
+}
+
+
 describe("F2f Service", () => {
+	let txmaEventPayload: TxmaEvent, govNotifyEventPayload: GovNotifyEvent;
+	
+	beforeAll(() => {
+		txmaEventPayload = getTXMAEventPayload();
+		govNotifyEventPayload = getGovNotifyEventPayload();
+	});
+
 	beforeEach(() => {
 		jest.resetAllMocks();
 		f2fService = new F2fService(tableName, logger, mockDynamoDbClient);
@@ -50,6 +93,22 @@ describe("F2f Service", () => {
 		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
 
 		return expect(f2fService.updateSessionWithAccessTokenDetails("SESSID", 12345)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+		}));
+	});
+
+	it("show throw error if failed to send to TXMA queue", async () => {
+		mockSqsClient.send = jest.fn().mockRejectedValue({});
+
+		return expect(f2fService.sendToTXMA(txmaEventPayload)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+		}));
+	});
+
+	it("show throw error if failed to send to GovNotify queue", async () => {
+		mockSqsClient.send = jest.fn().mockRejectedValue({});
+
+		return expect(f2fService.sendToGovNotify(govNotifyEventPayload)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 		}));
 	});

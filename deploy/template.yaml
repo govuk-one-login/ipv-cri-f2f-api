@@ -641,6 +641,7 @@ Resources:
             Fn::ImportValue:
               !Sub "${L2DynamoStackName}-person-identity-table-name"
           YOTICALLBACKURL: !FindInMap [EnvironmentVariables, !Ref Environment, YOTICALLBACKURL]
+          GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -665,6 +666,17 @@ Resources:
                 - "kms:Decrypt"
                 - "kms:GenerateDataKey"
               Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt GovNotifySQSQueue.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:GenerateDataKey"
+              Resource: !GetAtt GovNotifyEncryptionKey.Arn
       Events:
         documentSelection:
           Type: Api
@@ -890,6 +902,19 @@ Resources:
                 - "kms:Decrypt"
                 - "kms:GenerateDataKey"
               Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Decrypt"
+              Resource: !GetAtt GovNotifyEncryptionKey.Arn
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt GovNotifySQSQueue.Arn
+            BatchSize: 1
+            Enabled: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -924,6 +949,78 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref GovNotifyFunction
       Principal: apigateway.amazonaws.com
+
+  #Gov Notify SQS Queue
+  GovNotifySQSQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      MessageRetentionPeriod: !FindInMap [EnvironmentVariables, !Ref Environment, MESSAGERETENTIONPERIODDAYS]
+      VisibilityTimeout: 60
+      KmsMasterKeyId: !Ref GovNotifyKeyAlias
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - "GovNotifySQSQueueDeadLetterQueue"
+            - "Arn"
+        maxReceiveCount: 5
+
+  GovNotifySQSQueueDeadLetterQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      MessageRetentionPeriod: 259200 # three days
+      KmsMasterKeyId: !Sub GovNotifyEncryptionKey
+
+  GovNotifySQSQueuePolicy:
+    Type: "AWS::SQS::QueuePolicy"
+    Properties:
+      Queues:
+        - !Ref GovNotifySQSQueue
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+            Resource: !GetAtt GovNotifySQSQueue.Arn
+
+  GovNotifyEncryptionKey:
+    Type: AWS::KMS::Key
+    # KMS Key manually rotated.
+    # checkov:skip=CKV_AWS_7: KMS Key manually rotated.
+    Properties:
+      Description: A KMS Key for encrypting the SQS Queue for GovNotify
+      Enabled: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource:
+              - "*"
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      PendingWindowInDays: 7
+      Tags:
+        - Key: KeyType
+          Value: Encryption Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+
+  GovNotifyKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !If
+        - CreateDevResources
+        - !Sub "alias/GovNotifyEncryptionKey-${AWS::StackName}"
+        - alias/GovNotifyEncryptionKey
+      TargetKeyId: !Ref GovNotifyEncryptionKey
 
 Outputs:
   F2FApiGatewayId:
