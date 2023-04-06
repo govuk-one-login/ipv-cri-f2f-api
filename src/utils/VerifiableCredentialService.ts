@@ -53,7 +53,7 @@ export class VerifiableCredentialService {
     		const signedVerifiedCredential = await this.kmsJwtAdapter.sign(result);
     		return signedVerifiedCredential;
     	} catch (error) {
-    		throw new AppError( "Failed to sign Jwt", HttpCodesEnum.SERVER_ERROR);
+    		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt");
     	}
     }
 

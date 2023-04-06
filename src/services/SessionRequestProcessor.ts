@@ -44,7 +44,7 @@ export class SessionRequestProcessor {
 
 		if (!SESSION_TABLE || !CLIENT_CONFIG || !ENCRYPTION_KEY_IDS || !AUTH_SESSION_TTL || !ISSUER) {
 			logger.error("Environment variable SESSION_TABLE or CLIENT_CONFIG or ENCRYPTION_KEY_IDS or AUTH_SESSION_TTL is not configured");
-			throw new AppError("Service incorrectly configured", HttpCodesEnum.SERVER_ERROR);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR,"Service incorrectly configured");
 		}
 
 		this.logger = logger;

@@ -21,7 +21,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 class Session implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
+	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
 		switch (event.resource) {
 			case ResourcesEnum.SESSION:
 				try {
@@ -36,7 +36,7 @@ class Session implements LambdaInterface {
 					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
 			default:
-				throw new AppError("Requested resource does not exist" + { resource: event.resource }, HttpCodesEnum.NOT_FOUND);
+				throw new AppError(HttpCodesEnum.NOT_FOUND,"Requested resource does not exist" + { resource: event.resource });
 		}
 
 	}

@@ -116,9 +116,8 @@ export class F2fService {
 			this.logger.info({ message: "updated F2F data in dynamodb" });
 		} catch (error) {
 			this.logger.error({ message: "got error saving F2F data", error });
-			throw new AppError(
-				"Failed to set claimed identity data ",
-				HttpCodesEnum.SERVER_ERROR,
+			throw new AppError(HttpCodesEnum.SERVER_ERROR,
+				"Failed to set claimed identity data "
 			);
 		}
 	}
@@ -220,7 +219,7 @@ export class F2fService {
 			this.logger.info("Successfully created session in dynamodb");
 		} catch (error) {
 			this.logger.error("got error " + error);
-			throw new AppError("saveItem - failed ", 500);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR,"saveItem - failed ", );
 		}
 	}
 
@@ -263,10 +262,10 @@ export class F2fService {
 	): PersonIdentityItem {
 		return {
 			sessionId,
-			addresses: this.mapAddresses(sharedClaims.address),
-			birthDates: this.mapBirthDates(sharedClaims.birthDate),
-			emailAddress: sharedClaims.emailAddress,
-			names: this.mapNames(sharedClaims.name),
+			addresses: this.mapAddresses(sharedClaims.address!),
+			birthDates: this.mapBirthDates(sharedClaims.birthDates),
+			emailAddress: sharedClaims.emailAddress!,
+			names: this.mapNames(sharedClaims.names),
 		};
 	}
 
