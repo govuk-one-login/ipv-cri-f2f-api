@@ -35,5 +35,5 @@ export interface PersonIdentity {
 	birthDates: BirthDate[];
 	address?: Address[];
 	sessionId: string;
-	emailAdress?: string;
+	emailAddress?: string;
 }
