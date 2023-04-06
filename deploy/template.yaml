@@ -56,6 +56,19 @@ Mappings:
     production:
       logretentionindays: 30
       apiTracingEnabled: false
+
+  PlatformConfiguration:
+    dev:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+    build:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+    staging:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+    integration:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+    production:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
       YOTIBASEURL: "https://f2f-cri-outbound-proxy-proxy.review-o.dev.account.gov.uk/yoti"
@@ -408,9 +421,10 @@ Resources:
 
   TokenFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsProdLikeEnvironment
+   # Condition: IsProdLikeEnvironment
     Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      DestinationArn: 
+        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
       FilterPattern: ""
       LogGroupName: !Ref TokenFunctionLogGroup
 
@@ -487,9 +501,10 @@ Resources:
 
   AuthorizationFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsProdLikeEnvironment
+    # Condition: IsProdLikeEnvironment
     Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      DestinationArn: 
+        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
       FilterPattern: ""
       LogGroupName: !Ref AuthorizationFunctionLogGroup
 
@@ -551,9 +566,10 @@ Resources:
 
   DocumentSelectionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsProdLikeEnvironment
+    # Condition: IsProdLikeEnvironment
     Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      DestinationArn: 
+        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
       FilterPattern: ""
       LogGroupName: !Ref DocumentSelectionLogGroup
 
