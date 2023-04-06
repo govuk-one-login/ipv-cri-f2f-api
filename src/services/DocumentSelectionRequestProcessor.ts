@@ -67,17 +67,17 @@ export class DocumentSelectionRequestProcessor {
   		const PostOfficeSelection = eventBody.post_office_selection;
   		const selectedDocument = eventBody.document_selection.document_selected;
 			
-  		let sessionID, sessionInfo;
+  		let yotiSessionID, sessionInfo;
 			
   		this.logger.info("Creating new session in Yoti");
-  		sessionID = await this.yotiService.createSession(personDetails, selectedDocument, this.YOTICALLBACKURL);
+  		yotiSessionID = await this.yotiService.createSession(personDetails, selectedDocument, this.YOTICALLBACKURL);
 
-  		if (!sessionID) {
+  		if (!yotiSessionID) {
   			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when creating Yoti Session");
   		}
 
   		this.logger.info("Fetching Session Info");
-  		sessionInfo = await this.yotiService.fetchSessionInfo(sessionID);
+  		sessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionID);
 
   		if (!sessionInfo) {
   			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occurred when fetching Yoti Session");
@@ -112,9 +112,9 @@ export class DocumentSelectionRequestProcessor {
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Empty required resources in Yoti");
   		}
 
-  		this.logger.info({ message:"Generating Instructions PDF" }, { sessionID });
+  		this.logger.info({ message:"Generating Instructions PDF" }, { yotiSessionID });
   		const generateInstructionsResponse = await this.yotiService.generateInstructions(
-  			sessionID,
+  			yotiSessionID,
   			personDetails,
   			requirements,
   			PostOfficeSelection,

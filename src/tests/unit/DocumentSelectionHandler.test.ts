@@ -13,12 +13,6 @@ jest.mock("../../utils/Config", () => {
 	};
 });
 
-jest.mock("../../services/AuthorizationRequestProcessor", () => {
-	return {
-		DocumentSelectionRequestProcessor: jest.fn(() => mockDocumentSelectionRequestProcessor),
-	};
-});
-
 describe("DocumentSelectionHandler", () => {
 	it("return not found when resource not found", async () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
