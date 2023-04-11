@@ -122,6 +122,7 @@ export class F2fService {
 
 	async sendToGovNotify(event: GovNotifyEvent): Promise<void> {
 		const messageBody = JSON.stringify(event);
+		console.log('messageBody1', messageBody);
 		const params = {
 			MessageBody: messageBody,
 			QueueUrl: process.env.GOV_NOTIFY_QUEUE_URL,

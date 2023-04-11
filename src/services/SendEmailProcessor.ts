@@ -34,6 +34,7 @@ export class SendEmailProcessor {
 
 	async processRequest(eventBody: any): Promise<EmailResponse> {
 
+		console.log('eventBody', eventBody);
 		const email = Email.parseRequest(eventBody.Message);
 		console.log("Email parsed", "Handler", email);
 
