@@ -296,9 +296,9 @@ Resources:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
           CLIENT_ID: !FindInMap [Configuration, !Ref Environment, IPVStubID]
-          REDIRECT_URI: !Sub "https://ipvstub.review-c.${Environment}.account.gov.uk/redirect"
+          REDIRECT_URI: !Sub "https://ipvstub.review-o.${Environment}.account.gov.uk/redirect"
           JWKS_URI: !FindInMap [Configuration, !Ref Environment, JWKSURI]
-          OAUTH_FRONT_BASE_URI: !Sub  "https://review-c.${Environment}.account.gov.uk"
+          OAUTH_FRONT_BASE_URI: !Sub  "https://review-o.${Environment}.account.gov.uk"
       Policies:
         - Statement:
             - Sid: KMSSignPolicy
@@ -495,14 +495,50 @@ Resources:
       Tags:
         APP: !Sub f2f-${AWS::StackName}
 
+  IPVStubExternalApiCustomDomain:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !Sub "ipvstub.review-o.${Environment}.account.gov.uk"
+      DomainNameConfigurations:
+        - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
+          EndpointType: REGIONAL
+          SecurityPolicy: TLS_1_2
+
+  IPVStubExternalApiRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Ref IPVStubExternalApiCustomDomain
+      Type: A
+      HostedZoneId: !ImportValue PublicHostedZoneId
+      AliasTarget:
+        DNSName: !GetAtt IPVStubExternalApiCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt IPVStubExternalApiCustomDomain.RegionalHostedZoneId
+        EvaluateTargetHealth: false
+
+  IPVStubExternalApiMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      DomainName: !Ref IPVStubExternalApiCustomDomain
+      ApiId: !Ref IPVStubApiGw
+      Stage: !Ref Environment
+    DependsOn:
+      - IPVStubApiGwDeployment
+
 Outputs:
   IPVStubExecuteUrl:
     Description: "API Gateway endpoint URL for the environment stage"
     Value: !Sub "https://${IPVStubApiGw}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
-    Export:
-      Name: !Sub "${AWS::StackName}-IPVStubExecuteUrl"
-  IPVStubApiGw:
+
+  IPVStubApiGwId:
     Description: "The ID of the API Gateway"
-    Value: !Ref IPVStubApiGw
     Export:
-      Name: "f2f-cri-IPVStubApiGw"
+      Name: !Sub "${AWS::StackName}-IPVStubApiGwId"
+    Value: !Ref IPVStubApiGw
+
+  IPVStubPrettyApiUrl:
+    Description: Pretty URL for IPV Stub
+    Export:
+      Name: !Sub "${AWS::StackName}-IPvStubApiGatewayPrettyUrl"
+    Value: !Sub
+      - "https://${URL}/"
+      - URL: !Ref IPVStubExternalApiCustomDomain
