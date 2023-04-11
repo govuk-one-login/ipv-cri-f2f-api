@@ -12,9 +12,6 @@ export class F2fSession implements IF2fSession {
     this.given_names = data.given_names!;
     this.family_names = data.family_names!;
     this.date_of_birth = data.date_of_birth!;
-    //Do we need this?
-    this.document_selected = data.document_selected!;
-    this.date_of_expiry = data.date_of_expiry!;
   }
 
   @IsArray()
@@ -24,14 +21,6 @@ export class F2fSession implements IF2fSession {
   @IsISO8601()
   @IsNotEmpty()
   date_of_birth: string;
-
-  @IsString()
-  @IsNotEmpty()
-  document_selected: string;
-
-  @IsISO8601()
-  @IsNotEmpty()
-  date_of_expiry: string;
 
   @IsArray()
   @ArrayNotEmpty()

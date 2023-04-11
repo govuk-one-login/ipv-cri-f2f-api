@@ -95,14 +95,12 @@ export class F2fService {
 			TableName: this.tableName,
 			Key: { sessionId },
 			UpdateExpression:
-				"SET given_names = :given_names, family_names = :family_names, date_of_birth = :date_of_birth, document_selected = :document_selected, date_of_expiry =:date_of_expiry, authSessionState = :authSessionState",
+				"SET given_names = :given_names, family_names = :family_names, date_of_birth = :date_of_birth, authSessionState = :authSessionState",
 
 			ExpressionAttributeValues: {
 				":given_names": f2fData.given_names,
 				":family_names": f2fData.family_names,
 				":date_of_birth": f2fData.date_of_birth,
-				":document_selected": f2fData.document_selected,
-				":date_of_expiry": f2fData.date_of_expiry,
 				":authSessionState": AuthSessionState.F2F_DATA_RECEIVED,
 			},
 		});
