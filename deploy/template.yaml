@@ -542,6 +542,17 @@ Resources:
             KeyId:
               Fn::ImportValue:
                 !Sub "${L2DynamoStackName}-person-identity-table-key-id"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt TxMASQSQueue.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:GenerateDataKey"
+              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
       Events:
         documentSelection:
           Type: Api
