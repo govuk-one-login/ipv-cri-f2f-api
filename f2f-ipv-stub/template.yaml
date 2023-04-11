@@ -43,15 +43,17 @@ Mappings:
     dev:
       IPVStubID: "5C584572"
       JWKSURI: "https://api-f2f-cri-api.review-o.dev.account.gov.uk"
+      IPVSTUBURL: "ipvstub.review-o.dev.account.gov.uk"
     build:
       IPVStubID: "BD7B2A5D"
       JWKSURI: "https://api.review-o.build.account.gov.uk"
+      IPVSTUBURL: "ipvstub.review-o.build.account.gov.uk"
     staging:
       IPVStubID: "9CDA6F61"
     integration:
       IPVStubID: "AE140E43"
-    production:
-      IPVStubID: "C910A762"
+#    production:
+#      IPVStubID: "C910A762"
 
 Conditions:
   CreateDevResources: !Equals
@@ -296,7 +298,10 @@ Resources:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
           CLIENT_ID: !FindInMap [Configuration, !Ref Environment, IPVStubID]
-          REDIRECT_URI: !Sub "https://ipvstub.review-o.${Environment}.account.gov.uk/redirect"
+          REDIRECT_URI: !Sub
+            - "https://${AWS::StackName}-${IPVSTUBURL}/redirect"
+            - IPVSTUBURL:
+                !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
           JWKS_URI: !FindInMap [Configuration, !Ref Environment, JWKSURI]
           OAUTH_FRONT_BASE_URI: !Sub  "https://review-o.${Environment}.account.gov.uk"
       Policies:
@@ -498,7 +503,10 @@ Resources:
   IPVStubExternalApiCustomDomain:
     Type: AWS::ApiGatewayV2::DomainName
     Properties:
-      DomainName: !Sub "ipvstub.review-o.${Environment}.account.gov.uk"
+      DomainName: !Sub
+        - "${AWS::StackName}-${IPVSTUBURL}"
+        - IPVSTUBURL:
+            !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
       DomainNameConfigurations:
         - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
           EndpointType: REGIONAL
