@@ -88,14 +88,14 @@ jobs:
           role-to-assume: ${{ secrets.GH_IPV_STUB_VALIDATE_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-#      - name: Cache SAM builds
-#        uses: actions/cache@v3
-#        with:
-#          path: |
-#            ./di-ipv-cri-cic-api/.aws-sam/cache
-#            ./di-ipv-cri-cic-api/.aws-sam/deps
-#            ./di-ipv-cri-cic-api/.aws-sam/build.toml
-#          key: sam-oauth
+      - name: Cache SAM builds
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./di-ipv-cri-f2f-api/.aws-sam/cache
+            ./di-ipv-cri-f2f-api/.aws-sam/deps
+            ./di-ipv-cri-f2f-api/.aws-sam/build.toml
+          key: sam-oauth
 
       - name: SAM Validate
         run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml

@@ -45,13 +45,13 @@ Mappings:
       YOTISTUBURL: "yotistub.review-o.dev.account.gov.uk"
 
 Conditions:
-  CreateDevResources: !Equals
-    - !Ref Environment
-    - dev
-  IsProdLikeEnvironment: !Or
-    - !Equals [!Ref Environment, staging]
-    - !Equals [!Ref Environment, integration]
-    - !Equals [!Ref Environment, production]
+#  CreateDevResources: !Equals
+#    - !Ref Environment
+#    - dev
+#  IsProdLikeEnvironment: !Or
+#    - !Equals [!Ref Environment, staging]
+#    - !Equals [!Ref Environment, integration]
+#    - !Equals [!Ref Environment, production]
   UseCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -64,6 +64,9 @@ Conditions:
           - "none"
 
 Globals:
+  Api:
+    BinaryMediaTypes:
+      - '*/*'
   Function:
     Runtime: nodejs18.x
     VpcConfig:
@@ -187,21 +190,29 @@ Resources:
   MockYotiRestApi:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: "dev"
-      BinaryMediaTypes:
-        - "*/*"
-      OpenApiVersion: 3.0.1
+      StageName: !Ref Environment
+      OpenApiVersion: 3.0.2
       AccessLogSetting:
         Format: "$context.requestId $context.httpMethod $context.path"
         DestinationArn: !GetAtt MockYotiAPIGatewayAccessLogGroup.Arn
       EndpointConfiguration:
         Type: REGIONAL
       DefinitionBody:
+        ## workaround as https://github.com/aws/serverless-application-model/blob/14d0563e5f48adbb0d1ff1c807ca3eeb17adc3d8/samtranslator/swagger/swagger.py#L65
+        ## won't allow BinaryMediaTypes with external openapi sppec file
+        openapi: '3.0.2'
+        paths:
+          /myMethod:
+            post:
+              produces:
+                - "application/json"
+              responses: { }
+
         Fn::Transform:
           Name: AWS::Include
           Parameters:
             Location: './yoti-spec.yaml'
-        OpenApiVersion: 3.0.2
+
       TracingEnabled: true
       Tags:
         Product: GOV.UK Sign In
