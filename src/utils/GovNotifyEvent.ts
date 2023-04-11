@@ -1,9 +1,6 @@
 import { PersonIdentity } from "../models/PersonIdentity";
 import { personIdentityUtils } from "./PersonIdentityUtils";
 
-export type GovNotifyName =
-	"F2F_CRI_INSTRUCTIONS_GENERATED";
-
 export interface BaseGovNotifyEvent {
 	"Message": {
 		"sessionId": string;
@@ -12,14 +9,21 @@ export interface BaseGovNotifyEvent {
 		"firstName": string;
 		"lastName": string;
 		"messageType": string;
-	}
+	};
 }
 
-export interface GovNotifyEvent extends BaseGovNotifyEvent {
-	"event_name": string;
+export interface GovNotifyEvent {
+	"Message": {
+		"sessionId": string;
+		"yotiSessionId": string;
+		"emailAddress": string;
+		"firstName": string;
+		"lastName": string;
+		"messageType": string;
+	};
 }
 
-export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, personDetails: PersonIdentity): BaseGovNotifyEvent => {
+export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, personDetails: PersonIdentity): GovNotifyEvent => {
 	const nameParts = personIdentityUtils.getNames(personDetails);
 
 	return {
@@ -30,6 +34,6 @@ export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: stri
 			firstName: nameParts.givenNames[0],
 			lastName: nameParts.familyNames[0],
 			messageType: "email",
-		}
+		},
 	};
 };

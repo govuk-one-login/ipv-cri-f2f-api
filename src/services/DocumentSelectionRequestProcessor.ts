@@ -126,10 +126,7 @@ export class DocumentSelectionRequestProcessor {
   		}
 
   		try {
-  			await this.f2fService.sendToGovNotify({
-  				event_name: "F2F_CRI_INSTRUCTIONS_GENERATED",
-  				...buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails),
-  			});
+  			await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
   		} catch (error) {
   			this.logger.error("FAILED_TO_WRITE_GOV_NOTIFY", {
   				yotiSessionID,
