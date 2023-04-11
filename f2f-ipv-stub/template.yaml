@@ -298,10 +298,13 @@ Resources:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
           CLIENT_ID: !FindInMap [Configuration, !Ref Environment, IPVStubID]
-          REDIRECT_URI: !Sub
+          REDIRECT_URI: !If
+          - CreateDevResources
+          - !Sub
             - "https://${AWS::StackName}-${IPVSTUBURL}/redirect"
             - IPVSTUBURL:
                 !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
+          - !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
           JWKS_URI: !FindInMap [Configuration, !Ref Environment, JWKSURI]
           OAUTH_FRONT_BASE_URI: !Sub  "https://review-o.${Environment}.account.gov.uk"
       Policies:
@@ -503,10 +506,14 @@ Resources:
   IPVStubExternalApiCustomDomain:
     Type: AWS::ApiGatewayV2::DomainName
     Properties:
-      DomainName: !Sub
-        - "${AWS::StackName}-${IPVSTUBURL}"
-        - IPVSTUBURL:
-            !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
+      DomainName: !If
+        - CreateDevResources
+        - !Sub
+          - "${AWS::StackName}-${IPVSTUBURL}"
+          - IPVSTUBURL:
+              !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
+        - !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
+
       DomainNameConfigurations:
         - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
           EndpointType: REGIONAL
