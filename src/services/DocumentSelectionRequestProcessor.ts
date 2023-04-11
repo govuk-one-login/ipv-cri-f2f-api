@@ -8,6 +8,9 @@ import { YotiService } from "./YotiService";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { Constants } from "../utils/Constants";
+import { buildCoreEventFields } from "../utils/TxmaEvent";
+import { EnvironmentVariables } from "./EnvironmentVariables";
+import { absoluteTimeNow } from "../utils/DateTimeUtils";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -18,6 +21,8 @@ export class DocumentSelectionRequestProcessor {
   	private readonly metrics: Metrics;
 
   	private readonly yotiService: YotiService;
+
+		private readonly environmentVariables: EnvironmentVariables;
 
   	private readonly PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
 
@@ -36,6 +41,7 @@ export class DocumentSelectionRequestProcessor {
   		}
   		this.logger = logger;
   		this.metrics = metrics;
+  		this.environmentVariables = new EnvironmentVariables(logger);
   		this.yotiService = YotiService.getInstance(this.logger, this.YOTI_SDK, YOTI_PRIVATE_KEY);
   		this.f2fService = F2fService.getInstance(this.PERSON_IDENTITY_TABLE_NAME, this.logger, createDynamoDbClient());
   	}
@@ -54,11 +60,13 @@ export class DocumentSelectionRequestProcessor {
 
   	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
 
+  		const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
   		const personDetails = await this.f2fService.getPersonIdentityById(sessionId);
 
-  		if (!personDetails) {
-  			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing person details info in table");
+  		if (!personDetails || !f2fSessionInfo) {
+  			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
   		}
+
   		if (!event.body) {
   			throw new AppError(HttpCodesEnum.BAD_REQUEST, "No body present in post request");
   		}
@@ -122,6 +130,15 @@ export class DocumentSelectionRequestProcessor {
 
   		if (generateInstructionsResponse !== HttpCodesEnum.OK) {
   			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when generating Yoti instructions pdf");
+  		}
+
+  		try {
+  			await this.f2fService.sendToTXMA({
+  				event_name: "F2F_YOTI_START",
+  				...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow),
+  			});
+  		} catch (error) {
+  			this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.");
   		}
 
   		return new Response(HttpCodesEnum.OK, "Instructions PDF Generated");

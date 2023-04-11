@@ -9,6 +9,8 @@ import { VALID_REQUEST } from "../data/documentSelection-events";
 import { YotiService } from "../../../services/YotiService";
 import { PersonIdentity } from "../../../models/PersonIdentity";
 import { YotiSessionInfo } from "../../../models/YotiPayloads";
+import { ISessionItem } from "../../../models/ISessionItem";
+import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 
 let mockDocumentSelectionRequestProcessor: DocumentSelectionRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -16,6 +18,28 @@ const mockYotiService = mock<YotiService>();
 
 const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "F2F" });
+
+function getMockSessionItem(): ISessionItem {
+	const sessionInfo: ISessionItem = {
+		sessionId: "RandomF2FSessionID",
+		clientId: "ipv-core-stub",
+		accessToken: "AbCdEf123456",
+		clientSessionId: "sdfssg",
+		authorizationCode: "",
+		authorizationCodeExpiryDate: 0,
+		redirectUri: "http://localhost:8085/callback",
+		accessTokenExpiryDate: 0,
+		expiryDate: 221848913376,
+		createdDate: 1675443004,
+		state: "Y@atr",
+		subject: "sub",
+		persistentSessionId: "sdgsdg",
+		clientIpAddress: "127.0.0.1",
+		attemptCount: 1,
+		authSessionState: AuthSessionState.F2F_DATA_RECEIVED,
+	};
+	return sessionInfo;
+}
 
 function getPersonIdentityItem(): PersonIdentity {
 	const personIdentityItem: PersonIdentity = {
@@ -124,7 +148,7 @@ function getYotiSessionInfo(): YotiSessionInfo {
 }
 
 describe("DocumentSelectionRequestProcessor", () => {
-	let personIdentityItem: PersonIdentity, yotiSessionInfo: YotiSessionInfo;
+	let personIdentityItem: PersonIdentity, f2fSessionItem: ISessionItem, yotiSessionInfo: YotiSessionInfo;
 	beforeAll(() => {
 		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore
@@ -134,6 +158,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		personIdentityItem = getPersonIdentityItem();
 		yotiSessionInfo = getYotiSessionInfo();
+		f2fSessionItem = getMockSessionItem();
 	});
 
 	beforeEach(() => {
@@ -141,6 +166,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	});
 
 	it("Return successful response with 200 OK when YOTI session created", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
@@ -151,20 +177,23 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
 	});
 
 	it("Throw bad request error when personDetails is missing", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(undefined);
 
 		return expect(mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234")).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.BAD_REQUEST,
-			message: "Missing person details info in table",
+			message: "Missing details in SESSION or PERSON IDENTITY tables",
 		}));
 	});
 
 	it("Throw server error if Yoti Session creation fails", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce(undefined);
@@ -176,6 +205,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	});
 
 	it("Throw server error if Yoti Session info fetch fails", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
@@ -189,6 +219,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	});
 
 	it("Throw server error if Yoti pdf generation fails", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
@@ -201,5 +232,23 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe( "An error occured when generating Yoti instructions pdf");
+	});
+
+	it("Return 200 when write to txMA fails", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.sendToTXMA.mockRejectedValue({});
+
+		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
+
+		mockYotiService.fetchSessionInfo.mockResolvedValueOnce(yotiSessionInfo);
+
+		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
+
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+
+		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_START to SQS queue.");
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+		expect(out.body).toBe("Instructions PDF Generated");
 	});
 });
