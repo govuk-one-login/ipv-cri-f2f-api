@@ -104,35 +104,37 @@ export class F2fService {
 	}
 
 	async sendToTXMA(event: TxmaEvent): Promise<void> {
-		const messageBody = JSON.stringify(event);
-		const params = {
-			MessageBody: messageBody,
-			QueueUrl: process.env.TXMA_QUEUE_URL,
-		};
-
-		this.logger.info({ message: "Sending message to TxMA", messageBody });
 		try {
+			const messageBody = JSON.stringify(event);
+			const params = {
+				MessageBody: messageBody,
+				QueueUrl: process.env.TXMA_QUEUE_URL,
+			};
+
+			this.logger.info({ message: "Sending message to TxMA", messageBody });
+
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to TxMA");
 		} catch (error) {
-			this.logger.error("got error " + error);
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event - failed ");
+			this.logger.error({ message: "Error when sending message to TXMA Queue", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to txma queue - failed ");
 		}
 	}
 
 	async sendToGovNotify(event: GovNotifyEvent): Promise<void> {
-		const messageBody = JSON.stringify(event);
-		const params = {
-			MessageBody: messageBody,
-			QueueUrl: process.env.GOV_NOTIFY_QUEUE_URL,
-		};
-
-		this.logger.info({ message: "Sending message to Gov Notify Queue", messageBody });
 		try {
+			const messageBody = JSON.stringify(event);
+			const params = {
+				MessageBody: messageBody,
+				QueueUrl: process.env.GOV_NOTIFY_QUEUE_URL,
+			};
+
+			this.logger.info({ message: "Sending message to Gov Notify Queue", messageBody });
+
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to Gov Notify");
 		} catch (error) {
-			this.logger.error("got error " + error);
+			this.logger.error({ message: "Error when sending message to GovNotify Queue", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to govNotify queue - failed ");
 		}
 	}
