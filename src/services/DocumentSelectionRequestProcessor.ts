@@ -8,6 +8,8 @@ import { YotiService } from "./YotiService";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { Constants } from "../utils/Constants";
+import { buildCoreEventFields } from "../utils/TxmaEvent";
+import { absoluteTimeNow } from "../utils/DateTimeUtils";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -25,13 +27,16 @@ export class DocumentSelectionRequestProcessor {
 
   	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
 
+		private readonly ISSUER = process.env.ISSUER!;
+
   	private readonly f2fService: F2fService;
 
   	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
   		if (!this.PERSON_IDENTITY_TABLE_NAME || this.PERSON_IDENTITY_TABLE_NAME.trim().length === 0
 			|| !this.YOTICALLBACKURL || this.YOTICALLBACKURL.trim().length === 0
-			|| !this.YOTI_SDK || this.YOTI_SDK.trim().length === 0) {
-  			logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL is not configured");
+			|| !this.YOTI_SDK || this.YOTI_SDK.trim().length === 0
+			|| !this.ISSUER || this.ISSUER.trim().length === 0) {
+  			logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
   		}
   		this.logger = logger;
@@ -54,11 +59,13 @@ export class DocumentSelectionRequestProcessor {
 
   	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
 
+  		const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
   		const personDetails = await this.f2fService.getPersonIdentityById(sessionId);
 
-  		if (!personDetails) {
-  			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing person details info in table");
+  		if (!personDetails || !f2fSessionInfo) {
+  			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
   		}
+
   		if (!event.body) {
   			throw new AppError(HttpCodesEnum.BAD_REQUEST, "No body present in post request");
   		}
@@ -122,6 +129,15 @@ export class DocumentSelectionRequestProcessor {
 
   		if (generateInstructionsResponse !== HttpCodesEnum.OK) {
   			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when generating Yoti instructions pdf");
+  		}
+
+  		try {
+  			await this.f2fService.sendToTXMA({
+  				event_name: "F2F_YOTI_START",
+  				...buildCoreEventFields(f2fSessionInfo, this.ISSUER, f2fSessionInfo.clientIpAddress, absoluteTimeNow),
+  			});
+  		} catch (error) {
+  			this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.");
   		}
 
   		return new Response(HttpCodesEnum.OK, "Instructions PDF Generated");
