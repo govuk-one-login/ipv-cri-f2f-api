@@ -24,6 +24,7 @@ import {
 	PersonIdentityName,
 } from "../models/PersonIdentityItem";
 import { GovNotifyEvent } from "../utils/GovNotifyEvent";
+import { EnvironmentVariables } from "./EnvironmentVariables";
 
 export class F2fService {
 	readonly tableName: string;
@@ -32,12 +33,15 @@ export class F2fService {
 
 	readonly logger: Logger;
 
+	private readonly environmentVariables: EnvironmentVariables;
+
 	private static instance: F2fService;
 
 	constructor(tableName: any, logger: Logger, dynamoDbClient: DynamoDBDocument) {
 		this.tableName = tableName;
 		this.dynamo = dynamoDbClient;
 		this.logger = logger;
+		this.environmentVariables = new EnvironmentVariables(logger);
 	}
 
 	static getInstance(tableName: string, logger: Logger, dynamoDbClient: DynamoDBDocument): F2fService {
@@ -168,7 +172,7 @@ export class F2fService {
 			const messageBody = JSON.stringify(event);
 			const params = {
 				MessageBody: messageBody,
-				QueueUrl: process.env.GOV_NOTIFY_QUEUE_URL,
+				QueueUrl: this.environmentVariables.getGovNotifyQueueURL(this.logger),
 			};
 
 			await sqsClient.send(new SendMessageCommand(params));
