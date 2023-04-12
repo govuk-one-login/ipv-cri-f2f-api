@@ -325,8 +325,8 @@ Resources:
       DomainName: !If
         - CreateDevResources
         - !Sub
-          - "${AWS::StackName}-${IPVSTUBURL}"
-          - IPVSTUBURL:
+          - "${AWS::StackName}-${YOTISTUBURL}"
+          - YOTISTUBURL:
               !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
         - !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
 
