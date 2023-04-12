@@ -42,12 +42,12 @@ Mappings:
     dev:
       YOTISTUBURL: "yotistub.review-o.dev.account.gov.uk"
     build:
-      YOTISTUBURL: "yotistub.review-o.dev.account.gov.uk"
+      YOTISTUBURL: "yotistub.review-o.build.account.gov.uk"
 
 Conditions:
-#  CreateDevResources: !Equals
-#    - !Ref Environment
-#    - dev
+  CreateDevResources: !Equals
+    - !Ref Environment
+    - dev
 #  IsProdLikeEnvironment: !Or
 #    - !Equals [!Ref Environment, staging]
 #    - !Equals [!Ref Environment, integration]
@@ -322,10 +322,14 @@ Resources:
   MockYotiApiGatewayCustomDomain:
     Type: AWS::ApiGatewayV2::DomainName
     Properties:
-      DomainName: !Sub
-          - "${AWS::StackName}-${YOTISTUBURL}"
-          - YOTISTUBURL:
+      DomainName: !If
+        - CreateDevResources
+        - !Sub
+          - "${AWS::StackName}-${IPVSTUBURL}"
+          - IPVSTUBURL:
               !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
+        - !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
+
       DomainNameConfigurations:
         - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
           EndpointType: REGIONAL
