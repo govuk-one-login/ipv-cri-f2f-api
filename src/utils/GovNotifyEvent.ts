@@ -1,4 +1,4 @@
-import { PersonIdentity } from "../models/PersonIdentity";
+import { PersonIdentityItem } from "../models/PersonIdentityItem";
 import { personIdentityUtils } from "./PersonIdentityUtils";
 
 export interface GovNotifyEvent {
@@ -12,7 +12,7 @@ export interface GovNotifyEvent {
 	};
 }
 
-export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, personDetails: PersonIdentity): GovNotifyEvent => {
+export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, personDetails: PersonIdentityItem): GovNotifyEvent => {
 	const nameParts = personIdentityUtils.getNames(personDetails);
 
 	return {

@@ -7,7 +7,7 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "../../../services/DocumentSelectionRequestProcessor";
 import { VALID_REQUEST } from "../data/documentSelection-events";
 import { YotiService } from "../../../services/YotiService";
-import { PersonIdentity } from "../../../models/PersonIdentity";
+import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { YotiSessionInfo } from "../../../models/YotiPayloads";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
@@ -42,33 +42,45 @@ function getMockSessionItem(): ISessionItem {
 	return sessionInfo;
 }
 
-function getPersonIdentityItem(): PersonIdentity {
-	const personIdentityItem: PersonIdentity = {
-		"sessionId":"RandomF2FSessionID",
-		"names":[
-			 {
-				"nameParts":[
-						 {
-						"type":"GivenName",
-						"value":"Frederick",
-						 },
-						 {
-						"type":"GivenName",
-						"value":"Joseph",
-						 },
-						 {
-						"type":"FamilyName",
-						"value":"Flintstone",
-						 },
-				],
-			 },
-		],
-		"birthDates":[
-			 {
-				"value":"1960-02-02",
-			 },
-		],
-	};
+function getPersonIdentityItem(): PersonIdentityItem {
+	const personIdentityItem: PersonIdentityItem = {
+			"addresses": [
+					{
+							"addressCountry": "United Kingdom",
+							"buildingName": "Sherman",
+							"uprn": 123456789,
+							"streetName": "Wallaby Way",
+							"postalCode": "F1 1SH",
+							"buildingNumber": "32",
+							"addressLocality": "Sidney"
+					}
+			],
+			"sessionId": "RandomF2FSessionID",
+			"emailAddress": "viveak.vadivelkarasan@digital.cabinet-office.gov.uk",
+			"birthDate": [
+					{
+						"value":"1960-02-02",
+					}
+			],
+			"name": [
+					{
+							"nameParts": [
+									{
+											"type": "GivenName",
+											"value": "Frederick"
+									},
+									{
+											"type": "GivenName",
+											"value": "Joseph"
+									},
+									{
+											"type": "FamilyName",
+											"value": "Flintstone"
+									}
+							]
+					}
+			]
+	}
 	return personIdentityItem;
 }
 
@@ -149,7 +161,7 @@ function getYotiSessionInfo(): YotiSessionInfo {
 }
 
 describe("DocumentSelectionRequestProcessor", () => {
-	let personIdentityItem: PersonIdentity, f2fSessionItem: ISessionItem, yotiSessionInfo: YotiSessionInfo;
+	let personIdentityItem: PersonIdentityItem, f2fSessionItem: ISessionItem, yotiSessionInfo: YotiSessionInfo;
 	beforeAll(() => {
 		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore

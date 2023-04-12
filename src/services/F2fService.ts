@@ -12,16 +12,11 @@ import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { sqsClient } from "../utils/SqsClient";
 import { TxmaEvent } from "../utils/TxmaEvent";
 import {
-	Address,
-	BirthDate,
-	Name,
-	PersonIdentity,
-} from "../models/PersonIdentity";
-import {
 	PersonIdentityAddress,
 	PersonIdentityDateOfBirth,
 	PersonIdentityItem,
 	PersonIdentityName,
+	SharedClaimsPersonIdentity,
 } from "../models/PersonIdentityItem";
 import { GovNotifyEvent } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
@@ -73,7 +68,7 @@ export class F2fService {
 		}
 	}
 
-	async getPersonIdentityById(sessionId: string): Promise<PersonIdentity | undefined> {
+	async getPersonIdentityById(sessionId: string): Promise<PersonIdentityItem | undefined> {
 		this.logger.debug("Table name " + this.tableName);
 		const getPersonIdentityCommand = new GetCommand({
 			TableName: this.tableName,
@@ -91,7 +86,7 @@ export class F2fService {
 		}
 
 		if (PersonInfo.Item) {
-			return PersonInfo.Item as PersonIdentity;
+			return PersonInfo.Item as PersonIdentityItem;
 		}
 	}
 
@@ -243,7 +238,7 @@ export class F2fService {
 		}
 	}
 
-	private mapAddresses(addresses: Address[]): PersonIdentityAddress[] {
+	private mapAddresses(addresses: PersonIdentityAddress[]): PersonIdentityAddress[] {
 		return addresses?.map((address) => ({
 			uprn: address.uprn,
 			organisationName: address.organisationName,
@@ -263,13 +258,13 @@ export class F2fService {
 		}));
 	}
 
-	private mapBirthDates(birthDates: BirthDate[]): PersonIdentityDateOfBirth[] {
-		return birthDates?.map((bd) => ({ value: bd.value }));
+	private mapbirthDate(birthDate: PersonIdentityDateOfBirth[]): PersonIdentityDateOfBirth[] {
+		return birthDate?.map((bd) => ({ value: bd.value }));
 	}
 
-	private mapNames(names: Name[]): PersonIdentityName[] {
-		return names?.map((name) => ({
-			nameParts: name?.nameParts?.map((namePart) => ({
+	private mapNames(name: PersonIdentityName[]): PersonIdentityName[] {
+		return name?.map((namePart) => ({
+			nameParts: namePart?.nameParts?.map((namePart) => ({
 				type: namePart.type,
 				value: namePart.value,
 			})),
@@ -277,20 +272,20 @@ export class F2fService {
 	}
 
 	private createPersonIdentityItem(
-		sharedClaims: PersonIdentity,
+		sharedClaims: SharedClaimsPersonIdentity,
 		sessionId: string
 	): PersonIdentityItem {
 		return {
 			sessionId,
 			addresses: this.mapAddresses(sharedClaims.address!),
-			birthDates: this.mapBirthDates(sharedClaims.birthDates),
+			birthDate: this.mapbirthDate(sharedClaims.birthDate),
 			emailAddress: sharedClaims.emailAddress!,
-			names: this.mapNames(sharedClaims.names),
+			name: this.mapNames(sharedClaims.name),
 		};
 	}
 
 	async savePersonIdentity(
-		sharedClaims: PersonIdentity,
+		sharedClaims: SharedClaimsPersonIdentity,
 		sessionId: string,
 	): Promise<void> {
 		const personIdentityItem = this.createPersonIdentityItem(
