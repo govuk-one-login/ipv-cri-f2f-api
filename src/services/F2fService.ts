@@ -13,7 +13,7 @@ import { sqsClient } from "../utils/SqsClient";
 import { TxmaEvent } from "../utils/TxmaEvent";
 import {
 	Address,
-	BirthDate, EmailAddress,
+	BirthDate,
 	Name,
 	PersonIdentity,
 } from "../models/PersonIdentity";
@@ -23,6 +23,8 @@ import {
 	PersonIdentityItem,
 	PersonIdentityName,
 } from "../models/PersonIdentityItem";
+import { GovNotifyEvent } from "../utils/GovNotifyEvent";
+import { EnvironmentVariables } from "./EnvironmentVariables";
 
 export class F2fService {
 	readonly tableName: string;
@@ -31,12 +33,15 @@ export class F2fService {
 
 	readonly logger: Logger;
 
+	private readonly environmentVariables: EnvironmentVariables;
+
 	private static instance: F2fService;
 
 	constructor(tableName: any, logger: Logger, dynamoDbClient: DynamoDBDocument) {
 		this.tableName = tableName;
 		this.dynamo = dynamoDbClient;
 		this.logger = logger;
+		this.environmentVariables = new EnvironmentVariables(logger);
 	}
 
 	static getInstance(tableName: string, logger: Logger, dynamoDbClient: DynamoDBDocument): F2fService {
@@ -145,19 +150,36 @@ export class F2fService {
 	}
 
 	async sendToTXMA(event: TxmaEvent): Promise<void> {
-		const messageBody = JSON.stringify(event);
-		const params = {
-			MessageBody: messageBody,
-			QueueUrl: process.env.TXMA_QUEUE_URL,
-		};
-
-		this.logger.info({ message: "Sending message to TxMA", messageBody });
 		try {
+			const messageBody = JSON.stringify(event);
+			const params = {
+				MessageBody: messageBody,
+				QueueUrl: process.env.TXMA_QUEUE_URL,
+			};
+
+			this.logger.info({ message: "Sending message to TxMA", messageBody });
+
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to TxMA");
 		} catch (error) {
-			this.logger.error("got error " + error);
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event - failed ");
+			this.logger.error({ message: "Error when sending message to TXMA Queue", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to txma queue - failed ");
+		}
+	}
+
+	async sendToGovNotify(event: GovNotifyEvent): Promise<void> {
+		try {
+			const messageBody = JSON.stringify(event);
+			const params = {
+				MessageBody: messageBody,
+				QueueUrl: this.environmentVariables.getGovNotifyQueueURL(this.logger),
+			};
+
+			await sqsClient.send(new SendMessageCommand(params));
+			this.logger.info("Sent message to Gov Notify");
+		} catch (error) {
+			this.logger.error({ message: "Error when sending message to GovNotify Queue", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to govNotify queue - failed ");
 		}
 	}
 

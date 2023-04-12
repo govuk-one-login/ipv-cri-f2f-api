@@ -73,7 +73,7 @@ describe("SendEmailProcessor", () => {
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(eventBody.Message);
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
 		const emailResponse = await sendEmailServiceTest.sendEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
@@ -87,7 +87,7 @@ describe("SendEmailProcessor", () => {
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Using team-only API key");
 		});
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(eventBody.Message);
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
 		await expect(sendEmailServiceTest.sendEmail(email)).rejects.toThrow();
 	});
 
@@ -97,7 +97,7 @@ describe("SendEmailProcessor", () => {
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(eventBody.Message);
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
 		const emailResponse = await sendEmailServiceTest.sendEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
@@ -117,7 +117,7 @@ describe("SendEmailProcessor", () => {
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(eventBody.Message);
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
 		const emailResponse = await sendEmailServiceTest.sendEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
