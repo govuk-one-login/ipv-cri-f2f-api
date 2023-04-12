@@ -11,6 +11,10 @@ export interface BirthDate {
 	value: string;
 }
 
+export interface EmailAddress {
+	value: string;
+}
+
 export interface Address {
 	uprn: number;
 	organisationName: string;

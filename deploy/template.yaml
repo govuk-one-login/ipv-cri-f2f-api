@@ -80,6 +80,8 @@ Mappings:
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
       RESOURCESTTL: 691200 # Default 8 days
+      CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"}]'
+      AUTHSESSIONTTL: "604800" # 7 days in seconds
     build:
       YOTIBASEURL: "https://proxy.review-o.build.account-gov.uk/yoti"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
@@ -90,6 +92,8 @@ Mappings:
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
       RESOURCESTTL: 691200 # Default 8 days
+      CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.build.account.gov.uk/redirect"}]'
+      AUTHSESSIONTTL: "604800" # 7 days in seconds
     staging:
       YOTIBASEURL: "https://proxy.review-o.staging.account-gov.uk/yoti"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
@@ -100,6 +104,8 @@ Mappings:
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
       RESOURCESTTL: 691200 # Default 8 days
+      CLIENTS: '[{"jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json","clientId":"03A5A659-17AA-453F-B905-95D2804823D1","redirectUri":"https://identity.staging.account.gov.uk/redirect"}]'
+      AUTHSESSIONTTL: "604800" # 7 days in seconds
     integration:
       YOTIBASEURL: "https://proxy.review-o.integration.account-gov.uk/yoti"
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
@@ -110,6 +116,8 @@ Mappings:
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
       RESOURCESTTL: 691200 # Default 8 days
+      CLIENTS: '[{"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/redirect"}]'
+      AUTHSESSIONTTL: "604800" # 7 days in seconds
     production:
       YOTIBASEURL: "https://proxy.review-o.account-gov.uk/yoti"
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
@@ -120,6 +128,8 @@ Mappings:
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
       RESOURCESTTL: 691200 # Default 8 days
+      CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/redirect"}]'
+      AUTHSESSIONTTL: "604800" # 7 days in seconds
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
     dev:
@@ -362,6 +372,108 @@ Resources:
   ### End of API Gateway Custom Domain definition
 
   ### Function Definition
+  ## SessionHandler
+  SessionFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: SessionFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-Session-${AWS::StackName}"
+      Handler: SessionHandler.lambdaHandler
+      CodeUri: ../src/
+      Environment:
+        Variables:
+          AUTH_SESSION_TTL:
+            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTL ]
+          POWERTOOLS_SERVICE_NAME: UserInfoHandler
+          SESSION_TABLE:
+            Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
+          KMS_KEY_ARN:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+          CLIENT_CONFIG:
+            !FindInMap [ EnvironmentVariables, !Ref Environment, CLIENTS ]
+          ENCRYPTION_KEY_IDS:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-id"
+        - Statement:
+            - Sid: KMSPolicy
+              Effect: Allow
+              Action:
+                - kms:*
+              Resource:
+                "*"
+              #Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+              #Resource: !Sub "arn:aws:kms:eu-west-2:060113405249:key/ff437a51-ec7e-4118-9c95-7b0bb2856836"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt TxMASQSQueue.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:GenerateDataKey"
+              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+      Events:
+        session:
+          Type: Api
+          Properties:
+            Path: /session
+            Method: post
+            RestApiId: !Ref F2FRestApi
+
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - SessionHandler.ts
+
+  SessionFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-Session-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  SessionFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsProdLikeEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref SessionFunctionLogGroup
+
+  SessionFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SessionFunction
+      Principal: apigateway.amazonaws.com
+
   ## AccessToken
   TokenFunction:
     Type: AWS::Serverless::Function
