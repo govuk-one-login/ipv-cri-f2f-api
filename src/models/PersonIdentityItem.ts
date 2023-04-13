@@ -9,20 +9,20 @@ export interface PersonIdentityName {
 
 export interface PersonIdentityAddress {
 	uprn: number;
-	organisationName: string;
-	departmentName: string;
-	subBuildingName: string;
+	organisationName?: string;
+	departmentName?: string;
+	subBuildingName?: string;
 	buildingNumber: string;
 	buildingName: string;
-	dependentStreetName: string;
+	dependentStreetName?: string;
 	streetName: string;
-	doubleDependentAddressLocality: string;
-	dependentAddressLocality: string;
+	doubleDependentAddressLocality?: string;
+	dependentAddressLocality?: string;
 	addressLocality: string;
 	postalCode: string;
 	addressCountry: string;
-	validFrom: string;
-	validUntil: string;
+	validFrom?: string;
+	validUntil?: string;
 }
 
 export interface PersonIdentityDateOfBirth {
@@ -36,7 +36,15 @@ export interface PersonEmailAddress {
 export interface PersonIdentityItem {
 	sessionId: string;
 	addresses: PersonIdentityAddress[];
-	names: PersonIdentityName[];
-	birthDates: PersonIdentityDateOfBirth[];
+	name: PersonIdentityName[];
+	birthDate: PersonIdentityDateOfBirth[];
+	emailAddress: string;
+}
+
+export interface SharedClaimsPersonIdentity {
+	sessionId: string;
+	address: PersonIdentityAddress[];
+	name: PersonIdentityName[];
+	birthDate: PersonIdentityDateOfBirth[];
 	emailAddress: string;
 }
