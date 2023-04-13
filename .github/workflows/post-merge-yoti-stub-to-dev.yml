@@ -17,7 +17,7 @@ env: # Only adding the variables in that are required for
 
 jobs:
   deploy-to-build:
-    name: Validate & Deploy Yoti stub template to Build Environment
+    name: Validate & Deploy Yoti stub template to Dev Environment
     runs-on: ubuntu-latest
     defaults:
       run:
