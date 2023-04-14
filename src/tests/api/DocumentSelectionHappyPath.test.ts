@@ -4,7 +4,6 @@ import * as dataBrp from "../data/docSelectionPayloadBrpValid.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../utils/ApiTestSteps";
 
 describe("E2E Happy Path /documentSelection Endpoint", () => {
-	// Add logic to fetch sessionId eventually
 	let sessionId: any;
 	beforeAll(async () => {
 		const sessionResponse = await startStubServiceAndReturnSessionId();
