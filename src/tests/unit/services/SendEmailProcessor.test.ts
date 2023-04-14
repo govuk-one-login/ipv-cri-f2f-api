@@ -46,13 +46,12 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it.each([
-		"fileName",
 		"firstName",
 		"lastName",
 		"emailAddress",
 	])("Throws error when event body message is missing required attributes", async (attribute) => {
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const eventBodyMessage = JSON.parse(eventBody.Message);
+		const eventBodyMessage = eventBody.Message;
 		delete eventBodyMessage[attribute];
 		eventBody.Message = eventBodyMessage;
 		await expect(sendEmailProcessorTest.processRequest(eventBody)).rejects.toThrow();

@@ -27,6 +27,8 @@ export class EnvironmentVariables {
 
 	private readonly GOVUKNOTIFY_API_KEY_SSM_PATH = process.env.GOVUKNOTIFY_API_KEY_SSM_PATH;
 
+	private readonly GOV_NOTIFY_QUEUE_URL = process.env.GOV_NOTIFY_QUEUE_URL;
+
 	/**
 	 * Constructor reads all necessary environment variables and stores them as class data.
 	 * It also performs validation on env variable values. If certain variables have unexpected values the constructor will throw an error and/or log an error message
@@ -43,8 +45,7 @@ export class EnvironmentVariables {
 	 */
 	constructor(logger: Logger) {
 
-		if (!this.GOVUKNOTIFY_TEMPLATE_ID || this.GOVUKNOTIFY_TEMPLATE_ID.trim().length === 0 ||
-			!this.ISSUER || this.ISSUER.trim().length === 0 ||
+		if (!this.ISSUER || this.ISSUER.trim().length === 0 ||
 			!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 			!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
 			!this.GOVUKNOTIFY_API_KEY_SSM_PATH || this.GOVUKNOTIFY_API_KEY_SSM_PATH.trim().length === 0) {
@@ -78,7 +79,11 @@ export class EnvironmentVariables {
 	 * Accessor method for env variable values
 	 */
 
-	templateId(): any {
+	getEmailTemplateId(logger: Logger): any {
+		if (!this.GOVUKNOTIFY_TEMPLATE_ID || this.GOVUKNOTIFY_TEMPLATE_ID.trim().length === 0) {
+			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
 		return this.GOVUKNOTIFY_TEMPLATE_ID;
 	}
 
@@ -108,6 +113,14 @@ export class EnvironmentVariables {
 
 	yotiKeySsmPath(): any {
 		return this.YOTI_KEY_SSM_PATH;
+	}
+
+	getGovNotifyQueueURL(logger: Logger): string {
+		if (!this.GOV_NOTIFY_QUEUE_URL || this.GOV_NOTIFY_QUEUE_URL.trim().length === 0) {
+			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
+		return this.GOV_NOTIFY_QUEUE_URL;
 	}
 
 }

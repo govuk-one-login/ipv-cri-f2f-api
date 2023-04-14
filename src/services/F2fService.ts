@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
+import { F2fSession } from "../models/F2fSession";
 import { ISessionItem } from "../models/ISessionItem";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
-import { DynamoDBDocument, GetCommand, QueryCommandInput, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocument, GetCommand, QueryCommandInput, UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { getAuthorizationCodeExpirationEpoch } from "../utils/DateTimeUtils";
 import { Constants } from "../utils/Constants";
@@ -10,7 +11,15 @@ import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { sqsClient } from "../utils/SqsClient";
 import { TxmaEvent } from "../utils/TxmaEvent";
-import { PersonIdentity } from "../models/PersonIdentity";
+import {
+	PersonIdentityAddress,
+	PersonIdentityDateOfBirth,
+	PersonIdentityItem,
+	PersonIdentityName,
+	SharedClaimsPersonIdentity,
+} from "../models/PersonIdentityItem";
+import { GovNotifyEvent } from "../utils/GovNotifyEvent";
+import { EnvironmentVariables } from "./EnvironmentVariables";
 
 export class F2fService {
 	readonly tableName: string;
@@ -19,12 +28,15 @@ export class F2fService {
 
 	readonly logger: Logger;
 
+	private readonly environmentVariables: EnvironmentVariables;
+
 	private static instance: F2fService;
 
 	constructor(tableName: any, logger: Logger, dynamoDbClient: DynamoDBDocument) {
 		this.tableName = tableName;
 		this.dynamo = dynamoDbClient;
 		this.logger = logger;
+		this.environmentVariables = new EnvironmentVariables(logger);
 	}
 
 	static getInstance(tableName: string, logger: Logger, dynamoDbClient: DynamoDBDocument): F2fService {
@@ -56,7 +68,7 @@ export class F2fService {
 		}
 	}
 
-	async getPersonIdentityById(sessionId: string): Promise<PersonIdentity | undefined> {
+	async getPersonIdentityById(sessionId: string): Promise<PersonIdentityItem | undefined> {
 		this.logger.debug("Table name " + this.tableName);
 		const getPersonIdentityCommand = new GetCommand({
 			TableName: this.tableName,
@@ -74,7 +86,37 @@ export class F2fService {
 		}
 
 		if (PersonInfo.Item) {
-			return PersonInfo.Item as PersonIdentity;
+			return PersonInfo.Item as PersonIdentityItem;
+		}
+	}
+
+	async saveF2FData(sessionId: string, f2fData: F2fSession): Promise<void> {
+		const saveF2FCommand: any = new UpdateCommand({
+			TableName: this.tableName,
+			Key: { sessionId },
+			UpdateExpression:
+				"SET given_names = :given_names, family_names = :family_names, date_of_birth = :date_of_birth, authSessionState = :authSessionState",
+
+			ExpressionAttributeValues: {
+				":given_names": f2fData.given_names,
+				":family_names": f2fData.family_names,
+				":date_of_birth": f2fData.date_of_birth,
+				":authSessionState": AuthSessionState.F2F_DATA_RECEIVED,
+			},
+		});
+
+		this.logger.info({
+			message: "updating F2F data in dynamodb",
+			saveF2FCommand,
+		});
+		try {
+			await this.dynamo.send(saveF2FCommand);
+			this.logger.info({ message: "updated F2F data in dynamodb" });
+		} catch (error) {
+			this.logger.error({ message: "got error saving F2F data", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR,
+				"Failed to set claimed identity data "
+			);
 		}
 	}
 
@@ -103,19 +145,36 @@ export class F2fService {
 	}
 
 	async sendToTXMA(event: TxmaEvent): Promise<void> {
-		const messageBody = JSON.stringify(event);
-		const params = {
-			MessageBody: messageBody,
-			QueueUrl: process.env.TXMA_QUEUE_URL,
-		};
-
-		this.logger.info({ message: "Sending message to TxMA", messageBody });
 		try {
+			const messageBody = JSON.stringify(event);
+			const params = {
+				MessageBody: messageBody,
+				QueueUrl: process.env.TXMA_QUEUE_URL,
+			};
+
+			this.logger.info({ message: "Sending message to TxMA", messageBody });
+
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to TxMA");
 		} catch (error) {
-			this.logger.error("got error " + error);
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event - failed ");
+			this.logger.error({ message: "Error when sending message to TXMA Queue", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to txma queue - failed ");
+		}
+	}
+
+	async sendToGovNotify(event: GovNotifyEvent): Promise<void> {
+		try {
+			const messageBody = JSON.stringify(event);
+			const params = {
+				MessageBody: messageBody,
+				QueueUrl: this.environmentVariables.getGovNotifyQueueURL(this.logger),
+			};
+
+			await sqsClient.send(new SendMessageCommand(params));
+			this.logger.info("Sent message to Gov Notify");
+		} catch (error) {
+			this.logger.error({ message: "Error when sending message to GovNotify Queue", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to govNotify queue - failed ");
 		}
 	}
 
@@ -158,4 +217,88 @@ export class F2fService {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving Access token details");
 		}
 	}
+
+	async createAuthSession(session: ISessionItem): Promise<void> {
+		const putSessionCommand = new PutCommand({
+			TableName: this.tableName,
+			Item: session,
+		});
+
+		this.logger.info({
+			message:
+				"Saving session data in DynamoDB: " +
+				JSON.stringify([putSessionCommand]),
+		});
+		try {
+			await this.dynamo.send(putSessionCommand);
+			this.logger.info("Successfully created session in dynamodb");
+		} catch (error) {
+			this.logger.error("got error " + error);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR,"saveItem - failed ", );
+		}
+	}
+
+	private mapAddresses(addresses: PersonIdentityAddress[]): PersonIdentityAddress[] {
+		return addresses?.map((address) => ({
+			uprn: address.uprn,
+			organisationName: address.organisationName,
+			departmentName: address.departmentName,
+			subBuildingName: address.subBuildingName,
+			buildingNumber: address.buildingNumber,
+			buildingName: address.buildingName,
+			dependentStreetName: address.dependentStreetName,
+			streetName: address.streetName,
+			addressCountry: address.addressCountry,
+			postalCode: address.postalCode,
+			addressLocality: address.addressLocality,
+			dependentAddressLocality: address.dependentAddressLocality,
+			doubleDependentAddressLocality: address.doubleDependentAddressLocality,
+			validFrom: address.validFrom,
+			validUntil: address.validUntil,
+		}));
+	}
+
+	private mapbirthDate(birthDate: PersonIdentityDateOfBirth[]): PersonIdentityDateOfBirth[] {
+		return birthDate?.map((bd) => ({ value: bd.value }));
+	}
+
+	private mapNames(name: PersonIdentityName[]): PersonIdentityName[] {
+		return name?.map((namePart) => ({
+			nameParts: namePart?.nameParts?.map((namePart) => ({
+				type: namePart.type,
+				value: namePart.value,
+			})),
+		}));
+	}
+
+	private createPersonIdentityItem(
+		sharedClaims: SharedClaimsPersonIdentity,
+		sessionId: string
+	): PersonIdentityItem {
+		return {
+			sessionId,
+			addresses: this.mapAddresses(sharedClaims.address!),
+			birthDate: this.mapbirthDate(sharedClaims.birthDate),
+			emailAddress: sharedClaims.emailAddress!,
+			name: this.mapNames(sharedClaims.name),
+		};
+	}
+
+	async savePersonIdentity(
+		sharedClaims: SharedClaimsPersonIdentity,
+		sessionId: string,
+	): Promise<void> {
+		const personIdentityItem = this.createPersonIdentityItem(
+			sharedClaims,
+			sessionId
+		);
+
+		const putSessionCommand = new PutCommand({
+			TableName: process.env.PERSON_IDENTITY_TABLE_NAME,
+			Item: personIdentityItem,
+		});
+		await this.dynamo.send(putSessionCommand);
+		return putSessionCommand?.input?.Item?.sessionId;
+	}
+
 }

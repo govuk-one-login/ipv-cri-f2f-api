@@ -5,7 +5,7 @@ import axios, { AxiosRequestConfig } from "axios";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
-import { PersonIdentity } from "../models/PersonIdentity";
+import { PersonIdentityItem } from "../models/PersonIdentityItem";
 import { ApplicantProfile, PostOfficeInfo, YotiSessionInfo, CreateSessionPayload } from "../models/YotiPayloads";
 import { YotiDocumentTypesEnum, YOTI_DOCUMENT_COUNTRY_CODE, REQUESTED_CHECKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
@@ -59,13 +59,13 @@ export class YotiService {
 	}
 
 	private getApplicantProfile(
-		personDetails: PersonIdentity,
+		personDetails: PersonIdentityItem,
 	): ApplicantProfile {
 		const nameParts = personIdentityUtils.getNames(personDetails);
 
 		return {
 			full_name: `${nameParts.givenNames[0]} ${nameParts.familyNames[0]}`,
-			date_of_birth: `${personDetails.birthDates.map((bd) => ({ value: bd.value }))[0].value}`,
+			date_of_birth: `${personDetails.birthDate.map((bd) => ({ value: bd.value }))[0].value}`,
 			structured_postal_address: personIdentityUtils.getYotiStructuredPostalAddress(personDetails),
 		};
 	}
@@ -123,7 +123,7 @@ export class YotiService {
 	}
 
 	async createSession(
-		personDetails: PersonIdentity,
+		personDetails: PersonIdentityItem,
 		selectedDocument: string,
 		YOTICALLBACKURL?: string,
 	): Promise<string | undefined> {
@@ -202,7 +202,7 @@ export class YotiService {
 
 	async generateInstructions(
 		sessionID: string,
-		personDetails: PersonIdentity,
+		personDetails: PersonIdentityItem,
 		requirements: Array<{ requirement_id: string; document: { type: string; country_code: string; document_type: string } } | undefined>,
 		PostOfficeSelection: PostOfficeInfo,
 	):Promise<number | undefined> {

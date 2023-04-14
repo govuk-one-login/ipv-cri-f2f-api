@@ -1,12 +1,12 @@
-import { PersonIdentity } from "../models/PersonIdentity";
+import { PersonIdentityItem } from "../models/PersonIdentityItem";
 
 export const personIdentityUtils = {
 
-	getNames(personDetails: PersonIdentity) {
+	getNames(personDetails: PersonIdentityItem) {
 		const givenNames: string[] = [];
   	const familyNames: string[] = [];
 
-  	for (const name of personDetails.names) {
+  	for (const name of personDetails.name) {
   		const nameParts = name.nameParts;
   		for (const namePart of nameParts) {
   			if (namePart.type === "GivenName") {
@@ -21,22 +21,21 @@ export const personIdentityUtils = {
 		return { givenNames, familyNames };
 	},
 
-	getEmailAddress(personDetails: PersonIdentity): string {
-		//TODO: Update email file to be fetched from Person Identity Table once Session work completed
-		// return personDetails.emailAddress;
-		return "test@example.com";
+	getEmailAddress(personDetails: PersonIdentityItem): string {
+		return personDetails.emailAddress;
 	},
 
-	getYotiStructuredPostalAddress(personDetails: PersonIdentity) {
-		//TODO: Hardcoded now, will update with values from Person Identity table once /session work completed
+	getYotiStructuredPostalAddress(personDetails: PersonIdentityItem) {
+		const address = personDetails.addresses[0];
+
 		return {
   		address_format: 1,
-  		building_number: "74",
-  		address_line1: "AddressLine1",
-  		town_city: "CityName",
-  		postal_code: "E143RN",
+  		building_number: address.buildingNumber,
+  		address_line1: `${address.buildingName} ${address.streetName}`,
+  		town_city: address.addressLocality,
+  		postal_code: address.postalCode,
   		country_iso: "GBR",
-  		country: "United Kingdom",
+  		country: address.addressCountry,
   	};
 	},
 };

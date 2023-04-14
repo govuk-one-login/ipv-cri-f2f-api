@@ -21,7 +21,7 @@ Parameters:
     Description: >
       The ARN of the Code Signing Config to use, provided by the deployment pipeline
     Default: "none"
-    
+
   PermissionsBoundary:
     Type: String
     Description: >
@@ -32,7 +32,7 @@ Parameters:
     Type: Number
     Description: Number of days to retain KMS in pending deletion state when deleted
     Default: 30
-    
+
 Conditions:
   UseCodeSigning:
     Fn::Not:

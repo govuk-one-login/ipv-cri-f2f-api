@@ -100,13 +100,13 @@ export class SendEmailService {
     	//retry for maxRetry count configured value if fails
     	while (retryCount++ < this.environmentVariables.maxRetries() + 1) {
     		this.logger.debug(`sendEmail - trying to send email message ${SendEmailService.name} ${new Date().toISOString()}`, {
-    			templateId: this.environmentVariables.templateId(),
+    			templateId: this.environmentVariables.getEmailTemplateId(this.logger),
     			emailAddress: message.emailAddress,
     			options,
     		});
 
     		try {
-    			const emailResponse = await this.govNotify.sendEmail(this.environmentVariables.templateId(), message.emailAddress, options);
+    			const emailResponse = await this.govNotify.sendEmail(this.environmentVariables.getEmailTemplateId(this.logger), message.emailAddress, options);
     			this.logger.debug("sendEmail - response data after sending Email", emailResponse.data);
     			this.logger.debug("sendEmail - response status after sending Email", SendEmailService.name, emailResponse.status);
 				const session = await this.f2fService.getSessionById(message.sessionId);
