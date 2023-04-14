@@ -3,7 +3,6 @@ import * as dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../utils/ApiTestSteps";
 
 describe("E2E Negative Path /documentSelection Endpoint", () => {
-	// Add logic to fetch sessionId eventually
 	let sessionId: any;
 	beforeAll(async () => {
 		const sessionResponse = await startStubServiceAndReturnSessionId();
