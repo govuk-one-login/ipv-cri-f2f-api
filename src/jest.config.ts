@@ -3,10 +3,14 @@
  * https://jestjs.io/docs/configuration
  */
 
+const dotenv = require('dotenv');
+dotenv.config();
+
 export default {
   transform: {
     '^.+\\.ts?$': 'ts-jest'
   },
+  testTimeout: 10000,
   clearMocks: true,
   collectCoverage: true,
   coverageDirectory: 'coverage',
