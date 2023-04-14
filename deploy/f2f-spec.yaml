@@ -96,16 +96,15 @@ paths:
         credentials:
           Fn::GetAtt: [ "YotiCallbackQueueRole", "Arn" ]
         uri: 
-          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:sqs:path/${YotiCallbackQueue.Arn}/"
-        responses:
-          default:
-            statusCode: "200"
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/${YotiCallbackQueue.QueueName}"
         passthroughBehavior: "never"
-        contentHandling: "CONVERT_TO_TEXT"
         requestParameters:
           integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
         requestTemplates:
           application/json: "Action=SendMessage&MessageBody=$input.body"
+        responses:
+          default:
+            statusCode: "200"
         type: "aws"
 
   /token:

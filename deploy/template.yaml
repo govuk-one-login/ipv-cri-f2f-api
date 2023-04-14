@@ -988,8 +988,14 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - sqs:*
+                  - "sqs:SendMessage"
                 Resource: !GetAtt YotiCallbackQueue.Arn
+              - Effect: Allow
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:Decrypt"
+                  - "kms:GenerateDataKey"
+                Resource: !GetAtt YotiCallbackEncryptionKey.Arn
 
   YotiCallbackEncryptionKey:
     Type: AWS::KMS::Key
