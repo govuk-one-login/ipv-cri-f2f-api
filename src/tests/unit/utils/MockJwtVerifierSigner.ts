@@ -43,3 +43,17 @@ export class MockKmsSigningTokenJwtAdapter {
 
 	sign(_jwtPayload: JwtPayload): string { return ACCESS_TOKEN; }
 }
+
+export class MockKmsJwtAdapterForVc {
+    result: boolean;
+
+    constructor(result: boolean) {
+    	this.result = result;
+    }
+
+    verify(_urlEncodedJwt: string): boolean { return this.result; }
+
+    sign(jwtPayload: JwtPayload): string {
+    	return JSON.stringify(jwtPayload);
+    }
+}

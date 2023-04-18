@@ -21,6 +21,7 @@ import {
 import { GovNotifyEvent } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
+import { IPVCoreEvent, buildCoreEventFields } from "../utils/IPVCoreEvent";
 
 export class F2fService {
 	readonly tableName: string;
@@ -47,8 +48,8 @@ export class F2fService {
 		return F2fService.instance;
 	}
 
-	async getSessionById(sessionId: string): Promise<ISessionItem | undefined> {
-		this.logger.debug("Table name " + this.tableName);
+	async getSessionById(sessionId: string, tableName: string = this.tableName): Promise<ISessionItem | undefined> {
+		this.logger.debug("Table name " + tableName);
 		const getSessionCommand = new GetCommand({
 			TableName: this.tableName,
 			Key: {
@@ -69,10 +70,10 @@ export class F2fService {
 		}
 	}
 
-	async getPersonIdentityById(sessionId: string): Promise<PersonIdentityItem | undefined> {
-		this.logger.debug("Table name " + this.tableName);
+	async getPersonIdentityById(sessionId: string, tableName: string = this.tableName): Promise<PersonIdentityItem | undefined> {
+		this.logger.debug("Table name " + tableName);
 		const getPersonIdentityCommand = new GetCommand({
-			TableName: this.tableName,
+			TableName: tableName,
 			Key: {
 				sessionId,
 			},
@@ -89,6 +90,26 @@ export class F2fService {
 		if (PersonInfo.Item) {
 			return PersonInfo.Item as PersonIdentityItem;
 		}
+	}
+
+	async getSessionByYotiId(yotiSessionId: string, tableName: string = this.tableName): Promise<ISessionItem | undefined> {
+		this.logger.debug("Table name " + tableName);
+		const params: QueryCommandInput = {
+			TableName: tableName,
+			IndexName: Constants.YOTI_SESSION_ID_INDEX_NAME,
+			KeyConditionExpression: "yotiSessionId = :yotiSessionId",
+			ExpressionAttributeValues: {
+				":yotiSessionId": yotiSessionId,
+			},
+		};
+
+		const sessionItem = await this.dynamo.query(params);
+
+		if (!sessionItem?.Items || sessionItem?.Items?.length !== 1) {
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session by yoit session id");
+		}
+
+		return sessionItem.Items[0] as ISessionItem;
 	}
 
 	async saveF2FData(sessionId: string, f2fData: F2fSession): Promise<void> {
@@ -176,6 +197,24 @@ export class F2fService {
 		} catch (error) {
 			this.logger.error({ message: "Error when sending message to GovNotify Queue", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to govNotify queue - failed ");
+		}
+	}
+
+	async sendToIPVCore(event: IPVCoreEvent): Promise<void> {
+		try {
+			const messageBody = JSON.stringify(event);
+			const params = {
+				MessageBody: messageBody,
+				QueueUrl: this.environmentVariables.getIpvCoreQueueURL(this.logger),
+			};
+
+			this.logger.info({ message: "Sending message to IPV Core Queue", messageBody });
+
+			await sqsClient.send(new SendMessageCommand(params));
+			this.logger.info("Sent message to IPV Core");
+		} catch (error) {
+			this.logger.error({ message: "Error when sending message to IPV Core Queue", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to ipv core queue - failed ");
 		}
 	}
 
