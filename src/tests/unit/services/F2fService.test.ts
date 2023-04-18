@@ -97,6 +97,14 @@ describe("F2f Service", () => {
 		}));
 	});
 
+	it("should throw 500 if request fails during update Session data with yoti session details", async () => {
+		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+
+		return expect(f2fService.updateSessionWithYotiIdAndStatus("SESSID", "12345", "4567")).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+		}));
+	});
+
 	it("show throw error if failed to send to TXMA queue", async () => {
 		mockSqsClient.send = jest.fn().mockRejectedValue({});
 

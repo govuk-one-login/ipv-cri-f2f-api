@@ -12,6 +12,7 @@ import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { buildGovNotifyEventFields } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
+import { YotiSessionState } from "../models/enums/YotiSessionState";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -124,10 +125,21 @@ export class DocumentSelectionRequestProcessor {
   		} catch (error) {
   			this.logger.error("FAILED_TO_WRITE_GOV_NOTIFY", {
   				yotiSessionID,
-  				reason: "Yoti session created, faled to post message to GovNotify SQS Queue",
+  				reason: "Yoti session created, failed to post message to GovNotify SQS Queue",
   				error,
   			});
   			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when sending message to GovNotify handler");
+  		}
+
+  		try {
+  			await this.f2fService.updateSessionWithYotiIdAndStatus(sessionId, yotiSessionID, YotiSessionState.YOTI_SESSION_CREATED, this.SESSION_TABLE);
+  		} catch (error) {
+  			this.logger.error("FAILED_TO_UPDATE_YOTI_STATUs", {
+  				yotiSessionID,
+  				reason: "Yoti session created, faled to update session table in dynamodb",
+  				error,
+  			});
+  			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when updating session table in dynamo");
   		}
 
   		try {
