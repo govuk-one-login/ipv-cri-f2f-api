@@ -264,8 +264,8 @@ export class F2fService {
 	}
 
 	private mapNames(name: PersonIdentityName[]): PersonIdentityName[] {
-		return name?.map((namePart) => ({
-			nameParts: namePart?.nameParts?.map((namePart) => ({
+		return name?.map((index) => ({
+			nameParts: index?.nameParts?.map((namePart) => ({
 				type: namePart.type,
 				value: namePart.value,
 			})),

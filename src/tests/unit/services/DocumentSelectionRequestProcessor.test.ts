@@ -190,7 +190,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
@@ -261,6 +263,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_START to SQS queue.");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
@@ -280,6 +283,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error occured when sending message to GovNotify handler");
