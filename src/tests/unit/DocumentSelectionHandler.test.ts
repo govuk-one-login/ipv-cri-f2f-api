@@ -44,6 +44,7 @@ describe("DocumentSelectionHandler", () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 
 		await lambdaHandler(VALID_REQUEST, "");
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockDocumentSelectionRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
 });
