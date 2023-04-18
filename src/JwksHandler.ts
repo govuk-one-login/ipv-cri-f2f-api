@@ -1,6 +1,4 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { AppError } from "./utils/AppError";
-import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
 import { Jwk, JWKSBody, Algorithm } from "./utils/IVeriCredential";
@@ -8,6 +6,8 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 import crypto from "crypto";
 import * as AWS from "@aws-sdk/client-kms";
+import { EnvironmentVariables } from "./services/EnvironmentVariables";
+import { ServicesEnum } from "./models/enums/ServicesEnum";
 
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.JWKS_LOGGER_SVC_NAME;
@@ -15,10 +15,6 @@ const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
 	serviceName: POWERTOOLS_SERVICE_NAME,
 });
-
-const SIGNING_KEY_IDS = process.env.SIGNING_KEY_IDS;
-const ENCRYPTION_KEY_IDS = process.env.ENCRYPTION_KEY_IDS;
-const JWKS_BUCKET_NAME = process.env.JWKS_BUCKET_NAME;
 
 const s3Client = new S3Client({
 	region: process.env.REGION,
@@ -28,6 +24,7 @@ const s3Client = new S3Client({
 		socketTimeout: 29000,
 	}),
 });
+const environmentVariables: EnvironmentVariables = new EnvironmentVariables(logger, ServicesEnum.JWKS_SERVICE);
 
 const kmsClient = new AWS.KMS({
 	region: process.env.REGION,
@@ -36,14 +33,10 @@ const kmsClient = new AWS.KMS({
 class JwksHandler implements LambdaInterface {
 
 	async handler(): Promise<string> {
-		if (!SIGNING_KEY_IDS || !ENCRYPTION_KEY_IDS || !JWKS_BUCKET_NAME) {
-			logger.error({ message:"Environment variable SIGNING_KEY_IDS or ENCRYPTION_KEY_IDS or JWKS_BUCKET_NAME is not configured" });
-			throw new AppError( HttpCodesEnum.SERVER_ERROR, "Service incorrectly configured" );
-		}
 		const body: JWKSBody = { keys: [] };
 		const kmsKeyIds = [
-			...SIGNING_KEY_IDS.split(","),
-			...ENCRYPTION_KEY_IDS.split(","),
+			...environmentVariables.signingKeyIds().split(","),
+			...environmentVariables.encryptionKeyIds().split(","),
 		];
 		logger.info({ message:"Building wellknown JWK endpoint with keys" + kmsKeyIds });
 
@@ -57,7 +50,7 @@ class JwksHandler implements LambdaInterface {
 		});
 
 		const uploadParams = {
-			Bucket: JWKS_BUCKET_NAME,
+			Bucket: environmentVariables.jwksBucketName(),
 			Key: ".well-known/jwks.json",
 			Body: JSON.stringify(body),
 			ContentType: "application/json",

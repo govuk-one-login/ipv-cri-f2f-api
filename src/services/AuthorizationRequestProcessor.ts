@@ -5,16 +5,13 @@ import { randomUUID } from "crypto";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { ValidationHelper } from "../utils/ValidationHelper";
-import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
-
-const SESSION_TABLE = process.env.SESSION_TABLE;
-const TXMA_QUEUE_URL = process.env.TXMA_QUEUE_URL;
-const ISSUER = process.env.ISSUER!;
+import { EnvironmentVariables } from "./EnvironmentVariables";
+import { ServicesEnum } from "../models/enums/ServicesEnum";
 
 export class AuthorizationRequestProcessor {
 	private static instance: AuthorizationRequestProcessor;
@@ -27,15 +24,14 @@ export class AuthorizationRequestProcessor {
 
 	private readonly f2fService: F2fService;
 
+	private readonly environmentVariables: EnvironmentVariables;
+
 	constructor(logger: Logger, metrics: Metrics) {
-		if (!SESSION_TABLE || !TXMA_QUEUE_URL || !ISSUER) {
-			logger.error("Environment variable SESSION_TABLE or TXMA_QUEUE_URL or ISSUER is not configured");
-			throw new AppError( HttpCodesEnum.SERVER_ERROR, "Service incorrectly configured");
-		}
 		this.logger = logger;
+		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
 		this.validationHelper = new ValidationHelper();
 		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(SESSION_TABLE, this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics): AuthorizationRequestProcessor {
@@ -69,7 +65,7 @@ export class AuthorizationRequestProcessor {
 			try {
 				await this.f2fService.sendToTXMA({
 					event_name: "F2F_CRI_AUTH_CODE_ISSUED",
-					...buildCoreEventFields(session, ISSUER, session.clientIpAddress, absoluteTimeNow),
+					...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow),
 
 				});
 			} catch (error) {

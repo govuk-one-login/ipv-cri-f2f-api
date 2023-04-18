@@ -32,6 +32,22 @@ export class EnvironmentVariables {
 
 	private readonly KMS_KEY_ARN = process.env.KMS_KEY_ARN;
 
+	private readonly CLIENT_CONFIG = process.env.CLIENT_CONFIG;
+
+	private readonly ENCRYPTION_KEY_IDS = process.env.ENCRYPTION_KEY_IDS;
+
+	private readonly AUTH_SESSION_TTL = process.env.AUTH_SESSION_TTL;
+
+	private readonly SIGNING_KEY_IDS = process.env.SIGNING_KEY_IDS;
+
+	private readonly JWKS_BUCKET_NAME = process.env.JWKS_BUCKET_NAME;
+
+	private readonly TXMA_QUEUE_URL = process.env.TXMA_QUEUE_URL;
+
+	private readonly PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
+
+	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
+
 	/**
 	 * Constructor reads all necessary environment variables and stores them as class data.
 	 * It also performs validation on env variable values. If certain variables have unexpected values the constructor will throw an error and/or log an error message
@@ -79,6 +95,62 @@ export class EnvironmentVariables {
 				}
 				break;
 
+			}
+			case ServicesEnum.ACCESS_TOKEN_SERVICE: {
+
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+					!this.KMS_KEY_ARN || this.KMS_KEY_ARN.trim().length === 0 ||
+					!this.ISSUER || this.ISSUER.trim().length === 0) {
+					logger.error("Environment variable SESSION_TABLE or KMS_KEY_ARN or ISSUER is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "AccessToken Service incorrectly configured");
+				}
+				break;
+
+			}
+			case ServicesEnum.SESSION_SERVICE: {
+
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+					!this.CLIENT_CONFIG || this.CLIENT_CONFIG.trim().length === 0 ||
+					!this.ENCRYPTION_KEY_IDS || this.ENCRYPTION_KEY_IDS.trim().length === 0 ||
+					!this.AUTH_SESSION_TTL || this.AUTH_SESSION_TTL.trim().length === 0 ||
+					!this.ISSUER || this.ISSUER.trim().length === 0) {
+					logger.error("Environment variable SESSION_TABLE or CLIENT_CONFIG or ENCRYPTION_KEY_IDS or AUTH_SESSION_TTL is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Session Service incorrectly configured");
+				}
+				break;
+
+			}
+			case ServicesEnum.JWKS_SERVICE: {
+
+				if (!this.ENCRYPTION_KEY_IDS || this.ENCRYPTION_KEY_IDS.trim().length === 0 ||
+					!this.SIGNING_KEY_IDS || this.SIGNING_KEY_IDS.trim().length === 0 ||
+					!this.JWKS_BUCKET_NAME || this.JWKS_BUCKET_NAME.trim().length === 0) {
+					logger.error("Environment variable ENCRYPTION_KEY_IDS or SIGNING_KEY_IDS or JWKS_BUCKET_NAME is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "JWKS Service handler incorrectly configured");
+				}
+				break;
+
+			}
+			case ServicesEnum.AUTHORIZATION_SERVICE: {
+
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
+					!this.ISSUER || this.ISSUER.trim().length === 0) {
+					logger.error("Environment variable SESSION_TABLE or TXMA_QUEUE_URL or ISSUER is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Authorization Service incorrectly configured");
+				}
+				break;
+
+			}
+			case ServicesEnum.DOCUMENT_SELECTION_SERVICE: {
+				if (!this.PERSON_IDENTITY_TABLE_NAME || this.PERSON_IDENTITY_TABLE_NAME.trim().length === 0 ||
+					!this.YOTICALLBACKURL || this.YOTICALLBACKURL.trim().length === 0 ||
+					!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 ||
+					!this.ISSUER || this.ISSUER.trim().length === 0) {
+					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
+				}
+				break;
 			}
 			case ServicesEnum.NA:
 				break;
@@ -135,6 +207,34 @@ export class EnvironmentVariables {
 
 	kmsKeyArn(): any {
 		return this.KMS_KEY_ARN;
+	}
+
+	encryptionKeyIds(): any {
+		return this.ENCRYPTION_KEY_IDS;
+	}
+
+	clientConfig(): any {
+		return this.CLIENT_CONFIG;
+	}
+
+	authSessionTtl(): any {
+		return this.AUTH_SESSION_TTL;
+	}
+
+	signingKeyIds(): any {
+		return this.SIGNING_KEY_IDS;
+	}
+
+	jwksBucketName(): any {
+		return this.JWKS_BUCKET_NAME;
+	}
+
+	yotiCallbackUrl(): any {
+		return this.YOTICALLBACKURL;
+	}
+
+	personIdentityTableName(): any {
+		return this.PERSON_IDENTITY_TABLE_NAME;
 	}
 
 }

@@ -3,7 +3,6 @@ import { F2fService } from "./F2fService";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
@@ -13,6 +12,8 @@ import { ISessionItem } from "../models/ISessionItem";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { ValidationHelper } from "../utils/ValidationHelper";
 import { JwtPayload, Jwt } from "../utils/IVeriCredential";
+import { EnvironmentVariables } from "./EnvironmentVariables";
+import { ServicesEnum } from "../models/enums/ServicesEnum";
 
 
 interface ClientConfig {
@@ -20,12 +21,6 @@ interface ClientConfig {
 	clientId: string;
 	redirectUri: string;
 }
-
-const SESSION_TABLE = process.env.SESSION_TABLE;
-const CLIENT_CONFIG = process.env.CLIENT_CONFIG;
-const ENCRYPTION_KEY_IDS = process.env.ENCRYPTION_KEY_IDS;
-const AUTH_SESSION_TTL = process.env.AUTH_SESSION_TTL;
-const ISSUER = process.env.ISSUER;
 
 export class SessionRequestProcessor {
 	private static instance: SessionRequestProcessor;
@@ -40,20 +35,16 @@ export class SessionRequestProcessor {
 
 	private readonly validationHelper: ValidationHelper;
 
+	private readonly environmentVariables: EnvironmentVariables;
+
 	constructor(logger: Logger, metrics: Metrics) {
-
-		if (!SESSION_TABLE || !CLIENT_CONFIG || !ENCRYPTION_KEY_IDS || !AUTH_SESSION_TTL || !ISSUER) {
-			logger.error("Environment variable SESSION_TABLE or CLIENT_CONFIG or ENCRYPTION_KEY_IDS or AUTH_SESSION_TTL is not configured");
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Service incorrectly configured");
-		}
-
 		this.logger = logger;
 		this.metrics = metrics;
-
+		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.SESSION_SERVICE);
 		logger.debug("metrics is  " + JSON.stringify(this.metrics));
 		this.metrics.addMetric("Called", MetricUnits.Count, 1);
-		this.f2fService = F2fService.getInstance(SESSION_TABLE, this.logger, createDynamoDbClient());
-		this.kmsDecryptor = new KmsJwtAdapter(ENCRYPTION_KEY_IDS);
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.kmsDecryptor = new KmsJwtAdapter(this.environmentVariables.encryptionKeyIds());
 		this.validationHelper = new ValidationHelper();
 	}
 
@@ -71,8 +62,8 @@ export class SessionRequestProcessor {
 
 
 		let configClient;
-		if (CLIENT_CONFIG) {
-			const config = JSON.parse(CLIENT_CONFIG) as ClientConfig[];
+		if (this.environmentVariables.clientConfig()) {
+			const config = JSON.parse(this.environmentVariables.clientConfig()) as ClientConfig[];
 			configClient = config.find(c => c.clientId === requestBodyClientId);
 		} else {
 			this.logger.error("MISSING_CLIENT_CONFIG");
@@ -139,7 +130,7 @@ export class SessionRequestProcessor {
 			clientId: jwtPayload.client_id,
 			clientSessionId: jwtPayload.govuk_signin_journey_id as string,
 			redirectUri: jwtPayload.redirect_uri,
-			expiryDate: Date.now() + Number(AUTH_SESSION_TTL) * 1000,
+			expiryDate: Date.now() + Number(this.environmentVariables.authSessionTtl()) * 1000,
 			createdDate: Date.now(),
 			state: jwtPayload.state,
 			subject: jwtPayload.sub ? jwtPayload.sub : "",
@@ -168,12 +159,12 @@ export class SessionRequestProcessor {
 		try {
 			await this.f2fService.sendToTXMA({
 				event_name: "F2F_CRI_START",
-				...buildCoreEventFields(session, ISSUER as string, session.clientIpAddress, absoluteTimeNow),
+				...buildCoreEventFields(session, this.environmentVariables.issuer() as string, session.clientIpAddress, absoluteTimeNow),
 			});
 		} catch (error) {
 			this.logger.error("FAILED_TO_WRITE_TXMA", {
 				session,
-				issues: ISSUER,
+				issues: this.environmentVariables.issuer(),
 				reason: "Auth session successfully created. Failed to send DCMAW_CRI_START event to TXMA",
 				error,
 			});
