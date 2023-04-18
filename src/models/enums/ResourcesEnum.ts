@@ -6,4 +6,5 @@ export enum ResourcesEnum {
 	AUTHORIZATION = "/authorization",
 	DOCUMENTSELECTION = "/documentSelection",
 	SESSION = "/session",
+	USERINFO = "/userInfo",
 }

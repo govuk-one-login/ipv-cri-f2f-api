@@ -1,0 +1,7 @@
+{
+  "resource": "/userInfo",
+  "httpMethod": "POST",
+  "headers": {
+    "Authorization": "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImZmNDM3YTUxLWVjN2UtNDExOC05Yzk1LTdiMGJiMjg1NjgzNiJ9.eyJzdWIiOiIwMTMzM2UwMS1kZGUzLTQxMmYtYTQ4NC1lOWYyM2IwNmJlM2UiLCJhdWQiOiJodHRwczovL3Jldmlldy1jLmRldi5hY2NvdW50Lmdvdi51ayIsImlzcyI6ImRlZmF1bHQiLCJleHAiOjE2NzY5MjYxMTd9.LToybYHKBiA1tQNlKo11zGUDuBPd1JEHMQFj76lTgNMTchuwtJV4LjVP5l49bJata_PNN1vyEf3YdRPhmCO7Rw"
+  }
+}

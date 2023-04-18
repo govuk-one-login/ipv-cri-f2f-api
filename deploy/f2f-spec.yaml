@@ -490,6 +490,95 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws"
+  /userInfo:
+    post:
+      operationId: postUserInfo
+      summary: Responds with pending status for a given Auth Session.
+      description: >-
+        Returns a Json response with pending status to any valid request. Requires an access token as issued by `POST /token`, and can only be called once.
+      tags:
+        - Backend - F2F CRI specific
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      responses:
+        "202":
+          description: >-
+            Accepted
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfoResponse"
+        "401":
+          description: Unauthorized
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthErrorResponse"
+        "500":
+          description: Internal Server Error
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthErrorResponse"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:User-Info-${AWS::StackName}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
 
 components:
   schemas:
@@ -705,12 +794,12 @@ components:
                   SHA-256 thumbprint (a.k.a. digest) of the DER encoding of an X.509 certificate.
             required:
               - kty
-    UserInfoJwt:
+    UserInfoResponse:
       type: object
       additionalProperties: true
       required:
         - sub
-        - 'https://vocab.account.gov.uk/v1/credentialJWT'
+        - 'https://vocab.account.gov.uk/v1/credentialStatus'
       properties:
         sub:
           type: string
@@ -718,10 +807,11 @@ components:
           description: >-
             `sub` value - this should be the same as encoded in the signed JWT
           example: 22222222-2222-2222-2222-222222222222
-        'https://vocab.account.gov.uk/v1/credentialJWT':
+        'https://vocab.account.gov.uk/v1/credentialStatus':
           type: string
           description: >-
-            Signed JWT response with user credentials including the outcome from the biometric checks
+            pending status returned back to IPV Core for a valid request
+          example: pending
     IssueTokenResponse:
       type: object
       additionalProperties: true

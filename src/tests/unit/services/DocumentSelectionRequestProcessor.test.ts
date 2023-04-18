@@ -44,43 +44,43 @@ function getMockSessionItem(): ISessionItem {
 
 function getPersonIdentityItem(): PersonIdentityItem {
 	const personIdentityItem: PersonIdentityItem = {
-			"addresses": [
+		"addresses": [
+			{
+				"addressCountry": "United Kingdom",
+				"buildingName": "Sherman",
+				"uprn": 123456789,
+				"streetName": "Wallaby Way",
+				"postalCode": "F1 1SH",
+				"buildingNumber": "32",
+				"addressLocality": "Sidney",
+			},
+		],
+		"sessionId": "RandomF2FSessionID",
+		"emailAddress": "viveak.vadivelkarasan@digital.cabinet-office.gov.uk",
+		"birthDate": [
+			{
+				"value":"1960-02-02",
+			},
+		],
+		"name": [
+			{
+				"nameParts": [
 					{
-							"addressCountry": "United Kingdom",
-							"buildingName": "Sherman",
-							"uprn": 123456789,
-							"streetName": "Wallaby Way",
-							"postalCode": "F1 1SH",
-							"buildingNumber": "32",
-							"addressLocality": "Sidney"
-					}
-			],
-			"sessionId": "RandomF2FSessionID",
-			"emailAddress": "viveak.vadivelkarasan@digital.cabinet-office.gov.uk",
-			"birthDate": [
+						"type": "GivenName",
+						"value": "Frederick",
+					},
 					{
-						"value":"1960-02-02",
-					}
-			],
-			"name": [
+						"type": "GivenName",
+						"value": "Joseph",
+					},
 					{
-							"nameParts": [
-									{
-											"type": "GivenName",
-											"value": "Frederick"
-									},
-									{
-											"type": "GivenName",
-											"value": "Joseph"
-									},
-									{
-											"type": "FamilyName",
-											"value": "Flintstone"
-									}
-							]
-					}
-			]
-	}
+						"type": "FamilyName",
+						"value": "Flintstone",
+					},
+				],
+			},
+		],
+	};
 	return personIdentityItem;
 }
 

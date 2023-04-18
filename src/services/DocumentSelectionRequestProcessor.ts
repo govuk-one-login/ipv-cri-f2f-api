@@ -143,7 +143,7 @@ export class DocumentSelectionRequestProcessor {
   			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when sending message to GovNotify handler");
   		}
 
-			try {
+  		try {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_YOTI_START",
   				...buildCoreEventFields(f2fSessionInfo, this.ISSUER, f2fSessionInfo.clientIpAddress, absoluteTimeNow),

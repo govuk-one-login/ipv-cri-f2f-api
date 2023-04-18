@@ -10,6 +10,8 @@ export class Constants {
 
     static readonly DOCUMENT_SELECTION_LOGGER_SVC_NAME = "DocumentSelectionHandler";
 
+    static readonly USERINFO_LOGGER_SVC_NAME = "UserInfoHandler";
+
     static readonly F2F_METRICS_NAMESPACE = "F2F-CRI";
 
     static readonly JWKS_LOGGER_SVC_NAME = "JwksHandler";
@@ -23,14 +25,6 @@ export class Constants {
     static readonly ERROR = "ERROR";
 
     static readonly BEARER = "Bearer";
-
-    static readonly W3_BASE_CONTEXT = "https://www.w3.org/2018/credentials/v1";
-
-    static readonly DI_CONTEXT = "https://vocab.london.cloudapps.digital/contexts/identity-v1.jsonld";
-
-    static readonly IDENTITY_ASSERTION_CREDENTIAL = "IdentityAssertionCredential";
-
-    static readonly VERIFIABLE_CREDENTIAL = "VerifiableCredential";
 
     static readonly CODE = "code";
 

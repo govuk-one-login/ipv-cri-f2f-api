@@ -2,6 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { Constants } from "../utils/Constants";
+import { ServicesEnum } from "../models/enums/ServicesEnum";
 
 
 /**
@@ -29,49 +30,58 @@ export class EnvironmentVariables {
 
 	private readonly GOV_NOTIFY_QUEUE_URL = process.env.GOV_NOTIFY_QUEUE_URL;
 
+	private readonly KMS_KEY_ARN = process.env.KMS_KEY_ARN;
+
 	/**
 	 * Constructor reads all necessary environment variables and stores them as class data.
 	 * It also performs validation on env variable values. If certain variables have unexpected values the constructor will throw an error and/or log an error message
 	 *
-	 * @param GOVUKNOTIFY_TEMPLATE_ID
-	 * @param GOVUKNOTIFY_MAX_RETRIES
-	 * @param GOVUKNOTIFY_BACKOFF_PERIOD_MS
-	 * @param YOTI_SDK
-	 * @param YOTIBASEURL
-	 * @param ISSUER
-	 * @param SESSION_TABLE
-	 * @param YOTI_KEY_SSM_PATH
-	 * @param GOVUKNOTIFY_API_KEY_SSM_PATH
 	 */
-	constructor(logger: Logger) {
+	constructor(logger: Logger, serviceType: ServicesEnum) {
+		switch (serviceType) {
+			case ServicesEnum.GOV_NOTIFY_SERVICE: {
+				if (!this.ISSUER || this.ISSUER.trim().length === 0 ||
+					!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
+					!this.GOVUKNOTIFY_API_KEY_SSM_PATH || this.GOVUKNOTIFY_API_KEY_SSM_PATH.trim().length === 0) {
+					logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+				}
 
-		if (!this.ISSUER || this.ISSUER.trim().length === 0 ||
-			!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
-			!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
-			!this.GOVUKNOTIFY_API_KEY_SSM_PATH || this.GOVUKNOTIFY_API_KEY_SSM_PATH.trim().length === 0) {
-			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
-		}
+				if (!this.GOVUKNOTIFY_BACKOFF_PERIOD_MS
+					|| this.GOVUKNOTIFY_BACKOFF_PERIOD_MS.trim().length === 0
+					|| +this.GOVUKNOTIFY_BACKOFF_PERIOD_MS.trim() === 0
+					|| +this.GOVUKNOTIFY_BACKOFF_PERIOD_MS.trim() >= 60000) {
+					this.GOVUKNOTIFY_BACKOFF_PERIOD_MS = "20000";
+					logger.warn("GOVUKNOTIFY_BACKOFF_PERIOD_MS env var is not set. Setting to default - 20000");
+				}
 
-		if (!this.GOVUKNOTIFY_BACKOFF_PERIOD_MS
-			|| this.GOVUKNOTIFY_BACKOFF_PERIOD_MS.trim().length === 0
-			|| +this.GOVUKNOTIFY_BACKOFF_PERIOD_MS.trim() === 0
-			|| +this.GOVUKNOTIFY_BACKOFF_PERIOD_MS.trim() >= 60000) {
-			this.GOVUKNOTIFY_BACKOFF_PERIOD_MS = "20000";
-			logger.warn("GOVUKNOTIFY_BACKOFF_PERIOD_MS env var is not set. Setting to default - 20000");
-		}
+				if (!this.GOVUKNOTIFY_MAX_RETRIES
+					|| this.GOVUKNOTIFY_MAX_RETRIES.trim().length === 0
+					|| +this.GOVUKNOTIFY_MAX_RETRIES.trim() >= 100) {
+					this.GOVUKNOTIFY_MAX_RETRIES = "3";
+					logger.warn("GOVUKNOTIFY_MAX_RETRIES env var is not set. Setting to default - 3");
+				}
 
-		if (!this.GOVUKNOTIFY_MAX_RETRIES
-			|| this.GOVUKNOTIFY_MAX_RETRIES.trim().length === 0
-			|| +this.GOVUKNOTIFY_MAX_RETRIES.trim() >= 100) {
-			this.GOVUKNOTIFY_MAX_RETRIES = "3";
-			logger.warn("GOVUKNOTIFY_MAX_RETRIES env var is not set. Setting to default - 3");
-		}
+				if (!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0
+					|| !this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
+					logger.error("Environment variable YOTI_SDK or YOTIBASEURL is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+				}
+				break;
+			}
+			case ServicesEnum.USERINFO_SERVICE: {
 
-		if (!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0
-			|| !this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
-			logger.error("Environment variable YOTI_SDK or YOTIBASEURL is not configured");
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+					!this.KMS_KEY_ARN || this.KMS_KEY_ARN.trim().length === 0) {
+					logger.error("Environment variable SESSION_TABLE or KMS_KEY_ARN is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "UserInfo Service incorrectly configured");
+				}
+				break;
+
+			}
+			case ServicesEnum.NA:
+				break;
 		}
 	}
 
@@ -121,6 +131,10 @@ export class EnvironmentVariables {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		return this.GOV_NOTIFY_QUEUE_URL;
+	}
+
+	kmsKeyArn(): any {
+		return this.KMS_KEY_ARN;
 	}
 
 }

@@ -20,6 +20,7 @@ import {
 } from "../models/PersonIdentityItem";
 import { GovNotifyEvent } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
+import { ServicesEnum } from "../models/enums/ServicesEnum";
 
 export class F2fService {
 	readonly tableName: string;
@@ -36,7 +37,7 @@ export class F2fService {
 		this.tableName = tableName;
 		this.dynamo = dynamoDbClient;
 		this.logger = logger;
-		this.environmentVariables = new EnvironmentVariables(logger);
+		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.NA);
 	}
 
 	static getInstance(tableName: string, logger: Logger, dynamoDbClient: DynamoDBDocument): F2fService {
@@ -115,7 +116,7 @@ export class F2fService {
 		} catch (error) {
 			this.logger.error({ message: "got error saving F2F data", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR,
-				"Failed to set claimed identity data "
+				"Failed to set claimed identity data ",
 			);
 		}
 	}
@@ -234,7 +235,7 @@ export class F2fService {
 			this.logger.info("Successfully created session in dynamodb");
 		} catch (error) {
 			this.logger.error("got error " + error);
-			throw new AppError(HttpCodesEnum.SERVER_ERROR,"saveItem - failed ", );
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "saveItem - failed " );
 		}
 	}
 
@@ -273,13 +274,13 @@ export class F2fService {
 
 	private createPersonIdentityItem(
 		sharedClaims: SharedClaimsPersonIdentity,
-		sessionId: string
+		sessionId: string,
 	): PersonIdentityItem {
 		return {
 			sessionId,
-			addresses: this.mapAddresses(sharedClaims.address!),
+			addresses: this.mapAddresses(sharedClaims.address),
 			birthDate: this.mapbirthDate(sharedClaims.birthDate),
-			emailAddress: sharedClaims.emailAddress!,
+			emailAddress: sharedClaims.emailAddress,
 			name: this.mapNames(sharedClaims.name),
 		};
 	}
@@ -290,7 +291,7 @@ export class F2fService {
 	): Promise<void> {
 		const personIdentityItem = this.createPersonIdentityItem(
 			sharedClaims,
-			sessionId
+			sessionId,
 		);
 
 		const putSessionCommand = new PutCommand({
