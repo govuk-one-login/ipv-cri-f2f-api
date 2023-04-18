@@ -2,7 +2,7 @@ import { PersonIdentityItem } from "../models/PersonIdentityItem";
 
 export const personIdentityUtils = {
 
-	getNames(personDetails: PersonIdentityItem) {
+	getNames(personDetails: PersonIdentityItem) : { givenNames: string[]; familyNames: string[] } {
 		const givenNames: string[] = [];
   	const familyNames: string[] = [];
 
@@ -25,7 +25,7 @@ export const personIdentityUtils = {
 		return personDetails.emailAddress;
 	},
 
-	getYotiStructuredPostalAddress(personDetails: PersonIdentityItem) {
+	getYotiStructuredPostalAddress(personDetails: PersonIdentityItem) : { address_format: number; building_number: string; address_line1: string; town_city: string; postal_code: string; country_iso: string; country: string } {
 		const address = personDetails.addresses[0];
 
 		return {

@@ -44,43 +44,43 @@ function getMockSessionItem(): ISessionItem {
 
 function getPersonIdentityItem(): PersonIdentityItem {
 	const personIdentityItem: PersonIdentityItem = {
-			"addresses": [
+		"addresses": [
+			{
+				"addressCountry": "United Kingdom",
+				"buildingName": "Sherman",
+				"uprn": 123456789,
+				"streetName": "Wallaby Way",
+				"postalCode": "F1 1SH",
+				"buildingNumber": "32",
+				"addressLocality": "Sidney",
+			},
+		],
+		"sessionId": "RandomF2FSessionID",
+		"emailAddress": "viveak.vadivelkarasan@digital.cabinet-office.gov.uk",
+		"birthDate": [
+			{
+				"value":"1960-02-02",
+			},
+		],
+		"name": [
+			{
+				"nameParts": [
 					{
-							"addressCountry": "United Kingdom",
-							"buildingName": "Sherman",
-							"uprn": 123456789,
-							"streetName": "Wallaby Way",
-							"postalCode": "F1 1SH",
-							"buildingNumber": "32",
-							"addressLocality": "Sidney"
-					}
-			],
-			"sessionId": "RandomF2FSessionID",
-			"emailAddress": "viveak.vadivelkarasan@digital.cabinet-office.gov.uk",
-			"birthDate": [
+						"type": "GivenName",
+						"value": "Frederick",
+					},
 					{
-						"value":"1960-02-02",
-					}
-			],
-			"name": [
+						"type": "GivenName",
+						"value": "Joseph",
+					},
 					{
-							"nameParts": [
-									{
-											"type": "GivenName",
-											"value": "Frederick"
-									},
-									{
-											"type": "GivenName",
-											"value": "Joseph"
-									},
-									{
-											"type": "FamilyName",
-											"value": "Flintstone"
-									}
-							]
-					}
-			]
-	}
+						"type": "FamilyName",
+						"value": "Flintstone",
+					},
+				],
+			},
+		],
+	};
 	return personIdentityItem;
 }
 
@@ -190,7 +190,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
@@ -261,6 +263,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_START to SQS queue.");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
@@ -280,6 +283,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error occured when sending message to GovNotify handler");
