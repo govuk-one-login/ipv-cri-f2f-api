@@ -43,6 +43,13 @@ export interface CreateSessionPayload {
 			scheme?: string;
 		};
 	}>;
+	requested_tasks: Array<{
+		type: string;
+		config: {
+			manual_check: string;
+			scheme?: string;
+		};
+	}>;
 	required_documents: Array<{
 		type: string;
 		filter: {
