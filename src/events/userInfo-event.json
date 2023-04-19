@@ -1,0 +1,7 @@
+{
+  "resource": "/userInfo",
+  "httpMethod": "POST",
+  "headers": {
+    "Authorization": "Bearer sdgsd"
+  }
+}

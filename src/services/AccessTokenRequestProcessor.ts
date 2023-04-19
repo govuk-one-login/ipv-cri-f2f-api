@@ -2,7 +2,6 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { F2fService } from "./F2fService";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
-import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { APIGatewayProxyEvent } from "aws-lambda";
@@ -11,10 +10,8 @@ import { AccessTokenRequestValidationHelper } from "../utils/AccessTokenRequestV
 import { ISessionItem } from "../models/ISessionItem";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { Constants } from "../utils/Constants";
-
-const SESSION_TABLE = process.env.SESSION_TABLE;
-const KMS_KEY_ARN = process.env.KMS_KEY_ARN;
-const ISSUER = process.env.ISSUER;
+import { EnvironmentVariables } from "./EnvironmentVariables";
+import { ServicesEnum } from "../models/enums/ServicesEnum";
 
 export class AccessTokenRequestProcessor {
 	private static instance: AccessTokenRequestProcessor;
@@ -29,16 +26,15 @@ export class AccessTokenRequestProcessor {
 
 	private readonly kmsJwtAdapter: KmsJwtAdapter;
 
+	private readonly environmentVariables: EnvironmentVariables;
+
 	constructor(logger: Logger, metrics: Metrics) {
-		if (!SESSION_TABLE || !KMS_KEY_ARN || !ISSUER) {
-			logger.error("Environment variable SESSION_TABLE or KMS_KEY_ARN or ISSUER is not configured");
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Service incorrectly configured, missing some environment variables.");
-		}
 		this.logger = logger;
-		this.kmsJwtAdapter = new KmsJwtAdapter(KMS_KEY_ARN);
+		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
+		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
 		this.accessTokenRequestValidationHelper = new AccessTokenRequestValidationHelper();
 		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(SESSION_TABLE, this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics): AccessTokenRequestProcessor {
@@ -66,8 +62,8 @@ export class AccessTokenRequestProcessor {
 			// Generate access token
 			const jwtPayload = {
 				sub: session.sessionId,
-				aud: ISSUER,
-				iss: ISSUER,
+				aud: this.environmentVariables.issuer(),
+				iss: this.environmentVariables.issuer(),
 				exp: absoluteTimeNow() + Constants.TOKEN_EXPIRY_SECONDS,
 			};
 			let accessToken;

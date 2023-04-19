@@ -14,6 +14,7 @@ import { HttpCodesEnum } from "./models/enums/HttpCodesEnum";
 import { getParameter } from "./utils/Config";
 import { AppError } from "./utils/AppError";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
+import { ServicesEnum } from "./models/enums/ServicesEnum";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.EMAIL_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -29,7 +30,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 let YOTI_PRIVATE_KEY: string;
 let GOVUKNOTIFY_API_KEY: string;
 class GovNotifyHandler implements LambdaInterface {
-	private readonly environmentVariables = new EnvironmentVariables(logger);
+	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: SQSEvent, context: any): Promise<any> {

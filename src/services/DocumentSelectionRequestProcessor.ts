@@ -7,10 +7,11 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
-import { Constants } from "../utils/Constants";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { buildGovNotifyEventFields } from "../utils/GovNotifyEvent";
+import { EnvironmentVariables } from "./EnvironmentVariables";
+import { ServicesEnum } from "../models/enums/ServicesEnum";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -22,28 +23,16 @@ export class DocumentSelectionRequestProcessor {
 
   	private readonly yotiService: YotiService;
 
-  	private readonly PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
-
-	private readonly YOTI_SDK = process.env.YOTISDK;
-
-  	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
-
-		private readonly ISSUER = process.env.ISSUER!;
-
   	private readonly f2fService: F2fService;
 
+	private readonly environmentVariables: EnvironmentVariables;
+
   	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
-  		if (!this.PERSON_IDENTITY_TABLE_NAME || this.PERSON_IDENTITY_TABLE_NAME.trim().length === 0
-			|| !this.YOTICALLBACKURL || this.YOTICALLBACKURL.trim().length === 0
-			|| !this.YOTI_SDK || this.YOTI_SDK.trim().length === 0
-			|| !this.ISSUER || this.ISSUER.trim().length === 0) {
-  			logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
-  			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
-  		}
   		this.logger = logger;
   		this.metrics = metrics;
-  		this.yotiService = YotiService.getInstance(this.logger, this.YOTI_SDK, YOTI_PRIVATE_KEY);
-  		this.f2fService = F2fService.getInstance(this.PERSON_IDENTITY_TABLE_NAME, this.logger, createDynamoDbClient());
+		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
+  		this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtl(), this.environmentVariables.clientSessionTokenTtl(), YOTI_PRIVATE_KEY);
+  		this.f2fService = F2fService.getInstance(this.environmentVariables.personIdentityTableName(), this.logger, createDynamoDbClient());
   	}
 
   	static getInstance(
@@ -76,7 +65,7 @@ export class DocumentSelectionRequestProcessor {
   		const selectedDocument = eventBody.document_selection.document_selected;
 			
   		this.logger.info("Creating new session in Yoti");
-  		const yotiSessionID = await this.yotiService.createSession(personDetails, selectedDocument, this.YOTICALLBACKURL);
+  		const yotiSessionID = await this.yotiService.createSession(personDetails, selectedDocument, this.environmentVariables.yotiCallbackUrl());
 
   		if (!yotiSessionID) {
   			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when creating Yoti Session");
@@ -144,7 +133,7 @@ export class DocumentSelectionRequestProcessor {
   		try {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_YOTI_START",
-  				...buildCoreEventFields(f2fSessionInfo, this.ISSUER, f2fSessionInfo.clientIpAddress, absoluteTimeNow),
+  				...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow),
   			});
   		} catch (error) {
   			this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.");

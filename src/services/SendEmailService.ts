@@ -14,6 +14,7 @@ import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { F2fService } from "./F2fService";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
+import { ServicesEnum } from "../models/enums/ServicesEnum";
 
 /**
  * Class to send emails using gov notify service
@@ -42,9 +43,9 @@ export class SendEmailService {
 	 */
 	private constructor(logger: Logger, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string) {
     	this.logger = logger;
-    	this.environmentVariables = new EnvironmentVariables(logger);
+    	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
     	this.govNotify = new NotifyClient(GOVUKNOTIFY_API_KEY);
-		this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), YOTI_PRIVATE_KEY);
+		this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtl(), this.environmentVariables.clientSessionTokenTtl(), YOTI_PRIVATE_KEY);
     	this.govNotifyErrorMapper = new GovNotifyErrorMapper();
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 	}

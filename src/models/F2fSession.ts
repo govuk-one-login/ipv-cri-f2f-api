@@ -3,7 +3,6 @@ import {
 	IsArray,
 	IsISO8601,
 	IsNotEmpty,
-	IsString,
 } from "class-validator";
 import { IF2fSession } from "./ISessionItem";
 

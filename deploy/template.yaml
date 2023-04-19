@@ -204,14 +204,6 @@ Globals:
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
         POWERTOOLS_LOG_LEVEL: INFO # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
-        ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-        TXMA_QUEUE_URL: !Ref TxMASQSQueue
-        YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
-        GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
-        YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
-        YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-        CLIENT_SESSION_TOKEN_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
-        RESOURCES_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
         SESSION_TABLE:
           Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
         SECRET_PREFIX: !If [
@@ -387,8 +379,7 @@ Resources:
           AUTH_SESSION_TTL:
             !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTL ]
           POWERTOOLS_SERVICE_NAME: UserInfoHandler
-          SESSION_TABLE:
-            Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
           KMS_KEY_ARN:
@@ -487,6 +478,8 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: AccessTokenHandler
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
       Policies:
@@ -559,6 +552,8 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: AuthorizationCodeHandler
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -639,11 +634,18 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue:
               !Sub "${L2DynamoStackName}-person-identity-table-name"
           YOTICALLBACKURL: !FindInMap [EnvironmentVariables, !Ref Environment, YOTICALLBACKURL]
           GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
+          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          CLIENT_SESSION_TOKEN_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
+          RESOURCES_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -873,7 +875,15 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
           GOVUKNOTIFY_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYTEMPLATEID ]
+          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
+          YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
+          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          CLIENT_SESSION_TOKEN_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
+          RESOURCES_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -950,6 +960,93 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref GovNotifyFunction
+      Principal: apigateway.amazonaws.com
+
+  ## UserInfo
+  UserInfoFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: UserInfoFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "User-Info-${AWS::StackName}"
+      Handler: UserInfoHandler.lambdaHandler
+      CodeUri: ../src/
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: UserInfoHandler
+          KMS_KEY_ARN:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-id"
+        - Statement:
+            - Sid: KMSPolicy
+              Effect: Allow
+              Action:
+                - kms:Verify
+              Resource:
+                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt TxMASQSQueue.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:GenerateDataKey"
+              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+      Events:
+        userInfo:
+          Type: Api
+          Properties:
+            Path: /userInfo
+            Method: post
+            RestApiId: !Ref F2FRestApi
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - UserInfoHandler.ts
+
+  UserInfoFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/User-Info-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  UserInfoFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    # Condition: IsProdLikeEnvironment
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref UserInfoFunctionLogGroup
+
+  UserInfoFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref UserInfoFunction
       Principal: apigateway.amazonaws.com
 
   #Gov Notify SQS Queue

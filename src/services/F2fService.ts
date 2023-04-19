@@ -20,6 +20,7 @@ import {
 } from "../models/PersonIdentityItem";
 import { GovNotifyEvent } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
+import { ServicesEnum } from "../models/enums/ServicesEnum";
 
 export class F2fService {
 	readonly tableName: string;
@@ -36,7 +37,7 @@ export class F2fService {
 		this.tableName = tableName;
 		this.dynamo = dynamoDbClient;
 		this.logger = logger;
-		this.environmentVariables = new EnvironmentVariables(logger);
+		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.NA);
 	}
 
 	static getInstance(tableName: string, logger: Logger, dynamoDbClient: DynamoDBDocument): F2fService {
