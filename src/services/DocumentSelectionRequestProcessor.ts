@@ -132,11 +132,11 @@ export class DocumentSelectionRequestProcessor {
   		}
 
   		try {
-  			await this.f2fService.updateSessionWithYotiIdAndStatus(sessionId, yotiSessionID, YotiSessionState.YOTI_SESSION_CREATED, this.SESSION_TABLE);
+  			await this.f2fService.updateSessionWithYotiIdAndStatus(sessionId, yotiSessionID, YotiSessionState.YOTI_SESSION_CREATED, this.environmentVariables.sessionTable());
   		} catch (error) {
-  			this.logger.error("FAILED_TO_UPDATE_YOTI_STATUs", {
+  			this.logger.error("FAILED_TO_UPDATE_YOTI_STATUS", {
   				yotiSessionID,
-  				reason: "Yoti session created, faled to update session table in dynamodb",
+  				reason: "Yoti session created, failed to update session table in dynamodb",
   				error,
   			});
   			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when updating session table in dynamo");

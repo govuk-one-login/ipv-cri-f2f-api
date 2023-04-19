@@ -253,7 +253,7 @@ export class F2fService {
 		this.logger.info({ message: "Updating session table with Yoti session details", updateYotiDetailsCommand });
 		try {
 			await this.dynamo.send(updateYotiDetailsCommand);
-			this.logger.info({ message: "Update Yoti session details in dynamodb" });
+			this.logger.info({ message: "Updated Yoti session details in dynamodb" });
 		} catch (error) {
 			this.logger.error({ message: "Got error saving Yoti session details", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving Yoti session details");
