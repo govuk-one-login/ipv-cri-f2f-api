@@ -36,11 +36,11 @@ export class ValidationHelper {
 	async eventToSubjectIdentifier(jwtAdapter: KmsJwtAdapter, event: APIGatewayProxyEvent): Promise<string> {
 		const headerValue = event.headers.authorization ?? event.headers.Authorization;
 		if (headerValue === null || headerValue === undefined) {
-			throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Missing header: Authorization header value is missing or invalid auth_scheme");
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing header: Authorization header value is missing or invalid auth_scheme");
 		}
 		const authHeader = event.headers.Authorization as string;
 		if (authHeader !== null && !authHeader.includes(Constants.BEARER)) {
-			throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Missing header: Authorization header is not of Bearer type access_token");
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing header: Authorization header is not of Bearer type access_token");
 
 		}
 		const token = headerValue.replace(/^Bearer\s+/, "");
@@ -48,21 +48,21 @@ export class ValidationHelper {
 		try {
 			isValidJwt = await jwtAdapter.verify(token);
 		} catch (err) {
-			throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Failed to verify signature");
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Failed to verify signature");
 		}
 
 		if (!isValidJwt) {
-			throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Verification of JWT failed");
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Verification of JWT failed");
 		}
 
 		const jwt = jwtAdapter.decode(token);
 
 		if (jwt?.payload?.exp == null || jwt.payload.exp < absoluteTimeNow()) {
-			throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Verification of exp failed");
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Verification of exp failed");
 		}
 
 		if (jwt?.payload?.sub == null) {
-			throw new AppError(HttpCodesEnum.UNAUTHORIZED, "sub missing");
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "sub missing");
 		}
 
 		return jwt.payload.sub;

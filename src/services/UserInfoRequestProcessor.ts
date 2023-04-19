@@ -52,7 +52,7 @@ export class UserInfoRequestProcessor {
     	} catch (error) {
     		if (error instanceof AppError) {
     			this.logger.error({ message: "Error validating Authentication Access token from headers: " + error.message });
-    			return new Response( HttpCodesEnum.UNAUTHORIZED, "Failed to Validate - Authentication header: " + error.message );
+    			return new Response( HttpCodesEnum.BAD_REQUEST, "Failed to Validate - Authentication header: " + error.message );
     		}
     	}
 
@@ -61,10 +61,10 @@ export class UserInfoRequestProcessor {
     		session = await this.f2fService.getSessionById(sub as string);
     		this.logger.info({ message :"Found Session: " + JSON.stringify(session) });
     		if (!session) {
-    			return new Response(HttpCodesEnum.UNAUTHORIZED, `No session found with the sessionId: ${sub}`);
+    			return new Response(HttpCodesEnum.BAD_REQUEST, `No session found with the sessionId: ${sub}`);
     		}
     	} catch (err) {
-    		return new Response(HttpCodesEnum.UNAUTHORIZED, `No session found with the sessionId: ${sub}`);
+    		return new Response(HttpCodesEnum.BAD_REQUEST, `No session found with the sessionId: ${sub}`);
     	}
 
     	this.metrics.addMetric("found session", MetricUnits.Count, 1);

@@ -524,6 +524,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserInfoResponse"
+        "400":
+          description: >-
+            Bad Request - Access token validation fails.
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
         "401":
           description: Unauthorized
           headers:

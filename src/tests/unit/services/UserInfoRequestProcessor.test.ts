@@ -78,7 +78,7 @@ describe("UserInfoRequestProcessor", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		// @ts-ignore
 		expect(out.body).toBe("Failed to Validate - Authentication header: Missing header: Authorization header value is missing or invalid auth_scheme");
-		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
+		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});
 
 	it("Return 401 when access_token JWT validation fails", async () => {
@@ -89,7 +89,7 @@ describe("UserInfoRequestProcessor", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		// @ts-ignore
 		expect(out.body).toBe("Failed to Validate - Authentication header: Verification of JWT failed");
-		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
+		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});
 
 	it("Return 401 when sub is missing from JWT access_token", async () => {
@@ -100,7 +100,7 @@ describe("UserInfoRequestProcessor", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		// @ts-ignore
 		expect(out.body).toBe("Failed to Validate - Authentication header: sub missing");
-		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
+		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});
 
 	it("Return 401 when we receive expired JWT access_token", async () => {
@@ -111,7 +111,7 @@ describe("UserInfoRequestProcessor", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		// @ts-ignore
 		expect(out.body).toBe("Failed to Validate - Authentication header: Verification of exp failed");
-		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
+		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});
 
 	it("Return 401 when session (based upon sub) was not found in the DB", async () => {
@@ -122,7 +122,7 @@ describe("UserInfoRequestProcessor", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 		expect(out.body).toContain("No session found with the sessionId: ");
-		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
+		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});
 
 	it("Return 401 when AuthSessionState is not F2F_ACCESS_TOKEN_ISSUED", async () => {

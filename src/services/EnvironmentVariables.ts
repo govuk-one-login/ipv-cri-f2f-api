@@ -152,7 +152,7 @@ export class EnvironmentVariables {
 				}
 				break;
 			}
-			case ServicesEnum.NA:
+			default:
 				break;
 		}
 	}
