@@ -204,14 +204,6 @@ Globals:
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
         POWERTOOLS_LOG_LEVEL: INFO # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
-        ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-        TXMA_QUEUE_URL: !Ref TxMASQSQueue
-        YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
-        GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
-        YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
-        YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-        CLIENT_SESSION_TOKEN_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
-        RESOURCES_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
         SESSION_TABLE:
           Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
         SECRET_PREFIX: !If [
@@ -387,8 +379,7 @@ Resources:
           AUTH_SESSION_TTL:
             !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTL ]
           POWERTOOLS_SERVICE_NAME: UserInfoHandler
-          SESSION_TABLE:
-            Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
           KMS_KEY_ARN:
@@ -487,6 +478,8 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: AccessTokenHandler
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
       Policies:
@@ -559,6 +552,8 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: AuthorizationCodeHandler
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -639,11 +634,18 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue:
               !Sub "${L2DynamoStackName}-person-identity-table-name"
           YOTICALLBACKURL: !FindInMap [EnvironmentVariables, !Ref Environment, YOTICALLBACKURL]
           GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
+          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          CLIENT_SESSION_TOKEN_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
+          RESOURCES_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -873,7 +875,15 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
           GOVUKNOTIFY_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYTEMPLATEID ]
+          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
+          YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
+          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          CLIENT_SESSION_TOKEN_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
+          RESOURCES_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -963,8 +973,6 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: UserInfoHandler
-          SESSION_TABLE:
-            Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           TXMA_QUEUE_URL: !Ref TxMASQSQueue

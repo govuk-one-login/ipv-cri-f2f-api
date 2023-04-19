@@ -19,21 +19,13 @@ export class YotiService {
 
 	readonly PEM_KEY: string;
 
-	private readonly CLIENT_SESSION_TOKEN_TTL = process.env.CLIENT_SESSION_TOKEN_TTL;
+	readonly CLIENT_SESSION_TOKEN_TTL: string;
 
-	private readonly RESOURCES_TTL = process.env.RESOURCES_TTL;
+	readonly RESOURCES_TTL:string;
 
-	constructor(logger: Logger, CLIENT_SDK_ID: string, PEM_KEY: string) {
-		if (!this.CLIENT_SESSION_TOKEN_TTL
-			|| this.CLIENT_SESSION_TOKEN_TTL.trim().length === 0) {
-			this.CLIENT_SESSION_TOKEN_TTL = "604800";
-			logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 7 days.");
-		}
-		if (!this.RESOURCES_TTL
-			|| this.RESOURCES_TTL.trim().length === 0) {
-			this.RESOURCES_TTL = "691200";
-			logger.warn("RESOURCES_TTL env var is not set. Setting to default - 8 days.");
-		}
+	constructor(logger: Logger, CLIENT_SDK_ID: string, RESOURCES_TTL: string, CLIENT_SESSION_TOKEN_TTL: string, PEM_KEY: string) {
+		this.RESOURCES_TTL = RESOURCES_TTL;
+		this.CLIENT_SESSION_TOKEN_TTL = CLIENT_SESSION_TOKEN_TTL;
 		this.logger = logger;
 		this.CLIENT_SDK_ID = CLIENT_SDK_ID;
 		this.PEM_KEY = PEM_KEY;
@@ -42,10 +34,12 @@ export class YotiService {
 	static getInstance(
 		logger: Logger,
 		CLIENT_SDK_ID: string,
+		RESOURCES_TTL: string,
+		CLIENT_SESSION_TOKEN_TTL: string,
 		PEM_KEY: string,
 	): YotiService {
 		if (!YotiService.instance) {
-			YotiService.instance = new YotiService(logger, CLIENT_SDK_ID, PEM_KEY);
+			YotiService.instance = new YotiService(logger, CLIENT_SDK_ID, RESOURCES_TTL, CLIENT_SESSION_TOKEN_TTL, PEM_KEY);
 		}
 		return YotiService.instance;
 	}
