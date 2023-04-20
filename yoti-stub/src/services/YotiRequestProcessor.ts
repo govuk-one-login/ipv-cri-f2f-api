@@ -52,15 +52,37 @@ export class YotiRequestProcessor {
 	async getSession(sessionId: string): Promise<Response> {
 
 		const yotiSession = await this.yotiService.getSessionById(sessionId);
+		const lastUuidChars = sessionId.slice(-4);
+		this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 
-		if (yotiSession != null) {
-
-		 this.logger.info({ message: "found session", yotiSession });
-
+		if (lastUuidChars == '0000' || lastUuidChars[0] === '3') {
+			this.logger.info({ message: "found session", yotiSession });
 			console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
-		return new Response(HttpCodesEnum.OK, JSON.stringify(new YotiSessionRequest(sessionId)));
+			console.log("UUID", lastUuidChars);
+			return new Response(HttpCodesEnum.OK, JSON.stringify(new YotiSessionRequest(sessionId)));	
 		} else {
-		return new Response(HttpCodesEnum.SERVER_ERROR, `No Yoti session with sessionId ${sessionId} found`);
+			switch(lastUuidChars) {
+				case '2400':
+					this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+					return new Response(HttpCodesEnum.BAD_REQUEST, "Bad request")
+				case '2401':
+					this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+					return new Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorised")
+				case '2404':
+					this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+					return new Response(HttpCodesEnum.NOT_FOUND, "NOT FOUND")
+				case '2409':
+					this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+					return new Response(HttpCodesEnum.CONFLICT, "CONFLICT")
+				case '2503':
+					this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+					return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, "SERVICE UNAVAILABLE")
+				case '2999':
+					this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+					await new Promise(resolve => setTimeout(resolve, 30000));
+				default:
+					return new Response(HttpCodesEnum.SERVER_ERROR, `No Yoti session with sessionId ${sessionId} found`);
+			}
 		}
 	}
 
