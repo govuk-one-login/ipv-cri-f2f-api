@@ -239,6 +239,27 @@ export class F2fService {
 		}
 	}
 
+	async updateSessionWithYotiIdAndStatus(sessionId: string, yotiSessionId: string, yotiSessionStatus: string, tableName = this.tableName): Promise<void> {
+		const updateYotiDetailsCommand = new UpdateCommand({
+			TableName: tableName,
+			Key: { sessionId },
+			UpdateExpression: "SET yotiSessionId = :yotiSessionId, yotiSessionStatus = :yotiSessionStatus",
+			ExpressionAttributeValues: {
+				":yotiSessionId": yotiSessionId,
+				":yotiSessionStatus": yotiSessionStatus,
+			},
+		});
+
+		this.logger.info({ message: "Updating session table with Yoti session details", updateYotiDetailsCommand });
+		try {
+			await this.dynamo.send(updateYotiDetailsCommand);
+			this.logger.info({ message: "Updated Yoti session details in dynamodb" });
+		} catch (error) {
+			this.logger.error({ message: "Got error saving Yoti session details", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving Yoti session details");
+		}
+	}
+
 	private mapAddresses(addresses: PersonIdentityAddress[]): PersonIdentityAddress[] {
 		return addresses?.map((address) => ({
 			uprn: address.uprn,

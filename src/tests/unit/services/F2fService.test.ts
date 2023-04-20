@@ -1,3 +1,4 @@
+import { mock } from "jest-mock-extended";
 import { F2fService } from "../../../services/F2fService";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { randomUUID } from "crypto";
@@ -7,10 +8,7 @@ import { sqsClient } from "../../../utils/SqsClient";
 import { TxmaEvent } from "../../../utils/TxmaEvent";
 import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
 
-const logger = new Logger({
-	logLevel: "DEBUG",
-	serviceName: "F2F",
-});
+const logger = mock<Logger>();
 
 let f2fService: F2fService;
 const tableName = "MYTABLE";
@@ -95,6 +93,21 @@ describe("F2f Service", () => {
 		return expect(f2fService.updateSessionWithAccessTokenDetails("SESSID", 12345)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 		}));
+	});
+
+	it("should throw 500 if request fails during update Session data with yoti session details", async () => {
+		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+
+		return expect(f2fService.updateSessionWithYotiIdAndStatus("SESSID", "12345", "4567")).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+		}));
+	});
+
+	it("Should log success if session details update with Yoti SessionId", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce("Session Updated");
+		await f2fService.updateSessionWithYotiIdAndStatus("123", "456", "YOTI_SESSION_CREATED");
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(logger.info).toHaveBeenNthCalledWith(2, { "message": "Updated Yoti session details in dynamodb" });
 	});
 
 	it("show throw error if failed to send to TXMA queue", async () => {
