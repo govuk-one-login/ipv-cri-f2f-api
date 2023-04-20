@@ -84,8 +84,8 @@ jobs:
         run: npm run test:infra
 
       - name: Run API Tests
-        run: npm run test:api
-        
+        run: npm run test:api 
+    
   sam-validate:
     name: SAM Validate
     runs-on: ubuntu-latest
