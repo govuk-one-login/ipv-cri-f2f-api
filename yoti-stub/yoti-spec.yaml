@@ -124,6 +124,17 @@ paths:
                   $ref: "#/components/examples/SessionNotFoundError"
                 APP_NOT_FOUND:
                   $ref: "#/components/examples/AppNotFoundError"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Yoti-Stub-${AWS::StackName}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
 
   /sessions/{sessionId}/configuration:
     get:
