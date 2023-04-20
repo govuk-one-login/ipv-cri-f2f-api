@@ -35,6 +35,8 @@ jobs:
       #       projectBaseDir: src
       - name: Test and coverage
         run: npm run test:unit
+      - name: Run Infra checks
+        run: npm run test:infra
       - name: "Run SonarCloud Scan"
         if: ${{ success() }}
         uses: SonarSource/sonarcloud-github-action@master
