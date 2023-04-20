@@ -48,6 +48,27 @@ class MockYotiSessionHandler implements LambdaInterface {
 				}
 				 break;
 
+		 	case ResourcesEnum.SESSIONS_ID:
+		 		if (event.httpMethod === "GET") {
+					try {
+						logger.info("Event received", { event });
+
+						if ( event && event.pathParameters) {
+							const sessionId = event.pathParameters?.sessionId;
+								 if(sessionId){
+									 return await YotiRequestProcessor.getInstance(logger, metrics).getSession(sessionId);
+								 }
+						}
+					} catch (err: any) {
+						logger.error({ message: "An error has occurred.", err });
+						if (err instanceof AppError) {
+							return new Response(err.statusCode, err.message);
+						}
+						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+					}
+				}
+				 break;
+
 				 case ResourcesEnum.SESSIONS_CONFIGURATION:
 					 if (event.httpMethod === "GET") {
 						 try {
