@@ -44,7 +44,8 @@ export class YotiRequestProcessor {
 
 	async createSession(event: APIGatewayProxyEvent, yotiSessionItem: YotiSessionItem): Promise<Response> {
 
-		 await this.yotiService.createYotiSession(yotiSessionItem);
+		 const sessionItem = await this.yotiService.createYotiSession(yotiSessionItem);
+ 
 			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
 
 	}
@@ -55,29 +56,28 @@ export class YotiRequestProcessor {
 		const lastUuidChars = sessionId.slice(-4);
 		this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 
-		if (lastUuidChars == '0000' || lastUuidChars[0] === '3') {
+		if (lastUuidChars == '0000') {
 			this.logger.info({ message: "found session", yotiSession });
 			console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
-			console.log("UUID", lastUuidChars);
 			return new Response(HttpCodesEnum.OK, JSON.stringify(new YotiSessionRequest(sessionId)));	
 		} else {
 			switch(lastUuidChars) {
-				case '2400':
+				case '5400':
 					this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 					return new Response(HttpCodesEnum.BAD_REQUEST, "Bad request")
-				case '2401':
+				case '5401':
 					this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 					return new Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorised")
-				case '2404':
+				case '5404':
 					this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 					return new Response(HttpCodesEnum.NOT_FOUND, "NOT FOUND")
-				case '2409':
+				case '5409':
 					this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 					return new Response(HttpCodesEnum.CONFLICT, "CONFLICT")
-				case '2503':
+				case '5503':
 					this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 					return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, "SERVICE UNAVAILABLE")
-				case '2999':
+				case '5999':
 					this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 					await new Promise(resolve => setTimeout(resolve, 30000));
 				default:
