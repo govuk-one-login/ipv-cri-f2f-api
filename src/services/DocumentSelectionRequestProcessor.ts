@@ -64,13 +64,14 @@ export class DocumentSelectionRequestProcessor {
   		const PostOfficeSelection = eventBody.post_office_selection;
   		const selectedDocument = eventBody.document_selection.document_selected;
 			
-  		this.logger.info("Creating new session in Yoti");
+		this.logger.info({ message:"Creating new session in Yoti for: " }, { sessionId });
   		const yotiSessionID = await this.yotiService.createSession(personDetails, selectedDocument, this.environmentVariables.yotiCallbackUrl());
 
   		if (!yotiSessionID) {
   			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when creating Yoti Session");
   		}
 
+		this.logger.info({ message:"New session created in Yoti: " }, { yotiSessionID });
   		this.logger.info("Fetching Session Info");
   		const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionID);
 
