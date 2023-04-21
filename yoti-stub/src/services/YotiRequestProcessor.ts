@@ -13,6 +13,7 @@ import { YotiService} from "../services/YotiService"
 import {YotiSessionItem} from "../models/YotiSessionItem";
 import {YotiSessionRequest} from "../models/YotiSessionRequest";
 import { VALID_RESPONSE } from "../data/responses";
+import { VALID_DL_RESPONSE } from "../data/driversLicenseResponse";
 
 const SESSION_TABLE = process.env.SESSION_TABLE;
 
@@ -45,9 +46,9 @@ export class YotiRequestProcessor {
 
 	async createSession(event: APIGatewayProxyEvent, yotiSessionItem: YotiSessionItem): Promise<Response> {
 
-		 const sessionItem = await this.yotiService.createYotiSession(yotiSessionItem);
+		await this.yotiService.createYotiSession(yotiSessionItem);
  
-			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+		return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
 
 	}
 
@@ -63,6 +64,11 @@ export class YotiRequestProcessor {
 				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
 				VALID_RESPONSE.session_id = sessionId;
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));	
+			case '0001':
+				this.logger.info({ message: "found session", yotiSession });
+				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				VALID_RESPONSE.session_id = sessionId;
+				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));	
 			case '5400':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 				return new Response(HttpCodesEnum.BAD_REQUEST, "Bad request")
