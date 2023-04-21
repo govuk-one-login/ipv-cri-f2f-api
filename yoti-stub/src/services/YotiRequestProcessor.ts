@@ -58,6 +58,13 @@ export class YotiRequestProcessor {
 		const lastUuidChars = sessionId.slice(-4);
 		this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 
+		if (lastUuidChars[0] === '3') {
+			this.logger.info({ message: "found session", yotiSession });
+				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				VALID_RESPONSE.session_id = sessionId;
+				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));	
+		}
+
 		switch(lastUuidChars) {
 			case '0000':
 				this.logger.info({ message: "found session", yotiSession });
