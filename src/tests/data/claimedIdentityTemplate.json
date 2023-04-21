@@ -1,0 +1,39 @@
+{
+    "shared_claims": {
+        "name": [
+            {
+                "nameParts": [
+                    {
+                        "value": "API",
+                        "type": "GivenName"
+                    },
+                    {
+                        "value": "Automation",
+                        "type": "GivenName"
+                    },
+                    {
+                        "value": "Test",
+                        "type": "FamilyName"
+                    }
+                ]
+            }
+        ],
+        "birthDate": [
+            {
+                "value": "1960-02-02"
+            }
+        ],
+        "address": [
+            {
+                "uprn": "123456789",
+                "buildingNumber": "32",
+                "buildingName": "London",
+                "streetName": "Demo",
+                "addressLocality": "London",
+                "addressCountry": "United Kingdom",
+                "postalCode": "SW19"
+            }
+        ],
+        "emailAddress": "zac.mohamoud@digital.cabinet-office.gov.uk"
+    }
+}

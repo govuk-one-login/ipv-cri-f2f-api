@@ -1,9 +1,15 @@
 
- {
-   "document_selected": "birthCertificate",
-   "date_of_expiry": null,
-   "address": "1 Grape Lane, Whitby",
-   "latitude": "54.34322",
-   "longitude": "-0.68372",
-   "post_code": null
+{
+  "document_selection":{
+     "document_selected":"birthCertificate",
+     "date_of_expiry": null
+  },
+  "post_office_selection":{
+     "address":"1 Grape Lane, Whitby",
+     "location":{
+        "latitude":"54.34322",
+        "longitude":"-0.68372"
+     },
+     "post_code": null
+  }
 }
