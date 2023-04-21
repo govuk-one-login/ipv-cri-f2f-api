@@ -67,7 +67,7 @@ export class YotiRequestProcessor {
 			case '0001':
 				this.logger.info({ message: "found session", yotiSession });
 				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
-				VALID_RESPONSE.session_id = sessionId;
+				VALID_DL_RESPONSE.session_id = sessionId;
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));	
 			case '5400':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
