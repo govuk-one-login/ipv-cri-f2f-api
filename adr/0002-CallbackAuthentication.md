@@ -1,11 +1,11 @@
 # Callback Authentication
 
 ## Status
-DRAFT
+DECIDED
 
 ## Decision
-
-PENDING
+Option 3 - Authorization Header with API Key.
+The callback endpoint requires a bearer token to be passed in the Authorization header. The bearer token will be an API Gateway generated API key configured on a per session basis when the system creates a Yoti session.
 
 ## Context
 
@@ -80,8 +80,8 @@ a-->>a: process request
 
 The drawback of this option is that IP address based controls may rely on a range of IPs, which may change over time. Without a way for Yoti to manage this themselves it will require an additional maintenance task to mitigate the risk of out of date configuration disrupting the user journey.
 
-### 3 - Authentication Header with API Key
-- Use the optional authentication mechanism in the session notification configuration to provide a Bearer token to use4 on all callbacks for that session. 
+### 3 - Authorization Header with API Key
+- Use the optional authentication mechanism in the session notification configuration to provide a Bearer token to use on all callbacks for that session. 
 
 ```mermaid
 sequenceDiagram
@@ -115,7 +115,7 @@ This additional layer of configuration increases the validation done before a re
 
 The drawback is an additional layer of complexity in the session configuration and the infrastructure required for callback handling. 
 
-### Option 4 Authentication Header with JWT
+### Option 4 Authorization Header with JWT
 
 ```mermaid
 sequenceDiagram
