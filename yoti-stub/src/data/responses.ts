@@ -1,6 +1,6 @@
 export const VALID_RESPONSE = {
   "client_session_token_ttl": 2637158,
-  "session_id": "f4340e05-03ec-48fe-bf6b-5946089bb4f3",
+  "session_id": "f4340e05-03ec-48fe-bf6b-5946089b0000",
   "state": "COMPLETED",
   "resources": {
       "id_documents": [

@@ -12,4 +12,7 @@ export class YotiSessionItem {
 	client_session_token_ttl: number;
 	client_session_token: string;
 
+	protected getSessionId() {
+		return this.session_id;
+	}
 }

@@ -113,78 +113,6 @@ Resources:
       VpcId:
         Fn::ImportValue: !Sub "${VpcStackName}-VpcId"
 
-### Yoti stub table
-  YotiSessionTable:
-    Type: "AWS::DynamoDB::Table"
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
-    Properties:
-      TableName: !Sub "yoti-stub-${AWS::StackName}"
-      BillingMode: "PAY_PER_REQUEST"
-      AttributeDefinitions:
-        - AttributeName: "session_id"
-          AttributeType: "S"
-
-      KeySchema:
-        - AttributeName: "session_id"
-          KeyType: "HASH"
-      #      GlobalSecondaryIndexes:
-      #        - IndexName: "authorizationCode-index"
-      #          KeySchema:
-      #            - AttributeName: "authorizationCode"
-      #              KeyType: "HASH"
-      #          Projection:
-      #            NonKeyAttributes:
-      #              - "sessionId"
-      #              - "redirectUri"
-      #              - "clientId"
-      #              - "authSessionState"
-      #            ProjectionType: "INCLUDE"
-      #      TimeToLiveSpecification:
-      #        AttributeName: expiryDate
-      #        Enabled: true
-      #      PointInTimeRecoverySpecification:
-      #        PointInTimeRecoveryEnabled: true
-      SSESpecification:
-        KMSMasterKeyId: !Ref YotiSessionTableKey
-        SSEEnabled: true
-        SSEType: KMS
-
-  YotiSessionTableKey:
-      Type: AWS::KMS::Key
-      Properties:
-        Description: !Sub "${AWS::StackName} yoti session table key"
-        Enabled: true
-        KeySpec: SYMMETRIC_DEFAULT
-        KeyUsage: ENCRYPT_DECRYPT
-        MultiRegion: false
-        PendingWindowInDays: !Ref KmsPendingWindowInDays
-        EnableKeyRotation: true
-        KeyPolicy:
-          Version: "2012-10-17"
-          Statement:
-            - Sid: "Allow the account to manage the key"
-              Effect: Allow
-              Principal:
-                AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-              Action: "kms:*"
-              Resource: "*"
-        Tags:
-          - Key: Name
-            Value: !Sub "${AWS::StackName} yoti session table key"
-          - Key: Product
-            Value: Gov.UK Sign On
-          - Key: System
-            Value: Yoti Stub
-          - Key: Environment
-            Value: !Ref Environment
-
-  YotiSessionTableKeyAlias:
-      Type: AWS::KMS::Alias
-      Properties:
-        AliasName: !Sub "alias/${AWS::StackName}-yoti-session-table-key"
-        TargetKeyId: !Ref YotiSessionTableKey
-
   ### Start of API Gateway definition.
 
   MockYotiRestApi:
@@ -259,18 +187,10 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: MockYotiSessionHandler
-          # using this one temp to save incoming data
-          SESSION_TABLE: !Ref YotiSessionTable
 
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
-        - DynamoDBWritePolicy:
-            TableName: !Ref YotiSessionTable
-        - DynamoDBReadPolicy:
-            TableName: !Ref YotiSessionTable
-        - KMSDecryptPolicy:
-            KeyId: !Ref YotiSessionTableKey
 
       Events:
         sessions:

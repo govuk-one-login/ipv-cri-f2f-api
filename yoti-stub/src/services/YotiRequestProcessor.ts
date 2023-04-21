@@ -14,6 +14,7 @@ import {YotiSessionItem} from "../models/YotiSessionItem";
 import {YotiSessionRequest} from "../models/YotiSessionRequest";
 import { VALID_RESPONSE } from "../data/responses";
 import { VALID_DL_RESPONSE } from "../data/driversLicenseResponse";
+import { log } from "console";
 
 const SESSION_TABLE = process.env.SESSION_TABLE;
 
@@ -24,17 +25,16 @@ export class YotiRequestProcessor {
 
 	private readonly metrics: Metrics;
 
-	private readonly yotiService: YotiService;
+	// private readonly yotiService: YotiService;
 
 	constructor(logger: Logger, metrics: Metrics) {
-		if (!SESSION_TABLE ) {
-			logger.error("Environment variable SESSION_TABLE or TXMA_QUEUE_URL or ISSUER is not configured");
-			throw new AppError("Service incorrectly configured", HttpCodesEnum.SERVER_ERROR);
-		}
+		// if (!SESSION_TABLE ) {
+		// 	logger.error("Environment variable SESSION_TABLE or TXMA_QUEUE_URL or ISSUER is not configured");
+		// 	throw new AppError("Service incorrectly configured", HttpCodesEnum.SERVER_ERROR);
+		// }
 		this.logger = logger;
 
 		this.metrics = metrics;
-		this.yotiService = YotiService.getInstance(SESSION_TABLE, this.logger, createDynamoDbClient());
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics): YotiRequestProcessor {
@@ -46,9 +46,42 @@ export class YotiRequestProcessor {
 
 	async createSession(event: APIGatewayProxyEvent, yotiSessionItem: YotiSessionItem): Promise<Response> {
 
-		 await this.yotiService.createYotiSession(yotiSessionItem);
-			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+		const sessionId = yotiSessionItem.session_id;
+		console.log("SESSION ID: ", sessionId);
+		const lastUuidChars = sessionId.slice(-4);
 
+		if (lastUuidChars[0] === '3' || lastUuidChars[0] === '2') {
+				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				VALID_DL_RESPONSE.session_id = sessionId;
+				return new Response(HttpCodesEnum.CREATED, JSON.stringify(VALID_DL_RESPONSE));	
+		}
+
+		switch(lastUuidChars) {
+			case '0000':
+				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				VALID_RESPONSE.session_id = sessionId;
+				return new Response(HttpCodesEnum.CREATED, JSON.stringify(VALID_RESPONSE));	
+			case '1400':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.BAD_REQUEST, "Bad request")
+			case '1401':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorised")
+			case '1403':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.FORBIDDEN, "NOT FOUND")
+			case '1404':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.NOT_FOUND, "CONFLICT")
+			case '1503':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, "SERVICE UNAVAILABLE")
+			case '1999':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				await new Promise(resolve => setTimeout(resolve, 30000));
+			default:
+				return new Response(HttpCodesEnum.SERVER_ERROR, `No Yoti session with sessionId ${sessionId} found`);
+		}
 	}
 
 	async getSessionConfiguration(sessionId: string): Promise<Response> {
