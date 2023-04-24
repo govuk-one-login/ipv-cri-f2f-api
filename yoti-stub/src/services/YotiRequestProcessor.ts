@@ -155,6 +155,40 @@ export class YotiRequestProcessor {
 		}
 	}
 
+	async getSessionInstructions(sessionId: string): Promise<Response> {
+		const lastUuidChars = sessionId.slice(-4);
+		this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+
+		switch(lastUuidChars) {
+			case '0000':
+				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				VALID_RESPONSE.session_id = sessionId;
+				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE))
+			case '4400':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.BAD_REQUEST, "Bad request")
+			case '4401':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorised")
+			case '4404':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.NOT_FOUND, "NOT FOUND")
+			case '4409':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.CONFLICT, "CONFLICT")
+			case '4500':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.SERVER_ERROR, "SERVER ERROR")
+			case '4503':
+				return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, "SERVICE UNAVAILABLE");
+			case '4999':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				await new Promise(resolve => setTimeout(resolve, 30000));
+			default:
+				return new Response(HttpCodesEnum.SERVER_ERROR, `No Yoti session with sessionId ${sessionId} found`);
+		}
+	}
+
 	async fetchInstructionsPdf(): Promise<any>{
 
 		let pdfBytes;
