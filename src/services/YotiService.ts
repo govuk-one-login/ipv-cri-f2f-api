@@ -7,7 +7,7 @@ import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
 import { PersonIdentityItem } from "../models/PersonIdentityItem";
 import { ApplicantProfile, PostOfficeInfo, YotiSessionInfo, CreateSessionPayload } from "../models/YotiPayloads";
-import { YotiDocumentTypesEnum, YOTI_DOCUMENT_COUNTRY_CODE, REQUESTED_CHECKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
+import { YotiDocumentTypesEnum, YOTI_DOCUMENT_COUNTRY_CODE, YOTI_REQUESTED_CHECKS, YOTI_REQUESTED_TASKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
 export class YotiService {
@@ -135,7 +135,7 @@ export class YotiService {
 				auth_token: "string",
 				auth_type: "BASIC",
 			},
-			requested_checks: [REQUESTED_CHECKS.IBV_VISUAL_REVIEW_CHECK, REQUESTED_CHECKS.PROFILE_DOCUMENT_MATCH, REQUESTED_CHECKS.DOCUMENT_SCHEME_VALIDITY_CHECK],
+			requested_checks: YOTI_REQUESTED_CHECKS,
 			required_documents: [
 				{
 					type: "ID_DOCUMENT",
@@ -151,6 +151,7 @@ export class YotiService {
 					},
 				},
 			],
+			requested_tasks: YOTI_REQUESTED_TASKS,
 			resources: {
 				applicant_profile: this.getApplicantProfile(
 					personDetails,
