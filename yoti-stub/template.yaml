@@ -199,6 +199,12 @@ Resources:
             Path: /sessions
             Method: post
             RestApiId: !Ref MockYotiRestApi
+        sessionsid:
+          Type: Api
+          Properties:
+            Path: /sessions/{sessionId}
+            Method: get
+            RestApiId: !Ref MockYotiRestApi
         sessionsconfiguration:
           Type: Api
           Properties:

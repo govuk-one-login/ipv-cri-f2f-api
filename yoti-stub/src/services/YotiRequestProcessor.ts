@@ -85,6 +85,46 @@ export class YotiRequestProcessor {
 		}
 	}
 
+	async getSession(sessionId: string): Promise<Response> {
+
+		const yotiSession = await this.yotiService.getSessionById(sessionId);
+		const lastUuidChars = sessionId.slice(-4);
+		this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+
+		switch(lastUuidChars) {
+			case '0000':
+				this.logger.info({ message: "found session", yotiSession });
+				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				VALID_RESPONSE.session_id = sessionId;
+				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));	
+			case '0001':
+				this.logger.info({ message: "found session", yotiSession });
+				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				VALID_DL_RESPONSE.session_id = sessionId;
+				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));	
+			case '5400':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.BAD_REQUEST, "Bad request")
+			case '5401':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorised")
+			case '5404':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.NOT_FOUND, "NOT FOUND")
+			case '5409':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.CONFLICT, "CONFLICT")
+			case '5500':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.SERVER_ERROR, "SERVER ERROR")
+			case '5999':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				await new Promise(resolve => setTimeout(resolve, 30000));
+			default:
+				return new Response(HttpCodesEnum.SERVER_ERROR, `No Yoti session with sessionId ${sessionId} found`);
+		}
+	}
+
 	async getSessionConfiguration(sessionId: string): Promise<Response> {
 
 		const lastUuidChars = sessionId.slice(-4);
