@@ -4,7 +4,6 @@ import { ISessionItem } from "../models/ISessionItem";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { Constants } from "../utils/Constants";
-import { randomUUID } from "crypto";
 import { VerifiedCredential } from "../utils/IVeriCredential";
 import { PersonIdentityItem } from "../models/PersonIdentityItem";
 

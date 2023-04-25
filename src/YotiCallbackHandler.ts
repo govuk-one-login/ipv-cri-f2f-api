@@ -14,9 +14,9 @@ import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { YotiCallbackProcessor } from "./services/YotiCallbackProcessor";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 
-const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.EMAIL_METRICS_NAMESPACE;
+const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
-const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.EMAIL_LOGGER_SVC_NAME;
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.YOTI_CALLBACK_SVC_NAME;
 
 const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
@@ -27,7 +27,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 
 let YOTI_PRIVATE_KEY: string;
 
-class GovNotifyHandler implements LambdaInterface {
+class YotiCallbackHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
@@ -53,21 +53,32 @@ class GovNotifyHandler implements LambdaInterface {
 				await YotiCallbackProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
 
 				logger.debug("Finished processing record from SQS");
-				return new Response(HttpCodesEnum.OK, "OK");
+				return new Response(HttpCodesEnum.OK, {
+					batchItemFailures: [],
+				});
 
 			} catch (error: any) {
-				const appErrorCode = error.appCode;
-				const statusCode = error.statusCode ? error.statusCode : HttpCodesEnum.SERVER_ERROR;
-				const body = {
-					statusCode,
-					message: error.message || JSON.stringify(error),
-					batchItemFailures: [],
-					error,
-					appErrorCode,
-				};
+				if (error.obj?.shouldThrow) {
+					logger.error("Error encountered", { error });
+					error.obj = undefined;
+					batchFailures.push(new BatchItemFailure(record.messageId));
+					const sqsBatchResponse = { batchItemFailures: batchFailures };
+					logger.error("Returning batch item failure so it can be retried", { sqsBatchResponse });
+					return sqsBatchResponse;
+				} else {
+					const appErrorCode = error.appCode;
+					const statusCode = error.statusCode ? error.statusCode : HttpCodesEnum.SERVER_ERROR;
+					const body = {
+						statusCode,
+						message: error.message || JSON.stringify(error),
+						batchItemFailures: [],
+						error,
+						appErrorCode,
+					};
 
-				logger.error("VC could not be sent. Returning failed message", error);
-				return new Response(statusCode, body, appErrorCode);
+					logger.error({ message: "VC could not be sent. Returning failed message ", error });
+					return new Response(statusCode, body, appErrorCode);
+				}
 			}
 
 		} else {
@@ -78,5 +89,5 @@ class GovNotifyHandler implements LambdaInterface {
 
 }
 
-const handlerClass = new GovNotifyHandler();
+const handlerClass = new YotiCallbackHandler();
 export const lambdaHandler = handlerClass.handler.bind(handlerClass);

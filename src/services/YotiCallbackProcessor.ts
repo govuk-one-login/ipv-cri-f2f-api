@@ -62,7 +62,7 @@ export class YotiCallbackProcessor {
 
 			if (!completedYotiSessionInfo || completedYotiSessionInfo.state !== "COMPLETED") {
 				this.logger.error({ message:"No completed YOTI Session found with ID:" }, { yotiSessionID });
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "No completed YOTI Session found");
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, "No completed YOTI Session found with ID:", { shouldThrow: true });
 		 }
 
 		 this.logger.info({ message:"Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
@@ -110,7 +110,7 @@ export class YotiCallbackProcessor {
 				});
 			} catch (error) {
 				this.logger.error({ message:"Failed to send VC to IPV Core Queue" }, { error });
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core");
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core", { shouldThrow: true });
 			}
 
 			try {

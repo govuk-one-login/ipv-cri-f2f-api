@@ -21,7 +21,7 @@ import {
 import { GovNotifyEvent } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
-import { IPVCoreEvent, buildCoreEventFields } from "../utils/IPVCoreEvent";
+import { IPVCoreEvent } from "../utils/IPVCoreEvent";
 
 export class F2fService {
 	readonly tableName: string;

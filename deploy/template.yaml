@@ -1263,15 +1263,15 @@ Resources:
   YotiCallbackQueue:
     Type: "AWS::SQS::Queue"
     Properties:
-      MessageRetentionPeriod: !FindInMap [EnvironmentVariables, !Ref Environment, MESSAGERETENTIONPERIODDAYS]
-      VisibilityTimeout: 60
+      MessageRetentionPeriod: 1209600 # 14 days in seconds
+      VisibilityTimeout: 300
       KmsMasterKeyId: !Ref YotiCallbackKeyAlias
       RedrivePolicy:
         deadLetterTargetArn:
           Fn::GetAtt:
             - "YotiCallbackQueueDeadLetterQueue"
             - "Arn"
-        maxReceiveCount: 5
+        maxReceiveCount: 10
 
   YotiCallbackQueueDeadLetterQueue:
     Type: "AWS::SQS::Queue"

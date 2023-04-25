@@ -99,7 +99,7 @@ paths:
           Fn::Sub: "arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/${YotiCallbackQueue.QueueName}"
         passthroughBehavior: "never"
         requestParameters:
-          integration.request.header.Content-Type: "''application/x-www-form-urlencoded'"
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
         requestTemplates:
           application/json: "Action=SendMessage&MessageBody=$input.body"
         responses:
