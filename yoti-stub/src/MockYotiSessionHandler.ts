@@ -112,8 +112,29 @@ class MockYotiSessionHandler implements LambdaInterface {
 						 }
 						 return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 					 }
-				 }
-				 break;
+				 } 
+				if (event.httpMethod === "GET") {
+					try {
+						logger.info("Event received", {event});
+
+						if (event && event.pathParameters) {
+							// Extract attributes from queryStringParameters and add them to the data object
+							const sessionId = event.pathParameters?.sessionId;
+							if(sessionId){
+
+								return await YotiRequestProcessor.getInstance(logger, metrics).getSessionInstructions(sessionId);
+							}
+						}
+
+					} catch (err: any) {
+						logger.error({message: "An error has occurred.", err});
+						if (err instanceof AppError) {
+							return new Response(err.statusCode, err.message);
+						}
+						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+					}
+				}
+				break;
 
 			 case ResourcesEnum.INSTRUCTIONS_PDF:
 			 if (event.httpMethod === "GET") {
@@ -125,7 +146,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 						 const sessionId = event.pathParameters?.sessionId;
 						 if(sessionId){
 
-							 return await YotiRequestProcessor.getInstance(logger, metrics).getSessionInstructions(sessionId);
+							 await YotiRequestProcessor.getInstance(logger, metrics).getSessionInstructions(sessionId);
 							 return YotiRequestProcessor.getInstance(logger, metrics).fetchInstructionsPdf();
 						 }
 					 }

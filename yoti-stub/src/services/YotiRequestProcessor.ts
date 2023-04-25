@@ -47,8 +47,8 @@ export class YotiRequestProcessor {
 
 		if (lastUuidChars[0] === '3' || lastUuidChars[0] === '2') {
 				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
-				CREATE_SESSION.user_tracking_id = sessionId;
-				return new Response(HttpCodesEnum.CREATED, JSON.stringify(CREATE_SESSION));	
+				// CREATE_SESSION.user_tracking_id = sessionId;
+				return new Response(HttpCodesEnum.CREATED, JSON.stringify(sessionId));	
 		}
 
 		switch(lastUuidChars) {
@@ -58,19 +58,19 @@ export class YotiRequestProcessor {
 				return new Response(HttpCodesEnum.CREATED, JSON.stringify(VALID_RESPONSE));	
 			case '1400':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				return new Response(HttpCodesEnum.BAD_REQUEST, "Bad request")
+				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(`BAD REQUEST: ${sessionId}`))
 			case '1401':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				return new Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorised")
+				return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(`UNAUTHORISED: ${sessionId}`))
 			case '1403':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				return new Response(HttpCodesEnum.FORBIDDEN, "NOT FOUND")
+				return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(`FORBIDDEN: ${sessionId}`))
 			case '1404':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				return new Response(HttpCodesEnum.NOT_FOUND, "CONFLICT")
+				return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(`CONFLICT: ${sessionId}`))
 			case '1503':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, "SERVICE UNAVAILABLE")
+				return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(`SERVICE UNAVAILABLE: ${sessionId}`))
 			case '1999':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 				await new Promise(resolve => setTimeout(resolve, 30000));
