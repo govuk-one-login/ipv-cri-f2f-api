@@ -26,13 +26,7 @@ export class YotiRequestProcessor {
 
 	private readonly metrics: Metrics;
 
-	// private readonly yotiService: YotiService;
-
 	constructor(logger: Logger, metrics: Metrics) {
-		// if (!SESSION_TABLE ) {
-		// 	logger.error("Environment variable SESSION_TABLE or TXMA_QUEUE_URL or ISSUER is not configured");
-		// 	throw new AppError("Service incorrectly configured", HttpCodesEnum.SERVER_ERROR);
-		// }
 		this.logger = logger;
 
 		this.metrics = metrics;
@@ -87,18 +81,15 @@ export class YotiRequestProcessor {
 
 	async getSession(sessionId: string): Promise<Response> {
 
-		const yotiSession = await this.yotiService.getSessionById(sessionId);
 		const lastUuidChars = sessionId.slice(-4);
 		this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 
 		switch(lastUuidChars) {
 			case '0000':
-				this.logger.info({ message: "found session", yotiSession });
 				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
 				VALID_RESPONSE.session_id = sessionId;
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));	
 			case '0001':
-				this.logger.info({ message: "found session", yotiSession });
 				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
 				VALID_DL_RESPONSE.session_id = sessionId;
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));	
