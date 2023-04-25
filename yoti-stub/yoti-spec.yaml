@@ -83,6 +83,59 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
 
+  /sessions/{sessionId}:
+    get:
+      tags:
+        - Backend Endpoints
+      summary: Retrieve the entire Session
+      security:
+        - X-Yoti-Auth-Digest: []
+      parameters:
+        - $ref: "#/components/parameters/sessionId"
+        - $ref: "#/components/parameters/sdkId"
+        - $ref: "#/components/parameters/timestamp"
+        - $ref: "#/components/parameters/nonce"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+        400:
+          description: Invalid payload or request missing headers or query params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                MALFORMED_REQUEST:
+                  $ref: "#/components/examples/MalformedRequestDigestError"
+        401:
+          $ref: "#/components/responses/401SignatureResponse"
+        404:
+          description: Session or App not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                SESSION_NOT_FOUND:
+                  $ref: "#/components/examples/SessionNotFoundError"
+                APP_NOT_FOUND:
+                  $ref: "#/components/examples/AppNotFoundError"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Yoti-Stub-${AWS::StackName}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+
   /sessions/{sessionId}/configuration:
     get:
       tags:
