@@ -15,7 +15,6 @@ import {YotiSessionRequest} from "../models/YotiSessionRequest";
 import { VALID_RESPONSE } from "../data/responses";
 import { VALID_DL_RESPONSE } from "../data/driversLicenseResponse";
 import { CREATE_SESSION } from "../data/createSession";
-import { log } from "console";
 
 const SESSION_TABLE = process.env.SESSION_TABLE;
 
@@ -42,18 +41,18 @@ export class YotiRequestProcessor {
 	async createSession(event: APIGatewayProxyEvent, yotiSessionItem: YotiSessionItem): Promise<Response> {
 
 		const sessionId = yotiSessionItem.session_id;
-		console.log("SESSION ID: ", sessionId);
+		this.logger.debug("SessionId from yotiSessionItem", { sessionId });
 		const lastUuidChars = sessionId.slice(-4);
 
 		if (lastUuidChars[0] === '3' || lastUuidChars[0] === '2') {
-				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
-				// CREATE_SESSION.user_tracking_id = sessionId;
-				return new Response(HttpCodesEnum.CREATED, JSON.stringify(sessionId));	
+				this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
+				CREATE_SESSION.session_id = sessionId;
+				return new Response(HttpCodesEnum.CREATED, JSON.stringify(CREATE_SESSION));	
 		}
 
 		switch(lastUuidChars) {
 			case '0000':
-				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
 				VALID_RESPONSE.session_id = sessionId;
 				return new Response(HttpCodesEnum.CREATED, JSON.stringify(VALID_RESPONSE));	
 			case '1400':
@@ -86,11 +85,11 @@ export class YotiRequestProcessor {
 
 		switch(lastUuidChars) {
 			case '0000':
-				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
 				VALID_RESPONSE.session_id = sessionId;
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));	
 			case '0001':
-				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
 				VALID_DL_RESPONSE.session_id = sessionId;
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));	
 			case '5400':
@@ -122,14 +121,14 @@ export class YotiRequestProcessor {
 		this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 
 		if (lastUuidChars[0] === '3') {
-				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
-				VALID_RESPONSE.session_id = sessionId;
-				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));	
+			this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
+			VALID_RESPONSE.session_id = sessionId;
+			return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));	
 		}
 
 		switch(lastUuidChars) {
 			case '0000':
-				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
 				VALID_RESPONSE.session_id = sessionId;
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));	
 			case '2400':
@@ -161,7 +160,7 @@ export class YotiRequestProcessor {
 
 		switch(lastUuidChars) {
 			case '0000':
-				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
 				VALID_RESPONSE.session_id = sessionId;
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));	
 			case '3400':
@@ -192,7 +191,7 @@ export class YotiRequestProcessor {
 
 		switch(lastUuidChars) {
 			case '0000':
-				console.log(JSON.stringify(new YotiSessionRequest(sessionId)));
+				this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
 				VALID_RESPONSE.session_id = sessionId;
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE))
 			case '4400':
