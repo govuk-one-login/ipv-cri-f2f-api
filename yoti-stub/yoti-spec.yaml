@@ -247,6 +247,51 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
+    get:
+      tags:
+        - Public Endpoints
+      parameters:
+        - $ref: "#/components/parameters/sessionId"
+        - $ref: "#/components/parameters/sdkId"
+        - $ref: "#/components/parameters/nonce"
+        - $ref: "#/components/parameters/timestamp"
+      security:
+        - X-Yoti-Auth-Token: []
+        - X-Yoti-Auth-Digest: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstructionsViewRequest"
+            examples:
+              VALID_REQUEST:
+                $ref: "#/components/examples/ValidInstructionsViewRequestExample"
+      responses:
+        200:
+          description: OK
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+        503:
+          $ref: "#/components/responses/503"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Yoti-Stub-${AWS::StackName}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
 
   /sessions/{sessionId}/instructions/pdf:
     get:
