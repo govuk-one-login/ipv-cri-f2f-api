@@ -69,6 +69,7 @@ export class YotiCallbackProcessor {
 		 const f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
 
 		 if (!f2fSession) {
+				//TODO: Throw alarm here 
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
 		 }
 
@@ -76,6 +77,7 @@ export class YotiCallbackProcessor {
 		 const f2fIndentityInfo = await this.f2fService.getPersonIdentityById(f2fSessionId, this.environmentVariables.personIdentityTableName());
 
 		 if (!f2fIndentityInfo) {
+				//TODO: Throw alarm here 
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Person Identity Table");
 			}
 
@@ -99,6 +101,7 @@ export class YotiCallbackProcessor {
 			}
 
 			if (!signedJWT) {
+				//TODO: Throw alarm here 
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unable to create signed JWT");
 		 }
 
