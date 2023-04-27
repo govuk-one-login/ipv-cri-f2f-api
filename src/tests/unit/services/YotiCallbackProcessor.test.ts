@@ -500,7 +500,7 @@ describe("YotiCallbackProcessor", () => {
 
 		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
-			message: "No completed YOTI Session found with ID:",
+			message: "Yoti Session not found",
 		}));
 	});
 
@@ -569,7 +569,7 @@ describe("YotiCallbackProcessor", () => {
 
 		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
-			message: "No completed YOTI Session found with ID:",
+			message: "Yoti Session not complete",
 		}));
 	});
 });

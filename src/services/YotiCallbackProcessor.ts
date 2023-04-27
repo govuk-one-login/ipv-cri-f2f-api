@@ -60,9 +60,15 @@ export class YotiCallbackProcessor {
 			this.logger.info({ message:"Fetching status for Yoti SessionID" }, { yotiSessionID });
   		const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID);
 
-			if (!completedYotiSessionInfo || completedYotiSessionInfo.state !== "COMPLETED") {
-				this.logger.error({ message:"No completed YOTI Session found with ID:" }, { yotiSessionID });
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "No completed YOTI Session found with ID:", { shouldThrow: true });
+			if (!completedYotiSessionInfo) {
+				//TODO: Throw alarm here 
+				this.logger.error({ message:"No YOTI Session found with ID:" }, { yotiSessionID });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not found");
+		 }
+
+			if (completedYotiSessionInfo.state !== "COMPLETED") {
+				this.logger.error({ message:"Session in Yoti does not have status COMPLETED" }, { yotiSessionID });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not complete", { shouldThrow: true });
 		 }
 
 		 this.logger.info({ message:"Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
