@@ -22,7 +22,6 @@
     "esbuild": "0.14.14",
     "node-jose": "^2.1.1",
     "jose": "^4.11.2",
-    "node-jose": "^2.1.1",
     "notifications-node-client": "^7.0.0",
     "lodash": "^4.17.21"
   },

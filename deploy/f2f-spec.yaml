@@ -20,6 +20,93 @@ tags:
 
 paths:
 
+  /callback:
+    post:
+      operationId: postCallback
+      summary: callback endpoint for asynchronous notifications from Yoti
+      description: >-
+        Endpoint is registered as the notifications callback with Yoti in the
+        call to `POST /session`
+      tags:
+        - Callback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallbackRequest'
+      responses:
+        '202':
+          description: Accepted
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+            Strict-Transport-Security:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+            X-Frame-Options:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+            Strict-Transport-Security:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+            X-Frame-Options:
+              schema:
+                type: string
+        '500':
+          description: Internal Server Error
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+            Strict-Transport-Security:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+            X-Frame-Options:
+              schema:
+                type: string
+      x-amazon-apigateway-request-validator: both
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        credentials:
+          Fn::GetAtt: [ "YotiCallbackQueueRole", "Arn" ]
+        uri: 
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/${YotiCallbackQueue.QueueName}"
+        passthroughBehavior: "never"
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+        requestTemplates:
+          application/json: "Action=SendMessage&MessageBody=$input.body"
+        responses:
+          default:
+            statusCode: "202"
+        type: "aws"
+
   /token:
     post:
       operationId: postToken
@@ -601,6 +688,36 @@ paths:
 
 components:
   schemas:
+    CallbackRequest:
+      description: "payload received from Yoti for a notification callback"
+      required:
+        - session_id
+        - topic
+      additionalProperties: true
+      properties:
+        session_id:
+          type: string
+          format: uuid
+          description: "session_id as returned in original call to `POST /session`"
+          example: "11111111-1111-1111-1111-111111111111"
+        topic:
+          type: string
+          enum:
+            - "resource_update"
+            - "task_completion"
+            - "check_completion"
+            - "session_completion"
+          description: indicates notification message type
+          example: "session_completion"
+        task_id:
+          type: string
+          description: "Optional and present only when `topic` is `task_completion`"
+        resource_id:
+          type: string
+          description: "Optional and present only when `topic` is `resource_update`"
+        check_id:
+          type: string
+          description: "Optional and present only when `topic` is `check_completion`"
     AuthorizationResponse:
       required:
         - "redirect_uri"
