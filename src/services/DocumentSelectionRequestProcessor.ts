@@ -12,7 +12,7 @@ import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { buildGovNotifyEventFields } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
-import { YotiSessionState } from "../models/enums/YotiSessionState";
+import { AuthSessionState } from "../models/enums/AuthSessionState";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -60,6 +60,11 @@ export class DocumentSelectionRequestProcessor {
   		if (!event.body) {
   			throw new AppError(HttpCodesEnum.BAD_REQUEST, "No body present in post request");
   		}
+		
+		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_YOTI_SESSION_CREATED && f2fSessionInfo.yotiSessionId !== undefined) {
+		this.logger.warn(`Yoti session already exists for this authorization session`);
+		return new Response(HttpCodesEnum.UNAUTHORIZED, `Yoti session already exists for this authorization session`);
+		}
 
   		const eventBody = JSON.parse(event.body);
   		const PostOfficeSelection = eventBody.post_office_selection;
@@ -133,7 +138,7 @@ export class DocumentSelectionRequestProcessor {
   		}
 
   		try {
-  			await this.f2fService.updateSessionWithYotiIdAndStatus(sessionId, yotiSessionID, YotiSessionState.YOTI_SESSION_CREATED, this.environmentVariables.sessionTable());
+  			await this.f2fService.updateSessionWithYotiIdAndStatus(sessionId, yotiSessionID, AuthSessionState.F2F_YOTI_SESSION_CREATED, this.environmentVariables.sessionTable());
   		} catch (error) {
   			this.logger.error("FAILED_TO_UPDATE_YOTI_STATUS", {
   				yotiSessionID,

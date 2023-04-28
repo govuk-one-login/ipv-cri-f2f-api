@@ -239,14 +239,14 @@ export class F2fService {
 		}
 	}
 
-	async updateSessionWithYotiIdAndStatus(sessionId: string, yotiSessionId: string, yotiSessionStatus: string, tableName = this.tableName): Promise<void> {
+	async updateSessionWithYotiIdAndStatus(sessionId: string, yotiSessionId: string, authSessionState: string, tableName = this.tableName): Promise<void> {
 		const updateYotiDetailsCommand = new UpdateCommand({
 			TableName: tableName,
 			Key: { sessionId },
-			UpdateExpression: "SET yotiSessionId = :yotiSessionId, yotiSessionStatus = :yotiSessionStatus",
+			UpdateExpression: "SET yotiSessionId = :yotiSessionId, authSessionState = :authSessionState",
 			ExpressionAttributeValues: {
 				":yotiSessionId": yotiSessionId,
-				":yotiSessionStatus": yotiSessionStatus,
+				":authSessionState": authSessionState,
 			},
 		});
 
