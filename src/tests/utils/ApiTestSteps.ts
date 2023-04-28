@@ -6,6 +6,12 @@ export async function startStubServiceAndReturnSessionId(): Promise<any> {
 	const stubResponse = await stubStartPost();
 	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 
+	console.log("headers " + stubResponse.headers)
+	console.log("response: ", JSON.stringify(stubResponse.data))
+
+	console.log("post headers " + postRequest.headers)
+	console.log("post response: ", JSON.stringify(postRequest.data))
+
 	return postRequest;
 }
 
@@ -34,6 +40,29 @@ export async function sessionPost(clientId?: string, request?: string):Promise<a
 	} 
 }
 export async function postDocumentSelection(userData:any, sessionId:any): Promise<any> {
+	try {
+		const postRequest = await API_INSTANCE.post( "/documentSelection", {
+			"document_selection":{
+		   "document_selected":userData.document_selected,
+		   "date_of_expiry":userData.date_of_expiry,
+			},
+			"post_office_selection":{
+		   "address":userData.address,
+		   "location":{
+			  "latitude":userData.latitude,
+			  "longitude":userData.longitude,
+		   },
+		   "post_code":userData.post_code,
+			},
+	 }, { headers:{ "x-govuk-signin-session-id": sessionId } });
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from endpoint: ${error}`);
+		return error.response;
+	} 
+}
+
+export async function postYotiSession(data:any): Promise<any> {
 	try {
 		const postRequest = await API_INSTANCE.post( "/documentSelection", {
 			"document_selection":{

@@ -1,0 +1,118 @@
+{
+   "client_session_token_ttl": 600,
+   "session_deadline": "2021-08-16T13:33:03-08:00",
+   "resources_ttl": 87000,
+   "user_tracking_id": "string",
+   "ibv_options": {
+     "support": "MANDATORY"
+   },
+   "notifications": {
+     "endpoint": "https://example.com/ibv/notification",
+     "topics": [
+       "RESOURCE_UPDATE",
+       "TASK_COMPLETION",
+       "CHECK_COMPLETION",
+       "SESSION_COMPLETION",
+       "NEW_PDF_SUPPLIED",
+       "INSTRUCTIONS_EMAIL_REQUESTED"
+     ],
+     "auth_token": "string",
+     "auth_type": "BASIC"
+   },
+   "requested_checks": [
+     {
+       "type": "ID_DOCUMENT_AUTHENTICITY",
+       "config": {
+         "manual_check": "FALLBACK"
+       }
+     },
+     {
+       "type": "ID_DOCUMENT_FACE_MATCH",
+       "config": {
+         "manual_check": "FALLBACK"
+       }
+     },
+     {
+       "type": "ID_DOCUMENT_COMPARISON",
+       "config": {}
+     },
+     {
+       "type": "IBV_VISUAL_REVIEW_CHECK",
+       "config": {
+         "manual_check": "IBV"
+       }
+     },
+     {
+       "type": "DOCUMENT_SCHEME_VALIDITY_CHECK",
+       "config": {
+         "manual_check": "IBV",
+         "scheme": "string"
+       }
+     },
+     {
+       "type": "PROFILE_DOCUMENT_MATCH",
+       "config": {
+         "manual_check": "IBV"
+       }
+     }
+   ],
+   "requested_tasks": [
+     {
+       "type": "ID_DOCUMENT_TEXT_DATA_EXTRACTION",
+       "config": {
+         "manual_check": "FALLBACK",
+         "chip_data": "DESIRED"
+       }
+     },
+     {
+       "type": "SUPPLEMENTARY_DOCUMENT_TEXT_DATA_EXTRACTION",
+       "config": {
+         "manual_check": "FALLBACK"
+       }
+     }
+   ],
+   "required_documents": [
+     {
+       "type": "ID_DOCUMENT",
+       "filter": {
+         "type": "ORTHOGONAL_RESTRICTIONS",
+         "allow_non_latin_documents": true,
+         "allow_expired_documents": true,
+         "country_restriction": {
+           "inclusion": "INCLUDE",
+           "country_codes": [
+             "GBR",
+             "FRA"
+           ]
+         },
+         "type_restriction": {
+           "inclusion": "INCLUDE",
+           "document_types": [
+             "PASSPORT",
+             "STATE_ID"
+           ]
+         }
+       }
+     },
+     {
+       "type": "SUPPLEMENTARY_DOCUMENT",
+       "country_codes": [
+         "GBR",
+         "FRA"
+       ],
+       "document_types": [
+         "UTILITY_BILL",
+         "BANK_STATEMENT"
+       ],
+       "objective": {
+         "type": "PROOF_OF_ADDRESS",
+         "config": {}
+       }
+     }
+   ],
+   "resources": {
+     "applicant_profile": {
+       "additionalProp1": {}
+     }
+   }
+ }
