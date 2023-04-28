@@ -84,6 +84,7 @@ Mappings:
       RESOURCESTTL: 691200 # Default 8 days
       CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"}]'
       AUTHSESSIONTTL: "604800" # 7 days in seconds
+      IPVCOREACCOUNT: arn:aws:iam::130355686670:root
     build:
       YOTIBASEURL: "https://proxy.review-o.build.account-gov.uk/yoti"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
@@ -96,6 +97,7 @@ Mappings:
       RESOURCESTTL: 691200 # Default 8 days
       CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.build.account.gov.uk/redirect"}]'
       AUTHSESSIONTTL: "604800" # 7 days in seconds
+      IPVCOREACCOUNT: arn:aws:iam::457601271792:root
     staging:
       YOTIBASEURL: "https://proxy.review-o.staging.account-gov.uk/yoti"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
@@ -108,6 +110,7 @@ Mappings:
       RESOURCESTTL: 691200 # Default 8 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json","clientId":"03A5A659-17AA-453F-B905-95D2804823D1","redirectUri":"https://identity.staging.account.gov.uk/redirect"}]'
       AUTHSESSIONTTL: "604800" # 7 days in seconds
+      IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
       YOTIBASEURL: "https://proxy.review-o.integration.account-gov.uk/yoti"
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
@@ -120,6 +123,7 @@ Mappings:
       RESOURCESTTL: 691200 # Default 8 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/redirect"}]'
       AUTHSESSIONTTL: "604800" # 7 days in seconds
+      IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
       YOTIBASEURL: "https://proxy.review-o.account-gov.uk/yoti"
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
@@ -132,6 +136,7 @@ Mappings:
       RESOURCESTTL: 691200 # Default 8 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/redirect"}]'
       AUTHSESSIONTTL: "604800" # 7 days in seconds
+      IPVCOREACCOUNT: arn:aws:iam::075701497069:root
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
     dev:
@@ -732,6 +737,7 @@ Resources:
       Principal: apigateway.amazonaws.com
 
 
+  ## TXMA SQS Queue
   TxMASQSQueue:
     Type: AWS::SQS::Queue
     Properties:
@@ -1132,6 +1138,296 @@ Resources:
         - !Sub "alias/GovNotifyEncryptionKey-${AWS::StackName}"
         - alias/GovNotifyEncryptionKey
       TargetKeyId: !Ref GovNotifyEncryptionKey
+
+  YotiCallbackFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: YotiCallbackFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-YotiCallback-${AWS::StackName}"
+      Handler: YotiCallbackHandler.lambdaHandler
+      CodeUri: ../src/
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: YotiCallbackHandler
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue:
+              !Sub "${L2DynamoStackName}-person-identity-table-name"
+          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
+          KMS_KEY_ARN:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+          IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-key-id"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-person-identity-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-person-identity-table-key-id"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "kms:Decrypt"
+              Resource: !GetAtt YotiCallbackEncryptionKey.Arn
+        - Statement:
+            - Sid: KMSPolicy
+              Effect: Allow
+              Action:
+                - kms:Verify
+                - kms:Sign
+              Resource:
+                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+        - Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt TxMASQSQueue.Arn
+          - Effect: Allow
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+        - Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt IPVCoreSQSQueue.Arn
+          - Effect: Allow
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !GetAtt IPVCoreQueueEncryptionKey.Arn
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt YotiCallbackQueue.Arn
+            BatchSize: 1
+            Enabled: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - YotiCallbackHandler.ts
+
+  YotiCallbackFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-YotiCallback-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  YotiCallbackFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsProdLikeEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref YotiCallbackFunctionLogGroup
+
+  YotiCallbackFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref YotiCallbackFunction
+      Principal: apigateway.amazonaws.com
+
+  YotiCallbackQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      MessageRetentionPeriod: 1209600 # 14 days in seconds
+      VisibilityTimeout: 300
+      KmsMasterKeyId: !Ref YotiCallbackKeyAlias
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - "YotiCallbackQueueDeadLetterQueue"
+            - "Arn"
+        maxReceiveCount: 10
+
+  YotiCallbackQueueDeadLetterQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      MessageRetentionPeriod: 259200 # three days
+      KmsMasterKeyId: !Sub YotiCallbackEncryptionKey
+
+  YotiCallbackQueueRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: YotiCallbackQueuePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sqs:SendMessage"
+                Resource: !GetAtt YotiCallbackQueue.Arn
+              - Effect: Allow
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:Decrypt"
+                  - "kms:GenerateDataKey"
+                Resource: !GetAtt YotiCallbackEncryptionKey.Arn
+
+  YotiCallbackEncryptionKey:
+    Type: AWS::KMS::Key
+    # KMS Key manually rotated.
+    # checkov:skip=CKV_AWS_7: KMS Key manually rotated.
+    Properties:
+      Description: A KMS Key for encrypting the SQS Queue for YotiCallback
+      Enabled: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource:
+              - "*"
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      PendingWindowInDays: 7
+      Tags:
+        - Key: KeyType
+          Value: Encryption Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+
+  YotiCallbackKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !If
+        - CreateDevResources
+        - !Sub "alias/YotiCallbackEncryptionKey-${AWS::StackName}"
+        - alias/YotiCallbackEncryptionKey
+      TargetKeyId: !Ref YotiCallbackEncryptionKey
+
+  IPVCoreSQSQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: !FindInMap [EnvironmentVariables, !Ref Environment, MESSAGERETENTIONPERIODDAYS]
+      VisibilityTimeout: 60
+      KmsMasterKeyId: !Ref IPVCoreQueueKeyAlias
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - "IPVCoreDeadLetterQueue"
+            - "Arn"
+        maxReceiveCount: 5
+
+  IPVCoreQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref IPVCoreSQSQueue
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+              - "sqs:ChangeMessageVisibility"
+              - "sqs:ReceiveMessage"
+            Resource:
+              - !GetAtt IPVCoreSQSQueue.Arn
+            Principal:
+              AWS:
+                - !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
+
+  IPVCoreDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 259200 # three days
+      KmsMasterKeyId: !Sub IPVCoreQueueEncryptionKey
+
+  IPVCoreQueueEncryptionKey:
+    Type: AWS::KMS::Key
+    # KMS Key manually rotated.
+    # checkov:skip=CKV_AWS_7: KMS Key manually rotated.
+    Properties:
+      Description: A KMS Key for encrypting the SQS Queue for IPV Core
+      Enabled: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource:
+              - "*"
+          - Effect: Allow
+            Principal:
+              AWS: !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource:
+              - "*"
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      PendingWindowInDays: 7
+      Tags:
+        - Key: KeyType
+          Value: Encryption Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+
+  IPVCoreQueueKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !If
+        - CreateDevResources
+        - !Sub "alias/IPVCoreQueueEncryptionKey-${AWS::StackName}"
+        - alias/IPVCoreQueueEncryptionKey
+      TargetKeyId: !Ref IPVCoreQueueEncryptionKey
 
 Outputs:
   F2FApiGatewayId:
