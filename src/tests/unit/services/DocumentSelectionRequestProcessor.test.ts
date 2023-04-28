@@ -195,7 +195,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("1234", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED", "MYTABLE");
+		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("1234", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
 	});

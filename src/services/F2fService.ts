@@ -69,10 +69,10 @@ export class F2fService {
 		}
 	}
 
-	async getPersonIdentityById(sessionId: string): Promise<PersonIdentityItem | undefined> {
-		this.logger.debug("Table name " + this.tableName);
+	async getPersonIdentityById(sessionId: string, tableName: string = this.tableName): Promise<PersonIdentityItem | undefined> {
+		this.logger.debug("Table name " + tableName);
 		const getPersonIdentityCommand = new GetCommand({
-			TableName: this.tableName,
+			TableName: tableName,
 			Key: {
 				sessionId,
 			},
@@ -239,9 +239,9 @@ export class F2fService {
 		}
 	}
 
-	async updateSessionWithYotiIdAndStatus(sessionId: string, yotiSessionId: string, authSessionState: string, tableName = this.tableName): Promise<void> {
+	async updateSessionWithYotiIdAndStatus(sessionId: string, yotiSessionId: string, authSessionState: string): Promise<void> {
 		const updateYotiDetailsCommand = new UpdateCommand({
-			TableName: tableName,
+			TableName: this.tableName,
 			Key: { sessionId },
 			UpdateExpression: "SET yotiSessionId = :yotiSessionId, authSessionState = :authSessionState",
 			ExpressionAttributeValues: {

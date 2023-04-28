@@ -33,7 +33,7 @@ export class DocumentSelectionRequestProcessor {
   		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
   		this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtl(), this.environmentVariables.clientSessionTokenTtl(), YOTI_PRIVATE_KEY);
-  		this.f2fService = F2fService.getInstance(this.environmentVariables.personIdentityTableName(), this.logger, createDynamoDbClient());
+  		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   	}
 
   	static getInstance(
@@ -51,7 +51,7 @@ export class DocumentSelectionRequestProcessor {
   	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
 
   		const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
-  		const personDetails = await this.f2fService.getPersonIdentityById(sessionId);
+  		const personDetails = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
 
   		if (!personDetails || !f2fSessionInfo) {
   			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
@@ -60,7 +60,7 @@ export class DocumentSelectionRequestProcessor {
   		if (!event.body) {
   			throw new AppError(HttpCodesEnum.BAD_REQUEST, "No body present in post request");
   		}
-		
+
 		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_YOTI_SESSION_CREATED && f2fSessionInfo.yotiSessionId !== undefined) {
 		this.logger.warn(`Yoti session already exists for this authorization session`);
 		return new Response(HttpCodesEnum.UNAUTHORIZED, `Yoti session already exists for this authorization session`);
@@ -138,7 +138,7 @@ export class DocumentSelectionRequestProcessor {
   		}
 
   		try {
-  			await this.f2fService.updateSessionWithYotiIdAndStatus(sessionId, yotiSessionID, AuthSessionState.F2F_YOTI_SESSION_CREATED, this.environmentVariables.sessionTable());
+  			await this.f2fService.updateSessionWithYotiIdAndStatus(sessionId, yotiSessionID, AuthSessionState.F2F_YOTI_SESSION_CREATED);
   		} catch (error) {
   			this.logger.error("FAILED_TO_UPDATE_YOTI_STATUS", {
   				yotiSessionID,
