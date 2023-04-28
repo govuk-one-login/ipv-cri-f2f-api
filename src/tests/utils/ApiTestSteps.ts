@@ -1,16 +1,11 @@
 import axios from "axios";
 import { constants } from "../utils/ApiConstants";
 const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
+const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
 
 export async function startStubServiceAndReturnSessionId(): Promise<any> {
 	const stubResponse = await stubStartPost();
 	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-
-	console.log("headers " + stubResponse.headers)
-	console.log("response: ", JSON.stringify(stubResponse.data))
-
-	console.log("post headers " + postRequest.headers)
-	console.log("post response: ", JSON.stringify(postRequest.data))
 
 	return postRequest;
 }
@@ -21,7 +16,7 @@ export async function stubStartPost():Promise<any> {
 	try {
 		const postRequest = await axios.post(`${path}`, { target:constants.DEV_CRI_F2F_API_URL });
 		expect(postRequest.status).toBe(201);
-		return postRequest;
+		return postRequest;``
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
@@ -64,20 +59,20 @@ export async function postDocumentSelection(userData:any, sessionId:any): Promis
 
 export async function postYotiSession(data:any): Promise<any> {
 	try {
-		const postRequest = await API_INSTANCE.post( "/documentSelection", {
+		const postRequest = await YOTI_INSTANCE.post( "/session", {
 			"document_selection":{
-		   "document_selected":userData.document_selected,
-		   "date_of_expiry":userData.date_of_expiry,
+		   "document_selected":data.document_selected,
+		   "date_of_expiry":data.date_of_expiry,
 			},
 			"post_office_selection":{
-		   "address":userData.address,
+		   "address":data.address,
 		   "location":{
-			  "latitude":userData.latitude,
-			  "longitude":userData.longitude,
+			  "latitude":data.latitude,
+			  "longitude":data.longitude,
 		   },
-		   "post_code":userData.post_code,
+		   "post_code":data.post_code,
 			},
-	 }, { headers:{ "x-govuk-signin-session-id": sessionId } });
+	 }, { headers:{ "x-govuk-signin-session-id": sessionId } }); //TODO
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from endpoint: ${error}`);
