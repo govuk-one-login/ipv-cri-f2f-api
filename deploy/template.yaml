@@ -535,7 +535,7 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
    # Condition: IsProdLikeEnvironment
     Properties:
-      DestinationArn: 
+      DestinationArn:
         !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
       FilterPattern: ""
       LogGroupName: !Ref TokenFunctionLogGroup
@@ -617,7 +617,7 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
     # Condition: IsProdLikeEnvironment
     Properties:
-      DestinationArn: 
+      DestinationArn:
         !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
       FilterPattern: ""
       LogGroupName: !Ref AuthorizationFunctionLogGroup
@@ -724,7 +724,7 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
     # Condition: IsProdLikeEnvironment
     Properties:
-      DestinationArn: 
+      DestinationArn:
         !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
       FilterPattern: ""
       LogGroupName: !Ref DocumentSelectionLogGroup
@@ -1308,6 +1308,10 @@ Resources:
                   - "kms:Decrypt"
                   - "kms:GenerateDataKey"
                 Resource: !GetAtt YotiCallbackEncryptionKey.Arn
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
 
   YotiCallbackEncryptionKey:
     Type: AWS::KMS::Key
