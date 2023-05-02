@@ -1,14 +1,21 @@
 name: Deploy Main to Dev Env
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
+  # Triggers the workflow on push or pull request events but only for the "main" or "develop" branch
+  pull_request:
     branches:
       - main
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+      - synchronize
     paths-ignore:
       - 'infra-l2-dynamo/**'
       - 'infra-l2-kms/**'
+      - 'infra-l2-waf/**'
       - 'f2f-ipv-stub/**'
       - 'infra-l2-outbound-proxy/**'
+      - 'yoti-stub/**'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
