@@ -37,7 +37,7 @@ function getMockSessionItem(): ISessionItem {
 		persistentSessionId: "sdgsdg",
 		clientIpAddress: "127.0.0.1",
 		attemptCount: 1,
-		authSessionState: AuthSessionState.F2F_DATA_RECEIVED,
+		authSessionState: AuthSessionState.F2F_SESSION_CREATED,
 	};
 	return sessionInfo;
 }
