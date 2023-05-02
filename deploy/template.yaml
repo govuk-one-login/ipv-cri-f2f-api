@@ -535,7 +535,7 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
    # Condition: IsProdLikeEnvironment
     Properties:
-      DestinationArn:
+      DestinationArn: 
         !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
       FilterPattern: ""
       LogGroupName: !Ref TokenFunctionLogGroup
@@ -617,7 +617,7 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
     # Condition: IsProdLikeEnvironment
     Properties:
-      DestinationArn:
+      DestinationArn: 
         !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
       FilterPattern: ""
       LogGroupName: !Ref AuthorizationFunctionLogGroup
@@ -724,7 +724,7 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
     # Condition: IsProdLikeEnvironment
     Properties:
-      DestinationArn:
+      DestinationArn: 
         !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
       FilterPattern: ""
       LogGroupName: !Ref DocumentSelectionLogGroup
@@ -1284,15 +1284,15 @@ Resources:
       KmsMasterKeyId: !Sub YotiCallbackEncryptionKey
 
   YotiCallbackQueueRole:
-    Type: AWS::IAM::Role
+    Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
         Statement:
-          - Effect: Allow
+          - Action: "sts:AssumeRole"
+            Effect: Allow
             Principal:
               Service: apigateway.amazonaws.com
-            Action: sts:AssumeRole
+        Version: 2012-10-17
       Policies:
         - PolicyName: YotiCallbackQueuePolicy
           PolicyDocument:
