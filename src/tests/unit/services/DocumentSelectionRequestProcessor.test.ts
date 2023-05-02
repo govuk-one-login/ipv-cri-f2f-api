@@ -37,7 +37,7 @@ function getMockSessionItem(): ISessionItem {
 		persistentSessionId: "sdgsdg",
 		clientIpAddress: "127.0.0.1",
 		attemptCount: 1,
-		authSessionState: AuthSessionState.F2F_DATA_RECEIVED,
+		authSessionState: AuthSessionState.F2F_SESSION_CREATED,
 	};
 	return sessionInfo;
 }
@@ -161,7 +161,7 @@ function getYotiSessionInfo(): YotiSessionInfo {
 }
 
 describe("DocumentSelectionRequestProcessor", () => {
-	let personIdentityItem: PersonIdentityItem, f2fSessionItem: ISessionItem, yotiSessionInfo: YotiSessionInfo;
+	let personIdentityItem: PersonIdentityItem, f2fSessionItem: ISessionItem, f2fSessionItemInvalid: ISessionItem, yotiSessionInfo: YotiSessionInfo;
 	beforeAll(() => {
 		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore
@@ -195,7 +195,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("1234", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "YOTI_SESSION_CREATED", "MYTABLE");
+		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("1234", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
 	});
@@ -208,6 +208,21 @@ describe("DocumentSelectionRequestProcessor", () => {
 			statusCode: HttpCodesEnum.BAD_REQUEST,
 			message: "Missing details in SESSION or PERSON IDENTITY tables",
 		}));
+	});
+
+	it("Throw server error if Yoti Session already exists", async () => {
+		const f2fSessionItemInvalid = {
+			...f2fSessionItem,
+			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
+			yotiSessionId: "RandomYOTISessionID"
+		};
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+
+		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
+		expect(out.body).toBe("Yoti session already exists for this authorization session");
 	});
 
 	it("Throw server error if Yoti Session creation fails", async () => {

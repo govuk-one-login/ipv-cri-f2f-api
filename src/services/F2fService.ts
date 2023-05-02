@@ -112,35 +112,36 @@ export class F2fService {
 		return sessionItem.Items[0] as ISessionItem;
 	}
 
-	async saveF2FData(sessionId: string, f2fData: F2fSession): Promise<void> {
-		const saveF2FCommand: any = new UpdateCommand({
-			TableName: this.tableName,
-			Key: { sessionId },
-			UpdateExpression:
-				"SET given_names = :given_names, family_names = :family_names, date_of_birth = :date_of_birth, authSessionState = :authSessionState",
+	//This is not currently used in F2F
+	// async saveF2FData(sessionId: string, f2fData: F2fSession): Promise<void> {
+	// 	const saveF2FCommand: any = new UpdateCommand({
+	// 		TableName: this.tableName,
+	// 		Key: { sessionId },
+	// 		UpdateExpression:
+	// 			"SET given_names = :given_names, family_names = :family_names, date_of_birth = :date_of_birth, authSessionState = :authSessionState",
 
-			ExpressionAttributeValues: {
-				":given_names": f2fData.given_names,
-				":family_names": f2fData.family_names,
-				":date_of_birth": f2fData.date_of_birth,
-				":authSessionState": AuthSessionState.F2F_DATA_RECEIVED,
-			},
-		});
+	// 		ExpressionAttributeValues: {
+	// 			":given_names": f2fData.given_names,
+	// 			":family_names": f2fData.family_names,
+	// 			":date_of_birth": f2fData.date_of_birth,
+	// 			":authSessionState": AuthSessionState.F2F_DATA_RECEIVED,
+	// 		},
+	// 	});
 
-		this.logger.info({
-			message: "updating F2F data in dynamodb",
-			saveF2FCommand,
-		});
-		try {
-			await this.dynamo.send(saveF2FCommand);
-			this.logger.info({ message: "updated F2F data in dynamodb" });
-		} catch (error) {
-			this.logger.error({ message: "got error saving F2F data", error });
-			throw new AppError(HttpCodesEnum.SERVER_ERROR,
-				"Failed to set claimed identity data ",
-			);
-		}
-	}
+	// 	this.logger.info({
+	// 		message: "updating F2F data in dynamodb",
+	// 		saveF2FCommand,
+	// 	});
+	// 	try {
+	// 		await this.dynamo.send(saveF2FCommand);
+	// 		this.logger.info({ message: "updated F2F data in dynamodb" });
+	// 	} catch (error) {
+	// 		this.logger.error({ message: "got error saving F2F data", error });
+	// 		throw new AppError(HttpCodesEnum.SERVER_ERROR,
+	// 			"Failed to set claimed identity data ",
+	// 		);
+	// 	}
+	// }
 
 	async setAuthorizationCode(sessionId: string, uuid: string): Promise<void> {
 
@@ -278,14 +279,14 @@ export class F2fService {
 		}
 	}
 
-	async updateSessionWithYotiIdAndStatus(sessionId: string, yotiSessionId: string, yotiSessionStatus: string, tableName = this.tableName): Promise<void> {
+	async updateSessionWithYotiIdAndStatus(sessionId: string, yotiSessionId: string, authSessionState: string): Promise<void> {
 		const updateYotiDetailsCommand = new UpdateCommand({
-			TableName: tableName,
+			TableName: this.tableName,
 			Key: { sessionId },
-			UpdateExpression: "SET yotiSessionId = :yotiSessionId, yotiSessionStatus = :yotiSessionStatus",
+			UpdateExpression: "SET yotiSessionId = :yotiSessionId, authSessionState = :authSessionState",
 			ExpressionAttributeValues: {
 				":yotiSessionId": yotiSessionId,
-				":yotiSessionStatus": yotiSessionStatus,
+				":authSessionState": authSessionState,
 			},
 		});
 
