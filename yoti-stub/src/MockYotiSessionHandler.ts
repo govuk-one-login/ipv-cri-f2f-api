@@ -32,11 +32,11 @@ class MockYotiSessionHandler implements LambdaInterface {
 		 		if (event.httpMethod === "POST") {
 					try {
 						logger.info("Event received", { event });
-
-						const bodyParsed = JSON.parse(event.body as string);
+						logger.info("ABOUT TO PARSE JSON")
+						const bodyParsed = JSON.parse(event.body);
 						console.log(bodyParsed)
-
-						return await YotiRequestProcessor.getInstance(logger, metrics).createSession(event, new YotiSessionItem());
+						logger.info("FINISHED PARSING, awaiting return")
+						return await YotiRequestProcessor.getInstance(logger, metrics).createSession(event, bodyParsed);
 						//return new Response(HttpCodesEnum.CREATED, JSON.stringify(new YotiSessionItem()));
 					} catch (err: any) {
 						logger.error({ message: "An error has occurred.", err });
