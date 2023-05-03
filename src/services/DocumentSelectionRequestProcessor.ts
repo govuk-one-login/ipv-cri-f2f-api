@@ -62,8 +62,8 @@ export class DocumentSelectionRequestProcessor {
   		}
 
 		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_YOTI_SESSION_CREATED && f2fSessionInfo.yotiSessionId !== undefined) {
-		this.logger.warn(`Yoti session already exists for this authorization session`);
-		return new Response(HttpCodesEnum.UNAUTHORIZED, `Yoti session already exists for this authorization session`);
+			this.logger.warn("Yoti session already exists for this authorization session");
+			return new Response(HttpCodesEnum.UNAUTHORIZED, "Yoti session already exists for this authorization session");
 		}
 
   		const eventBody = JSON.parse(event.body);

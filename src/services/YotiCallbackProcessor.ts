@@ -12,6 +12,8 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { VerifiableCredentialService } from "./VerifiableCredentialService";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
+import { Constants } from "../utils/Constants";
+import { AuthSessionState } from "../models/enums/AuthSessionState";
 
 export class YotiCallbackProcessor {
 
@@ -120,6 +122,13 @@ export class YotiCallbackProcessor {
 			} catch (error) {
 				this.logger.error({ message:"Failed to send VC to IPV Core Queue" }, { error });
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core", { shouldThrow: true });
+			}
+
+			try {
+				await this.f2fService.updateSessionState(f2fSessionId, AuthSessionState.CREDENTIAL_ISSUED);
+			} catch (error) {
+				this.logger.error({ message:"Failed to set auth session state" }, { error });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to set auth session state", { shouldThrow: true });
 			}
 
 			try {

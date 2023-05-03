@@ -143,6 +143,28 @@ export class F2fService {
 	// 	}
 	// }
 
+	async updateSessionState(sessionId: string, authSessionState: string): Promise<void> {
+
+		const updateSessionCommand = new UpdateCommand({
+			TableName: this.tableName,
+			Key: { sessionId },
+			UpdateExpression: "SET authSessionState = :authSessionState",
+			ExpressionAttributeValues: {
+				":authSessionState": authSessionState,
+			},
+		});
+
+		this.logger.info({ message: "updating authorizationCode dynamodb", updateSessionCommand });
+
+		try {
+			await this.dynamo.send(updateSessionCommand);
+			this.logger.info({ message: "updated authorizationCode in dynamodb" });
+		} catch (e: any) {
+			this.logger.error({ message: "got error setting auth code", e });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to set authorization code ");
+		}
+	}
+
 	async setAuthorizationCode(sessionId: string, uuid: string): Promise<void> {
 
 		const updateSessionCommand = new UpdateCommand({

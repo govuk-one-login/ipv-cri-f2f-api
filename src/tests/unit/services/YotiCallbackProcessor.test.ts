@@ -491,6 +491,10 @@ describe("YotiCallbackProcessor", () => {
 				},
 			}),
 		});
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.updateSessionState).toHaveBeenCalledTimes(1);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.updateSessionState).toHaveBeenCalledWith("RandomF2FSessionID", "CREDENTIAL_ISSUED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
 	});
