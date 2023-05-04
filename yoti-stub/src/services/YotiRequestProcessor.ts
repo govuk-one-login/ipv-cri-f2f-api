@@ -40,19 +40,20 @@ export class YotiRequestProcessor {
 
 	async createSession(event: APIGatewayProxyEvent, incomingPayload: any): Promise<Response> {
 		this.logger.info("START OF CREATESESSION")
-		const trackingId = incomingPayload?.user_tracking_id;
+		const trackingId = incomingPayload.user_tracking_id;
 		this.logger.info("SessionId from yotiSessionItem", { trackingId });
 		const lastUuidChars = trackingId.slice(-4);
 		const yotiSessionId = randomUUID();
 		const lastYotiUuidChars = yotiSessionId.slice(-4);
-		yotiSessionId.replace(lastYotiUuidChars, lastUuidChars);
-		this.logger.debug(yotiSessionId)
+		this.logger.info("lastUuid", { lastUuidChars });
+		this.logger.info("lastYotiUuid", { lastYotiUuidChars });
+		const replacedYotiSessionId = yotiSessionId.replace(lastYotiUuidChars, lastUuidChars);
+		this.logger.info(replacedYotiSessionId)
 		const yotiSessionItem = new YotiSessionItem()
-		yotiSessionItem.session_id = yotiSessionId
+		yotiSessionItem.session_id = replacedYotiSessionId
 		this.logger.info("CREATED SESSION ITEM", { yotiSessionItem })
 
 		if (lastUuidChars[0] === '3' || lastUuidChars[0] === '2') {
-			
 			// CREATE_SESSION.session_id = yotiSessionId;
 			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));	
 		}
@@ -64,24 +65,50 @@ export class YotiRequestProcessor {
 				return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));	
 			case '1400':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(`BAD REQUEST: ${yotiSessionId}`))
+				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify({
+					"code": "PAYLOAD_VALIDATION",
+					"errors": [
+						{
+							"property": "requested_checks",
+							"message": "must not be empty"
+						}
+					]
+				}))
 			case '1401':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(`UNAUTHORISED: ${yotiSessionId}`))
+				return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify({
+					"code": "MESSAGE_SIGNING",
+					"message": "The message was not signed correctly"
+				}))
 			case '1403':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(`FORBIDDEN: ${yotiSessionId}`))
+				return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify({
+					"code": "INSUFFICIENT_PERMISSION",
+					"message": "The Yoti App associated with this sdk_id does not have permission to use Yoti Doc Scan"
+				}))
 			case '1404':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(`CONFLICT: ${yotiSessionId}`))
+				return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify({
+					"code": "APP_NOT_FOUND",
+					"message": "The referenced application does not exist"
+				}))
 			case '1503':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(`SERVICE UNAVAILABLE: ${yotiSessionId}`))
+				return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify({
+					"code": "string",
+					"message": "string",
+					"errors": [
+						{
+							"property": "string",
+							"message": "string"
+						}
+					]
+				}))
 			case '1999':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 				await new Promise(resolve => setTimeout(resolve, 30000));
 			default:
-				return new Response(HttpCodesEnum.SERVER_ERROR, `No Yoti session with sessionId ${yotiSessionId} found`);
+				return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming user_tracking_id ${yotiSessionId} didn't match any of the use cases`);
 		}
 	}
 
