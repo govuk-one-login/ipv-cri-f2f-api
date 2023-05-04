@@ -1,5 +1,6 @@
 name: Sonar Analysis on Merge
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
