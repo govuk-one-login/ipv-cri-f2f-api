@@ -1,4 +1,4 @@
-name: Sonar Analysis on Merge
+name: Pull Request CI - Sonar
 on:
   workflow_dispatch:
   push:
