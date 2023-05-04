@@ -33,7 +33,8 @@ class MockYotiSessionHandler implements LambdaInterface {
 					try {
 						logger.info("Event received", { event});
 						logger.info("ABOUT TO PARSE JSON")
-						const bodyParsed = JSON.parse(event.body);
+						const decodeBody=  Buffer.from(event.body, 'base64').toString('binary');
+						const bodyParsed = JSON.parse(decodeBody);
 						logger.info("PARSED JSON", {bodyParsed})
 						logger.info("FINISHED PARSING, awaiting return")
 						return await YotiRequestProcessor.getInstance(logger, metrics).createSession(event, bodyParsed);
@@ -112,28 +113,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 						 }
 						 return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 					 }
-				 } 
-				if (event.httpMethod === "GET") {
-					try {
-						logger.info("Event received", {event});
-
-						if (event && event.pathParameters) {
-							// Extract attributes from queryStringParameters and add them to the data object
-							const sessionId = event.pathParameters?.sessionId;
-							if(sessionId){
-
-								return await YotiRequestProcessor.getInstance(logger, metrics).getSessionInstructions(sessionId);
-							}
-						}
-
-					} catch (err: any) {
-						logger.error({message: "An error has occurred.", err});
-						if (err instanceof AppError) {
-							return new Response(err.statusCode, err.message);
-						}
-						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
-					}
-				}
+				 }
 				break;
 
 			 case ResourcesEnum.INSTRUCTIONS_PDF:
@@ -146,8 +126,8 @@ class MockYotiSessionHandler implements LambdaInterface {
 						 const sessionId = event.pathParameters?.sessionId;
 						 if(sessionId){
 
-							 await YotiRequestProcessor.getInstance(logger, metrics).getSessionInstructions(sessionId);
-							 return YotiRequestProcessor.getInstance(logger, metrics).fetchInstructionsPdf();
+							 //await YotiRequestProcessor.getInstance(logger, metrics).getSessionInstructions(sessionId);
+							 return YotiRequestProcessor.getInstance(logger, metrics).fetchInstructionsPdf(sessionId);
 						 }
 					 }
 
