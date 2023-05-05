@@ -9,6 +9,14 @@ export enum YotiDocumentTypesEnum {
 
 export const YOTI_DOCUMENT_COUNTRY_CODE = "GBR";
 
+export enum YotiSessionDocument {
+	APPROVE = "APPROVE",
+	REJECT = "REJECT",
+	DONE_STATE = "DONE",
+	SUBCHECK_PASS = "PASS",
+	CHIP_CSCA_TRUSTED = "chip_csca_trusted",
+}
+
 export const MANUAL_CHECK_TYPE = {
 	IBV: "IBV",
 	FALLBACK: "FALLBACK",

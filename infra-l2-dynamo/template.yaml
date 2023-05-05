@@ -99,6 +99,7 @@ Resources:
               - "state"
               - "clientId"
               - "clientSessionId"
+              - "authSessionState"
             ProjectionType: "INCLUDE"
       TimeToLiveSpecification:
         AttributeName: expiryDate

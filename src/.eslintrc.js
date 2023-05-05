@@ -54,9 +54,7 @@ const CODE_STYLING_RULES = {
   'no-useless-escape': [
     'warn'
   ],
-  '@typescript-eslint/dot-notation': [
-    'warn'
-  ],
+  '@typescript-eslint/dot-notation': 'off',
   '@typescript-eslint/restrict-plus-operands': [
     'warn'
   ],
@@ -304,9 +302,16 @@ const CODE_STYLING_RULES = {
         ]
       }
     }
-  ]
-}
-
+  ],
+  'dot-notation': 'off',
+  'prefer-destructuring': [
+    'warn',
+    {
+      object: true,
+      array: true
+    }
+  ],
+};
 const JEST_RULES = {
   // @see https://github.com/jest-community/eslint-plugin-jest/blob/v25.3.0/docs/rules/no-hooks.md
   // Enable use of hooks (beforeEach/afterEach) - state is useful in most testsuites

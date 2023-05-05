@@ -260,7 +260,7 @@ export class YotiService {
 		});
 		const yotiRequestConfig =  yotiRequest.config!;
 
-		const url = yotiRequest.url;
+		const { url } = yotiRequest;
 
 		try {
 			this.logger.debug("getPdf - Yoti", { url, yotiRequestConfig });
@@ -285,6 +285,22 @@ export class YotiService {
 		} catch (err) {
 			this.logger.error({ message: "An error occurred when fetching Yoti session ", err });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
+		}
+	}
+
+	async getMediaContent(sessionId: string, mediaId: string): Promise<any | undefined> {
+		const yotiRequest = this.generateYotiRequest({
+			method: HttpVerbsEnum.GET,
+			endpoint: `/sessions/${sessionId}/media/${mediaId}/content`,
+		});
+
+		try {
+			const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
+
+			return data;
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when fetching Yoti media content", err });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti media content");
 		}
 	}
 }

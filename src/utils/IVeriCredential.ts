@@ -5,7 +5,8 @@ export interface CredentialSubject {
 export interface VerifiedCredential {
 	"@context": string[];
 	type: string[];
-	credentialSubject: CredentialSubject;
+	credentialSubject: VerifiedCredentialSubject;
+	evidence: VerifiedCredentialEvidence;
 }
 // limit to supported algs https://datatracker.ietf.org/doc/html/rfc7518
 export type Algorithm =
@@ -79,4 +80,75 @@ export class JsonWebTokenError extends Error {
 		super(message);
 		this.inner = error;
 	}
+}
+
+export type VerifiedCredentialEvidence = Array<{
+	type: string;
+	strengthScore: number;
+	validityScore: number;
+	verificationScore: number;
+	checkDetails?: Array<{
+		checkMethod: string;
+		txn: string;
+		identityCheckPolicy?: string;
+		activityFrom?: string;
+		biometricVerificationProcessLevel?: number;
+	}>;
+	ci?: [string];
+	failedCheckDetails?: Array<{
+		checkMethod: string;
+		identityCheckPolicy?: string;
+		biometricVerificationProcessLevel?: number;
+	}>;
+}>;
+
+export interface VerifiedCredentialSubject {
+	name?: Name[];
+	birthDate?: BirthDate[];
+	address?: Address[];
+	drivingPermit?: DrivingPermit[];
+	passport?: Passport[];
+}
+
+export interface Name {
+	nameParts: NamePart[];
+}
+
+export interface NamePart {
+	value: string;
+	type: string;
+}
+
+export interface BirthDate {
+	value: string;
+}
+
+export interface Address {
+	uprn?: string;
+	organisationName?: any;
+	subBuildingName?: any;
+	buildingNumber: string;
+	buildingName?: string;
+	dependentStreetName?: any;
+	streetName?: string;
+	doubleDependentAddressLocality?: any;
+	dependentAddressLocality?: any;
+	addressLocality: string;
+	postalCode: string;
+	addressCountry: string;
+}
+
+export interface DrivingPermit {
+	personalNumber: string;
+	expiryDate: string;
+	issueNumber: any;
+	issuedBy: string;
+	issueDate: string;
+	fullAddress: string;
+}
+
+export interface Passport {
+	documentNumber: string;
+	expiryDate: string;
+	icaoIssuerCode: string;
 }

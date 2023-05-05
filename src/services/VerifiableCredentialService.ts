@@ -4,80 +4,87 @@ import { ISessionItem } from "../models/ISessionItem";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { Constants } from "../utils/Constants";
-import { VerifiedCredential } from "../utils/IVeriCredential";
-import { PersonIdentityItem } from "../models/PersonIdentityItem";
+import {
+	VerifiedCredential,
+	VerifiedCredentialEvidence,
+	VerifiedCredentialSubject,
+} from "../utils/IVeriCredential";
 
 export class VerifiableCredentialService {
-    readonly tableName: string;
 
-    readonly logger: Logger;
+  readonly tableName: string;
 
-	readonly issuer: string;
+  readonly logger: Logger;
 
-    private readonly kmsJwtAdapter: KmsJwtAdapter;
+  readonly issuer: string;
 
-    private static instance: VerifiableCredentialService;
+  private readonly kmsJwtAdapter: KmsJwtAdapter;
 
-    constructor(tableName: any, kmsJwtAdapter: KmsJwtAdapter, issuer: any, logger: Logger ) {
-    	this.issuer = issuer;
-    	this.tableName = tableName;
-    	this.logger = logger;
-    	this.kmsJwtAdapter = kmsJwtAdapter;
-    }
+  private static instance: VerifiableCredentialService;
 
-    static getInstance(tableName: string, kmsJwtAdapter: KmsJwtAdapter, issuer: string, logger: Logger): VerifiableCredentialService {
-    	if (!VerifiableCredentialService.instance) {
-    		VerifiableCredentialService.instance = new VerifiableCredentialService(tableName, kmsJwtAdapter, issuer, logger);
-    	}
-    	return VerifiableCredentialService.instance;
-    }
+  private constructor(
+  	tableName: string,
+  	kmsJwtAdapter: KmsJwtAdapter,
+  	issuer: string,
+  	logger: Logger,
+  ) {
+  	this.issuer = issuer;
+  	this.tableName = tableName;
+  	this.logger = logger;
+  	this.kmsJwtAdapter = kmsJwtAdapter;
+  }
 
-    async generateSignedVerifiableCredentialJwt(sessionItem: ISessionItem | undefined, personIdentityItem: PersonIdentityItem | undefined, getNow: () => number): Promise<string> {
-    	const now = getNow();
-    	const subject = sessionItem?.subject as string;
-    	//TODO: Filling in given user details from personIdentityTable for now, details will be pulled from Yoti response as part of F2F-502
-    	const verifiedCredential: VerifiedCredential = new VerifiableCredentialBuilder(personIdentityItem?.name, personIdentityItem?.birthDate)
-    		.build();
-    	const result = {
-    		sub: subject,
-    		nbf: now,
-    		iss: this.issuer,
-    		iat: now,
-    		vc: verifiedCredential,
-    	};
+  static getInstance(
+  	tableName: string,
+  	kmsJwtAdapter: KmsJwtAdapter,
+  	issuer: string,
+  	logger: Logger,
+  ): VerifiableCredentialService {
+  	if (!VerifiableCredentialService.instance) {
+  		VerifiableCredentialService.instance = new VerifiableCredentialService(tableName, kmsJwtAdapter, issuer, logger);
+  	}
+  	return VerifiableCredentialService.instance;
+  }
 
-    	this.logger.info({ message: "Verified Credential jwt: " }, JSON.stringify(result));
-    	try {
-    		// Sign the VC
-    		const signedVerifiedCredential = await this.kmsJwtAdapter.sign(result);
-    		return signedVerifiedCredential;
-    	} catch (error) {
-    		throw new AppError( HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt" );
-    	}
-    }
-}
-class VerifiableCredentialBuilder {
-    private readonly credential: VerifiedCredential;
+  async generateSignedVerifiableCredentialJwt(
+  	sessionItem: ISessionItem | undefined,
+  	credentialSubject: VerifiedCredentialSubject,
+  	evidence: VerifiedCredentialEvidence,
+  	getNow: () => number,
+  ): Promise<string> {
+  	const now = getNow();
+  	const subject = sessionItem?.subject as string;
+  	const verifiedCredential: VerifiedCredential = this.buildVerifiableCredential(credentialSubject, evidence);
+  	const result = {
+  		sub: subject,
+  		nbf: now,
+  		iss: this.issuer,
+  		iat: now,
+  		vc: verifiedCredential,
+  	};
 
-    constructor(nameParts: any, date_of_birth: any) {
-    	this.credential = {
-    		"@context": [
-    			Constants.W3_BASE_CONTEXT,
-    			Constants.DI_CONTEXT,
-    		],
-    		type: [
-    			Constants.VERIFIABLE_CREDENTIAL,
-    			Constants.IDENTITY_CHECK_CREDENTIAL,
-    		],
-    		credentialSubject: {
-    			name: nameParts,
-    			birthDate: date_of_birth,
-    		},
-    	};
-    }
+  	this.logger.info({ message: "Verified Credential jwt: " }, result);
+  	try {
+  		// Sign the VC
+  		const signedVerifiedCredential = await this.kmsJwtAdapter.sign(result);
+  		return signedVerifiedCredential;
+  	} catch (error) {
+  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt");
+  	}
+  }
 
-    build(): VerifiedCredential {
-    	return this.credential;
-    }
-
+  private buildVerifiableCredential(
+  	credentialSubject: VerifiedCredentialSubject,
+  	evidence: VerifiedCredentialEvidence,
+  ): VerifiedCredential {
+  	return {
+  		"@context": [Constants.W3_BASE_CONTEXT, Constants.DI_CONTEXT],
+  		type: [
+  			Constants.VERIFIABLE_CREDENTIAL,
+  			Constants.IDENTITY_CHECK_CREDENTIAL,
+  		],
+  		credentialSubject,
+  		evidence,
+  	};
+  }
 }

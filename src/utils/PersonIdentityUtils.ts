@@ -7,7 +7,7 @@ export const personIdentityUtils = {
   	const familyNames: string[] = [];
 
   	for (const name of personDetails.name) {
-  		const nameParts = name.nameParts;
+  		const { nameParts } = name;
   		for (const namePart of nameParts) {
   			if (namePart.type === "GivenName") {
   				givenNames.push(namePart.value);
