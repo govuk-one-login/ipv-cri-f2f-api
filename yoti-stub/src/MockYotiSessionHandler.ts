@@ -33,12 +33,22 @@ class MockYotiSessionHandler implements LambdaInterface {
 					try {
 						logger.info("Event received", { event});
 						logger.info("ABOUT TO PARSE JSON")
-						const decodeBody=  Buffer.from(event.body, 'base64').toString('binary');
-						const bodyParsed = JSON.parse(decodeBody);
-						logger.info("PARSED JSON", {bodyParsed})
-						logger.info("FINISHED PARSING, awaiting return")
-						return await YotiRequestProcessor.getInstance(logger, metrics).createSession(event, bodyParsed);
-						//return new Response(HttpCodesEnum.CREATED, JSON.stringify(new YotiSessionItem()));
+						let payload = event.body;
+						let payloadParsed;
+
+						if(payload){
+							if(event.isBase64Encoded){
+								payloadParsed=  JSON.parse(Buffer.from(payload, 'base64').toString('binary'));
+							}
+							else{
+								payloadParsed = JSON.parse(payload);
+							}
+
+							logger.info("PARSED JSON", {payloadParsed})
+							logger.info("FINISHED PARSING, awaiting return")
+							return await YotiRequestProcessor.getInstance(logger, metrics).createSession(event, payloadParsed);
+						}
+
 					} catch (err: any) {
 						logger.error({ message: "An error has occurred.", err });
 						if (err instanceof AppError) {
