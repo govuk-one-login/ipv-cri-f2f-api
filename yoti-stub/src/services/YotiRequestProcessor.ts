@@ -36,6 +36,7 @@ import {GET_INSTRUCTIONS_PDF_404} from "../data/getInstructionsPdf/getInstructio
 import {GET_INSTRUCTIONS_PDF_409} from "../data/getInstructionsPdf/getInstructionsPdf409";
 import {GET_INSTRUCTIONS_PDF_500} from "../data/getInstructionsPdf/getInstructionsPdf500";
 import {GET_INSTRUCTIONS_PDF_503} from "../data/getInstructionsPdf/getInstructionsPdf503";
+import { sleep } from "../utils/Sleep";
 
 export class YotiRequestProcessor {
 	private static instance: YotiRequestProcessor;
@@ -103,8 +104,10 @@ export class YotiRequestProcessor {
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 				return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(POST_SESSIONS_503))
 			case '1999':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				await new Promise(resolve => setTimeout(resolve, 30000));
+				// This will result in 504 timeout currently as sleep interval is 30s
+				this.logger.info("sleeping for 30 secs");
+				await sleep(30000)
+				this.logger.info("I am awake, returning now");
 				return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
 			default:
 				return new Response(HttpCodesEnum.SERVER_ERROR,`Incoming user_tracking_id ${yotiSessionId} didn't match any of the use cases`);
@@ -145,8 +148,9 @@ export class YotiRequestProcessor {
 			// 	this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 			// 	return new Response(HttpCodesEnum.SERVER_ERROR, "SERVER ERROR")
 			case '5999':
+				// This will result in 504 timeout currently as sleep interval is 30s
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				await new Promise(resolve => setTimeout(resolve, 30000));
+				await sleep(30000);
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));
 			default:
 				return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`);
@@ -187,8 +191,9 @@ export class YotiRequestProcessor {
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 				return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(GET_SESSIONS_CONFIG_503));
 			case '2999':
+				// This will result in 504 timeout currently as sleep interval is 30s
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				await new Promise(resolve => setTimeout(resolve, 30000));
+				await sleep(30000);
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_GET_SESSION_CONFIG_RESPONSE));
 			default:
 				return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`);
@@ -221,6 +226,7 @@ export class YotiRequestProcessor {
 			case '3503':
 				return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(PUT_INSTRUCTIONS_500));
 			case '3999':
+				// This will result in 504 timeout currently as sleep interval is 30s
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 				await new Promise(resolve => setTimeout(resolve, 30000));
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
@@ -265,26 +271,27 @@ export class YotiRequestProcessor {
 		switch(lastUuidChars) {
 			case '0000':
 				return successResp;
-			case '5400':
+			case '4400':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(GET_INSTRUCTIONS_PDF_400));
-			case '5401':
+			case '4401':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 				return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(GET_INSTRUCTIONS_PDF_401));
-			case '5404':
+			case '4404':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 				return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(GET_INSTRUCTIONS_PDF_404));
-			case '5409':
+			case '4409':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 				return new Response(HttpCodesEnum.CONFLICT, JSON.stringify(GET_INSTRUCTIONS_PDF_409));
-			case '5500':
+			case '4500':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 				return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(GET_INSTRUCTIONS_PDF_500));
-			case '5503':
+			case '4503':
 				return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(GET_INSTRUCTIONS_PDF_503));
-			case '5999':
+			case '4999':
+				// This will result in 504 timeout currently as sleep interval is 30s
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-				await new Promise(resolve => setTimeout(resolve, 30000));
+				await sleep(30000);
 				return successResp;
 			default:
 				return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`);
