@@ -31,13 +31,24 @@ class MockYotiSessionHandler implements LambdaInterface {
 		 	case ResourcesEnum.SESSIONS:
 		 		if (event.httpMethod === "POST") {
 					try {
-						logger.info("Event received", { event });
+						logger.info("Event received", { event});
+						logger.info("ABOUT TO PARSE JSON")
+						let payload = event.body;
+						let payloadParsed;
 
-						const bodyParsed = JSON.parse(event.body as string);
-						console.log(bodyParsed)
+						if(payload){
+							if(event.isBase64Encoded){
+								payloadParsed=  JSON.parse(Buffer.from(payload, 'base64').toString('binary'));
+							}
+							else{
+								payloadParsed = JSON.parse(payload);
+							}
 
-						return await YotiRequestProcessor.getInstance(logger, metrics).createSession(event, new YotiSessionItem());
-						//return new Response(HttpCodesEnum.CREATED, JSON.stringify(new YotiSessionItem()));
+							logger.info("PARSED JSON", {payloadParsed})
+							logger.info("FINISHED PARSING, awaiting return")
+							return await YotiRequestProcessor.getInstance(logger, metrics).createSession(event, payloadParsed);
+						}
+
 					} catch (err: any) {
 						logger.error({ message: "An error has occurred.", err });
 						if (err instanceof AppError) {
@@ -112,28 +123,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 						 }
 						 return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 					 }
-				 } 
-				if (event.httpMethod === "GET") {
-					try {
-						logger.info("Event received", {event});
-
-						if (event && event.pathParameters) {
-							// Extract attributes from queryStringParameters and add them to the data object
-							const sessionId = event.pathParameters?.sessionId;
-							if(sessionId){
-
-								return await YotiRequestProcessor.getInstance(logger, metrics).getSessionInstructions(sessionId);
-							}
-						}
-
-					} catch (err: any) {
-						logger.error({message: "An error has occurred.", err});
-						if (err instanceof AppError) {
-							return new Response(err.statusCode, err.message);
-						}
-						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
-					}
-				}
+				 }
 				break;
 
 			 case ResourcesEnum.INSTRUCTIONS_PDF:
@@ -146,8 +136,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 						 const sessionId = event.pathParameters?.sessionId;
 						 if(sessionId){
 
-							 await YotiRequestProcessor.getInstance(logger, metrics).getSessionInstructions(sessionId);
-							 return YotiRequestProcessor.getInstance(logger, metrics).fetchInstructionsPdf();
+							 return YotiRequestProcessor.getInstance(logger, metrics).fetchInstructionsPdf(sessionId);
 						 }
 					 }
 
