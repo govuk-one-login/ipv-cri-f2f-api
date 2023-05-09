@@ -68,14 +68,15 @@ export class UserInfoRequestProcessor {
     	}
 
     	this.metrics.addMetric("found session", MetricUnits.Count, 1);
-    	// Validate the AuthSessionState to be "CIC_ACCESS_TOKEN_ISSUED"
-    	if (session.authSessionState !== AuthSessionState.F2F_ACCESS_TOKEN_ISSUED) {
-    		return new Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state- ${session.authSessionState}`);
-    	}
+    	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
+    	if (session.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED) {
 
-    	return new Response(HttpCodesEnum.ACCEPTED, JSON.stringify({
-    		sub: session.subject,
-    		"https://vocab.account.gov.uk/v1/credentialStatus": "pending",
-    	}));
+			return new Response(HttpCodesEnum.ACCEPTED, JSON.stringify({
+				sub: session.subject,
+				"https://vocab.account.gov.uk/v1/credentialStatus": "pending",
+			}));
+		} else {
+			return new Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state- ${session.authSessionState}`);
+		}
 	}
 }
