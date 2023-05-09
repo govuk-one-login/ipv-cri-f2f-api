@@ -136,7 +136,6 @@ class MockYotiSessionHandler implements LambdaInterface {
 						 const sessionId = event.pathParameters?.sessionId;
 						 if(sessionId){
 
-							 //await YotiRequestProcessor.getInstance(logger, metrics).getSessionInstructions(sessionId);
 							 return YotiRequestProcessor.getInstance(logger, metrics).fetchInstructionsPdf(sessionId);
 						 }
 					 }
