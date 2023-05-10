@@ -12,7 +12,7 @@ import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { Constants } from "../utils/Constants";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
-import {AuthSessionState} from "../models/enums/AuthSessionState";
+import { AuthSessionState } from "../models/enums/AuthSessionState";
 
 export class AccessTokenRequestProcessor {
 	private static instance: AccessTokenRequestProcessor;
@@ -79,7 +79,7 @@ export class AccessTokenRequestProcessor {
 				// Update the sessionTable with accessTokenExpiryDate and AuthSessionState.
 				await this.f2fService.updateSessionWithAccessTokenDetails(session.sessionId, jwtPayload.exp);
 
-				this.logger.info({message: "Access token generated successfully"});
+				this.logger.info({ message: "Access token generated successfully" });
 
 				return {
 					statusCode: HttpCodesEnum.CREATED,
@@ -93,7 +93,7 @@ export class AccessTokenRequestProcessor {
 				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_AUTH_CODE_ISSUED}`);
 				return new Response(HttpCodesEnum.UNAUTHORIZED, `Session is in the wrong state: ${session.authSessionState}`);
 			}
-		}catch (err: any) {
+		} catch (err: any) {
 			return new Response(err.statusCode, err.message);
 		}
 	}

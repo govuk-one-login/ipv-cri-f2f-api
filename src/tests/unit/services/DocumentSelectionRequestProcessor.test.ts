@@ -214,7 +214,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		const f2fSessionItemInvalid = {
 			...f2fSessionItem,
 			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
-			yotiSessionId: "RandomYOTISessionID"
+			yotiSessionId: "RandomYOTISessionID",
 		};
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
