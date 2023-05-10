@@ -42,7 +42,7 @@ function getMockSessionItem(): ISessionItem {
 		persistentSessionId: "sdgsdg",
 		clientIpAddress: "127.0.0.1",
 		attemptCount: 1,
-		authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
+		authSessionState: AuthSessionState.F2F_AUTH_CODE_ISSUED,
 	};
 	return sessionInfo;
 }
@@ -416,7 +416,7 @@ describe("YotiCallbackProcessor", () => {
 		completedYotiSession = getCompletedYotiSession();
 		f2fSessionItem = getMockSessionItem();
 
-		
+
 	});
 
 	beforeEach(() => {
@@ -439,7 +439,7 @@ describe("YotiCallbackProcessor", () => {
 
 		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
 
-		
+
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
@@ -536,7 +536,7 @@ describe("YotiCallbackProcessor", () => {
 
 		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
 
-		
+
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 

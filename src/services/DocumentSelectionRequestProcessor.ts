@@ -55,6 +55,8 @@ export class DocumentSelectionRequestProcessor {
 
 		let postOfficeSelection: PostOfficeInfo;
 		let selectedDocument;
+		let yotiSessionId;
+
 		if (!event.body) {
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "No body present in post request");
 		}
@@ -81,18 +83,16 @@ export class DocumentSelectionRequestProcessor {
 
 		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
 
-			const yotiSessionId = await this.createSessionGenerateInstructions(personDetails, f2fSessionInfo, postOfficeSelection, selectedDocument);
-			await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
-
 			try {
+				yotiSessionId = await this.createSessionGenerateInstructions(personDetails, f2fSessionInfo, postOfficeSelection, selectedDocument);
+				await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
 				await this.f2fService.updateSessionWithYotiIdAndStatus(f2fSessionInfo.sessionId, yotiSessionId, AuthSessionState.F2F_YOTI_SESSION_CREATED);
-			} catch (error) {
-				this.logger.error("FAILED_TO_UPDATE_YOTI_STATUS", {
-					yotiSessionId,
-					reason: "Yoti session created, failed to update session table in dynamodb",
-					error,
-				});
-				return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when updating session table in dynamo");
+			} catch(err){
+				if(err instanceof AppError){
+					return new Response(HttpCodesEnum.SERVER_ERROR, err.message);
+				} else{
+					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+				}
 			}
 
 			try {
@@ -173,7 +173,7 @@ export class DocumentSelectionRequestProcessor {
 		return yotiSessionID;
 	}
 
-	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails:PersonIdentityItem) {
+	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails:PersonIdentityItem): Promise<any> {
 		try {
 			await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
 		} catch (error) {
@@ -182,7 +182,7 @@ export class DocumentSelectionRequestProcessor {
 				reason: "Yoti session created, failed to post message to GovNotify SQS Queue",
 				error,
 			});
-			return new Response(HttpCodesEnum.SERVER_ERROR, "An error occured when sending message to GovNotify handler");
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occured when sending message to GovNotify handler");
 		}
 	}
 }

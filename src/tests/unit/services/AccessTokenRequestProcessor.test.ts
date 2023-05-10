@@ -131,7 +131,7 @@ describe("AccessTokenRequestProcessor", () => {
 		mockF2fService.getSessionByAuthorizationCode.mockResolvedValue(mockSession);
 		const out: Response = await accessTokenRequestProcessorTest.processRequest(request);
 
-		expect(out.body).toBe("AuthSession is in wrong Auth state: Expected state- F2F_AUTH_CODE_ISSUED, actual state- F2F_ACCESS_TOKEN_ISSUED");
+		expect(out.body).toBe("Session is in the wrong state: F2F_ACCESS_TOKEN_ISSUED");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 	});
 
