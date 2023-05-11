@@ -95,7 +95,7 @@ Mappings:
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
       RESOURCESTTL: 691200 # Default 8 days
-      CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.build.account.gov.uk/redirect"}]'
+      CLIENTS: '[{"jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect"}]'
       AUTHSESSIONTTL: "604800" # 7 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
     staging:
