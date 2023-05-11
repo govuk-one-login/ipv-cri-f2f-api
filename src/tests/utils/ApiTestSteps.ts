@@ -88,7 +88,7 @@ export async function putYotiSessionsInstructions(sessionId:any): Promise<any> {
 }
 
 export async function getYotiSessionsInstructions(sessionId:any): Promise<any> {
-	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions";
+	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions/pdf";
 	console.log(path);
 
 	try {

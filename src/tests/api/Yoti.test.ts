@@ -48,7 +48,7 @@ describe("Yoti /sessions endpoint", () => {
 			[409, "3409"],
 			[503, "3503"],
 		  ];
-		it.each(putInstructionsParams)("Yoti - expect '%i' response on PUT/ssessions/instructions '/sessions/%s/instructions'", async (responseCode, sessionId) => {
+		it.each(putInstructionsParams)("Yoti - expect '%i' response on PUT/ssessions/{id}/instructions/pdf '/sessions/%s/instructions/pdf'", async (responseCode, sessionId) => {
 			const response = await putYotiSessionsInstructions(sessionId);
 	
 			console.log("post response: " + JSON.stringify(response.data))
@@ -56,21 +56,21 @@ describe("Yoti /sessions endpoint", () => {
 			expect(response.status).toBe(responseCode);
 		});
 
-		// //responseCode, SessionId
-		// const getInstructionsParams = [
-		// 	[200, "0000"],
-		// 	[400, "4400"],
-		// 	[401, "4401"],
-		// 	[404, "4404"],
-		// 	[409, "4409"],
-		// 	[500, "4500"],
-		// 	[503, "4503"],
-		//   ];
-		// it.each(getInstructionsParams)("Yoti - expect '%i' response on GET/sessions/instructions '/sessions/%s/instructions'", async (responseCode, sessionId) => {
-		// 	const response = await getYotiSessionsInstructions(sessionId);
+		//responseCode, SessionId
+		const getInstructionsParams = [
+			[200, "0000"],
+			[400, "4400"],
+			[401, "4401"],
+			[404, "4404"],
+			[409, "4409"],
+			[500, "4500"],
+			[503, "4503"],
+		  ];
+		it.each(getInstructionsParams)("Yoti - expect '%i' response on GET/sessions/instructions '/sessions/%s/instructions'", async (responseCode, sessionId) => {
+			const response = await getYotiSessionsInstructions(sessionId);
 	
-		// 	console.log("post response: " + JSON.stringify(response.data))
+			console.log("post response: " + JSON.stringify(response.data))
 	
-		// 	expect(response.status).toBe(responseCode);
-		// });
+			expect(response.status).toBe(responseCode);
+		});
 });
