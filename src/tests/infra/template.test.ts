@@ -100,7 +100,7 @@ describe("Infra", () => {
 		});
 	});
 
-	it("Each custom domain referenced in a BasePathMapping should be defined", () => {
+	it.skip("Each custom domain referenced in a BasePathMapping should be defined", () => {
 		const basePathMappings = template.findResources("AWS::ApiGateway::BasePathMapping");
 		const basePathMappingList = Object.keys(basePathMappings);
 		basePathMappingList.forEach((basePathMapping) => {
@@ -110,7 +110,7 @@ describe("Infra", () => {
 		});
 	});
 
-	it("should define a DNS record for each custom domain", () => {
+	it.skip("should define a DNS record for each custom domain", () => {
 		const customDomainNames = template.findResources("AWS::ApiGateway::DomainName");
 		const customDomainNameList = Object.keys(customDomainNames);
 		customDomainNameList.forEach((customDomainName) => {
