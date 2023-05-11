@@ -295,7 +295,11 @@ export class F2fService {
 			await this.dynamo.send(updateYotiDetailsCommand);
 			this.logger.info({ message: "Updated Yoti session details in dynamodb" });
 		} catch (error) {
-			this.logger.error({ message: "Got error saving Yoti session details", error });
+			this.logger.error("FAILED_TO_UPDATE_YOTI_STATUS", {
+				yotiSessionId,
+				reason: "Yoti session created, failed to update session table in dynamodb",
+				error,
+			});
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving Yoti session details");
 		}
 	}
@@ -361,6 +365,26 @@ export class F2fService {
 		});
 		await this.dynamo.send(putSessionCommand);
 		return putSessionCommand?.input?.Item?.sessionId;
+	}
+
+	async updateSessionAuthState(sessionId: string, authSessionState: string): Promise<void> {
+		const updateStateCommand = new UpdateCommand({
+			TableName: this.tableName,
+			Key: { sessionId },
+			UpdateExpression: "SET authSessionState = :authSessionState",
+			ExpressionAttributeValues: {
+				":authSessionState": authSessionState,
+			},
+		});
+
+		this.logger.info({ message: "Updating session table with auth state details", updateStateCommand });
+		try {
+			await this.dynamo.send(updateStateCommand);
+			this.logger.info({ message: "Updated auth state details in dynamodb" });
+		} catch (error) {
+			this.logger.error({ message: "Got error saving auth state details", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving auth state details");
+		}
 	}
 
 }

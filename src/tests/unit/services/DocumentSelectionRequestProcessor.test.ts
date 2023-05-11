@@ -113,7 +113,7 @@ function getYotiSessionInfo(): YotiSessionInfo {
 						},
 						 ],
 						 "requested_tasks":[
-								
+
 						 ],
 						 "ibv_client_assessments":[
 						{
@@ -188,14 +188,14 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("1234", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
+		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
 	});
@@ -214,7 +214,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		const f2fSessionItemInvalid = {
 			...f2fSessionItem,
 			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
-			yotiSessionId: "RandomYOTISessionID"
+			yotiSessionId: "RandomYOTISessionID",
 		};
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
@@ -222,7 +222,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
-		expect(out.body).toBe("Yoti session already exists for this authorization session");
+		expect(out.body).toBe("Yoti session already exists for this authorization session or Session is in the wrong state");
 	});
 
 	it("Throw server error if Yoti Session creation fails", async () => {
@@ -324,6 +324,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
-		expect(out.body).toBe("An error occured when updating session table in dynamo");
+		expect(out.body).toBe("An error has occurred");
 	});
 });

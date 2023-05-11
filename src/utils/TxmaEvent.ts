@@ -34,7 +34,7 @@ export interface TxmaEvent extends BaseTxmaEvent {
 export const buildCoreEventFields = (session: ISessionItem, issuer: string, sourceIp?: string | undefined, getNow: () => number = absoluteTimeNow): BaseTxmaEvent => {
 	return {
 		user: {
-			user_id: session.clientId,
+			user_id: session.subject,
 			transaction_id: "",
 			persistent_session_id: session.persistentSessionId,
 			session_id: session.sessionId,

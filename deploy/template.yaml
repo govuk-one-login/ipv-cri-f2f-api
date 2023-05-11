@@ -334,10 +334,17 @@ Resources:
   F2FApiCustomDomainName:
     Type: AWS::ApiGateway::DomainName
     Properties:
-      DomainName: !Sub
-        - "api-${AWS::StackName}.${DNSSUFFIX}"
-        - DNSSUFFIX:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+      DomainName: !If
+        - CreateDevResources
+        - !Sub
+          - "api-${AWS::StackName}.${DNSSUFFIX}"
+          - DNSSUFFIX:
+              !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+        - !Sub
+          - "api.${DNSSUFFIX}"
+          - DNSSUFFIX:
+             !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+
       EndpointConfiguration:
         Types:
           - REGIONAL
@@ -348,20 +355,14 @@ Resources:
     Type: AWS::ApiGateway::BasePathMapping
     DependsOn: "F2FApiCustomDomainName"
     Properties:
-      DomainName: !Sub
-        - "api-${AWS::StackName}.${DNSSUFFIX}"
-        - DNSSUFFIX:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+      DomainName: !Ref F2FApiCustomDomainName
       RestApiId: !Ref F2FRestApi
       Stage: !Sub "${F2FRestApi.Stage}"
 
   F2FApiCertificateRecord:
     Type: AWS::Route53::RecordSet
     Properties:
-      Name: !Sub
-        - "api-${AWS::StackName}.${DNSSUFFIX}"
-        - DNSSUFFIX:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+      Name: !Ref F2FApiCustomDomainName
       Type: A
       HostedZoneId: !Sub "{{resolve:ssm:/${Environment}/Platform/Route53/PrimaryZoneID}}"
       AliasTarget:
