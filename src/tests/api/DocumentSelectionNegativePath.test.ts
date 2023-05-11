@@ -4,7 +4,7 @@ import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../ut
 
 describe("E2E Negative Path /documentSelection Endpoint", () => {
 	let sessionId: any;
-	beforeAll(async () => {
+	beforeEach(async () => {
 		const sessionResponse = await startStubServiceAndReturnSessionId();
 		sessionId = sessionResponse.data.session_id;
 	});
@@ -20,6 +20,6 @@ describe("E2E Negative Path /documentSelection Endpoint", () => {
 	it("E2E Happy Path Journey - Incorrect Session Id", async () => {
 		const response = await postDocumentSelection(dataPassport, "sessionId");
 		expect(response.status).toBe(400);
-		expect(response.data).toBe("Session id must be a valid uuid");
+		expect(response.data).toEqual({"message": "Invalid request body"});
 	});
 });
