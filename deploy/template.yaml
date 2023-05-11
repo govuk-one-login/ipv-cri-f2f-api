@@ -207,7 +207,7 @@ Globals:
       Variables:
         # These should always be alphabetically organised.
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
-        POWERTOOLS_LOG_LEVEL: INFO # The LogLevel for the AWS PowerTools LogHelper
+        POWERTOOLS_LOG_LEVEL: DEBUG # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
         SESSION_TABLE:
           Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
