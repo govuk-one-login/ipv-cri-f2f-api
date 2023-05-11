@@ -295,7 +295,6 @@ export class F2fService {
 			await this.dynamo.send(updateYotiDetailsCommand);
 			this.logger.info({ message: "Updated Yoti session details in dynamodb" });
 		} catch (error) {
-			console.log("came here")
 			this.logger.error("FAILED_TO_UPDATE_YOTI_STATUS", {
 				yotiSessionId,
 				reason: "Yoti session created, failed to update session table in dynamodb",
