@@ -29,6 +29,7 @@ env: # Only adding the variables in that are required for
   AWS_REGION: eu-west-2
   DEV_CRI_F2F_API_URL: ${{ secrets.DEV_CRI_F2F_API_URL }}
   DEV_IPV_F2F_STUB_URL: ${{ secrets.DEV_IPV_F2F_STUB_URL }}
+  DEV_IPV_F2F_STUB_URL: ${{ secrets.DEV_F2F_YOTI_STUB_URL }}
 
 jobs:
   run-code-check:
