@@ -1,8 +1,14 @@
 {
-   "document_selected": "brp",
-   "date_of_expiry": "1970-01-01",
-   "address": "104 Grove Road, Dorset",
-   "latitude": 50.99973,
-   "longitude": -2.42372,
-   "post_code": "DT5 1DL"
+   "document_selection":{
+      "document_selected": "brp",
+      "date_of_expiry": "1970-01-01"
+   },
+"post_office_selection":{
+   "address":"1 The Street, Funkytown",
+   "location":{
+      "latitude":0.34322,
+      "longitude":-42.48372
+   },
+   "post_code":"SW19 4NS"
+   }
 }
