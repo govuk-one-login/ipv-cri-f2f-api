@@ -6,7 +6,7 @@ import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
 import { PersonIdentityItem } from "../models/PersonIdentityItem";
-import { ApplicantProfile, PostOfficeInfo, YotiSessionInfo, CreateSessionPayload } from "../models/YotiPayloads";
+import { ApplicantProfile, PostOfficeInfo, YotiSessionInfo, CreateSessionPayload, YotiCompletedSession } from "../models/YotiPayloads";
 import { YotiDocumentTypesEnum, YOTI_DOCUMENT_COUNTRY_CODE, YOTI_REQUESTED_CHECKS, YOTI_REQUESTED_TASKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
@@ -23,12 +23,15 @@ export class YotiService {
 
 	readonly RESOURCES_TTL:string;
 
-	constructor(logger: Logger, CLIENT_SDK_ID: string, RESOURCES_TTL: string, CLIENT_SESSION_TOKEN_TTL: string, PEM_KEY: string) {
+	readonly YOTI_BASE_URL: string;
+
+	constructor(logger: Logger, CLIENT_SDK_ID: string, RESOURCES_TTL: string, CLIENT_SESSION_TOKEN_TTL: string, PEM_KEY: string, YOTI_BASE_URL: string) {
 		this.RESOURCES_TTL = RESOURCES_TTL;
 		this.CLIENT_SESSION_TOKEN_TTL = CLIENT_SESSION_TOKEN_TTL;
 		this.logger = logger;
 		this.CLIENT_SDK_ID = CLIENT_SDK_ID;
 		this.PEM_KEY = PEM_KEY;
+		this.YOTI_BASE_URL = YOTI_BASE_URL;
 	}
 
 	static getInstance(
@@ -37,9 +40,10 @@ export class YotiService {
 		RESOURCES_TTL: string,
 		CLIENT_SESSION_TOKEN_TTL: string,
 		PEM_KEY: string,
+		YOTI_BASE_URL: string,
 	): YotiService {
 		if (!YotiService.instance) {
-			YotiService.instance = new YotiService(logger, CLIENT_SDK_ID, RESOURCES_TTL, CLIENT_SESSION_TOKEN_TTL, PEM_KEY);
+			YotiService.instance = new YotiService(logger, CLIENT_SDK_ID, RESOURCES_TTL, CLIENT_SESSION_TOKEN_TTL, PEM_KEY, YOTI_BASE_URL);
 		}
 		return YotiService.instance;
 	}
@@ -111,7 +115,7 @@ export class YotiService {
 		}
 
 		return {
-			url: `${process.env.YOTIBASEURL}${endpointPath}`,
+			url: `${this.YOTI_BASE_URL}${endpointPath}`,
 			config,
 		};
 	}
@@ -260,6 +264,22 @@ export class YotiService {
 		} catch (err) {
 			this.logger.error({ message: "An error occurred when fetching Yoti instructions PDF ", err });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF");
+		}
+	}
+
+	async getCompletedSessionInfo(sessionId: string): Promise<YotiCompletedSession | undefined> {
+		const yotiRequest = this.generateYotiRequest({
+			method: HttpVerbsEnum.GET,
+			endpoint: `/sessions/${sessionId}`,
+		});
+
+		try {
+			const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
+
+			return data;
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when fetching Yoti session ", err });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
 		}
 	}
 }

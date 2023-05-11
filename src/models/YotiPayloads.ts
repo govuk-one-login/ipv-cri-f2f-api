@@ -124,3 +124,124 @@ export interface YotiSessionInfo {
 	};	
 	track_ip_address: boolean;
 }
+
+export interface YotiCompletedSession {
+	client_session_token_ttl: number;
+	session_id: string;
+	state: string;
+	resources: {
+		id_documents: Array<{
+			id: string;
+			tasks: Array<{
+				type: string;
+				id: string;
+				state: string;
+				created: string;
+				last_updated: string;
+				generated_checks: any[];
+				generated_media: Array<{
+					id: string;
+					type: string;
+				}>;
+			}>;
+			source: {
+				type: string;
+			};
+			created_at: string;
+			last_updated: string;
+			document_type: string;
+			issuing_country: string;
+			pages: Array<{
+				capture_method: string;
+				media: {
+					id: string;
+					type: string;
+					created: string;
+					last_updated: string;
+				};
+				frames: Array<{
+					media: {
+						id: string;
+						type: string;
+						created: string;
+						last_updated: string;
+					};
+				}>;
+			}>;
+			document_fields: {
+				media: {
+					id: string;
+					type: string;
+					created: string;
+					last_updated: string;
+				};
+			};
+			document_id_photo: {
+				media: {
+					id: string;
+					type: string;
+					created: string;
+					last_updated: string;
+				};
+			};
+		}>;
+		supplementary_documents: any[];
+		liveness_capture: any[];
+		face_capture: Array<{
+			id: string;
+			tasks: any[];
+			source: {
+				type: string;
+			};
+			created_at: string;
+			last_updated: string;
+			image: {
+				media: {
+					id: string;
+					type: string;
+					created: string;
+					last_updated: string;
+				};
+			};
+		}>;
+		applicant_profiles: Array<{
+			id: string;
+			tasks: any[];
+			source: {
+				type: string;
+			};
+			created_at: string;
+			last_updated: string;
+			media: {
+				id: string;
+				type: string;
+				created: string;
+				last_updated: string;
+			};
+		}>;
+	};
+	checks: Array<{
+		type: string;
+		id: string;
+		state: string;
+		resources_used: string[];
+		generated_media: any[];
+		report: {
+			recommendation: {
+				value: string;
+			};
+			breakdown: Array<{
+				sub_check: string;
+				result: string;
+				details: Array<{
+					name: string;
+					value: string;
+				}>;
+			}>;
+		};
+		created: string;
+		last_updated: string;
+		scheme?: string;
+	}>;
+	user_tracking_id: string;
+}

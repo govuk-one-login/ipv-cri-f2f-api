@@ -23,5 +23,6 @@ export interface ISessionItem extends IF2fSession {
 	clientIpAddress: string;
 	attemptCount: number;
 	authSessionState: string;
+	yotiSessionId?: string;
 }
 

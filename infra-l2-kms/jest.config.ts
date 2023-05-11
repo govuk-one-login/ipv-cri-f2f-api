@@ -17,7 +17,8 @@ export default {
     'default',
     ['jest-junit', { outputDirectory: 'results', outputName: 'report.xml' }]
   ],
-  collectCoverage: false,
+  collectCoverage: true,
+  coverageDirectory: "coverage",
   coverageProvider: 'v8',
   testMatch: ['**/*.test.ts'],
   testEnvironment: 'node'

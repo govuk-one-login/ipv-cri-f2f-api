@@ -247,51 +247,6 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
-    get:
-      tags:
-        - Public Endpoints
-      parameters:
-        - $ref: "#/components/parameters/sessionId"
-        - $ref: "#/components/parameters/sdkId"
-        - $ref: "#/components/parameters/nonce"
-        - $ref: "#/components/parameters/timestamp"
-      security:
-        - X-Yoti-Auth-Token: []
-        - X-Yoti-Auth-Digest: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/InstructionsViewRequest"
-            examples:
-              VALID_REQUEST:
-                $ref: "#/components/examples/ValidInstructionsViewRequestExample"
-      responses:
-        200:
-          description: OK
-        400:
-          $ref: "#/components/responses/400"
-        401:
-          $ref: "#/components/responses/401"
-        404:
-          $ref: "#/components/responses/404"
-        409:
-          $ref: "#/components/responses/409"
-        500:
-          $ref: "#/components/responses/500"
-        503:
-          $ref: "#/components/responses/503"
-      x-amazon-apigateway-request-validator: "both"
-      x-amazon-apigateway-integration:
-        httpMethod: "POST"
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Yoti-Stub-${AWS::StackName}:live/invocations
-        responses:
-          default:
-            statusCode: "200"
-        passthroughBehavior: "when_no_match"
-        contentHandling: "CONVERT_TO_TEXT"
-        type: "aws_proxy"
 
   /sessions/{sessionId}/instructions/pdf:
     get:
@@ -337,6 +292,633 @@ components:
   ## Schema Definitions
   ## ---------------------
   schemas:
+    IbvReviewCheckResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ IBV_VISUAL_REVIEW_CHECK ]
+        state:
+          type: string
+          enum: [ CREATED, READY, PENDING, DONE, INTERNAL_ERROR ]
+          description: "The current state of the Check"
+        resources_used:
+          type: array
+          items:
+            type: string
+            format: uuid
+        generated_media:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShortMedia"
+        report:
+          $ref: "#/components/schemas/DocCheckReport"
+        created:
+          $ref: "#/components/schemas/ShortDateTime"
+        last_updated:
+          $ref: "#/components/schemas/ShortDateTime"
+      required:
+        - id
+        - type
+        - state
+        - resources_used
+        - generated_media
+        - created
+        - last_updated
+    SchemeValidityCheckResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ DOCUMENT_SCHEME_VALIDITY_CHECK ]
+        scheme:
+          type: string
+          example: "UK_DBS"
+        state:
+          type: string
+          enum: [ CREATED, READY, PENDING, DONE, INTERNAL_ERROR ]
+          description: "The current state of the Check"
+        resources_used:
+          type: array
+          items:
+            type: string
+            format: uuid
+        generated_media:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShortMedia"
+        report:
+          $ref: "#/components/schemas/DocCheckReport"
+        created:
+          $ref: "#/components/schemas/ShortDateTime"
+        last_updated:
+          $ref: "#/components/schemas/ShortDateTime"
+      required:
+        - id
+        - type
+        - state
+        - resources_used
+        - generated_media
+        - created
+        - last_updated
+        - scheme
+    DocumentProfileMatchCheckResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ PROFILE_DOCUMENT_MATCH ]
+        state:
+          type: string
+          enum: [ CREATED, READY, PENDING, DONE, INTERNAL_ERROR ]
+          description: "The current state of the Check"
+        resources_used:
+          type: array
+          items:
+            type: string
+            format: uuid
+        generated_media:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShortMedia"
+        report:
+          $ref: "#/components/schemas/DocCheckReport"
+        created:
+          $ref: "#/components/schemas/ShortDateTime"
+        last_updated:
+          $ref: "#/components/schemas/ShortDateTime"
+      required:
+        - id
+        - type
+        - state
+        - resources_used
+        - generated_media
+        - created
+        - last_updated
+    SupplementaryTextDataCheckResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ SUPPLEMENTARY_DOCUMENT_TEXT_DATA_CHECK ]
+        state:
+          type: string
+          enum: [ CREATED, READY, PENDING, DONE, INTERNAL_ERROR ]
+          description: "The current state of the Check"
+        resources_used:
+          type: array
+          items:
+            type: string
+            format: uuid
+        generated_media:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShortMedia"
+        report:
+          $ref: "#/components/schemas/DocCheckReport"
+        created:
+          $ref: "#/components/schemas/ShortDateTime"
+        last_updated:
+          $ref: "#/components/schemas/ShortDateTime"
+      required:
+        - id
+        - type
+        - state
+        - resources_used
+        - generated_media
+        - created
+        - last_updated
+    IdDocFaceMatchCheckResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ ID_DOCUMENT_FACE_MATCH ]
+        state:
+          type: string
+          enum: [ CREATED, READY, PENDING, DONE, INTERNAL_ERROR ]
+          description: "The current state of the Check"
+        resources_used:
+          type: array
+          items:
+            type: string
+            format: uuid
+        generated_media:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShortMedia"
+        report:
+          $ref: "#/components/schemas/DocCheckReport"
+        created:
+          $ref: "#/components/schemas/ShortDateTime"
+        last_updated:
+          $ref: "#/components/schemas/ShortDateTime"
+      required:
+        - id
+        - type
+        - state
+        - resources_used
+        - generated_media
+        - created
+        - last_updated
+    DocumentComparisonCheckResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ ID_DOCUMENT_COMPARISON ]
+        state:
+          type: string
+          enum: [ CREATED, READY, PENDING, DONE, INTERNAL_ERROR ]
+          description: "The current state of the Check"
+        resources_used:
+          type: array
+          items:
+            type: string
+            format: uuid
+        generated_media:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShortMedia"
+        report:
+          $ref: "#/components/schemas/DocCheckReport"
+        created:
+          $ref: "#/components/schemas/ShortDateTime"
+        last_updated:
+          $ref: "#/components/schemas/ShortDateTime"
+      required:
+        - id
+        - type
+        - state
+        - resources_used
+        - generated_media
+        - created
+        - last_updated
+    IdTextDataCheckResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ ID_DOCUMENT_TEXT_DATA_CHECK ]
+        state:
+          type: string
+          enum: [ CREATED, READY, PENDING, DONE, INTERNAL_ERROR ]
+          description: "The current state of the Check"
+        resources_used:
+          type: array
+          items:
+            type: string
+            format: uuid
+        generated_media:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShortMedia"
+        report:
+          $ref: "#/components/schemas/DocCheckReport"
+        created:
+          $ref: "#/components/schemas/ShortDateTime"
+        last_updated:
+          $ref: "#/components/schemas/ShortDateTime"
+      required:
+        - id
+        - type
+        - state
+        - resources_used
+        - generated_media
+        - created
+        - last_updated
+    DocCheckRecommendation:
+      type: object
+      properties:
+        value:
+          type: string
+          enum: [ APPROVE, REJECT, NOT_AVAILABLE, CONSIDER ] # look at this again.  How should we model it?
+        reason:
+          type: string
+          description: must be preset if 'value' is 'REJECT'
+        recovery_suggestion:
+          type: string
+          description: must be present if 'value' is 'REJECT'
+      required:
+        - value
+      example:
+        value: APPROVE
+
+    Breakdown:
+      type: object
+      properties:
+        sub_check:
+          type: string
+        result:
+          type: string
+          enum: [ PASS, FAIL ]
+        details:
+          type: array
+          nullable: true
+          items:
+            type: object
+            additionalProperties: true
+      required:
+        - sub_check
+        - result
+      example:
+        sub_check: string
+        result: PASS
+        details: [ ]
+    DocCheckReport:
+      type: object
+      properties:
+        recommendation:
+          $ref: "#/components/schemas/DocCheckRecommendation"
+        breakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/Breakdown"
+      required:
+        - recommendation
+    SupplementaryDocumentTextExtractionTask:
+      allOf:
+        - $ref: "#/components/schemas/TextExtractionTask"
+        - type: object
+          required:
+            - type
+          properties:
+            type:
+              type: string
+              enum: [ SUPPLEMENTARY_DOCUMENT_TEXT_DATA_EXTRACTION ]
+    DocumentFile:
+      type: object
+      properties:
+        media:
+          $ref: "#/components/schemas/Media"
+      required:
+        - media
+    SupplementaryDocumentCapture:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: "#/components/schemas/ResourceSource"
+        document_type:
+          type: string
+          example: "UTILITY_BILL"
+        issuing_country:
+          type: string
+        file:
+          $ref: "#/components/schemas/DocumentFile"
+        pages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Page"
+        document_fields:
+          type: object
+          properties:
+            media:
+              $ref: "#/components/schemas/Media"
+          required:
+            - media
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/SupplementaryDocumentTextExtractionTask"
+      required:
+        - id
+        - document_type
+        - pages
+        - tasks
+    FaceCapture:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: "#/components/schemas/ResourceSource"
+        image:
+          type: object
+          properties:
+            media:
+              $ref: "#/components/schemas/Media"
+        tasks:
+          type: array
+          items:
+            type: object
+          example: [ ]
+      required:
+        - id
+        - source
+        - tasks
+    ApplicantProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: "#/components/schemas/ResourceSource"
+        media:
+          $ref: "#/components/schemas/Media"
+        tasks:
+          type: array
+          items:
+            type: object
+          example: [ ]
+      required:
+        - id
+        - source
+        - media
+        - tasks
+    AuthenticityCheckResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ ID_DOCUMENT_AUTHENTICITY ]
+        state:
+          type: string
+          enum: [ CREATED, READY, PENDING, DONE, INTERNAL_ERROR ]
+          description: "The current state of the Check"
+        resources_used:
+          type: array
+          items:
+            type: string
+            format: uuid
+        generated_media:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShortMedia"
+        report:
+          $ref: "#/components/schemas/DocCheckReport"
+        created:
+          $ref: "#/components/schemas/ShortDateTime"
+        last_updated:
+          $ref: "#/components/schemas/ShortDateTime"
+      required:
+        - id
+        - type
+        - state
+        - resources_used
+        - generated_media
+        - created
+        - last_updated
+    TextExtractionTask:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum: [ DONE, PENDING, CREATED, FAILED ]
+        created:
+          $ref: "#/components/schemas/ShortDateTime"
+        last_updated:
+          $ref: "#/components/schemas/ShortDateTime"
+        generated_media:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShortMedia"
+        generated_checks:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              type:
+                type: string
+                enum:
+                  [
+                    ID_DOCUMENT_TEXT_DATA_CHECK,
+                    SUPPLEMENTARY_DOCUMENT_TEXT_DATA_CHECK,
+                  ]
+            required:
+              - id
+              - type
+      required:
+        - id
+        - state
+        - created
+        - last_updated
+        - generated_media
+        - generated_checks
+    IdDocumentTextExtractionTask:
+      allOf:
+        - $ref: "#/components/schemas/TextExtractionTask"
+        - type: object
+          required:
+            - type
+          properties:
+            type:
+              type: string
+              enum: [ ID_DOCUMENT_TEXT_DATA_EXTRACTION ]
+    ResourceSource:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ END_USER, IBV, RELYING_BUSINESS ]
+    CaptureMethod:
+      type: string
+      enum: [ CAMERA, UPLOAD ]
+      description: "Acceptable values are (case-insensitive): [CAMERA, UPLOAD]"
+    Page:
+      type: object
+      properties:
+        capture_method:
+          $ref: "#/components/schemas/CaptureMethod"
+        media:
+          $ref: "#/components/schemas/Media"
+        frames:
+          type: array
+          description: The frames for page media.
+          items:
+            type: object
+            properties:
+              media:
+                $ref: "#/components/schemas/Media"
+    IdDocumentCapture:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: "#/components/schemas/ResourceSource"
+        document_type:
+          type: string
+          example: "PASSPORT"
+        issuing_country:
+          type: string
+        pages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Page"
+        document_fields:
+          type: object
+          properties:
+            media:
+              $ref: "#/components/schemas/Media"
+          required:
+            - media
+        document_id_photo:
+          type: object
+          properties:
+            media:
+              $ref: "#/components/schemas/Media"
+          required:
+            - media
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/IdDocumentTextExtractionTask"
+      required:
+        - id
+        - document_type
+        - pages
+        - tasks
+    SessionResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        client_session_token_ttl:
+          $ref: "#/components/schemas/ClientSessionTokenTtl"
+        user_tracking_id:
+          type: string
+        biometric_consent:
+          type: string
+          format: date-time
+        state:
+          type: string
+          enum: [ ONGOING, COMPLETED, EXPIRED ]
+          description: "The current state of the session"
+        client_session_token:
+          type: string
+          format: uuid
+          description: client token to be used for auth of any calls made by client for this session
+        resources:
+          type: object
+          properties:
+            id_documents:
+              type: array
+              items:
+                $ref: "#/components/schemas/IdDocumentCapture"
+            supplementary_documents:
+              type: array
+              items:
+                $ref: "#/components/schemas/SupplementaryDocumentCapture"
+            face_capture:
+              type: array
+              items:
+                $ref: "#/components/schemas/FaceCapture"
+            applicant_profiles:
+              type: array
+              items:
+                $ref: "#/components/schemas/ApplicantProfile"
+          required:
+            - id_documents
+            - supplementary_documents
+            - face_capture
+            - applicant_profiles
+        checks:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/AuthenticityCheckResponse"
+              - $ref: "#/components/schemas/IdTextDataCheckResponse"
+              - $ref: "#/components/schemas/IdDocFaceMatchCheckResponse"
+              - $ref: "#/components/schemas/DocumentComparisonCheckResponse"
+              - $ref: "#/components/schemas/SupplementaryTextDataCheckResponse"
+              - $ref: "#/components/schemas/IbvReviewCheckResponse"
+              - $ref: "#/components/schemas/SchemeValidityCheckResponse"
+              - $ref: "#/components/schemas/DocumentProfileMatchCheckResponse"
+#            discriminator:
+#              propertyName: type
+#              mapping:
+#                ID_DOCUMENT_AUTHENTICITY: "#/components/schemas/AuthenticityCheckResponse"
+#                ID_DOCUMENT_TEXT_DATA_CHECK: "#/components/schemas/IdTextDataCheckResponse"
+#                ID_DOCUMENT_FACE_MATCH: "#/components/schemas/IdDocFaceMatchCheckResponse"
+#                ID_DOCUMENT_COMPARISON: "#/components/schemas/DocumentComparisonCheckResponse"
+#                SUPPLEMENTARY_DOCUMENT_TEXT_DATA_CHECK: "#/components/schemas/SupplementaryTextDataCheckResponse"
+#                IBV_VISUAL_REVIEW_CHECK: "#/components/schemas/IbvReviewCheckResponse"
+#                DOCUMENT_SCHEME_VALIDITY_CHECK: "#/components/schemas/SchemeValidityCheckResponse"
+#                PROFILE_DOCUMENT_MATCH: "#/components/schemas/DocumentProfileMatchCheckResponse"
+        applicant_profile:
+          $ref: "#/components/schemas/ApplicantProfile"
+      required:
+        - session_id
+        - state
+        - resources
+        - checks
     CreateSessionPayload:
       type: object
       description: Create Session Payload

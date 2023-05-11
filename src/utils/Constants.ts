@@ -1,54 +1,66 @@
 export class Constants {
 
-    static readonly X_SESSION_ID = "x-govuk-signin-session-id";
+	static readonly X_SESSION_ID = "x-govuk-signin-session-id";
 
-    static readonly SESSION_ID = "session-id";
+	static readonly SESSION_ID = "session-id";
 
-    static readonly ACCESSTOKEN_LOGGER_SVC_NAME = "AccessTokenHandler";
+	static readonly ACCESSTOKEN_LOGGER_SVC_NAME = "AccessTokenHandler";
 
-    static readonly AUTHORIZATIONCODE_LOGGER_SVC_NAME = "AuthorizationCodeHandler";
+	static readonly AUTHORIZATIONCODE_LOGGER_SVC_NAME = "AuthorizationCodeHandler";
 
-    static readonly DOCUMENT_SELECTION_LOGGER_SVC_NAME = "DocumentSelectionHandler";
+	static readonly DOCUMENT_SELECTION_LOGGER_SVC_NAME = "DocumentSelectionHandler";
 
-    static readonly USERINFO_LOGGER_SVC_NAME = "UserInfoHandler";
+	static readonly USERINFO_LOGGER_SVC_NAME = "UserInfoHandler";
 
-    static readonly F2F_METRICS_NAMESPACE = "F2F-CRI";
+	static readonly YOTI_CALLBACK_SVC_NAME = "YotiCallbackHandler";
 
-    static readonly JWKS_LOGGER_SVC_NAME = "JwksHandler";
+	static readonly F2F_METRICS_NAMESPACE = "F2F-CRI";
 
-    static readonly DEBUG = "DEBUG";
+	static readonly JWKS_LOGGER_SVC_NAME = "JwksHandler";
 
-    static readonly INFO = "INFO";
+	static readonly DEBUG = "DEBUG";
 
-    static readonly WARN = "WARN";
+	static readonly INFO = "INFO";
 
-    static readonly ERROR = "ERROR";
+	static readonly WARN = "WARN";
 
-    static readonly BEARER = "Bearer";
+	static readonly ERROR = "ERROR";
 
-    static readonly CODE = "code";
+	static readonly BEARER = "Bearer";
 
-    static readonly REDIRECT_URL = "redirect_uri";
+	static readonly CODE = "code";
 
-    static readonly GRANT_TYPE = "grant_type";
+	static readonly REDIRECT_URL = "redirect_uri";
 
-    static readonly AUTHORIZATION_CODE = "authorization_code";
+	static readonly GRANT_TYPE = "grant_type";
 
-    static readonly AUTHORIZATION_CODE_INDEX_NAME = "authorizationCode-index";
+	static readonly AUTHORIZATION_CODE = "authorization_code";
 
-    static readonly TOKEN_EXPIRY_SECONDS = 3600;
+	static readonly AUTHORIZATION_CODE_INDEX_NAME = "authorizationCode-index";
 
-    static readonly REGEX_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+	static readonly YOTI_SESSION_ID_INDEX_NAME = "yotiSessionId-index";
 
-    static readonly GOV_NOTIFY = "GOV_NOTIFY";
+	static readonly TOKEN_EXPIRY_SECONDS = 3600;
 
-    static readonly ENV_VAR_UNDEFINED = "ENV Variables are undefined";
+	static readonly REGEX_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-    static readonly EMAIL_DISABLED = "EMAIL_DISABLED";
+	static readonly GOV_NOTIFY = "GOV_NOTIFY";
 
-    static readonly EMAIL_METRICS_SVC_NAME = "SendEmailHandler";
+	static readonly ENV_VAR_UNDEFINED = "ENV Variables are undefined";
 
-    static readonly EMAIL_LOGGER_SVC_NAME = "SendEmailHandler";
+	static readonly EMAIL_DISABLED = "EMAIL_DISABLED";
 
-    static readonly EMAIL_METRICS_NAMESPACE = "F2F-CRI";
+	static readonly EMAIL_METRICS_SVC_NAME = "SendEmailHandler";
+
+	static readonly EMAIL_LOGGER_SVC_NAME = "SendEmailHandler";
+
+	static readonly EMAIL_METRICS_NAMESPACE = "F2F-CRI";
+
+	static readonly W3_BASE_CONTEXT = "https://www.w3.org/2018/credentials/v1";
+
+  static readonly DI_CONTEXT = "https://vocab.account.gov.uk/contexts/identity-v1.jsonld";
+
+  static readonly VERIFIABLE_CREDENTIAL = "VerifiableCredential";
+
+  static readonly IDENTITY_CHECK_CREDENTIAL = "IdentityCheckCredential";
 }

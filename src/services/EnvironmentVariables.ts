@@ -18,7 +18,7 @@ export class EnvironmentVariables {
 
 	private readonly YOTI_SDK = process.env.YOTISDK;
 
-	private readonly YOTIBASEURL = process.env.YOTISDK;
+	private readonly YOTIBASEURL = process.env.YOTIBASEURL;
 
 	private readonly ISSUER = process.env.ISSUER;
 
@@ -29,6 +29,8 @@ export class EnvironmentVariables {
 	private readonly GOVUKNOTIFY_API_KEY_SSM_PATH = process.env.GOVUKNOTIFY_API_KEY_SSM_PATH;
 
 	private readonly GOV_NOTIFY_QUEUE_URL = process.env.GOV_NOTIFY_QUEUE_URL;
+
+	private readonly IPV_CORE_QUEUE_URL = process.env.IPV_CORE_QUEUE_URL;
 
 	private readonly KMS_KEY_ARN = process.env.KMS_KEY_ARN;
 
@@ -177,6 +179,26 @@ export class EnvironmentVariables {
 				}
 				break;
 			}
+			case ServicesEnum.CALLBACK_SERVICE: {
+				if (!this.PERSON_IDENTITY_TABLE_NAME || this.PERSON_IDENTITY_TABLE_NAME.trim().length === 0 ||
+					!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 ||
+					!this.ISSUER || this.ISSUER.trim().length === 0 ||
+					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
+					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
+					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
+					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
+				}
+				if (!this.CLIENT_SESSION_TOKEN_TTL || this.CLIENT_SESSION_TOKEN_TTL.trim().length === 0) {
+					this.CLIENT_SESSION_TOKEN_TTL = "604800";
+					logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 7 days.");
+				}
+				if (!this.RESOURCES_TTL	|| this.RESOURCES_TTL.trim().length === 0) {
+					this.RESOURCES_TTL = "691200";
+					logger.warn("RESOURCES_TTL env var is not set. Setting to default - 8 days.");
+				}
+				break;
+			}
 			default:
 				break;
 		}
@@ -229,12 +251,24 @@ export class EnvironmentVariables {
 		return this.YOTI_KEY_SSM_PATH;
 	}
 
+	yotiBaseUrl(): any {
+		return this.YOTIBASEURL;
+	}
+
 	getGovNotifyQueueURL(logger: Logger): string {
 		if (!this.GOV_NOTIFY_QUEUE_URL || this.GOV_NOTIFY_QUEUE_URL.trim().length === 0) {
 			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		return this.GOV_NOTIFY_QUEUE_URL;
+	}
+
+	getIpvCoreQueueURL(logger: Logger): string {
+		if (!this.IPV_CORE_QUEUE_URL || this.IPV_CORE_QUEUE_URL.trim().length === 0) {
+			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
+		return this.IPV_CORE_QUEUE_URL;
 	}
 
 	kmsKeyArn(): any {

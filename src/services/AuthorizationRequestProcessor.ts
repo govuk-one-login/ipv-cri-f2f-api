@@ -52,8 +52,8 @@ export class AuthorizationRequestProcessor {
 
 			this.logger.info({ message: "found session", session });
 			this.metrics.addMetric("found session", MetricUnits.Count, 1);
-			if (session.authSessionState !== AuthSessionState.F2F_DATA_RECEIVED) {
-				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_DATA_RECEIVED}`);
+			if (session.authSessionState !== AuthSessionState.F2F_YOTI_SESSION_CREATED) {
+				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_YOTI_SESSION_CREATED}`);
 				return new Response(HttpCodesEnum.UNAUTHORIZED, `Session is in the wrong state: ${session.authSessionState}`);
 			}
 

@@ -6,7 +6,9 @@ export type TxmaEventName =
 	"F2F_CRI_START"
 	| "F2F_CRI_AUTH_CODE_ISSUED"
 	| "F2F_YOTI_PDF_EMAILED"
-	| "F2F_YOTI_START";
+	| "F2F_YOTI_START"
+	| "F2F_YOTI_END"
+	| "F2F_CRI_VC_ISSUED";
 
 export interface TxmaUser {
 	"user_id": string;
