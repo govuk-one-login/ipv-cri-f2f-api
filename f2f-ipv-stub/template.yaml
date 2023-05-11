@@ -306,7 +306,10 @@ Resources:
             - "https://${AWS::StackName}-${IPVSTUBURL}/redirect"
             - IPVSTUBURL:
                 !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
-          - !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
+          - !Sub
+            - "https://${IPVSTUBURL}/redirect"
+            - IPVSTUBURL:
+                !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
           JWKS_URI: !FindInMap [Configuration, !Ref Environment, JWKSURI]
           OAUTH_FRONT_BASE_URI: !FindInMap [Configuration, !Ref Environment, OAUTHFRONTBASEURI]
       Policies:
