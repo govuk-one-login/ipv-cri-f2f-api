@@ -16,7 +16,7 @@ export async function stubStartPost():Promise<any> {
 	try {
 		const postRequest = await axios.post(`${path}`, { target:constants.DEV_CRI_F2F_API_URL });
 		expect(postRequest.status).toBe(201);
-		return postRequest;``
+		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
@@ -62,7 +62,6 @@ export async function postYotiSession(trackingId: any, userData: any): Promise<a
 export async function getYotiSessionsConfiguration(sessionId:any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/configuration";
 	console.log(path);
-
 	try {
 		const postRequest = await YOTI_INSTANCE.get(path)
 		return postRequest;
@@ -76,7 +75,6 @@ export async function getYotiSessionsConfiguration(sessionId:any): Promise<any> 
 export async function putYotiSessionsInstructions(sessionId:any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions";
 	console.log(path);
-
 	try {
 		const postRequest = await YOTI_INSTANCE.put(path)
 		return postRequest;
@@ -90,7 +88,6 @@ export async function putYotiSessionsInstructions(sessionId:any): Promise<any> {
 export async function getYotiSessionsInstructions(sessionId:any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions/pdf";
 	console.log(path);
-
 	try {
 		const postRequest = await YOTI_INSTANCE.get(path)
 		return postRequest;
