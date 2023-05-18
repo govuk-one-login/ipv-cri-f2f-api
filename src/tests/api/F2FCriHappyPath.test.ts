@@ -28,7 +28,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		expect(tokenResponse.status).toBe(201);
 		console.log(tokenResponse.data);
 		// Post User Info
-		const userInfoResponse = await userInfoPost(tokenResponse.data.access_token);
+		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
 		expect(userInfoResponse.status).toBe(202);
 		console.log(userInfoResponse.data);
 	});
@@ -48,7 +48,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		expect(tokenResponse.status).toBe(201);
 		console.log(tokenResponse.data);
 		// Post User Info
-		const userInfoResponse = await userInfoPost(tokenResponse.data.access_token);
+		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
 		expect(userInfoResponse.status).toBe(202);
 		console.log(userInfoResponse.data);
 	});
@@ -77,7 +77,7 @@ describe("E2E Happy Path /documentSelection Endpoint No Claimed Identity", () =>
 		expect(tokenResponse.status).toBe(201);
 		console.log(tokenResponse.data);
 		// Post User Info
-		const userInfoResponse = await userInfoPost(tokenResponse.data.access_token);
+		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
 		expect(userInfoResponse.status).toBe(202);
 		console.log(userInfoResponse.data);
 	});

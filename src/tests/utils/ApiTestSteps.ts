@@ -6,7 +6,6 @@ const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
 export async function startStubServiceAndReturnSessionId(): Promise<any> {
 	const stubResponse = await stubStartPost();
 	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-
 	return postRequest;
 }
 
@@ -84,7 +83,7 @@ export async function tokenPost(authCode?: any, redirectUri?: any ):Promise<any>
 export async function userInfoPost(accessToken?: any):Promise<any> {
 	const path = "/userInfo";
 	try {
-		const postRequest = await API_INSTANCE.post( "/userInfo", null, { headers: { "Authorization": `Bearer ${accessToken}` } });
+		const postRequest = await API_INSTANCE.post( "/userInfo", null, { headers: { "Authorization": `${accessToken}` } });
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
