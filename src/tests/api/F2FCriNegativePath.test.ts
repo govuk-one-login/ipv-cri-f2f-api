@@ -1,4 +1,4 @@
-import * as dataDriversLicense from "../data/docSelectionPayloadDriversLicenceInvalid.json";
+import dataDriversLicense from "../data/docSelectionPayloadDriversLicenceInvalid.json";
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId, authorizationGet, tokenPost, userInfoPost } from "../utils/ApiTestSteps";
 
