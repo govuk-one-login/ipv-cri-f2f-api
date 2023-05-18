@@ -81,9 +81,6 @@ export async function tokenPost(authCode?: any, redirectUri?: any ):Promise<any>
 }
 
 export async function userInfoPost(accessToken?: any):Promise<any> {
-	if(accessToken == "expired"){
-		accessToken = "Bearer " + constants.EXPIRED_ACCESS_TOKEN;
-	}
 	const path = "/userInfo";
 	try {
 		const postRequest = await API_INSTANCE.post( "/userInfo", null, { headers: { "Authorization": `${accessToken}` } });

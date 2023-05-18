@@ -1,5 +1,6 @@
 import dataDriversLicense from "../data/docSelectionPayloadDriversLicenceInvalid.json";
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
+import { constants } from "../utils/ApiConstants";
 import { postDocumentSelection, startStubServiceAndReturnSessionId, authorizationGet, tokenPost, userInfoPost } from "../utils/ApiTestSteps";
 
 describe("Negative Path /documentSelection Endpoint", () => {
@@ -65,7 +66,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
 		console.log(tokenResponse.data.access_token);
 		// Post User Info
-		const userInfoResponse = await userInfoPost("expired");
+		const userInfoResponse = await userInfoPost("Bearer " + constants.EXPIRED_ACCESS_TOKEN);
 		expect(userInfoResponse.status).toBe(400); 
 		expect(userInfoResponse.data).toEqual("Failed to Validate - Authentication header: Verification of exp failed"); 
 	});
