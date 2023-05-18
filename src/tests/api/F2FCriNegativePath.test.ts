@@ -20,7 +20,7 @@ describe("Negative Path /documentSelection Endpoint", () => {
 	it("E2E Happy Path Journey - Incorrect Session Id", async () => {
 		const response = await postDocumentSelection(dataPassport, "sessionId");
 		expect(response.status).toBe(400);
-		expect(response.data).toEqual({"message": "Invalid request body"});
+		expect(response.data).toEqual("Session id must be a valid uuid");
 	});
 });
 
