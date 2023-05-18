@@ -23,6 +23,20 @@ export async function stubStartPost():Promise<any> {
 	} 
 }
 
+export async function stubStartPostNoSharedClaims(requestBody:any):Promise<any> {
+	const path = constants.DEV_IPV_F2F_STUB_URL;
+	console.log(path);
+	try {
+		const postRequest = await axios.post(`${path}`, requestBody);
+		expect(postRequest.status).toBe(201);
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	} 
+}
+
+
 export async function sessionPost(clientId?: string, request?: string):Promise<any> {
 	const path = "/session";
 	try {
@@ -40,6 +54,40 @@ export async function postDocumentSelection(userData:any, sessionId:any): Promis
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from endpoint: ${error}`);
+		return error.response;
+	} 
+}
+
+
+export async function authorizationGet(sessionId: any):Promise<any> {
+	const path = "/authorization";
+	try {
+		const getRequest = await API_INSTANCE.get( "/authorization", { headers:{ "session-id": sessionId } });
+		return getRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	} 
+}   
+
+export async function tokenPost(authCode?: any, redirectUri?: any ):Promise<any> {
+	const path = "/token";
+	try {
+		const postRequest = await API_INSTANCE.post( "/token", `code=${authCode}&grant_type=authorization_code&redirect_uri=${redirectUri}`, { headers:{ "Content-Type" : "text/plain" } });
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	} 
+}
+
+export async function userInfoPost(accessToken?: any):Promise<any> {
+	const path = "/userInfo";
+	try {
+		const postRequest = await API_INSTANCE.post( "/userInfo", null, { headers: { "Authorization": `Bearer ${accessToken}` } });
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
 	} 
 }
