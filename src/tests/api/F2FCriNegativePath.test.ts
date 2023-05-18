@@ -66,7 +66,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
 		console.log(tokenResponse.data.access_token);
 		// Post User Info
-		const userInfoResponse = await userInfoPost("Bearer " + data.expired_access_token);
+		const userInfoResponse = await userInfoPost("expired");
 		expect(userInfoResponse.status).toBe(400); 
 		expect(userInfoResponse.data).toEqual("Failed to Validate - Authentication header: Verification of exp failed"); 
 	});
