@@ -30,14 +30,19 @@ describe("Negative Path /userInfo Endpoint", () => {
 	beforeEach(async () => {
 		const sessionResponse = await startStubServiceAndReturnSessionId();
 		sessionId = sessionResponse.data.session_id;
+		console.log("sessionId is " + sessionId);
+
 	});
 
 	it("Negative Path Journey - Invalid Signature", async () => {
 		const response = await postDocumentSelection(dataPassport, sessionId);
+		console.log(response.data);
 		// Authorization
 		const authResponse = await authorizationGet(sessionId);
+		console.log(authResponse.data);
 		// Post Token
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
+		console.log(tokenResponse.data);
 		// Post User Info
 		const userInfoResponse = await userInfoPost("Bearer ");
 		expect(userInfoResponse.status).toBe(400); 
@@ -46,11 +51,13 @@ describe("Negative Path /userInfo Endpoint", () => {
 
 	it("Negative Path Journey - Invalid Authorization Header", async () => {
 		const response = await postDocumentSelection(dataPassport, sessionId);
+		console.log(response.data);
 		// Authorization
 		const authResponse = await authorizationGet(sessionId);
+		console.log(authResponse.data);
 		// Post Token
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
-		console.log(tokenResponse.data.access_token);
+		console.log(tokenResponse.data);
 		// Post User Info
 		const userInfoResponse = await userInfoPost(tokenResponse.data.access_token);
 		expect(userInfoResponse.status).toBe(400); 
@@ -60,15 +67,33 @@ describe("Negative Path /userInfo Endpoint", () => {
 
 	it("Negative Path Journey - Expired Authorization Header", async () => {
 		const response = await postDocumentSelection(dataPassport, sessionId);
+		console.log(response.data);
 		// Authorization
 		const authResponse = await authorizationGet(sessionId);
+		console.log(authResponse.data);
 		// Post Token
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
-		console.log(tokenResponse.data.access_token);
+		console.log(tokenResponse.data);
 		// Post User Info
-		const userInfoResponse = await userInfoPost("Bearer " + constants.EXPIRED_ACCESS_TOKEN);
-		console.log("Bearer " + constants.EXPIRED_ACCESS_TOKEN)
+		const userInfoResponse = await userInfoPost("Bearer " + constants.DEV_F2F_EXPIRED_ACCESS_TOKEN);
+		console.log("Bearer " + constants.DEV_F2F_EXPIRED_ACCESS_TOKEN)
+		console.log(userInfoResponse.status);
 		expect(userInfoResponse.status).toBe(400); 
 		expect(userInfoResponse.data).toEqual("Failed to Validate - Authentication header: Verification of exp failed"); 
+	});
+
+	it("Negative Path Journey - Missing Sub Authorization Header", async () => {
+		const response = await postDocumentSelection(dataPassport, sessionId);
+		console.log(response.data);
+		// Authorization
+		const authResponse = await authorizationGet(sessionId);
+		console.log(authResponse.data);
+		// Post Token
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
+		console.log(tokenResponse.data);
+		// Post User Info
+		const userInfoResponse = await userInfoPost("Bearer " + constants.DEV_F2F_MISSING_SUB_ACCESS_TOKEN);
+		console.log("Bearer " + constants.DEV_F2F_MISSING_SUB_ACCESS_TOKEN)
+		expect(userInfoResponse.status).toBe(400); 
 	});
 });
