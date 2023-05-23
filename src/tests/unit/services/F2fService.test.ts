@@ -7,6 +7,7 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { sqsClient } from "../../../utils/SqsClient";
 import { TxmaEvent } from "../../../utils/TxmaEvent";
 import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
+import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 
 const logger = mock<Logger>();
 
@@ -74,6 +75,15 @@ describe("F2f Service", () => {
 	it("Should not throw an error and return undefined when session doesn't exist", async () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
 		return expect(f2fService.getSessionById("1234")).resolves.toBeUndefined();
+	});
+
+	it("Should not throw an error when session expiry date has pasted", async () => {
+		const expiredSession = {
+			...SESSION_RECORD,
+			expiryDate: absoluteTimeNow() - 500
+		}
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: expiredSession });
+		return expect(f2fService.getSessionById("1234")).rejects.toThrow("Session with session id: 1234 has expired");
 	});
 
 	it("Should not throw an error and return undefined when set AuthorizationCode F2F data doesn't exist", async () => {

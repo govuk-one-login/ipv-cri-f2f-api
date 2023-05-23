@@ -8,7 +8,7 @@ describe.skip("E2E Happy Path /documentSelection Endpoint", () => {
 	beforeEach(async () => {
 		const sessionResponse = await startStubServiceAndReturnSessionId();
 		sessionId = sessionResponse.data.session_id;
-        console.log("session id: " + sessionId);
+		console.log("session id: " + sessionId);
 	});
 
 	it("E2E Happy Path Journey - Passport", async () => {

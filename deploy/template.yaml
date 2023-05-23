@@ -78,10 +78,10 @@ Mappings:
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
-      CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
-      RESOURCESTTL: 691200 # Default 8 days
+      CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
+      RESOURCESTTL: 1036800 # Default 12 days
       CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"}]'
-      AUTHSESSIONTTL: "604800" # 7 days in seconds
+      AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
     build:
       YOTIBASEURL: "https://proxy.review-o.build.account-gov.uk/yoti"
@@ -91,10 +91,10 @@ Mappings:
       DNSSUFFIX: review-o.build.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
-      CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
-      RESOURCESTTL: 691200 # Default 8 days
+      CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
+      RESOURCESTTL: 1036800 # Default 12 days
       CLIENTS: '[{"jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect"}]'
-      AUTHSESSIONTTL: "604800" # 7 days in seconds
+      AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
     staging:
       YOTIBASEURL: "https://proxy.review-o.staging.account-gov.uk/yoti"
@@ -104,10 +104,10 @@ Mappings:
       DNSSUFFIX: review-o.staging.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
-      CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
-      RESOURCESTTL: 691200 # Default 8 days
+      CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
+      RESOURCESTTL: 1036800 # Default 12 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json","clientId":"03A5A659-17AA-453F-B905-95D2804823D1","redirectUri":"https://identity.staging.account.gov.uk/redirect"}]'
-      AUTHSESSIONTTL: "604800" # 7 days in seconds
+      AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
       YOTIBASEURL: "https://proxy.review-o.integration.account-gov.uk/yoti"
@@ -117,10 +117,10 @@ Mappings:
       DNSSUFFIX: review-o.integration.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
-      CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
-      RESOURCESTTL: 691200 # Default 8 days
+      CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
+      RESOURCESTTL: 1036800 # Default 12 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/redirect"}]'
-      AUTHSESSIONTTL: "604800" # 7 days in seconds
+      AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
       YOTIBASEURL: "https://proxy.review-o.account-gov.uk/yoti"
@@ -130,10 +130,10 @@ Mappings:
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
-      CLIENTSESSIONTOKENTTL: 604800 # Default 7 days
-      RESOURCESTTL: 691200 # Default 8 days
+      CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
+      RESOURCESTTL: 1036800 # Default 12 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/redirect"}]'
-      AUTHSESSIONTTL: "604800" # 7 days in seconds
+      AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.

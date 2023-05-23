@@ -89,10 +89,10 @@ export class DocumentSelectionRequestProcessor {
 				yotiSessionId = await this.createSessionGenerateInstructions(personDetails, f2fSessionInfo, postOfficeSelection, selectedDocument, countryCode);
 				await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
 				await this.f2fService.updateSessionWithYotiIdAndStatus(f2fSessionInfo.sessionId, yotiSessionId, AuthSessionState.F2F_YOTI_SESSION_CREATED);
-			} catch(err){
-				if(err instanceof AppError){
+			} catch (err) {
+				if (err instanceof AppError) {
 					return new Response(HttpCodesEnum.SERVER_ERROR, err.message);
-				} else{
+				} else {
 					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
 			}

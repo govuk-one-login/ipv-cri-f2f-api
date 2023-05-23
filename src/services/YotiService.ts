@@ -130,8 +130,8 @@ export class YotiService {
 		this.logger.info("SELECTED DOCUMENT - YotiService START", selectedDocument)
 		this.logger.info("COUNTRY CODE - YotiService START", countryCode)
 		const payloadJSON: CreateSessionPayload = {
-			client_session_token_ttl: this.CLIENT_SESSION_TOKEN_TTL ? this.CLIENT_SESSION_TOKEN_TTL : "604800",
-			resources_ttl: this.RESOURCES_TTL ? this.RESOURCES_TTL : "691200",
+			client_session_token_ttl: this.CLIENT_SESSION_TOKEN_TTL ? this.CLIENT_SESSION_TOKEN_TTL : "950400",
+			resources_ttl: this.RESOURCES_TTL ? this.RESOURCES_TTL : "1036800",
 			ibv_options: {
 				support: "MANDATORY",
 			},

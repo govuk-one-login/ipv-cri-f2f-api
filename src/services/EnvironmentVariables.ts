@@ -92,12 +92,12 @@ export class EnvironmentVariables {
 				}
 
 				if (!this.CLIENT_SESSION_TOKEN_TTL || this.CLIENT_SESSION_TOKEN_TTL.trim().length === 0) {
-					this.CLIENT_SESSION_TOKEN_TTL = "604800";
-					logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 7 days.");
+					this.CLIENT_SESSION_TOKEN_TTL = "950400";
+					logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 11 days.");
 				}
 				if (!this.RESOURCES_TTL	|| this.RESOURCES_TTL.trim().length === 0) {
-					this.RESOURCES_TTL = "691200";
-					logger.warn("RESOURCES_TTL env var is not set. Setting to default - 8 days.");
+					this.RESOURCES_TTL = "1036800";
+					logger.warn("RESOURCES_TTL env var is not set. Setting to default - 12 days.");
 				}
 				break;
 			}
@@ -170,12 +170,12 @@ export class EnvironmentVariables {
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
 				}
 				if (!this.CLIENT_SESSION_TOKEN_TTL || this.CLIENT_SESSION_TOKEN_TTL.trim().length === 0) {
-					this.CLIENT_SESSION_TOKEN_TTL = "604800";
-					logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 7 days.");
+					this.CLIENT_SESSION_TOKEN_TTL = "950400";
+					logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 11 days.");
 				}
 				if (!this.RESOURCES_TTL	|| this.RESOURCES_TTL.trim().length === 0) {
-					this.RESOURCES_TTL = "691200";
-					logger.warn("RESOURCES_TTL env var is not set. Setting to default - 8 days.");
+					this.RESOURCES_TTL = "1036800";
+					logger.warn("RESOURCES_TTL env var is not set. Setting to default - 12 days.");
 				}
 				break;
 			}
@@ -190,12 +190,12 @@ export class EnvironmentVariables {
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
 				}
 				if (!this.CLIENT_SESSION_TOKEN_TTL || this.CLIENT_SESSION_TOKEN_TTL.trim().length === 0) {
-					this.CLIENT_SESSION_TOKEN_TTL = "604800";
-					logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 7 days.");
+					this.CLIENT_SESSION_TOKEN_TTL = "950400";
+					logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 11 days.");
 				}
 				if (!this.RESOURCES_TTL	|| this.RESOURCES_TTL.trim().length === 0) {
-					this.RESOURCES_TTL = "691200";
-					logger.warn("RESOURCES_TTL env var is not set. Setting to default - 8 days.");
+					this.RESOURCES_TTL = "1036800";
+					logger.warn("RESOURCES_TTL env var is not set. Setting to default - 12 days.");
 				}
 				break;
 			}

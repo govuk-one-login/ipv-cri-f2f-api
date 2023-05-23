@@ -5,7 +5,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
 import { DynamoDBDocument, GetCommand, QueryCommandInput, UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
-import { getAuthorizationCodeExpirationEpoch } from "../utils/DateTimeUtils";
+import { getAuthorizationCodeExpirationEpoch, absoluteTimeNow } from "../utils/DateTimeUtils";
 import { Constants } from "../utils/Constants";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { SendMessageCommand } from "@aws-sdk/client-sqs";
@@ -22,7 +22,6 @@ import { GovNotifyEvent } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { IPVCoreEvent } from "../utils/IPVCoreEvent";
-
 export class F2fService {
 	readonly tableName: string;
 
@@ -66,6 +65,9 @@ export class F2fService {
 		}
 
 		if (session.Item) {
+			if (session.Item.expiryDate < absoluteTimeNow()) {
+				throw new AppError(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionId} has expired`);
+			}
 			return session.Item as ISessionItem;
 		}
 	}
@@ -107,6 +109,10 @@ export class F2fService {
 
 		if (!sessionItem?.Items || sessionItem?.Items?.length !== 1) {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session by yoit session id");
+		}
+
+		if (sessionItem.Items[0].expiryDate < absoluteTimeNow()) {
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionItem.Items[0].sessionId} has expired`);
 		}
 
 		return sessionItem.Items[0] as ISessionItem;
@@ -233,6 +239,10 @@ export class F2fService {
 
 		if (!sessionItem?.Items || sessionItem?.Items?.length !== 1) {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session by authorization code");
+		}
+
+		if (sessionItem.Items[0].expiryDate < absoluteTimeNow()) {
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionItem.Items[0].sessionId} has expired`);
 		}
 
 		return sessionItem.Items[0] as ISessionItem;
