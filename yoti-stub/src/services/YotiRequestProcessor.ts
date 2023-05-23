@@ -36,6 +36,14 @@ import {GET_INSTRUCTIONS_PDF_404} from "../data/getInstructionsPdf/getInstructio
 import {GET_INSTRUCTIONS_PDF_409} from "../data/getInstructionsPdf/getInstructionsPdf409";
 import {GET_INSTRUCTIONS_PDF_500} from "../data/getInstructionsPdf/getInstructionsPdf500";
 import {GET_INSTRUCTIONS_PDF_503} from "../data/getInstructionsPdf/getInstructionsPdf503";
+import { ESP_PASSPORT } from "../data/getMediaContent/espPassportResponse";
+import { NLD_NATIONAL_ID } from "../data/getMediaContent/nldNationalId";
+import { GBR_PASSPORT } from "../data/getMediaContent/gbPassportResponse";
+import { GBR_DRIVING_LICENCE } from "../data/getMediaContent/gbDriversLicenseResponse";
+import { DEU_DRIVING_LICENCE } from "../data/getMediaContent/euDriversLicenseResponse";
+import { GET_MEDIA_CONTENT_400 } from "../data/getMediaContent/getMediaContent400";
+import { GET_MEDIA_CONTENT_401 } from "../data/getMediaContent/getMediaContent401";
+import { GET_MEDIA_CONTENT_404 } from "../data/getMediaContent/getMediaContent404";
 import { sleep } from "../utils/Sleep";
 
 export class YotiRequestProcessor {
@@ -121,17 +129,34 @@ export class YotiRequestProcessor {
 	async getSession(sessionId: string): Promise<Response> {
 
 		const lastUuidChars = sessionId.slice(-4);
-		this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 
+		const positiveScenario = (lastUuidChars.substring(0,3) === '000');
+		this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+		this.logger.info({ message: "is a positive scenario", positiveScenario});
+		let mediaId;
+
+		if (positiveScenario) {
+			switch(lastUuidChars) {
+				case '0000': // UK Passport
+					this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
+					VALID_RESPONSE.session_id = sessionId;
+					VALID_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+					mediaId = VALID_RESPONSE.resources.id_documents[0].document_fields.media.id;
+					VALID_RESPONSE.resources.id_documents[0].document_fields.media.id = mediaId.replace(/\d{4}$/, lastUuidChars);
+					return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));
+				case '0001': // UK Drivers Licence
+					this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
+					VALID_DL_RESPONSE.session_id = sessionId;
+					VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+					mediaId = VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id;
+					VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = mediaId.replace(/\d{4}$/, lastUuidChars);
+					return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));
+				default:
+					return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`);
+			}
+		}
+		
 		switch(lastUuidChars) {
-			case '0000':
-				this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
-				VALID_RESPONSE.session_id = sessionId;
-				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));
-			case '0001':
-				this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
-				VALID_DL_RESPONSE.session_id = sessionId;
-				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));
 			case '5400':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
 				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SESSIONS_400));
@@ -297,5 +322,43 @@ export class YotiRequestProcessor {
 				return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`);
 		}
 
+	}
+
+	/***
+	 * GET /sessions/{sessionId}/media/{mediaId}/content
+	 */
+	async getMediaContent(mediaId: string): Promise<Response> {
+
+		const lastUuidChars = mediaId.slice(-4);
+		this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+
+		switch(lastUuidChars) {
+			case '0000': // UK Passport
+				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
+			case '0001': // UK Drivers Licence
+				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE));
+			case '0002':
+				return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT));
+			case '0003':
+				return new Response(HttpCodesEnum.OK, JSON.stringify(NLD_NATIONAL_ID));
+			case '0004':
+				return new Response(HttpCodesEnum.OK, JSON.stringify(DEU_DRIVING_LICENCE));
+			case '5400':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(GET_MEDIA_CONTENT_400));
+			case '5401':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(GET_MEDIA_CONTENT_401));
+			case '5404':
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(GET_MEDIA_CONTENT_404));
+			case '5999':
+				// This will result in 504 timeout currently as sleep interval is 30s
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				await sleep(30000);
+				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
+			default:
+				return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming mediaId ${mediaId} didn't match any of the use cases`);
+		}
 	}
 }
