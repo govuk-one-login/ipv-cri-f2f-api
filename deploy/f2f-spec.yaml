@@ -802,7 +802,13 @@ components:
           required:
             - document_selected
             - date_of_expiry
+            - country_code
           properties:
+            country_code:
+              type: string
+              pattern: ^[A-Z]{3}$
+              example: "GBR"
+              description: 3-letter country iso code
             document_selected:
               type: string
               example: driversPermit
