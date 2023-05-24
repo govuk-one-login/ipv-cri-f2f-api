@@ -11,6 +11,7 @@ import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import {YotiSessionItem} from "../models/YotiSessionItem";
 import {YotiSessionRequest} from "../models/YotiSessionRequest";
 import { VALID_RESPONSE } from "../data/getSessions/responses";
+import { VALID_RESPONSE_NFC } from "../data/getSessions/nfcResponse";
 import { VALID_DL_RESPONSE } from "../data/getSessions/driversLicenseResponse";
 import { CREATE_SESSION } from "../data/createSession";
 import {VALID_PUT_INSTRUCTIONS_RESPONSE} from "../data/putInstructions/putInstructionsResponse";
@@ -151,6 +152,14 @@ export class YotiRequestProcessor {
 					mediaId = VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id;
 					VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = mediaId.replace(/\d{4}$/, lastUuidChars);
 					return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));
+				case '0002': // UK Drivers Licence
+					this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					mediaId = VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = mediaId.replace(/\d{4}$/, lastUuidChars);
+					console.log('VALID_RESPONSE_NFC', JSON.stringify(VALID_RESPONSE_NFC));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC));
 				default:
 					return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`);
 			}
@@ -338,7 +347,7 @@ export class YotiRequestProcessor {
 			case '0001': // UK Drivers Licence
 				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE));
 			case '0002':
-				return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT));
+				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
 			case '0003':
 				return new Response(HttpCodesEnum.OK, JSON.stringify(NLD_NATIONAL_ID));
 			case '0004':
