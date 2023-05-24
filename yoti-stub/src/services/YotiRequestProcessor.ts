@@ -13,6 +13,12 @@ import {YotiSessionRequest} from "../models/YotiSessionRequest";
 import { VALID_RESPONSE } from "../data/getSessions/responses";
 import { VALID_RESPONSE_NFC } from "../data/getSessions/nfcResponse";
 import { VALID_DL_RESPONSE } from "../data/getSessions/driversLicenseResponse";
+import { EXPIRED_PASSPORT_RESPONSE } from "../data/getSessions/expiredPassport";
+import { TAMPERED_DOCUMENT_RESPONSE } from "../data/getSessions/tamperedDocumentResponse";
+import { AI_FAIL_MANUAL_FAIL } from "../data/getSessions/aiFailManualFail";
+import { AI_FAIL_MANUAL_PASS } from "../data/getSessions/aiFailManualPass";
+import { AI_PASS } from "../data/getSessions/aiPass";
+import { DIFFERENT_PERSON_RESPONSE } from "../data/getSessions/differentPersonResponse";
 import { CREATE_SESSION } from "../data/createSession";
 import {VALID_PUT_INSTRUCTIONS_RESPONSE} from "../data/putInstructions/putInstructionsResponse";
 import {PUT_INSTRUCTIONS_400} from "../data/putInstructions/putInstructions400";
@@ -128,62 +134,488 @@ export class YotiRequestProcessor {
 	 * @param sessionId
 	 */
 	async getSession(sessionId: string): Promise<Response> {
-
 		const lastUuidChars = sessionId.slice(-4);
+		this.logger.info({ message: "last 4 ID chars", lastUuidChars });
+		const PASSPORT_MEDIA_ID = '0001'
+		let modifiedPayload;
 
-		const positiveScenario = (lastUuidChars.substring(0,3) === '000');
-		this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-		this.logger.info({ message: "is a positive scenario", positiveScenario});
-		let mediaId;
-
-		if (positiveScenario) {
-			switch(lastUuidChars) {
-				case '0000': // UK Passport
-					this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
-					VALID_RESPONSE.session_id = sessionId;
-					VALID_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
-					mediaId = VALID_RESPONSE.resources.id_documents[0].document_fields.media.id;
-					VALID_RESPONSE.resources.id_documents[0].document_fields.media.id = mediaId.replace(/\d{4}$/, lastUuidChars);
-					return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));
-				case '0001': // UK Drivers Licence
-					this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
+		const processPositiveScenario = (lastUuidChars: string, sessionId: string): Response | undefined => {
+			const logger = this.logger;
+			const yotiSessionRequest = new YotiSessionRequest(sessionId);
+		
+			switch (lastUuidChars) {
+				case '0000': // UK Drivers Licence
+					logger.debug(JSON.stringify(yotiSessionRequest));
 					VALID_DL_RESPONSE.session_id = sessionId;
 					VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
-					mediaId = VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id;
-					VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = mediaId.replace(/\d{4}$/, lastUuidChars);
+					VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id, lastUuidChars);
 					return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));
-				case '0002': // UK Drivers Licence
-					this.logger.debug(JSON.stringify(new YotiSessionRequest(sessionId)));
+
+				case '0001': // UK Passport without Chip
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE.session_id = sessionId;
+					VALID_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));
+		
+				case '0002': // UK Passport with Chip
+					logger.debug(JSON.stringify(yotiSessionRequest));
 					VALID_RESPONSE_NFC.session_id = sessionId;
 					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
-					mediaId = VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id;
-					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = mediaId.replace(/\d{4}$/, lastUuidChars);
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
 					console.log('VALID_RESPONSE_NFC', JSON.stringify(VALID_RESPONSE_NFC));
 					return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC));
+
+				case '0003': // UK Passport - Different Person
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					DIFFERENT_PERSON_RESPONSE.session_id = sessionId;
+					DIFFERENT_PERSON_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+					DIFFERENT_PERSON_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(DIFFERENT_PERSON_RESPONSE.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					return new Response(HttpCodesEnum.OK, JSON.stringify(DIFFERENT_PERSON_RESPONSE));
+		
+					case '0004': // UK Passport - Expired
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					EXPIRED_PASSPORT_RESPONSE.session_id = sessionId;
+					EXPIRED_PASSPORT_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+					EXPIRED_PASSPORT_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(EXPIRED_PASSPORT_RESPONSE.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					return new Response(HttpCodesEnum.OK, JSON.stringify(EXPIRED_PASSPORT_RESPONSE));
+		
+				case '0005': // UK Passport - Tampered
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					TAMPERED_DOCUMENT_RESPONSE.session_id = sessionId;
+					TAMPERED_DOCUMENT_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+					TAMPERED_DOCUMENT_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(TAMPERED_DOCUMENT_RESPONSE.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					return new Response(HttpCodesEnum.OK, JSON.stringify(TAMPERED_DOCUMENT_RESPONSE));
+		
+				case '0006': // UK Passport - FaceCheck Failed
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					AI_FAIL_MANUAL_FAIL.session_id = sessionId;
+					AI_FAIL_MANUAL_FAIL.resources.id_documents[0].document_fields.media.id = sessionId;
+					AI_FAIL_MANUAL_FAIL.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(AI_FAIL_MANUAL_FAIL.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					console.log('VALID_RESPONSE_NFC', JSON.stringify(AI_FAIL_MANUAL_FAIL));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(AI_FAIL_MANUAL_FAIL));
+
+				case '0007': // UK Passport - FaceCheck AI Failed Manual Passed
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					AI_FAIL_MANUAL_PASS.session_id = sessionId;
+					AI_FAIL_MANUAL_PASS.resources.id_documents[0].document_fields.media.id = sessionId;
+					AI_FAIL_MANUAL_PASS.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(AI_FAIL_MANUAL_PASS.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					return new Response(HttpCodesEnum.OK, JSON.stringify(AI_FAIL_MANUAL_PASS));
+				
+				case '0008': // UK Passport - AI Passed
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					AI_PASS.session_id = sessionId;
+					AI_PASS.resources.id_documents[0].document_fields.media.id = sessionId;
+					AI_PASS.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(AI_PASS.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					return new Response(HttpCodesEnum.OK, JSON.stringify(AI_PASS));
+
+				case '0009': // UK Passport - FACE_NOT_GENUINE
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_FACE_MATCH") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "FACE_NOT_GENUINE";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+				case '0010': // UK Passport - LARGE_AGE_GAP
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_FACE_MATCH") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "LARGE_AGE_GAP";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+				
+				case '0011': // UK Passport - PHOTO_OF_MASK
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_FACE_MATCH") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "PHOTO_OF_MASK";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+				case '0012': // UK Passport - PHOTO_OF_PHOTO
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_FACE_MATCH") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "PHOTO_OF_PHOTO";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+				case '0013': // UK Passport - DIFFERENT_PERSON
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_FACE_MATCH") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "DIFFERENT_PERSON";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0014': // UK Passport - COUNTERFEIT
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "COUNTERFEIT";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0015': // UK Passport - EXPIRED_DOCUMENT
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "EXPIRED_DOCUMENT";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0016': // UK Passport - FRAUD_LIST_MATCH
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "FRAUD_LIST_MATCH";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0017': // UK Passport - DIFFERENT_PERSON
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "DOCUMENT_COPY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "DOCUMENT_COPY";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0018': // UK Passport - ISSUING_AUTHORITY_INVALID
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "ISSUING_AUTHORITY_INVALID";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0019': // UK Passport - TAMPERED
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "TAMPERED";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0020': // UK Passport - MISSING_HOLOGRAM
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "MISSING_HOLOGRAM";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0021': // UK Passport - NO_HOLOGRAM_MOVEMENT
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "NO_HOLOGRAM_MOVEMENT";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0022': // UK Passport - DATA_MISMATCH
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "DATA_MISMATCH";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0023': // UK Passport - DOC_NUMBER_INVALID
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "DOC_NUMBER_INVALID";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0024': // UK Passport - CHIP_DATA_INTEGRITY_FAILED
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "CHIP_DATA_INTEGRITY_FAILED";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0025': // UK Passport - CHIP_SIGNATURE_VERIFICATION_FAILED
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "CHIP_SIGNATURE_VERIFICATION_FAILED";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0026': // UK Passport - CHIP_CSCA_VERIFICATION_FAILED
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "CHIP_CSCA_VERIFICATION_FAILED";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+
+					case '0027': // UK Passport - IBV_VISUAL_REVIEW_CHECK
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "IBV_VISUAL_REVIEW_CHECK") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "IBV_VISUAL_REVIEW_CHECK";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0028': // UK Passport - DOCUMENT_SCHEME_VALIDITY_CHECK
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "DOCUMENT_SCHEME_VALIDITY_CHECK") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "DOCUMENT_SCHEME_VALIDITY_CHECK";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+					case '0029': // UK Passport - PROFILE_DOCUMENT_MATCH
+					logger.debug(JSON.stringify(yotiSessionRequest));
+					VALID_RESPONSE_NFC.session_id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+					VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, PASSPORT_MEDIA_ID);
+					modifiedPayload = {
+						...VALID_RESPONSE_NFC,
+						checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+							if (check.type === "PROFILE_DOCUMENT_MATCH") {
+								check.report.recommendation.value = "REJECT";
+								check.report.recommendation.reason = "PROFILE_DOCUMENT_MATCH";
+							}
+							return check;
+						}),
+					};
+					console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+					return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
 				default:
-					return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`);
+					return undefined;
+			}
+		};
+		
+		const replaceLastUuidChars = (str: string, lastUuidChars: string): string => {
+			return str.replace(/\d{4}$/, lastUuidChars);
+		};
+	
+		if (lastUuidChars.substring(0, 2) === '00') {
+			const response = processPositiveScenario(lastUuidChars, sessionId);
+			if (response) {
+				return response;
 			}
 		}
-		
-		switch(lastUuidChars) {
+	
+		switch (lastUuidChars) {
 			case '5400':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars });
 				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SESSIONS_400));
 			case '5401':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars });
 				return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(POST_SESSIONS_401));
 			case '5404':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars });
 				return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(POST_SESSIONS_404));
-			// case '5409':
-			// 	this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-			// 	return new Response(HttpCodesEnum.CONFLICT, "CONFLICT")
-			// case '5500':
-			// 	this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-			// 	return new Response(HttpCodesEnum.SERVER_ERROR, "SERVER ERROR")
 			case '5999':
-				// This will result in 504 timeout currently as sleep interval is 30s
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastUuidChars });
 				await sleep(30000);
 				return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));
 			default:
@@ -337,37 +769,38 @@ export class YotiRequestProcessor {
 	 * GET /sessions/{sessionId}/media/{mediaId}/content
 	 */
 	async getMediaContent(mediaId: string): Promise<Response> {
-
 		const lastUuidChars = mediaId.slice(-4);
-		this.logger.info({ message: "last 4 ID chars", lastUuidChars});
-
-		switch(lastUuidChars) {
-			case '0000': // UK Passport
-				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
-			case '0001': // UK Drivers Licence
+		const logger = this.logger;
+		logger.info({ message: "last 4 ID chars", lastUuidChars });
+	
+		switch (lastUuidChars) {
+			case '0000':
 				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE));
-			case '0002':
+	
+			case '0001':
 				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
-			case '0003':
-				return new Response(HttpCodesEnum.OK, JSON.stringify(NLD_NATIONAL_ID));
-			case '0004':
-				return new Response(HttpCodesEnum.OK, JSON.stringify(DEU_DRIVING_LICENCE));
+	
 			case '5400':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				logger.info({ message: "last 4 ID chars", lastUuidChars });
 				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(GET_MEDIA_CONTENT_400));
+	
 			case '5401':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				logger.info({ message: "last 4 ID chars", lastUuidChars });
 				return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(GET_MEDIA_CONTENT_401));
+	
 			case '5404':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				logger.info({ message: "last 4 ID chars", lastUuidChars });
 				return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(GET_MEDIA_CONTENT_404));
+	
 			case '5999':
 				// This will result in 504 timeout currently as sleep interval is 30s
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				logger.info({ message: "last 4 ID chars", lastUuidChars });
 				await sleep(30000);
 				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
+	
 			default:
 				return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming mediaId ${mediaId} didn't match any of the use cases`);
 		}
 	}
+	
 }
