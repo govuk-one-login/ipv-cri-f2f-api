@@ -819,9 +819,9 @@ components:
                 - ukPassport
                 - ukPhotocardDl
                 - brp
-                - otherPassport
+                - nonUkPassport
                 - euPhotocardDl
-                - euIdentityCard
+                - eeaIdentityCard
                 - citizenCard
                 - youngScotNationalEntitlementCard
             date_of_expiry:
