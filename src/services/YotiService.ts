@@ -123,9 +123,12 @@ export class YotiService {
 	async createSession(
 		personDetails: PersonIdentityItem,
 		selectedDocument: string,
+		countryCode: string,
 		YOTICALLBACKURL?: string,
 	): Promise<string | undefined> {
 		//TODO: YOTICALLBACKURL needs updating in template.yaml file within deploy folders oncer we have work completed on return journey
+		this.logger.info("SELECTED DOCUMENT - YotiService START", selectedDocument)
+		this.logger.info("COUNTRY CODE - YotiService START", countryCode)
 		const payloadJSON: CreateSessionPayload = {
 			client_session_token_ttl: this.CLIENT_SESSION_TOKEN_TTL ? this.CLIENT_SESSION_TOKEN_TTL : "604800",
 			resources_ttl: this.RESOURCES_TTL ? this.RESOURCES_TTL : "691200",
@@ -148,7 +151,7 @@ export class YotiService {
 						inclusion: "INCLUDE",
 						documents: [
 							{
-								country_codes: [YOTI_DOCUMENT_COUNTRY_CODE],
+								country_codes: [countryCode],
 								document_types: [Object.values(YotiDocumentTypesEnum)[Object.keys(YotiDocumentTypesEnum).indexOf(selectedDocument.toUpperCase())]],
 							},
 						],
