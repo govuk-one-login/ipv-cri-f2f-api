@@ -1,7 +1,11 @@
 import axios from "axios";
 import { constants } from "../utils/ApiConstants";
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+
 const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
 const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
+
 
 export async function startStubServiceAndReturnSessionId(): Promise<any> {
 	const stubResponse = await stubStartPost();
@@ -132,6 +136,11 @@ export async function putYotiSessionsInstructions(sessionId:any): Promise<any> {
 	}
 }
 
+export function generateRandomAlphanumeric(substringStart: number, substringEnd: number): string {
+	const result = Math.random().toString(36).substring(substringStart,substringEnd);
+	return result;
+}
+
 export async function getYotiSessionsInstructions(sessionId:any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions/pdf";
 	console.log(path);
@@ -142,5 +151,56 @@ export async function getYotiSessionsInstructions(sessionId:any): Promise<any> {
 	} catch (error: any) {
 		console.log(`Error response from endpoint: ${error}`);
 		return error.response;
+	}
+}
+
+export async function createAuthSession(): Promise<void> {
+	const client = new DynamoDBClient({ region: "eu-west-2" });
+	const docClient = DynamoDBDocumentClient.from(client);
+	const sessionId = generateRandomAlphanumeric(2, 10) + "-" + generateRandomAlphanumeric(2, 6) + "-" + generateRandomAlphanumeric(2, 6) + "-" + generateRandomAlphanumeric(2, 6) + "-" + generateRandomAlphanumeric(2, 10) + "0000";
+	console.log(sessionId);
+	// const putSessionCommand = new PutCommand({
+	// 	TableName: 'session-f2f-cri-ddb',
+	// 	Item: {
+	// 		"sessionId": sessionId,
+	// 		"clientId": "1234",
+	// 		"clientSessionId": "1234",
+	// 		"redirectUri": "www.redirect.com",
+	// 		"expiryDate": Date.now() + Number(process.env.AUTH_SESSION_TTL) * 1000,
+	// 		"createdDate": Date.now(),
+	// 		"state": "random",
+	// 		"subject": "random",
+	// 		"persistentSessionId": "1234",
+	// 		"clientIpAddress": "random",
+	// 		"attemptCount": 0,
+	// 		"authSessionState": "F2F_SESSION_CREATED",
+	// 	}
+	// });
+	// const response = await docClient.send(putSessionCommand);
+	// console.log(response);
+
+	const putSessionCommand = new PutCommand({
+		TableName: 'session-f2f-cri-ddb',
+		Item: {
+			"sessionId": sessionId,
+			"clientId": "1234",
+			"clientSessionId": "1234",
+			"redirectUri": "www.redirect.com",
+			"expiryDate": Date.now() + Number(process.env.AUTH_SESSION_TTL) * 1000,
+			"createdDate": Date.now(),
+			"state": "random",
+			"subject": "random",
+			"persistentSessionId": "1234",
+			"clientIpAddress": "random",
+			"attemptCount": 0,
+			"authSessionState": "F2F_SESSION_CREATED",
+		}
+	});
+
+	try {
+		await docClient.send(putSessionCommand);
+		console.log("Successfully created session in dynamodb");
+	} catch (error) {
+		console.log("got error " + error);
 	}
 }
