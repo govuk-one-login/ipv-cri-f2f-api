@@ -121,7 +121,8 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Cache SAM builds
-        uses: actions/cache@v3        with:
+        uses: actions/cache@v3        
+        with:
           path: |
             ./di-ipv-cri-f2f-api/.aws-sam/cache
             ./di-ipv-cri-f2f-api/.aws-sam/deps
