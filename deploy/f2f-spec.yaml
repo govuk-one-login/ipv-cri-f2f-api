@@ -822,8 +822,6 @@ components:
                 - nonUkPassport
                 - euPhotocardDl
                 - eeaIdentityCard
-                - citizenCard
-                - youngScotNationalEntitlementCard
             date_of_expiry:
               type: string
               format: date

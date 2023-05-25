@@ -166,7 +166,7 @@ export class YotiService {
 			},
 		};
 
-		this.logger.info("REQUIRED DOCS", payloadJSON.required_documents)
+		this.logger.info("REQUIRED DOCS", {"required docs": payloadJSON.required_documents})
 
 		const yotiRequest = this.generateYotiRequest({
 			method: HttpVerbsEnum.POST,
