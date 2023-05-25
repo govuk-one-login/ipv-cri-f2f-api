@@ -87,6 +87,12 @@ jobs:
       - name: Run Infra checks
         run: npm run test:infra
 
+      - name: Assume temporary AWS role
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ secrets.CRI_F2F_GH_VALIDATE_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Run API Tests
         run: npm run test:api 
     
@@ -115,8 +121,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Cache SAM builds
-        uses: actions/cache@v3
-        with:
+        uses: actions/cache@v3        with:
           path: |
             ./di-ipv-cri-f2f-api/.aws-sam/cache
             ./di-ipv-cri-f2f-api/.aws-sam/deps
