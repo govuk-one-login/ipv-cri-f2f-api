@@ -67,7 +67,6 @@ export class DocumentSelectionRequestProcessor {
 			  postOfficeSelection = eventBody.post_office_selection;
 			  selectedDocument = eventBody.document_selection.document_selected;
 				countryCode = eventBody.document_selection.country_code;
-				this.logger.info("DOCUMENT SELECTION BODY", eventBody.document_selection);
 			  if (!postOfficeSelection || !selectedDocument) {
 				  this.logger.error("Missing mandatory fields in request payload");
 				  return new Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");

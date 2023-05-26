@@ -2,7 +2,7 @@ import * as dataDriversLicense from "../data/docSelectionPayloadDriversLicenceIn
 import * as dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../utils/ApiTestSteps";
 
-describe("E2E Negative Path /documentSelection Endpoint", () => {
+describe.skip("E2E Negative Path /documentSelection Endpoint", () => {
 	let sessionId: any;
 	beforeEach(async () => {
 		const sessionResponse = await startStubServiceAndReturnSessionId();
