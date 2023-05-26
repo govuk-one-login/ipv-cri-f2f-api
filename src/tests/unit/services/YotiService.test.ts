@@ -229,7 +229,7 @@ describe("YotiService", () => {
 
       axiosMock.post.mockResolvedValue({ data: { session_id: "session123" } });
 
-      const sessionId = await yotiService.createSession(personDetails, selectedDocument, YOTICALLBACKURL);
+      const sessionId = await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL);
 
       expect(generateYotiRequestMock).toHaveBeenCalled();
       expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", createSessionPayload, {});
@@ -244,7 +244,7 @@ describe("YotiService", () => {
 
       axiosMock.post.mockRejectedValueOnce(new Error("Failed to create session"));
 
-      await expect(yotiService.createSession(personDetails, selectedDocument, YOTICALLBACKURL)).rejects.toThrow(
+      await expect(yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL)).rejects.toThrow(
         new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Yoti Session")
       );
 
