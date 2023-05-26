@@ -200,6 +200,55 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.body).toBe("Instructions PDF Generated");
 	});
 
+	it("Should return successful response with 200 OK when non-UK passport used for YOTI session", async () => {
+		yotiSessionInfo.capture.required_resources[0].supported_countries[0].code = "ESP";
+
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
+
+		mockYotiService.fetchSessionInfo.mockResolvedValueOnce(yotiSessionInfo);
+
+		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
+
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+		expect(out.body).toBe("Instructions PDF Generated");
+	});
+
+	it("Should return successful response with 200 OK when an EEA ID Card is used and creates YOTI session", async () => {
+		yotiSessionInfo.capture.required_resources[0].supported_countries[0].code = "IRL";
+		yotiSessionInfo.capture.required_resources[0].supported_countries[0].supported_documents[0].type = "NATIONAL_ID";
+
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
+
+		mockYotiService.fetchSessionInfo.mockResolvedValueOnce(yotiSessionInfo);
+
+		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
+
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+		expect(out.body).toBe("Instructions PDF Generated");
+	});
+
 	it("Throw bad request error when personDetails is missing", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(undefined);

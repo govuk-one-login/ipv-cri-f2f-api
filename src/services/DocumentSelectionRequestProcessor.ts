@@ -55,6 +55,7 @@ export class DocumentSelectionRequestProcessor {
 
 		let postOfficeSelection: PostOfficeInfo;
 		let selectedDocument;
+		let countryCode;
 		let yotiSessionId;
 
 		if (!event.body) {
@@ -65,6 +66,7 @@ export class DocumentSelectionRequestProcessor {
 			  const eventBody = JSON.parse(event.body);
 			  postOfficeSelection = eventBody.post_office_selection;
 			  selectedDocument = eventBody.document_selection.document_selected;
+				countryCode = eventBody.document_selection.country_code;
 			  if (!postOfficeSelection || !selectedDocument) {
 				  this.logger.error("Missing mandatory fields in request payload");
 				  return new Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
@@ -84,7 +86,7 @@ export class DocumentSelectionRequestProcessor {
 		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
 
 			try {
-				yotiSessionId = await this.createSessionGenerateInstructions(personDetails, f2fSessionInfo, postOfficeSelection, selectedDocument);
+				yotiSessionId = await this.createSessionGenerateInstructions(personDetails, f2fSessionInfo, postOfficeSelection, selectedDocument, countryCode);
 				await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
 				await this.f2fService.updateSessionWithYotiIdAndStatus(f2fSessionInfo.sessionId, yotiSessionId, AuthSessionState.F2F_YOTI_SESSION_CREATED);
 			} catch(err){
@@ -112,10 +114,10 @@ export class DocumentSelectionRequestProcessor {
 		}
 	}
 
-	async createSessionGenerateInstructions(personDetails:PersonIdentityItem, f2fSessionInfo: ISessionItem, postOfficeSelection: PostOfficeInfo, selectedDocument: string): Promise<string> {
+	async createSessionGenerateInstructions(personDetails:PersonIdentityItem, f2fSessionInfo: ISessionItem, postOfficeSelection: PostOfficeInfo, selectedDocument: string, countryCode: string): Promise<string> {
 		this.logger.info({ message: "Creating new session in Yoti for: " }, `${f2fSessionInfo.sessionId}`);
 
-		const yotiSessionID = await this.yotiService.createSession(personDetails, selectedDocument, this.environmentVariables.yotiCallbackUrl());
+		const yotiSessionID = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
 
 		if (!yotiSessionID) {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occured when creating Yoti Session");
