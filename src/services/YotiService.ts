@@ -264,17 +264,20 @@ export class YotiService {
 			configResponseType: "arraybuffer",
 			configResponseEncoding: "binary",
 		});
-		const yotiRequestConfig =  yotiRequest.config!;
 
-		const url = yotiRequest.url;
+		if (yotiRequest && yotiRequest.config && yotiRequest.url) {
 
-		try {
-			this.logger.debug("getPdf - Yoti", { url, yotiRequestConfig });
-			return (await axios.get(yotiRequest.url, yotiRequest.config)).data;
+			try {
+				const yotiRequestConfig =  yotiRequest.config;
+				this.logger.debug("getPdf - Yoti", { yotiRequestConfig });
+				return (await axios.get(yotiRequest.url, yotiRequest.config)).data;
 
-		} catch (err) {
-			this.logger.error({ message: "An error occurred when fetching Yoti instructions PDF ", err });
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF");
+			} catch (err) {
+				this.logger.error( "An error occurred when fetching Yoti instructions PDF ", { "error": err });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF");
+			}
+		} else {
+			this.logger.error({ message: "Missing Yoti request config ", yotiRequest });
 		}
 	}
 
