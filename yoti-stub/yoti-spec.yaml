@@ -287,6 +287,60 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
 
+  /sessions/{sessionId}/media/{mediaId}/content:
+    get:
+      tags:
+        - Public Endpoints
+      summary: Retrieve media content
+      description: Retrieves a specific media
+      security:
+        - X-Yoti-Auth-Digest: []
+      parameters:
+        - $ref: "#/components/parameters/sessionId"
+        - $ref: "#/components/parameters/mediaId"
+        - $ref: "#/components/parameters/sdkId"
+        - $ref: "#/components/parameters/nonce"
+        - $ref: "#/components/parameters/timestamp"
+      responses:
+        200:
+          description: OK. Response body depends on Content-Type of the media
+        204:
+          description: OK. Regulations prevent us from returning the media content
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                MALFORMED_REQUEST:
+                  $ref: "#/components/examples/MalformedRequestDigestError"
+        401:
+          $ref: "#/components/responses/401SignatureResponse"
+        404:
+          description: Session, Media or App not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                MEDIA_CONTENT_NOT_FOUND:
+                  $ref: "#/components/examples/MediaContentNotFoundError"
+                SESSION_NOT_FOUND:
+                  $ref: "#/components/examples/SessionNotFoundError"
+                APP_NOT_FOUND:
+                  $ref: "#/components/examples/AppNotFoundError"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Yoti-Stub-${AWS::StackName}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
 components:
   ## ---------------------
   ## Schema Definitions
@@ -2004,6 +2058,12 @@ components:
       required: false
       schema:
         type: string
+    mediaId:
+      name: mediaId
+      in: path
+      required: true
+      schema:
+        type: string
 
 
   ## ---------------------
@@ -2175,6 +2235,10 @@ components:
       value:
         code: APP_NOT_FOUND
         message: The referenced application does not exist
+    MediaContentNotFoundError:
+      value:
+        code: MEDIA_CONTENT_NOT_FOUND
+        message: No media content found matching the id provided
     SessionNotFoundError:
       value:
         code: SESSION_NOT_FOUND

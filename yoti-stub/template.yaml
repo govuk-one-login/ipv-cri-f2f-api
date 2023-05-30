@@ -223,6 +223,12 @@ Resources:
             Path: /sessions/{sessionId}/instructions/pdf
             Method: get
             RestApiId: !Ref MockYotiRestApi
+        getmediacontent:
+          Type: Api
+          Properties:
+            Path: /sessions/{sessionId}/media/{mediaId}/content
+            Method: get
+            RestApiId: !Ref MockYotiRestApi
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:

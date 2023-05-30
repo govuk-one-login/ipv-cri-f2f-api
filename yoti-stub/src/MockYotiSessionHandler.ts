@@ -31,7 +31,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 		 	case ResourcesEnum.SESSIONS:
 		 		if (event.httpMethod === "POST") {
 					try {
-						logger.info("Event received", { event});
+						logger.info("Event received: CreateSession", { event});
 						logger.info("ABOUT TO PARSE JSON")
 						let payload = event.body;
 						let payloadParsed;
@@ -62,7 +62,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 		 	case ResourcesEnum.SESSIONS_ID:
 		 		if (event.httpMethod === "GET") {
 					try {
-						logger.info("Event received", { event });
+						logger.info("Event received: GetSession", { event });
 
 						if ( event && event.pathParameters) {
 							const sessionId = event.pathParameters?.sessionId;
@@ -105,7 +105,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 			 case ResourcesEnum.INSTRUCTIONS:
 				 if (event.httpMethod === "PUT") {
 					 try {
-						 logger.info("Event received", {event});
+						 logger.info("Event received: PutInstructions", {event});
 
 						 if (event && event.pathParameters) {
 							 // Extract attributes from queryStringParameters and add them to the data object
@@ -129,7 +129,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 			 case ResourcesEnum.INSTRUCTIONS_PDF:
 			 if (event.httpMethod === "GET") {
 				 try {
-					 logger.info("Event received", {event});
+					 logger.info("Event received: GetInstructionsPDF", {event});
 
 					 if (event && event.pathParameters) {
 						 // Extract attributes from queryStringParameters and add them to the data object
@@ -149,6 +149,31 @@ class MockYotiSessionHandler implements LambdaInterface {
 				 }
 			 }
 				 break;
+
+			case ResourcesEnum.MEDIA_CONTENT:
+			if (event.httpMethod === "GET") {
+				try {
+					logger.info("Event received: GetMediaContent", {event});
+
+					 if (event && event.pathParameters) {
+						 // Extract attributes from queryStringParameters and add them to the data object
+						 const mediaId = event.pathParameters?.mediaId;
+						 if(mediaId){
+
+							 return YotiRequestProcessor.getInstance(logger, metrics).getMediaContent(mediaId);
+						 }
+					 }
+
+				} catch (err: any) {
+					logger.error({ message: "An error has occurred.", err });
+					if (err instanceof AppError) {
+						return new Response(err.statusCode, err.message);
+					}
+					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+				}
+			}
+				break;
+					
 			 default:
 			 	throw new AppError(`Requested resource does not exist: ${event.resource}`, HttpCodesEnum.NOT_FOUND);
 		}
