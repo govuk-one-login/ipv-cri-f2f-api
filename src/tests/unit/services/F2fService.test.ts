@@ -53,173 +53,173 @@ function getGovNotifyEventPayload(): GovNotifyEvent {
 }
 
 describe("F2f Service", () => {
-  let txmaEventPayload: TxmaEvent, govNotifyEventPayload: GovNotifyEvent;
+	let txmaEventPayload: TxmaEvent, govNotifyEventPayload: GovNotifyEvent;
 
-  beforeAll(() => {
-    txmaEventPayload = getTXMAEventPayload();
-    govNotifyEventPayload = getGovNotifyEventPayload();
-  });
+	beforeAll(() => {
+		txmaEventPayload = getTXMAEventPayload();
+		govNotifyEventPayload = getGovNotifyEventPayload();
+	});
 
-  beforeEach(() => {
-    jest.resetAllMocks();
-    f2fService = F2fService.getInstance(tableName, logger, mockDynamoDbClient);
-  });
+	beforeEach(() => {
+		jest.resetAllMocks();
+		f2fService = F2fService.getInstance(tableName, logger, mockDynamoDbClient);
+	});
 
-  it("Should return a session item when passed a valid session Id", async () => {
-    mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: SESSION_RECORD });
-    const result = await f2fService.getSessionById(sessionId);
-    expect(result).toEqual({ sessionId: "SESSID" });
-  });
+	it("Should return a session item when passed a valid session Id", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: SESSION_RECORD });
+		const result = await f2fService.getSessionById(sessionId);
+		expect(result).toEqual({ sessionId: "SESSID" });
+	});
 
-  it("Should not throw an error and return undefined when session doesn't exist", async () => {
-    mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
-    await expect(f2fService.getSessionById("1234")).resolves.toBeUndefined();
-  });
+	it("Should not throw an error and return undefined when session doesn't exist", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		await expect(f2fService.getSessionById("1234")).resolves.toBeUndefined();
+	});
 
-  it("Should not throw an error when session expiry date has passed", async () => {
-    const expiredSession = {
-      ...SESSION_RECORD,
-      expiryDate: absoluteTimeNow() - 500,
-    };
-    mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: expiredSession });
-    await expect(f2fService.getSessionById("1234")).rejects.toThrow("Session with session id: 1234 has expired");
-  });
+	it("Should not throw an error when session expiry date has passed", async () => {
+		const expiredSession = {
+			...SESSION_RECORD,
+			expiryDate: absoluteTimeNow() - 500,
+		};
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: expiredSession });
+		await expect(f2fService.getSessionById("1234")).rejects.toThrow("Session with session id: 1234 has expired");
+	});
 
-  it("Should not throw an error and return undefined when set AuthorizationCode F2F data doesn't exist", async () => {
-    await expect(f2fService.setAuthorizationCode("SESSID", randomUUID())).resolves.toBeUndefined();
-  });
+	it("Should not throw an error and return undefined when set AuthorizationCode F2F data doesn't exist", async () => {
+		await expect(f2fService.setAuthorizationCode("SESSID", randomUUID())).resolves.toBeUndefined();
+	});
 
-  it("should throw 500 if request fails when setting AuthorizationCode", async () => {
-    mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
-    await expect(f2fService.setAuthorizationCode(FAILURE_VALUE, randomUUID())).rejects.toThrow(expect.objectContaining({
-      statusCode: HttpCodesEnum.SERVER_ERROR,
-    }));
-  });
+	it("should throw 500 if request fails when setting AuthorizationCode", async () => {
+		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+		await expect(f2fService.setAuthorizationCode(FAILURE_VALUE, randomUUID())).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+		}));
+	});
 
-  it("should throw 500 if request fails during update Session data with access token details", async () => {
-    mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+	it("should throw 500 if request fails during update Session data with access token details", async () => {
+		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
 
-    await expect(f2fService.updateSessionWithAccessTokenDetails("SESSID", 12345)).rejects.toThrow(expect.objectContaining({
-      statusCode: HttpCodesEnum.SERVER_ERROR,
-    }));
-  });
+		await expect(f2fService.updateSessionWithAccessTokenDetails("SESSID", 12345)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+		}));
+	});
 
-  it("should throw 500 if request fails during update Session data with yoti session details", async () => {
-    mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+	it("should throw 500 if request fails during update Session data with yoti session details", async () => {
+		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
 
-    await expect(f2fService.updateSessionWithYotiIdAndStatus("SESSID", "12345", "4567")).rejects.toThrow(expect.objectContaining({
-      statusCode: HttpCodesEnum.SERVER_ERROR,
-    }));
-  });
+		await expect(f2fService.updateSessionWithYotiIdAndStatus("SESSID", "12345", "4567")).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+		}));
+	});
 
-  it("Should log success if session details update with Yoti SessionId", async () => {
-    mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce("Session Updated");
-    await f2fService.updateSessionWithYotiIdAndStatus("123", "456", "YOTI_SESSION_CREATED");
-    expect(logger.info).toHaveBeenCalledWith({ message: "Updated Yoti session details in dynamodb" });
-  });
+	it("Should log success if session details update with Yoti SessionId", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce("Session Updated");
+		await f2fService.updateSessionWithYotiIdAndStatus("123", "456", "YOTI_SESSION_CREATED");
+		expect(logger.info).toHaveBeenCalledWith({ message: "Updated Yoti session details in dynamodb" });
+	});
 
-  it("show throw error if failed to send to TXMA queue", async () => {
-    mockSqsClient.send = jest.fn().mockRejectedValue({});
+	it("show throw error if failed to send to TXMA queue", async () => {
+		mockSqsClient.send = jest.fn().mockRejectedValue({});
 
-    await expect(f2fService.sendToTXMA(txmaEventPayload)).rejects.toThrow(expect.objectContaining({
-      statusCode: HttpCodesEnum.SERVER_ERROR,
-    }));
-  });
+		await expect(f2fService.sendToTXMA(txmaEventPayload)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+		}));
+	});
 
-  it("show throw error if failed to send to GovNotify queue", async () => {
-    mockSqsClient.send = jest.fn().mockRejectedValue({});
+	it("show throw error if failed to send to GovNotify queue", async () => {
+		mockSqsClient.send = jest.fn().mockRejectedValue({});
 
-    await expect(f2fService.sendToGovNotify(govNotifyEventPayload)).rejects.toThrow(expect.objectContaining({
-      statusCode: HttpCodesEnum.SERVER_ERROR,
-    }));
-  });
+		await expect(f2fService.sendToGovNotify(govNotifyEventPayload)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+		}));
+	});
 
-  it("should throw error if failed to send to IPVCore queue", async () => {
-    mockSqsClient.send = jest.fn().mockRejectedValue({});
+	it("should throw error if failed to send to IPVCore queue", async () => {
+		mockSqsClient.send = jest.fn().mockRejectedValue({});
 
-    await expect(f2fService.sendToIPVCore({
+		await expect(f2fService.sendToIPVCore({
 			sub: "",
 			state: "",
-			"https://vocab.account.gov.uk/v1/credentialJWT": ""
+			"https://vocab.account.gov.uk/v1/credentialJWT": "",
 		})).rejects.toThrow(expect.objectContaining({
-      statusCode: HttpCodesEnum.SERVER_ERROR,
-    }));
-  });
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+		}));
+	});
 
-  it("should return undefined when session item is not found by authorization code", async () => {
-    mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [] });
+	it("should return undefined when session item is not found by authorization code", async () => {
+		mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [] });
 
-    await expect(f2fService.getSessionByAuthorizationCode("1234")).rejects.toThrow("Error retrieving Session by authorization code");
-  });
+		await expect(f2fService.getSessionByAuthorizationCode("1234")).rejects.toThrow("Error retrieving Session by authorization code");
+	});
 
-  it("should throw error when multiple session items are found by authorization code", async () => {
-    mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [{ sessionId: "SESSID1" }, { sessionId: "SESSID2" }] });
+	it("should throw error when multiple session items are found by authorization code", async () => {
+		mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [{ sessionId: "SESSID1" }, { sessionId: "SESSID2" }] });
 
-    await expect(f2fService.getSessionByAuthorizationCode("1234")).rejects.toThrow(expect.objectContaining({
-      statusCode: HttpCodesEnum.SERVER_ERROR,
-    }));
-    expect(mockDynamoDbClient.query).toHaveBeenCalledWith(expect.objectContaining({
-      KeyConditionExpression: "authorizationCode = :authorizationCode",
-      ExpressionAttributeValues: {
-        ":authorizationCode": "1234",
-      },
-    }));
-  });
+		await expect(f2fService.getSessionByAuthorizationCode("1234")).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+		}));
+		expect(mockDynamoDbClient.query).toHaveBeenCalledWith(expect.objectContaining({
+			KeyConditionExpression: "authorizationCode = :authorizationCode",
+			ExpressionAttributeValues: {
+				":authorizationCode": "1234",
+			},
+		}));
+	});
 
-  it("should throw error when session item has expired by authorization code", async () => {
-    mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [{ sessionId: "SESSID", expiryDate: absoluteTimeNow() - 500 }] });
+	it("should throw error when session item has expired by authorization code", async () => {
+		mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [{ sessionId: "SESSID", expiryDate: absoluteTimeNow() - 500 }] });
 
-    await expect(f2fService.getSessionByAuthorizationCode("1234")).rejects.toThrow(expect.objectContaining({
-      statusCode: HttpCodesEnum.UNAUTHORIZED,
-    }));
-    expect(mockDynamoDbClient.query).toHaveBeenCalledWith(expect.objectContaining({
-      KeyConditionExpression: "authorizationCode = :authorizationCode",
-      ExpressionAttributeValues: {
-        ":authorizationCode": "1234",
-      },
-    }));
-  });
+		await expect(f2fService.getSessionByAuthorizationCode("1234")).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.UNAUTHORIZED,
+		}));
+		expect(mockDynamoDbClient.query).toHaveBeenCalledWith(expect.objectContaining({
+			KeyConditionExpression: "authorizationCode = :authorizationCode",
+			ExpressionAttributeValues: {
+				":authorizationCode": "1234",
+			},
+		}));
+	});
 
-  it("should return session item when session is found by authorization code", async () => {
-    mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [{ sessionId: "SESSID", expiryDate: absoluteTimeNow() + 500 }] });
+	it("should return session item when session is found by authorization code", async () => {
+		mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [{ sessionId: "SESSID", expiryDate: absoluteTimeNow() + 500 }] });
 
-    const result = await f2fService.getSessionByAuthorizationCode("1234");
-    expect(result).toEqual({ sessionId: "SESSID", expiryDate: expect.any(Number) });
-    expect(mockDynamoDbClient.query).toHaveBeenCalledWith(expect.objectContaining({
-      KeyConditionExpression: "authorizationCode = :authorizationCode",
-      ExpressionAttributeValues: {
-        ":authorizationCode": "1234",
-      },
-    }));
-  });
+		const result = await f2fService.getSessionByAuthorizationCode("1234");
+		expect(result).toEqual({ sessionId: "SESSID", expiryDate: expect.any(Number) });
+		expect(mockDynamoDbClient.query).toHaveBeenCalledWith(expect.objectContaining({
+			KeyConditionExpression: "authorizationCode = :authorizationCode",
+			ExpressionAttributeValues: {
+				":authorizationCode": "1234",
+			},
+		}));
+	});
 
-  it("should update session auth state", async () => {
-    mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
-    await f2fService.updateSessionAuthState("SESSID", "AUTH_STATE");
-    expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
+	it("should update session auth state", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		await f2fService.updateSessionAuthState("SESSID", "AUTH_STATE");
+		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
 			input:{
 				ExpressionAttributeValues:{
-					":authSessionState":"AUTH_STATE"
+					":authSessionState":"AUTH_STATE",
 				},
 				Key:{
-					sessionId:"SESSID"
+					sessionId:"SESSID",
 				},
 				TableName:"MYTABLE",
-				UpdateExpression:"SET authSessionState = :authSessionState"
-	 		}
+				UpdateExpression:"SET authSessionState = :authSessionState",
+	 		},
 		}));
-  });
+	});
 
-  it("should create auth session", async () => {
+	it("should create auth session", async () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
 		await f2fService.createAuthSession(SESSION_RECORD);
 		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
 			input:{
 				Item:{
-						sessionId:"SESSID"
+					sessionId:"SESSID",
 				},
-				TableName:"MYTABLE"
-			}
+				TableName:"MYTABLE",
+			},
 	 }));
 	});
 });

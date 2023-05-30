@@ -161,7 +161,7 @@ function getYotiSessionInfo(): YotiSessionInfo {
 }
 
 describe("DocumentSelectionRequestProcessor", () => {
-	let personIdentityItem: PersonIdentityItem, f2fSessionItem: ISessionItem, f2fSessionItemInvalid: ISessionItem, yotiSessionInfo: YotiSessionInfo;
+	let personIdentityItem: PersonIdentityItem, f2fSessionItem: ISessionItem, yotiSessionInfo: YotiSessionInfo;
 	beforeAll(() => {
 		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore
@@ -260,7 +260,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	});
 
 	it("Throw server error if Yoti Session already exists", async () => {
-		const f2fSessionItemInvalid = {
+		const f2fSessionItemInvalid: ISessionItem = {
 			...f2fSessionItem,
 			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
 			yotiSessionId: "RandomYOTISessionID",

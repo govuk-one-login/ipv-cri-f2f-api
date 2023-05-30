@@ -127,8 +127,8 @@ export class YotiService {
 		YOTICALLBACKURL?: string,
 	): Promise<string | undefined> {
 		//TODO: YOTICALLBACKURL needs updating in template.yaml file within deploy folders oncer we have work completed on return journey
-		this.logger.info("SELECTED DOCUMENT - YotiService START", selectedDocument)
-		this.logger.info("COUNTRY CODE - YotiService START", countryCode)
+		this.logger.info("SELECTED DOCUMENT - YotiService START", selectedDocument);
+		this.logger.info("COUNTRY CODE - YotiService START", countryCode);
 		const payloadJSON: CreateSessionPayload = {
 			client_session_token_ttl: this.CLIENT_SESSION_TOKEN_TTL_SECS ? this.CLIENT_SESSION_TOKEN_TTL_SECS : "950400",
 			resources_ttl: this.RESOURCES_TTL_SECS ? this.RESOURCES_TTL_SECS : "1036800",
@@ -166,7 +166,7 @@ export class YotiService {
 			},
 		};
 
-		this.logger.info("REQUIRED DOCS", {"required docs": payloadJSON.required_documents})
+		this.logger.info("REQUIRED DOCS", { "required docs": payloadJSON.required_documents });
 
 		const yotiRequest = this.generateYotiRequest({
 			method: HttpVerbsEnum.POST,
@@ -260,7 +260,7 @@ export class YotiService {
 		});
 		const yotiRequestConfig =  yotiRequest.config!;
 
-		const url = yotiRequest.url;
+		const { url } = yotiRequest;
 
 		try {
 			this.logger.debug("getPdf - Yoti", { url, yotiRequestConfig });
@@ -285,6 +285,22 @@ export class YotiService {
 		} catch (err) {
 			this.logger.error({ message: "An error occurred when fetching Yoti session ", err });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
+		}
+	}
+
+	async getMediaContent(sessionId: string, mediaId: string): Promise<any | undefined> {
+		const yotiRequest = this.generateYotiRequest({
+			method: HttpVerbsEnum.GET,
+			endpoint: `/sessions/${sessionId}/media/${mediaId}/content`,
+		});
+
+		try {
+			const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
+
+			return data;
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when fetching Yoti media content", err });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti media content");
 		}
 	}
 }
