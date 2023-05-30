@@ -127,8 +127,8 @@ export class YotiService {
 		YOTICALLBACKURL?: string,
 	): Promise<string | undefined> {
 		//TODO: YOTICALLBACKURL needs updating in template.yaml file within deploy folders oncer we have work completed on return journey
-		this.logger.info("SELECTED DOCUMENT - YotiService START", selectedDocument)
-		this.logger.info("COUNTRY CODE - YotiService START", countryCode)
+		this.logger.info("SELECTED DOCUMENT - YotiService START", selectedDocument);
+		this.logger.info("COUNTRY CODE - YotiService START", countryCode);
 		const payloadJSON: CreateSessionPayload = {
 			client_session_token_ttl: this.CLIENT_SESSION_TOKEN_TTL_SECS ? this.CLIENT_SESSION_TOKEN_TTL_SECS : "950400",
 			resources_ttl: this.RESOURCES_TTL_SECS ? this.RESOURCES_TTL_SECS : "1036800",
@@ -166,7 +166,11 @@ export class YotiService {
 			},
 		};
 
-		this.logger.info("REQUIRED DOCS", {"required docs": payloadJSON.required_documents})
+		if (selectedDocument.toUpperCase() === "UKPASSPORT") {
+			payloadJSON.required_documents[0].filter.allow_expired_documents = true;
+		}
+
+		this.logger.info("REQUIRED DOCS", { "required docs": payloadJSON.required_documents });
 
 		const yotiRequest = this.generateYotiRequest({
 			method: HttpVerbsEnum.POST,
