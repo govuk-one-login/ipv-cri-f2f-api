@@ -19,15 +19,15 @@ export class YotiService {
 
 	readonly PEM_KEY: string;
 
-	readonly CLIENT_SESSION_TOKEN_TTL: string;
+	readonly CLIENT_SESSION_TOKEN_TTL_SECS: string;
 
-	readonly RESOURCES_TTL:string;
+	readonly RESOURCES_TTL_SECS:string;
 
 	readonly YOTI_BASE_URL: string;
 
-	constructor(logger: Logger, CLIENT_SDK_ID: string, RESOURCES_TTL: string, CLIENT_SESSION_TOKEN_TTL: string, PEM_KEY: string, YOTI_BASE_URL: string) {
-		this.RESOURCES_TTL = RESOURCES_TTL;
-		this.CLIENT_SESSION_TOKEN_TTL = CLIENT_SESSION_TOKEN_TTL;
+	constructor(logger: Logger, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: string, CLIENT_SESSION_TOKEN_TTL_SECS: string, PEM_KEY: string, YOTI_BASE_URL: string) {
+		this.RESOURCES_TTL_SECS = RESOURCES_TTL_SECS;
+		this.CLIENT_SESSION_TOKEN_TTL_SECS = CLIENT_SESSION_TOKEN_TTL_SECS;
 		this.logger = logger;
 		this.CLIENT_SDK_ID = CLIENT_SDK_ID;
 		this.PEM_KEY = PEM_KEY;
@@ -37,13 +37,13 @@ export class YotiService {
 	static getInstance(
 		logger: Logger,
 		CLIENT_SDK_ID: string,
-		RESOURCES_TTL: string,
-		CLIENT_SESSION_TOKEN_TTL: string,
+		RESOURCES_TTL_SECS: string,
+		CLIENT_SESSION_TOKEN_TTL_SECS: string,
 		PEM_KEY: string,
 		YOTI_BASE_URL: string,
 	): YotiService {
 		if (!YotiService.instance) {
-			YotiService.instance = new YotiService(logger, CLIENT_SDK_ID, RESOURCES_TTL, CLIENT_SESSION_TOKEN_TTL, PEM_KEY, YOTI_BASE_URL);
+			YotiService.instance = new YotiService(logger, CLIENT_SDK_ID, RESOURCES_TTL_SECS, CLIENT_SESSION_TOKEN_TTL_SECS, PEM_KEY, YOTI_BASE_URL);
 		}
 		return YotiService.instance;
 	}
@@ -130,8 +130,8 @@ export class YotiService {
 		this.logger.info("SELECTED DOCUMENT - YotiService START", selectedDocument)
 		this.logger.info("COUNTRY CODE - YotiService START", countryCode)
 		const payloadJSON: CreateSessionPayload = {
-			client_session_token_ttl: this.CLIENT_SESSION_TOKEN_TTL ? this.CLIENT_SESSION_TOKEN_TTL : "950400",
-			resources_ttl: this.RESOURCES_TTL ? this.RESOURCES_TTL : "1036800",
+			client_session_token_ttl: this.CLIENT_SESSION_TOKEN_TTL_SECS ? this.CLIENT_SESSION_TOKEN_TTL_SECS : "950400",
+			resources_ttl: this.RESOURCES_TTL_SECS ? this.RESOURCES_TTL_SECS : "1036800",
 			ibv_options: {
 				support: "MANDATORY",
 			},

@@ -648,8 +648,8 @@ Resources:
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          CLIENT_SESSION_TOKEN_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
-          RESOURCES_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
+          CLIENT_SESSION_TOKEN_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
+          RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -899,8 +899,8 @@ Resources:
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
           YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          CLIENT_SESSION_TOKEN_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
-          RESOURCES_TTL: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
+          CLIENT_SESSION_TOKEN_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
+          RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
