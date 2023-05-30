@@ -6,7 +6,6 @@ import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { YotiCallbackProcessor } from "../../../services/YotiCallbackProcessor";
 import { YotiService } from "../../../services/YotiService";
-import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { YotiCompletedSession } from "../../../models/YotiPayloads";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
@@ -42,51 +41,9 @@ function getMockSessionItem(): ISessionItem {
 		persistentSessionId: "sdgsdg",
 		clientIpAddress: "127.0.0.1",
 		attemptCount: 1,
-		authSessionState: AuthSessionState.F2F_AUTH_CODE_ISSUED,
+		authSessionState: AuthSessionState.F2F_ACCESS_TOKEN_ISSUED,
 	};
 	return sessionInfo;
-}
-
-function getPersonIdentityItem(): PersonIdentityItem {
-	const personIdentityItem: PersonIdentityItem = {
-		"addresses": [
-			{
-				"addressCountry": "United Kingdom",
-				"buildingName": "Sherman",
-				"uprn": 123456789,
-				"streetName": "Wallaby Way",
-				"postalCode": "F1 1SH",
-				"buildingNumber": "32",
-				"addressLocality": "Sidney",
-			},
-		],
-		"sessionId": "RandomF2FSessionID",
-		"emailAddress": "test123@gov.uk",
-		"birthDate": [
-			{
-				"value":"1960-02-02",
-			},
-		],
-		"name": [
-			{
-				"nameParts": [
-					{
-						"type": "GivenName",
-						"value": "Frederick",
-					},
-					{
-						"type": "GivenName",
-						"value": "Joseph",
-					},
-					{
-						"type": "FamilyName",
-						"value": "Flintstone",
-					},
-				],
-			},
-		],
-	};
-	return personIdentityItem;
 }
 
 function getCompletedYotiSession(): YotiCompletedSession {
@@ -397,6 +354,31 @@ function getCompletedYotiSession(): YotiCompletedSession {
 	return completedYotiSession;
 }
 
+
+function getDocumentFields() {
+	const documentFields = {
+		"full_name": "ANGELA ZOE UK SPECIMEN",
+		"date_of_birth": "1988-12-04",
+		"nationality": "GBR",
+		"given_names": "ANGELA ZOE",
+		"family_name": "UK SPECIMEN",
+		"place_of_birth": "CROYDON",
+		"gender": "FEMALE",
+		"document_type": "PASSPORT",
+		"issuing_country": "GBR",
+		"document_number": "533401372",
+		"expiration_date": "2025-09-28",
+		"date_of_issue": "2015-09-28",
+		"issuing_authority": "HMPO",
+		"mrz": {
+			"type": 2,
+			"line1": "P<GBRUK<SPECIMEN<<ANGELA<ZOE<<<<<<<<<<<<<<<<",
+			"line2": "5334013720GBR8812049F2509286<<<<<<<<<<<<<<00",
+		},
+	};
+	return documentFields;
+}
+
 const VALID_REQUEST = {
 	"session_id":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 	"topic" : "session_completion",
@@ -404,7 +386,7 @@ const VALID_REQUEST = {
 
 
 describe("YotiCallbackProcessor", () => {
-	let personIdentityItem: PersonIdentityItem, f2fSessionItem: ISessionItem, completedYotiSession: YotiCompletedSession;
+	let f2fSessionItem: ISessionItem, completedYotiSession: YotiCompletedSession, documentFields: any;
 	beforeAll(() => {
 		mockYotiCallbackProcessor = new YotiCallbackProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore
@@ -412,11 +394,11 @@ describe("YotiCallbackProcessor", () => {
 		// @ts-ignore
 		mockYotiCallbackProcessor.yotiService = mockYotiService;
 
-		personIdentityItem = getPersonIdentityItem();
 		completedYotiSession = getCompletedYotiSession();
+		documentFields = getDocumentFields();
 		f2fSessionItem = getMockSessionItem();
 
-
+		
 	});
 
 	beforeEach(() => {
@@ -431,15 +413,15 @@ describe("YotiCallbackProcessor", () => {
 
 	it("Return successful response with 200 OK when YOTI session created", async () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		// @ts-ignore
 		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
 
-
+		
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
@@ -458,38 +440,65 @@ describe("YotiCallbackProcessor", () => {
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
 				"vc":{
-					 "@context":[
-						Constants.W3_BASE_CONTEXT,
-						Constants.DI_CONTEXT,
-					 ],
-					 "type": [Constants.VERIFIABLE_CREDENTIAL, Constants.IDENTITY_CHECK_CREDENTIAL],
+					"@context":[
+					 Constants.W3_BASE_CONTEXT,
+					 Constants.DI_CONTEXT,
+					],
+					"type": [Constants.VERIFIABLE_CREDENTIAL, Constants.IDENTITY_CHECK_CREDENTIAL],
 					 "credentialSubject":{
 						"name":[
 								 {
 								"nameParts":[
 											 {
+										"value":"ANGELA",
 										"type":"GivenName",
-										"value":"Frederick",
 											 },
 											 {
+										"value":"ZOE",
 										"type":"GivenName",
-										"value":"Joseph",
 											 },
 											 {
+										"value":"UK SPECIMEN",
 										"type":"FamilyName",
-										"value":"Flintstone",
 											 },
 								],
 								 },
 						],
 						"birthDate":[
 								 {
-								"value":"1960-02-02",
+								"value":"1988-12-04",
+								 },
+						],
+						"passport":[
+								 {
+								"documentNumber":"533401372",
+								"expiryDate":"2025-09-28",
+								"icaoIssuerCode":"GBR",
 								 },
 						],
 					 },
+					 "evidence":[
+						{
+								 "type":"IdentityCheck",
+								 "strengthScore":3,
+								 "validityScore":2,
+								 "verificationScore":3,
+								 "checkDetails":[
+								{
+											 "checkMethod":"vri",
+											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+											 "identityCheckPolicy":"published",
+								},
+								{
+											 "checkMethod":"pvr",
+											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+											 "biometricVerificationProcessLevel":3,
+								},
+								 ],
+						},
+					 ],
 				},
-			}),
+		 }),
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
@@ -506,6 +515,7 @@ describe("YotiCallbackProcessor", () => {
 
 	it("Throw sever error if F2F Session can not be found", async () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(undefined);
 
 		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
@@ -514,21 +524,10 @@ describe("YotiCallbackProcessor", () => {
 		}));
 	});
 
-	it("Throw sever error if F2F Session can not be found", async () => {
-		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
-		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(undefined);
-
-		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.SERVER_ERROR,
-			message: "Missing Info in Person Identity Table",
-		}));
-	});
-
 	it("Return 200 when write to txMA fails", async () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 		mockF2fService.sendToTXMA.mockRejectedValue({});
 
 		// @ts-ignore
@@ -536,7 +535,7 @@ describe("YotiCallbackProcessor", () => {
 
 		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
 
-
+		
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 
@@ -549,8 +548,8 @@ describe("YotiCallbackProcessor", () => {
 
 	it("Throws server error if failure to send to IPVCore queue", async () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		// @ts-ignore
 		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
@@ -566,6 +565,7 @@ describe("YotiCallbackProcessor", () => {
 	it("Throws server error if session in Yoti is not completed", async () => {
 		completedYotiSession.state = "ONGOING";
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 
 		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
