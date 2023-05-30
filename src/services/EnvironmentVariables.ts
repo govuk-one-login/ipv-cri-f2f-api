@@ -50,9 +50,9 @@ export class EnvironmentVariables {
 
 	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
 
-	private CLIENT_SESSION_TOKEN_TTL = process.env.CLIENT_SESSION_TOKEN_TTL;
+	private CLIENT_SESSION_TOKEN_TTL_SECS = process.env.CLIENT_SESSION_TOKEN_TTL_SECS;
 
-	private RESOURCES_TTL = process.env.RESOURCES_TTL;
+	private RESOURCES_TTL_SECS = process.env.RESOURCES_TTL_SECS;
 
 	/*
 	 * This function performs validation on env variable values.
@@ -91,13 +91,13 @@ export class EnvironmentVariables {
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 				}
 
-				if (!this.CLIENT_SESSION_TOKEN_TTL || this.CLIENT_SESSION_TOKEN_TTL.trim().length === 0) {
-					this.CLIENT_SESSION_TOKEN_TTL = "604800";
-					logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 7 days.");
+				if (!this.CLIENT_SESSION_TOKEN_TTL_SECS || this.CLIENT_SESSION_TOKEN_TTL_SECS.trim().length === 0) {
+					this.CLIENT_SESSION_TOKEN_TTL_SECS = "950400";
+					logger.warn("CLIENT_SESSION_TOKEN_TTL_SECS env var is not set. Setting to default - 11 days.");
 				}
-				if (!this.RESOURCES_TTL	|| this.RESOURCES_TTL.trim().length === 0) {
-					this.RESOURCES_TTL = "691200";
-					logger.warn("RESOURCES_TTL env var is not set. Setting to default - 8 days.");
+				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS.trim().length === 0) {
+					this.RESOURCES_TTL_SECS = "1036800";
+					logger.warn("RESOURCES_TTL_SECS env var is not set. Setting to default - 12 days.");
 				}
 				break;
 			}
@@ -169,13 +169,13 @@ export class EnvironmentVariables {
 					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
 				}
-				if (!this.CLIENT_SESSION_TOKEN_TTL || this.CLIENT_SESSION_TOKEN_TTL.trim().length === 0) {
-					this.CLIENT_SESSION_TOKEN_TTL = "604800";
-					logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 7 days.");
+				if (!this.CLIENT_SESSION_TOKEN_TTL_SECS || this.CLIENT_SESSION_TOKEN_TTL_SECS.trim().length === 0) {
+					this.CLIENT_SESSION_TOKEN_TTL_SECS = "950400";
+					logger.warn("CLIENT_SESSION_TOKEN_TTL_SECS env var is not set. Setting to default - 11 days.");
 				}
-				if (!this.RESOURCES_TTL	|| this.RESOURCES_TTL.trim().length === 0) {
-					this.RESOURCES_TTL = "691200";
-					logger.warn("RESOURCES_TTL env var is not set. Setting to default - 8 days.");
+				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS.trim().length === 0) {
+					this.RESOURCES_TTL_SECS = "1036800";
+					logger.warn("RESOURCES_TTL_SECS env var is not set. Setting to default - 12 days.");
 				}
 				break;
 			}
@@ -189,13 +189,13 @@ export class EnvironmentVariables {
 					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
 				}
-				if (!this.CLIENT_SESSION_TOKEN_TTL || this.CLIENT_SESSION_TOKEN_TTL.trim().length === 0) {
-					this.CLIENT_SESSION_TOKEN_TTL = "604800";
-					logger.warn("CLIENT_SESSION_TOKEN_TTL env var is not set. Setting to default - 7 days.");
+				if (!this.CLIENT_SESSION_TOKEN_TTL_SECS || this.CLIENT_SESSION_TOKEN_TTL_SECS.trim().length === 0) {
+					this.CLIENT_SESSION_TOKEN_TTL_SECS = "950400";
+					logger.warn("CLIENT_SESSION_TOKEN_TTL_SECS env var is not set. Setting to default - 11 days.");
 				}
-				if (!this.RESOURCES_TTL	|| this.RESOURCES_TTL.trim().length === 0) {
-					this.RESOURCES_TTL = "691200";
-					logger.warn("RESOURCES_TTL env var is not set. Setting to default - 8 days.");
+				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS.trim().length === 0) {
+					this.RESOURCES_TTL_SECS = "1036800";
+					logger.warn("RESOURCES_TTL_SECS env var is not set. Setting to default - 12 days.");
 				}
 				break;
 			}
@@ -303,12 +303,12 @@ export class EnvironmentVariables {
 		return this.PERSON_IDENTITY_TABLE_NAME;
 	}
 
-	resourcesTtl(): any {
-		return this.RESOURCES_TTL;
+	resourcesTtlInSeconds(): any {
+		return this.RESOURCES_TTL_SECS;
 	}
 
-	clientSessionTokenTtl(): any {
-		return this.CLIENT_SESSION_TOKEN_TTL;
+	clientSessionTokenTtlInSeconds(): any {
+		return this.CLIENT_SESSION_TOKEN_TTL_SECS;
 	}
 
 }

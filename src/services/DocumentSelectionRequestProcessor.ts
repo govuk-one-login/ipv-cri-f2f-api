@@ -35,7 +35,7 @@ export class DocumentSelectionRequestProcessor {
   		this.logger = logger;
   		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
-  		this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtl(), this.environmentVariables.clientSessionTokenTtl(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
+  		this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInSeconds(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
   		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   	}
 
@@ -89,10 +89,10 @@ export class DocumentSelectionRequestProcessor {
 				yotiSessionId = await this.createSessionGenerateInstructions(personDetails, f2fSessionInfo, postOfficeSelection, selectedDocument, countryCode);
 				await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
 				await this.f2fService.updateSessionWithYotiIdAndStatus(f2fSessionInfo.sessionId, yotiSessionId, AuthSessionState.F2F_YOTI_SESSION_CREATED);
-			} catch(err){
-				if(err instanceof AppError){
+			} catch (err) {
+				if (err instanceof AppError) {
 					return new Response(HttpCodesEnum.SERVER_ERROR, err.message);
-				} else{
+				} else {
 					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
 			}

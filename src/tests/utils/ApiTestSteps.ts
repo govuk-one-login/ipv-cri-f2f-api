@@ -36,7 +36,7 @@ export async function sessionPost(clientId?: string, request?: string):Promise<a
 }
 export async function postDocumentSelection(userData:any, sessionId:any): Promise<any> {
 	try {
-		const postRequest = await API_INSTANCE.post( "/documentSelection", userData, { headers:{ "x-govuk-signin-session-id": sessionId} });
+		const postRequest = await API_INSTANCE.post( "/documentSelection", userData, { headers:{ "x-govuk-signin-session-id": sessionId } });
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from endpoint: ${error}`);
@@ -48,7 +48,7 @@ export async function postYotiSession(trackingId: any, userData: any): Promise<a
 	const path = "/sessions";
 	try {
 		//update the last 4 chars of the user_tracker_id
-		var requestTrackingId = userData.user_tracking_id;
+		const requestTrackingId = userData.user_tracking_id;
 		userData.user_tracking_id = requestTrackingId.slice(0, -4) + trackingId;
 
 		const postRequest = await YOTI_INSTANCE.post(path, userData);
@@ -63,7 +63,7 @@ export async function getYotiSessionsConfiguration(sessionId:any): Promise<any> 
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/configuration";
 	console.log(path);
 	try {
-		const postRequest = await YOTI_INSTANCE.get(path)
+		const postRequest = await YOTI_INSTANCE.get(path);
 		return postRequest;
 
 	} catch (error: any) {
@@ -76,7 +76,7 @@ export async function putYotiSessionsInstructions(sessionId:any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions";
 	console.log(path);
 	try {
-		const postRequest = await YOTI_INSTANCE.put(path)
+		const postRequest = await YOTI_INSTANCE.put(path);
 		return postRequest;
 
 	} catch (error: any) {
@@ -89,7 +89,7 @@ export async function getYotiSessionsInstructions(sessionId:any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions/pdf";
 	console.log(path);
 	try {
-		const postRequest = await YOTI_INSTANCE.get(path)
+		const postRequest = await YOTI_INSTANCE.get(path);
 		return postRequest;
 
 	} catch (error: any) {
