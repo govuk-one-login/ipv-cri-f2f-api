@@ -4,10 +4,18 @@ export enum YotiDocumentTypesEnum {
 	BRP = "RESIDENCE_PERMIT",
 	NONUKPASSPORT = "PASSPORT",
 	EUPHOTOCARDDL = "DRIVING_LICENCE",
-	EEAIDENTITYCARD = "NATIONAL_ID"
+	EEAIDENTITYCARD = "NATIONAL_ID",
 }
 
 export const YOTI_DOCUMENT_COUNTRY_CODE = "GBR";
+
+export enum YotiSessionDocument {
+	APPROVE = "APPROVE",
+	REJECT = "REJECT",
+	DONE_STATE = "DONE",
+	SUBCHECK_PASS = "PASS",
+	CHIP_CSCA_TRUSTED = "chip_csca_trusted",
+}
 
 export const MANUAL_CHECK_TYPE = {
 	IBV: "IBV",
@@ -67,4 +75,3 @@ export const UK_POST_OFFICE = {
 	type: "UK_POST_OFFICE",
 	name: "UK Post Office Branch",
 };
-
