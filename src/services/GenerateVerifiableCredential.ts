@@ -26,6 +26,7 @@ export class GenerateVerifiableCredential {
   	return GenerateVerifiableCredential.instance;
   }
 
+	//TODO: Typecheck documentAuthenticityCheckBreakdown
   private doesDocumentContainValidChip(documentType: string, documentAuthenticityCheckBreakdown: any): boolean {
   	const validDocumentTypes = ["PASSPORT", "NATIONAL_ID"];
 	
@@ -66,12 +67,13 @@ export class GenerateVerifiableCredential {
 				return 4;
   		default:
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
-  				documentType,
+  				documentType, issuingCountry,
   			});
   	}
   }
 	
 
+	//TODO: 
   private calculateValidityScore(
   	authenticityRecommendation: string,
   	documentContainsValidChip: boolean,
@@ -246,9 +248,6 @@ export class GenerateVerifiableCredential {
   	const { checks } = completedYotiSessionPayload;
   	const documentType = idDocuments[0].document_type;
 		const yotiCountryCode = idDocuments[0].issuing_country;
-
-
-		// const documentType = idDocuments[0].document_type;
 	
   	const findCheck = (type: string) =>
   		checks.find((checkCompleted: { type: string }) => checkCompleted.type === type);
@@ -260,6 +259,7 @@ export class GenerateVerifiableCredential {
   		breakdown: check.report.breakdown,
   	});
 	
+		//IBV_VISUAL_REVIEW_CHECK && DOCUMENT_SCHEME_VALIDITY && PROFILE_DOCUMENT_MATCH Currently not being consumed
   	const MANDATORY_CHECKS = {
   		ID_DOCUMENT_AUTHENTICITY: findCheck(YOTI_CHECKS.ID_DOCUMENT_AUTHENTICITY.type) ? getCheckObject(findCheck(YOTI_CHECKS.ID_DOCUMENT_AUTHENTICITY.type)) : null,
   		ID_DOCUMENT_FACE_MATCH: findCheck(YOTI_CHECKS.ID_DOCUMENT_FACE_MATCH.type) ? getCheckObject(findCheck(YOTI_CHECKS.ID_DOCUMENT_FACE_MATCH.type)) : null,
@@ -267,6 +267,8 @@ export class GenerateVerifiableCredential {
   		DOCUMENT_SCHEME_VALIDITY: findCheck(YOTI_CHECKS.DOCUMENT_SCHEME_VALIDITY_CHECK.type) ? getCheckObject(findCheck(YOTI_CHECKS.DOCUMENT_SCHEME_VALIDITY_CHECK.type)) : null,
   		PROFILE_DOCUMENT_MATCH: findCheck(YOTI_CHECKS.PROFILE_DOCUMENT_MATCH.type) ? getCheckObject(findCheck(YOTI_CHECKS.PROFILE_DOCUMENT_MATCH.type)) : null,
   	};
+
+		this.logger.info({ message: "Yoti Mandatory Checks" }, MANDATORY_CHECKS);
 	
   	if (Object.values(MANDATORY_CHECKS).some((check) => check?.object === undefined)) {
   		throw new AppError(
@@ -286,12 +288,15 @@ export class GenerateVerifiableCredential {
 	
   	let credentialSubject: VerifiedCredentialSubject = {};
 	
+		//TODO: Logs below to say we're doing
   	credentialSubject = this.attachPersonName(
   		credentialSubject,
   		documentFields.given_names,
   		documentFields.family_name,
   	);
   	credentialSubject = this.attachDOB(credentialSubject, documentFields.date_of_birth);
+		const isAddressPresent = documentFields.structured_postal_address;
+		this.logger.info({ message: "Does document contain address details" }, isAddressPresent);
   	if (documentFields.structured_postal_address) {
   		credentialSubject = this.attachAddressInfo(
   			credentialSubject,
@@ -303,21 +308,26 @@ export class GenerateVerifiableCredential {
   		documentType,
   		documentFields,
   	);
+
+		//TODO: Split credentialSubject creation to another method
 	
+		//Assumption here that same subCheck won't be sent twice within same Check
   	const documentContainsValidChip = this.doesDocumentContainValidChip(
   		documentType,
   		MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.breakdown,
   	);
 	
+		//Assumption here that same subCheck won't be sent twice within same Check
   	const manualFaceMatchCheck = MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.breakdown.some(
   		(subCheck: { sub_check: string; result: string }) =>
   			subCheck.sub_check === "manual_face_match" &&
 				subCheck.result === YotiSessionDocument.SUBCHECK_PASS,
   	);
 	
+		//TODO: Add connent one ach method how it's calcuated
   	const evidence: VerifiedCredentialEvidence = [
   		{
-  			type: "IdentityCheck",
+  			type: "IdentityCheck", //TODO: Move to Constants
   			strengthScore: this.calculateStrengthScore(documentType, yotiCountryCode, documentContainsValidChip),
   			validityScore: this.calculateValidityScore(
   				MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value,

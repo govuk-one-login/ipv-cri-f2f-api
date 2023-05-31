@@ -504,6 +504,7 @@ describe("YotiCallbackProcessor", () => {
 		expect(out.body).toBe("OK");
 	});
 
+
 	it("Throw sever error if completed Yoti session can not be found", async () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(undefined);
 
