@@ -175,12 +175,14 @@ export class YotiService {
 		});
 
 		try {
+			this.logger.info("Yoti request url and config",{"yotiUrl":yotiRequest.url,"yotiConfig":yotiRequest.config});
 			const { data } = await axios.post(
 				yotiRequest.url,
 				payloadJSON,
 				yotiRequest.config,
 			);
-	
+
+			this.logger.info("Received response for create /sessions",{"data":data})
 			return data.session_id;
 		} catch (err) {
 			this.logger.error({ message: "An error occurred when creating Yoti session ", err });
@@ -243,7 +245,7 @@ export class YotiService {
 				payloadJSON,
 				yotiRequest.config,
 			);
-	
+
 			return HttpCodesEnum.OK;
 		} catch (err) {
 			this.logger.error({ message: "An error occurred when generationg Yoti instructions PDF ", err });
