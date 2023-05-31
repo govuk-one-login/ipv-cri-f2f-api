@@ -84,7 +84,7 @@ Mappings:
       AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
     build:
-      YOTIBASEURL: "https://proxy.review-o.build.account-gov.uk/yoti"
+      YOTIBASEURL: "https://proxy.review-o.build.account.gov.uk/yoti"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       YOTICALLBACKURL: "https://some-domain.example"
       ISSUER: 'https://review-o.build.account.gov.uk'
@@ -97,7 +97,7 @@ Mappings:
       AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
     staging:
-      YOTIBASEURL: "https://proxy.review-o.staging.account-gov.uk/yoti"
+      YOTIBASEURL: "https://proxy.review-o.staging.account.gov.uk/yoti"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
       YOTICALLBACKURL: "https://some-domain.example"
       ISSUER: 'https://review-o.staging.account.gov.uk'
@@ -110,7 +110,7 @@ Mappings:
       AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
-      YOTIBASEURL: "https://proxy.review-o.integration.account-gov.uk/yoti"
+      YOTIBASEURL: "https://proxy.review-o.integration.account.gov.uk/yoti"
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
       YOTICALLBACKURL: "https://some-domain.example"
       ISSUER: 'https://review-o.integration.account.gov.uk'
@@ -123,7 +123,7 @@ Mappings:
       AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
-      YOTIBASEURL: "https://proxy.review-o.account-gov.uk/yoti"
+      YOTIBASEURL: "https://proxy.review-o.account.gov.uk/yoti"
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
       YOTICALLBACKURL: "https://some-domain.example"
       ISSUER: 'https://review-o.account.gov.uk'
