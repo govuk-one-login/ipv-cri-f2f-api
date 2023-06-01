@@ -47,7 +47,7 @@ export async function postDocumentSelection(userData:any, sessionId:any): Promis
 export async function postYotiSession(trackingId: any, userData: any): Promise<any> {
 	const path = "/sessions";
 	try {
-		//Udpate fullName to contain user_tracker_id
+		// update fullName to contain trackingId - this determines the behaviour of the Yoti mock
 		userData.resources.applicant_profile.full_name = "Fred" + trackingId;
 
 		const postRequest = await YOTI_INSTANCE.post(path, userData);
