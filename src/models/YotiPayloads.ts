@@ -55,6 +55,7 @@ export interface CreateSessionPayload {
 		filter: {
 			type: string;
 			inclusion: string;
+			allow_expired_documents?: boolean;
 			documents: Array<{
 				country_codes: string[];
 				document_types: string[];
