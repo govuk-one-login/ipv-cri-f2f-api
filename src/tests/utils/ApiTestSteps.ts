@@ -47,9 +47,8 @@ export async function postDocumentSelection(userData:any, sessionId:any): Promis
 export async function postYotiSession(trackingId: any, userData: any): Promise<any> {
 	const path = "/sessions";
 	try {
-		//update the last 4 chars of the user_tracker_id
-		const requestTrackingId = userData.user_tracking_id;
-		userData.user_tracking_id = requestTrackingId.slice(0, -4) + trackingId;
+		//Udpate fullName to contain user_tracker_id
+		userData.resources.applicant_profile.full_name = "Fred" + trackingId;
 
 		const postRequest = await YOTI_INSTANCE.post(path, userData);
 		return postRequest;
