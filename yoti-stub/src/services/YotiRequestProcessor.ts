@@ -80,9 +80,8 @@ export class YotiRequestProcessor {
 	 */
 	async createSession(event: APIGatewayProxyEvent, incomingPayload: any): Promise<Response> {
 		this.logger.info("START OF CREATESESSION")
-		const trackingId = incomingPayload.user_tracking_id;
-		this.logger.info("SessionId from yotiSessionItem", { trackingId });
-		const lastUuidChars = trackingId.slice(-4);
+		const fullName = incomingPayload.resources.applicant_profile.full_name;
+		const lastUuidChars = fullName.match(/\d+/g)[0];
 		const yotiSessionId = randomUUID();
 		const lastYotiUuidChars = yotiSessionId.slice(-4);
 		this.logger.info("lastUuid", { lastUuidChars });
