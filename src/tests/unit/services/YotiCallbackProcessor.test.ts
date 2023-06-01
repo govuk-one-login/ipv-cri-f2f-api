@@ -492,7 +492,7 @@ describe("YotiCallbackProcessor", () => {
 								{
 											 "checkMethod":"pvr",
 											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-											 "biometricVerificationProcessLevel":3,
+											 "photoVerificationProcessLevel":3,
 								},
 								 ],
 						},

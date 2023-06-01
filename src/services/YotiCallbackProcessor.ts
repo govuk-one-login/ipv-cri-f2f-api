@@ -66,7 +66,6 @@ export class YotiCallbackProcessor {
   }
 
   async processRequest(eventBody: any): Promise<Response> {
-		//TODO: Check topic of incoming request
   	const yotiSessionID = eventBody.session_id;
 
   	this.logger.info({ message: "Fetching status for Yoti SessionID" }, { yotiSessionID });
@@ -82,9 +81,8 @@ export class YotiCallbackProcessor {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not complete", { shouldThrow: true });
   	}
 
-		//TODO: Log completedYotiSessionInfo Payload?
+		this.logger.info({ message: "Completed Yoti Session:" }, { completedYotiSessionInfo });
 
-		//TODO: Unit Test test
   	const documentFieldsId = completedYotiSessionInfo.resources.id_documents[0].document_fields.media.id;
 
   	if (!documentFieldsId) {
@@ -97,7 +95,7 @@ export class YotiCallbackProcessor {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
   	}
 
-		//TODO: Log documentFields Payload?
+		this.logger.info({ message: "Document Fields" }, { documentFields });
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
   	const f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);

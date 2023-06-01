@@ -305,19 +305,19 @@ describe("GenerateVerifiableCredential", () => {
 			const result = generateVerifiableCredential["attachEvidencePayload"](
 				credentialSubject,
 				documentType,
+				"GBR",
 				documentFields,
 			);
 
 			expect(result).toEqual({
 				drivingPermit: [
 					{
-						personalNumber: "BOEJJ861281TP9DH",
-						expiryDate: "2025-01-01",
-						issueDate: "2020-01-01",
-						issueNumber: null,
-						issuedBy: "Authority",
-						fullAddress: "Address",
-					},
+						personalNumber: 'BOEJJ861281TP9DH',
+						expiryDate: '2025-01-01',
+						issueDate: '2020-01-01',
+						issuedBy: 'Authority',
+						fullAddress: 'Address'
+					}
 				],
 			});
 		});
@@ -334,6 +334,7 @@ describe("GenerateVerifiableCredential", () => {
 			const result = generateVerifiableCredential["attachEvidencePayload"](
 				credentialSubject,
 				documentType,
+				"GBR",
 				documentFields,
 			);
 
@@ -357,6 +358,7 @@ describe("GenerateVerifiableCredential", () => {
 				generateVerifiableCredential["attachEvidencePayload"](
 					credentialSubject,
 					documentType,
+					"GBR",
 					documentFields,
 				),
 			).toThrow("Invalid documentType provided");
@@ -482,7 +484,7 @@ describe("GenerateVerifiableCredential", () => {
 								"txn":"yoti-session-id",
 								 },
 								 {
-								"biometricVerificationProcessLevel":3,
+								"photoVerificationProcessLevel":3,
 								"checkMethod":"pvr",
 								"txn":"yoti-session-id",
 								 },

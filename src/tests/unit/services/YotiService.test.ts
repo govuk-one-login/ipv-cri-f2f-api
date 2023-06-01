@@ -58,7 +58,7 @@ const createSessionPayload = {
 	user_tracking_id: "RandomF2FSessionID",
 	notifications: {
 		endpoint: "https://example.com/callback",
-		topics: ["SESSION_COMPLETION", "INSTRUCTIONS_EMAIL_REQUESTED"],
+		topics: ["SESSION_COMPLETION", "INSTRUCTIONS_EMAIL_REQUESTED", "THANK_YOU_EMAIL_REQUESTED"],
 		auth_token: "string",
 		auth_type: "BASIC",
 	},
@@ -101,6 +101,7 @@ const createSessionPayload = {
 			filter: {
 				type: "DOCUMENT_RESTRICTIONS",
 				inclusion: "INCLUDE",
+				allow_expired_documents: true,
 				documents: [
 					{
 						country_codes: ["GBR"],

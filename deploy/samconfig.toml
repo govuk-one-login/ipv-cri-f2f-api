@@ -2,10 +2,10 @@ version = 0.1
 [dev]
 [dev.deploy]
 [dev.deploy.parameters]
-stack_name = "backend-viveak"
-s3_prefix = "backend-viveak"
+stack_name = "backend-main"
+s3_prefix = "backend-main"
 region = "eu-west-2"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "CodeSigningConfigArn=\"none\" Environment=\"dev\" PermissionsBoundary=\"none\" SecretPrefix=\"none\" VpcStackName=\"vpc-cri\" L2DynamoStackName=\"infra-l2-dynamo-viveak\" L2KMSStackName=\"infra-l2-kms-viveak\""
+parameter_overrides = "CodeSigningConfigArn=\"none\" Environment=\"dev\" PermissionsBoundary=\"none\" SecretPrefix=\"none\" VpcStackName=\"vpc-cri\" L2DynamoStackName=\"f2f-cri-ddb\" L2KMSStackName=\"f2f-cri-kms\""
 image_repositories = []

@@ -88,6 +88,7 @@ export type VerifiedCredentialEvidence = Array<{
 	validityScore: number;
 	verificationScore: number;
 	checkDetails?: Array<{
+		photoVerificationProcessLevel?: number;
 		checkMethod: string;
 		txn: string;
 		identityCheckPolicy?: string;
@@ -96,6 +97,7 @@ export type VerifiedCredentialEvidence = Array<{
 	}>;
 	ci?: [string];
 	failedCheckDetails?: Array<{
+		photoVerificationProcessLevel?: number;
 		checkMethod: string;
 		identityCheckPolicy?: string;
 		biometricVerificationProcessLevel?: number;
@@ -108,6 +110,8 @@ export interface VerifiedCredentialSubject {
 	address?: Address[];
 	drivingPermit?: DrivingPermit[];
 	passport?: Passport[];
+	residencePermit?: any[];
+	nationalId?: any[];
 }
 
 export interface Name {
@@ -141,10 +145,9 @@ export interface Address {
 export interface DrivingPermit {
 	personalNumber: string;
 	expiryDate: string;
-	issueNumber: any;
 	issuedBy: string;
 	issueDate: string;
-	fullAddress: string;
+	fullAddress?: string;
 }
 
 export interface Passport {
