@@ -7,7 +7,7 @@ import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
 import { PersonIdentityItem } from "../models/PersonIdentityItem";
 import { ApplicantProfile, PostOfficeInfo, YotiSessionInfo, CreateSessionPayload, YotiCompletedSession } from "../models/YotiPayloads";
-import { YotiDocumentTypesEnum, YOTI_DOCUMENT_COUNTRY_CODE, YOTI_REQUESTED_CHECKS, YOTI_REQUESTED_TASKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
+import { YotiDocumentTypesEnum, YOTI_REQUESTED_CHECKS, YOTI_REQUESTED_TASKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
 export class YotiService {

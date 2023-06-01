@@ -73,7 +73,7 @@ describe("VerifiableCredentialService", () => {
 		"iat":123456789,
 		"iss":"test-issuer",
 		"nbf":123456789,
-		"sub":"sub",
+		"sub":"urn:uuid:sub",
 		"vc":{
 		 "@context":[Constants.W3_BASE_CONTEXT, Constants.DI_CONTEXT],
 		 credentialSubject,

@@ -2,7 +2,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
-import { YOTI_CHECKS, YotiSessionDocument } from "../utils/YotiPayloadEnums";
+import { YOTI_CHECKS, YotiSessionDocument, DOCUMENT_TYPES_WITH_CHIPS } from "../utils/YotiPayloadEnums";
+import { YotiCheckRecommendation, YotiDocumentFields, YotiCompletedSession, YotiDocumentFieldsAddressInfo } from "../models/YotiPayloads";
 import {
 	VerifiedCredentialEvidence,
 	VerifiedCredentialSubject,
@@ -27,12 +28,10 @@ export class GenerateVerifiableCredential {
   }
 
 	/**
-		Checks if Document contains a chip and if that chip is valid but checking the chip_csca_trusted field
+		Checks if Document contains a chip and if that chip is valid by checking the chip_csca_trusted field
 	*/
   private doesDocumentContainValidChip(documentType: string, documentAuthenticityCheckBreakdown: { sub_check: string; result: string; }[]): boolean {
-  	const validDocumentTypes = ["PASSPORT", "NATIONAL_ID", "RESIDENCE_PERMIT"];
-	
-  	if (validDocumentTypes.includes(documentType)) {
+  	if (DOCUMENT_TYPES_WITH_CHIPS.includes(documentType)) {
   		const validChip = documentAuthenticityCheckBreakdown.some(
   			(subCheck: { sub_check: string; result: string }) =>
   				subCheck.sub_check === YotiSessionDocument.CHIP_CSCA_TRUSTED && subCheck.result === YotiSessionDocument.SUBCHECK_PASS,
@@ -40,22 +39,25 @@ export class GenerateVerifiableCredential {
 	
   		return validChip;
   	}
-	
   	return false;
   }
 	
 
 	/**
-	 The following documents will be scored a 3:
-	 	Non chipped Passports or passports with chips which are un-opened
-		UK or EU Drivers Licence
-		EEA National Identity Card (Without Chip being read)
-		
-	 The following documents will be scored a 4:
-	 	UK Passports or Passports where the chip has been opened
-		BRP
-		EEA National Identity Card (With Chip which has been read)
-	*/
+	 * The following Documents will get a strength score of 4
+	 * UK Passports with valid chip
+	 * National ID with valid chip
+	 * Residential Permits
+
+	 * The following Documents will get a strength score of 3
+	 * UK Passports without valid chip
+	 * UK Driving Licence
+	 * NonUK Passport
+	 * NonUK Driving Licence
+	 * National ID without valid chip
+	 * 
+	 * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545465037/Draft+-+Generating+Strength+from+Yoti+Results
+	**/
   private calculateStrengthScore(documentType: string, issuingCountry: string, documentContainsValidChip: boolean): number {
   	if (issuingCountry === "GBR") {
 			switch (documentType) {
@@ -68,28 +70,33 @@ export class GenerateVerifiableCredential {
 						documentType, issuingCountry,
 					});
 			}
+		} else {
+			switch (documentType) {
+				case "PASSPORT":
+					return 3;
+				case "DRIVING_LICENCE":
+					return 3;
+				case "NATIONAL_ID":
+					return documentContainsValidChip ? 4 : 3;
+				case "RESIDENCE_PERMIT":
+					return 4;
+				default:
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
+						documentType, issuingCountry,
+					});
+			}
 		}
-		switch (documentType) {
-			case "PASSPORT":
-  			return 3;
-			case "DRIVING_LICENCE":
-  			return 3;
-			case "NATIONAL_ID":
-				return documentContainsValidChip ? 4 : 3;
-			case "RESIDENCE_PERMIT":
-				return 4;
-  		default:
-  			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
-  				documentType, issuingCountry,
-  			});
-  	}
   }
 	
 
 	/**
-		If the ID_DOCUMENT_AUTHENTICITY object has a recommendation value of approve, the document should be given a validity score of 2
-		If the ID_DOCUMENT_AUTHENTICITY has an recommendation value of approve and the object also includes an NFC check, the validity score will be 3. 
-	*/
+	 * IF the overall recommendation for ID_DOCUMENT_AUTHENTICITY is APPROVE
+	 * - If the document being scanned contains a valid chip the Validity score will be 3
+	 * - If the document being scanned does not a valid chip Validity score will be 2
+	 * IF the overall recommendation for ID_DOCUMENT_AUTHENTICITY is NOT APPROVE the Validity score will be 0 
+	 * 
+	 * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545825281/Draft+-+Generating+Validation+from+Yoti+Results
+	**/
   private calculateValidityScore(
   	authenticityRecommendation: string,
   	documentContainsValidChip: boolean,
@@ -101,19 +108,18 @@ export class GenerateVerifiableCredential {
   }
 	
 	/**
-		If the ID_DOCUMENT_FACE_MATCH object has a recommendation value of APPROVE, the document should be given a verification score of 3 
-	*/
+	 * IF ID_DOCUMENT_FACE_MATCH has recommendation of "APPROVE" a score of 3 will be given else 0
+	 * 
+	 * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545792513/Draft+-+Generating+Verification+from+Yoti+Results
+	**/
   private calculateVerificationProcessLevel(faceMatchCheck: string): number {
   	return faceMatchCheck === YotiSessionDocument.APPROVE ? 3 : 0;
   }
 	
-  private getCounterIndicator(
-  	ID_DOCUMENT_FACE_MATCH_RECOMMENDATION: any,
-  	ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION: any,
-  	IBV_VISUAL_REVIEW_CHECK_RECOMMENDATION?: any,
-  	DOCUMENT_SCHEME_VALIDITY_CHECK_RECOMMENDATION?: any,
-  	PROFILE_DOCUMENT_MATCH_RECOMMENDATION?: any,
-  ): any {
+  private getContraIndicator(
+  	ID_DOCUMENT_FACE_MATCH_RECOMMENDATION: YotiCheckRecommendation,
+  	ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION: YotiCheckRecommendation,
+  ): string[] {
   	const ci: string[] = [];
 	
   	const addToCI = (code: string | string[]) => {
@@ -181,7 +187,7 @@ export class GenerateVerifiableCredential {
   	givenName: string,
   	familyName: string,
   ): VerifiedCredentialSubject {
-  	const givenNames = givenName.split(" ");
+  	const givenNames = givenName.split(/\s+/);
   	const nameParts = givenNames.map((name) => ({ value: name, type: "GivenName" }));
 	
   	nameParts.push({ value: familyName, type: "FamilyName" });
@@ -203,11 +209,12 @@ export class GenerateVerifiableCredential {
 
   private attachAddressInfo(
   	credentialSubject: VerifiedCredentialSubject,
-  	postalAddress: any,
+  	postalAddress: YotiDocumentFieldsAddressInfo,
   ): VerifiedCredentialSubject {
   	credentialSubject.address = [
   		{
   			buildingNumber: postalAddress.building_number,
+				streetName: postalAddress?.address_line1?.match(/[a-zA-Z\s]+/)?.[0]?.trim(),
   			addressLocality: postalAddress.town_city,
   			postalCode: postalAddress.postal_code,
   			addressCountry: postalAddress.country,
@@ -221,13 +228,8 @@ export class GenerateVerifiableCredential {
   	credentialSubject: VerifiedCredentialSubject,
   	documentType: string,
 		issuingCountry: string,
-  	documentFields: any,
+  	documentFields: YotiDocumentFields,
   ): VerifiedCredentialSubject {
-
-		console.log('documentType', documentType);
-		console.log('issuingCountry', issuingCountry);
-		console.log('documentFields', documentFields);
-		console.log('issuing_authority', documentFields.issuing_authority);
 		if (issuingCountry === "GBR") {
 			switch (documentType) {
 				case "PASSPORT":
@@ -302,17 +304,14 @@ export class GenerateVerifiableCredential {
 					});
 			}
 		}
-
-		
-	
   	return credentialSubject;
   }
 	
 
-  getVerifiedCredentialInformation(this: any, 
+  getVerifiedCredentialInformation( 
   	yotiSessionId: string,
-  	completedYotiSessionPayload: any,
-  	documentFields: any,
+  	completedYotiSessionPayload: YotiCompletedSession,
+  	documentFields: YotiDocumentFields,
   ): {
   		credentialSubject: VerifiedCredentialSubject;
   		evidence: VerifiedCredentialEvidence;
@@ -325,7 +324,7 @@ export class GenerateVerifiableCredential {
   	const findCheck = (type: string) =>
   		checks.find((checkCompleted: { type: string }) => checkCompleted.type === type);
 	
-  	const getCheckObject = (check: { state: any; report: { recommendation: any; breakdown: any } }) => ({
+  	const getCheckObject = (check: any) => ({
   		object: check,
   		state: check.state,
   		recommendation: check.report.recommendation,
@@ -369,10 +368,8 @@ export class GenerateVerifiableCredential {
   	);
 		//Attach individuals DOB to the VC payload
   	credentialSubject = this.attachDOB(credentialSubject, documentFields.date_of_birth);
-		const isAddressPresent = documentFields.structured_postal_address;
-		this.logger.info({ message: "Does document contain address details" }, isAddressPresent);
-		//If address info present in Media document dttach individuals Address to the VC payload
-  	if (isAddressPresent) {
+		//If address info present in Media document attach individuals Address to the VC payload
+  	if (documentFields.structured_postal_address) {
   		credentialSubject = this.attachAddressInfo(
   			credentialSubject,
   			documentFields.structured_postal_address,
@@ -386,13 +383,11 @@ export class GenerateVerifiableCredential {
   		documentFields,
   	);
 	
-		//Assumption here that same subCheck won't be sent twice within same Check
   	const documentContainsValidChip = this.doesDocumentContainValidChip(
   		documentType,
   		MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.breakdown,
   	);
 	
-		//Assumption here that same subCheck won't be sent twice within same Check
   	const manualFaceMatchCheck = MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.breakdown.some(
   		(subCheck: { sub_check: string; result: string }) =>
   			subCheck.sub_check === "manual_face_match" &&
@@ -418,9 +413,9 @@ export class GenerateVerifiableCredential {
 			evidence[0].validityScore === 0 ||
 			evidence[0].verificationScore === 0
   	) {
-			const counterIndicators = this.getCounterIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);
-			if (counterIndicators.length >= 1) {
-				evidence[0].ci = counterIndicators
+			const contraIndicators = this.getContraIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);
+			if (contraIndicators.length >= 1) {
+				evidence[0].ci = contraIndicators
 			}
   		evidence[0].failedCheckDetails = [
   			{

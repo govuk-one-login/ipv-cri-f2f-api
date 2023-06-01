@@ -95,7 +95,7 @@ export type VerifiedCredentialEvidence = Array<{
 		activityFrom?: string;
 		biometricVerificationProcessLevel?: number;
 	}>;
-	ci?: [string];
+	ci?: string[];
 	failedCheckDetails?: Array<{
 		photoVerificationProcessLevel?: number;
 		checkMethod: string;
@@ -143,15 +143,15 @@ export interface Address {
 }
 
 export interface DrivingPermit {
-	personalNumber: string;
-	expiryDate: string;
-	issuedBy: string;
-	issueDate: string;
+	personalNumber?: string;
+	expiryDate?: string;
+	issuedBy?: string;
+	issueDate?: string;
 	fullAddress?: string;
 }
 
 export interface Passport {
-	documentNumber: string;
-	expiryDate: string;
-	icaoIssuerCode: string;
+	documentNumber?: string;
+	expiryDate?: string;
+	icaoIssuerCode?: string;
 }

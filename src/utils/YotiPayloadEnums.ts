@@ -9,7 +9,10 @@ export enum YotiDocumentTypesEnum {
 
 export const YOTI_DOCUMENT_COUNTRY_CODE = "GBR";
 
+export const DOCUMENT_TYPES_WITH_CHIPS = ["PASSPORT", "NATIONAL_ID", "RESIDENCE_PERMIT"];
+
 export enum YotiSessionDocument {
+	COMPLETED = "COMPLETED",
 	APPROVE = "APPROVE",
 	REJECT = "REJECT",
 	DONE_STATE = "DONE",

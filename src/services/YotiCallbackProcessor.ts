@@ -14,6 +14,7 @@ import { VerifiableCredentialService } from "./VerifiableCredentialService";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
+import { YotiSessionDocument } from "../utils/YotiPayloadEnums";
 
 export class YotiCallbackProcessor {
 
@@ -76,7 +77,7 @@ export class YotiCallbackProcessor {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not found");
   	}
 
-  	if (completedYotiSessionInfo.state !== "COMPLETED") {
+  	if (completedYotiSessionInfo.state !== YotiSessionDocument.COMPLETED) {
   		this.logger.error({ message: "Session in Yoti does not have status COMPLETED" }, { yotiSessionID });
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not complete", { shouldThrow: true });
   	}

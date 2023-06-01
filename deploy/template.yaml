@@ -715,7 +715,6 @@ Resources:
             Method: post
             RestApiId: !Ref F2FRestApi
     Metadata:
-      # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
@@ -723,7 +722,6 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - DocumentSelectionHandler.ts
-
 
   DocumentSelectionLogGroup:
     Type: AWS::Logs::LogGroup
