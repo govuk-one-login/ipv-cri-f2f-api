@@ -3,7 +3,7 @@ import dataDriversLicense from "../data/docSelectionPayloadDriversLicenceValid.j
 import dataBrp from "../data/docSelectionPayloadBrpValid.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../utils/ApiTestSteps";
 
-describe.skip("E2E Happy Path /documentSelection Endpoint", () => {
+describe("E2E Happy Path /documentSelection Endpoint", () => {
 	let sessionId: any;
 	beforeEach(async () => {
 		const sessionResponse = await startStubServiceAndReturnSessionId();
