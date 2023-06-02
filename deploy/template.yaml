@@ -161,6 +161,9 @@ Conditions:
     - !Equals [!Ref Environment, staging]
     - !Equals [!Ref Environment, integration]
     - !Equals [!Ref Environment, production]
+  IsPersonalIdentifiableInformationEnvironment: !Or
+    - !Equals [!Ref Environment, integration]
+    - !Equals [!Ref Environment, production]
   UseCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -292,8 +295,18 @@ Resources:
           Parameters:
             Location: './f2f-spec.yaml'
         OpenApiVersion: 3.0.1
-
-
+      MethodSettings:
+        - LoggingLevel: INFO
+          MetricsEnabled: true
+          ThrottlingBurstLimit: 400
+          ThrottlingRateLimit: 200
+          # Disable data trace in production and integration to avoid logging customer sensitive information
+          DataTraceEnabled: !If
+            - IsPersonalIdentifiableInformationEnvironment
+            - false
+            - true
+          HttpMethod: "*"
+          ResourcePath: "/*"
       TracingEnabled: true
       Tags:
         Product: GOV.UK Sign In
@@ -312,7 +325,6 @@ Resources:
           !Ref Environment,
           logretentionindays,
         ]
-      # KmsKeyId: !GetAtt HelloWorldKmsKey.Arn
       Tags:
         - Key: Product
           Value: GOV.UK Sign In
