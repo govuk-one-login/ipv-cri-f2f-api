@@ -83,7 +83,7 @@ Mappings:
       AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
     build:
-      YOTIBASEURL: "https://proxy.review-o.build.account.gov.uk/yoti"
+      YOTIBASEURL: "https://f2f-yoti-stub-yotistub.review-o.build.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.build.account.gov.uk'
       DNSSUFFIX: review-o.build.account.gov.uk
@@ -95,7 +95,7 @@ Mappings:
       AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
     staging:
-      YOTIBASEURL: "https://proxy.review-o.staging.account.gov.uk/yoti"
+      YOTIBASEURL: "https://api.yotistub.review-o.staging.account.gov.uk"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
       ISSUER: 'https://review-o.staging.account.gov.uk'
       DNSSUFFIX: review-o.staging.account.gov.uk

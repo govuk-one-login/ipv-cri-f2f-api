@@ -18,6 +18,7 @@ Parameters:
     AllowedValues:
       - "dev"
       - "build"
+      - "staging"
 
     ConstraintDescription: Ensure environment variable is set to one of dev, build.
   PermissionsBoundary:
@@ -37,21 +38,25 @@ Mappings:
     build:
       logretentionindays: 3
       apiTracingEnabled: true
+    staging:
+      logretentionindays: 3
+      apiTracingEnabled: true
 
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
       YOTISTUBURL: "yotistub.review-o.dev.account.gov.uk"
     build:
       YOTISTUBURL: "yotistub.review-o.build.account.gov.uk"
+    staging:
+      YOTISTUBURL: "yotistub.review-o.staging.account.gov.uk"
 
 Conditions:
   CreateDevResources: !Equals
     - !Ref Environment
     - dev
-#  IsProdLikeEnvironment: !Or
-#    - !Equals [!Ref Environment, staging]
-#    - !Equals [!Ref Environment, integration]
-#    - !Equals [!Ref Environment, production]
+  IsProdLikeEnvironment: !Equals
+    - !Ref Environment
+    - staging
   UseCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -260,7 +265,11 @@ Resources:
           - "${AWS::StackName}-${YOTISTUBURL}"
           - YOTISTUBURL:
               !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
-        - !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
+        - !Sub
+          - "api.${YOTISTUBURL}"
+          - YOTISTUBURL:
+             !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
+
 
       DomainNameConfigurations:
         - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
