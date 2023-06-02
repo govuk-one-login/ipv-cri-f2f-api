@@ -14,7 +14,7 @@ export async function stubStartPost():Promise<any> {
 	const path = constants.DEV_IPV_F2F_STUB_URL;
 	console.log("session id path: " + path);
 	try {
-		const postRequest = await axios.post(`${path}`, { target:constants.DEV_CRI_F2F_API_URL });
+		const postRequest = await axios.post(`${path}`, { target:constants.DEV_CRI_F2F_API_URL, yotiMockID: "0000" });
 		expect(postRequest.status).toBe(201);
 		return postRequest;
 	} catch (error: any) {
