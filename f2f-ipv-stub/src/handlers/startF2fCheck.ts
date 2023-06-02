@@ -62,14 +62,6 @@ export const handler = async (
     emailAddress: "fred.flintstone@bedrock-live.com",
   };
 
-  if (overrides?.yotiMockID != null) {
-    if (overrides?.yotiMockID.length > 4) {
-      throw new Error("Only 4 digits values allowed for yotiMockID");
-    }
-    defaultClaims.name[0].nameParts[2].value =
-      defaultClaims.name[0].nameParts[2].value + overrides?.yotiMockID;
-  }
-
   const iat = Math.floor(Date.now() / 1000);
   const payload: JarPayload = {
     sub: crypto.randomUUID(),
@@ -91,6 +83,14 @@ export const handler = async (
         ? overrides.shared_claims
         : defaultClaims,
   };
+
+  if (overrides?.yotiMockID != null) {
+    if (overrides?.yotiMockID.length > 4) {
+      throw new Error("Only 4 digits values allowed for yotiMockID");
+    }
+    payload.shared_claims.name[0].nameParts[2].value =
+      payload.shared_claims.name[0].nameParts[2].value + overrides?.yotiMockID;
+  }
   const signedJwt = await sign(payload, config.signingKey);
   const publicEncryptionKey: CryptoKey = await getPublicEncryptionKey(config);
   const request = await encrypt(signedJwt, publicEncryptionKey);
