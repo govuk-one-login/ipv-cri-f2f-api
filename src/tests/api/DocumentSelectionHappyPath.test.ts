@@ -4,7 +4,7 @@ import dataBrp from "../data/docSelectionPayloadBrpValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId, authorizationGet, tokenPost, userInfoPost, stubStartPostNoSharedClaims, sessionPost } from "../utils/ApiTestSteps";
 
-describe.skip("E2E Happy Path /documentSelection Endpoint", () => {
+describe("E2E Happy Path /documentSelection Endpoint", () => {
 	let sessionId: any;
 	beforeEach(async () => {
 		f2fStubPayload.yotiMockID = "0000";

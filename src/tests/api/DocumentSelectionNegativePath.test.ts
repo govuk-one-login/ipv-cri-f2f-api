@@ -4,7 +4,7 @@ import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../ut
 import f2fStubPayload from "../data/exampleStubPayload.json";
 
 
-describe.skip("E2E Negative Path /documentSelection Endpoint", () => {
+describe("E2E Negative Path /documentSelection Endpoint", () => {
 	let sessionId: any;
 	beforeEach(async () => {
 		f2fStubPayload.yotiMockID = "0000";
