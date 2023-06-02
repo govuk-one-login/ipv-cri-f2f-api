@@ -73,7 +73,6 @@ Mappings:
     dev:
       YOTIBASEURL: "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk"
       YOTISDK: "MockSDK"
-      YOTICALLBACKURL: "https://some-domain.example"
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
@@ -86,7 +85,6 @@ Mappings:
     build:
       YOTIBASEURL: "https://proxy.review-o.build.account.gov.uk/yoti"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
-      YOTICALLBACKURL: "https://some-domain.example"
       ISSUER: 'https://review-o.build.account.gov.uk'
       DNSSUFFIX: review-o.build.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
@@ -99,7 +97,6 @@ Mappings:
     staging:
       YOTIBASEURL: "https://proxy.review-o.staging.account.gov.uk/yoti"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
-      YOTICALLBACKURL: "https://some-domain.example"
       ISSUER: 'https://review-o.staging.account.gov.uk'
       DNSSUFFIX: review-o.staging.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
@@ -112,7 +109,6 @@ Mappings:
     integration:
       YOTIBASEURL: "https://proxy.review-o.integration.account.gov.uk/yoti"
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
-      YOTICALLBACKURL: "https://some-domain.example"
       ISSUER: 'https://review-o.integration.account.gov.uk'
       DNSSUFFIX: review-o.integration.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
@@ -125,7 +121,6 @@ Mappings:
     production:
       YOTIBASEURL: "https://proxy.review-o.account.gov.uk/yoti"
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
-      YOTICALLBACKURL: "https://some-domain.example"
       ISSUER: 'https://review-o.account.gov.uk'
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
@@ -652,14 +647,22 @@ Resources:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           PERSON_IDENTITY_TABLE_NAME:
-            Fn::ImportValue:
-              !Sub "${L2DynamoStackName}-person-identity-table-name"
-          YOTICALLBACKURL: !FindInMap [EnvironmentVariables, !Ref Environment, YOTICALLBACKURL]
+            Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
+          YOTICALLBACKURL: !If
+            - CreateDevResources
+            - !Sub
+              - "https://api-${AWS::StackName}.${DNSSUFFIX}/callback"
+              - DNSSUFFIX:
+                  !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
+            - !Sub
+              - "https://api.${DNSSUFFIX}/callback"
+              - DNSSUFFIX:
+                  !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
           GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
-          YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
-          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          YOTIBASEURL: !FindInMap [EnvironmentVariables, !Ref Environment, YOTIBASEURL]
+          YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
           CLIENT_SESSION_TOKEN_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
           RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
       Policies:
@@ -668,47 +671,42 @@ Resources:
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
         - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-person-identity-table-name"
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
         - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-name"
         - DynamoDBWritePolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-name"
         - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-person-identity-table-key-id"
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-key-id"
         - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-key-id"
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-key-id"
         - Statement:
             - Effect: Allow
               Action:
                 - "sqs:SendMessage"
-              Resource: !GetAtt TxMASQSQueue.Arn
+              Resource: !GetAtt [TxMASQSQueue, Arn]
             - Effect: Allow
               Action:
                 - "kms:Encrypt"
                 - "kms:Decrypt"
                 - "kms:GenerateDataKey"
-              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+              Resource: !GetAtt [TxMAKMSEncryptionKey, Arn]
         - Statement:
             - Effect: Allow
               Action:
                 - "sqs:SendMessage"
-              Resource: !GetAtt GovNotifySQSQueue.Arn
+              Resource: !GetAtt [GovNotifySQSQueue, Arn]
             - Effect: Allow
               Action:
                 - "kms:Encrypt"
                 - "kms:Decrypt"
                 - "kms:GenerateDataKey"
-              Resource: !GetAtt GovNotifyEncryptionKey.Arn
+              Resource: !GetAtt [GovNotifyEncryptionKey, Arn]
       Events:
         documentSelection:
           Type: Api
@@ -716,7 +714,7 @@ Resources:
             Path: /documentSelection
             Method: post
             RestApiId: !Ref F2FRestApi
-    Metadata: # Manage esbuild properties
+    Metadata:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true

@@ -50,7 +50,13 @@ class YotiCallbackHandler implements LambdaInterface {
 					}
 				}
 				
-				await YotiCallbackProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
+				if (body.topic === "session_completion") {
+					await YotiCallbackProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
+				} else {
+					logger.warn("Unexpected topic received in request");
+					return new Response(HttpCodesEnum.BAD_REQUEST, "Unexpected topic received in request");
+				}
+				
 
 				logger.debug("Finished processing record from SQS");
 				return new Response(HttpCodesEnum.OK, {

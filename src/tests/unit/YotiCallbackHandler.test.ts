@@ -1,7 +1,7 @@
 import { mock } from "jest-mock-extended";
 import { lambdaHandler } from "../../YotiCallbackHandler";
 import { YotiCallbackProcessor } from "../../services/YotiCallbackProcessor";
-import { VALID_SQS_EVENT } from "./data/sqs-events";
+import { VALID_SQS_EVENT } from "./data/callback-events";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { AppError } from "../../utils/AppError";
 
