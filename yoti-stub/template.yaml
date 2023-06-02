@@ -54,9 +54,6 @@ Conditions:
   CreateDevResources: !Equals
     - !Ref Environment
     - dev
-  IsProdLikeEnvironment: !Equals
-    - !Ref Environment
-    - staging
   UseCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -265,10 +262,7 @@ Resources:
           - "${AWS::StackName}-${YOTISTUBURL}"
           - YOTISTUBURL:
               !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
-        - !Sub
-          - "api.${YOTISTUBURL}"
-          - YOTISTUBURL:
-             !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
+        - !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
 
 
       DomainNameConfigurations:
