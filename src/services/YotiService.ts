@@ -7,7 +7,7 @@ import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { HttpVerbsEnum } from "../utils/HttpVerbsEnum";
 import { PersonIdentityItem } from "../models/PersonIdentityItem";
 import { ApplicantProfile, PostOfficeInfo, YotiSessionInfo, CreateSessionPayload, YotiCompletedSession } from "../models/YotiPayloads";
-import { YotiDocumentTypesEnum, YOTI_DOCUMENT_COUNTRY_CODE, YOTI_REQUESTED_CHECKS, YOTI_REQUESTED_TASKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
+import { YotiDocumentTypesEnum, YOTI_REQUESTED_CHECKS, YOTI_REQUESTED_TASKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
 export class YotiService {
@@ -124,9 +124,8 @@ export class YotiService {
 		personDetails: PersonIdentityItem,
 		selectedDocument: string,
 		countryCode: string,
-		YOTICALLBACKURL?: string,
+		yotiCallbackUrl: string,
 	): Promise<string | undefined> {
-		//TODO: YOTICALLBACKURL needs updating in template.yaml file within deploy folders oncer we have work completed on return journey
 		this.logger.info("SELECTED DOCUMENT - YotiService START", selectedDocument);
 		this.logger.info("COUNTRY CODE - YotiService START", countryCode);
 		const payloadJSON: CreateSessionPayload = {
@@ -137,7 +136,7 @@ export class YotiService {
 			},
 			user_tracking_id: personDetails.sessionId,
 			notifications: {
-				endpoint: YOTICALLBACKURL ? YOTICALLBACKURL : "",
+				endpoint: yotiCallbackUrl,
 				topics: YOTI_SESSION_TOPICS,
 				auth_token: "string",
 				auth_type: "BASIC",
@@ -294,6 +293,22 @@ export class YotiService {
 		} catch (err) {
 			this.logger.error({ message: "An error occurred when fetching Yoti session ", err });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
+		}
+	}
+
+	async getMediaContent(sessionId: string, mediaId: string): Promise<any | undefined> {
+		const yotiRequest = this.generateYotiRequest({
+			method: HttpVerbsEnum.GET,
+			endpoint: `/sessions/${sessionId}/media/${mediaId}/content`,
+		});
+
+		try {
+			const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
+
+			return data;
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when fetching Yoti media content", err });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti media content");
 		}
 	}
 }
