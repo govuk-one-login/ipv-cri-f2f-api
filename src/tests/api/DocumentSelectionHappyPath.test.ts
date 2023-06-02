@@ -55,7 +55,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		console.log(userInfoResponse.data);
 	});
 
-	it("E2E Happy Path Journey - Biometric Residence Permit", async () => {
+		it("E2E Happy Path Journey - Biometric Residence Permit", async () => {
 		const response = await postDocumentSelection(dataBrp, sessionId);
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Instructions PDF Generated");
