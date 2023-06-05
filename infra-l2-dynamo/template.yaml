@@ -70,6 +70,8 @@ Resources:
           AttributeType: "S"
         - AttributeName: "authorizationCode"
           AttributeType: "S"
+        - AttributeName: "yotiSessionId"
+          AttributeType: "S"
       KeySchema:
         - AttributeName: "sessionId"
           KeyType: "HASH"
@@ -83,6 +85,20 @@ Resources:
               - "sessionId"
               - "redirectUri"
               - "clientId"
+              - "authSessionState"
+            ProjectionType: "INCLUDE"
+        - IndexName: "yotiSessionId-index"
+          KeySchema:
+            - AttributeName: "yotiSessionId"
+              KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "sessionId"
+              - "subject"
+              - "clientIpAddress"
+              - "state"
+              - "clientId"
+              - "clientSessionId"
               - "authSessionState"
             ProjectionType: "INCLUDE"
       TimeToLiveSpecification:
