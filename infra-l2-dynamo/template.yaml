@@ -85,6 +85,20 @@ Resources:
               - "clientId"
               - "authSessionState"
             ProjectionType: "INCLUDE"
+        - IndexName: "yotiSession-index"
+          KeySchema:
+            - AttributeName: "yotiSessionId"
+              KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "sessionId"
+              - "subject"
+              - "clientIpAddress"
+              - "state"
+              - "clientId"
+              - "clientSessionId"
+              - "authSessionState"
+            ProjectionType: "INCLUDE"
       TimeToLiveSpecification:
         AttributeName: expiryDate
         Enabled: true
