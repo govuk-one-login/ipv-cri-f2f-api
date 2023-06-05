@@ -128,29 +128,32 @@ export class SendEmailService {
     			this.logger.error("sendEmail - GOV UK Notify threw an error");
 
     			if (err.response) {
-    				// err.response.data.status_code 	err.response.data.errors
     				this.logger.error(`GOV UK Notify error ${SendEmailService.name}`, {
     					statusCode: err.response.data.status_code,
     					errors: err.response.data.errors,
     				});
     			}
 
-    			const appError: any = this.govNotifyErrorMapper.map(err);
+				const appError: any = this.govNotifyErrorMapper.map(err.response.data.status_code, err.response.data.errors[0].message);
 
-    			if (appError.obj!.shouldThrow) {
-    				this.logger.error("sendEmail - Mapped error", SendEmailService.name, appError.message);
-    				throw appError;
-    			} else {
-    				this.logger.error(`sendEmail - Mapped error ${SendEmailService.name}`, { appError });
-    				this.logger.error(`sendEmail - Retrying to send the email. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${SendEmailService.name} ${new Date().toISOString()}`, { retryCount });
-    				await sleep(this.environmentVariables.backoffPeriod());
-    			}
+				if (appError.obj!.shouldRetry) {
+					this.logger.error(`sendEmail - Mapped error ${SendEmailService.name}`, { appError });
+					if (retryCount < this.environmentVariables.maxRetries() + 1) {
+						this.logger.error(`sendEmail - Retrying to send the email. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${SendEmailService.name} ${new Date().toISOString()}`, { retryCount });
+						await sleep(this.environmentVariables.backoffPeriod());
+					} else {
+						break;
+					}
+				} else {
+					this.logger.error("sendEmail - Mapped error", SendEmailService.name, appError.message);
+					throw appError;
+				}
     		}
     	}
 
     	// If the email couldn't be sent after the retries,
     	// an error is thrown
-    	this.logger.error(`sendEmail - cannot send EMail ${SendEmailService.name}`);
+    	this.logger.error(`sendEmail - cannot send Email ${SendEmailService.name}`);
     	throw new AppError(HttpCodesEnum.SERVER_ERROR, "Cannot send EMail");
 	}
 
