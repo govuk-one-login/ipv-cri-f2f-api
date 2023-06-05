@@ -87,7 +87,7 @@ Resources:
               - "clientId"
               - "authSessionState"
             ProjectionType: "INCLUDE"
-        - IndexName: "yotiSessionId-index"
+        - IndexName: "yotiSession-index"
           KeySchema:
             - AttributeName: "yotiSessionId"
               KeyType: "HASH"
