@@ -3,18 +3,17 @@ import { constants } from "../utils/ApiConstants";
 const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
 const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
 
-export async function startStubServiceAndReturnSessionId(): Promise<any> {
-	const stubResponse = await stubStartPost();
-	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 
+export async function startStubServiceAndReturnSessionId(stubPayload: any): Promise<any> {
+	const stubResponse = await stubStartPost(stubPayload);
+	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 	return postRequest;
 }
 
-export async function stubStartPost():Promise<any> {
+export async function stubStartPost(stubPayload: any):Promise<any> {
 	const path = constants.DEV_IPV_F2F_STUB_URL;
-	console.log("session id path: " + path);
 	try {
-		const postRequest = await axios.post(`${path}`, { target:constants.DEV_CRI_F2F_API_URL });
+		const postRequest = await axios.post(`${path}`, stubPayload);
 		expect(postRequest.status).toBe(201);
 		return postRequest;
 	} catch (error: any) {
@@ -22,6 +21,19 @@ export async function stubStartPost():Promise<any> {
 		return error.response;
 	} 
 }
+
+export async function stubStartPostNoSharedClaims(requestBody:any):Promise<any> {
+	const path = constants.DEV_IPV_F2F_STUB_URL;
+	try {
+		const postRequest = await axios.post(`${path}`, requestBody);
+		expect(postRequest.status).toBe(201);
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	} 
+}
+
 
 export async function sessionPost(clientId?: string, request?: string):Promise<any> {
 	const path = "/session";
@@ -40,6 +52,40 @@ export async function postDocumentSelection(userData:any, sessionId:any): Promis
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from endpoint: ${error}`);
+		return error.response;
+	} 
+}
+
+
+export async function authorizationGet(sessionId: any):Promise<any> {
+	const path = "/authorization";
+	try {
+		const getRequest = await API_INSTANCE.get( "/authorization", { headers:{ "session-id": sessionId } });
+		return getRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	} 
+}   
+
+export async function tokenPost(authCode?: any, redirectUri?: any ):Promise<any> {
+	const path = "/token";
+	try {
+		const postRequest = await API_INSTANCE.post( "/token", `code=${authCode}&grant_type=authorization_code&redirect_uri=${redirectUri}`, { headers:{ "Content-Type" : "text/plain" } });
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	} 
+}
+
+export async function userInfoPost(accessToken?: any):Promise<any> {
+	const path = "/userInfo";
+	try {
+		const postRequest = await API_INSTANCE.post( "/userInfo", null, { headers: { "Authorization": `${accessToken}` } });
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
 	} 
 }
@@ -83,6 +129,7 @@ export async function putYotiSessionsInstructions(sessionId:any): Promise<any> {
 		return error.response;
 	}
 }
+
 
 export async function getYotiSessionsInstructions(sessionId:any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions/pdf";
