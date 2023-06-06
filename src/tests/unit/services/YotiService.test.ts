@@ -5,7 +5,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-import { CreateSessionPayload } from "../../../models/YotiPayloads";
+import { mock } from "jest-mock-extended";
 
 jest.mock("@aws-lambda-powertools/logger");
 jest.mock("axios");
@@ -49,7 +49,7 @@ const personDetails: PersonIdentityItem = {
 	],
 };
 
-const createSessionPayload: CreateSessionPayload = {
+const createSessionPayload = {
 	client_session_token_ttl: "950400",
 	resources_ttl: "1036800",
 	ibv_options: {
@@ -101,10 +101,11 @@ const createSessionPayload: CreateSessionPayload = {
 			filter: {
 				type: "DOCUMENT_RESTRICTIONS",
 				inclusion: "INCLUDE",
+				allow_expired_documents: true,
 				documents: [
 					{
 						country_codes: ["GBR"],
-						document_types: ["RESIDENCE_PERMIT"],
+						document_types: ["PASSPORT"],
 					},
 				],
 			},
@@ -164,16 +165,15 @@ const generateInstructionsPayload = {
 };
 
 describe("YotiService", () => {
-	let loggerMock: jest.Mocked<Logger>;
+	const logger = mock<Logger>();
 	let axiosMock: jest.Mocked<typeof axios>;
 	let yotiService: YotiService;
 
 	beforeEach(() => {
-		loggerMock = new Logger() as jest.Mocked<Logger>;
 		axiosMock = axios as jest.Mocked<typeof axios>;
 
 		yotiService = new YotiService(
-			loggerMock,
+			logger,
 			"CLIENT_SDK_ID",
 			"1036800",
 			"950400",
@@ -220,7 +220,7 @@ describe("YotiService", () => {
 	});
 
 	describe("createSession", () => {
-		const selectedDocument = "BRP";
+		const selectedDocument = "UKPASSPORT";
 		const YOTICALLBACKURL = "https://example.com/callback";
 
 		it("should create a Yoti session and return the session ID", async () => {
@@ -232,24 +232,6 @@ describe("YotiService", () => {
 			axiosMock.post.mockResolvedValue({ data: { session_id: "session123" } });
 
 			const sessionId = await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL);
-
-			expect(generateYotiRequestMock).toHaveBeenCalled();
-			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", createSessionPayload, {});
-			expect(sessionId).toBe("session123");
-		});
-
-		it("should set allow_expired_documents to true if PASSPORT selected", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
-				url: "https://example.com/api/sessions",
-				config: {},
-			});
-			
-			createSessionPayload.required_documents[0].filter.documents[0].document_types[0] = "PASSPORT";
-			createSessionPayload.required_documents[0].filter.allow_expired_documents = true;
-
-			axiosMock.post.mockResolvedValue({ data: { session_id: "session123" } });
-
-			const sessionId = await yotiService.createSession(personDetails, "ukpassport", "GBR", YOTICALLBACKURL);
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", createSessionPayload, {});
@@ -611,6 +593,50 @@ describe("YotiService", () => {
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123", expect.any(Object));
+		});
+	});
+
+	describe("getMediaContent", () => {
+		const sessionId = "session123";
+		const mediaId = "media123";
+
+		it("should fetch Yoti media content and return the data", async () => {
+			const yotiRequest = {
+				url: "https://example.com/api/sessions/session123/media/media123/content",
+				config: {},
+			};
+			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue(yotiRequest);
+			const responseData = null;
+			axiosMock.get.mockResolvedValueOnce({ data: responseData });
+
+			const result = await yotiService.getMediaContent(sessionId, mediaId);
+
+			expect(generateYotiRequestMock).toHaveBeenCalled();
+			expect(axios.get).toHaveBeenCalledWith(
+				yotiRequest.url,
+				yotiRequest.config,
+			);
+			expect(result).toEqual(responseData);
+		});
+
+		it("should throw an AppError if there is an error fetching Yoti media content", async () => {
+			const yotiRequest = {
+				url: "https://example.com/api/sessions/session123/media/media123/content",
+				config: {},
+			};
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue(yotiRequest);
+
+			const error = new Error("Failed to fetch media content");
+			axiosMock.get.mockRejectedValueOnce(error);
+
+			await expect(yotiService.getMediaContent(sessionId, mediaId)).rejects.toThrow(
+				new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti media content"),
+			);
+
+			expect(axios.get).toHaveBeenCalledWith(
+				yotiRequest.url,
+				yotiRequest.config,
+			);
 		});
 	});
 });

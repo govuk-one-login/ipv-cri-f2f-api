@@ -246,3 +246,30 @@ export interface YotiCompletedSession {
 	}>;
 	user_tracking_id: string;
 }
+
+export interface YotiCheckRecommendation {
+	value: string;
+	reason?: string;
+}
+
+export interface YotiDocumentFields {
+	given_names: string;
+	family_name: string;
+	date_of_birth: string; 
+	structured_postal_address?: YotiDocumentFieldsAddressInfo; 
+	document_number?: string;
+	expiration_date?: string;
+	issuing_country?: string;
+	date_of_issue?: string;
+	issuing_authority?: string;
+	formatted_address?: string;
+	place_of_issue?: string;
+}
+
+export interface YotiDocumentFieldsAddressInfo {
+	address_line1: string;
+	building_number: string;
+	town_city: string;
+	postal_code: string; 
+	country: string; 
+}
