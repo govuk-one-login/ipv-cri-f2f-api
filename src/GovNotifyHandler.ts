@@ -1,20 +1,16 @@
-import { SQSEvent, SQSRecord } from "aws-lambda";
+import { Context, SQSBatchResponse, SQSEvent, SQSRecord } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
-import { Response } from "./utils/Response";
-
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
-
 import { Constants } from "./utils/Constants";
-
 import { BatchItemFailure } from "./utils/BatchItemFailure";
 import { EmailResponse } from "./models/EmailResponse";
 import { SendEmailProcessor } from "./services/SendEmailProcessor";
 import { HttpCodesEnum } from "./models/enums/HttpCodesEnum";
 import { getParameter } from "./utils/Config";
-import { AppError } from "./utils/AppError";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
+import { failEntireBatch, passEntireBatch } from "./utils/SqsBatchResponseHelper";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.EMAIL_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -33,7 +29,7 @@ class GovNotifyHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: SQSEvent, context: any): Promise<any> {
+	async handler(event: SQSEvent, _context: Context): Promise<SQSBatchResponse> {
 		if (event.Records.length === 1) {
 			const record: SQSRecord = event.Records[0];
 			logger.debug("Starting to process record", { record });
@@ -67,7 +63,7 @@ class GovNotifyHandler implements LambdaInterface {
 				};
 
 				logger.debug("Finished processing record from SQS");
-				return new Response(HttpCodesEnum.OK, responseBody);
+				return passEntireBatch;
 
 			} catch (error: any) {
 				// If an appError was thrown at the service level
@@ -91,13 +87,13 @@ class GovNotifyHandler implements LambdaInterface {
 					};
 
 					logger.error("Email could not be sent. Returning failed message", "Handler");
-					return new Response(statusCode, body, appErrorCode);
+					return failEntireBatch;
 				}
 			}
 
 		} else {
 			logger.warn("Unexpected no of records received");
-			return new Response(HttpCodesEnum.BAD_REQUEST, "Unexpected no of records received");
+			return failEntireBatch;
 		}
 	}
 
