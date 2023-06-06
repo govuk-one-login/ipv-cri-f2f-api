@@ -72,16 +72,34 @@ export class SendEmailService {
 	async sendEmail(message: Email): Promise<EmailResponse> {
     	let encoded;
     	// Fetch the instructions pdf from Yoti
-    	this.logger.debug("Fetching the Instructions Pdf from yoti for sessionId: ", message.yotiSessionId);
-    	try {
-    		const instructionsPdf = await this.yotiService.fetchInstructionsPdf(message.yotiSessionId);
-			if (instructionsPdf) {
-				encoded = Buffer.from(instructionsPdf, "binary").toString("base64");
+		let yotiInstructionsPdfRetryCount = 0;
+		//retry for maxRetry count configured value if fails
+		while (yotiInstructionsPdfRetryCount++ < this.environmentVariables.yotiInstructionsPdfMaxRetries() + 1) {
+			this.logger.debug("Fetching the Instructions Pdf from yoti for sessionId: ", message.yotiSessionId);
+			try {
+				const instructionsPdf = await this.yotiService.fetchInstructionsPdf(message.yotiSessionId);
+				if (instructionsPdf) {
+					encoded = Buffer.from(instructionsPdf, "binary").toString("base64");
+					break;
+				}
+			} catch (err: any) {
+				this.logger.error("Error while fetching Instructions pfd or encoding the pdf.", { err });
+				if (err.statusCode === 500 || err.statusCode === 429) {
+					if (yotiInstructionsPdfRetryCount < this.environmentVariables.yotiInstructionsPdfMaxRetries() + 1) {
+						this.logger.error(`sendEmail - Retrying to fetch the Instructions Pdf from yoti for sessionId : ${message.yotiSessionId}. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${SendEmailService.name} ${new Date().toISOString()}`, { yotiInstructionsPdfRetryCount });
+						await sleep(this.environmentVariables.yotiInstructionsPdfBackoffPeriod());
+					} else {
+						// If the instructions pdf couldn't be retrieved after the retries,
+						// an error is thrown
+						this.logger.error(`sendEmail - Failed to fetch the Instructions pdf even after ${this.environmentVariables.yotiInstructionsPdfMaxRetries()} retries.`);
+						throw new AppError(HttpCodesEnum.SERVER_ERROR, `Failed to fetch the Instructions pdf even after ${this.environmentVariables.yotiInstructionsPdfMaxRetries()} retries.`);
+					}
+				} else {
+					this.logger.error("sendEmail - Failed to fetch the Instructions pdf", SendEmailService.name, err.message);
+					throw err;
+				}
 			}
-    	} catch (err) {
-    		this.logger.error("Error while fetching Instructions pfd or encoding the pdf." + err);
-    		throw err;
-    	}
+		}
 
     	const personalisation = {
     		"first name": message.firstName,
@@ -153,8 +171,8 @@ export class SendEmailService {
 
     	// If the email couldn't be sent after the retries,
     	// an error is thrown
-    	this.logger.error(`sendEmail - cannot send Email ${SendEmailService.name}`);
-    	throw new AppError(HttpCodesEnum.SERVER_ERROR, "Cannot send EMail");
+		this.logger.error(`sendEmail - cannot send Email even after ${this.environmentVariables.maxRetries()} retries.`);
+		throw new AppError(HttpCodesEnum.SERVER_ERROR, `Cannot send Email even after ${this.environmentVariables.maxRetries()} retries.`);
 	}
 
 }

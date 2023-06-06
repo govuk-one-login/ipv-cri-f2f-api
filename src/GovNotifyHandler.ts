@@ -1,4 +1,4 @@
-import {SQSBatchResponse, SQSEvent, SQSRecord} from "aws-lambda";
+import { SQSBatchResponse, SQSEvent, SQSRecord } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Response } from "./utils/Response";
@@ -68,7 +68,7 @@ class GovNotifyHandler implements LambdaInterface {
 				// see https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#services-sqs-batchfailurereporting
 				return { batchItemFailures: [] };
 
-			} catch (error: any) {
+			} catch (error) {
 				logger.error("Email could not be sent. Returning failed message", "Handler");
 
 				// explicitly set itemIdentifier to an empty string to fail the whole batch

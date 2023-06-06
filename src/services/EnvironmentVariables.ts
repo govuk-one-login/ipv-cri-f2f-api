@@ -54,6 +54,11 @@ export class EnvironmentVariables {
 
 	private RESOURCES_TTL_SECS = process.env.RESOURCES_TTL_SECS;
 
+	private YOTI_INSTRUCTIONS_PDF_MAX_RETRIES = process.env.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES;
+
+	private YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS = process.env.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS;
+
+
 	/*
 	 * This function performs validation on env variable values.
 	 * If certain variables have unexpected values the constructor will throw an error and/or log an error message
@@ -98,6 +103,20 @@ export class EnvironmentVariables {
 				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS.trim().length === 0) {
 					this.RESOURCES_TTL_SECS = "1036800";
 					logger.warn("RESOURCES_TTL_SECS env var is not set. Setting to default - 12 days.");
+				}
+				if (!this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS
+					|| this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS.trim().length === 0
+					|| +this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS.trim() === 0
+					|| +this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS.trim() >= 60000) {
+					this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS = "5000";
+					logger.warn("YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS env var is not set. Setting to default - 5000");
+				}
+
+				if (!this.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES
+					|| this.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES.trim().length === 0
+					|| +this.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES.trim() >= 100) {
+					this.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES = "3";
+					logger.warn("YOTI_INSTRUCTIONS_PDF_MAX_RETRIES env var is not set. Setting to default - 3");
 				}
 				break;
 			}
@@ -309,6 +328,14 @@ export class EnvironmentVariables {
 
 	clientSessionTokenTtlInSeconds(): any {
 		return this.CLIENT_SESSION_TOKEN_TTL_SECS;
+	}
+
+	yotiInstructionsPdfMaxRetries(): number {
+		return +this.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES!;
+	}
+
+	yotiInstructionsPdfBackoffPeriod(): number {
+		return +this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS!;
 	}
 
 }
