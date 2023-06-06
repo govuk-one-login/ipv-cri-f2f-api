@@ -1,6 +1,6 @@
 {
   "document_selection":{
-     "document_selected":"birthCertificate",
+     "document_selected":"ukPhotocardDl",
      "date_of_expiry":"1970-01-01",
      "country_code": "GBR"
   },
@@ -10,6 +10,6 @@
         "latitude":0.34322,
         "longitude":-42.48372
      },
-     "post_code":"SW19 4NS"
+     "post_code":null
   }
 }
