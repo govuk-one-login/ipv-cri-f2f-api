@@ -49,7 +49,6 @@ export class GenerateVerifiableCredential {
    * UK Passports with valid chip
    * National ID with valid chip
    * Residential Permits
-
    * The following Documents will get a strength score of 3
    * UK Passports without valid chip
    * UK Driving Licence
@@ -403,7 +402,7 @@ export class GenerateVerifiableCredential {
 				subCheck.result === YotiSessionDocument.SUBCHECK_PASS,
   	);
 
-  	const validityScore =   this.calculateValidityScore( MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value, documentContainsValidChip);
+  	const validityScore = this.calculateValidityScore( MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value, documentContainsValidChip);
   	const verificationScore  = this.calculateVerificationProcessLevel( validityScore, MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation.value);
   	const evidence: VerifiedCredentialEvidence = [
   		{
