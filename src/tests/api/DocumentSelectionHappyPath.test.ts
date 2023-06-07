@@ -2,7 +2,7 @@ import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import dataDriversLicense from "../data/docSelectionPayloadDriversLicenceValid.json";
 import dataBrp from "../data/docSelectionPayloadBrpValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
-import { postDocumentSelection, startStubServiceAndReturnSessionId, authorizationGet, tokenPost, userInfoPost, stubStartPostNoSharedClaims, sessionPost } from "../utils/ApiTestSteps";
+import { postDocumentSelection, startStubServiceAndReturnSessionId, authorizationGet, tokenPost, userInfoPost, stubStartPostNoSharedClaims, sessionPost, getSessionById} from "../utils/ApiTestSteps";
 
 describe("E2E Happy Path /documentSelection Endpoint", () => {
 	let sessionId: any;
@@ -35,7 +35,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		console.log(userInfoResponse.data);
 	});
 
-	it("E2E Happy Path Journey - Drivers Licence", async () => {
+	it.only("E2E Happy Path Journey - Drivers Licence", async () => {
 		const response = await postDocumentSelection(dataDriversLicense, sessionId);
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Instructions PDF Generated");
