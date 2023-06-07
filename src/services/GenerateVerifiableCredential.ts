@@ -387,12 +387,16 @@ export class GenerateVerifiableCredential {
   		documentType,
   		MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.breakdown,
   	);
+
+		this.logger.info({ message: "Checking if document contains a valid chip" }, {documentContainsValidChip});
 	
   	const manualFaceMatchCheck = MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.breakdown.some(
   		(subCheck: { sub_check: string; result: string }) =>
   			subCheck.sub_check === "manual_face_match" &&
 				subCheck.result === YotiSessionDocument.SUBCHECK_PASS,
   	);
+
+		this.logger.info({ message: "Result of Manual FaceMatch Check" }, manualFaceMatchCheck);
 	
   	const evidence: VerifiedCredentialEvidence = [
   		{
@@ -443,6 +447,8 @@ export class GenerateVerifiableCredential {
 			
 			manualFaceMatchCheck ? evidence[0].checkDetails[1].photoVerificationProcessLevel = 3 : evidence[0].checkDetails[1].biometricVerificationProcessLevel = 3;
   	}
+
+		this.logger.info({ message: "Calculated Scores for VC" }, {evidence});
 	
   	return {
   		credentialSubject,

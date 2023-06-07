@@ -95,6 +95,7 @@ export class YotiService {
 			)}`;
 		}
 
+		this.logger.info("Creating Yoti Message")
 		const messageSignature = this.getRSASignatureForMessage(
 			`${method}&${endpointPath}${base64String}`,
 		);
