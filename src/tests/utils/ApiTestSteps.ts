@@ -3,6 +3,7 @@ import { constants } from "../utils/ApiConstants";
 import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { createDynamoDbClient } from "../../utils/DynamoDBFactory";
 import { sqsClient } from "../../utils/SqsClient";
+import { PurgeQueueCommand } from "@aws-sdk/client-sqs"; 
 import { ISessionItem } from "../../models/ISessionItem";
 import { ReceiveMessageCommand, DeleteMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 import { jwtUtils } from "../../utils/JwtUtils";
@@ -98,6 +99,7 @@ export async function userInfoPost(accessToken?: any):Promise<any> {
 }
 
 export async function callbackPost(sessionId: any):Promise<any> {
+	// purgeIPVCoreQueue();
 	const path = "/callback";
 	try {
 		const postRequest = await API_INSTANCE.post(path, {
@@ -212,8 +214,7 @@ export async function updateYotiSessionId(sessionId: string, yotiSessionId: any,
 	}
 }
 
-export async function receiveSqsMessage(): Promise<void> {
-
+export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 	const queueURL = constants.DEV_F2F_IPV_CORE_QUEUE_URL;
 
 	const receiveMessage = () => sqsClient.send(
@@ -227,12 +228,14 @@ export async function receiveSqsMessage(): Promise<void> {
 		}),
 	);
 
+	let jwtToken;
+
 	try {
 		const { Messages } = await receiveMessage();
 		Messages.forEach(async (m: any) => {
 			const parsedResponse = JSON.parse(m.Body);
 			const array = Object.values(parsedResponse);
-			validateJwtToken(array[2]);
+			jwtToken = array[2];
 			await sqsClient.send(
 				new DeleteMessageCommand({
 				  QueueUrl: queueURL,
@@ -242,18 +245,67 @@ export async function receiveSqsMessage(): Promise<void> {
 		});
 	} catch (e: any) {
 		console.error({ message: "got error receiving messages: ", e });
-	}
+	};
+
+	return jwtToken;
 }
 
-export function validateJwtToken(jwtToken:any):void {
+export function validateJwtToken(jwtToken:any, vcData: any, yotiId?: string):void {
 	const [rawHead, rawBody, signature] = jwtToken.split(".");
-	console.log(JSON.parse(jwtUtils.base64DecodeToString(rawHead.replace(/\W/g, ""))));
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
-	console.log("First Name: " + decodedBody.vc.credentialSubject.name[0].nameParts[0].value);
-	console.log("Middle Name: " + decodedBody.vc.credentialSubject.name[0].nameParts[1].value);
-	console.log("Last Name: " + decodedBody.vc.credentialSubject.name[0].nameParts[2].value);
-	console.log("Strength Score: " + decodedBody.vc.evidence[0].strengthScore);
-	console.log("Validity Score: " + decodedBody.vc.evidence[0].validityScore);
-	console.log("Verification Score: " + decodedBody.vc.evidence[0].verificationScore);
-	console.log("Contra Indicator: " + decodedBody.vc.evidence[0].ci);
+	// Strength Score
+	const expecedStrengthScore = eval("vcData.s" + yotiId + ".strengthScore");
+	if (expecedStrengthScore) {
+		expect(decodedBody.vc.evidence[0].strengthScore).toBe(eval("vcData.s" + yotiId + ".strengthScore"));
+	}
+	// Validity Score
+	const expecedValidityScore = eval("vcData.s" + yotiId + ".validityScore");
+	if (expecedStrengthScore) {
+		expect(decodedBody.vc.evidence[0].validityScore).toBe(eval("vcData.s" + yotiId + ".validityScore"));
+	}
+	// Verification Score
+	const expecedVerificationScore = eval("vcData.s" + yotiId + ".verificationScore");
+	if (expecedStrengthScore) {
+		expect(decodedBody.vc.evidence[0].verificationScore).toBe(eval("vcData.s" + yotiId + ".verificationScore"));
+	}
+	// Check Methods
+	const expecedCheckMethod = eval("vcData.s" + yotiId + ".checkMethod")
+	if (expecedCheckMethod) {
+		
+		const actualCheckMethods = [];
+		for (let i = 0; i < expecedCheckMethod.split(",").length; i++) {
+			actualCheckMethods.push(decodedBody.vc.evidence[0].checkDetails[i].checkMethod);
+		}
+		expect(expecedCheckMethod.split(',')).toStrictEqual(actualCheckMethods);
+	}
+	// FailedChecks
+	const failedCheckPresent = eval("vcData.s" + yotiId + ".failedCheck")
+	if (failedCheckPresent) {
+		expect(decodedBody.vc.evidence[0].failedCheckDetails).toBeTruthy();;
+	}
+	// Contra Indicators
+	const expectedContraIndicatiors = eval("vcData.s" + yotiId + ".ci")
+	if (expectedContraIndicatiors) {
+		expectedContraIndicatiors.split(",").length
+		const actualContraIndicatiors = [];
+		for (let i = 0; i < expectedContraIndicatiors.split(",").length; i++) {
+			actualContraIndicatiors.push(decodedBody.vc.evidence[0].ci[i]);
+		}
+		console.log(actualContraIndicatiors);
+		expect(expectedContraIndicatiors.split(',')).toStrictEqual(actualContraIndicatiors);
+	}
+
 }
+
+export async function purgeIPVCoreQueue() {
+	const params = {
+		QueueUrl: constants.DEV_F2F_IPV_CORE_QUEUE_URL
+	};
+	const command = new PurgeQueueCommand(params);
+	try {
+		await sqsClient.send(command);
+		console.info({ message: "cleared IPV Core Queue" });
+	} catch (e: any) {
+		console.error({ message: "clearing IPV Core Queue", e });
+	}
+  }
