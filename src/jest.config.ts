@@ -4,7 +4,7 @@
  */
 
 const dotenv = require('dotenv');
-dotenv.config();
+dotenv.config({ path: `./.${process.env.ENV}.env` });
 
 export default {
   transform: {
