@@ -95,7 +95,7 @@ paths:
         httpMethod: "POST"
         credentials:
           Fn::GetAtt: [ "YotiCallbackQueueRole", "Arn" ]
-        uri: 
+        uri:
           Fn::Sub: "arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/${YotiCallbackQueue.QueueName}"
         passthroughBehavior: "never"
         requestParameters:
@@ -124,7 +124,7 @@ paths:
             schema:
               $ref: '#/components/schemas/IssueTokenRequest'
       responses:
-        "201":
+        "200":
           description: >-
             Created - OAuth token is valid - Session details have been stored in the backend and a `session_id`
             is returned.
@@ -192,7 +192,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OAuthErrorResponse"
-      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: "POST"
         uri:
@@ -1105,4 +1105,10 @@ components:
 x-amazon-apigateway-request-validators:
     both:
       validateRequestBody: true
+      validateRequestParameters: true
+    requestBodyOnly:
+      validateRequestBody: true
+      validateRequestParameters: false
+    requestParamsOnly:
+      validateRequestBody: false
       validateRequestParameters: true
