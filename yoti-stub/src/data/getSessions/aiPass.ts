@@ -226,11 +226,6 @@ export const AI_PASS = {
 													}
 											]
 									},
-									{
-											"sub_check": "manual_face_match",
-											"result": "PASS",
-											"details": []
-									}
 							]
 					},
 					"created": "2023-04-05T10:18:16Z",

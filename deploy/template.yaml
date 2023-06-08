@@ -83,7 +83,7 @@ Mappings:
       AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
     build:
-      YOTIBASEURL: "https://f2f-yoti-stub-yotistub.review-o.build.account.gov.uk"
+      YOTIBASEURL: "https://yotistub.review-o.build.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.build.account.gov.uk'
       DNSSUFFIX: review-o.build.account.gov.uk
@@ -95,7 +95,7 @@ Mappings:
       AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
     staging:
-      YOTIBASEURL: "https://api.yotistub.review-o.staging.account.gov.uk"
+      YOTIBASEURL: "https://yotistub.review-o.staging.account.gov.uk"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
       ISSUER: 'https://review-o.staging.account.gov.uk'
       DNSSUFFIX: review-o.staging.account.gov.uk
@@ -103,7 +103,7 @@ Mappings:
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
       RESOURCESTTL: 1036800 # Default 12 days
-      CLIENTS: '[{"jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json","clientId":"03A5A659-17AA-453F-B905-95D2804823D1","redirectUri":"https://identity.staging.account.gov.uk/redirect"}]'
+      CLIENTS: '[{"jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json","clientId":"03A5A659-17AA-453F-B905-95D2804823D1","redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f"}]'
       AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
@@ -115,7 +115,7 @@ Mappings:
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
       RESOURCESTTL: 1036800 # Default 12 days
-      CLIENTS: '[{"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/redirect"}]'
+      CLIENTS: '[{"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback?id=f2f"}]'
       AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
@@ -127,7 +127,7 @@ Mappings:
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
       RESOURCESTTL: 1036800 # Default 12 days
-      CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/redirect"}]'
+      CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f"}]'
       AUTHSESSIONTTL: "950400" # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
   TxMAAccounts:
