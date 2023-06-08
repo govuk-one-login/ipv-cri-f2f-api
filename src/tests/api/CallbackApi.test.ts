@@ -1,61 +1,71 @@
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
-import { postDocumentSelection, startStubServiceAndReturnSessionId, getSessionById, callbackPost, updateYotiSessionId} from "../utils/ApiTestSteps";
+import { postDocumentSelection, startStubServiceAndReturnSessionId, getSessionById, callbackPost, authorizationGet, tokenPost, userInfoPost, receiveSqsMessage } from "../utils/ApiTestSteps";
 
 
 describe("Yoti /sessions endpoint", () => {
 
 	const mockIdParams = [		
-        // ["0001"],
-        // ["0002"],
-        // ["0003"],
-		// ["0004"],
-		// ["0005"],
-		// ["0006"],
-		// ["0007"],
-		// ["0008"],
-		// ["0009"],
-		// ["0010"],
-		// ["0011"],
-		// ["0012"],
-		// ["0013"],
-		// ["0014"],
-		// ["0015"],
-		// ["0016"],
-		// ["0017"],
-		// ["0018"],
-		// ["0019"],
-		// ["0020"],
-		// ["0021"],
-		// ["0022"],
-		["0023"],
-		// ["0024"],
-		// ["0025"],
-		// ["0026"],
-		// ["0027"],
-		// ["0028"],
-		// ["0029"],
+		["0000"],
+		["0001"],
+		["0101"],
+		["0102"],
+		["0103"],
+		["0104"],
+		["0105"],
+		["0106"],
+		["0107"],
+		["0108"],
+		["0109"],
+		["0110"],
+		["0111"],
+		["0112"],
+		["0113"],
+		["0114"],
+		["0115"],
+		["0116"],
+		["0117"],
+		["0118"],
+		["0119"],
+		["0120"],
+		["0121"],
+		["0122"],
+		["0123"],
+		["0124"],
+		["0125"],
+		["0126"],
+		["0127"],
+		["0128"],
+		["0200"],
+		["0201"],
+		["0202"],
+		["0203"],
+
 	];
 	it.each(mockIdParams)("F2F CRI Callback Endpoint - yotiMockId:", async (yotiMockId) => {
-		f2fStubPayload.yotiMockID = "0000";
+		f2fStubPayload.yotiMockID = yotiMockId;
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
 		const sessionId = sessionResponse.data.session_id;
 		console.log("session id: " + sessionId);
-        // Document Selection
+		// Document Selection
 		const response = await postDocumentSelection(dataPassport, sessionId);
-        console.log(response.data);
-        expect(response.status).toBe(200);
+		console.log(response.data);
+		expect(response.status).toBe(200);
+		// Authorization
+		const authResponse = await authorizationGet(sessionId);
+		expect(authResponse.status).toBe(200);
+		// // Post Token
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
+		expect(tokenResponse.status).toBe(201);
+		// Post User Info
+		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
+		expect(userInfoResponse.status).toBe(202);
 		// Get Yoti Session Id
 		const session = await getSessionById(sessionId, "session-f2f-cri-ddb");
-        const yotiSessionId: any = session?.yotiSessionId;
-        console.log("yotiSessionId: " + yotiSessionId);
-        // Update Yoti Session Id
-        const updatedYotiSessionId = yotiSessionId.slice(0,-4) + yotiMockId;
-        console.log("Updated yotiSessionId: " + updatedYotiSessionId);
-        await updateYotiSessionId(sessionId, yotiSessionId, updatedYotiSessionId);
-        // Yoti Callback
-        const callbackResponse = await callbackPost(updatedYotiSessionId);
-        console.log(callbackResponse.data);
-        console.log(callbackResponse.status);
+		const yotiSessionId: any = session?.yotiSessionId;
+		console.log(yotiSessionId);
+		// Yoti Callback
+		const callbackResponse = await callbackPost(yotiSessionId);
+		expect(userInfoResponse.status).toBe(202);
 	});
 });  

@@ -1,8 +1,11 @@
 import axios from "axios";
 import { constants } from "../utils/ApiConstants";
-import { DynamoDBDocument, GetCommand, QueryCommandInput, UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { createDynamoDbClient } from "../../utils/DynamoDBFactory";
+import { sqsClient } from "../../utils/SqsClient";
 import { ISessionItem } from "../../models/ISessionItem";
+import { ReceiveMessageCommand, DeleteMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
+import { jwtUtils } from "../../utils/JwtUtils";
 const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
 const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
 
@@ -99,7 +102,7 @@ export async function callbackPost(sessionId: any):Promise<any> {
 	try {
 		const postRequest = await API_INSTANCE.post(path, {
 			"session_id": sessionId, 
-			"topic": "session_completion"
+			"topic": "session_completion",
 		});
 		return postRequest;
 	} catch (error: any) {
@@ -163,7 +166,7 @@ export async function getYotiSessionsInstructions(sessionId:any): Promise<any> {
 }
 
 export function generateRandomAlphanumeric(substringStart: number, substringEnd: number): string {
-	const result = Math.random().toString(36).substring(substringStart,substringEnd);
+	const result = Math.random().toString(36).substring(substringStart, substringEnd);
 	return result;
 }
 
@@ -207,4 +210,50 @@ export async function updateYotiSessionId(sessionId: string, yotiSessionId: any,
 	} catch (e: any) {
 		console.error({ message: "got error updating yotiSessionId", e });
 	}
+}
+
+export async function receiveSqsMessage(): Promise<void> {
+
+	const queueURL = "https://sqs.eu-west-2.amazonaws.com/440208678480/f2f-cri-api-IPVCoreSQSQueue-RZMtPmFpB6WO";
+
+	const receiveMessage = (queueURL: any) => sqsClient.send(
+		new ReceiveMessageCommand({
+			AttributeNames: ["SentTimestamp"],
+			MaxNumberOfMessages: 10,
+			MessageAttributeNames: ["All"],
+			QueueUrl: queueURL,
+			VisibilityTimeout: 40,
+			WaitTimeSeconds: 20,
+		}),
+	);
+
+	try {
+		const { Messages } = await receiveMessage(queueURL);
+		Messages.forEach(async (m: any) => {
+			const parsedResponse = JSON.parse(m.Body);
+			const array = Object.values(parsedResponse);
+			validateJwtToken(array[2]);
+			await sqsClient.send(
+				new DeleteMessageCommand({
+				  QueueUrl: queueURL,
+				  ReceiptHandle: m.ReceiptHandle,
+				}),
+			  );
+		});
+	} catch (e: any) {
+		console.error({ message: "got error receiving messages: ", e });
+	}
+}
+
+export function validateJwtToken(jwtToken:any):void {
+	const [rawHead, rawBody, signature] = jwtToken.split(".");
+	console.log(JSON.parse(jwtUtils.base64DecodeToString(rawHead.replace(/\W/g, ""))));
+	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
+	console.log("First Name: " + decodedBody.vc.credentialSubject.name[0].nameParts[0].value);
+	console.log("Middle Name: " + decodedBody.vc.credentialSubject.name[0].nameParts[1].value);
+	console.log("Last Name: " + decodedBody.vc.credentialSubject.name[0].nameParts[2].value);
+	console.log("Strength Score: " + decodedBody.vc.evidence[0].strengthScore);
+	console.log("Validity Score: " + decodedBody.vc.evidence[0].validityScore);
+	console.log("Verification Score: " + decodedBody.vc.evidence[0].verificationScore);
+	console.log("Contra Indicator: " + decodedBody.vc.evidence[0].ci);
 }
