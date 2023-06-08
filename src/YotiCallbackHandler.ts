@@ -4,7 +4,6 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
 import { BatchItemFailure } from "./utils/BatchItemFailure";
-import { HttpCodesEnum } from "./models/enums/HttpCodesEnum";
 import { getParameter } from "./utils/Config";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { YotiCallbackProcessor } from "./services/YotiCallbackProcessor";
@@ -67,16 +66,6 @@ class YotiCallbackHandler implements LambdaInterface {
 					logger.error("Returning batch item failure so it can be retried", { sqsBatchResponse });
 					return sqsBatchResponse;
 				} else {
-					const appErrorCode = error.appCode;
-					const statusCode = error.statusCode ? error.statusCode : HttpCodesEnum.SERVER_ERROR;
-					const body = {
-						statusCode,
-						message: error.message || JSON.stringify(error),
-						batchItemFailures: [],
-						error,
-						appErrorCode,
-					};
-
 					logger.error({ message: "VC could not be sent. Returning failed message ", error });
 					return failEntireBatch;
 				}

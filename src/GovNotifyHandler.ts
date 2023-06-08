@@ -4,9 +4,7 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
 import { BatchItemFailure } from "./utils/BatchItemFailure";
-import { EmailResponse } from "./models/EmailResponse";
 import { SendEmailProcessor } from "./services/SendEmailProcessor";
-import { HttpCodesEnum } from "./models/enums/HttpCodesEnum";
 import { getParameter } from "./utils/Config";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
@@ -56,12 +54,7 @@ class GovNotifyHandler implements LambdaInterface {
 						throw err;
 					}
 				}
-				const emailResponse: EmailResponse = await SendEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY).processRequest(body);
-				const responseBody = {
-					messageId: emailResponse.metadata.id,
-					batchItemFailures: [],
-				};
-
+				await SendEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY).processRequest(body);
 				logger.debug("Finished processing record from SQS");
 				return passEntireBatch;
 
@@ -76,16 +69,6 @@ class GovNotifyHandler implements LambdaInterface {
 					logger.error("Email could not be sent. Returning batch item failure so it can be retried", { sqsBatchResponse });
 					return sqsBatchResponse;
 				} else {
-					const appErrorCode = error.appCode;
-					const statusCode = error.statusCode ? error.statusCode : HttpCodesEnum.SERVER_ERROR;
-					const body = {
-						statusCode,
-						message: error.message || JSON.stringify(error),
-						batchItemFailures: [],
-						error,
-						appErrorCode,
-					};
-
 					logger.error("Email could not be sent. Returning failed message", "Handler");
 					return failEntireBatch;
 				}
