@@ -214,9 +214,9 @@ export async function updateYotiSessionId(sessionId: string, yotiSessionId: any,
 
 export async function receiveSqsMessage(): Promise<void> {
 
-	const queueURL = "https://sqs.eu-west-2.amazonaws.com/440208678480/f2f-cri-api-IPVCoreSQSQueue-RZMtPmFpB6WO";
+	const queueURL = constants.DEV_F2F_IPV_CORE_QUEUE_URL;
 
-	const receiveMessage = (queueURL: any) => sqsClient.send(
+	const receiveMessage = () => sqsClient.send(
 		new ReceiveMessageCommand({
 			AttributeNames: ["SentTimestamp"],
 			MaxNumberOfMessages: 10,
@@ -228,7 +228,7 @@ export async function receiveSqsMessage(): Promise<void> {
 	);
 
 	try {
-		const { Messages } = await receiveMessage(queueURL);
+		const { Messages } = await receiveMessage();
 		Messages.forEach(async (m: any) => {
 			const parsedResponse = JSON.parse(m.Body);
 			const array = Object.values(parsedResponse);
