@@ -87,7 +87,7 @@ export class AccessTokenRequestProcessor {
 				this.logger.info({ message: "Access token generated successfully" });
 
 				return {
-					statusCode: HttpCodesEnum.CREATED,
+					statusCode: HttpCodesEnum.OK,
 					body: JSON.stringify({
 						access_token: accessToken,
 						token_type: Constants.BEARER,
