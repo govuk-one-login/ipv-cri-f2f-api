@@ -3,7 +3,6 @@ import { constants } from "../utils/ApiConstants";
 import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { createDynamoDbClient } from "../../utils/DynamoDBFactory";
 import { sqsClient } from "../../utils/SqsClient";
-import { PurgeQueueCommand } from "@aws-sdk/client-sqs"; 
 import { ISessionItem } from "../../models/ISessionItem";
 import { ReceiveMessageCommand, DeleteMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 import { jwtUtils } from "../../utils/JwtUtils";
@@ -99,7 +98,6 @@ export async function userInfoPost(accessToken?: any):Promise<any> {
 }
 
 export async function callbackPost(sessionId: any):Promise<any> {
-	// purgeIPVCoreQueue();
 	const path = "/callback";
 	try {
 		const postRequest = await API_INSTANCE.post(path, {
@@ -203,9 +201,6 @@ export async function updateYotiSessionId(sessionId: string, yotiSessionId: any,
 			":yotiSessionId": updatedYotiSessionId,
 		},
 	});
-
-	// this.logger.info({ message: "updating authorizationCode dynamodb", updateSessionCommand });
-
 	try {
 		dynamoDB.send(updateSessionCommand);
 		console.info({ message: "updated yotiSessionId in dynamodb" });
@@ -294,18 +289,4 @@ export function validateJwtToken(jwtToken:any, vcData: any, yotiId?: string):voi
 		console.log(actualContraIndicatiors);
 		expect(expectedContraIndicatiors.split(',')).toStrictEqual(actualContraIndicatiors);
 	}
-
 }
-
-export async function purgeIPVCoreQueue() {
-	const params = {
-		QueueUrl: constants.DEV_F2F_IPV_CORE_QUEUE_URL
-	};
-	const command = new PurgeQueueCommand(params);
-	try {
-		await sqsClient.send(command);
-		console.info({ message: "cleared IPV Core Queue" });
-	} catch (e: any) {
-		console.error({ message: "clearing IPV Core Queue", e });
-	}
-  }
