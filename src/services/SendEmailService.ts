@@ -16,6 +16,7 @@ import { F2fService } from "./F2fService";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 
+
 /**
  * Class to send emails using gov notify service
  */
@@ -69,65 +70,47 @@ export class SendEmailService {
 	 * @returns EmailResponse
 	 * @throws AppError
 	 */
-	async sendEmail(message: Email): Promise<EmailResponse> {
-    	let encoded;
-    	// Fetch the instructions pdf from Yoti
-		let yotiInstructionsPdfRetryCount = 0;
-		//retry for maxRetry count configured value if fails
-		while (yotiInstructionsPdfRetryCount++ < this.environmentVariables.yotiInstructionsPdfMaxRetries() + 1) {
-			this.logger.debug("Fetching the Instructions Pdf from yoti for sessionId: ", message.yotiSessionId);
-			try {
-				const instructionsPdf = await this.yotiService.fetchInstructionsPdf(message.yotiSessionId);
-				if (instructionsPdf) {
-					encoded = Buffer.from(instructionsPdf, "binary").toString("base64");
-					break;
-				}
-			} catch (err: any) {
-				this.logger.error("Error while fetching Instructions pfd or encoding the pdf.", { err });
-				if (err.statusCode === 500 || err.statusCode === 429) {
-					if (yotiInstructionsPdfRetryCount < this.environmentVariables.yotiInstructionsPdfMaxRetries() + 1) {
-						this.logger.error(`sendEmail - Retrying to fetch the Instructions Pdf from yoti for sessionId : ${message.yotiSessionId}. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${SendEmailService.name} ${new Date().toISOString()}`, { yotiInstructionsPdfRetryCount });
-						await sleep(this.environmentVariables.yotiInstructionsPdfBackoffPeriod());
-					} else {
-						// If the instructions pdf couldn't be retrieved after the retries,
-						// an error is thrown
-						this.logger.error(`sendEmail - Failed to fetch the Instructions pdf even after ${this.environmentVariables.yotiInstructionsPdfMaxRetries()} retries.`);
-						throw new AppError(HttpCodesEnum.SERVER_ERROR, `Failed to fetch the Instructions pdf even after ${this.environmentVariables.yotiInstructionsPdfMaxRetries()} retries.`);
-					}
-				} else {
-					this.logger.error("sendEmail - Failed to fetch the Instructions pdf", SendEmailService.name, err.message);
-					throw err;
-				}
+	async sendEmail(message: Email): Promise<EmailResponse | undefined> {
+		// Fetch the instructions pdf from Yoti
+		try{
+			const encoded = await this.fetchInstructionsPdf(message);
+			if(encoded) {
+				this.logger.debug("sendEmail", SendEmailService.name);
+				return await this.sendGovNotification(message, encoded);
+			}else{
+				this.logger.error("sendEmail - Failed to fetch the Instructions pdf");
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, "sendEmail - Failed to fetch the Instructions pdf");
 			}
+		} catch(err: any){
+			this.logger.error("sendEmail - Cannot send Email", SendEmailService.name, err.message);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sendEmail - Cannot send Email");
 		}
+	}
 
-    	const personalisation = {
-    		"first name": message.firstName,
-    		"last name": message.lastName,
-    		"link_to_file": { "file": encoded, "confirm_email_before_download": true, "retention_period": "2 weeks" },
-    	};
+	async sendGovNotification(message: Email, encoded: string | undefined): Promise<EmailResponse | undefined> {
+		const personalisation = {
+			"first name": message.firstName,
+			"last name": message.lastName,
+			"link_to_file": { "file": encoded, "confirm_email_before_download": true, "retention_period": "2 weeks" },
+		};
 
+		const options = {
+			personalisation,
+			reference: message.referenceId,
+		};
+		let retryCount = 0;
+		//retry for maxRetry count configured value if fails
+		while (retryCount <= this.environmentVariables.maxRetries()) {
+			this.logger.debug(`sendEmail - trying to send email message ${SendEmailService.name} ${new Date().toISOString()}`, {
+				templateId: this.environmentVariables.getEmailTemplateId(this.logger),
+				emailAddress: message.emailAddress,
+				options,
+			});
 
-    	const options = {
-    		personalisation,
-    		reference: message.referenceId,
-    	};
-
-    	this.logger.debug("sendEmail", SendEmailService.name);
-
-    	let retryCount = 0;
-    	//retry for maxRetry count configured value if fails
-    	while (retryCount++ < this.environmentVariables.maxRetries() + 1) {
-    		this.logger.debug(`sendEmail - trying to send email message ${SendEmailService.name} ${new Date().toISOString()}`, {
-    			templateId: this.environmentVariables.getEmailTemplateId(this.logger),
-    			emailAddress: message.emailAddress,
-    			options,
-    		});
-
-    		try {
-    			const emailResponse = await this.govNotify.sendEmail(this.environmentVariables.getEmailTemplateId(this.logger), message.emailAddress, options);
-    			this.logger.debug("sendEmail - response data after sending Email", emailResponse.data);
-    			this.logger.debug("sendEmail - response status after sending Email", SendEmailService.name, emailResponse.status);
+			try {
+				const emailResponse = await this.govNotify.sendEmail(this.environmentVariables.getEmailTemplateId(this.logger), message.emailAddress, options);
+				this.logger.debug("sendEmail - response data after sending Email", emailResponse.data);
+				this.logger.debug("sendEmail - response status after sending Email", SendEmailService.name, emailResponse.status);
 				const session = await this.f2fService.getSessionById(message.sessionId);
 				if (session != null) {
 					try {
@@ -141,38 +124,54 @@ export class SendEmailService {
 				} else {
 					this.logger.error("Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue, session not found for sessionId: ", message.sessionId);
 				}
-    			return new EmailResponse(new Date().toISOString(), "", emailResponse.status);
-    		} catch (err: any) {
-    			this.logger.error("sendEmail - GOV UK Notify threw an error");
+				return new EmailResponse(new Date().toISOString(), "", emailResponse.status);
+			} catch (err: any) {
+				this.logger.error("sendEmail - GOV UK Notify threw an error");
 
-    			if (err.response) {
-    				this.logger.error(`GOV UK Notify error ${SendEmailService.name}`, {
-    					statusCode: err.response.data.status_code,
-    					errors: err.response.data.errors,
-    				});
-    			}
+				if (err.response) {
+					this.logger.error(`GOV UK Notify error ${SendEmailService.name}`, {
+						statusCode: err.response.data.status_code,
+						errors: err.response.data.errors,
+					});
+				}
 
 				const appError: any = this.govNotifyErrorMapper.map(err.response.data.status_code, err.response.data.errors[0].message);
 
-				if (appError.obj!.shouldRetry) {
+				if (appError.obj!.shouldRetry && retryCount < this.environmentVariables.maxRetries()) {
 					this.logger.error(`sendEmail - Mapped error ${SendEmailService.name}`, { appError });
-					if (retryCount < this.environmentVariables.maxRetries() + 1) {
-						this.logger.error(`sendEmail - Retrying to send the email. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${SendEmailService.name} ${new Date().toISOString()}`, { retryCount });
-						await sleep(this.environmentVariables.backoffPeriod());
-					} else {
-						break;
-					}
+					this.logger.error(`sendEmail - Retrying to send the email. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${SendEmailService.name} ${new Date().toISOString()}`, { retryCount });
+					await sleep(this.environmentVariables.backoffPeriod());
+					retryCount++;
 				} else {
-					this.logger.error("sendEmail - Mapped error", SendEmailService.name, appError.message);
 					throw appError;
 				}
-    		}
-    	}
+			}
+		}
+	}
 
-    	// If the email couldn't be sent after the retries,
-    	// an error is thrown
-		this.logger.error(`sendEmail - cannot send Email even after ${this.environmentVariables.maxRetries()} retries.`);
-		throw new AppError(HttpCodesEnum.SERVER_ERROR, `Cannot send Email even after ${this.environmentVariables.maxRetries()} retries.`);
+
+	async fetchInstructionsPdf(message: Email): Promise<string | undefined> {
+		let yotiInstructionsPdfRetryCount = 0;
+		//retry for maxRetry count configured value if fails
+		while (yotiInstructionsPdfRetryCount <= this.environmentVariables.yotiInstructionsPdfMaxRetries()) {
+			this.logger.debug("Fetching the Instructions Pdf from yoti for sessionId: ", message.yotiSessionId);
+			try {
+				const instructionsPdf = await this.yotiService.fetchInstructionsPdf(message.yotiSessionId);
+				if (instructionsPdf) {
+					const encoded = Buffer.from(instructionsPdf, "binary").toString("base64");
+					return encoded;
+				}
+			} catch (err: any) {
+				this.logger.error("Error while fetching Instructions pfd or encoding the pdf.", { err });
+				if ((err.statusCode === 500 || err.statusCode === 429) && yotiInstructionsPdfRetryCount < this.environmentVariables.yotiInstructionsPdfMaxRetries()) {
+					this.logger.error(`sendEmail - Retrying to fetch the Instructions Pdf from yoti for sessionId : ${message.yotiSessionId}. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${SendEmailService.name} ${new Date().toISOString()}`, { yotiInstructionsPdfRetryCount });
+					await sleep(this.environmentVariables.yotiInstructionsPdfBackoffPeriod());
+					yotiInstructionsPdfRetryCount++;
+				} else {
+					throw err;
+				}
+			}
+		}
 	}
 
 }

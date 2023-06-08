@@ -32,13 +32,13 @@ export class SendEmailProcessor {
     	return SendEmailProcessor.instance;
 	}
 
-	async processRequest(eventBody: any): Promise<EmailResponse> {
+	async processRequest(eventBody: any): Promise<EmailResponse |undefined> {
 
 		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
 
     	await this.validationHelper.validateModel(email, this.logger);
 
-    	const emailResponse: EmailResponse = await this.govNotifyService.sendEmail(email);
+    	const emailResponse = await this.govNotifyService.sendEmail(email);
     	this.logger.debug("Response after sending Email message", { emailResponse });
 
     	return emailResponse;
