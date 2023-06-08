@@ -95,19 +95,9 @@ export class YotiService {
 			)}`;
 		}
 
-		let messageSignature;
-		try {
-			this.logger.info("Creating Yoti Message Signature")
-			messageSignature = this.getRSASignatureForMessage(
-				`${method}&${endpointPath}${base64String}`,
-			);
-			this.logger.info("Yoti Message Signature Created")
-		} catch (err) {
-			this.logger.error({ message: "An error occurred when creating Yoti message signature ", err });
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error create Yoti signature");
-		}
-		
-	
+		const messageSignature = this.getRSASignatureForMessage(
+			`${method}&${endpointPath}${base64String}`,
+		);
 
 		const config: AxiosRequestConfig<any> = {
 			headers: {
@@ -188,14 +178,14 @@ export class YotiService {
 		});
 
 		try {
-			this.logger.info("Yoti request url and config", { "yotiUrl":yotiRequest.url, "yotiConfig":yotiRequest.config });
+			this.logger.info("Yoti request url and config",{"yotiUrl":yotiRequest.url,"yotiConfig":yotiRequest.config});
 			const { data } = await axios.post(
 				yotiRequest.url,
 				payloadJSON,
 				yotiRequest.config,
 			);
 
-			this.logger.info("Received response for create /sessions", { data });
+			this.logger.info("Received response for create /sessions",{"data":data})
 			return data.session_id;
 		} catch (err) {
 			this.logger.error({ message: "An error occurred when creating Yoti session ", err });
