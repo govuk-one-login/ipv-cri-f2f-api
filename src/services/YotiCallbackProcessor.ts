@@ -178,6 +178,7 @@ export class YotiCallbackProcessor {
 
   		return new Response(HttpCodesEnum.OK, "OK");
   	} else {
+			this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
   		return new Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED} or ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${f2fSession.authSessionState}`);
   	}
   }
