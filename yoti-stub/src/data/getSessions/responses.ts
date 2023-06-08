@@ -227,11 +227,6 @@ export const VALID_RESPONSE = {
                       ]
                   },
                   {
-                      "sub_check": "manual_face_match",
-                      "result": "PASS",
-                      "details": []
-                  },
-                  {
                       "sub_check": "yoti_fraud_list_check",
                       "result": "FAIL",
                       "details": [
