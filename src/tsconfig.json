@@ -4,7 +4,7 @@
     "target": "es2020",
     "strict": true,
     "preserveConstEnums": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "esModuleInterop": true,
