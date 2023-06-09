@@ -155,7 +155,7 @@ export class YotiRequestProcessor {
 						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id, UK_DL_MEDIA_ID);
 						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));
 	
-					case '0001': // UK Driving License Success - Face Match not automated
+					case '0001': // UK Driving License Success - Face Match not  automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						VALID_DL_RESPONSE.session_id = sessionId;
 						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
@@ -188,7 +188,7 @@ export class YotiRequestProcessor {
 				}
 			}
 
-			if (firstTwoChars === DocumentMapping.UK_PASSOPORT) { // UK - Passport Scenarios
+			if (firstTwoChars === DocumentMapping.UK_PASSPORT) { // UK - Passport Scenarios
 				switch (lastUuidChars) {
 					case '0100': // UK Passport Success - Chip Readable & Face Match automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
@@ -674,7 +674,7 @@ export class YotiRequestProcessor {
 			return str.replace(/\d{4}$/, lastUuidChars);
 		};
 	
-		if (lastUuidChars.substring(0, 2) === '00') {
+		if ((lastUuidChars.substring(0, 2) === '00') || (lastUuidChars.substring(0, 2) === '01') || (lastUuidChars.substring(0, 2) === '02')) {
 			const response = processPositiveScenario(lastUuidChars, sessionId);
 			if (response) {
 				return response;
