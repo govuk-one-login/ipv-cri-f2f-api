@@ -33,8 +33,6 @@ describe("GovNotifyHandler", () => {
 		const event = { "Records": [] };
 		const response = await lambdaHandler(event, CONTEXT);
 		expect(response).toEqual(failEntireBatch);
-		// expect(response.statusCode).toEqual(HttpCodesEnum.BAD_REQUEST);
-		// expect(response.body).toBe("Unexpected no of records received");
 	});
 
 	it("errors when email processor throws AppError", async () => {
@@ -43,8 +41,6 @@ describe("GovNotifyHandler", () => {
 		});
 		const response = await lambdaHandler(VALID_SQS_EVENT, CONTEXT);
 		expect(response).toEqual(failEntireBatch);
-		// expect(response.statusCode).toEqual(HttpCodesEnum.SERVER_ERROR);
-		// expect(response.body.message).toBe("emailSending - failed: got error while sending email.");
 
 	});
 
@@ -57,7 +53,6 @@ describe("GovNotifyHandler", () => {
 		expect(response).toEqual(expect.objectContaining({
 			batchItemFailures: expect.anything(),
 		}));
-		// expect(response.batchItemFailures[0].itemIdentifier).toEqual(VALID_SQS_EVENT.Records[0].messageId);
 
 	});
 });
