@@ -33,3 +33,14 @@ export const unauthorizedResponse = (errorDescription: string) => {
 		}),
 	};
 };
+
+export const badRequestResponse = () => {
+	return {
+		statusCode: HttpCodesEnum.BAD_REQUEST,
+		headers: SECURITY_HEADERS,
+		body: JSON.stringify({
+			redirect: null,
+			message: "Bad Request",
+		}),
+	};
+};
