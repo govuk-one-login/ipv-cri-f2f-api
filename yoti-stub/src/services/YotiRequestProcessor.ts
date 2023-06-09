@@ -15,10 +15,13 @@ import { VALID_RESPONSE_NFC } from "../data/getSessions/nfcResponse";
 import { VALID_DL_RESPONSE } from "../data/getSessions/driversLicenseResponse";
 import { VALID_BRP_RESPONSE } from "../data/getSessions/brpResponse";
 import { EXPIRED_PASSPORT_RESPONSE } from "../data/getSessions/expiredPassport";
+import { VALID_BRP_RESPONSE_NFC } from "../data/getSessions/nfcBrpResponse";
 import { TAMPERED_DOCUMENT_RESPONSE } from "../data/getSessions/tamperedDocumentResponse";
 import { AI_FAIL_MANUAL_FAIL } from "../data/getSessions/aiFailManualFail";
 import { AI_FAIL_MANUAL_PASS } from "../data/getSessions/aiFailManualPass";
 import { AI_PASS } from "../data/getSessions/aiPass";
+import { BRP_AI_FAIL_MANUAL_PASS_NFC } from "../data/getSessions/brpAiFailManualPass";
+import { BRP_MANUAL_PASS_AI_FAIL } from "../data/getSessions/brpManualPass";
 import { DIFFERENT_PERSON_RESPONSE } from "../data/getSessions/differentPersonResponse";
 import { CREATE_SESSION } from "../data/createSession";
 import {VALID_PUT_INSTRUCTIONS_RESPONSE} from "../data/putInstructions/putInstructionsResponse";
@@ -672,19 +675,34 @@ export class YotiRequestProcessor {
 
 			if (firstTwoChars === DocumentMapping.BRP) { // UK - BRP Scenarios
 				switch (lastUuidChars) {
-					case '0300': // BRP Success - Face Match automated
+					case '0300': // BRP Success - Chip readable & Face Match automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
-						VALID_BRP_RESPONSE.session_id = sessionId;
-						VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
-						VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
-						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_BRP_RESPONSE));
+						VALID_BRP_RESPONSE_NFC.session_id = sessionId;
+						VALID_BRP_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+						VALID_BRP_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_BRP_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_BRP_RESPONSE_NFC));
 	
-					case '0301': // BRP Success - Face Match not automated
+					case '0301': // BRP Success - Chip not readable & Face Match automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						VALID_BRP_RESPONSE.session_id = sessionId;
 						VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
 						VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
 						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_BRP_RESPONSE));
+
+					case '0302': // BRP Success - Chip readable & Face Match NOT automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						BRP_AI_FAIL_MANUAL_PASS_NFC.session_id = sessionId;
+						BRP_AI_FAIL_MANUAL_PASS_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+						BRP_AI_FAIL_MANUAL_PASS_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(BRP_AI_FAIL_MANUAL_PASS_NFC.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(BRP_AI_FAIL_MANUAL_PASS_NFC));
+
+					case '0303': // BRP Success - Chip NOT readable & Face Match NOT automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						BRP_MANUAL_PASS_AI_FAIL.session_id = sessionId;
+						BRP_MANUAL_PASS_AI_FAIL.resources.id_documents[0].document_fields.media.id = sessionId;
+						BRP_MANUAL_PASS_AI_FAIL.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(BRP_MANUAL_PASS_AI_FAIL.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(BRP_MANUAL_PASS_AI_FAIL));
+
 					default:
 						return undefined;
 				}
