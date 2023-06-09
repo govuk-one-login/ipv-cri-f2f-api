@@ -1,5 +1,4 @@
 {
-    "yotiMockID": "0000",
     "shared_claims": {
         "name": [
             {
@@ -21,15 +20,15 @@
             }
         ],
         "address": [
-        {
-                            "address_format": 1,
-                            "building_number": "8",
-                            "address_line1": " HADLEY ROAD",
-                            "town_city": "BATH",
-                            "postal_code": "BA2 5AA",
-                            "country_iso": "GBR",
-                            "country": "GB"
-        }
+            {
+                "address_format": 1,
+                "building_number": "8",
+                "address_line1": " HADLEY ROAD",
+                "town_city": "BATH",
+                "postal_code": "BA2 5AA",
+                "country_iso": "GBR",
+                "country": "GB"
+            }
 
         ],
         "emailAddress": "richa.misra@digital.cabinet-office.gov.uk"

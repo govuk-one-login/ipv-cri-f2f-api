@@ -33,7 +33,7 @@
     "lint": "eslint --output-file ./reports/eslint/reportFile.html --format html -c .eslintrc.js --ext .ts",
     "test:e2e": "./node_modules/.bin/jest --testMatch '**/e2e/?(*.)test.ts' --passWithNoTests",
     "test:infra": "./node_modules/.bin/jest --testMatch '**/infra/?(*.)test.ts' ",
-    "api": "./node_modules/.bin/jest --testPathPattern=tests/api/",
+    "api": "./node_modules/.bin/jest --runInBand --testPathPattern=tests/api/",
     "test:api": "npm run compile && npm run api"
   },
   "devDependencies": {
