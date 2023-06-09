@@ -47,6 +47,8 @@ const personDetails: PersonIdentityItem = {
 			],
 		},
 	],
+	expiryDate: 1612345678,
+	createdDate: 1612335678,
 };
 
 const createSessionPayload = {
