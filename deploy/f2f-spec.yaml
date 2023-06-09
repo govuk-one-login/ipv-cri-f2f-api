@@ -577,7 +577,7 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws"
-  /userInfo:
+  /userinfo:
     post:
       operationId: postUserInfo
       summary: Responds with pending status for a given Auth Session.
