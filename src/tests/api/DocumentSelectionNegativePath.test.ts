@@ -1,4 +1,4 @@
-import dataDriversLicense from "../data/docSelectionPayloadDriversLicenceInvalid.json";
+import dataDriversLicenseInvalid from "../data/docSelectionPayloadDriversLicenceInvalid.json";
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId, authorizationGet, tokenPost, userInfoPost } from "../utils/ApiTestSteps";
 import f2fStubPayload from "../data/exampleStubPayload.json";
@@ -15,7 +15,7 @@ describe("E2E Negative Path /documentSelection Endpoint", () => {
 	});
 
 	it("E2E Negative Path Journey - Invalid Request Payload", async () => {
-		const response = await postDocumentSelection(dataDriversLicense, sessionId);
+		const response = await postDocumentSelection(dataDriversLicenseInvalid, sessionId);
 		expect(response.status).toBe(400);
 		expect(response.data).toEqual({ "message": "Invalid request body" });
 
