@@ -6,13 +6,14 @@ import { randomUUID } from "crypto";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 
-import { DocumentMapping, UK_DL_MEDIA_ID, UK_PASSPORT_MEDIA_ID, NON_UK_PASSPORT_MEDIA_ID, SUPPORTED_DOCUMENTS } from "../utils/Constants";
+import { DocumentMapping, UK_DL_MEDIA_ID, UK_PASSPORT_MEDIA_ID, NON_UK_PASSPORT_MEDIA_ID, SUPPORTED_DOCUMENTS, BRP_MEDIA_ID, EU_DL_MEDIA_ID, EEA_ID_MEDIA_ID } from "../utils/Constants";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import {YotiSessionItem} from "../models/YotiSessionItem";
 import {YotiSessionRequest} from "../models/YotiSessionRequest";
 import { VALID_RESPONSE } from "../data/getSessions/responses";
 import { VALID_RESPONSE_NFC } from "../data/getSessions/nfcResponse";
 import { VALID_DL_RESPONSE } from "../data/getSessions/driversLicenseResponse";
+import { VALID_BRP_RESPONSE } from "../data/getSessions/brpResponse";
 import { EXPIRED_PASSPORT_RESPONSE } from "../data/getSessions/expiredPassport";
 import { TAMPERED_DOCUMENT_RESPONSE } from "../data/getSessions/tamperedDocumentResponse";
 import { AI_FAIL_MANUAL_FAIL } from "../data/getSessions/aiFailManualFail";
@@ -188,7 +189,7 @@ export class YotiRequestProcessor {
 				}
 			}
 
-			if (firstTwoChars === DocumentMapping.UK_PASSOPORT) { // UK - Passport Scenarios
+			if (firstTwoChars === DocumentMapping.UK_PASSPORT) { // UK - Passport Scenarios
 				switch (lastUuidChars) {
 					case '0100': // UK Passport Success - Chip Readable & Face Match automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
@@ -668,13 +669,48 @@ export class YotiRequestProcessor {
 						return undefined;
 				}
 			}
+
+			if (firstTwoChars === DocumentMapping.BRP) { // UK - BRP Scenarios
+				switch (lastUuidChars) {
+					case '0300': // BRP Success - Face Match automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						VALID_BRP_RESPONSE.session_id = sessionId;
+						VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+						VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_BRP_RESPONSE));
+	
+					case '0301': // BRP Success - Face Match not automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						VALID_BRP_RESPONSE.session_id = sessionId;
+						VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+						VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_BRP_RESPONSE));
+					default:
+						return undefined;
+				}
+			}
+
+			if (firstTwoChars === DocumentMapping.EU_DL) { // EU - Driving Licence Scenarios
+				switch (lastUuidChars) {
+					case '0400': // EU Driving Licence Success - Face Match Automated
+						logger.debug(JSON.stringify(yotiSessionRequest))
+						VALID_DL_RESPONSE.session_id = sessionId;
+						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id, EU_DL_MEDIA_ID);
+						VALID_DL_RESPONSE.resources.id_documents[0].issuing_country = "ESP";
+						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));
+					default:
+						return undefined;
+				}
+			}
 		};
 		
 		const replaceLastUuidChars = (str: string, lastUuidChars: string): string => {
 			return str.replace(/\d{4}$/, lastUuidChars);
 		};
 	
-		if (lastUuidChars.substring(0, 2) === '00') {
+		if ((lastUuidChars.substring(0, 2) === '00') || (lastUuidChars.substring(0, 2) === '01') || (lastUuidChars.substring(0, 2) === '02') || 
+					(lastUuidChars.substring(0,2) === '03') || (lastUuidChars.substring(0,2) === '04')) {
 			const response = processPositiveScenario(lastUuidChars, sessionId);
 			if (response) {
 				return response;
