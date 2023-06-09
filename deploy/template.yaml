@@ -1037,7 +1037,7 @@ Resources:
         userInfo:
           Type: Api
           Properties:
-            Path: /userInfo
+            Path: /userinfo
             Method: post
             RestApiId: !Ref F2FRestApi
     Metadata: # Manage esbuild properties

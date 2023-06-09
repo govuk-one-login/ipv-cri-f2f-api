@@ -7,7 +7,7 @@ export const VALID_USERINFO = {
 	multiValueQueryStringParameters: {},
 	pathParameters: {},
 	queryStringParameters: {},
-	path: "/userInfo",
+	path: "/userinfo",
 	requestContext:{
 		accountId: "",
 		apiId: "",
@@ -36,7 +36,7 @@ export const VALID_USERINFO = {
 			userAgent: "",
 			userArn: "",
 		},
-		path: "/userInfo",
+		path: "/userinfo",
 		protocol: "HTTP/1.1",
 		requestId: "ba9b369a-ab98-11ed-afa1-0242ac120002",
 		requestTimeEpoch: 1428582896000,
@@ -44,7 +44,7 @@ export const VALID_USERINFO = {
 		resourcePath: "/userInfo",
 		stage: "dev",
 	},
-	resource: "/userInfo",
+	resource: "/userinfo",
 	stageVariables: {},
 };
 
