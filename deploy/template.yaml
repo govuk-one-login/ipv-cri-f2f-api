@@ -389,7 +389,7 @@ Resources:
         Variables:
           AUTH_SESSION_TTL:
             !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTL ]
-          POWERTOOLS_SERVICE_NAME: UserInfoHandler
+          POWERTOOLS_SERVICE_NAME: SessionHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
@@ -1037,7 +1037,7 @@ Resources:
         userInfo:
           Type: Api
           Properties:
-            Path: /userInfo
+            Path: /userinfo
             Method: post
             RestApiId: !Ref F2FRestApi
     Metadata: # Manage esbuild properties
