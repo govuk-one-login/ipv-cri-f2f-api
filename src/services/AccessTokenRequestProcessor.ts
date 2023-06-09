@@ -13,7 +13,7 @@ import { Constants } from "../utils/Constants";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
-import {MessageCodes} from "../models/enums/MessageCodes";
+import { MessageCodes } from "../models/enums/MessageCodes";
 
 export class AccessTokenRequestProcessor {
 	private static instance: AccessTokenRequestProcessor;
