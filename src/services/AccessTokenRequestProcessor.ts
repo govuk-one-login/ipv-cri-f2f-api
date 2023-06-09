@@ -13,6 +13,7 @@ import { Constants } from "../utils/Constants";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
+import { MessageCodes } from "../models/enums/MessageCodes";
 
 export class AccessTokenRequestProcessor {
 	private static instance: AccessTokenRequestProcessor;
@@ -56,6 +57,10 @@ export class AccessTokenRequestProcessor {
 					return new Response(HttpCodesEnum.UNAUTHORIZED, `No session found by authorization code: ${requestPayload.code}`);
 				}
 			} catch (err) {
+				this.logger.error("Error while retrieving the session", {
+					messageCode: MessageCodes.SESSION_NOT_FOUND,
+					error: err,
+				});
 				return new Response(HttpCodesEnum.UNAUTHORIZED, "Error while retrieving the session");
 			}
 
@@ -82,7 +87,7 @@ export class AccessTokenRequestProcessor {
 				this.logger.info({ message: "Access token generated successfully" });
 
 				return {
-					statusCode: HttpCodesEnum.CREATED,
+					statusCode: HttpCodesEnum.OK,
 					body: JSON.stringify({
 						access_token: accessToken,
 						token_type: Constants.BEARER,
