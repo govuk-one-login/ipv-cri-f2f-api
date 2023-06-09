@@ -25,7 +25,7 @@ export async function stubStartPost(stubPayload: any):Promise<any> {
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
-	} 
+	}
 }
 
 export async function stubStartPostNoSharedClaims(requestBody:any):Promise<any> {
@@ -37,7 +37,7 @@ export async function stubStartPostNoSharedClaims(requestBody:any):Promise<any> 
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
-	} 
+	}
 }
 
 export async function sessionPost(clientId?: string, request?: string):Promise<any> {
@@ -49,7 +49,7 @@ export async function sessionPost(clientId?: string, request?: string):Promise<a
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
-	} 
+	}
 }
 
 export async function postDocumentSelection(userData:any, sessionId:any): Promise<any> {
@@ -60,7 +60,7 @@ export async function postDocumentSelection(userData:any, sessionId:any): Promis
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
-	} 
+	}
 }
 
 
@@ -72,8 +72,8 @@ export async function authorizationGet(sessionId: any):Promise<any> {
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
-	} 
-}   
+	}
+}
 
 export async function tokenPost(authCode?: any, redirectUri?: any ):Promise<any> {
 	const path = "/token";
@@ -83,32 +83,32 @@ export async function tokenPost(authCode?: any, redirectUri?: any ):Promise<any>
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
-	} 
+	}
 }
 
 export async function userInfoPost(accessToken?: any):Promise<any> {
-	const path = "/userInfo";
+	const path = "/userinfo";
 	try {
 		const postRequest = await API_INSTANCE.post( path, null, { headers: { "Authorization": `${accessToken}` } });
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
-	} 
+	}
 }
 
 export async function callbackPost(sessionId: any):Promise<any> {
 	const path = "/callback";
 	try {
 		const postRequest = await API_INSTANCE.post(path, {
-			"session_id": sessionId, 
+			"session_id": sessionId,
 			"topic": "session_completion",
 		});
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
-	} 
+	}
 }
 
 export async function postYotiSession(trackingId: any, userData: any): Promise<any> {
@@ -122,7 +122,7 @@ export async function postYotiSession(trackingId: any, userData: any): Promise<a
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
-	} 
+	}
 }
 
 export async function getYotiSessionsConfiguration(sessionId:any): Promise<any> {
@@ -266,7 +266,7 @@ export function validateJwtToken(jwtToken:any, vcData: any, yotiId?: string):voi
 	// Check Methods
 	const expecedCheckMethod = eval("vcData.s" + yotiId + ".checkMethod")
 	if (expecedCheckMethod) {
-		
+
 		const actualCheckMethods = [];
 		for (let i = 0; i < expecedCheckMethod.split(",").length; i++) {
 			actualCheckMethods.push(decodedBody.vc.evidence[0].checkDetails[i].checkMethod);

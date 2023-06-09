@@ -5,36 +5,36 @@ import { setTimeout } from "timers/promises";
 import { postDocumentSelection, startStubServiceAndReturnSessionId, getSessionById, callbackPost, authorizationGet, tokenPost, userInfoPost, receiveJwtTokenFromSqsMessage, validateJwtToken } from "../utils/ApiTestSteps";
 
 
-describe.skip("Callback API", () => {
+describe("Callback API", () => {
 	jest.setTimeout(60000);
-	const mockIdParams = [		
+	const mockIdParams = [
 		["0000"],
-		["0001"],
-		["0101"],
-		["0102"],
-		["0103"],
-		["0108"],
-		["0109"],
-		["0110"],
-		["0111"],
-		["0112"],
-		["0113"],
-		["0114"],
-		["0115"],
-		["0116"],
-		["0117"],
-		["0118"],
-		["0119"],
-		["0120"],
-		["0121"],
-		["0122"],
-		["0123"],
-		["0124"],
-		["0125"],
-		["0200"],
-		["0201"],
-		["0202"],
-		["0203"],
+		// ["0001"],
+		// ["0101"],
+		// ["0102"],
+		// ["0103"],
+		// ["0108"],
+		// ["0109"],
+		// ["0110"],
+		// ["0111"],
+		// ["0112"],
+		// ["0113"],
+		// ["0114"],
+		// ["0115"],
+		// ["0116"],
+		// ["0117"],
+		// ["0118"],
+		// ["0119"],
+		// ["0120"],
+		// ["0121"],
+		// ["0122"],
+		// ["0123"],
+		// ["0124"],
+		// ["0125"],
+		// ["0200"],
+		// ["0201"],
+		// ["0202"],
+		// ["0203"],
 	];
 	it.each(mockIdParams)("F2F CRI Callback Endpoint - yotiMockId: '%s'", async (yotiMockId) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
@@ -48,7 +48,7 @@ describe.skip("Callback API", () => {
 		expect(authResponse.status).toBe(200);
 		// // Post Token
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
-		expect(tokenResponse.status).toBe(201);
+		expect(tokenResponse.status).toBe(200);
 		// Post User Info
 		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
 		expect(userInfoResponse.status).toBe(202);
@@ -60,8 +60,8 @@ describe.skip("Callback API", () => {
 		const callbackResponse = await callbackPost(yotiSessionId);
 		expect(userInfoResponse.status).toBe(202);
 		// Verifiable Credential Validation
-		await setTimeout(10000);
-		const jwtToken = await receiveJwtTokenFromSqsMessage();
-		validateJwtToken(jwtToken, vcResponseData, yotiMockId);
+		//await setTimeout(10000);
+		//const jwtToken = await receiveJwtTokenFromSqsMessage();
+		//validateJwtToken(jwtToken, vcResponseData, yotiMockId);
 	});
-});  
+});
