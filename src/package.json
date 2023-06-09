@@ -35,7 +35,7 @@
     "test:infra": "./node_modules/.bin/jest --testMatch '**/infra/?(*.)test.ts' ",
     "api": "./node_modules/.bin/jest --testPathPattern=tests/api/",
     "test:api:dev": "export ENV=dev && npm run compile && npm run api",
-    "test:api:build": "export ENV=build npm run compile && npm run api"
+    "test:api:build": "export ENV=build && npm run compile && npm run api"
   },
   "devDependencies": {
     "@aws-cdk/assertions": "^1.172.0",
