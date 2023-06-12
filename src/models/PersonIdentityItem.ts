@@ -39,6 +39,8 @@ export interface PersonIdentityItem {
 	name: PersonIdentityName[];
 	birthDate: PersonIdentityDateOfBirth[];
 	emailAddress: string;
+	expiryDate: number;
+	createdDate: number;
 }
 
 export interface SharedClaimsPersonIdentity {
