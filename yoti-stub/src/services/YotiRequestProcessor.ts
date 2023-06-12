@@ -6,7 +6,14 @@ import { randomUUID } from "crypto";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 
-import { DocumentMapping, UK_DL_MEDIA_ID, UK_PASSPORT_MEDIA_ID, NON_UK_PASSPORT_MEDIA_ID, SUPPORTED_DOCUMENTS } from "../utils/Constants";
+import {
+	DocumentMapping,
+	UK_DL_MEDIA_ID,
+	UK_PASSPORT_MEDIA_ID,
+	NON_UK_PASSPORT_MEDIA_ID,
+	SUPPORTED_DOCUMENTS,
+	IPV_INTEG_FULL_NAME_HAPPY
+} from "../utils/Constants";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import {YotiSessionItem} from "../models/YotiSessionItem";
 import {YotiSessionRequest} from "../models/YotiSessionRequest";
@@ -80,16 +87,29 @@ export class YotiRequestProcessor {
 	 */
 	async createSession(event: APIGatewayProxyEvent, incomingPayload: any): Promise<Response> {
 		this.logger.info("START OF CREATESESSION")
+
 		const fullName = incomingPayload.resources.applicant_profile.full_name;
-		const lastUuidChars = fullName.match(/\d+/g)[0];
-		const firstTwoChars = lastUuidChars.slice(0, 2);
+		const yotiSessionItem = new YotiSessionItem();
 		const yotiSessionId = randomUUID();
+
 		const lastYotiUuidChars = yotiSessionId.slice(-4);
-		this.logger.info("lastUuid", { lastUuidChars });
 		this.logger.info("lastYotiUuid", { lastYotiUuidChars });
-		const replacedYotiSessionId = yotiSessionId.replace(lastYotiUuidChars, lastUuidChars);
+
+		//For IPV Integration happy path
+		if(IPV_INTEG_FULL_NAME_HAPPY === fullName){
+			//Replacing returned yoti sessionid with success 0100 at the end to return GBR_PASSPORT
+			yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0100");
+			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+		}
+
+		//For all other cases
+		const lastFullNameChars = fullName.match(/\d+/g)[0];
+		const firstTwoChars = lastFullNameChars.slice(0, 2);
+
+		this.logger.info("lastFullNameChars", { lastFullNameChars });
+		const replacedYotiSessionId = yotiSessionId.replace(lastYotiUuidChars, lastFullNameChars);
 		this.logger.info(replacedYotiSessionId)
-		const yotiSessionItem = new YotiSessionItem()
+
 		yotiSessionItem.session_id = replacedYotiSessionId
 		this.logger.info("CREATED SESSION ITEM", { yotiSessionItem })
 
@@ -101,25 +121,25 @@ export class YotiRequestProcessor {
 			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
 		}
 
-		if (lastUuidChars[0] === '3' || lastUuidChars[0] === '2') {
+		if (lastFullNameChars[0] === '3' || lastFullNameChars[0] === '2') {
 			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
 		}
 
-		switch(lastUuidChars) {
+		switch(lastFullNameChars) {
 			case '1400':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastFullNameChars});
 				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SESSIONS_400))
 			case '1401':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastFullNameChars});
 				return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(POST_SESSIONS_401))
 			case '1403':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastFullNameChars});
 				return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(POST_SESSIONS_403))
 			case '1404':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastFullNameChars});
 				return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(POST_SESSIONS_404))
 			case '1503':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastFullNameChars});
 				return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(POST_SESSIONS_503))
 			case '1999':
 				// This will result in 504 timeout currently as sleep interval is 30s
@@ -145,7 +165,7 @@ export class YotiRequestProcessor {
 		const processPositiveScenario = (lastUuidChars: string, sessionId: string): Response | undefined => {
 			const logger = this.logger;
 			const yotiSessionRequest = new YotiSessionRequest(sessionId);
-		
+
 			if (firstTwoChars === DocumentMapping.UK_DL) { // UK - Driving Licence Scenarios
 				switch (lastUuidChars) {
 					case '0000': // UK Driving License Success - Face Match automated
@@ -154,7 +174,7 @@ export class YotiRequestProcessor {
 						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
 						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id, UK_DL_MEDIA_ID);
 						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));
-	
+
 					case '0001': // UK Driving License Success - Face Match not  automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						VALID_DL_RESPONSE.session_id = sessionId;
@@ -196,21 +216,21 @@ export class YotiRequestProcessor {
 						VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
 						VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
 						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC));
-			
+
 					case '0101': // UK Passport Success - Chip NOT readable & Face Match automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						VALID_RESPONSE.session_id = sessionId;
 						VALID_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
 						VALID_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
 						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));
-					
+
 					case '0102': // UK Passport Success - Chip Readable & Face Match NOT automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						AI_FAIL_MANUAL_PASS.session_id = sessionId;
 						AI_FAIL_MANUAL_PASS.resources.id_documents[0].document_fields.media.id = sessionId;
 						AI_FAIL_MANUAL_PASS.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(AI_FAIL_MANUAL_PASS.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
 						return new Response(HttpCodesEnum.OK, JSON.stringify(AI_FAIL_MANUAL_PASS));
-					
+
 					case '0103': // UK Passport Success - Chip NOT readable & Face Match NOT automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						AI_PASS.session_id = sessionId;
@@ -224,21 +244,21 @@ export class YotiRequestProcessor {
 						DIFFERENT_PERSON_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
 						DIFFERENT_PERSON_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(DIFFERENT_PERSON_RESPONSE.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
 						return new Response(HttpCodesEnum.OK, JSON.stringify(DIFFERENT_PERSON_RESPONSE));
-			
+
 						case '0105': // UK Passport - Expired
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						EXPIRED_PASSPORT_RESPONSE.session_id = sessionId;
 						EXPIRED_PASSPORT_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
 						EXPIRED_PASSPORT_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(EXPIRED_PASSPORT_RESPONSE.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
 						return new Response(HttpCodesEnum.OK, JSON.stringify(EXPIRED_PASSPORT_RESPONSE));
-			
+
 					case '0106': // UK Passport - Tampered
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						TAMPERED_DOCUMENT_RESPONSE.session_id = sessionId;
 						TAMPERED_DOCUMENT_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
 						TAMPERED_DOCUMENT_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(TAMPERED_DOCUMENT_RESPONSE.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
 						return new Response(HttpCodesEnum.OK, JSON.stringify(TAMPERED_DOCUMENT_RESPONSE));
-			
+
 					case '0107': // UK Passport - FaceCheck Failed
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						AI_FAIL_MANUAL_FAIL.session_id = sessionId;
@@ -282,7 +302,7 @@ export class YotiRequestProcessor {
 						};
 						console.log('modifiedPayload', JSON.stringify(modifiedPayload));
 						return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
-					
+
 					case '0110': // UK Passport - PHOTO_OF_MASK
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						VALID_RESPONSE_NFC.session_id = sessionId;
@@ -640,7 +660,7 @@ export class YotiRequestProcessor {
 						VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, NON_UK_PASSPORT_MEDIA_ID);
 						VALID_RESPONSE_NFC.resources.id_documents[0].issuing_country = "ESP";
 						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC));
-			
+
 					case '0201': // Non-UK Passport Success - Chip NOT readable & Face Match automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						VALID_RESPONSE.session_id = sessionId;
@@ -648,7 +668,7 @@ export class YotiRequestProcessor {
 						VALID_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE.resources.id_documents[0].document_fields.media.id, NON_UK_PASSPORT_MEDIA_ID);
 						VALID_RESPONSE.resources.id_documents[0].issuing_country = "ESP";
 						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));
-					
+
 					case '0202': // Non-UK Passport Success - Chip Readable & Face Match NOT automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						AI_FAIL_MANUAL_PASS.session_id = sessionId;
@@ -656,7 +676,7 @@ export class YotiRequestProcessor {
 						AI_FAIL_MANUAL_PASS.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(AI_FAIL_MANUAL_PASS.resources.id_documents[0].document_fields.media.id, NON_UK_PASSPORT_MEDIA_ID);
 						AI_FAIL_MANUAL_PASS.resources.id_documents[0].issuing_country = "ESP";
 						return new Response(HttpCodesEnum.OK, JSON.stringify(AI_FAIL_MANUAL_PASS));
-					
+
 					case '0203': // Non-UK Passport Success - Chip NOT readable & Face Match NOT automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						AI_PASS.session_id = sessionId;
@@ -669,18 +689,18 @@ export class YotiRequestProcessor {
 				}
 			}
 		};
-		
+
 		const replaceLastUuidChars = (str: string, lastUuidChars: string): string => {
 			return str.replace(/\d{4}$/, lastUuidChars);
 		};
-	
+
 		if ((lastUuidChars.substring(0, 2) === '00') || (lastUuidChars.substring(0, 2) === '01') || (lastUuidChars.substring(0, 2) === '02')) {
 			const response = processPositiveScenario(lastUuidChars, sessionId);
 			if (response) {
 				return response;
 			}
 		}
-	
+
 		switch (lastUuidChars) {
 			case '5400':
 				this.logger.info({ message: "last 4 ID chars", lastUuidChars });
@@ -861,38 +881,38 @@ export class YotiRequestProcessor {
 		const lastUuidChars = mediaId.slice(-4);
 		const logger = this.logger;
 		logger.info({ message: "last 4 ID chars", lastUuidChars });
-	
+
 		switch (lastUuidChars) {
 			case UK_DL_MEDIA_ID:
 				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE));
-	
+
 			case UK_PASSPORT_MEDIA_ID:
 				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
-			
+
 			case NON_UK_PASSPORT_MEDIA_ID:
 				return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT));
-	
+
 			case '5400':
 				logger.info({ message: "last 4 ID chars", lastUuidChars });
 				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(GET_MEDIA_CONTENT_400));
-	
+
 			case '5401':
 				logger.info({ message: "last 4 ID chars", lastUuidChars });
 				return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(GET_MEDIA_CONTENT_401));
-	
+
 			case '5404':
 				logger.info({ message: "last 4 ID chars", lastUuidChars });
 				return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(GET_MEDIA_CONTENT_404));
-	
+
 			case '5999':
 				// This will result in 504 timeout currently as sleep interval is 30s
 				logger.info({ message: "last 4 ID chars", lastUuidChars });
 				await sleep(30000);
 				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
-	
+
 			default:
 				return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming mediaId ${mediaId} didn't match any of the use cases`);
 		}
 	}
-	
+
 }

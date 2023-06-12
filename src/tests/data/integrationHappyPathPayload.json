@@ -1,0 +1,36 @@
+{
+    "shared_claims": {
+        "name": [
+            {
+                "nameParts": [
+                    {
+                        "value": "Kenneth",
+                        "type": "GivenName"
+                    },
+                    {
+                        "value": "Decerqueira",
+                        "type": "FamilyName"
+                    }
+                ]
+            }
+        ],
+        "birthDate": [
+            {
+                "value": "1965-07-08"
+            }
+        ],
+        "address": [
+            {
+                "address_format": 1,
+                "building_number": "8",
+                "address_line1": " HADLEY ROAD",
+                "town_city": "BATH",
+                "postal_code": "BA2 5AA",
+                "country_iso": "GBR",
+                "country": "GB"
+            }
+
+        ],
+        "emailAddress": "test@domain.com"
+    }
+}

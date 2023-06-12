@@ -11,3 +11,9 @@ export const UK_PASSPORT_MEDIA_ID: string = '0100'
 export const NON_UK_PASSPORT_MEDIA_ID: string = '0200'
 
 export const SUPPORTED_DOCUMENTS: string[] = [DocumentMapping.UK_DL, DocumentMapping.UK_PASSPORT, DocumentMapping.NON_UK_PASSPORT] // <-- Update this Array when introducing new doucment types
+
+export const IPV_INTEG_FULL_NAME_HAPPY = "Kenneth Decerqueira"
+
+export const IPV_INTEG_FULL_NAME_UNHAPPY = "Jenneth Decerqueira"
+
+
