@@ -14,7 +14,7 @@ export const GBR_PASSPORT = {
 	"issuing_authority": "HMPO",
 	"mrz": {
 			"type": 2,
-			"line1": "P<GBRUK<SPECIMEN<<Kenneth<Decerqueira<<<<<<<<<<<<<<<<",
+			"line1": "P<GBRUK<SPECIMEN<<KENNETH<DECERQUEIRA<<<<<<<<<<<<<<<<",
 			"line2": "5334013720GBR8812049F2509286<<<<<<<<<<<<<<00"
 	}
 }
