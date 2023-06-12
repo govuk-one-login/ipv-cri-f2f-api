@@ -76,6 +76,7 @@ Mappings:
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
       RESOURCESTTL: 1036800 # Default 12 days
@@ -88,6 +89,7 @@ Mappings:
       ISSUER: 'https://review-o.build.account.gov.uk'
       DNSSUFFIX: review-o.build.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
       RESOURCESTTL: 1036800 # Default 12 days
@@ -100,6 +102,7 @@ Mappings:
       ISSUER: 'https://review-o.staging.account.gov.uk'
       DNSSUFFIX: review-o.staging.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
       RESOURCESTTL: 1036800 # Default 12 days
@@ -112,6 +115,7 @@ Mappings:
       ISSUER: 'https://review-o.integration.account.gov.uk'
       DNSSUFFIX: review-o.integration.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
       RESOURCESTTL: 1036800 # Default 12 days
@@ -124,6 +128,7 @@ Mappings:
       ISSUER: 'https://review-o.account.gov.uk'
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
+      TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
       RESOURCESTTL: 1036800 # Default 12 days
@@ -750,7 +755,7 @@ Resources:
   TxMASQSQueue:
     Type: AWS::SQS::Queue
     Properties:
-      MessageRetentionPeriod: !FindInMap [EnvironmentVariables, !Ref Environment, MESSAGERETENTIONPERIODDAYS]
+      MessageRetentionPeriod: !FindInMap [EnvironmentVariables, !Ref Environment, TXMAMESSAGERETENTIONPERIODDAYS]
       VisibilityTimeout: 60
       KmsMasterKeyId: !Ref TxMAKeyAlias
       RedrivePolicy:
