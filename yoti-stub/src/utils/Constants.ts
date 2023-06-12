@@ -19,4 +19,5 @@ export const EU_DL_MEDIA_ID: string = "0400"
 
 export const EEA_ID_MEDIA_ID: string = "0500"
 
-export const SUPPORTED_DOCUMENTS: string[] = [DocumentMapping.UK_DL, DocumentMapping.UK_PASSPORT, DocumentMapping.NON_UK_PASSPORT, DocumentMapping.BRP, DocumentMapping.EU_DL, DocumentMapping.EEA_ID] // <-- Update this Array when introducing new doucment types
+export const SUPPORTED_DOCUMENTS: string[] = [DocumentMapping.UK_DL, DocumentMapping.UK_PASSPORT, DocumentMapping.NON_UK_PASSPORT, 
+                                              DocumentMapping.BRP, DocumentMapping.EU_DL, DocumentMapping.EEA_ID] // <-- Update this Array when introducing new doucment types

@@ -165,7 +165,7 @@ export class YotiRequestProcessor {
 						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id, UK_DL_MEDIA_ID);
 						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));
 	
-					case '0001': // UK Driving License Success - Face Match not automated
+					case '0001': // UK Driving License Success - Face Match not  automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						VALID_DL_RESPONSE.session_id = sessionId;
 						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
@@ -811,6 +811,7 @@ export class YotiRequestProcessor {
 		// without this bit, the API won't run scenarios for the different document types
 		if ((lastUuidChars.substring(0, 2) === '00') || (lastUuidChars.substring(0, 2) === '01') || (lastUuidChars.substring(0, 2) === '02') || 
 					(lastUuidChars.substring(0,2) === '03') || (lastUuidChars.substring(0,2) === '04') || (lastUuidChars.substring(0,2) === '05')) {
+
 			const response = processPositiveScenario(lastUuidChars, sessionId);
 			if (response) {
 				return response;

@@ -4,6 +4,7 @@ import { YotiCallbackProcessor } from "../../services/YotiCallbackProcessor";
 import { VALID_SQS_EVENT } from "./data/callback-events";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { AppError } from "../../utils/AppError";
+import {failEntireBatch} from "../../utils/SqsBatchResponseHelper";
 
 const mockedYotiCallbackProcessor = mock<YotiCallbackProcessor>();
 
@@ -29,9 +30,8 @@ describe("YotiCallbackHandler", () => {
 
 	it("returns Bad request when number of records in the SQS message is more than 1", async () => {
 		const event = { "Records": [] };
-		 const response = await lambdaHandler(event, "F2F");
-		expect(response.statusCode).toEqual(HttpCodesEnum.BAD_REQUEST);
-		expect(response.body).toBe("Unexpected no of records received");
+		const response = await lambdaHandler(event, "F2F");
+		expect(response).toEqual(failEntireBatch);
 	});
 
 	it("errors when yoticallback processor throws AppError", async () => {
@@ -39,8 +39,6 @@ describe("YotiCallbackHandler", () => {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send VC");
 		});
 		const response = await lambdaHandler(VALID_SQS_EVENT, "F2F");
-		expect(response.statusCode).toEqual(HttpCodesEnum.SERVER_ERROR);
-		expect(response.body.message).toBe("Failed to send VC");
-
+		expect(response).toEqual(failEntireBatch);
 	});
 });
