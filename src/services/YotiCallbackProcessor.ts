@@ -19,9 +19,9 @@ import { YotiSessionDocument } from "../utils/YotiPayloadEnums";
 export class YotiCallbackProcessor {
 
   private static instance: YotiCallbackProcessor;
-	
+
   private readonly logger: Logger;
-	
+
   private readonly metrics: Metrics;
 
   private readonly yotiService: YotiService;
@@ -150,7 +150,7 @@ export class YotiCallbackProcessor {
   			await this.f2fService.sendToIPVCore({
   				sub: f2fSession.subject,
   				state: f2fSession.state,
-  				"https://vocab.account.gov.uk/v1/credentialJWT": signedJWT,
+  				"https://vocab.account.gov.uk/v1/credentialJWT": [signedJWT],
   			});
   		} catch (error) {
   			this.logger.error({ message: "Failed to send VC to IPV Core Queue" }, { error });

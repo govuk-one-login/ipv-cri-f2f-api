@@ -141,7 +141,7 @@ describe("F2f Service", () => {
     await expect(f2fService.sendToIPVCore({
       sub: "",
       state: "",
-      "https://vocab.account.gov.uk/v1/credentialJWT": "",
+      "https://vocab.account.gov.uk/v1/credentialJWT": [],
     })).rejects.toThrow(expect.objectContaining({
       statusCode: HttpCodesEnum.SERVER_ERROR,
     }));
