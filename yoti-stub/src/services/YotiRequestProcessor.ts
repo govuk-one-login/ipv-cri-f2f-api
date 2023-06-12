@@ -103,11 +103,11 @@ export class YotiRequestProcessor {
 		}
 
 		//For all other cases
-		const lastUuidChars = fullName.match(/\d+/g)[0];
-		const firstTwoChars = lastUuidChars.slice(0, 2);
+		const lastFullNameChars = fullName.match(/\d+/g)[0];
+		const firstTwoChars = lastFullNameChars.slice(0, 2);
 
-		this.logger.info("lastUuid", { lastUuidChars });
-		const replacedYotiSessionId = yotiSessionId.replace(lastYotiUuidChars, lastUuidChars);
+		this.logger.info("lastFullNameChars", { lastFullNameChars });
+		const replacedYotiSessionId = yotiSessionId.replace(lastYotiUuidChars, lastFullNameChars);
 		this.logger.info(replacedYotiSessionId)
 
 		yotiSessionItem.session_id = replacedYotiSessionId
@@ -121,25 +121,25 @@ export class YotiRequestProcessor {
 			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
 		}
 
-		if (lastUuidChars[0] === '3' || lastUuidChars[0] === '2') {
+		if (lastFullNameChars[0] === '3' || lastFullNameChars[0] === '2') {
 			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
 		}
 
-		switch(lastUuidChars) {
+		switch(lastFullNameChars) {
 			case '1400':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastFullNameChars});
 				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SESSIONS_400))
 			case '1401':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastFullNameChars});
 				return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(POST_SESSIONS_401))
 			case '1403':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastFullNameChars});
 				return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(POST_SESSIONS_403))
 			case '1404':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastFullNameChars});
 				return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(POST_SESSIONS_404))
 			case '1503':
-				this.logger.info({ message: "last 4 ID chars", lastUuidChars});
+				this.logger.info({ message: "last 4 ID chars", lastFullNameChars});
 				return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(POST_SESSIONS_503))
 			case '1999':
 				// This will result in 504 timeout currently as sleep interval is 30s
