@@ -190,24 +190,24 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 	return session.Item as ISessionItem;
 }
 
-export async function updateYotiSessionId(sessionId: string, yotiSessionId: any, updatedYotiSessionId: string): Promise<void> {
-	const dynamoDB = createDynamoDbClient();
-
-	const updateSessionCommand = new UpdateCommand({
-		TableName: "session-f2f-cri-ddb",
-		Key: { sessionId },
-		UpdateExpression: "SET yotiSessionId=:yotiSessionId",
-		ExpressionAttributeValues: {
-			":yotiSessionId": updatedYotiSessionId,
-		},
-	});
-	try {
-		dynamoDB.send(updateSessionCommand);
-		console.info({ message: "updated yotiSessionId in dynamodb" });
-	} catch (e: any) {
-		console.error({ message: "got error updating yotiSessionId", e });
-	}
-}
+// export async function updateYotiSessionId(sessionId: string, yotiSessionId: any, updatedYotiSessionId: string): Promise<void> {
+// 	const dynamoDB = createDynamoDbClient();
+//
+// 	const updateSessionCommand = new UpdateCommand({
+// 		TableName: "session-f2f-cri-ddb",
+// 		Key: { sessionId },
+// 		UpdateExpression: "SET yotiSessionId=:yotiSessionId",
+// 		ExpressionAttributeValues: {
+// 			":yotiSessionId": updatedYotiSessionId,
+// 		},
+// 	});
+// 	try {
+// 		dynamoDB.send(updateSessionCommand);
+// 		console.info({ message: "updated yotiSessionId in dynamodb" });
+// 	} catch (e: any) {
+// 		console.error({ message: "got error updating yotiSessionId", e });
+// 	}
+// }
 
 export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 	const queueURL = constants.DEV_F2F_IPV_CORE_QUEUE_URL;
