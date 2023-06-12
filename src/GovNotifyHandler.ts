@@ -3,7 +3,6 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
-import { BatchItemFailure } from "./utils/BatchItemFailure";
 import { SendEmailProcessor } from "./services/SendEmailProcessor";
 import { getParameter } from "./utils/Config";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
@@ -31,7 +30,6 @@ class GovNotifyHandler implements LambdaInterface {
 		if (event.Records.length === 1) {
 			const record: SQSRecord = event.Records[0];
 			logger.debug("Starting to process record", { record });
-			const batchFailures: BatchItemFailure[] = [];
 
 			try {
 				const body = JSON.parse(record.body);

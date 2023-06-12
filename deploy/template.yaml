@@ -1087,14 +1087,14 @@ Resources:
     Type: "AWS::SQS::Queue"
     Properties:
       MessageRetentionPeriod: !FindInMap [EnvironmentVariables, !Ref Environment, MESSAGERETENTIONPERIODDAYS]
-      VisibilityTimeout: 300
+      VisibilityTimeout: 1800 #Setting this to 6 times the GovNotify lambda timeout
       KmsMasterKeyId: !Ref GovNotifyKeyAlias
       RedrivePolicy:
         deadLetterTargetArn:
           Fn::GetAtt:
             - "GovNotifySQSQueueDeadLetterQueue"
             - "Arn"
-        maxReceiveCount: 5
+        maxReceiveCount: 2
 
   GovNotifySQSQueueDeadLetterQueue:
     Type: "AWS::SQS::Queue"

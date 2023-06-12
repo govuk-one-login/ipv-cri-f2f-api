@@ -72,16 +72,16 @@ export class SendEmailService {
 	 */
 	async sendEmail(message: Email): Promise<EmailResponse | undefined> {
 		// Fetch the instructions pdf from Yoti
-		try{
+		try {
 			const encoded = await this.fetchInstructionsPdf(message);
-			if(encoded) {
+			if (encoded) {
 				this.logger.debug("sendEmail", SendEmailService.name);
 				return await this.sendGovNotification(message, encoded);
-			}else{
+			} else {
 				this.logger.error("sendEmail - Failed to fetch the Instructions pdf");
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "sendEmail - Failed to fetch the Instructions pdf");
 			}
-		} catch(err: any){
+		} catch (err: any) {
 			this.logger.error("sendEmail - Cannot send Email", SendEmailService.name, err.message);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sendEmail - Cannot send Email");
 		}
@@ -105,6 +105,7 @@ export class SendEmailService {
 				templateId: this.environmentVariables.getEmailTemplateId(this.logger),
 				emailAddress: message.emailAddress,
 				options,
+				retryCount,
 			});
 
 			try {
