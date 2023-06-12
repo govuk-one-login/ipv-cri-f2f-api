@@ -57,6 +57,7 @@ import { GBR_PASSPORT } from "../data/getMediaContent/gbPassportResponse";
 import { GBR_DRIVING_LICENCE } from "../data/getMediaContent/gbDriversLicenseResponse";
 import { DEU_DRIVING_LICENCE } from "../data/getMediaContent/euDriversLicenseResponse";
 import { GET_MEDIA_CONTENT_400 } from "../data/getMediaContent/getMediaContent400";
+import { BRP } from "../data/getMediaContent/gbBrp";
 import { GET_MEDIA_CONTENT_401 } from "../data/getMediaContent/getMediaContent401";
 import { GET_MEDIA_CONTENT_404 } from "../data/getMediaContent/getMediaContent404";
 import { sleep } from "../utils/Sleep";
@@ -1007,6 +1008,15 @@ export class YotiRequestProcessor {
 			
 			case NON_UK_PASSPORT_MEDIA_ID:
 				return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT));
+
+			case BRP_MEDIA_ID:
+				return new Response(HttpCodesEnum.OK, JSON.stringify(BRP));
+				
+			case EU_DL_MEDIA_ID:
+				return new Response(HttpCodesEnum.OK, JSON.stringify(DEU_DRIVING_LICENCE));
+
+			case EEA_ID_MEDIA_ID:
+				return new Response(HttpCodesEnum.OK, JSON.stringify(NLD_NATIONAL_ID));
 	
 			case '5400':
 				logger.info({ message: "last 4 ID chars", lastUuidChars });

@@ -1,4 +1,4 @@
-export const BRP_RESPONSE = {
+export const BRP = {
   "full_name": "TECH REFRESH ICTHREEMALE",
   "date_of_birth": "1990-08-01",
   "nationality": "KEN",
