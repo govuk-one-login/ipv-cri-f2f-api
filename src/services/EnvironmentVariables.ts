@@ -38,7 +38,7 @@ export class EnvironmentVariables {
 
 	private readonly ENCRYPTION_KEY_IDS = process.env.ENCRYPTION_KEY_IDS;
 
-	private readonly AUTH_SESSION_TTL = process.env.AUTH_SESSION_TTL;
+	private readonly AUTH_SESSION_TTL_IN_SECS = process.env.AUTH_SESSION_TTL;
 
 	private readonly SIGNING_KEY_IDS = process.env.SIGNING_KEY_IDS;
 
@@ -146,7 +146,7 @@ export class EnvironmentVariables {
 				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 					!this.CLIENT_CONFIG || this.CLIENT_CONFIG.trim().length === 0 ||
 					!this.ENCRYPTION_KEY_IDS || this.ENCRYPTION_KEY_IDS.trim().length === 0 ||
-					!this.AUTH_SESSION_TTL || this.AUTH_SESSION_TTL.trim().length === 0 ||
+					!this.AUTH_SESSION_TTL_IN_SECS || this.AUTH_SESSION_TTL_IN_SECS.trim().length === 0 ||
 					!this.ISSUER || this.ISSUER.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0) {
 					logger.error("Environment variable SESSION_TABLE or CLIENT_CONFIG or ENCRYPTION_KEY_IDS or AUTH_SESSION_TTL is not configured");
@@ -302,8 +302,8 @@ export class EnvironmentVariables {
 		return this.CLIENT_CONFIG;
 	}
 
-	authSessionTtl(): any {
-		return this.AUTH_SESSION_TTL;
+	authSessionTtlInSecs(): any {
+		return this.AUTH_SESSION_TTL_IN_SECS;
 	}
 
 	signingKeyIds(): any {

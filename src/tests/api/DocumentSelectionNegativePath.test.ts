@@ -1,4 +1,4 @@
-import dataDriversLicense from "../data/docSelectionPayloadDriversLicenceInvalid.json";
+import dataDriversLicenseInvalid from "../data/docSelectionPayloadDriversLicenceInvalid.json";
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId, authorizationGet, tokenPost, userInfoPost } from "../utils/ApiTestSteps";
 import f2fStubPayload from "../data/exampleStubPayload.json";
@@ -15,7 +15,7 @@ describe("E2E Negative Path /documentSelection Endpoint", () => {
 	});
 
 	it("E2E Negative Path Journey - Invalid Request Payload", async () => {
-		const response = await postDocumentSelection(dataDriversLicense, sessionId);
+		const response = await postDocumentSelection(dataDriversLicenseInvalid, sessionId);
 		expect(response.status).toBe(400);
 		expect(response.data).toEqual({ "message": "Invalid request body" });
 
@@ -24,7 +24,7 @@ describe("E2E Negative Path /documentSelection Endpoint", () => {
 	it("E2E Happy Path Journey - Incorrect Session Id", async () => {
 		const response = await postDocumentSelection(dataPassport, "sessionId");
 		expect(response.status).toBe(400);
-		expect(response.data).toEqual("Session id must be a valid uuid");
+		expect(response.data).toBe("Session id must be a valid uuid");
 	});
 });
 
@@ -46,7 +46,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 		// Post User Info
 		const userInfoResponse = await userInfoPost("Bearer ");
 		expect(userInfoResponse.status).toBe(400); 
-		expect(userInfoResponse.data).toEqual("Failed to Validate - Authentication header: Failed to verify signature"); 
+		expect(userInfoResponse.data).toBe("Failed to Validate - Authentication header: Failed to verify signature"); 
 	});
 
 	it("Negative Path Journey - Invalid Authorization Header", async () => {
@@ -58,7 +58,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 		// Post User Info
 		const userInfoResponse = await userInfoPost(tokenResponse.data.access_token);
 		expect(userInfoResponse.status).toBe(400); 
-		expect(userInfoResponse.data).toEqual("Failed to Validate - Authentication header: Missing header: Authorization header is not of Bearer type access_token"); 
+		expect(userInfoResponse.data).toBe("Failed to Validate - Authentication header: Missing header: Authorization header is not of Bearer type access_token"); 
 	});
 
 
@@ -73,7 +73,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 		// console.log("Bearer " + constants.DEV_F2F_EXPIRED_ACCESS_TOKEN)
 		// console.log(userInfoResponse.status);
 		expect(userInfoResponse.status).toBe(400); 
-		expect(userInfoResponse.data).toEqual("Failed to Validate - Authentication header: Verification of exp failed"); 
+		expect(userInfoResponse.data).toBe("Failed to Validate - Authentication header: Verification of exp failed"); 
 	});
 
 	it("Negative Path Journey - Missing Sub Authorization Header", async () => {
@@ -84,7 +84,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
 		// Post User Info
 		const userInfoResponse = await userInfoPost("Bearer " + constants.DEV_F2F_MISSING_SUB_ACCESS_TOKEN);
-		console.log("Bearer " + constants.DEV_F2F_MISSING_SUB_ACCESS_TOKEN)
+		console.log("Bearer " + constants.DEV_F2F_MISSING_SUB_ACCESS_TOKEN);
 		expect(userInfoResponse.status).toBe(400); 
 	});
 });

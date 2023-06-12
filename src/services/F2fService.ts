@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-import { F2fSession } from "../models/F2fSession";
 import { ISessionItem } from "../models/ISessionItem";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
@@ -357,6 +356,8 @@ export class F2fService {
 			birthDate: this.mapbirthDate(sharedClaims.birthDate),
 			emailAddress: sharedClaims.emailAddress,
 			name: this.mapNames(sharedClaims.name),
+			expiryDate: Math.floor((Date.now() / 1000) + Number(this.environmentVariables.authSessionTtlInSecs())),
+			createdDate: Math.floor(Date.now() / 1000),
 		};
 	}
 

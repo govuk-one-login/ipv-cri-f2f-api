@@ -87,7 +87,7 @@ describe("AccessTokenRequestProcessor", () => {
 			"token_type": Constants.BEARER,
 			"expires_in": Constants.TOKEN_EXPIRY_SECONDS,
 		}));
-		expect(out.statusCode).toBe(HttpCodesEnum.CREATED);
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
 	it("Returns 401 Unauthorized response when body is missing", async () => {

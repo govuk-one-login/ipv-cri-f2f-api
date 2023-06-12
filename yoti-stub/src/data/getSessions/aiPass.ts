@@ -222,15 +222,15 @@ export const AI_PASS = {
 											"details": [
 													{
 															"name": "confidence_score",
-															"value": "0.99"
+															"value": "0.20"
 													}
 											]
 									},
 									{
-											"sub_check": "manual_face_match",
-											"result": "PASS",
-											"details": []
-									}
+										"sub_check": "manual_face_match",
+										"result": "PASS",
+										"details": []
+								}
 							]
 					},
 					"created": "2023-04-05T10:18:16Z",
