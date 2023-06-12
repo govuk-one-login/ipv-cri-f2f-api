@@ -398,7 +398,7 @@ describe("YotiCallbackProcessor", () => {
 		documentFields = getDocumentFields();
 		f2fSessionItem = getMockSessionItem();
 
-		
+
 	});
 
 	beforeEach(() => {
@@ -421,7 +421,7 @@ describe("YotiCallbackProcessor", () => {
 
 		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
 
-		
+
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
@@ -434,7 +434,7 @@ describe("YotiCallbackProcessor", () => {
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "sub",
 			state: "Y@atr",
-			"https://vocab.account.gov.uk/v1/credentialJWT": JSON.stringify({
+			"https://vocab.account.gov.uk/v1/credentialJWT": [JSON.stringify({
 				"sub":"urn:uuid:sub",
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
@@ -498,7 +498,7 @@ describe("YotiCallbackProcessor", () => {
 						},
 					 ],
 				},
-		 }),
+		 })],
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
@@ -536,7 +536,7 @@ describe("YotiCallbackProcessor", () => {
 
 		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
 
-		
+
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 
