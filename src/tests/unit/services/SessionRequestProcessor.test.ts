@@ -298,7 +298,7 @@ describe("SessionRequestProcessor", () => {
 
 	// the test below fails as the session processor is not writing the expiryDate value correctly in
 	// seconds, it is writing it in ms. To be fixed in separate ticket
-	it.skip("the session created should have a valid expiryDate", async () => {
+	it("the session created should have a valid expiryDate", async () => {
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
@@ -308,7 +308,7 @@ describe("SessionRequestProcessor", () => {
 		mockF2fService.createAuthSession.mockResolvedValue();
 		mockF2fService.savePersonIdentity.mockRejectedValue("error");
 		jest.useFakeTimers();
-		const fakeTime = 1684933200;
+		const fakeTime = 1684933200.123;
 		jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.000Z
 
 		// Act
@@ -318,7 +318,7 @@ describe("SessionRequestProcessor", () => {
 		expect(mockF2fService.createAuthSession).toHaveBeenNthCalledWith(
 			1,
 			expect.objectContaining({
-				expiryDate: fakeTime + +process.env.AUTH_SESSION_TTL!,
+				expiryDate: Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL!),
 			}),
 		);
 		// the next assertion checks that the value has no more than 10 digits, i.e. is in secs not ms

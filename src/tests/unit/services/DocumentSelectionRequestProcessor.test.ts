@@ -80,6 +80,8 @@ function getPersonIdentityItem(): PersonIdentityItem {
 				],
 			},
 		],
+		expiryDate: 1612345678,
+		createdDate: 1612335678,
 	};
 	return personIdentityItem;
 }
