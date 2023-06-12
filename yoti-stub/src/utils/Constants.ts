@@ -21,3 +21,7 @@ export const EEA_ID_MEDIA_ID: string = "0500"
 
 export const SUPPORTED_DOCUMENTS: string[] = [DocumentMapping.UK_DL, DocumentMapping.UK_PASSPORT, DocumentMapping.NON_UK_PASSPORT, 
                                               DocumentMapping.BRP, DocumentMapping.EU_DL, DocumentMapping.EEA_ID] // <-- Update this Array when introducing new doucment types
+
+export const IPV_INTEG_FULL_NAME_HAPPY = "Kenneth Decerqueira"
+
+export const IPV_INTEG_FULL_NAME_UNHAPPY = "Jenneth Decerqueira"
