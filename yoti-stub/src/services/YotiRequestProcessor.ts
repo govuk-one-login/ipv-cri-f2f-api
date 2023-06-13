@@ -12,7 +12,7 @@ import {
 	UK_PASSPORT_MEDIA_ID,
 	NON_UK_PASSPORT_MEDIA_ID,
 	SUPPORTED_DOCUMENTS,
-	IPV_INTEG_FULL_NAME_HAPPY
+	IPV_INTEG_FULL_NAME_HAPPY, IPV_INTEG_FULL_NAME_UNHAPPY
 } from "../utils/Constants";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import {YotiSessionItem} from "../models/YotiSessionItem";
@@ -99,6 +99,13 @@ export class YotiRequestProcessor {
 		if(IPV_INTEG_FULL_NAME_HAPPY === fullName){
 			//Replacing returned yoti sessionid with success 0100 at the end to return GBR_PASSPORT
 			yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0100");
+			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+		}
+
+		//For IPV Integration UnHappy path
+		if(IPV_INTEG_FULL_NAME_UNHAPPY === fullName){
+			//Replacing returned yoti sessionid with success 0200 at the end to return NON_UK_PASSPORT
+			yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0204");
 			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
 		}
 
@@ -684,6 +691,24 @@ export class YotiRequestProcessor {
 						AI_PASS.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(AI_PASS.resources.id_documents[0].document_fields.media.id, NON_UK_PASSPORT_MEDIA_ID);
 						AI_PASS.resources.id_documents[0].issuing_country = "ESP";
 						return new Response(HttpCodesEnum.OK, JSON.stringify(AI_PASS));
+
+					case '0204': // Non-UK Passport Fails due to FACE_NOT_GENUINE
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						VALID_RESPONSE_NFC.session_id = sessionId;
+						VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+						VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, NON_UK_PASSPORT_MEDIA_ID);
+						modifiedPayload = {
+							...VALID_RESPONSE_NFC,
+							checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+								if (check.type === "ID_DOCUMENT_FACE_MATCH") {
+									check.report.recommendation.value = "REJECT";
+									check.report.recommendation.reason = "FACE_NOT_GENUINE";
+								}
+								return check;
+							}),
+						};
+						console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+						return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 					default:
 						return undefined;
 				}
