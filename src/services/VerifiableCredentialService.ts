@@ -56,7 +56,7 @@ export class VerifiableCredentialService {
   	const subject = sessionItem?.subject as string;
   	const verifiedCredential: VerifiedCredential = this.buildVerifiableCredential(credentialSubject, evidence);
   	const result = {
-  		sub: `urn:uuid:${subject}`,
+  		sub: `${subject}`,
   		nbf: now,
   		iss: this.issuer,
   		iat: now,

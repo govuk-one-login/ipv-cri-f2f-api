@@ -265,12 +265,7 @@ Resources:
           - "${AWS::StackName}-${YOTISTUBURL}"
           - YOTISTUBURL:
               !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
-        - !Sub
-          - "api.${YOTISTUBURL}"
-          - YOTISTUBURL:
-             !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
-
-
+        - !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISTUBURL ]
       DomainNameConfigurations:
         - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
           EndpointType: REGIONAL

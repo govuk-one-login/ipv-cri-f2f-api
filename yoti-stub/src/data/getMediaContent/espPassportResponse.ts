@@ -1,9 +1,9 @@
 export const ESP_PASSPORT = {
-	"full_name": "CARMEN ESPANOLA ESPANOLA",
-	"date_of_birth": "1980-01-01",
+	"full_name": "LINDA DUFF",
+	"date_of_birth": "1992-04-10",
 	"nationality": "ESP",
-	"given_names": "CARMEN",
-	"family_name": "ESPANOLA ESPANOLA",
+	"given_names": "LINDA",
+	"family_name": "DUFF",
 	"place_of_birth": "MADRID (MADRID)",
 	"gender": "FEMALE",
 	"document_type": "PASSPORT",
@@ -14,7 +14,7 @@ export const ESP_PASSPORT = {
 	"issuing_authority": "DGP -28391A6PK",
 	"mrz": {
 			"type": 2,
-			"line1": "P<ESPESPANOLA<ESPANOLA<<CARMEN<<<<<<<<<<<<<<",
+			"line1": "P<ESP<DUFF<<LINDA<<<<<<<<<<<<<<",
 			"line2": "ZAB0002549ESP8001014F2501017A9999999900<<<44"
 	},
 	"personal_identification_number": "A9999999900"

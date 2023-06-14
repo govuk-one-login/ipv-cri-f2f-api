@@ -24,4 +24,4 @@ export const SUPPORTED_DOCUMENTS: string[] = [DocumentMapping.UK_DL, DocumentMap
 
 export const IPV_INTEG_FULL_NAME_HAPPY = "Kenneth Decerqueira"
 
-export const IPV_INTEG_FULL_NAME_UNHAPPY = "Jenneth Decerqueira"
+export const IPV_INTEG_FULL_NAME_UNHAPPY = "Linda Duff"

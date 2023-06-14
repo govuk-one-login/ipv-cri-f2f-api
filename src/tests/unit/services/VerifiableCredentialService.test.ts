@@ -45,7 +45,7 @@ describe("VerifiableCredentialService", () => {
 				"icaoIssuerCode":"123456",
 			},
 		],
-			
+
 	 };
 
 	const evidence = [
@@ -73,7 +73,7 @@ describe("VerifiableCredentialService", () => {
 		"iat":123456789,
 		"iss":"test-issuer",
 		"nbf":123456789,
-		"sub":"urn:uuid:sub",
+		"sub":"testsub",
 		"vc":{
 		 "@context":[Constants.W3_BASE_CONTEXT, Constants.DI_CONTEXT],
 		 credentialSubject,
@@ -113,7 +113,7 @@ describe("VerifiableCredentialService", () => {
 			expiryDate: 221848913376,
 			createdDate: 1675443004,
 			state: "Y@atr",
-			subject: "sub",
+			subject: "testsub",
 			persistentSessionId: "sdgsdg",
 			clientIpAddress: "127.0.0.1",
 			attemptCount: 1,
