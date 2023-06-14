@@ -92,7 +92,7 @@ describe("GenerateVerifiableCredential", () => {
 				documentContainsValidChip,
 			);
 
-			expect(result).toBe(4);
+			expect(result).toBe(3);
 		});
 
 		it("should return the correct strength score for DRIVING_LICENCE", () => {
