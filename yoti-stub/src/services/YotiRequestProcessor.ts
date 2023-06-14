@@ -750,7 +750,7 @@ export class YotiRequestProcessor {
 						logger.debug(JSON.stringify(yotiSessionRequest));
 						VALID_DL_RESPONSE.session_id = sessionId;
 						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
-						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id, UK_DL_MEDIA_ID);
+						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id, EU_DL_MEDIA_ID);
 						VALID_DL_RESPONSE.resources.id_documents[0].issuing_country = "ESP";
 						const updatedPayload = {
 							...VALID_DL_RESPONSE,
