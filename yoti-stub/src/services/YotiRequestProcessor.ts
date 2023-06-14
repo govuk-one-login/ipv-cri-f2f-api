@@ -5,14 +5,17 @@ import { randomUUID } from "crypto";
 //import {encode, decode} from 'uint8-to-base64';
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
-
 import {
 	DocumentMapping,
 	UK_DL_MEDIA_ID,
 	UK_PASSPORT_MEDIA_ID,
 	NON_UK_PASSPORT_MEDIA_ID,
 	SUPPORTED_DOCUMENTS,
-	IPV_INTEG_FULL_NAME_HAPPY
+	IPV_INTEG_FULL_NAME_HAPPY, 
+  IPV_INTEG_FULL_NAME_UNHAPPY,
+  BRP_MEDIA_ID, 
+  EU_DL_MEDIA_ID, 
+  EEA_ID_MEDIA_ID
 } from "../utils/Constants";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import {YotiSessionItem} from "../models/YotiSessionItem";
@@ -20,11 +23,19 @@ import {YotiSessionRequest} from "../models/YotiSessionRequest";
 import { VALID_RESPONSE } from "../data/getSessions/responses";
 import { VALID_RESPONSE_NFC } from "../data/getSessions/nfcResponse";
 import { VALID_DL_RESPONSE } from "../data/getSessions/driversLicenseResponse";
+import { VALID_BRP_RESPONSE } from "../data/getSessions/brpResponse";
 import { EXPIRED_PASSPORT_RESPONSE } from "../data/getSessions/expiredPassport";
+import { VALID_BRP_RESPONSE_NFC } from "../data/getSessions/nfcBrpResponse";
 import { TAMPERED_DOCUMENT_RESPONSE } from "../data/getSessions/tamperedDocumentResponse";
 import { AI_FAIL_MANUAL_FAIL } from "../data/getSessions/aiFailManualFail";
 import { AI_FAIL_MANUAL_PASS } from "../data/getSessions/aiFailManualPass";
 import { AI_PASS } from "../data/getSessions/aiPass";
+import { BRP_AI_FAIL_MANUAL_PASS_NFC } from "../data/getSessions/brpAiFailManualPass";
+import { BRP_MANUAL_PASS_AI_FAIL } from "../data/getSessions/brpManualPass";
+import { EEA_VALID_RESPONSE_NFC } from "../data/getSessions/nfcEeaValidResponse";
+import { EEA_AI_MATCH_NO_CHIP } from "../data/getSessions/eeaAiMatchNoChip";
+import { EEA_AI_FAIL_MANUAL_PASS } from "../data/getSessions/eeaAiFailManualPass";
+import { EEA_MANUAL_PASS } from "../data/getSessions/eeaManualPass";
 import { DIFFERENT_PERSON_RESPONSE } from "../data/getSessions/differentPersonResponse";
 import { CREATE_SESSION } from "../data/createSession";
 import {VALID_PUT_INSTRUCTIONS_RESPONSE} from "../data/putInstructions/putInstructionsResponse";
@@ -56,6 +67,7 @@ import { GBR_PASSPORT } from "../data/getMediaContent/gbPassportResponse";
 import { GBR_DRIVING_LICENCE } from "../data/getMediaContent/gbDriversLicenseResponse";
 import { DEU_DRIVING_LICENCE } from "../data/getMediaContent/euDriversLicenseResponse";
 import { GET_MEDIA_CONTENT_400 } from "../data/getMediaContent/getMediaContent400";
+import { BRP } from "../data/getMediaContent/gbBrp";
 import { GET_MEDIA_CONTENT_401 } from "../data/getMediaContent/getMediaContent401";
 import { GET_MEDIA_CONTENT_404 } from "../data/getMediaContent/getMediaContent404";
 import { sleep } from "../utils/Sleep";
@@ -99,6 +111,13 @@ export class YotiRequestProcessor {
 		if(IPV_INTEG_FULL_NAME_HAPPY === fullName){
 			//Replacing returned yoti sessionid with success 0100 at the end to return GBR_PASSPORT
 			yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0100");
+			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+		}
+
+		//For IPV Integration UnHappy path
+		if(IPV_INTEG_FULL_NAME_UNHAPPY === fullName){
+			//Replacing returned yoti sessionid with success 0200 at the end to return NON_UK_PASSPORT
+			yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0204");
 			return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
 		}
 
@@ -170,8 +189,9 @@ export class YotiRequestProcessor {
 				switch (lastUuidChars) {
 					case '0000': // UK Driving License Success - Face Match automated
 						logger.debug(JSON.stringify(yotiSessionRequest));
-						VALID_DL_RESPONSE.session_id = sessionId;
-						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+						VALID_DL_RESPONSE.session_id = sessionId; // Sets the session_id in the JSON response to match this function's
+						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId; // Media.id is also assigned the sessionId
+						// The last 4 digits of the media.id are changed to match the media code for UK DL
 						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id, UK_DL_MEDIA_ID);
 						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));
 
@@ -684,6 +704,148 @@ export class YotiRequestProcessor {
 						AI_PASS.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(AI_PASS.resources.id_documents[0].document_fields.media.id, NON_UK_PASSPORT_MEDIA_ID);
 						AI_PASS.resources.id_documents[0].issuing_country = "ESP";
 						return new Response(HttpCodesEnum.OK, JSON.stringify(AI_PASS));
+
+					case '0204': // Non-UK Passport Fails due to FACE_NOT_GENUINE
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						VALID_RESPONSE_NFC.session_id = sessionId;
+						VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+						VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, NON_UK_PASSPORT_MEDIA_ID);
+						modifiedPayload = {
+							...VALID_RESPONSE_NFC,
+							checks: VALID_RESPONSE_NFC.checks.map((check: any) => {
+								if (check.type === "ID_DOCUMENT_FACE_MATCH") {
+									check.report.recommendation.value = "REJECT";
+									check.report.recommendation.reason = "FACE_NOT_GENUINE";
+								}
+								return check;
+							}),
+						};
+						console.log('modifiedPayload', JSON.stringify(modifiedPayload));
+						return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+					default:
+						return undefined;
+				}
+			}
+
+			if (firstTwoChars === DocumentMapping.BRP) { // UK - BRP Scenarios
+				switch (lastUuidChars) {
+					case '0300': // BRP Success - Chip readable & Face Match automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						VALID_BRP_RESPONSE_NFC.session_id = sessionId;
+						VALID_BRP_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+						VALID_BRP_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_BRP_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_BRP_RESPONSE_NFC));
+	
+					case '0301': // BRP Success - Chip NOT readable & Face Match automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						VALID_BRP_RESPONSE.session_id = sessionId;
+						VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+						VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_BRP_RESPONSE.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_BRP_RESPONSE));
+
+					case '0302': // BRP Success - Chip readable & Face Match NOT automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						BRP_AI_FAIL_MANUAL_PASS_NFC.session_id = sessionId;
+						BRP_AI_FAIL_MANUAL_PASS_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+						BRP_AI_FAIL_MANUAL_PASS_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(BRP_AI_FAIL_MANUAL_PASS_NFC.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(BRP_AI_FAIL_MANUAL_PASS_NFC));
+
+					case '0303': // BRP Success - Chip NOT readable & Face Match NOT automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						BRP_MANUAL_PASS_AI_FAIL.session_id = sessionId;
+						BRP_MANUAL_PASS_AI_FAIL.resources.id_documents[0].document_fields.media.id = sessionId;
+						BRP_MANUAL_PASS_AI_FAIL.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(BRP_MANUAL_PASS_AI_FAIL.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(BRP_MANUAL_PASS_AI_FAIL));
+
+					default:
+						return undefined;
+				}
+			}
+
+			if (firstTwoChars === DocumentMapping.EU_DL) { // EU - Driving Licence Scenarios
+				switch (lastUuidChars) {
+					case '0400': // EU Driving Licence Success - Face Match Automated
+						logger.debug(JSON.stringify(yotiSessionRequest))
+						VALID_DL_RESPONSE.session_id = sessionId;
+						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id, EU_DL_MEDIA_ID);
+						VALID_DL_RESPONSE.resources.id_documents[0].issuing_country = "ESP";
+						return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE));
+
+					case '0401':// EU Driving Licence Success & Face Match NOT automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						VALID_DL_RESPONSE.session_id = sessionId;
+						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = sessionId;
+						VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE.resources.id_documents[0].document_fields.media.id, EU_DL_MEDIA_ID);
+						VALID_DL_RESPONSE.resources.id_documents[0].issuing_country = "ESP";
+						const updatedPayload = {
+							...VALID_DL_RESPONSE,
+							checks: VALID_DL_RESPONSE.checks.map((check) => {
+								if (check.type === "ID_DOCUMENT_FACE_MATCH") {
+									return {
+										...check,
+										report: {
+											...check.report,
+											breakdown: [
+													{
+														"sub_check": "ai_face_match",
+														"result": "FAIL",
+														"details": [
+																{
+																		"name": "confidence_score",
+																		"value": "0.02"
+																}
+														]
+												},
+												{
+													sub_check: "manual_face_match",
+													result: "PASS",
+													details: []
+												}
+											]
+										}
+									};
+								}
+								return check;
+							})
+						};
+						return new Response(HttpCodesEnum.OK, JSON.stringify(updatedPayload));
+
+					default:
+						return undefined;
+				}
+			}
+
+			if (firstTwoChars === DocumentMapping.EEA_ID) { // EEA National ID Card Scenarios 
+				switch(lastUuidChars) {
+					case '0500': // EEA Success - Chip Readable & Face Match automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						EEA_VALID_RESPONSE_NFC.session_id = sessionId;
+						EEA_VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = sessionId;
+						EEA_VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(EEA_VALID_RESPONSE_NFC.resources.id_documents[0].document_fields.media.id, EEA_ID_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(EEA_VALID_RESPONSE_NFC));
+
+					case '0501': // EEA Success - Chip NOT Readable & Face Match automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						EEA_AI_MATCH_NO_CHIP.session_id = sessionId;
+						EEA_AI_MATCH_NO_CHIP.resources.id_documents[0].document_fields.media.id = sessionId;
+						EEA_AI_MATCH_NO_CHIP.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(EEA_AI_MATCH_NO_CHIP.resources.id_documents[0].document_fields.media.id, EEA_ID_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(EEA_AI_MATCH_NO_CHIP));
+
+					case '0502': // EEA Success - Chip Readable & Face Match NOT automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						EEA_AI_FAIL_MANUAL_PASS.session_id = sessionId;
+						EEA_AI_FAIL_MANUAL_PASS.resources.id_documents[0].document_fields.media.id = sessionId;
+						EEA_AI_FAIL_MANUAL_PASS.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(EEA_AI_FAIL_MANUAL_PASS.resources.id_documents[0].document_fields.media.id, EEA_ID_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(EEA_AI_FAIL_MANUAL_PASS));
+
+					case '0503': // EEA Success - Chip NOT Readable & Face Match NOT automated
+						logger.debug(JSON.stringify(yotiSessionRequest));
+						EEA_MANUAL_PASS.session_id = sessionId;
+						EEA_MANUAL_PASS.resources.id_documents[0].document_fields.media.id = sessionId;
+						EEA_MANUAL_PASS.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(EEA_MANUAL_PASS.resources.id_documents[0].document_fields.media.id, EEA_ID_MEDIA_ID);
+						return new Response(HttpCodesEnum.OK, JSON.stringify(EEA_MANUAL_PASS));
+
 					default:
 						return undefined;
 				}
@@ -693,13 +855,17 @@ export class YotiRequestProcessor {
 		const replaceLastUuidChars = (str: string, lastUuidChars: string): string => {
 			return str.replace(/\d{4}$/, lastUuidChars);
 		};
-
-		if ((lastUuidChars.substring(0, 2) === '00') || (lastUuidChars.substring(0, 2) === '01') || (lastUuidChars.substring(0, 2) === '02')) {
+    
+		// without this bit, the API won't run scenarios for the different document types
+		if ((lastUuidChars.substring(0, 2) === '00') || (lastUuidChars.substring(0, 2) === '01') || (lastUuidChars.substring(0, 2) === '02') || 
+					(lastUuidChars.substring(0,2) === '03') || (lastUuidChars.substring(0,2) === '04') || (lastUuidChars.substring(0,2) === '05')) {
 			const response = processPositiveScenario(lastUuidChars, sessionId);
 			if (response) {
 				return response;
 			}
 		}
+		
+		// Error scenarios 
 
 		switch (lastUuidChars) {
 			case '5400':
@@ -892,6 +1058,15 @@ export class YotiRequestProcessor {
 			case NON_UK_PASSPORT_MEDIA_ID:
 				return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT));
 
+			case BRP_MEDIA_ID:
+				return new Response(HttpCodesEnum.OK, JSON.stringify(BRP));
+				
+			case EU_DL_MEDIA_ID:
+				return new Response(HttpCodesEnum.OK, JSON.stringify(DEU_DRIVING_LICENCE));
+
+			case EEA_ID_MEDIA_ID:
+				return new Response(HttpCodesEnum.OK, JSON.stringify(NLD_NATIONAL_ID));
+	
 			case '5400':
 				logger.info({ message: "last 4 ID chars", lastUuidChars });
 				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(GET_MEDIA_CONTENT_400));

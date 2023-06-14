@@ -36,6 +36,16 @@ describe("Callback API", () => {
 		["0201"],
 		["0202"],
 		["0203"],
+		["0300"],
+		["0301"],
+		["0302"],
+		["0303"],
+		["0400"],
+		["0401"],
+		["0500"],
+		["0501"],
+		["0502"],
+		["0503"],
 	];
 
 	it.each(mockIdParams)("F2F CRI Callback Endpoint - yotiMockId: '%s'", async (yotiMockId) => {
