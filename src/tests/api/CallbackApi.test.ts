@@ -1,59 +1,61 @@
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
+import dataUkDrivingLicence from "../data/docSelectionPayloadDriversLicenceValid.json";
+import dataEuDrivingLicence from "../data/docSelectionPayloadEuDriversLicenceValid.json";
+import dataNonUkPassport from "../data/docSelectionPayloadNonUkPassportValid.json";
+import dataBrp from "../data/docSelectionPayloadBrpValid.json";
+import dataEeaIdCard from "../data/docSelectionPayloadEeaIdCardValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import integrationHappyPayload from "../data/integrationHappyPathPayload.json";
-import vcResponseData from "../data/vcValidationData.json";
-import { setTimeout } from "timers/promises";
 import { postDocumentSelection, startStubServiceAndReturnSessionId, getSessionById, callbackPost, authorizationGet, tokenPost, userInfoPost, receiveJwtTokenFromSqsMessage, validateJwtToken } from "../utils/ApiTestSteps";
 
 
 describe("Callback API", () => {
 	jest.setTimeout(60000);
-	const mockIdParams = [
-		["0000"],
-		["0001"],
-		["0101"],
-		["0102"],
-		["0103"],
-		["0108"],
-		["0109"],
-		["0110"],
-		["0111"],
-		["0112"],
-		["0113"],
-		["0114"],
-		["0115"],
-		["0116"],
-		["0117"],
-		["0118"],
-		["0119"],
-		["0120"],
-		["0121"],
-		["0122"],
-		["0123"],
-		["0124"],
-		["0125"],
-		["0200"],
-		["0201"],
-		["0202"],
-		["0203"],
-		["0300"],
-		["0301"],
-		["0302"],
-		["0303"],
-		["0400"],
-		["0401"],
-		["0500"],
-		["0501"],
-		["0502"],
-		["0503"],
-	];
 
-	it.each(mockIdParams)("F2F CRI Callback Endpoint - yotiMockId: '%s'", async (yotiMockId) => {
+	it.each([
+		["0000", dataUkDrivingLicence],
+		["0001", dataUkDrivingLicence],
+		["0101", dataPassport],
+		["0102", dataPassport],
+		["0103", dataPassport],
+		["0108", dataPassport],
+		["0109", dataPassport],
+		["0110", dataPassport],
+		["0111", dataPassport],
+		["0112", dataPassport],
+		["0113", dataPassport],
+		["0114", dataPassport],
+		["0115", dataPassport],
+		["0116", dataPassport],
+		["0117", dataPassport],
+		["0118", dataPassport],
+		["0119", dataPassport],
+		["0120", dataPassport],
+		["0121", dataPassport],
+		["0122", dataPassport],
+		["0123", dataPassport],
+		["0124", dataPassport],
+		["0125", dataPassport],
+		["0200", dataNonUkPassport],
+		["0201", dataNonUkPassport],
+		["0202", dataNonUkPassport],
+		["0203", dataNonUkPassport],
+		["0300", dataBrp],
+		["0301", dataBrp],
+		["0302", dataBrp],
+		["0303", dataBrp],
+		["0400", dataEuDrivingLicence],
+		["0401", dataEuDrivingLicence],
+		["0500", dataEeaIdCard],
+		["0501", dataEeaIdCard],
+		["0502", dataEeaIdCard],
+		["0503", dataEeaIdCard]
+	])("F2F CRI Callback Endpoint - yotiMockId: '%s'", async (yotiMockId: string, docSelectionData:any) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
 		const sessionId = sessionResponse.data.session_id;
 		// Document Selection
-		const response = await postDocumentSelection(dataPassport, sessionId);
+		const response = await postDocumentSelection(docSelectionData, sessionId);
 		expect(response.status).toBe(200);
 		// Authorization
 		const authResponse = await authorizationGet(sessionId);

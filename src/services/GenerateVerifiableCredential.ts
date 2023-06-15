@@ -8,6 +8,7 @@ import {
 	VerifiedCredentialEvidence,
 	VerifiedCredentialSubject,
 } from "../utils/IVeriCredential";
+import {EU_DL_COUNTRIES} from "../models/EuDrivingLicenceCodes";
 
 export class GenerateVerifiableCredential {
   readonly logger: Logger;
@@ -27,10 +28,10 @@ export class GenerateVerifiableCredential {
   	return GenerateVerifiableCredential.instance;
   }
 
-	/**
+  /**
 		Checks if Document contains a chip and if that chip is valid by checking the chip_csca_trusted field
-	*/
-  private doesDocumentContainValidChip(documentType: string, documentAuthenticityCheckBreakdown: { sub_check: string; result: string; }[]): boolean {
+   */
+  private doesDocumentContainValidChip(documentType: string, documentAuthenticityCheckBreakdown: Array<{ sub_check: string; result: string }>): boolean {
   	if (DOCUMENT_TYPES_WITH_CHIPS.includes(documentType)) {
   		const validChip = documentAuthenticityCheckBreakdown.some(
   			(subCheck: { sub_check: string; result: string }) =>
@@ -43,62 +44,62 @@ export class GenerateVerifiableCredential {
   }
 	
 
-	/**
-	 * The following Documents will get a strength score of 4
-	 * UK Passports with valid chip
-	 * National ID with valid chip
-	 * Residential Permits
-
-	 * The following Documents will get a strength score of 3
-	 * UK Passports without valid chip
-	 * UK Driving Licence
-	 * NonUK Passport
-	 * NonUK Driving Licence
-	 * National ID without valid chip
-	 * 
-	 * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545465037/Draft+-+Generating+Strength+from+Yoti+Results
-	**/
+  /**
+   * The following Documents will get a strength score of 4
+   * UK Passports with valid chip
+   * National ID with valid chip
+   * Residential Permits
+   
+   * The following Documents will get a strength score of 3
+   * UK Passports without valid chip
+   * UK Driving Licence
+   * NonUK Passport
+   * NonUK Driving Licence
+   * National ID without valid chip
+   * 
+   * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545465037/Draft+-+Generating+Strength+from+Yoti+Results
+   **/
   private calculateStrengthScore(documentType: string, issuingCountry: string, documentContainsValidChip: boolean): number {
   	if (issuingCountry === "GBR") {
-			switch (documentType) {
-				case ("PASSPORT"):
-					return documentContainsValidChip ? 4 : 3;
-				case ("RESIDENCE_PERMIT"):
-					return documentContainsValidChip ? 4 : 3;
-				case "DRIVING_LICENCE":
-						return 3;
-				default:
-					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided for issuingCountry", {
-						documentType, issuingCountry,
-					});
-			}
-		} else {
-			switch (documentType) {
-				case "PASSPORT":
-					return 3;
-				case "DRIVING_LICENCE":
-					return 3;
-				case ("NATIONAL_ID"):
-					return documentContainsValidChip ? 4 : 3;
-				case ("RESIDENCE_PERMIT"):
-					return documentContainsValidChip ? 4 : 3;
-				default:
-					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
-						documentType, issuingCountry,
-					});
-			}
-		}
+  		switch (documentType) {
+  			case ("PASSPORT"):
+  				return documentContainsValidChip ? 4 : 3;
+  			case ("RESIDENCE_PERMIT"):
+  				return documentContainsValidChip ? 4 : 3;
+  			case "DRIVING_LICENCE":
+  				return 3;
+  			default:
+  				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided for issuingCountry", {
+  					documentType, issuingCountry,
+  				});
+  		}
+  	} else {
+  		switch (documentType) {
+  			case "PASSPORT":
+  				return 3;
+  			case "DRIVING_LICENCE":
+  				return 3;
+  			case ("NATIONAL_ID"):
+  				return documentContainsValidChip ? 4 : 3;
+  			case ("RESIDENCE_PERMIT"):
+  				return documentContainsValidChip ? 4 : 3;
+  			default:
+  				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
+  					documentType, issuingCountry,
+  				});
+  		}
+  	}
   }
 	
 
-	/**
-	 * IF the overall recommendation for ID_DOCUMENT_AUTHENTICITY is APPROVE
-	 * - If the document being scanned contains a valid chip the Validity score will be 3
-	 * - If the document being scanned does not a valid chip Validity score will be 2
-	 * IF the overall recommendation for ID_DOCUMENT_AUTHENTICITY is NOT APPROVE the Validity score will be 0 
-	 * 
-	 * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545825281/Draft+-+Generating+Validation+from+Yoti+Results
-	**/
+  /**
+   * IF the overall recommendation for ID_DOCUMENT_AUTHENTICITY is APPROVE
+   * - If the document being scanned contains a valid chip the Validity score will be 3
+   * - If the document being scanned does not a valid chip Validity score will be 2
+   * IF the overall recommendation for ID_DOCUMENT_AUTHENTICITY is NOT APPROVE the Validity score will be 0 
+   * 
+   * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545825281/Draft+-+Generating+Validation+from+Yoti+Results
+   **/
   private calculateValidityScore(
   	authenticityRecommendation: string,
   	documentContainsValidChip: boolean,
@@ -109,11 +110,11 @@ export class GenerateVerifiableCredential {
   	return 0;
   }
 	
-	/**
-	 * IF ID_DOCUMENT_FACE_MATCH has recommendation of "APPROVE" a score of 3 will be given else 0
-	 * 
-	 * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545792513/Draft+-+Generating+Verification+from+Yoti+Results
-	**/
+  /**
+   * IF ID_DOCUMENT_FACE_MATCH has recommendation of "APPROVE" a score of 3 will be given else 0
+   * 
+   * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545792513/Draft+-+Generating+Verification+from+Yoti+Results
+   **/
   private calculateVerificationProcessLevel(faceMatchCheck: string): number {
   	return faceMatchCheck === YotiSessionDocument.APPROVE ? 3 : 0;
   }
@@ -216,7 +217,7 @@ export class GenerateVerifiableCredential {
   	credentialSubject.address = [
   		{
   			buildingNumber: postalAddress.building_number,
-				streetName: postalAddress?.address_line1?.match(/[a-zA-Z\s]+/)?.[0]?.trim(),
+  			streetName: postalAddress?.address_line1?.match(/[a-zA-Z\s]+/)?.[0]?.trim(),
   			addressLocality: postalAddress.town_city,
   			postalCode: postalAddress.postal_code,
   			addressCountry: postalAddress.country,
@@ -229,84 +230,86 @@ export class GenerateVerifiableCredential {
   private attachEvidencePayload(
   	credentialSubject: VerifiedCredentialSubject,
   	documentType: string,
-		issuingCountry: string,
+  	issuingCountry: string,
   	documentFields: YotiDocumentFields,
   ): VerifiedCredentialSubject {
-		if (issuingCountry === "GBR") {
-			switch (documentType) {
-				case "PASSPORT":
-					credentialSubject.passport = [
-						{
-							documentNumber: documentFields.document_number,
-							expiryDate: documentFields.expiration_date,
-							icaoIssuerCode: documentFields.issuing_country,
-						},
-					];
-					break;
-				case "DRIVING_LICENCE":
-					credentialSubject.drivingPermit = [
-						{
-							personalNumber: documentFields.document_number,
-							expiryDate: documentFields.expiration_date,
-							issueDate: documentFields.date_of_issue,
-							issuedBy: documentFields.issuing_authority,
-							fullAddress: documentFields.formatted_address,
-						},
-					];
-					break;
-				case "RESIDENCE_PERMIT":
-					credentialSubject.residencePermit = [
-						{
-							documentNumber: documentFields.document_number,
-							expiryDate: documentFields.expiration_date,
-							issueDate: documentFields.date_of_issue,
-							icaoIssuerCode: documentFields.issuing_country,
-						},
-					];
-					break;
-				default:
-					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
-						documentType, issuingCountry,
-					});
-			}
-		} else {
-			switch (documentType) {
-				case "PASSPORT":
-					credentialSubject.passport = [
-						{
-							documentNumber: documentFields.document_number,
-							expiryDate: documentFields.expiration_date,
-							icaoIssuerCode: documentFields.issuing_country,
-						},
-					];
-					break;
-				case "DRIVING_LICENCE":
-					credentialSubject.drivingPermit = [
-						{
-							personalNumber: documentFields.document_number,
-							expiryDate: documentFields.expiration_date,
-							issueDate: documentFields.date_of_issue,
-							issuedBy: documentFields.issuing_country,
-							issuingCountry: documentFields.issuing_country
-						},
-					];
-					break;
-				case "NATIONAL_ID":
-				credentialSubject.idCard = [
-					{
-						documentNumber: documentFields.document_number,
-						expiryDate: documentFields.expiration_date,
-						issueDate: documentFields.date_of_issue,
-						icaoIssuerCode: documentFields.issuing_country,
-					},
-				];
-				break;
-				default:
-					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
-						documentType, issuingCountry,
-					});
-			}
-		}
+	  if (issuingCountry === "GBR") {
+  		switch (documentType) {
+  			case "PASSPORT":
+  				credentialSubject.passport = [
+  					{
+  						documentNumber: documentFields.document_number,
+  						expiryDate: documentFields.expiration_date,
+  						icaoIssuerCode: documentFields.issuing_country,
+  					},
+  				];
+  				break;
+  			case "DRIVING_LICENCE":
+  				credentialSubject.drivingPermit = [
+  					{
+  						personalNumber: documentFields.document_number,
+  						expiryDate: documentFields.expiration_date,
+  						issueDate: documentFields.date_of_issue,
+  						issuedBy: documentFields.issuing_authority,
+  						fullAddress: documentFields.formatted_address,
+  					},
+  				];
+  				break;
+  			case "RESIDENCE_PERMIT":
+  				credentialSubject.residencePermit = [
+  					{
+  						documentNumber: documentFields.document_number,
+  						expiryDate: documentFields.expiration_date,
+  						issueDate: documentFields.date_of_issue,
+  						icaoIssuerCode: documentFields.issuing_country,
+  					},
+  				];
+  				break;
+  			default:
+  				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
+  					documentType, issuingCountry,
+  				});
+  		}
+  	} else {
+  		switch (documentType) {
+  			case "PASSPORT":
+  				credentialSubject.passport = [
+  					{
+  						documentNumber: documentFields.document_number,
+  						expiryDate: documentFields.expiration_date,
+  						icaoIssuerCode: documentFields.issuing_country,
+  					},
+  				];
+  				break;
+			case "DRIVING_LICENCE":
+				const countryDetails = EU_DL_COUNTRIES.find(country => country.alpha3code === documentFields.issuing_country);
+  				credentialSubject.drivingPermit = [
+  					{
+  						personalNumber: documentFields.document_number,
+  						expiryDate: documentFields.expiration_date,
+  						issueDate: documentFields.date_of_issue,
+  						issuedBy: documentFields.place_of_issue,
+  						//issuingCountry: documentFields.issuing_country,
+						issuingCountry: countryDetails ? countryDetails.alpha2code : "n/a"
+  					},
+  				];
+  				break;
+  			case "NATIONAL_ID":
+  				credentialSubject.idCard = [
+  					{
+  						documentNumber: documentFields.document_number,
+  						expiryDate: documentFields.expiration_date,
+  						issueDate: documentFields.date_of_issue,
+  						icaoIssuerCode: documentFields.issuing_country,
+  					},
+  				];
+  				break;
+  			default:
+  				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
+  					documentType, issuingCountry,
+  				});
+  		}
+  	}
   	return credentialSubject;
   }
 	
@@ -322,7 +325,7 @@ export class GenerateVerifiableCredential {
   	const { id_documents: idDocuments } = completedYotiSessionPayload.resources;
   	const { checks } = completedYotiSessionPayload;
   	const documentType = idDocuments[0].document_type;
-		const yotiCountryCode = idDocuments[0].issuing_country;
+  	const yotiCountryCode = idDocuments[0].issuing_country;
 	
   	const findCheck = (type: string) =>
   		checks.find((checkCompleted: { type: string }) => checkCompleted.type === type);
@@ -334,7 +337,7 @@ export class GenerateVerifiableCredential {
   		breakdown: check.report.breakdown,
   	});
 	
-		//IBV_VISUAL_REVIEW_CHECK && DOCUMENT_SCHEME_VALIDITY && PROFILE_DOCUMENT_MATCH Currently not being consumed
+  	//IBV_VISUAL_REVIEW_CHECK && DOCUMENT_SCHEME_VALIDITY && PROFILE_DOCUMENT_MATCH Currently not being consumed
   	const MANDATORY_CHECKS = {
   		ID_DOCUMENT_AUTHENTICITY: findCheck(YOTI_CHECKS.ID_DOCUMENT_AUTHENTICITY.type) ? getCheckObject(findCheck(YOTI_CHECKS.ID_DOCUMENT_AUTHENTICITY.type)) : null,
   		ID_DOCUMENT_FACE_MATCH: findCheck(YOTI_CHECKS.ID_DOCUMENT_FACE_MATCH.type) ? getCheckObject(findCheck(YOTI_CHECKS.ID_DOCUMENT_FACE_MATCH.type)) : null,
@@ -343,7 +346,7 @@ export class GenerateVerifiableCredential {
   		PROFILE_DOCUMENT_MATCH: findCheck(YOTI_CHECKS.PROFILE_DOCUMENT_MATCH.type) ? getCheckObject(findCheck(YOTI_CHECKS.PROFILE_DOCUMENT_MATCH.type)) : null,
   	};
 
-		this.logger.info({ message: "Yoti Mandatory Checks" }, MANDATORY_CHECKS);
+  	this.logger.info({ message: "Yoti Mandatory Checks" }, MANDATORY_CHECKS);
 	
   	if (Object.values(MANDATORY_CHECKS).some((check) => check?.object === undefined)) {
   		throw new AppError(
@@ -363,26 +366,26 @@ export class GenerateVerifiableCredential {
 	
   	let credentialSubject: VerifiedCredentialSubject = {};
 	
-		//Attach individuals name information to the VC payload
+  	//Attach individuals name information to the VC payload
   	credentialSubject = this.attachPersonName(
   		credentialSubject,
   		documentFields.given_names,
   		documentFields.family_name,
   	);
-		//Attach individuals DOB to the VC payload
+  	//Attach individuals DOB to the VC payload
   	credentialSubject = this.attachDOB(credentialSubject, documentFields.date_of_birth);
-		//If address info present in Media document attach individuals Address to the VC payload
+  	//If address info present in Media document attach individuals Address to the VC payload
   	if (documentFields.structured_postal_address) {
   		credentialSubject = this.attachAddressInfo(
   			credentialSubject,
   			documentFields.structured_postal_address,
   	);
   	}
-		//Attach evidence block to the VC payload
+  	//Attach evidence block to the VC payload
   	credentialSubject = this.attachEvidencePayload(
   		credentialSubject,
   		documentType,
-			yotiCountryCode,
+  		yotiCountryCode,
   		documentFields,
   	);
 	
@@ -416,10 +419,10 @@ export class GenerateVerifiableCredential {
 			evidence[0].validityScore === 0 ||
 			evidence[0].verificationScore === 0
   	) {
-			const contraIndicators = this.getContraIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);
-			if (contraIndicators.length >= 1) {
-				evidence[0].ci = contraIndicators
-			}
+  		const contraIndicators = this.getContraIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);
+  		if (contraIndicators.length >= 1) {
+  			evidence[0].ci = contraIndicators;
+  		}
   		evidence[0].failedCheckDetails = [
   			{
   				checkMethod: "vcrypt",
@@ -430,7 +433,7 @@ export class GenerateVerifiableCredential {
   			},
   		];
 
-			manualFaceMatchCheck ? evidence[0].failedCheckDetails[1].photoVerificationProcessLevel = 3 : evidence[0].failedCheckDetails[1].biometricVerificationProcessLevel = 3;
+  		manualFaceMatchCheck ? evidence[0].failedCheckDetails[1].photoVerificationProcessLevel = 3 : evidence[0].failedCheckDetails[1].biometricVerificationProcessLevel = 3;
   	} else {
   		evidence[0].checkDetails = [
   			{
@@ -444,7 +447,7 @@ export class GenerateVerifiableCredential {
   			},
   		];
 			
-			manualFaceMatchCheck ? evidence[0].checkDetails[1].photoVerificationProcessLevel = 3 : evidence[0].checkDetails[1].biometricVerificationProcessLevel = 3;
+  		manualFaceMatchCheck ? evidence[0].checkDetails[1].photoVerificationProcessLevel = 3 : evidence[0].checkDetails[1].biometricVerificationProcessLevel = 3;
   	}
 	
   	return {
