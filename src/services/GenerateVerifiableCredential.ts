@@ -48,7 +48,7 @@ export class GenerateVerifiableCredential {
    * UK Passports with valid chip
    * National ID with valid chip
    * Residential Permits
-   
+
    * The following Documents will get a strength score of 3
    * UK Passports without valid chip
    * UK Driving Licence
