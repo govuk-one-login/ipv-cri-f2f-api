@@ -179,7 +179,7 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 			sessionId,
 		},
 	});
-
+	
 	let session;
 	try {
 		session = await dynamoDB.send(getSessionCommand);

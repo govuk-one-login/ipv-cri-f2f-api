@@ -79,7 +79,7 @@ describe("SendEmailProcessor", () => {
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
-		expect(emailResponse.emailFailureMessage).toBe("");
+		expect(emailResponse?.emailFailureMessage).toBe("");
 	});
 
 	it("SendEmailService fails when GovNotify throws an error", async () => {
@@ -105,7 +105,7 @@ describe("SendEmailProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(0);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue, session not found for sessionId: ", "eb26c8e0-397b-4f5e-b7a5-62cd0c6e510b");
-		expect(emailResponse.emailFailureMessage).toBe("");
+		expect(emailResponse?.emailFailureMessage).toBe("");
 	});
 
 	it("Returns EmailResponse when email is sent successfully and write to txMA fails", async () => {
@@ -125,7 +125,7 @@ describe("SendEmailProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.");
-		expect(emailResponse.emailFailureMessage).toBe("");
+		expect(emailResponse?.emailFailureMessage).toBe("");
 	});
 
 });
