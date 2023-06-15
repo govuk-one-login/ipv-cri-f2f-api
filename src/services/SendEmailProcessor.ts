@@ -32,7 +32,7 @@ export class SendEmailProcessor {
     	return SendEmailProcessor.instance;
 	}
 
-	async processRequest(eventBody: any): Promise<EmailResponse | undefined> {
+	async processRequest(eventBody: any): Promise<EmailResponse> {
 
 		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
 
