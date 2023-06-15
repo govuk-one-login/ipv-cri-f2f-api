@@ -41,8 +41,8 @@ describe("SendEmailProcessor", () => {
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
 		const emailResponse = await sendEmailProcessorTest.processRequest(eventBody);
 
-		expect(emailResponse.emailSentDateTime).toEqual(expectedDateTime);
-		expect(emailResponse.emailFailureMessage).toBe("");
+		expect(emailResponse?.emailSentDateTime).toEqual(expectedDateTime);
+		expect(emailResponse?.emailFailureMessage).toBe("");
 	});
 
 	it.each([
