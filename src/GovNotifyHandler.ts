@@ -3,7 +3,6 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
-import { BatchItemFailure } from "./utils/BatchItemFailure";
 import { SendEmailProcessor } from "./services/SendEmailProcessor";
 import { getParameter } from "./utils/Config";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
@@ -31,7 +30,6 @@ class GovNotifyHandler implements LambdaInterface {
 		if (event.Records.length === 1) {
 			const record: SQSRecord = event.Records[0];
 			logger.debug("Starting to process record", { record });
-			const batchFailures: BatchItemFailure[] = [];
 
 			try {
 				const body = JSON.parse(record.body);
@@ -58,20 +56,10 @@ class GovNotifyHandler implements LambdaInterface {
 				logger.debug("Finished processing record from SQS");
 				return passEntireBatch;
 
-			} catch (error: any) {
-				// If an appError was thrown at the service level
-				// and it is intended to be thrown (GOV UK errors)
-				if (error.obj?.shouldThrow) {
-					logger.error("Error encountered", { error });
-					error.obj = undefined;
-					batchFailures.push(new BatchItemFailure(record.messageId));
-					const sqsBatchResponse = { batchItemFailures: batchFailures };
-					logger.error("Email could not be sent. Returning batch item failure so it can be retried", { sqsBatchResponse });
-					return sqsBatchResponse;
-				} else {
-					logger.error("Email could not be sent. Returning failed message", "Handler");
-					return failEntireBatch;
-				}
+
+			} catch (error) {
+				logger.error("Email could not be sent. Returning failed message", "Handler");
+				return failEntireBatch;
 			}
 
 		} else {
