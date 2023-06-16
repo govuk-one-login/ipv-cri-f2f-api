@@ -121,7 +121,7 @@ export class YotiCallbackProcessor {
   				),
   			});
   		} catch (error) {
-  			this.logger.error("Failed to write TXMA event F2F_YOTI_END to SQS queue.");
+  			this.logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.");
   		}
 
   		const { credentialSubject, evidence } =
