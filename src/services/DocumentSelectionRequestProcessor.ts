@@ -116,16 +116,18 @@ export class DocumentSelectionRequestProcessor {
         }
       }
 
-      try {
-        await this.f2fService.sendToTXMA({
-          event_name: "F2F_YOTI_START",
-          ...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow),
-        });
-      } catch (error) {
-        this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", {
-          messageCode: MessageCodes.ERROR_WRITING_TXMA,
-        });
-      }
+			try {
+				await this.f2fService.sendToTXMA({
+					event_name: "F2F_YOTI_START",
+					...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow),
+					document_type: selectedDocument,
+					issuing_country: countryCode,
+					post_office_details: postOfficeSelection,
+					yoti_session_id: yotiSessionId,
+				});
+			} catch (error) {
+				this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.");
+			}
 
       return new Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 
