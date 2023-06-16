@@ -31,6 +31,7 @@ export interface BaseTxmaEvent {
 export interface TxmaEvent extends BaseTxmaEvent {
 	"event_name": TxmaEventName;
 	"restricted"?: VerifiedCredential["credentialSubject"];
+	"email"?: String;
 }
 
 export const buildCoreEventFields = (session: ISessionItem, issuer: string, sourceIp?: string | undefined, getNow: () => number = absoluteTimeNow): BaseTxmaEvent => {
