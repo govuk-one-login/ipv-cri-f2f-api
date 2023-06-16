@@ -3,7 +3,7 @@ version = 0.1
 [dev.deploy]
 [dev.deploy.parameters]
 stack_name = "backend-main-richa"
-s3_prefix = "backend-main-richacd "
+s3_prefix = "backend-main-richa"
 region = "eu-west-2"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
