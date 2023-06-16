@@ -2,7 +2,6 @@ import { CredentialSubject, ResidencePermit, IdentityCard, DrivingPermit, Passpo
 import { ISessionItem } from "../models/ISessionItem";
 import { absoluteTimeNow } from "./DateTimeUtils";
 import { PostOfficeInfo } from "../models/YotiPayloads";
-import { PassThrough } from "stream";
 
 export type TxmaEventName =
 	"F2F_CRI_START"
