@@ -179,7 +179,7 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 			sessionId,
 		},
 	});
-	
+
 	let session;
 	try {
 		session = await dynamoDB.send(getSessionCommand);
@@ -227,7 +227,7 @@ export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 
 	try {
 		const { Messages } = await receiveMessage();
-		Messages.forEach(async (m: any) => {
+		for (const m of Messages) {
 			const parsedResponse = JSON.parse(m.Body);
 			const array = Object.values(parsedResponse);
 			jwtToken = array[2];
@@ -237,7 +237,7 @@ export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 				  ReceiptHandle: m.ReceiptHandle,
 				}),
 			  );
-		});
+		}
 	} catch (e: any) {
 		console.error({ message: "got error receiving messages: ", e });
 	}
