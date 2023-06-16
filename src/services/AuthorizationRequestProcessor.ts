@@ -77,6 +77,16 @@ export class AuthorizationRequestProcessor {
 					state: session?.state,
 				};
 
+				try {
+					await this.f2fService.sendToTXMA({
+						event_name: "F2F_CRI_END",
+						...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow),
+
+					});
+				} catch (error) {
+					this.logger.error("Failed to write TXMA event F2F_CRI_END to SQS queue.");
+				}
+
 				return new Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));
 			} else {
 				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_YOTI_SESSION_CREATED}`);
