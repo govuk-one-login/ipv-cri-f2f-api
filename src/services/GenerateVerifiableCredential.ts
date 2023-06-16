@@ -110,10 +110,10 @@ export class GenerateVerifiableCredential {
   /**
    * IF ID_DOCUMENT_FACE_MATCH has recommendation of "APPROVE" and validityScore isn't 0, a score of 3 will be given else 0
    *
-   * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545792513/Draft+-+Generating+Verification+from+Yoti+Results
+   * Confluence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545792513/Draft+-+Generating+Verification+from+Yoti+Results
    **/
   private calculateVerificationProcessLevel(validityScore: number, faceMatchCheck: string): number {
-  	return faceMatchCheck === YotiSessionDocument.APPROVE || validityScore != 0 ? 3 : 0;
+  	return faceMatchCheck === YotiSessionDocument.APPROVE && validityScore != 0 ? 3 : 0;
   }
 
   private getContraIndicator(

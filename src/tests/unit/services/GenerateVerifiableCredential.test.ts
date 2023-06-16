@@ -178,10 +178,18 @@ describe("GenerateVerifiableCredential", () => {
 			expect(result).toBe(3);
 		});
 
+		it("should return 0 for faceMatchCheck === 'APPROVE' and validityScore 0", () => {
+			const faceMatchCheck = "APPROVE";
+
+			const result = generateVerifiableCredential["calculateVerificationProcessLevel"](0, faceMatchCheck);
+
+			expect(result).toBe(0);
+		});
+
 		it("should return 0 for faceMatchCheck !== 'APPROVE'", () => {
 			const faceMatchCheck = "REJECT";
 
-			const result = generateVerifiableCredential["calculateVerificationProcessLevel"](0, faceMatchCheck);
+			const result = generateVerifiableCredential["calculateVerificationProcessLevel"](3, faceMatchCheck);
 
 			expect(result).toBe(0);
 		});
