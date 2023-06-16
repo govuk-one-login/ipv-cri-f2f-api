@@ -215,7 +215,7 @@ export class F2fService {
 				QueueUrl: queueUrl,
 			};
 
-			this.logger.info({ message: `Sending message to IPV Core Queue ${queueUrl}`, messageBody });
+			this.logger.info({ message: "Sending message to IPV Core Queue", queueUrl, messageBody });
 
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to IPV Core");
