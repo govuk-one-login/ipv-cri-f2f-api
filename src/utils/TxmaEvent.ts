@@ -1,6 +1,7 @@
 import { VerifiedCredential } from "./IVeriCredential";
 import { ISessionItem } from "../models/ISessionItem";
 import { absoluteTimeNow } from "./DateTimeUtils";
+import { PostOfficeInfo } from "../models/YotiPayloads";
 
 export type TxmaEventName =
 	"F2F_CRI_START"
@@ -31,7 +32,11 @@ export interface BaseTxmaEvent {
 export interface TxmaEvent extends BaseTxmaEvent {
 	"event_name": TxmaEventName;
 	"restricted"?: VerifiedCredential["credentialSubject"];
-	"email"?: String;
+	"email"?: string;
+	"document_type"?: string;
+	"issuing_country"?: string;
+	"post_office_details"?: PostOfficeInfo;
+	"yoti_session_id"?: string;
 }
 
 export const buildCoreEventFields = (session: ISessionItem, issuer: string, sourceIp?: string | undefined, getNow: () => number = absoluteTimeNow): BaseTxmaEvent => {
