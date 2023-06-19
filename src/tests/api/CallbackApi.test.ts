@@ -40,6 +40,8 @@ describe("Callback API", () => {
 		["0201", dataNonUkPassport],
 		["0202", dataNonUkPassport],
 		["0203", dataNonUkPassport],
+		["0204", dataNonUkPassport],
+		["0205", dataNonUkPassport],
 		["0300", dataBrp],
 		["0301", dataBrp],
 		["0302", dataBrp],

@@ -97,16 +97,15 @@ export class YotiService {
 
 		let messageSignature;
 		try {
-			this.logger.info("Creating Yoti Message Signature")
+			this.logger.info("Creating Yoti Message Signature");
 			messageSignature = this.getRSASignatureForMessage(
 				`${method}&${endpointPath}${base64String}`,
 			);
-			this.logger.info("Yoti Message Signature Created")
+			this.logger.info("Yoti Message Signature Created");
 		} catch (err) {
 			this.logger.error({ message: "An error occurred when creating Yoti message signature ", err });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error create Yoti signature");
 		}
-		
 	
 
 		const config: AxiosRequestConfig<any> = {

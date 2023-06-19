@@ -37,26 +37,26 @@ export class GenerateVerifiableCredential {
   			(subCheck: { sub_check: string; result: string }) =>
   				subCheck.sub_check === YotiSessionDocument.CHIP_CSCA_TRUSTED && subCheck.result === YotiSessionDocument.SUBCHECK_PASS,
   		);
-	
+
   		return validChip;
   	}
   	return false;
   }
-	
+
 
   /**
    * The following Documents will get a strength score of 4
    * UK Passports with valid chip
    * National ID with valid chip
    * Residential Permits
-   
+
    * The following Documents will get a strength score of 3
    * UK Passports without valid chip
    * UK Driving Licence
    * NonUK Passport
    * NonUK Driving Licence
    * National ID without valid chip
-   * 
+   *
    * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545465037/Draft+-+Generating+Strength+from+Yoti+Results
    **/
   private calculateStrengthScore(documentType: string, issuingCountry: string, documentContainsValidChip: boolean): number {
@@ -90,14 +90,14 @@ export class GenerateVerifiableCredential {
   		}
   	}
   }
-	
+
 
   /**
    * IF the overall recommendation for ID_DOCUMENT_AUTHENTICITY is APPROVE
    * - If the document being scanned contains a valid chip the Validity score will be 3
    * - If the document being scanned does not a valid chip Validity score will be 2
-   * IF the overall recommendation for ID_DOCUMENT_AUTHENTICITY is NOT APPROVE the Validity score will be 0 
-   * 
+   * IF the overall recommendation for ID_DOCUMENT_AUTHENTICITY is NOT APPROVE the Validity score will be 0
+   *
    * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545825281/Draft+-+Generating+Validation+from+Yoti+Results
    **/
   private calculateValidityScore(
@@ -109,22 +109,22 @@ export class GenerateVerifiableCredential {
   	}
   	return 0;
   }
-	
+
   /**
-   * IF ID_DOCUMENT_FACE_MATCH has recommendation of "APPROVE" a score of 3 will be given else 0
-   * 
-   * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545792513/Draft+-+Generating+Verification+from+Yoti+Results
+   * IF ID_DOCUMENT_FACE_MATCH has recommendation of "APPROVE" and validityScore isn't 0, a score of 3 will be given else 0
+   *
+   * Confluence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545792513/Draft+-+Generating+Verification+from+Yoti+Results
    **/
-  private calculateVerificationProcessLevel(faceMatchCheck: string): number {
-  	return faceMatchCheck === YotiSessionDocument.APPROVE ? 3 : 0;
+  private calculateVerificationProcessLevel(validityScore: number, faceMatchCheck: string): number {
+  	return faceMatchCheck === YotiSessionDocument.APPROVE && validityScore != 0 ? 3 : 0;
   }
-	
+
   private getContraIndicator(
   	ID_DOCUMENT_FACE_MATCH_RECOMMENDATION: YotiCheckRecommendation,
   	ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION: YotiCheckRecommendation,
   ): string[] {
   	const ci: string[] = [];
-	
+
   	const addToCI = (code: string | string[]) => {
   		if (Array.isArray(code)) {
   			ci.push(...code);
@@ -132,7 +132,7 @@ export class GenerateVerifiableCredential {
   			ci.push(code);
   		}
   	};
-	
+
   	const handleFaceMatchRejection = () => {
   		const { value, reason } = ID_DOCUMENT_FACE_MATCH_RECOMMENDATION;
   		if (value === "REJECT") {
@@ -149,7 +149,7 @@ export class GenerateVerifiableCredential {
   			}
   		}
   	};
-	
+
   	const handleAuthenticityRejection = () => {
   		const { value, reason } = ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION;
   		if (value === "REJECT") {
@@ -178,10 +178,10 @@ export class GenerateVerifiableCredential {
   			}
   		}
   	};
-	
+
   	handleFaceMatchRejection();
   	handleAuthenticityRejection();
-	
+
   	return ci;
   }
 
@@ -192,11 +192,11 @@ export class GenerateVerifiableCredential {
   ): VerifiedCredentialSubject {
   	const givenNames = givenName.split(/\s+/);
   	const nameParts = givenNames.map((name) => ({ value: name, type: "GivenName" }));
-	
+
   	nameParts.push({ value: familyName, type: "FamilyName" });
-	
+
   	credentialSubject.name = [{ nameParts }];
-	
+
   	return credentialSubject;
   }
 
@@ -205,10 +205,10 @@ export class GenerateVerifiableCredential {
   	dateOfBirth: string,
   ): VerifiedCredentialSubject {
   	credentialSubject.birthDate = [{ value: dateOfBirth }];
-	
+
   	return credentialSubject;
   }
-	
+
 
   private attachAddressInfo(
   	credentialSubject: VerifiedCredentialSubject,
@@ -223,7 +223,7 @@ export class GenerateVerifiableCredential {
   			addressCountry: postalAddress.country,
   		},
   	];
-	
+
   	return credentialSubject;
   }
 
@@ -315,9 +315,9 @@ export class GenerateVerifiableCredential {
   	}
   	return credentialSubject;
   }
-	
 
-  getVerifiedCredentialInformation( 
+
+  getVerifiedCredentialInformation(
   	yotiSessionId: string,
   	completedYotiSessionPayload: YotiCompletedSession,
   	documentFields: YotiDocumentFields,
@@ -329,17 +329,17 @@ export class GenerateVerifiableCredential {
   	const { checks } = completedYotiSessionPayload;
   	const documentType = idDocuments[0].document_type;
   	const yotiCountryCode = idDocuments[0].issuing_country;
-	
+
   	const findCheck = (type: string) =>
   		checks.find((checkCompleted: { type: string }) => checkCompleted.type === type);
-	
+
   	const getCheckObject = (check: any) => ({
   		object: check,
   		state: check.state,
   		recommendation: check.report.recommendation,
   		breakdown: check.report.breakdown,
   	});
-	
+
   	//IBV_VISUAL_REVIEW_CHECK && DOCUMENT_SCHEME_VALIDITY && PROFILE_DOCUMENT_MATCH Currently not being consumed
   	const MANDATORY_CHECKS = {
   		ID_DOCUMENT_AUTHENTICITY: findCheck(YOTI_CHECKS.ID_DOCUMENT_AUTHENTICITY.type) ? getCheckObject(findCheck(YOTI_CHECKS.ID_DOCUMENT_AUTHENTICITY.type)) : null,
@@ -350,7 +350,7 @@ export class GenerateVerifiableCredential {
   	};
 
   	this.logger.info({ message: "Yoti Mandatory Checks" }, MANDATORY_CHECKS);
-	
+
   	if (Object.values(MANDATORY_CHECKS).some((check) => check?.object === undefined)) {
   		throw new AppError(
   			HttpCodesEnum.BAD_REQUEST,
@@ -358,7 +358,7 @@ export class GenerateVerifiableCredential {
   			{ MANDATORY_CHECKS },
   		);
   	}
-	
+
   	if (
   		Object.values(MANDATORY_CHECKS).some(
   			(check) => check?.state !== YotiSessionDocument.DONE_STATE,
@@ -366,9 +366,9 @@ export class GenerateVerifiableCredential {
   	) {
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Mandatory checks not all completed");
   	}
-	
+
   	let credentialSubject: VerifiedCredentialSubject = {};
-	
+
   	//Attach individuals name information to the VC payload
   	credentialSubject = this.attachPersonName(
   		credentialSubject,
@@ -391,32 +391,29 @@ export class GenerateVerifiableCredential {
   		yotiCountryCode,
   		documentFields,
   	);
-	
+
   	const documentContainsValidChip = this.doesDocumentContainValidChip(
   		documentType,
   		MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.breakdown,
   	);
-	
+
   	const manualFaceMatchCheck = MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.breakdown.some(
   		(subCheck: { sub_check: string; result: string }) =>
   			subCheck.sub_check === "manual_face_match" &&
 				subCheck.result === YotiSessionDocument.SUBCHECK_PASS,
   	);
-	
+
+  	const validityScore =   this.calculateValidityScore( MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value, documentContainsValidChip);
+  	const verificationScore  = this.calculateVerificationProcessLevel( validityScore, MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation.value);
   	const evidence: VerifiedCredentialEvidence = [
   		{
   			type: "IdentityCheck",
   			strengthScore: this.calculateStrengthScore(documentType, yotiCountryCode, documentContainsValidChip),
-  			validityScore: this.calculateValidityScore(
-  				MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value,
-  				documentContainsValidChip,
-  			),
-  			verificationScore: this.calculateVerificationProcessLevel(
-  				MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation.value,
-  			),
+  			validityScore,
+  			verificationScore,
   		},
   	];
-	
+
   	if (
   		evidence[0].strengthScore === 0 ||
 			evidence[0].validityScore === 0 ||
@@ -449,10 +446,10 @@ export class GenerateVerifiableCredential {
   				txn: yotiSessionId,
   			},
   		];
-			
+
   		manualFaceMatchCheck ? evidence[0].checkDetails[1].photoVerificationProcessLevel = 3 : evidence[0].checkDetails[1].biometricVerificationProcessLevel = 3;
   	}
-	
+
   	return {
   		credentialSubject,
   		evidence,
