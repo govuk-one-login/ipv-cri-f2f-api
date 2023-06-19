@@ -8,7 +8,7 @@ import {
 	VerifiedCredentialEvidence,
 	VerifiedCredentialSubject,
 } from "../utils/IVeriCredential";
-import {EU_DL_COUNTRIES} from "../models/EuDrivingLicenceCodes";
+import { EU_DL_COUNTRIES } from "../models/EuDrivingLicenceCodes";
 
 export class GenerateVerifiableCredential {
   readonly logger: Logger;
@@ -62,9 +62,9 @@ export class GenerateVerifiableCredential {
   private calculateStrengthScore(documentType: string, issuingCountry: string, documentContainsValidChip: boolean): number {
   	if (issuingCountry === "GBR") {
   		switch (documentType) {
-  			case ("PASSPORT"):
+  			case "PASSPORT":
   				return documentContainsValidChip ? 4 : 3;
-  			case ("RESIDENCE_PERMIT"):
+  			case "RESIDENCE_PERMIT":
   				return documentContainsValidChip ? 4 : 3;
   			case "DRIVING_LICENCE":
   				return 3;
@@ -79,9 +79,9 @@ export class GenerateVerifiableCredential {
   				return 3;
   			case "DRIVING_LICENCE":
   				return 3;
-  			case ("NATIONAL_ID"):
+  			case "NATIONAL_ID":
   				return documentContainsValidChip ? 4 : 3;
-  			case ("RESIDENCE_PERMIT"):
+  			case "RESIDENCE_PERMIT":
   				return documentContainsValidChip ? 4 : 3;
   			default:
   				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
@@ -281,16 +281,19 @@ export class GenerateVerifiableCredential {
   					},
   				];
   				break;
-			case "DRIVING_LICENCE":
-				const countryDetails = EU_DL_COUNTRIES.find(country => country.alpha3code === documentFields.issuing_country);
+  			case "DRIVING_LICENCE":
+  				const countryDetails = EU_DL_COUNTRIES.find(country => country.alpha3code === documentFields.issuing_country);
+  				if (!countryDetails) {
+  					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unable to fetch the alpha2code for the EU country", {
+  						documentFields });
+  				}
   				credentialSubject.drivingPermit = [
   					{
   						personalNumber: documentFields.document_number,
   						expiryDate: documentFields.expiration_date,
   						issueDate: documentFields.date_of_issue,
   						issuedBy: documentFields.place_of_issue,
-  						//issuingCountry: documentFields.issuing_country,
-						issuingCountry: countryDetails ? countryDetails.alpha2code : "n/a"
+  						issuingCountry: countryDetails.alpha2code,
   					},
   				];
   				break;

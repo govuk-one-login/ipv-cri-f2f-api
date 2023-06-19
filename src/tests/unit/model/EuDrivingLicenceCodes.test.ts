@@ -1,4 +1,4 @@
-import {EU_DL_COUNTRIES} from "../../../models/EuDrivingLicenceCodes";
+import { EU_DL_COUNTRIES } from "../../../models/EuDrivingLicenceCodes";
 
 describe("EuDrivingLicenceCodes", () => {
 	
@@ -38,7 +38,7 @@ describe("EuDrivingLicenceCodes", () => {
 		["SVK", "SK"],
 		["SVN", "SI"],
 		["ESP", "ES"],
-		["SWE", "SE"]
+		["SWE", "SE"],
 	])("Should return 2 digit country code for a 3 digit country code", (alpha3Code, expectedAlpha2Code) => {
 		const countryDetails = EU_DL_COUNTRIES.find(country => country.alpha3code === alpha3Code);
 		expect(countryDetails?.alpha2code).toBe(expectedAlpha2Code);
