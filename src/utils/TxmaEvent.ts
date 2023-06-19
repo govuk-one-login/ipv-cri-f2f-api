@@ -15,7 +15,7 @@ export type TxmaEventName =
 
 export interface TxmaUser {
 	"user_id": string;
-	"transaction_id": string;
+	"transaction_id": string | undefined;
 	"persistent_session_id": string;
 	"session_id": string;
 	"govuk_signin_journey_id": string;
@@ -36,14 +36,16 @@ export interface TxmaEvent extends BaseTxmaEvent {
 	"document_type"?: string;
 	"issuing_country"?: string;
 	"post_office_details"?: PostOfficeInfo;
-	"yoti_session_id"?: string;
+	"document_details"?: string[],
+	"gpg45_score"?: string[],
+	"contra_indicators"?: string
 }
 
 export const buildCoreEventFields = (session: ISessionItem, issuer: string, sourceIp?: string | undefined, getNow: () => number = absoluteTimeNow): BaseTxmaEvent => {
 	return {
 		user: {
 			user_id: session.subject,
-			transaction_id: "",
+			transaction_id: session.yotiSessionId,
 			persistent_session_id: session.persistentSessionId,
 			session_id: session.sessionId,
 			govuk_signin_journey_id: session.clientSessionId,
