@@ -123,7 +123,6 @@ export class DocumentSelectionRequestProcessor {
 					document_type: selectedDocument,
 					issuing_country: countryCode,
 					post_office_details: postOfficeSelection,
-					yoti_session_id: yotiSessionId,
 				});
 			} catch (error) {
 				this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.");
