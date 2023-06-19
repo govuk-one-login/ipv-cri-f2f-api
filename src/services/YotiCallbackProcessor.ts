@@ -167,6 +167,8 @@ export class YotiCallbackProcessor {
   					f2fSession.clientIpAddress,
   					absoluteTimeNow,
   				),
+					document_details: documentFields,
+					
   			});
   		} catch (error) {
   			this.logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.");
