@@ -14,7 +14,7 @@ import {
     IPV_INTEG_FULL_NAME_UNHAPPY,
     BRP_MEDIA_ID,
     EU_DL_MEDIA_ID,
-    EEA_ID_MEDIA_ID
+    EEA_ID_MEDIA_ID, IPV_INTEG_FULL_NAME_PAUL_BUTTIVANT_UNHAPPY
 } from "../utils/Constants";
 import {HttpCodesEnum} from "../utils/HttpCodesEnum";
 import {YotiSessionItem} from "../models/YotiSessionItem";
@@ -115,8 +115,15 @@ export class YotiRequestProcessor {
 
         //For IPV Integration UnHappy path
         if (IPV_INTEG_FULL_NAME_UNHAPPY === fullName) {
-            //Replacing returned yoti sessionid with success 0200 at the end to return NON_UK_PASSPORT
+            //Replacing returned yoti sessionid with success 0204 at the end to return NON_UK_PASSPORT
             yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0204");
+            return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+        }
+
+        //For IPV Integration UnHappy path name matches Paul BUTTIVANT
+        if (IPV_INTEG_FULL_NAME_PAUL_BUTTIVANT_UNHAPPY.toUpperCase() === fullName.toUpperCase()) {
+            //Replacing returned yoti sessionid with success 0205 at the end to return NON_UK_PASSPORT
+            yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0205");
             return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
         }
 
@@ -789,9 +796,25 @@ export class YotiRequestProcessor {
                                 return check;
                             }),
                         };
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+                    case '0205': // Non-UK Passport - ID_DOCUMENT_AUTHENTICITY
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        const VALID_RESPONSE_NFC_0205 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
+
+                        VALID_RESPONSE_NFC_0205.session_id = sessionId;
+                        VALID_RESPONSE_NFC_0205.resources.id_documents[0].document_fields.media.id = sessionId;
+                        VALID_RESPONSE_NFC_0205.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0205.resources.id_documents[0].document_fields.media.id, NON_UK_PASSPORT_MEDIA_ID);
+                        modifiedPayload = {
+                            ...VALID_RESPONSE_NFC_0205,
+                            checks: VALID_RESPONSE_NFC_0205.checks.map((check: any) => {
+                                if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+                                    check.report.recommendation.value = "REJECT";
+                                    check.report.recommendation.reason = "ISSUING_AUTHORITY_INVALID";
+                                }
+                                return check;
+                            }),
+                        };
                         console.log('modifiedPayload', JSON.stringify(modifiedPayload));
-
-
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
                     default:
                         return undefined;
