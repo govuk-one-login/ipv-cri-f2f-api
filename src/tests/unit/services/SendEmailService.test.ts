@@ -5,7 +5,7 @@ import { NotifyClient } from "notifications-node-client";
 import { VALID_SQS_EVENT } from "../data/sqs-events";
 import { SendEmailProcessor } from "../../../services/SendEmailProcessor";
 import { SendEmailService } from "../../../services/SendEmailService";
-import { mock } from "jest-mock-extended";
+import { mock, mockFn } from "jest-mock-extended";
 import { EmailResponse } from "../../../models/EmailResponse";
 import { Email } from "../../../models/Email";
 import { AppError } from "../../../utils/AppError";
@@ -14,6 +14,7 @@ import { YotiService } from "../../../services/YotiService";
 import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
+import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { Response } from "../../../utils/Response";
 import { VALID_AUTHCODE } from "../data/auth-events";
 import { F2fResponse } from "../../../utils/F2fResponse";
@@ -68,6 +69,7 @@ describe("SendEmailProcessor", () => {
 
 	it("Returns EmailResponse when email is sent successfully", async () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
+		console.log("MOCK EMAIL RESPONSE", mockEmailResponse)
 		const sess = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
@@ -76,10 +78,10 @@ describe("SendEmailProcessor", () => {
 		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
 		const emailResponse = await sendEmailServiceTest.sendEmail(email);
 
-		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
+		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1)
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
-		expect(emailResponse?.emailFailureMessage).toBe("");
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(1, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_YOTI_PDF_EMAILED", "timestamp": "", "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "sdfsdg", "transaction_id": undefined, "user_id": "sub"}, email: email.emailAddress});
+		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 
 	it("SendEmailService fails and doesnt retry when GovNotify throws an error", async () => {
