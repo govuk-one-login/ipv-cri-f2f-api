@@ -64,11 +64,10 @@ describe("AuthorizationRequestProcessor", () => {
 			redirect_uri: "http://localhost:8085/callback",
 			state: "Y@atr",
 		}));
-
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.setAuthorizationCode).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
@@ -112,11 +111,10 @@ describe("AuthorizationRequestProcessor", () => {
 			redirect_uri: "http://localhost:8085/callback",
 			state: "Y@atr",
 		}));
-
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.setAuthorizationCode).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_CRI_AUTH_CODE_ISSUED to SQS queue.", { "messageCode": "ERROR_WRITING_TXMA" });
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
