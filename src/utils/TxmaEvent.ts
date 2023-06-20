@@ -37,7 +37,7 @@ export interface TxmaEvent extends BaseTxmaEvent {
 	"issuing_country"?: string;
 	"post_office_details"?: PostOfficeInfo;
 	"document_details"?: string[],
-	"gpg45_score"?: string[],
+	"gpg45_score"?: string,
 	"contra_indicators"?: string
 }
 
