@@ -8,6 +8,7 @@ import {
 	VerifiedCredentialEvidence,
 	VerifiedCredentialSubject,
 } from "../utils/IVeriCredential";
+import { EU_DL_COUNTRIES } from "../models/EuDrivingLicenceCodes";
 
 export class GenerateVerifiableCredential {
   readonly logger: Logger;
@@ -63,6 +64,8 @@ export class GenerateVerifiableCredential {
   		switch (documentType) {
   			case "PASSPORT":
   				return documentContainsValidChip ? 4 : 3;
+  			case "RESIDENCE_PERMIT":
+  				return documentContainsValidChip ? 4 : 3;
   			case "DRIVING_LICENCE":
   				return 3;
   			default:
@@ -79,7 +82,7 @@ export class GenerateVerifiableCredential {
   			case "NATIONAL_ID":
   				return documentContainsValidChip ? 4 : 3;
   			case "RESIDENCE_PERMIT":
-  				return 4;
+  				return documentContainsValidChip ? 4 : 3;
   			default:
   				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
   					documentType, issuingCountry,
@@ -230,7 +233,7 @@ export class GenerateVerifiableCredential {
   	issuingCountry: string,
   	documentFields: YotiDocumentFields,
   ): VerifiedCredentialSubject {
-  	if (issuingCountry === "GBR") {
+	  if (issuingCountry === "GBR") {
   		switch (documentType) {
   			case "PASSPORT":
   				credentialSubject.passport = [
@@ -252,13 +255,13 @@ export class GenerateVerifiableCredential {
   					},
   				];
   				break;
-  			case "RESIDENCE_PERMIT": //TBC
+  			case "RESIDENCE_PERMIT":
   				credentialSubject.residencePermit = [
   					{
   						documentNumber: documentFields.document_number,
   						expiryDate: documentFields.expiration_date,
   						issueDate: documentFields.date_of_issue,
-  						issuingCountry: documentFields.place_of_issue,
+  						icaoIssuerCode: documentFields.issuing_country,
   					},
   				];
   				break;
@@ -278,23 +281,29 @@ export class GenerateVerifiableCredential {
   					},
   				];
   				break;
-  			case "DRIVING_LICENCE": //TBC
+  			case "DRIVING_LICENCE":
+  				const countryDetails = EU_DL_COUNTRIES.find(country => country.alpha3code === documentFields.issuing_country);
+  				if (!countryDetails) {
+  					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unable to fetch the alpha2code for the EU country", {
+  						documentFields });
+  				}
   				credentialSubject.drivingPermit = [
   					{
   						personalNumber: documentFields.document_number,
   						expiryDate: documentFields.expiration_date,
   						issueDate: documentFields.date_of_issue,
-  						issuedBy: documentFields.issuing_country, //TBC - May need to be mapped
+  						issuedBy: documentFields.place_of_issue,
+  						issuingCountry: countryDetails.alpha2code,
   					},
   				];
   				break;
-  			case "NATIONAL_ID": //TBC
-  				credentialSubject.nationalId = [
+  			case "NATIONAL_ID":
+  				credentialSubject.idCard = [
   					{
-  						personalNumber: documentFields.document_number,
+  						documentNumber: documentFields.document_number,
   						expiryDate: documentFields.expiration_date,
   						issueDate: documentFields.date_of_issue,
-  						issuedBy: documentFields.issuing_country, //TBC - May need to be mapped
+  						icaoIssuerCode: documentFields.issuing_country,
   					},
   				];
   				break;
