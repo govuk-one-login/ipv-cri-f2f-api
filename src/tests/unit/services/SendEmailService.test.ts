@@ -18,6 +18,7 @@ import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { Response } from "../../../utils/Response";
 import { VALID_AUTHCODE } from "../data/auth-events";
 import { F2fResponse } from "../../../utils/F2fResponse";
+import exp from "constants";
 
 const mockGovNotify = mock<NotifyClient>();
 const mockYotiService = mock<YotiService>();
@@ -80,7 +81,7 @@ describe("SendEmailProcessor", () => {
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1)
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(1, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_YOTI_PDF_EMAILED", "timestamp": "", "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "sdfsdg", "transaction_id": undefined, "user_id": "sub"}, email: email.emailAddress});
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 

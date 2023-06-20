@@ -127,6 +127,7 @@ export class DocumentSelectionRequestProcessor {
 			} catch (error) {
 				this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.");
 			}
+			
 
       return new Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 
