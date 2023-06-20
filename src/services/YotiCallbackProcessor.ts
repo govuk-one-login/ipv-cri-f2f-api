@@ -190,6 +190,8 @@ export class YotiCallbackProcessor {
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core", { shouldThrow: true });
   		}
 
+			const documentChecks = completedYotiSessionInfo.checks;
+
   		try {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_CRI_VC_ISSUED",
@@ -200,7 +202,8 @@ export class YotiCallbackProcessor {
   					absoluteTimeNow,
   				),
 					document_details: documentFields,
-					
+					gpg45_score: documentChecks[0].report.recommendation.value
+					// ADD CONTRA SCORE
   			});
   		} catch (error) {
   			this.logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", {
