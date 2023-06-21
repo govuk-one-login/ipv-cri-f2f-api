@@ -170,8 +170,8 @@ export class YotiCallbackProcessor {
   					absoluteTimeNow,
   				),
 					document_details: documentFields,
-					gpg45_score: documentChecks[0].report.recommendation.value
-					// ADD CONTRA SCORE
+					gpg45_score: documentChecks[0].report.recommendation.value,
+					contra_indicators: signedJWT.ci
   			});
   		} catch (error) {
   			this.logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.");

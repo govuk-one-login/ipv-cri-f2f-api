@@ -38,7 +38,7 @@ export interface TxmaEvent extends BaseTxmaEvent {
 	"post_office_details"?: PostOfficeInfo;
 	"document_details"?: string[],
 	"gpg45_score"?: string,
-	"contra_indicators"?: string
+	"contra_indicators"?: VerifiedCredential[]
 }
 
 export const buildCoreEventFields = (session: ISessionItem, issuer: string, sourceIp?: string | undefined, getNow: () => number = absoluteTimeNow): BaseTxmaEvent => {
