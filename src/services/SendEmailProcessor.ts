@@ -38,7 +38,7 @@ export class SendEmailProcessor {
 
     	await this.validationHelper.validateModel(email, this.logger);
 
-    	const emailResponse: EmailResponse = await this.govNotifyService.sendEmail(email);
+    	const emailResponse = await this.govNotifyService.sendEmail(email);
     	this.logger.debug("Response after sending Email message", { emailResponse });
 
     	return emailResponse;

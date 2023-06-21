@@ -37,7 +37,7 @@ function getMockSessionItem(): ISessionItem {
 		expiryDate: 221848913376,
 		createdDate: 1675443004,
 		state: "Y@atr",
-		subject: "sub",
+		subject: "testsub",
 		persistentSessionId: "sdgsdg",
 		clientIpAddress: "127.0.0.1",
 		attemptCount: 1,
@@ -425,17 +425,17 @@ describe("YotiCallbackProcessor", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_YOTI_END", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": "", "user_id": "sub"}});
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": "", "user_id": "sub"}});
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, { "client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_YOTI_END", "timestamp": absoluteTimeNow(), "user": { "govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": "", "user_id": "testsub" } });
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, { "client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": { "govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": "", "user_id": "testsub" } });
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
-			sub: "sub",
+			sub: "testsub",
 			state: "Y@atr",
 			"https://vocab.account.gov.uk/v1/credentialJWT": [JSON.stringify({
-				"sub":"urn:uuid:sub",
+				"sub":"testsub",
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),

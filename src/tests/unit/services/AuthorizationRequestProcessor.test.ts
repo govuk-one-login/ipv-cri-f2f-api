@@ -55,7 +55,7 @@ describe("AuthorizationRequestProcessor", () => {
 
 		const out: Response = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
 
-		const f2fResp = new F2fResponse(JSON.parse(out.body as string));
+		const f2fResp = new F2fResponse(JSON.parse(out.body ));
 
 		expect(out.body).toEqual(JSON.stringify({
 			authorizationCode: {
@@ -103,7 +103,7 @@ describe("AuthorizationRequestProcessor", () => {
 
 		const out: Response = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
 
-		const f2fResp = new F2fResponse(JSON.parse(out.body as string));
+		const f2fResp = new F2fResponse(JSON.parse(out.body ));
 
 		expect(out.body).toEqual(JSON.stringify({
 			authorizationCode: {

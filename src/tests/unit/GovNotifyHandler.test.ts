@@ -5,7 +5,7 @@ import { VALID_SQS_EVENT } from "./data/sqs-events";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { AppError } from "../../utils/AppError";
 import { CONTEXT } from "./data/context";
-import {failEntireBatch} from "../../utils/SqsBatchResponseHelper";
+import { failEntireBatch } from "../../utils/SqsBatchResponseHelper";
 
 const mockedSendEmailRequestProcessor = mock<SendEmailProcessor>();
 

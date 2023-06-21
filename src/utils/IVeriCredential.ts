@@ -111,7 +111,7 @@ export interface VerifiedCredentialSubject {
 	drivingPermit?: DrivingPermit[];
 	passport?: Passport[];
 	residencePermit?: any[];
-	nationalId?: any[];
+	idCard?: any[];
 }
 
 export interface Name {
@@ -148,6 +148,7 @@ export interface DrivingPermit {
 	issuedBy?: string;
 	issueDate?: string;
 	fullAddress?: string;
+	issuingCountry?: string;
 }
 
 export interface Passport {
