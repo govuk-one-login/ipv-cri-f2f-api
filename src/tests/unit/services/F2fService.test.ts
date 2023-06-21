@@ -8,6 +8,7 @@ import { sqsClient } from "../../../utils/SqsClient";
 import { TxmaEvent } from "../../../utils/TxmaEvent";
 import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
+import { personIdentityInputRecord, personIdentityOutputRecord } from "../data/personIdentity-records";
 
 const logger = mock<Logger>();
 
@@ -40,7 +41,7 @@ function getTXMAEventPayload(): TxmaEvent {
 
 function getGovNotifyEventPayload(): GovNotifyEvent {
 	const govNotifyEventPayload: GovNotifyEvent = {
-		Message : {
+		Message: {
 			sessionId: "f2fSessionId",
 			yotiSessionId: "yotiSessionId",
 			emailAddress: "email@test.com",
@@ -140,7 +141,7 @@ describe("F2f Service", () => {
 		await expect(f2fService.sendToIPVCore({
 			sub: "",
 			state: "",
-			"https://vocab.account.gov.uk/v1/credentialJWT": "",
+			"https://vocab.account.gov.uk/v1/credentialJWT": [],
 		})).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 		}));
@@ -167,7 +168,12 @@ describe("F2f Service", () => {
 	});
 
 	it("should throw error when session item has expired by authorization code", async () => {
-		mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [{ sessionId: "SESSID", expiryDate: absoluteTimeNow() - 500 }] });
+		mockDynamoDbClient.query = jest.fn().mockResolvedValue({
+			Items: [{
+				sessionId: "SESSID",
+				expiryDate: absoluteTimeNow() - 500,
+			}],
+		});
 
 		await expect(f2fService.getSessionByAuthorizationCode("1234")).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.UNAUTHORIZED,
@@ -181,7 +187,12 @@ describe("F2f Service", () => {
 	});
 
 	it("should return session item when session is found by authorization code", async () => {
-		mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [{ sessionId: "SESSID", expiryDate: absoluteTimeNow() + 500 }] });
+		mockDynamoDbClient.query = jest.fn().mockResolvedValue({
+			Items: [{
+				sessionId: "SESSID",
+				expiryDate: absoluteTimeNow() + 500,
+			}],
+		});
 
 		const result = await f2fService.getSessionByAuthorizationCode("1234");
 		expect(result).toEqual({ sessionId: "SESSID", expiryDate: expect.any(Number) });
@@ -197,16 +208,16 @@ describe("F2f Service", () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
 		await f2fService.updateSessionAuthState("SESSID", "AUTH_STATE");
 		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
-			input:{
-				ExpressionAttributeValues:{
-					":authSessionState":"AUTH_STATE",
+			input: {
+				ExpressionAttributeValues: {
+					":authSessionState": "AUTH_STATE",
 				},
-				Key:{
-					sessionId:"SESSID",
+				Key: {
+					sessionId: "SESSID",
 				},
-				TableName:"MYTABLE",
-				UpdateExpression:"SET authSessionState = :authSessionState",
-	 		},
+				TableName: "MYTABLE",
+				UpdateExpression: "SET authSessionState = :authSessionState",
+			},
 		}));
 	});
 
@@ -214,12 +225,54 @@ describe("F2f Service", () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
 		await f2fService.createAuthSession(SESSION_RECORD);
 		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
-			input:{
-				Item:{
-					sessionId:"SESSID",
+			input: {
+				Item: {
+					sessionId: "SESSID",
 				},
-				TableName:"MYTABLE",
+				TableName: "MYTABLE",
 			},
-	 }));
+		}));
+	});
+
+	it("should create and save a PersonIdentity record", async () => {
+		// Arrange
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+
+		// Act
+		await f2fService.savePersonIdentity(personIdentityInputRecord, "1234");
+
+		// Assert
+		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
+			clientCommand: expect.objectContaining({
+				input: expect.objectContaining({
+					Item: expect.objectContaining(personIdentityOutputRecord),
+				}),
+			}),
+		}));
+
+	});
+
+	it("should add createdDate and expiryDate to a PersonIdentity record", async () => {
+		// Arrange
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		jest.useFakeTimers();
+		const fakeTime = 1684933200.123;
+		jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
+
+		// Act
+		await f2fService.savePersonIdentity(personIdentityInputRecord, "1234");
+
+		// Assert
+		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
+			clientCommand: expect.objectContaining({
+				input: expect.objectContaining({
+					Item: expect.objectContaining({
+						expiryDate: Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL!),
+						createdDate: Math.floor(fakeTime),
+					}),
+				}),
+			}),
+		}));
+		jest.useRealTimers();
 	});
 });

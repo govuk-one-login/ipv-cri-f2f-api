@@ -19,9 +19,9 @@ import { YotiSessionDocument } from "../utils/YotiPayloadEnums";
 export class YotiCallbackProcessor {
 
   private static instance: YotiCallbackProcessor;
-	
+
   private readonly logger: Logger;
-	
+
   private readonly metrics: Metrics;
 
   private readonly yotiService: YotiService;
@@ -82,7 +82,7 @@ export class YotiCallbackProcessor {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not complete", { shouldThrow: true });
   	}
 
-		this.logger.info({ message: "Completed Yoti Session:" }, { completedYotiSessionInfo });
+  	this.logger.info({ message: "Completed Yoti Session:" }, { completedYotiSessionInfo });
 
   	const documentFieldsId = completedYotiSessionInfo.resources.id_documents[0].document_fields.media.id;
 
@@ -96,7 +96,7 @@ export class YotiCallbackProcessor {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
   	}
 
-		this.logger.info({ message: "Document Fields" }, { documentFields });
+  	this.logger.info({ message: "Document Fields" }, { documentFields });
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
   	const f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
@@ -127,10 +127,10 @@ export class YotiCallbackProcessor {
   		const { credentialSubject, evidence } =
         this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields);
 
-			if (!credentialSubject || !evidence) {
-				this.logger.error({ message: "Missing Credential Subject or Evidence payload" }, { credentialSubject, evidence });
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Credential Subject or Evidence payload");
-			}
+  		if (!credentialSubject || !evidence) {
+  			this.logger.error({ message: "Missing Credential Subject or Evidence payload" }, { credentialSubject, evidence });
+  			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Credential Subject or Evidence payload");
+  		}
 
   		let signedJWT;
   		try {
@@ -150,7 +150,7 @@ export class YotiCallbackProcessor {
   			await this.f2fService.sendToIPVCore({
   				sub: f2fSession.subject,
   				state: f2fSession.state,
-  				"https://vocab.account.gov.uk/v1/credentialJWT": signedJWT,
+  				"https://vocab.account.gov.uk/v1/credentialJWT": [signedJWT],
   			});
   		} catch (error) {
   			this.logger.error({ message: "Failed to send VC to IPV Core Queue" }, { error });

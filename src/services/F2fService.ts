@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-import { F2fSession } from "../models/F2fSession";
 import { ISessionItem } from "../models/ISessionItem";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
@@ -210,12 +209,13 @@ export class F2fService {
 	async sendToIPVCore(event: IPVCoreEvent): Promise<void> {
 		try {
 			const messageBody = JSON.stringify(event);
+			const queueUrl = this.environmentVariables.getIpvCoreQueueURL(this.logger)
 			const params = {
 				MessageBody: messageBody,
-				QueueUrl: this.environmentVariables.getIpvCoreQueueURL(this.logger),
+				QueueUrl: queueUrl,
 			};
 
-			this.logger.info({ message: "Sending message to IPV Core Queue", messageBody });
+			this.logger.info({ message: "Sending message to IPV Core Queue", queueUrl, messageBody });
 
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to IPV Core");
@@ -357,6 +357,8 @@ export class F2fService {
 			birthDate: this.mapbirthDate(sharedClaims.birthDate),
 			emailAddress: sharedClaims.emailAddress,
 			name: this.mapNames(sharedClaims.name),
+			expiryDate: Math.floor((Date.now() / 1000) + Number(this.environmentVariables.authSessionTtlInSecs())),
+			createdDate: Math.floor(Date.now() / 1000),
 		};
 	}
 

@@ -38,7 +38,7 @@ export class EnvironmentVariables {
 
 	private readonly ENCRYPTION_KEY_IDS = process.env.ENCRYPTION_KEY_IDS;
 
-	private readonly AUTH_SESSION_TTL = process.env.AUTH_SESSION_TTL;
+	private readonly AUTH_SESSION_TTL_IN_SECS = process.env.AUTH_SESSION_TTL;
 
 	private readonly SIGNING_KEY_IDS = process.env.SIGNING_KEY_IDS;
 
@@ -53,6 +53,11 @@ export class EnvironmentVariables {
 	private CLIENT_SESSION_TOKEN_TTL_SECS = process.env.CLIENT_SESSION_TOKEN_TTL_SECS;
 
 	private RESOURCES_TTL_SECS = process.env.RESOURCES_TTL_SECS;
+
+	private YOTI_INSTRUCTIONS_PDF_MAX_RETRIES = process.env.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES;
+
+	private YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS = process.env.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS;
+
 
 	/*
 	 * This function performs validation on env variable values.
@@ -99,6 +104,20 @@ export class EnvironmentVariables {
 					this.RESOURCES_TTL_SECS = "1036800";
 					logger.warn("RESOURCES_TTL_SECS env var is not set. Setting to default - 12 days.");
 				}
+				if (!this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS
+					|| this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS.trim().length === 0
+					|| +this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS.trim() === 0
+					|| +this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS.trim() >= 60000) {
+					this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS = "5000";
+					logger.warn("YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS env var is not set. Setting to default - 5000");
+				}
+
+				if (!this.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES
+					|| this.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES.trim().length === 0
+					|| +this.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES.trim() >= 100) {
+					this.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES = "3";
+					logger.warn("YOTI_INSTRUCTIONS_PDF_MAX_RETRIES env var is not set. Setting to default - 3");
+				}
 				break;
 			}
 			case ServicesEnum.USERINFO_SERVICE: {
@@ -127,7 +146,7 @@ export class EnvironmentVariables {
 				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 					!this.CLIENT_CONFIG || this.CLIENT_CONFIG.trim().length === 0 ||
 					!this.ENCRYPTION_KEY_IDS || this.ENCRYPTION_KEY_IDS.trim().length === 0 ||
-					!this.AUTH_SESSION_TTL || this.AUTH_SESSION_TTL.trim().length === 0 ||
+					!this.AUTH_SESSION_TTL_IN_SECS || this.AUTH_SESSION_TTL_IN_SECS.trim().length === 0 ||
 					!this.ISSUER || this.ISSUER.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0) {
 					logger.error("Environment variable SESSION_TABLE or CLIENT_CONFIG or ENCRYPTION_KEY_IDS or AUTH_SESSION_TTL is not configured");
@@ -283,8 +302,8 @@ export class EnvironmentVariables {
 		return this.CLIENT_CONFIG;
 	}
 
-	authSessionTtl(): any {
-		return this.AUTH_SESSION_TTL;
+	authSessionTtlInSecs(): any {
+		return this.AUTH_SESSION_TTL_IN_SECS;
 	}
 
 	signingKeyIds(): any {
@@ -309,6 +328,14 @@ export class EnvironmentVariables {
 
 	clientSessionTokenTtlInSeconds(): any {
 		return this.CLIENT_SESSION_TOKEN_TTL_SECS;
+	}
+
+	yotiInstructionsPdfMaxRetries(): number {
+		return +this.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES!;
+	}
+
+	yotiInstructionsPdfBackoffPeriod(): number {
+		return +this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS!;
 	}
 
 }
