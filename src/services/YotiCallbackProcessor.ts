@@ -82,7 +82,10 @@ export class YotiCallbackProcessor {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not complete", { shouldThrow: true });
   	}
 
-  	this.logger.info({ message: "Completed Yoti Session:" }, { completedYotiSessionInfo });
+  	this.logger.info({ message: "Completed Yoti Session:" }, {
+			yotiSessionId: completedYotiSessionInfo.session_id,
+			yotiUserTrackingId: completedYotiSessionInfo.user_tracking_id,
+		});
 
   	const documentFieldsId = completedYotiSessionInfo.resources.id_documents[0].document_fields.media.id;
 
@@ -95,8 +98,6 @@ export class YotiCallbackProcessor {
   		this.logger.error({ message: "No document fields info found" }, { documentFieldsId });
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
   	}
-
-  	this.logger.info({ message: "Document Fields" }, { documentFields });
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
   	const f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);

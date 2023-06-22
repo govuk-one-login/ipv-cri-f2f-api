@@ -95,7 +95,6 @@ export class YotiService {
 			)}`;
 		}
 
-		this.logger.info("Creating Yoti Message")
 		let messageSignature;
 		try {
 			this.logger.info("Creating Yoti Message Signature");

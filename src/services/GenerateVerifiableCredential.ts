@@ -349,7 +349,7 @@ export class GenerateVerifiableCredential {
   		PROFILE_DOCUMENT_MATCH: findCheck(YOTI_CHECKS.PROFILE_DOCUMENT_MATCH.type) ? getCheckObject(findCheck(YOTI_CHECKS.PROFILE_DOCUMENT_MATCH.type)) : null,
   	};
 
-  	this.logger.info({ message: "Yoti Mandatory Checks" }, MANDATORY_CHECKS);
+  	this.logger.info({ message: "Yoti Mandatory Checks" });
 
   	if (Object.values(MANDATORY_CHECKS).some((check) => check?.object === undefined)) {
   		throw new AppError(
@@ -454,7 +454,7 @@ export class GenerateVerifiableCredential {
   		manualFaceMatchCheck ? evidence[0].checkDetails[1].photoVerificationProcessLevel = 3 : evidence[0].checkDetails[1].biometricVerificationProcessLevel = 3;
   	}
 
-		this.logger.info({ message: "Calculated Scores for VC" }, {evidence});
+		this.logger.info({ message: "Calculated Scores for VC" });
 
   	return {
   		credentialSubject,
