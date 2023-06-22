@@ -166,6 +166,7 @@ export class YotiCallbackProcessor {
   		}
 
 
+
   		let signedJWT;
   		try {
   			signedJWT = await this.verifiableCredentialService.generateSignedVerifiableCredentialJwt(f2fSession, credentialSubject, evidence, absoluteTimeNow);
