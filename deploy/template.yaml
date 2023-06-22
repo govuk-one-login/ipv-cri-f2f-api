@@ -41,7 +41,7 @@ Parameters:
   DeployAlarmsInNonProdLikeEnvironment:
     Description: "Set to the string value `true` to deploy alarms in a DEV environment"
     Type: String
-    Default: false
+    Default: true
   SupportManualURL:
     Description: "Link to the F2F support manual"
     Type: String
