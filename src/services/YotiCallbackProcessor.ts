@@ -157,6 +157,7 @@ export class YotiCallbackProcessor {
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Credential Subject or Evidence payload");
   		}
 
+
   		let signedJWT;
   		try {
   			signedJWT = await this.verifiableCredentialService.generateSignedVerifiableCredentialJwt(f2fSession, credentialSubject, evidence, absoluteTimeNow);
@@ -202,8 +203,8 @@ export class YotiCallbackProcessor {
   					absoluteTimeNow,
   				),
 					document_details: documentFields,
-					gpg45_score: documentChecks[0].report.recommendation.value,
-					contra_indicators: signedJWT.ci
+					gpg45_score: evidence,
+					contra_indicators: evidence[0].ci
   			});
   		} catch (error) {
   			this.logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", {
