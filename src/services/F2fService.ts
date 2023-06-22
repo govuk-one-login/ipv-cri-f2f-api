@@ -209,12 +209,13 @@ export class F2fService {
 	async sendToIPVCore(event: IPVCoreEvent): Promise<void> {
 		try {
 			const messageBody = JSON.stringify(event);
+			const queueUrl = this.environmentVariables.getIpvCoreQueueURL(this.logger)
 			const params = {
 				MessageBody: messageBody,
-				QueueUrl: this.environmentVariables.getIpvCoreQueueURL(this.logger),
+				QueueUrl: queueUrl,
 			};
 
-			this.logger.info({ message: "Sending message to IPV Core Queue", messageBody });
+			this.logger.info({ message: "Sending message to IPV Core Queue", queueUrl, messageBody });
 
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to IPV Core");

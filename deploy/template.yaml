@@ -1170,6 +1170,7 @@ Resources:
       FunctionName: !Sub "F2F-GovNotify-${AWS::StackName}"
       Handler: GovNotifyHandler.lambdaHandler
       CodeUri: ../src/
+      Timeout: 300
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
@@ -1452,14 +1453,14 @@ Resources:
     Type: "AWS::SQS::Queue"
     Properties:
       MessageRetentionPeriod: !FindInMap [EnvironmentVariables, !Ref Environment, MESSAGERETENTIONPERIODDAYS]
-      VisibilityTimeout: 60
+      VisibilityTimeout: 1800 #Setting this to 6 times the GovNotify lambda timeout
       KmsMasterKeyId: !Ref GovNotifyKeyAlias
       RedrivePolicy:
         deadLetterTargetArn:
           Fn::GetAtt:
             - "GovNotifySQSQueueDeadLetterQueue"
             - "Arn"
-        maxReceiveCount: 5
+        maxReceiveCount: 2
 
   GovNotifySQSQueueDeadLetterQueue:
     Type: "AWS::SQS::Queue"

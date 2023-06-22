@@ -4,7 +4,7 @@ import { YotiCallbackProcessor } from "../../services/YotiCallbackProcessor";
 import { VALID_SQS_EVENT } from "./data/callback-events";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { AppError } from "../../utils/AppError";
-import {failEntireBatch} from "../../utils/SqsBatchResponseHelper";
+import { failEntireBatch } from "../../utils/SqsBatchResponseHelper";
 
 const mockedYotiCallbackProcessor = mock<YotiCallbackProcessor>();
 

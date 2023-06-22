@@ -1,0 +1,36 @@
+{
+    "shared_claims": {
+        "name": [
+            {
+                "nameParts": [
+                    {
+                        "value": "Linda",
+                        "type": "GivenName"
+                    },
+                    {
+                        "value": "Duff",
+                        "type": "FamilyName"
+                    }
+                ]
+            }
+        ],
+        "birthDate": [
+            {
+                "value": "1992-04-10"
+            }
+        ],
+        "address": [
+            {
+                "address_format": 1,
+                "building_number": "198",
+                "address_line1": "HAND AVENUE",
+                "town_city": "LEICESTER",
+                "postal_code": "LE3 1SL",
+                "country_iso": "GBR",
+                "country": "GB"
+            }
+
+        ],
+        "emailAddress": "test@domain.com"
+    }
+}
