@@ -379,6 +379,37 @@ function getDocumentFields() {
 	return documentFields;
 }
 
+const gpg45Score = [
+	{
+		"checkDetails": [
+				{
+					"checkMethod": "vri",
+					"identityCheckPolicy": "published",
+					"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+				},
+				{
+					"checkMethod": "pvr",
+					"photoVerificationProcessLevel": 3,
+					"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+				},
+		],
+			"strengthScore": 3,
+			"type": "IdentityCheck",
+			"validityScore": 2,
+			"verificationScore": 3,
+	},
+];
+
+const contraIndicator = {
+			"evidence": [
+				{
+					"ci": [
+						"D14"
+					],
+			}
+			]
+}
+
 const VALID_REQUEST = {
 	"session_id":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 	"topic" : "session_completion",
@@ -428,7 +459,8 @@ describe("YotiCallbackProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_YOTI_RESPONSE_RECEIVED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub"}});
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub"},
 						document_details: documentFields,
-						gpg45_score: completedYotiSession.checks[0].report.recommendation.value
+						gpg45_score: gpg45Score,
+						contra_indicators: contraIndicator.evidence[0].ci[0]
 			});
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
