@@ -1,21 +1,21 @@
-import {SQSBatchItemFailure} from "aws-lambda";
+import { SQSBatchItemFailure } from "aws-lambda";
 
 export class SqsBatchResponseHelper {
-  constructor(
-    public batchItemFailures: SQSBatchItemFailure[],
-  ) {
-  }
+	constructor(
+		public batchItemFailures: SQSBatchItemFailure[],
+	) {
+	}
 }
 
 export const failEntireBatch: SqsBatchResponseHelper = {
-  batchItemFailures: [
-    {
-      itemIdentifier: "",
-    },
-  ],
+	batchItemFailures: [
+		{
+			itemIdentifier: "",
+		},
+	],
 };
 
 export const passEntireBatch: SqsBatchResponseHelper = {
-  batchItemFailures: [
-  ],
+	batchItemFailures: [
+	],
 };

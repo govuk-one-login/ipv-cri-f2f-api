@@ -179,7 +179,7 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 			sessionId,
 		},
 	});
-	
+
 	let session;
 	try {
 		session = await dynamoDB.send(getSessionCommand);
@@ -227,7 +227,7 @@ export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 
 	try {
 		const { Messages } = await receiveMessage();
-		Messages.forEach(async (m: any) => {
+		for (const m of Messages) {
 			const parsedResponse = JSON.parse(m.Body);
 			const array = Object.values(parsedResponse);
 			jwtToken = array[2];
@@ -237,10 +237,10 @@ export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 				  ReceiptHandle: m.ReceiptHandle,
 				}),
 			  );
-		});
+		}
 	} catch (e: any) {
 		console.error({ message: "got error receiving messages: ", e });
-	};
+	}
 
 	return jwtToken;
 }
@@ -264,29 +264,29 @@ export function validateJwtToken(jwtToken:any, vcData: any, yotiId?: string):voi
 		expect(decodedBody.vc.evidence[0].verificationScore).toBe(eval("vcData.s" + yotiId + ".verificationScore"));
 	}
 	// Check Methods
-	const expecedCheckMethod = eval("vcData.s" + yotiId + ".checkMethod")
+	const expecedCheckMethod = eval("vcData.s" + yotiId + ".checkMethod");
 	if (expecedCheckMethod) {
 
 		const actualCheckMethods = [];
 		for (let i = 0; i < expecedCheckMethod.split(",").length; i++) {
 			actualCheckMethods.push(decodedBody.vc.evidence[0].checkDetails[i].checkMethod);
 		}
-		expect(expecedCheckMethod.split(',')).toStrictEqual(actualCheckMethods);
+		expect(expecedCheckMethod.split(",")).toStrictEqual(actualCheckMethods);
 	}
 	// FailedChecks
-	const failedCheckPresent = eval("vcData.s" + yotiId + ".failedCheck")
+	const failedCheckPresent = eval("vcData.s" + yotiId + ".failedCheck");
 	if (failedCheckPresent) {
-		expect(decodedBody.vc.evidence[0].failedCheckDetails).toBeTruthy();;
+		expect(decodedBody.vc.evidence[0].failedCheckDetails).toBeTruthy();
 	}
 	// Contra Indicators
-	const expectedContraIndicatiors = eval("vcData.s" + yotiId + ".ci")
+	const expectedContraIndicatiors = eval("vcData.s" + yotiId + ".ci");
 	if (expectedContraIndicatiors) {
-		expectedContraIndicatiors.split(",").length
+		expectedContraIndicatiors.split(",").length;
 		const actualContraIndicatiors = [];
 		for (let i = 0; i < expectedContraIndicatiors.split(",").length; i++) {
 			actualContraIndicatiors.push(decodedBody.vc.evidence[0].ci[i]);
 		}
 		console.log(actualContraIndicatiors);
-		expect(expectedContraIndicatiors.split(',')).toStrictEqual(actualContraIndicatiors);
+		expect(expectedContraIndicatiors.split(",")).toStrictEqual(actualContraIndicatiors);
 	}
 }

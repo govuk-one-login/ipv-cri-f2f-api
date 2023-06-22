@@ -36,7 +36,7 @@ class Session implements LambdaInterface {
 					logger.info("Starting SessionRequestProcessor",
 						{
 							resource: ResourcesEnum.SESSION,
-						})
+						});
 					return await SessionRequestProcessor.getInstance(logger, metrics).processRequest(event);
 				} catch (error: any) {
 					logger.error("An error has occurred.", {
