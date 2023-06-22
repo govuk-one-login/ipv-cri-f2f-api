@@ -1,4 +1,4 @@
-import { VerifiedCredential } from "./IVeriCredential";
+import { VerifiedCredential, VerifiedCredentialEvidence } from "./IVeriCredential";
 import { ISessionItem } from "../models/ISessionItem";
 import { absoluteTimeNow } from "./DateTimeUtils";
 import { PostOfficeInfo } from "../models/YotiPayloads";
@@ -37,8 +37,8 @@ export interface TxmaEvent extends BaseTxmaEvent {
 	"issuing_country"?: string;
 	"post_office_details"?: PostOfficeInfo;
 	"document_details"?: string[],
-	"gpg45_score"?: string,
-	"contra_indicators"?: VerifiedCredential[]
+	"gpg45_score"?: VerifiedCredentialEvidence,
+	"contra_indicators"?: string[]
 }
 
 export const buildCoreEventFields = (session: ISessionItem, issuer: string, sourceIp?: string | undefined, getNow: () => number = absoluteTimeNow): BaseTxmaEvent => {
