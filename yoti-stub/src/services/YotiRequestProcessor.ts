@@ -1092,6 +1092,9 @@ export class YotiRequestProcessor {
 
         let pdfBytes;
         let successResp;
+        const lastUuidChars = sessionId.slice(-4);
+        const firstTwoChars = lastUuidChars.slice(0, 2);
+        this.logger.info({message: "last 4 ID chars", lastUuidChars});
         try {
             const pdfDoc = await PDFDocument.create();
             const page = pdfDoc.addPage();
@@ -1101,30 +1104,23 @@ export class YotiRequestProcessor {
             pdfBytes = await pdfDoc.saveAsBase64()
             successResp = {
                 headers: {
-                    'Content-Type': "application/pdf",
-                    "Access-Control-Allow-Origin": "*",
-                    'Accept': '*/*'
-                },
+                    'Content-Type': "application/octet-stream",
+                    "Access-Control-Allow-Origin":"*",
+                    'Accept': 'application/pdf'},
                 statusCode: 200,
                 body: pdfBytes,
                 isBase64Encoded: true
             }
 
+            if (SUPPORTED_DOCUMENTS.includes(firstTwoChars)) {
+                this.logger.info("fetchInstructionsPdf",JSON.stringify(successResp));
+                return successResp;
+            }
 
         } catch (err) {
             console.log("Got err " + err)
             throw err;
         }
-
-        const lastUuidChars = sessionId.slice(-4);
-        const firstTwoChars = lastUuidChars.slice(0, 2);
-        this.logger.info({message: "last 4 ID chars", lastUuidChars});
-
-        if (SUPPORTED_DOCUMENTS.includes(firstTwoChars)) {
-            this.logger.info("fetchInstructionsPdf", JSON.stringify(GET_INSTRUCTIONS_PDF_400));
-            return new Response(HttpCodesEnum.OK, JSON.stringify(GET_INSTRUCTIONS_PDF_400));
-        }
-
 
         switch (lastUuidChars) {
             case '4400':
