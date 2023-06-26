@@ -44,8 +44,8 @@ export class DocumentSelection implements LambdaInterface {
 						let sessionId;
 						if (event.headers) {
 							sessionId = event.headers[Constants.X_SESSION_ID];
+							logger.appendKeys({ sessionId });
 							if (sessionId) {
-								logger.info({ message: "Session id", sessionId });
 								if (!Constants.REGEX_UUID.test(sessionId)) {
 									logger.error("Session id must be a valid uuid",
 										{
@@ -72,9 +72,12 @@ export class DocumentSelection implements LambdaInterface {
 							logger.info({ message: "Fetching key from SSM" });
 							try {
 								YOTI_PRIVATE_KEY = await getParameter(this.YOTI_KEY_SSM_PATH);
-							} catch (err) {
-								logger.error(`failed to get param from ssm at ${this.YOTI_KEY_SSM_PATH}`, { err });
-								throw err;
+							} catch (error) {
+								logger.error(`failed to get param from ssm at ${this.YOTI_KEY_SSM_PATH}`, {
+									messageCode: MessageCodes.MISSING_CONFIGURATION,
+									error,
+								});
+								return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 							}
 						}
 						logger.info("Starting DocumentSelectionRequestProcessor",
@@ -82,15 +85,25 @@ export class DocumentSelection implements LambdaInterface {
 								resource: event.resource,
 							});
 						return await DocumentSelectionRequestProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event, sessionId);
-					} catch (err) {
-						logger.error({ message: "An error has occurred. ", err });
+					} catch (error) {
+						logger.error({ message: "An error has occurred. ",
+							error,
+							messageCode: MessageCodes.SERVER_ERROR,
+						});
+						if (error instanceof AppError) {
+							return new Response(error.statusCode, error.message);
+						}
 						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 					}
 				}
 				return new Response(HttpCodesEnum.NOT_FOUND, "");
 
 			default:
-				throw new AppError(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist" + { resource: event.resource });
+				logger.error("Requested resource does not exist", {
+					messageCode: MessageCodes.RESOURCE_NOT_FOUND,
+					resource: event.resource,
+				});
+				return new Response(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist");
 
 		}
 	}

@@ -27,10 +27,7 @@ export const unauthorizedResponse = () => {
 	return {
 		statusCode: HttpCodesEnum.UNAUTHORIZED,
 		headers: SECURITY_HEADERS,
-		body: JSON.stringify({
-			redirect: null,
-			message: "Unauthorized",
-		}),
+		body: "Unauthorized",
 	};
 };
 
@@ -38,9 +35,6 @@ export const badRequestResponse = () => {
 	return {
 		statusCode: HttpCodesEnum.BAD_REQUEST,
 		headers: SECURITY_HEADERS,
-		body: JSON.stringify({
-			redirect: null,
-			message: "Bad Request",
-		}),
+		body: "Bad Request",
 	};
 };

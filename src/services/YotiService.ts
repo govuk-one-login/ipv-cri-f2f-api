@@ -135,8 +135,6 @@ export class YotiService {
 		countryCode: string,
 		yotiCallbackUrl: string,
 	): Promise<string | undefined> {
-		this.logger.info("SELECTED DOCUMENT - YotiService START", selectedDocument);
-		this.logger.info("COUNTRY CODE - YotiService START", countryCode);
 		const payloadJSON: CreateSessionPayload = {
 			client_session_token_ttl: this.CLIENT_SESSION_TOKEN_TTL_SECS ? this.CLIENT_SESSION_TOKEN_TTL_SECS : "950400",
 			resources_ttl: this.RESOURCES_TTL_SECS ? this.RESOURCES_TTL_SECS : "1036800",
@@ -178,8 +176,6 @@ export class YotiService {
 			payloadJSON.required_documents[0].filter.allow_expired_documents = true;
 		}
 
-		this.logger.info("REQUIRED DOCS", { "required docs": payloadJSON.required_documents });
-
 		const yotiRequest = this.generateYotiRequest({
 			method: HttpVerbsEnum.POST,
 			payloadJSON: JSON.stringify(payloadJSON),
@@ -187,14 +183,15 @@ export class YotiService {
 		});
 
 		try {
-			this.logger.info("Yoti request url and config", { "yotiUrl":yotiRequest.url, "yotiConfig":yotiRequest.config });
 			const { data } = await axios.post(
 				yotiRequest.url,
 				payloadJSON,
 				yotiRequest.config,
 			);
 
-			this.logger.info("Received response for create /sessions", { data });
+			this.logger.appendKeys({ yotiSessionId: data.session_id })
+
+			this.logger.info("Received response for create /sessions");
 			return data.session_id;
 		} catch (err) {
 			this.logger.error({ message: "An error occurred when creating Yoti session ", err });

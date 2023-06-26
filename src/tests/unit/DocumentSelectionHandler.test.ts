@@ -2,7 +2,7 @@ import { lambdaHandler } from "../../DocumentSelectionHandler";
 import { mock } from "jest-mock-extended";
 import { RESOURCE_NOT_FOUND, UNSUPPORTED_METHOD, VALID_REQUEST, INVALID_SESSION_ID, MISSING_SESSION_ID } from "./data/documentSelection-events";
 
-import { Response } from "../../utils/Response";
+import {Response, SECURITY_HEADERS} from "../../utils/Response";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "../../services/DocumentSelectionRequestProcessor";
 
@@ -17,9 +17,7 @@ describe("DocumentSelectionHandler", () => {
 	it("return not found when resource not found", async () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 
-		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "")).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.NOT_FOUND,
-		}));
+		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist"));
 	});
 
 	it("return not found when unsupported http method tried for documentSelection", async () => {
@@ -31,13 +29,22 @@ describe("DocumentSelectionHandler", () => {
 	it("return bad request if session id is missing", async () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 
-		return expect(lambdaHandler(MISSING_SESSION_ID, "")).resolves.toEqual(new Response(HttpCodesEnum.BAD_REQUEST, "Missing header: session-id is required"));
+		return expect(lambdaHandler(MISSING_SESSION_ID, "")).resolves.toEqual({
+			statusCode: 400,
+			headers: SECURITY_HEADERS,
+			body: "Bad Request",
+		});
 	});
 
 	it("return bad request if session id validation fails", async () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 
-		return expect(lambdaHandler(INVALID_SESSION_ID, "")).resolves.toEqual(new Response(HttpCodesEnum.BAD_REQUEST, "Session id must be a valid uuid"));
+		const response = await lambdaHandler(INVALID_SESSION_ID, "")
+		expect(response).toEqual({
+			statusCode: 400,
+			headers: SECURITY_HEADERS,
+			body: "Bad Request",
+		});
 	});
 
 	it("return success for valid request", async () => {
