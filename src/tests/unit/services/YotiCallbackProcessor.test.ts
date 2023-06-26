@@ -412,6 +412,8 @@ describe("YotiCallbackProcessor", () => {
 	});
 
 	it("Return successful response with 200 OK when YOTI session created", async () => {
+		jest.useFakeTimers();
+		jest.setSystemTime(absoluteTimeNow());
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
@@ -502,6 +504,7 @@ describe("YotiCallbackProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
+		jest.useRealTimers();
 	});
 
 
