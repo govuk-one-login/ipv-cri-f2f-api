@@ -26,24 +26,24 @@ describe("DocumentSelectionHandler", () => {
 		return expect(lambdaHandler(UNSUPPORTED_METHOD, "")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
 	});
 
-	it("return bad request if session id is missing", async () => {
+	it("return Unauthorized if session id is missing", async () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 
 		return expect(lambdaHandler(MISSING_SESSION_ID, "")).resolves.toEqual({
-			statusCode: 400,
+			statusCode: 401,
 			headers: SECURITY_HEADERS,
-			body: "Bad Request",
+			body: "Unauthorized",
 		});
 	});
 
-	it("return bad request if session id validation fails", async () => {
+	it("return Unauthorized if session id validation fails", async () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 
 		const response = await lambdaHandler(INVALID_SESSION_ID, "")
 		expect(response).toEqual({
-			statusCode: 400,
+			statusCode: 401,
 			headers: SECURITY_HEADERS,
-			body: "Bad Request",
+			body: "Unauthorized",
 		});
 	});
 
