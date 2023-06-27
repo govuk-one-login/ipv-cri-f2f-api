@@ -508,7 +508,8 @@ describe("YotiCallbackProcessor", () => {
 	});
 
 
-	it("Throw sever error if completed Yoti session can not be found", async () => {
+	it("Throw server error if completed Yoti session can not be found", async () => {
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(undefined);
 
 		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
@@ -517,7 +518,7 @@ describe("YotiCallbackProcessor", () => {
 		}));
 	});
 
-	it("Throw sever error if F2F Session can not be found", async () => {
+	it("Throw server error if F2F Session can not be found", async () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(undefined);
@@ -570,6 +571,7 @@ describe("YotiCallbackProcessor", () => {
 		completedYotiSession.state = "ONGOING";
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
 		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
