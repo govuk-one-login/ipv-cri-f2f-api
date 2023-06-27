@@ -545,7 +545,7 @@ describe("YotiCallbackProcessor", () => {
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenNthCalledWith(1, "Failed to write TXMA event F2F_YOTI_END to SQS queue.");
-		expect(logger.error).toHaveBeenNthCalledWith(2, "Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.");
+		expect(logger.error).toHaveBeenNthCalledWith(2, "Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", {"error": {}});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 

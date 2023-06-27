@@ -28,6 +28,11 @@ class YotiCallbackHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: SQSEvent, context: any): Promise<any> {
+
+		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
+		logger.setPersistentLogAttributes({});
+		logger.addContext(context);
+
 		if (event.Records.length === 1) {
 			const record: SQSRecord = event.Records[0];
 			logger.debug("Starting to process record", { record });
@@ -35,21 +40,25 @@ class YotiCallbackHandler implements LambdaInterface {
 
 			try {
 				const body = JSON.parse(record.body);
+				logger.appendKeys({
+					yotiSessionId: body.session_id,
+				});
 				logger.debug("Parsed SQS event body", body);
+
 				if (!YOTI_PRIVATE_KEY) {
 					logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
 					try {
 						YOTI_PRIVATE_KEY = await getParameter(this.environmentVariables.yotiKeySsmPath());
-					} catch (err) {
-						logger.error(`failed to get param from ssm at ${this.environmentVariables.yotiKeySsmPath()}`, { err });
-						throw err;
+					} catch (error) {
+						logger.error(`failed to get param from ssm at ${this.environmentVariables.yotiKeySsmPath()}`, { error });
+						throw error;
 					}
 				}
 				
 				if (body.topic === "session_completion") {
 					await YotiCallbackProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
 				} else {
-					logger.warn("Unexpected topic received in request");
+					logger.warn("Unexpected topic received in request", { topic: body.topic });
 					return failEntireBatch;
 				}
 				
