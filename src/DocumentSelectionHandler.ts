@@ -4,7 +4,7 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Constants } from "./utils/Constants";
 import { ResourcesEnum } from "./models/enums/ResourcesEnum";
-import {Response, unauthorizedResponse} from "./utils/Response";
+import { Response, unauthorizedResponse } from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "./services/DocumentSelectionRequestProcessor";
 import { AppError } from "./utils/AppError";
