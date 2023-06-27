@@ -4,7 +4,7 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Constants } from "./utils/Constants";
 import { ResourcesEnum } from "./models/enums/ResourcesEnum";
-import { Response, badRequestResponse } from "./utils/Response";
+import {Response, unauthorizedResponse} from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "./services/DocumentSelectionRequestProcessor";
 import { AppError } from "./utils/AppError";
@@ -51,21 +51,21 @@ export class DocumentSelection implements LambdaInterface {
 										{
 											messageCode: MessageCodes.INVALID_SESSION_ID,
 										});
-									return badRequestResponse();
+									return unauthorizedResponse();
 								}
 							} else {
 								logger.error("Missing header: session-id is required",
 									{
 										messageCode: MessageCodes.MISSING_SESSION_ID,
 									});
-								return badRequestResponse();
+								return unauthorizedResponse();
 							}
 						} else {
 							logger.error("Empty headers",
 								{
 									messageCode: MessageCodes.EMPTY_HEADERS,
 								});
-							return badRequestResponse();
+							return unauthorizedResponse();
 						}
 
 						if (!YOTI_PRIVATE_KEY) {

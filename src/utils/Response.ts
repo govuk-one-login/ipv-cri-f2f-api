@@ -30,11 +30,3 @@ export const unauthorizedResponse = () => {
 		body: "Unauthorized",
 	};
 };
-
-export const badRequestResponse = () => {
-	return {
-		statusCode: HttpCodesEnum.BAD_REQUEST,
-		headers: SECURITY_HEADERS,
-		body: "Bad Request",
-	};
-};
