@@ -117,7 +117,7 @@ export class YotiCallbackProcessor {
 				await this.f2fService.sendToTXMA({
 					event_name: "F2F_YOTI_RESPONSE_RECEIVED",
 					...buildCoreEventFields(
-						f2fSession!,
+						f2fSession,
 						this.environmentVariables.issuer(),
 						f2fSession!.clientIpAddress,
 						absoluteTimeNow,

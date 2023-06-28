@@ -38,7 +38,7 @@ class GovNotifyHandler implements LambdaInterface {
 
 			try {
 				const body = JSON.parse(record.body);
-				logger.debug("Parsed SQS event body", body);
+				logger.debug("Parsed SQS event body");
 				if (!YOTI_PRIVATE_KEY) {
 					logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
 					try {

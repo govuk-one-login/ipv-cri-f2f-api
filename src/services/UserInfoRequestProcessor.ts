@@ -59,7 +59,7 @@ export class UserInfoRequestProcessor {
     	let session :ISessionItem | undefined;
     	try {
     		session = await this.f2fService.getSessionById(sub as string);
-    		this.logger.info({ message :"Found Session: " + JSON.stringify(session?.sessionId) });
+    		this.logger.info({ message :"Found Session" });
     		if (!session) {
     			return new Response(HttpCodesEnum.BAD_REQUEST, `No session found with the sessionId: ${sub}`);
     		}

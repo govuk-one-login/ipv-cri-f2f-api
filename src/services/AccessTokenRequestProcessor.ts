@@ -52,7 +52,7 @@ export class AccessTokenRequestProcessor {
 			let session: ISessionItem | undefined;
 			try {
 				session = await this.f2fService.getSessionByAuthorizationCode(requestPayload.code);
-				this.logger.info({ message: "Found Session: " + JSON.stringify(session) });
+				this.logger.info({ message: "Found Session for AccessTokenRequestProcessor" });
 				if (!session) {
 					return new Response(HttpCodesEnum.UNAUTHORIZED, `No session found by authorization code: ${requestPayload.code}`);
 				}
