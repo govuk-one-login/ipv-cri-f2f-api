@@ -333,6 +333,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { "messageCode": "ERROR_WRITING_TXMA" });
+		
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
 	});
