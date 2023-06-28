@@ -133,6 +133,8 @@ export class YotiCallbackProcessor {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
   	}
 
+		
+
   	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
   	if (
   		f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
