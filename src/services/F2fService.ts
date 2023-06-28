@@ -180,7 +180,7 @@ export class F2fService {
 				QueueUrl: process.env.TXMA_QUEUE_URL,
 			};
 
-			this.logger.info({ message: "Sending message to TxMA", messageBody });
+			this.logger.info({ message: "Sending message to TxMA", eventName: event.event_name });
 
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to TxMA");
@@ -215,7 +215,7 @@ export class F2fService {
 				QueueUrl: queueUrl,
 			};
 
-			this.logger.info({ message: "Sending message to IPV Core Queue", queueUrl, messageBody });
+			this.logger.info({ message: "Sending message to IPV Core Queue", queueUrl });
 
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to IPV Core");

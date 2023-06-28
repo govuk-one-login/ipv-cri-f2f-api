@@ -89,7 +89,7 @@ export class SessionRequestProcessor {
   			error,
   			messageCode: MessageCodes.FAILED_DECRYPTING_JWE,
   		});
-  		return unauthorizedResponse();
+  		return unauthorizedResponse;
   	}
 
   	let parsedJwt: Jwt;
@@ -100,7 +100,7 @@ export class SessionRequestProcessor {
   			error,
   			messageCode: MessageCodes.FAILED_DECODING_JWT,
   		});
-  		return unauthorizedResponse();
+  		return unauthorizedResponse;
   	}
 
   	const jwtPayload: JwtPayload = parsedJwt.payload;
@@ -111,7 +111,7 @@ export class SessionRequestProcessor {
   				this.logger.error("Failed to verify JWT", {
   					messageCode: MessageCodes.FAILED_VERIFYING_JWT,
   				});
-  				return unauthorizedResponse();
+  				return unauthorizedResponse;
   			}
   		} else {
   			this.logger.error("Incomplete Client Configuration", {
@@ -124,7 +124,7 @@ export class SessionRequestProcessor {
   			error,
   			messageCode: "UNEXPECTED_ERROR_VERIFYING_JWT",
   		});
-  		return unauthorizedResponse();
+  		return unauthorizedResponse;
   	}
 
   	const JwtErrors = this.validationHelper.isJwtValid(jwtPayload, requestBodyClientId, configClient.redirectUri);
@@ -132,7 +132,7 @@ export class SessionRequestProcessor {
   		this.logger.error(JwtErrors, {
   			messageCode: MessageCodes.FAILED_VALIDATING_JWT,
   		});
-  		return unauthorizedResponse();
+  		return unauthorizedResponse;
   	}
 
   	const sessionId: string = randomUUID();
