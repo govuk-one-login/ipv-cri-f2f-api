@@ -2,3 +2,7 @@
 # The following below will be requested for review when someone opens a pull request.
 
 * @alphagov/di-ipv-kiwi-api-codeowners
+
+# The following allows QA to review changes to /tests directory
+
+tests/ @alphagov/di-ipv-kiwi-qa-codeowners
