@@ -101,30 +101,32 @@ export class YotiCallbackProcessor {
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
   	const f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
 
+		try {
+			await this.f2fService.sendToTXMA({
+				event_name: "F2F_YOTI_RESPONSE_RECEIVED",
+				...buildCoreEventFields(
+					f2fSession!,
+					this.environmentVariables.issuer(),
+					f2fSession!.clientIpAddress,
+					absoluteTimeNow,
+				),
+				
+			});
+		} catch (error) {
+			this.logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.");
+		}
   	if (!f2fSession) {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
   	}
+
+		
 
   	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
   	if (
   		f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
       f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED
   	) {
-  		try {
-  			await this.f2fService.sendToTXMA({
-  				event_name: "F2F_YOTI_RESPONSE_RECEIVED",
-  				...buildCoreEventFields(
-  					f2fSession,
-  					this.environmentVariables.issuer(),
-  					f2fSession.clientIpAddress,
-  					absoluteTimeNow,
-  				),
-					
-  			});
-  		} catch (error) {
-  			this.logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.");
-  		}
-
+  		
   		const { credentialSubject, evidence } =
         this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields);
 
