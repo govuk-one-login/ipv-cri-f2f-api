@@ -27,7 +27,7 @@ export class AccessToken implements LambdaInterface {
 			case ResourcesEnum.TOKEN:
 				if (event.httpMethod === "POST") {
 					try {
-						logger.info("Got token request:", { event });
+						logger.info({ message: "Got token request for token" });
 						return await AccessTokenRequestProcessor.getInstance(logger, metrics).processRequest(event);
 					} catch (err) {
 						logger.error({ message: "An error has occurred. ", err });

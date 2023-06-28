@@ -27,6 +27,11 @@ class GovNotifyHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: SQSEvent, _context: Context): Promise<SQSBatchResponse> {
+
+		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
+		logger.setPersistentLogAttributes({});
+		logger.addContext(_context);
+
 		if (event.Records.length === 1) {
 			const record: SQSRecord = event.Records[0];
 			logger.debug("Starting to process record", { record });

@@ -161,7 +161,7 @@ export class F2fService {
 			},
 		});
 
-		this.logger.info({ message: "updating authorizationCode dynamodb", updateSessionCommand });
+		this.logger.info({ message: "updating authorizationCode dynamodb" });
 
 		try {
 			await this.dynamo.send(updateSessionCommand);

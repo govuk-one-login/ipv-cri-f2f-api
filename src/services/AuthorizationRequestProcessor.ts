@@ -47,10 +47,11 @@ export class AuthorizationRequestProcessor {
 
 		if (session != null) {
 			if (session.expiryDate < absoluteTimeNow()) {
+				this.logger.info({ message: `Session with session id: ${sessionId} has expired`})
 				return new Response(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionId} has expired`);
 			}
 
-			this.logger.info({ message: "found session", session });
+			this.logger.info({ message: "found session" });
 			this.metrics.addMetric("found session", MetricUnits.Count, 1);
 			if (session.authSessionState === AuthSessionState.F2F_YOTI_SESSION_CREATED) {
 
@@ -93,6 +94,7 @@ export class AuthorizationRequestProcessor {
 				return new Response(HttpCodesEnum.UNAUTHORIZED, `Session is in the wrong state: ${session.authSessionState}`);
 			}
 		} else {
+			this.logger.info({ message: `No session found with the session id: ${sessionId}` });
 			return new Response(HttpCodesEnum.UNAUTHORIZED, `No session found with the session id: ${sessionId}`);
 		}
 	}
