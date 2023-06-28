@@ -125,7 +125,15 @@ export class YotiCallbackProcessor {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
   	}
 
-  	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED" or "F2F_AUTH_CODE_ISSUED"
+  	this.logger.info({ message: "Document Fields" }, { documentFields });
+
+  	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
+
+  	if (!f2fSession) {
+  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
+  	}
+
+  	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
   	if (
   		f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
       f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED
