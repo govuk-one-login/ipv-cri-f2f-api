@@ -7,7 +7,7 @@ import dataEeaIdCard from "../data/docSelectionPayloadEeaIdCardValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import integrationHappyPayload from "../data/integrationHappyPathPayload.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId, getSessionById, callbackPost, authorizationGet, tokenPost, userInfoPost, receiveJwtTokenFromSqsMessage, validateJwtToken } from "../utils/ApiTestSteps";
-
+import 'dotenv/config';
 
 describe("Callback API", () => {
 	jest.setTimeout(60000);

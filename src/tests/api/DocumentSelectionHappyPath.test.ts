@@ -26,7 +26,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		expect(authResponse.data.state).toBeTruthy();
 		// // Post Token
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
-		expect(tokenResponse.status).toBe(201);
+		expect(tokenResponse.status).toBe(200);
 		console.log(tokenResponse.data);
 		// Post User Info
 		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
@@ -46,7 +46,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		expect(authResponse.data.state).toBeTruthy();
 		// // Post Token
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
-		expect(tokenResponse.status).toBe(201);
+		expect(tokenResponse.status).toBe(200);
 		console.log(tokenResponse.data);
 		// Post User Info
 		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
@@ -66,7 +66,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		expect(authResponse.data.state).toBeTruthy();
 		// // Post Token
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
-		expect(tokenResponse.status).toBe(201);
+		expect(tokenResponse.status).toBe(200);
 		console.log(tokenResponse.data);
 		// Post User Info
 		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
