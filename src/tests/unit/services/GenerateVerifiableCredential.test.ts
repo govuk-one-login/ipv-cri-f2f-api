@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/dot-notation */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { GenerateVerifiableCredential } from "../../../services/GenerateVerifiableCredential";
+import { YotiSessionDocument } from "../../../utils/YotiPayloadEnums";
 import {
 	authenticityCheck,
 	mockFaceMatchCheck,
@@ -114,9 +115,8 @@ describe("GenerateVerifiableCredential", () => {
 	});
 
 	describe("calculateVerificationProcessLevel", () => {
-
 		it("should return 0 for faceMatchCheck === 'APPROVE' and validityScore is 0", () => {
-			const faceMatchCheck = "APPROVE";
+			const faceMatchCheck = YotiSessionDocument.APPROVE;
 
 			const result = generateVerifiableCredential["calculateVerificationProcessLevel"](0, faceMatchCheck);
 
@@ -124,7 +124,7 @@ describe("GenerateVerifiableCredential", () => {
 		});
 
 		it("should return 0 for faceMatchCheck !== 'APPROVE' and validityScore is 0", () => {
-			const faceMatchCheck = "REJECT";
+			const faceMatchCheck = YotiSessionDocument.REJECT;
 
 			const result = generateVerifiableCredential["calculateVerificationProcessLevel"](0, faceMatchCheck);
 
@@ -132,7 +132,7 @@ describe("GenerateVerifiableCredential", () => {
 		});
 
 		it("should return 3 for faceMatchCheck === 'APPROVE' and validity score is 3", () => {
-			const faceMatchCheck = "APPROVE";
+			const faceMatchCheck = YotiSessionDocument.APPROVE;
 
 			const result = generateVerifiableCredential["calculateVerificationProcessLevel"](3, faceMatchCheck);
 
@@ -140,7 +140,7 @@ describe("GenerateVerifiableCredential", () => {
 		});
 
 		it("should return 0 for faceMatchCheck !== 'APPROVE' and validityScore is 3", () => {
-			const faceMatchCheck = "REJECT";
+			const faceMatchCheck = YotiSessionDocument.REJECT;
 
 			const result = generateVerifiableCredential["calculateVerificationProcessLevel"](3, faceMatchCheck);
 
@@ -346,17 +346,32 @@ describe("GenerateVerifiableCredential", () => {
 		};
 
 		it.each([
-			{ scoreCalculator: "calculateStrengthScore", scoreName: "strengthScore" },
-			{ scoreCalculator: "calculateValidityScore", scoreName: "validityScore" },
-			{ scoreCalculator: "calculateVerificationProcessLevel", scoreName: "verificationScore" },
-		])(
-			"should return the verified credential information with failedCheckDetails where $scoreName is 0",
-			({ scoreCalculator, scoreName }) => {
-				const scores = {
-					strengthScore: 4,
+			{ scoreCalculator: "calculateStrengthScore",
+				scoreName: "strengthScore",
+				expectedScores: {
+					strengthScore: 0,
 					validityScore: 3,
 					verificationScore: 3,
-				};
+				},
+			},
+			{ scoreCalculator: "calculateValidityScore",
+				scoreName: "validityScore",
+				expectedScores: {
+					strengthScore: 4,
+					validityScore: 0,
+					verificationScore: 0,
+				},
+			},
+			{ scoreCalculator: "calculateVerificationProcessLevel",
+				scoreName: "verificationScore",
+				expectedScores: {
+					strengthScore: 4,
+					validityScore: 3,
+					verificationScore: 0,
+				} },
+		])(
+			"should return the verified credential information with failedCheckDetails where $scoreName is 0",
+			({ scoreCalculator, scoreName, expectedScores }) => {
 				jest.spyOn(GenerateVerifiableCredential.prototype as any, scoreCalculator).mockReturnValueOnce(0);
 				const result = generateVerifiableCredential.getVerifiedCredentialInformation(
 					mockYotiSessionId,
@@ -406,8 +421,7 @@ describe("GenerateVerifiableCredential", () => {
 								},
 							],
 							type: "IdentityCheck",
-							...scores,
-							[scoreName]: 0,
+							...expectedScores,
 						},
 					],
 				});
