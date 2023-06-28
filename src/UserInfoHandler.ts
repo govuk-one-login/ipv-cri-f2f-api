@@ -27,7 +27,7 @@ class UserInfo implements LambdaInterface {
 			case ResourcesEnum.USERINFO:
 				if (event.httpMethod === "POST") {
 					try {
-						logger.info("Received userInfo request:", { event });
+						logger.info("Received userInfo request");
 						return await UserInfoRequestProcessor.getInstance(logger, metrics).processRequest(event);
 					} catch (err) {
 						logger.error({ message: "An error has occurred. ", err });
