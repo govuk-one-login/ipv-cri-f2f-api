@@ -125,7 +125,7 @@ export class DocumentSelectionRequestProcessor {
 					post_office_details: postOfficeSelection,
 				});
 			} catch (error) {
-				this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.");
+				this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
 			}
 			
 
