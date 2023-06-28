@@ -51,21 +51,21 @@ export class DocumentSelection implements LambdaInterface {
 										{
 											messageCode: MessageCodes.INVALID_SESSION_ID,
 										});
-									return unauthorizedResponse();
+									return unauthorizedResponse;
 								}
 							} else {
 								logger.error("Missing header: session-id is required",
 									{
 										messageCode: MessageCodes.MISSING_SESSION_ID,
 									});
-								return unauthorizedResponse();
+								return unauthorizedResponse;
 							}
 						} else {
 							logger.error("Empty headers",
 								{
 									messageCode: MessageCodes.EMPTY_HEADERS,
 								});
-							return unauthorizedResponse();
+							return unauthorizedResponse;
 						}
 
 						if (!YOTI_PRIVATE_KEY) {
