@@ -9,6 +9,7 @@ import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { HttpVerbsEnum } from "./utils/HttpVerbsEnum";
 import { Constants } from "./utils/Constants";
 import { AuthorizationRequestProcessor } from "./services/AuthorizationRequestProcessor";
+import { MessageCodes } from "./models/enums/MessageCodes";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -39,15 +40,25 @@ class AuthorizationCodeHandler implements LambdaInterface {
 
 						if (event.headers) {
 							sessionId = event.headers[Constants.SESSION_ID];
+							logger.appendKeys({ sessionId })
 							if (sessionId) {
-								logger.info({ message: "Session id", sessionId });
+								
 								if (!Constants.REGEX_UUID.test(sessionId)) {
+									logger.error("Session id must be a valid uuid", {
+										messageCode: MessageCodes.INVALID_SESSION_ID,
+									});
 									return new Response(HttpCodesEnum.BAD_REQUEST, "Session id must be a valid uuid");
 								}
 							} else {
+								logger.error("Missing header: session-id is required", {
+									messageCode: MessageCodes.MISSING_SESSION_ID,
+								});
 								return new Response(HttpCodesEnum.BAD_REQUEST, "Missing header: session-id is required");
 							}
 						} else {
+							logger.error("Empty headers", {
+								messageCode: MessageCodes.EMPTY_HEADERS,
+							});
 							return new Response(HttpCodesEnum.BAD_REQUEST, "Empty headers");
 						}
 						return await AuthorizationRequestProcessor.getInstance(logger, metrics).processRequest(event, sessionId);
