@@ -5,4 +5,4 @@
 
 # The following allows QA to review changes to /tests directory
 
-tests/ @alphagov/di-ipv-kiwi-qa-codeowners
+tests/ @alphagov/di-ipv-kiwi-qa-codeowners @alphagov/di-ipv-kiwi-api-codeowners
