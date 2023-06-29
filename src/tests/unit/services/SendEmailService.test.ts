@@ -83,7 +83,7 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("SendEmailService fails and doesnt retry when GovNotify throws an error", async () => {
-		mockGovNotify.sendEmail = jest.fn().mockRejectedValue( {
+		mockGovNotify.sendEmail.mockRejectedValue( {
 			"response": {
 				"data": {
 					"errors": [
@@ -104,7 +104,7 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("SendEmailService retries when GovNotify throws a 500 error", async () => {
-		mockGovNotify.sendEmail = jest.fn().mockRejectedValue( {
+		mockGovNotify.sendEmail.mockRejectedValue( {
 			"response": {
 				"data": {
 					"errors": [
@@ -126,7 +126,7 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("SendEmailService retries when GovNotify throws a 429 error", async () => {
-		mockGovNotify.sendEmail = jest.fn().mockRejectedValue( {
+		mockGovNotify.sendEmail.mockRejectedValue( {
 			"response": {
 				"data": {
 					"errors": [
