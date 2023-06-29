@@ -119,7 +119,7 @@ export class YotiCallbackProcessor {
 					...buildCoreEventFields(
 						f2fSession,
 						this.environmentVariables.issuer(),
-						f2fSession!.clientIpAddress,
+						f2fSession.clientIpAddress,
 						absoluteTimeNow,
 					),
 					
