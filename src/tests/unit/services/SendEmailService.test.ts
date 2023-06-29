@@ -82,13 +82,69 @@ describe("SendEmailProcessor", () => {
 		expect(emailResponse?.emailFailureMessage).toBe("");
 	});
 
-	it("SendEmailService fails when GovNotify throws an error", async () => {
-		mockGovNotify.sendEmail.mockImplementation(() => {
-			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Using team-only API key");
+	it("SendEmailService fails and doesnt retry when GovNotify throws an error", async () => {
+		mockGovNotify.sendEmail = jest.fn().mockRejectedValue( {
+			"response": {
+				"data": {
+					"errors": [
+						{
+							"error": "BadRequestError",
+							"message": "Can't send to this recipient using a team-only API key",
+						},
+					],
+					"status_code": 400,
+				},
+
+			},
 		});
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
 		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
 		await expect(sendEmailServiceTest.sendEmail(email)).rejects.toThrow();
+		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
+	});
+
+	it("SendEmailService retries when GovNotify throws a 500 error", async () => {
+		mockGovNotify.sendEmail = jest.fn().mockRejectedValue( {
+			"response": {
+				"data": {
+					"errors": [
+						{
+							"error": "Exception",
+							"message": "Internal server error",
+						},
+					],
+					"status_code": 500,
+				},
+
+			},
+		});
+
+		const eventBody = JSON.parse(sqsEvent.Records[0].body);
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
+		await expect(sendEmailServiceTest.sendEmail(email)).rejects.toThrow();
+		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(4);
+	});
+
+	it("SendEmailService retries when GovNotify throws a 429 error", async () => {
+		mockGovNotify.sendEmail = jest.fn().mockRejectedValue( {
+			"response": {
+				"data": {
+					"errors": [
+						{
+							"error": "TooManyRequestsError",
+							"message": "Exceeded send limits (LIMIT NUMBER) for today",
+						},
+					],
+					"status_code": 429,
+				},
+
+			},
+		});
+
+		const eventBody = JSON.parse(sqsEvent.Records[0].body);
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
+		await expect(sendEmailServiceTest.sendEmail(email)).rejects.toThrow();
+		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(4);
 	});
 
 	it("Write to txMA fails when session id not found in the DB", async () => {
