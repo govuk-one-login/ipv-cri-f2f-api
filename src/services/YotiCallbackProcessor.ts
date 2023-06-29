@@ -211,9 +211,28 @@ export class YotiCallbackProcessor {
   					f2fSession.clientIpAddress,
   					absoluteTimeNow,
   				),
-					document_details: documentFields,
-					gpg45_score: evidence,
-					contra_indicators: evidence[0].ci
+					extensions: {
+						evidence: [
+							{
+								type: evidence[0].type,
+								strengthScore: evidence[0].strengthScore,
+								validityScore: evidence[0].validityScore,
+								verificationScore: evidence[0].verificationScore,
+								ci: evidence[0].ci,
+								checkDetails: evidence[0].checkDetails
+							}
+						]
+					},
+					document_details: {
+						documentType: documentFields.document_type,
+						documentNumber: documentFields.document_number,
+						personalNumber: documentFields.personal_number,
+						icaoIssuerCode: documentFields.icao_issuer_code,
+						issuingCountry: documentFields.issuing_country,
+						issuedBy: documentFields.issuing_authority,
+						issueDate: documentFields.date_of_issue,
+						expiryDate: documentFields.expiration_date,
+					}
   			});
   		} catch (error) {
   			this.logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", {
