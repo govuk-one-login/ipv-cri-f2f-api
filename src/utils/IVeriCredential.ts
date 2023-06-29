@@ -156,3 +156,7 @@ export interface Passport {
 	expiryDate?: string;
 	icaoIssuerCode?: string;
 }
+
+export interface DocumentDetails extends Passport, DrivingPermit {
+	documentType: string;
+}
