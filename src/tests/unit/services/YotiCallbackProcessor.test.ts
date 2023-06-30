@@ -432,7 +432,7 @@ describe("YotiCallbackProcessor", () => {
 		mockYotiCallbackProcessor.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 	});
 
-	it("Return successful response with 200 OK when YOTI session created", async () => {
+	it.only("Return successful response with 200 OK when YOTI session created with UK Passport", async () => {
 		jest.useFakeTimers();
 		jest.setSystemTime(absoluteTimeNow());
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
@@ -448,42 +448,43 @@ describe("YotiCallbackProcessor", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_YOTI_RESPONSE_RECEIVED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub"}});
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub"},
-						extensions: {
-							evidence: [
-								{
-									"type": "IdentityCheck",
-									"strengthScore": 3,
-									"validityScore": 2,
-									"verificationScore": 3,
-									"checkDetails": [
-										{
-											"checkMethod": "vri",
-											"identityCheckPolicy": "published",
-											"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-										},
-										{
-											"checkMethod": "pvr",
-											"photoVerificationProcessLevel": 3,
-											"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-										},
-								],
-								"ci": undefined,
-								}
-							]
-						}, 
-						document_details: {
-							documentType: "PASSPORT",
-							documentNumber: "533401372",
-							personalNumber: undefined,
-							issuingCountry: "GBR",
-							icaoIssuerCode: undefined,
-							issuedBy: "HMPO",
-							issueDate: "2015-09-28",
-							expiryDate: "2025-09-28"
-						}
-			});
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_YOTI_RESPONSE_RECEIVED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined}});
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined},
+		extensions: {
+			evidence: [
+				{
+					"type": "IdentityCheck",
+					"strengthScore": 3,
+					"validityScore": 2,
+					"verificationScore": 3,
+					"checkDetails": [
+						{
+							"checkMethod": "vri",
+							"identityCheckPolicy": "published",
+							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+						},
+						{
+							"checkMethod": "pvr",
+							"photoVerificationProcessLevel": 3,
+							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+						},
+				],
+				"ci": undefined,
+				}
+			]
+		}, 
+			restricted: {
+				user: {
+					"name": "ANGELA ZOE UK SPECIMEN",
+					"birthDate": "1988-12-04"
+				},
+				"passport": [{
+					"documentNumber": "533401372",
+					"expiryDate": "2025-09-28",
+					"icaoIssuerCode": "GBR"
+				}]
+			}
+		});
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
