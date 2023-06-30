@@ -38,7 +38,7 @@ class YotiCallbackHandler implements LambdaInterface {
 
 		if (event.Records.length === 1) {
 			const record: SQSRecord = event.Records[0];
-			logger.debug("Starting to process record");
+			logger.debug("Starting to process record", { record });
 			const batchFailures: BatchItemFailure[] = [];
 
 			try {
