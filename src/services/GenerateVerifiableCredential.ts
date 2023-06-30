@@ -49,7 +49,7 @@ export class GenerateVerifiableCredential {
    * UK Passports with valid chip
    * National ID with valid chip
    * Residential Permits
-
+   
    * The following Documents will get a strength score of 3
    * UK Passports without valid chip
    * UK Driving Licence
@@ -116,7 +116,7 @@ export class GenerateVerifiableCredential {
    * Confluence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545792513/Draft+-+Generating+Verification+from+Yoti+Results
    **/
   private calculateVerificationProcessLevel(validityScore: number, faceMatchCheck: string): number {
-  	return faceMatchCheck === YotiSessionDocument.APPROVE && validityScore != 0 ? 3 : 0;
+  	return faceMatchCheck === YotiSessionDocument.APPROVE && validityScore !== 0 ? 3 : 0;
   }
 
   private getContraIndicator(
@@ -403,8 +403,8 @@ export class GenerateVerifiableCredential {
 				subCheck.result === YotiSessionDocument.SUBCHECK_PASS,
   	);
 
-  	const validityScore =   this.calculateValidityScore( MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value, documentContainsValidChip);
-  	const verificationScore  = this.calculateVerificationProcessLevel( validityScore, MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation.value);
+  	const validityScore = this.calculateValidityScore(MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value, documentContainsValidChip);
+  	const verificationScore  = this.calculateVerificationProcessLevel(validityScore, MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation.value);
   	const evidence: VerifiedCredentialEvidence = [
   		{
   			type: "IdentityCheck",
