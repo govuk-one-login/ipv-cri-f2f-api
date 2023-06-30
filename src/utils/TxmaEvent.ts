@@ -1,7 +1,8 @@
-import { DocumentDetails, DrivingPermit, VerifiedCredential, VerifiedCredentialEvidence, VerifiedCredentialSubject } from "./IVeriCredential";
+import { CredentialSubject, ResidencePermit, IdentityCard, DrivingPermit, Passport, VerifiedCredential, VerifiedCredentialEvidence, VerifiedCredentialSubject } from "./IVeriCredential";
 import { ISessionItem } from "../models/ISessionItem";
 import { absoluteTimeNow } from "./DateTimeUtils";
 import { PostOfficeInfo } from "../models/YotiPayloads";
+import { PassThrough } from "stream";
 
 export type TxmaEventName =
 	"F2F_CRI_START"
@@ -20,6 +21,7 @@ export interface TxmaUser {
 	"session_id": string;
 	"govuk_signin_journey_id": string;
 	"ip_address"?: string | undefined;
+	"email"?: string
 }
 
 export interface BaseTxmaEvent {
@@ -29,15 +31,25 @@ export interface BaseTxmaEvent {
 	"component_id": string;
 }
 
+export interface RestrictedObject {
+	"user"?: VerifiedCredentialSubject;
+	"documentType"?: string,
+	"issuingCountry"?: string,
+	"passport"?: Passport;
+	"drivingPermit"?: DrivingPermit;
+	"residencePermit"?: ResidencePermit;
+	"idCard"?: IdentityCard;
+}
+
+export interface ExtensionObject {
+	"evidence"?: VerifiedCredentialEvidence;
+	"post_office_details"?: PostOfficeInfo;
+}
+
 export interface TxmaEvent extends BaseTxmaEvent {
 	"event_name": TxmaEventName;
-	"restricted"?: VerifiedCredential["credentialSubject"];
-	"extensions"?: { evidence: VerifiedCredentialEvidence };
-	"email"?: string;
-	"document_type"?: string;
-	"issuing_country"?: string;
-	"post_office_details"?: PostOfficeInfo;
-	"document_details"?: DocumentDetails;
+	"restricted"?: RestrictedObject;
+	"extensions"?: ExtensionObject;
 }
 
 export const buildCoreEventFields = (session: ISessionItem, issuer: string, sourceIp?: string | undefined, getNow: () => number = absoluteTimeNow): BaseTxmaEvent => {
