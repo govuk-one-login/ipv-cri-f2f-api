@@ -508,7 +508,8 @@ describe("YotiCallbackProcessor", () => {
 	});
 
 
-	it("Throw sever error if completed Yoti session can not be found", async () => {
+	it("Throw server error if completed Yoti session can not be found", async () => {
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(undefined);
 
 		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
@@ -517,7 +518,7 @@ describe("YotiCallbackProcessor", () => {
 		}));
 	});
 
-	it("Throw sever error if F2F Session can not be found", async () => {
+	it("Throw server error if F2F Session can not be found", async () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(undefined);
@@ -544,8 +545,8 @@ describe("YotiCallbackProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(logger.error).toHaveBeenNthCalledWith(1, "Failed to write TXMA event F2F_YOTI_END to SQS queue.");
-		expect(logger.error).toHaveBeenNthCalledWith(2, "Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.");
+		expect(logger.error).toHaveBeenNthCalledWith(1, "Failed to write TXMA event F2F_YOTI_END to SQS queue.", {"messageCode": "FAILED_TO_WRITE_TXMA"});
+		expect(logger.error).toHaveBeenNthCalledWith(2, "Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", {"error": {}, "messageCode": "FAILED_TO_WRITE_TXMA"});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
@@ -570,6 +571,7 @@ describe("YotiCallbackProcessor", () => {
 		completedYotiSession.state = "ONGOING";
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
 		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
