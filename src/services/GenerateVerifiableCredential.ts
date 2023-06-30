@@ -116,7 +116,7 @@ export class GenerateVerifiableCredential {
    * Confluence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545792513/Draft+-+Generating+Verification+from+Yoti+Results
    **/
   private calculateVerificationProcessLevel(validityScore: number, faceMatchCheck: string): number {
-  	return faceMatchCheck === YotiSessionDocument.APPROVE && validityScore != 0 ? 3 : 0;
+  	return faceMatchCheck === YotiSessionDocument.APPROVE && validityScore !== 0 ? 3 : 0;
   }
 
   private getContraIndicator(
@@ -407,8 +407,8 @@ export class GenerateVerifiableCredential {
 
 		this.logger.info({ message: "Result of Manual FaceMatch Check" }, manualFaceMatchCheck);
 
-  	const validityScore =   this.calculateValidityScore( MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value, documentContainsValidChip);
-  	const verificationScore  = this.calculateVerificationProcessLevel( validityScore, MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation.value);
+  	const validityScore = this.calculateValidityScore(MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value, documentContainsValidChip);
+  	const verificationScore  = this.calculateVerificationProcessLevel(validityScore, MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation.value);
   	const evidence: VerifiedCredentialEvidence = [
   		{
   			type: "IdentityCheck",
