@@ -133,8 +133,6 @@ export class YotiCallbackProcessor {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
   	}
 
-		
-
   	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
   	if (
   		f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
@@ -181,7 +179,6 @@ export class YotiCallbackProcessor {
   				return new Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the verifiableCredential Jwt");
   			}
   		}
-
   		if (!signedJWT) {
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unable to create signed JWT", {
   				messageCode: MessageCodes.FAILED_SIGNING_JWT,
@@ -202,6 +199,48 @@ export class YotiCallbackProcessor {
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core", { shouldThrow: true });
   		}
 
+			// Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
+
+			let documentInfo = {};
+			if (documentFields.document_type === 'PASSPORT') {
+				documentInfo = {
+					documentType: documentFields.document_type,
+					documentNumber: documentFields.document_number,
+					expiryDate: documentFields.expiration_date,
+					icaoIssuerCode: documentFields.icao_issuer_code
+				}
+			} 
+			else if (documentFields.document_type === 'RESIDENCE_PERMIT') {
+				documentInfo = {
+					documentType: documentFields.document_type,
+					documentNumber: documentFields.document_number,
+					expiryDate: documentFields.expiration_date,
+					issueDate: documentFields.date_of_issue,
+					icaoIssuerCode: documentFields.icao_issuer_code
+				}
+			} 
+			else if (documentFields.document_type === 'DRIVING_LICENCE') {
+				documentInfo = {
+					documentType: documentFields.document_type,
+					personalNumber: documentFields.personal_number,
+					expiryDate: documentFields.expiration_date,
+					issuedBy: documentFields.issuing_authority,
+					issueDate: documentFields.date_of_issue,
+					// fullAddress: documentFields.address,
+					issuingCountry: documentFields.issuing_country
+				}
+			} 
+			else if (documentFields.document_type === 'NATIONAL_ID') {
+				documentInfo = {
+					documentType: documentFields.document_type,
+					documentNumber: documentFields.document_number,
+					expiryDate: documentFields.expiration_date,
+					issueDate: documentFields.date_of_issue,
+					icaoIssuerCode: documentFields.icao_issuer_code
+				}
+			} 
+
+			console.log("DOC FIELDS", documentFields)
   		try {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_CRI_VC_ISSUED",
@@ -223,15 +262,15 @@ export class YotiCallbackProcessor {
 							}
 						]
 					},
-					document_details: {
-						documentType: documentFields.document_type,
-						documentNumber: documentFields.document_number,
-						personalNumber: documentFields.personal_number,
-						icaoIssuerCode: documentFields.icao_issuer_code,
-						issuingCountry: documentFields.issuing_country,
-						issuedBy: documentFields.issuing_authority,
-						issueDate: documentFields.date_of_issue,
-						expiryDate: documentFields.expiration_date,
+					restricted: {
+						user: {
+							name: documentFields.full_name,
+							birthDate: documentFields.date_of_birth
+						},
+						passport: documentInfo,
+						drivingPermit: documentInfo,
+						residencePermit: documentInfo,
+						idCard: documentInfo,
 					}
   			});
   		} catch (error) {
@@ -240,7 +279,7 @@ export class YotiCallbackProcessor {
   				messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
   			});
   		}
-
+	
   		await this.f2fService.updateSessionAuthState(
   			f2fSession.sessionId,
   			AuthSessionState.F2F_CREDENTIAL_ISSUED,
