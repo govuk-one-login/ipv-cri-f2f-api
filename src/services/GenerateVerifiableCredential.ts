@@ -49,7 +49,7 @@ export class GenerateVerifiableCredential {
    * UK Passports with valid chip
    * National ID with valid chip
    * Residential Permits
-   
+
    * The following Documents will get a strength score of 3
    * UK Passports without valid chip
    * UK Driving Licence
@@ -349,7 +349,7 @@ export class GenerateVerifiableCredential {
   		PROFILE_DOCUMENT_MATCH: findCheck(YOTI_CHECKS.PROFILE_DOCUMENT_MATCH.type) ? getCheckObject(findCheck(YOTI_CHECKS.PROFILE_DOCUMENT_MATCH.type)) : null,
   	};
 
-  	this.logger.info({ message: "Yoti Mandatory Checks" }, MANDATORY_CHECKS);
+  	this.logger.info({ message: "Yoti Mandatory Checks" });
 
   	if (Object.values(MANDATORY_CHECKS).some((check) => check?.object === undefined)) {
   		throw new AppError(
@@ -397,11 +397,15 @@ export class GenerateVerifiableCredential {
   		MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.breakdown,
   	);
 
+		this.logger.info({ message: "Checking if document contains a valid chip" }, {documentContainsValidChip});
+
   	const manualFaceMatchCheck = MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.breakdown.some(
   		(subCheck: { sub_check: string; result: string }) =>
   			subCheck.sub_check === "manual_face_match" &&
 				subCheck.result === YotiSessionDocument.SUBCHECK_PASS,
   	);
+
+		this.logger.info({ message: "Result of Manual FaceMatch Check" }, manualFaceMatchCheck);
 
   	const validityScore = this.calculateValidityScore(MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value, documentContainsValidChip);
   	const verificationScore  = this.calculateVerificationProcessLevel(validityScore, MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation.value);
@@ -449,6 +453,8 @@ export class GenerateVerifiableCredential {
 
   		manualFaceMatchCheck ? evidence[0].checkDetails[1].photoVerificationProcessLevel = 3 : evidence[0].checkDetails[1].biometricVerificationProcessLevel = 3;
   	}
+
+		this.logger.info({ message: "Calculated Scores for VC" });
 
   	return {
   		credentialSubject,

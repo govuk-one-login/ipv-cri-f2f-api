@@ -106,7 +106,7 @@ export class YotiService {
 			this.logger.error({ message: "An error occurred when creating Yoti message signature ", err });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error create Yoti signature");
 		}
-	
+
 
 		const config: AxiosRequestConfig<any> = {
 			headers: {
