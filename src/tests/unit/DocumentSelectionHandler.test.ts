@@ -2,7 +2,7 @@ import { lambdaHandler } from "../../DocumentSelectionHandler";
 import { mock } from "jest-mock-extended";
 import { RESOURCE_NOT_FOUND, UNSUPPORTED_METHOD, VALID_REQUEST, INVALID_SESSION_ID, MISSING_SESSION_ID } from "./data/documentSelection-events";
 
-import {Response, SECURITY_HEADERS} from "../../utils/Response";
+import { Response, SECURITY_HEADERS } from "../../utils/Response";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "../../services/DocumentSelectionRequestProcessor";
 
@@ -39,7 +39,7 @@ describe("DocumentSelectionHandler", () => {
 	it("return Unauthorized if session id validation fails", async () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 
-		const response = await lambdaHandler(INVALID_SESSION_ID, "")
+		const response = await lambdaHandler(INVALID_SESSION_ID, "");
 		expect(response).toEqual({
 			statusCode: 401,
 			headers: SECURITY_HEADERS,
