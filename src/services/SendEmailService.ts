@@ -101,9 +101,9 @@ export class SendEmailService {
 		let retryCount = 0;
 		//retry for maxRetry count configured value if fails
 		while (retryCount <= this.environmentVariables.maxRetries()) {
-			this.logger.debug(`sendEmail - trying to send email message ${SendEmailService.name} ${new Date().toISOString()}`, {
+			this.logger.debug(`sendEmail - trying to send email message ${new Date().toISOString()}`, {
 				templateId: this.environmentVariables.getEmailTemplateId(this.logger),
-				options,
+				referenceId: message.referenceId,
 				retryCount,
 			});
 

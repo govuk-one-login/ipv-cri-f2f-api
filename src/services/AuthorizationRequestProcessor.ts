@@ -83,6 +83,7 @@ export class AuthorizationRequestProcessor {
 					state: session?.state,
 				};
 
+				this.logger.info("Returning success response");
 				return new Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));
 			} else {
 				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_YOTI_SESSION_CREATED}`, {
