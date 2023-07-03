@@ -63,7 +63,7 @@ export class VerifiableCredentialService {
   		vc: verifiedCredential,
   	};
 
-  	this.logger.info({ message: "Verified Credential jwt: " }, result);
+  	this.logger.info({ message: "Verified Credential jwt: " });
   	try {
   		// Sign the VC
   		const signedVerifiedCredential = await this.kmsJwtAdapter.sign(result);

@@ -15,6 +15,7 @@ import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../utils/YotiPayloadEnums";
+import {MessageCodes} from "../models/enums/MessageCodes";
 
 export class YotiCallbackProcessor {
 
@@ -69,43 +70,62 @@ export class YotiCallbackProcessor {
   async processRequest(eventBody: any): Promise<Response> {
   	const yotiSessionID = eventBody.session_id;
 
-  	this.logger.info({ message: "Fetching status for Yoti SessionID" }, { yotiSessionID });
+		this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
+		const f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
+
+		if (!f2fSession) {
+			this.logger.error("Session not found", {
+				messageCode: MessageCodes.SESSION_NOT_FOUND,
+			})
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
+		}
+
+		this.logger.appendKeys({
+			sessionId: f2fSession.sessionId,
+			govuk_signin_journey_id: f2fSession.clientSessionId,
+		});
+
+		this.logger.info({ message: "Fetching status for Yoti SessionID" });
   	const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID);
 
   	if (!completedYotiSessionInfo) {
-  		this.logger.error({ message: "No YOTI Session found with ID:" }, { yotiSessionID });
+  		this.logger.error({ message: "No YOTI Session found with ID:" }, {
+				messageCode: MessageCodes.VENDOR_SESSION_NOT_FOUND,
+			});
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not found");
   	}
 
   	if (completedYotiSessionInfo.state !== YotiSessionDocument.COMPLETED) {
-  		this.logger.error({ message: "Session in Yoti does not have status COMPLETED" }, { yotiSessionID });
+  		this.logger.error({ message: "Session in Yoti does not have status COMPLETED" }, {
+				messageCode: MessageCodes.VENDOR_SESSION_STATE_MISMATCH,
+			});
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not complete", { shouldThrow: true });
   	}
 
-  	this.logger.info({ message: "Completed Yoti Session:" }, { completedYotiSessionInfo });
+		this.logger.appendKeys({
+			yotiUserTrackingId: completedYotiSessionInfo.user_tracking_id,
+		});
+
+		this.logger.info({ message: "Completed Yoti Session:" });
 
   	const documentFieldsId = completedYotiSessionInfo.resources.id_documents[0].document_fields.media.id;
 
   	if (!documentFieldsId) {
-  		this.logger.error({ message: "No document_fields ID found in completed Yoti Session" }, { yotiSessionID });
+  		this.logger.error({ message: "No document_fields ID found in completed Yoti Session" }, {
+				messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+			});
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields ID not found");
   	}
   	const documentFields = await this.yotiService.getMediaContent(yotiSessionID, documentFieldsId);
   	if (!documentFields) {
-  		this.logger.error({ message: "No document fields info found" }, { documentFieldsId });
+  		this.logger.error({ message: "No document fields info found" }, {
+				documentFieldsId,
+				messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+			});
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
   	}
 
-  	this.logger.info({ message: "Document Fields" }, { documentFields });
-
-  	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
-  	const f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
-
-  	if (!f2fSession) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
-  	}
-
-  	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
+  	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED" or "F2F_AUTH_CODE_ISSUED"
   	if (
   		f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
       f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED
@@ -121,14 +141,18 @@ export class YotiCallbackProcessor {
   				),
   			});
   		} catch (error) {
-  			this.logger.error("Failed to write TXMA event F2F_YOTI_END to SQS queue.");
+  			this.logger.error("Failed to write TXMA event F2F_YOTI_END to SQS queue.", {
+					messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
+				});
   		}
 
   		const { credentialSubject, evidence } =
         this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields);
 
   		if (!credentialSubject || !evidence) {
-  			this.logger.error({ message: "Missing Credential Subject or Evidence payload" }, { credentialSubject, evidence });
+  			this.logger.error({ message: "Missing Credential Subject or Evidence payload" }, {
+					messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+				});
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Credential Subject or Evidence payload");
   		}
 
@@ -137,13 +161,18 @@ export class YotiCallbackProcessor {
   			signedJWT = await this.verifiableCredentialService.generateSignedVerifiableCredentialJwt(f2fSession, credentialSubject, evidence, absoluteTimeNow);
   		} catch (error) {
   			if (error instanceof AppError) {
-  				this.logger.error({ message: "Error generating signed verifiable credential jwt: " + error.message });
+  				this.logger.error({ message: "Error generating signed verifiable credential jwt" }, {
+						error,
+						messageCode: MessageCodes.FAILED_SIGNING_JWT,
+					});
   				return new Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the verifiableCredential Jwt");
   			}
   		}
 
   		if (!signedJWT) {
-  			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unable to create signed JWT");
+  			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unable to create signed JWT", {
+					messageCode: MessageCodes.FAILED_SIGNING_JWT,
+				});
   		}
 
   		try {
@@ -153,7 +182,10 @@ export class YotiCallbackProcessor {
   				"https://vocab.account.gov.uk/v1/credentialJWT": [signedJWT],
   			});
   		} catch (error) {
-  			this.logger.error({ message: "Failed to send VC to IPV Core Queue" }, { error });
+  			this.logger.error({ message: "Failed to send VC to IPV Core Queue" }, {
+					error,
+					messageCode: MessageCodes.FAILED_SENDING_VC,
+				});
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core", { shouldThrow: true });
   		}
 
@@ -168,7 +200,10 @@ export class YotiCallbackProcessor {
   				),
   			});
   		} catch (error) {
-  			this.logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.");
+  			this.logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", {
+					error,
+					messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
+				});
   		}
 
   		await this.f2fService.updateSessionAuthState(
@@ -178,6 +213,7 @@ export class YotiCallbackProcessor {
 
   		return new Response(HttpCodesEnum.OK, "OK");
   	} else {
+			this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
   		return new Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED} or ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${f2fSession.authSessionState}`);
   	}
   }

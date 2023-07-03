@@ -13,3 +13,4 @@ process.env.YOTI_KEY_SSM_PATH = "/dev/YOTI/PRIVATEKEY"
 process.env.GOVUKNOTIFY_API_KEY_SSM_PATH = "/dev/f2f-gov-notify/lsdkgl"
 process.env.PERSON_IDENTITY_TABLE_NAME = "PERSONIDENTITYTABLE"
 process.env.YOTICALLBACKURL = "www.test.com/callback";
+process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS = "10";
