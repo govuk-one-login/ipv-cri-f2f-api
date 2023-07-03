@@ -161,7 +161,7 @@ export class GenerateVerifiableCredential {
   					addToCI("D16");
   					break;
   				case "FRAUD_LIST_MATCH":
-  					addToCI(["F03", "D14"]);
+  					addToCI(["F03"]);
   					break;
   				case "DOC_NUMBER_INVALID":
   					addToCI("D02");
@@ -171,6 +171,8 @@ export class GenerateVerifiableCredential {
   				case "CHIP_DATA_INTEGRITY_FAILED":
   				case "CHIP_SIGNATURE_VERIFICATION_FAILED":
   				case "CHIP_CSCA_VERIFICATION_FAILED":
+  				case "MISSING_HOLOGRAM":
+  				case "NO_HOLOGRAM_MOVEMENT":
   					addToCI("D14");
   					break;
   				default:
