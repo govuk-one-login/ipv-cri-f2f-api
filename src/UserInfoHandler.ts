@@ -8,6 +8,7 @@ import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { UserInfoRequestProcessor } from "./services/UserInfoRequestProcessor";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
+import { MessageCodes } from "./models/enums/MessageCodes";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
@@ -23,21 +24,31 @@ class UserInfo implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
+
+		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
+		logger.setPersistentLogAttributes({});
+		logger.addContext(context);
+
 		switch (event.resource) {
 			case ResourcesEnum.USERINFO:
 				if (event.httpMethod === "POST") {
 					try {
-						logger.info("Received userInfo request:", { event });
+						logger.info("Received userInfo request:", { requestId: event.requestContext.requestId });
 						return await UserInfoRequestProcessor.getInstance(logger, metrics).processRequest(event);
 					} catch (err) {
 						logger.error({ message: "An error has occurred. ", err });
 						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 					}
 				}
+				logger.warn("Method not implemented", { messageCode: MessageCodes.METHOD_NOT_IMPLEMENTED });
 				return new Response(HttpCodesEnum.NOT_FOUND, "");
 
 			default:
-				throw new AppError(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist" + { resource: event.resource });
+				logger.error("Requested resource does not exist", {
+					resource: event.resource,
+					messageCode: MessageCodes.RESOURCE_NOT_FOUND,
+				});
+				return new Response(HttpCodesEnum.NOT_FOUND, "");
 
 		}
 	}

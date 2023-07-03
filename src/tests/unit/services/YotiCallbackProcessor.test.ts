@@ -545,8 +545,8 @@ describe("YotiCallbackProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(logger.error).toHaveBeenNthCalledWith(1, "Failed to write TXMA event F2F_YOTI_END to SQS queue.", {"messageCode": "FAILED_TO_WRITE_TXMA"});
-		expect(logger.error).toHaveBeenNthCalledWith(2, "Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", {"error": {}, "messageCode": "FAILED_TO_WRITE_TXMA"});
+		expect(logger.error).toHaveBeenNthCalledWith(1, "Failed to write TXMA event F2F_YOTI_END to SQS queue.", { "messageCode": "FAILED_TO_WRITE_TXMA" });
+		expect(logger.error).toHaveBeenNthCalledWith(2, "Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", { "error": {}, "messageCode": "FAILED_TO_WRITE_TXMA" });
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 

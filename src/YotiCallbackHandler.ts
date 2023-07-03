@@ -9,9 +9,9 @@ import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { YotiCallbackProcessor } from "./services/YotiCallbackProcessor";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 import { failEntireBatch, passEntireBatch } from "./utils/SqsBatchResponseHelper";
-import {MessageCodes} from "./models/enums/MessageCodes";
-import {Response} from "./utils/Response";
-import {HttpCodesEnum} from "./utils/HttpCodesEnum";
+import { MessageCodes } from "./models/enums/MessageCodes";
+import { Response } from "./utils/Response";
+import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -60,7 +60,7 @@ class YotiCallbackHandler implements LambdaInterface {
 						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 					}
 				}
-				
+
 				if (body.topic === "session_completion") {
 					await YotiCallbackProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
 				} else {
@@ -70,7 +70,7 @@ class YotiCallbackHandler implements LambdaInterface {
 					});
 					return failEntireBatch;
 				}
-				
+
 
 				logger.debug("Finished processing record from SQS");
 				return passEntireBatch;
@@ -96,7 +96,7 @@ class YotiCallbackHandler implements LambdaInterface {
 			}
 
 		} else {
-			logger.warn("Unexpected no of records received",{
+			logger.warn("Unexpected no of records received", {
 				messageCode: MessageCodes.INCORRECT_BATCH_SIZE,
 			});
 			return failEntireBatch;
