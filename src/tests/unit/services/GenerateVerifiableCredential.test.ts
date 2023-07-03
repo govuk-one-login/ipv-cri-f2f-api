@@ -179,10 +179,12 @@ describe("GenerateVerifiableCredential", () => {
 		it.each([
 			{ reason: "COUNTERFEIT", contraIndicator: ["D14"] },
 			{ reason: "EXPIRED_DOCUMENT", contraIndicator: ["D16"] },
-			{ reason: "FRAUD_LIST_MATCH", contraIndicator: ["F03", "D14"] },
+			{ reason: "FRAUD_LIST_MATCH", contraIndicator: ["F03"] },
 			{ reason: "DOC_NUMBER_INVALID", contraIndicator: ["D02"] },
 			{ reason: "TAMPERED", contraIndicator: ["D14"] },
 			{ reason: "DATA_MISMATCH", contraIndicator: ["D14"] },
+			{ reason: "MISSING_HOLOGRAM", contraIndicator: ["D14"] },
+			{ reason: "NO_HOLOGRAM_MOVEMENT", contraIndicator: ["D14"] },
 			{ reason: "CHIP_DATA_INTEGRITY_FAILED", contraIndicator: ["D14"] },
 			{ reason: "CHIP_SIGNATURE_VERIFICATION_FAILED", contraIndicator: ["D14"] },
 			{ reason: "CHIP_CSCA_VERIFICATION_FAILED", contraIndicator: ["D14"] },
