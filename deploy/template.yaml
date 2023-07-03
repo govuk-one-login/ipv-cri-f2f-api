@@ -981,13 +981,17 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
         - DynamoDBWritePolicy:
             TableName: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-session-table-name"
-        # - KMSDecryptPolicy:
-        #     KeyId:
-        #       Fn::ImportValue:
-        #         !Sub "${L2DynamoStackName}-session-table-key-id"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-key-id"
         - Statement:
             - Effect: Allow
               Action:
