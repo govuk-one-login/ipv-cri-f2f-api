@@ -16,7 +16,7 @@ export type TxmaEventName =
 
 export interface TxmaUser {
 	"user_id": string;
-	"transaction_id": string | undefined;
+	"transaction_id"?: string;
 	"persistent_session_id": string;
 	"session_id": string;
 	"govuk_signin_journey_id": string;
