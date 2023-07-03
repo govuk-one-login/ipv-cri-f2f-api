@@ -201,26 +201,30 @@ export class YotiCallbackProcessor {
 
 			// Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
-			let documentInfo = {};
+			let documentInfo;
+			let docName = "passport";
 			if (documentFields.document_type === 'PASSPORT') {
-				documentInfo = {
+				docName = "passport"
+				documentInfo = [{
 					documentType: documentFields.document_type,
 					documentNumber: documentFields.document_number,
 					expiryDate: documentFields.expiration_date,
-					icaoIssuerCode: documentFields.icao_issuer_code
-				}
+					icaoIssuerCode: documentFields.issuing_country
+				} ]
 			} 
 			else if (documentFields.document_type === 'RESIDENCE_PERMIT') {
-				documentInfo = {
+				docName = "residencePermit"
+				documentInfo = [{
 					documentType: documentFields.document_type,
 					documentNumber: documentFields.document_number,
 					expiryDate: documentFields.expiration_date,
 					issueDate: documentFields.date_of_issue,
-					icaoIssuerCode: documentFields.icao_issuer_code
-				}
+					icaoIssuerCode: documentFields.issuing_country
+				}]
 			} 
 			else if (documentFields.document_type === 'DRIVING_LICENCE') {
-				documentInfo = {
+				docName = "drivingPermit"
+				documentInfo = [{
 					documentType: documentFields.document_type,
 					personalNumber: documentFields.personal_number,
 					expiryDate: documentFields.expiration_date,
@@ -228,19 +232,19 @@ export class YotiCallbackProcessor {
 					issueDate: documentFields.date_of_issue,
 					// fullAddress: documentFields.address,
 					issuingCountry: documentFields.issuing_country
-				}
+				}]
 			} 
 			else if (documentFields.document_type === 'NATIONAL_ID') {
-				documentInfo = {
+				docName = "idCard"
+				documentInfo = [{
 					documentType: documentFields.document_type,
 					documentNumber: documentFields.document_number,
 					expiryDate: documentFields.expiration_date,
 					issueDate: documentFields.date_of_issue,
-					icaoIssuerCode: documentFields.icao_issuer_code
-				}
+					icaoIssuerCode: documentFields.issuing_country
+				}]
 			} 
-
-			console.log("DOC FIELDS", documentFields)
+			
   		try {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_CRI_VC_ISSUED",
@@ -267,10 +271,8 @@ export class YotiCallbackProcessor {
 							name: documentFields.full_name,
 							birthDate: documentFields.date_of_birth
 						},
-						passport: documentInfo,
-						drivingPermit: documentInfo,
-						residencePermit: documentInfo,
-						idCard: documentInfo,
+						[docName]: documentInfo,
+
 					}
   			});
   		} catch (error) {
