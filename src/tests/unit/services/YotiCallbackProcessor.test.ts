@@ -479,6 +479,7 @@ describe("YotiCallbackProcessor", () => {
 					"birthDate": "1988-12-04"
 				},
 				"passport": [{
+					"documentType": "PASSPORT",
 					"documentNumber": "533401372",
 					"expiryDate": "2025-09-28",
 					"icaoIssuerCode": "GBR"
