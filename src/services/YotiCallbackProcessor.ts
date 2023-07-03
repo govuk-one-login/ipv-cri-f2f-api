@@ -193,8 +193,7 @@ export class YotiCallbackProcessor {
 					issueDate: documentFields.date_of_issue,
 					issuingCountry: documentFields.issuing_country
 				}]
-					console.log("EUDL DOC INFO: ", documentInfo)
-					console.log("EUDL country: ", documentFields.issuing_country)
+
 			}
 			else if (documentFields.document_type === 'DRIVING_LICENCE') {
 				docName = "drivingPermit"
@@ -207,7 +206,6 @@ export class YotiCallbackProcessor {
 					fullAddress: documentFields.structured_postal_address.formatted_address,
 					issuingCountry: documentFields.issuing_country
 				}]
-				console.log("UKDL DOC INFO: ", documentFields.issuing_country)
 			} 
 
 			else if (documentFields.document_type === 'NATIONAL_ID') {
@@ -221,7 +219,6 @@ export class YotiCallbackProcessor {
 				}]
 			} 
 
-			console.log("DOC INFO: ", documentInfo)
 
   		try {
   			await this.f2fService.sendToTXMA({
@@ -254,7 +251,6 @@ export class YotiCallbackProcessor {
 					}
   			});
   		} catch (error) {
-				console.log(error)
   			this.logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.");
   		}
 	

@@ -354,7 +354,6 @@ function getCompletedYotiSession(): YotiCompletedSession {
 	return completedYotiSession;
 }
 
-
 function getDocumentFields() {
 	const documentFields = {
 		"full_name": "ANGELA ZOE UK SPECIMEN",
@@ -471,7 +470,6 @@ const VALID_REQUEST = {
 	"topic" : "session_completion",
 };
 
-
 describe("YotiCallbackProcessor", () => {
 	let f2fSessionItem: ISessionItem, completedYotiSession: YotiCompletedSession, documentFields: any;
 	beforeAll(() => {
@@ -485,11 +483,6 @@ describe("YotiCallbackProcessor", () => {
 		documentFields = getDocumentFields();
 		f2fSessionItem = getMockSessionItem();
 
-
-	});
-
-	beforeEach(() => {
-		jest.clearAllMocks();
 	});
 
 	beforeEach(() => {
@@ -631,10 +624,11 @@ describe("YotiCallbackProcessor", () => {
 
 	it("Return successful response with 200 OK when YOTI session created with driving permit", async () => {
 		documentFields = getDrivingPermitFields();
-		completedYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE"
+		const ukDLYotiSession =  getCompletedYotiSession();
+		ukDLYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE"
 		jest.useFakeTimers();
 		jest.setSystemTime(absoluteTimeNow());
-		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(ukDLYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
@@ -774,11 +768,12 @@ describe("YotiCallbackProcessor", () => {
 
 	it("Return successful response with 200 OK when YOTI session created with EU driving permit", async () => {
 		documentFields = getEuDrivingPermitFields();
-		completedYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE"
-		completedYotiSession.resources.id_documents[0].issuing_country = "DEU"
+		const euDLYotiSession = getCompletedYotiSession();
+		euDLYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE"
+		euDLYotiSession.resources.id_documents[0].issuing_country = "DEU"
 		jest.useFakeTimers();
 		jest.setSystemTime(absoluteTimeNow());
-		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(euDLYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
@@ -912,11 +907,12 @@ describe("YotiCallbackProcessor", () => {
 
 	it("Return successful response with 200 OK when YOTI session created with EEA Identity Card", async () => {
 		documentFields = getEeaIdCardFields();
-		completedYotiSession.resources.id_documents[0].document_type = "NATIONAL_ID"
-		completedYotiSession.resources.id_documents[0].issuing_country = "NLD"
+		const eeaYotiSession = getCompletedYotiSession();
+		eeaYotiSession.resources.id_documents[0].document_type = "NATIONAL_ID"
+		eeaYotiSession.resources.id_documents[0].issuing_country = "NLD"
 		jest.useFakeTimers();
 		jest.setSystemTime(absoluteTimeNow());
-		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(eeaYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
@@ -1048,10 +1044,11 @@ describe("YotiCallbackProcessor", () => {
 
 	it("Return successful response with 200 OK when YOTI session created with BRP", async () => {
 		documentFields = getBrpFields();
-		completedYotiSession.resources.id_documents[0].document_type = "RESIDENCE_PERMIT"
+		const brpYotiSession = getCompletedYotiSession();
+		brpYotiSession.resources.id_documents[0].document_type = "RESIDENCE_PERMIT"
 		jest.useFakeTimers();
 		jest.setSystemTime(absoluteTimeNow());
-		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(brpYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
@@ -1179,6 +1176,7 @@ describe("YotiCallbackProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
 		jest.useRealTimers();
+		jest.clearAllMocks();
 	});
 
 
@@ -1203,6 +1201,7 @@ describe("YotiCallbackProcessor", () => {
 	});
 
 	it("Return 200 when write to txMA fails", async () => {
+		
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
@@ -1212,7 +1211,6 @@ describe("YotiCallbackProcessor", () => {
 		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
-
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
