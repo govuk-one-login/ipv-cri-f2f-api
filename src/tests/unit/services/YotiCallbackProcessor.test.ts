@@ -409,6 +409,63 @@ function getDrivingPermitFields() {
 	return documentFields;
 }
 
+function getEuDrivingPermitFields() {
+	const documentFields = {
+		"full_name": "Erika - Mustermann",
+		"date_of_birth": "1988-12-04",
+		"given_names": "Erika -",
+		"family_name": "Mustermann",
+		"place_of_birth": "Berlin",
+		"document_type": "DRIVING_LICENCE",
+		"issuing_country": "DEU",
+		"document_number": "Z021AB37X13",
+		"expiration_date": "2036-03-19",
+		"date_of_issue": "2021-03-20",
+		"place_of_issue": "Landratsamt Mu sterhausen amSee"
+	};
+	return documentFields;
+}
+
+function getEeaIdCardFields() {
+	const documentFields = {
+		"full_name": "Wiieke Liselotte De Bruijn",
+		"date_of_birth": "1988-12-04",
+		"given_names": "Wiieke Liselotte",
+		"family_name": "De Bruijn",
+		"document_type": "NATIONAL_ID",
+		"issuing_country": "NLD",
+		"document_number": "SPEC12031",
+		"expiration_date": "2031-08-02",
+		"date_of_issue": "2021-08-02",
+	};
+	return documentFields;
+}
+
+function getBrpFields() {
+	const documentFields = {
+		"full_name": "TECH REFRESH ICTHREEMALE",
+		"date_of_birth": "1988-12-04",
+		"nationality": "KEN",
+		"given_names": "TECH REFRESH",
+		"family_name": "ICTHREEMALE",
+		"place_of_birth": "NAIROBI",
+		"gender": "MALE",
+		"document_type": "RESIDENCE_PERMIT",
+		"issuing_country": "GBR",
+		"document_number": "RF9082242",
+		"expiration_date": "2024-11-11",
+		"date_of_issue": "2015-05-19",
+		"mrz": {
+			"type": 1,
+			"line1": "IRGBRRF90822427<<<<<<<<<<<<<<<",
+			"line2": "9008010M1511114KEN<<<<<<<<<<<8",
+			"line3": "ICTHREEMALE<<TECH<REFRESH<<<<<"
+		},
+		"place_of_issue": "UK"
+	};
+	return documentFields;
+}
+
 const VALID_REQUEST = {
 	"session_id":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 	"topic" : "session_completion",
@@ -452,7 +509,6 @@ describe("YotiCallbackProcessor", () => {
 		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
-
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
@@ -582,8 +638,6 @@ describe("YotiCallbackProcessor", () => {
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
-		console.log("TEST DOC FIELDS, ", documentFields)
-
 		// @ts-ignore
 		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
@@ -687,6 +741,415 @@ describe("YotiCallbackProcessor", () => {
 										"issueDate": "2015-09-28",
 									"issuedBy": "DVLA",
 									
+								 },
+						],
+					 },
+					 "evidence":[
+						{
+								 "type":"IdentityCheck",
+								 "strengthScore":3,
+								 "validityScore":2,
+								 "verificationScore":3,
+								 "checkDetails":[
+								{
+											 "checkMethod":"vri",
+											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+											 "identityCheckPolicy":"published",
+								},
+								{
+											 "checkMethod":"pvr",
+											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+											 "photoVerificationProcessLevel":3,
+								},
+								 ],
+						},
+					 ],
+				},
+		 })],
+		});
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+		expect(out.body).toBe("OK");
+		jest.useRealTimers();
+	});
+
+	it("Return successful response with 200 OK when YOTI session created with EU driving permit", async () => {
+		documentFields = getEuDrivingPermitFields();
+		completedYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE"
+		completedYotiSession.resources.id_documents[0].issuing_country = "DEU"
+		jest.useFakeTimers();
+		jest.setSystemTime(absoluteTimeNow());
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+		// @ts-ignore
+		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_YOTI_RESPONSE_RECEIVED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined}});
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined},
+		extensions: {
+			evidence: [
+				{
+					"type": "IdentityCheck",
+					"strengthScore": 3,
+					"validityScore": 2,
+					"verificationScore": 3,
+					"checkDetails": [
+						{
+							"checkMethod": "vri",
+							"identityCheckPolicy": "published",
+							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+						},
+						{
+							"checkMethod": "pvr",
+							"photoVerificationProcessLevel": 3,
+							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+						},
+				],
+				"ci": undefined,
+				}
+			]
+		}, 
+			restricted: {
+				user: {
+					"name": "Erika - Mustermann",
+					"birthDate": "1988-12-04"
+				},
+				"drivingPermit": [{
+					"documentType": "DRIVING_LICENCE",
+					"personalNumber": "Z021AB37X13",
+					"expiryDate": "2036-03-19",
+					"issuingCountry": "DEU",
+					"issuedBy": "Landratsamt Mu sterhausen amSee",
+					"issueDate": "2021-03-20",
+				}]
+			}
+		});
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+			sub: "testsub",
+			state: "Y@atr",
+			"https://vocab.account.gov.uk/v1/credentialJWT": [JSON.stringify({
+				"sub":"testsub",
+				"nbf":absoluteTimeNow(),
+				"iss":"https://XXX-c.env.account.gov.uk",
+				"iat":absoluteTimeNow(),
+				"vc":{
+					"@context":[
+					 Constants.W3_BASE_CONTEXT,
+					 Constants.DI_CONTEXT,
+					],
+					"type": [Constants.VERIFIABLE_CREDENTIAL, Constants.IDENTITY_CHECK_CREDENTIAL],
+					 "credentialSubject":{
+						"name":[
+								 {
+								"nameParts":[
+											 {
+										"value":"Erika",
+										"type":"GivenName",
+											 },
+											 {
+										"value":"-",
+										"type":"GivenName",
+											 },
+											 {
+										"value":"Mustermann",
+										"type":"FamilyName",
+											 },
+								],
+								 },
+						],
+						"birthDate":[
+								 {
+								"value":"1988-12-04",
+								 },
+						],
+						"drivingPermit":[
+								 {
+									"personalNumber": "Z021AB37X13",
+									"expiryDate": "2036-03-19",
+									"issueDate": "2021-03-20",
+									"issuedBy": "Landratsamt Mu sterhausen amSee",
+									"issuingCountry": "DE"
+								 },
+						],
+					 },
+					 "evidence":[
+						{
+								 "type":"IdentityCheck",
+								 "strengthScore":3,
+								 "validityScore":2,
+								 "verificationScore":3,
+								 "checkDetails":[
+								{
+											 "checkMethod":"vri",
+											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+											 "identityCheckPolicy":"published",
+								},
+								{
+											 "checkMethod":"pvr",
+											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+											 "photoVerificationProcessLevel":3,
+								},
+								 ],
+						},
+					 ],
+				},
+		 })],
+		});
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+		expect(out.body).toBe("OK");
+		jest.useRealTimers();
+	});
+
+	it("Return successful response with 200 OK when YOTI session created with EEA Identity Card", async () => {
+		documentFields = getEeaIdCardFields();
+		completedYotiSession.resources.id_documents[0].document_type = "NATIONAL_ID"
+		completedYotiSession.resources.id_documents[0].issuing_country = "NLD"
+		jest.useFakeTimers();
+		jest.setSystemTime(absoluteTimeNow());
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+		// @ts-ignore
+		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_YOTI_RESPONSE_RECEIVED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined}});
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined},
+		extensions: {
+			evidence: [
+				{
+					"type": "IdentityCheck",
+					"strengthScore": 3,
+					"validityScore": 2,
+					"verificationScore": 3,
+					"checkDetails": [
+						{
+							"checkMethod": "vri",
+							"identityCheckPolicy": "published",
+							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+						},
+						{
+							"checkMethod": "pvr",
+							"photoVerificationProcessLevel": 3,
+							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+						},
+				],
+				"ci": undefined,
+				}
+			]
+		}, 
+			restricted: {
+				user: {
+					"name": "Wiieke Liselotte De Bruijn",
+					"birthDate": "1988-12-04"
+				},
+				"idCard": [{
+					"documentType": "NATIONAL_ID",
+					"documentNumber": "SPEC12031",
+					"expiryDate": "2031-08-02",
+					"icaoIssuerCode": "NLD",
+					"issueDate": "2021-08-02",
+				}]
+			}
+		});
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+			sub: "testsub",
+			state: "Y@atr",
+			"https://vocab.account.gov.uk/v1/credentialJWT": [JSON.stringify({
+				"sub":"testsub",
+				"nbf":absoluteTimeNow(),
+				"iss":"https://XXX-c.env.account.gov.uk",
+				"iat":absoluteTimeNow(),
+				"vc":{
+					"@context":[
+					 Constants.W3_BASE_CONTEXT,
+					 Constants.DI_CONTEXT,
+					],
+					"type": [Constants.VERIFIABLE_CREDENTIAL, Constants.IDENTITY_CHECK_CREDENTIAL],
+					 "credentialSubject":{
+						"name":[
+								 {
+								"nameParts":[
+											 {
+										"value":"Wiieke",
+										"type":"GivenName",
+											 },
+											 {
+										"value":"Liselotte",
+										"type":"GivenName",
+											 },
+											 {
+										"value":"De Bruijn",
+										"type":"FamilyName",
+											 },
+								],
+								 },
+						],
+						"birthDate":[
+								 {
+								"value":"1988-12-04",
+								 },
+						],
+						"idCard":[
+								 {
+									"documentNumber": "SPEC12031",
+									"expiryDate": "2031-08-02",
+									"issueDate": "2021-08-02",
+									"icaoIssuerCode": "NLD"
+								 },
+						],
+					 },
+					 "evidence":[
+						{
+								 "type":"IdentityCheck",
+								 "strengthScore":3,
+								 "validityScore":2,
+								 "verificationScore":3,
+								 "checkDetails":[
+								{
+											 "checkMethod":"vri",
+											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+											 "identityCheckPolicy":"published",
+								},
+								{
+											 "checkMethod":"pvr",
+											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+											 "photoVerificationProcessLevel":3,
+								},
+								 ],
+						},
+					 ],
+				},
+		 })],
+		});
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+		expect(out.body).toBe("OK");
+		jest.useRealTimers();
+	});
+
+	it("Return successful response with 200 OK when YOTI session created with BRP", async () => {
+		documentFields = getBrpFields();
+		completedYotiSession.resources.id_documents[0].document_type = "RESIDENCE_PERMIT"
+		jest.useFakeTimers();
+		jest.setSystemTime(absoluteTimeNow());
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+		// @ts-ignore
+		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_YOTI_RESPONSE_RECEIVED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined}});
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined},
+		extensions: {
+			evidence: [
+				{
+					"type": "IdentityCheck",
+					"strengthScore": 3,
+					"validityScore": 2,
+					"verificationScore": 3,
+					"checkDetails": [
+						{
+							"checkMethod": "vri",
+							"identityCheckPolicy": "published",
+							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+						},
+						{
+							"checkMethod": "pvr",
+							"photoVerificationProcessLevel": 3,
+							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+						},
+				],
+				"ci": undefined,
+				}
+			]
+		}, 
+			restricted: {
+				user: {
+					"name": "TECH REFRESH ICTHREEMALE",
+					"birthDate": "1988-12-04"
+				},
+				"residencePermit": [{
+					"documentType": "RESIDENCE_PERMIT",
+					"documentNumber": "RF9082242",
+					"expiryDate": "2024-11-11",
+					"issueDate": "2015-05-19",
+					"icaoIssuerCode": "GBR"
+				}]
+			}
+		});
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+			sub: "testsub",
+			state: "Y@atr",
+			"https://vocab.account.gov.uk/v1/credentialJWT": [JSON.stringify({
+				"sub":"testsub",
+				"nbf":absoluteTimeNow(),
+				"iss":"https://XXX-c.env.account.gov.uk",
+				"iat":absoluteTimeNow(),
+				"vc":{
+					"@context":[
+					 Constants.W3_BASE_CONTEXT,
+					 Constants.DI_CONTEXT,
+					],
+					"type": [Constants.VERIFIABLE_CREDENTIAL, Constants.IDENTITY_CHECK_CREDENTIAL],
+					 "credentialSubject":{
+						"name":[
+								 {
+								"nameParts":[
+											 {
+										"value":"TECH",
+										"type":"GivenName",
+											 },
+											 {
+										"value":"REFRESH",
+										"type":"GivenName",
+											 },
+											 {
+										"value":"ICTHREEMALE",
+										"type":"FamilyName",
+											 },
+								],
+								 },
+						],
+						"birthDate":[
+								 {
+								"value":"1988-12-04",
+								 },
+						],
+						"residencePermit":[
+								 {
+									"documentNumber": "RF9082242",
+									"expiryDate": "2024-11-11",
+									"issueDate": "2015-05-19",
+									"icaoIssuerCode": "GBR"
 								 },
 						],
 					 },

@@ -223,6 +223,19 @@ export class YotiCallbackProcessor {
 					icaoIssuerCode: documentFields.issuing_country
 				}]
 			} 
+			else if (documentFields.document_type === "DRIVING_LICENCE" && documentFields.issuing_country != "GBR") {
+				docName = "drivingPermit"
+				documentInfo = [{
+					documentType: documentFields.document_type,
+					personalNumber: documentFields.document_number,
+					expiryDate: documentFields.expiration_date,
+					issuedBy: documentFields.place_of_issue,
+					issueDate: documentFields.date_of_issue,
+					issuingCountry: documentFields.issuing_country
+				}]
+					console.log("EUDL DOC INFO: ", documentInfo)
+					console.log("EUDL country: ", documentFields.issuing_country)
+			}
 			else if (documentFields.document_type === 'DRIVING_LICENCE') {
 				docName = "drivingPermit"
 				documentInfo = [{
@@ -234,7 +247,9 @@ export class YotiCallbackProcessor {
 					fullAddress: documentFields.structured_postal_address.formatted_address,
 					issuingCountry: documentFields.issuing_country
 				}]
+				console.log("UKDL DOC INFO: ", documentFields.issuing_country)
 			} 
+
 			else if (documentFields.document_type === 'NATIONAL_ID') {
 				docName = "idCard"
 				documentInfo = [{
