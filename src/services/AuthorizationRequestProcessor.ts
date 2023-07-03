@@ -49,6 +49,7 @@ export class AuthorizationRequestProcessor {
 		if (session != null) {
 			if (session.expiryDate < absoluteTimeNow()) {
 				this.logger.error("Session has expired", { messageCode: MessageCodes.EXPIRED_SESSION });
+				this.logger.appendKeys({ sessionId });
 				return new Response(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionId} has expired`);
 			}
 
@@ -93,7 +94,7 @@ export class AuthorizationRequestProcessor {
 
 					});
 				} catch (error) {
-					this.logger.error("Failed to write TXMA event F2F_CRI_END to SQS queue.");
+					this.logger.error("Failed to write TXMA event F2F_CRI_END to SQS queue.", { error, messageCode: MessageCodes.FAILED_TO_WRITE_TXMA });
 				}
 
 				return new Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));
