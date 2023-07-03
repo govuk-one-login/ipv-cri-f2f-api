@@ -202,7 +202,8 @@ export class YotiCallbackProcessor {
 			// Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
 			let documentInfo;
-			let docName = "passport";
+			let docName: any;
+
 			if (documentFields.document_type === 'PASSPORT') {
 				docName = "passport"
 				documentInfo = [{
@@ -226,11 +227,11 @@ export class YotiCallbackProcessor {
 				docName = "drivingPermit"
 				documentInfo = [{
 					documentType: documentFields.document_type,
-					personalNumber: documentFields.personal_number,
+					personalNumber: documentFields.document_number,
 					expiryDate: documentFields.expiration_date,
 					issuedBy: documentFields.issuing_authority,
 					issueDate: documentFields.date_of_issue,
-					// fullAddress: documentFields.address,
+					fullAddress: documentFields.structured_postal_address.formatted_address,
 					issuingCountry: documentFields.issuing_country
 				}]
 			} 
@@ -244,7 +245,9 @@ export class YotiCallbackProcessor {
 					icaoIssuerCode: documentFields.issuing_country
 				}]
 			} 
-			
+
+			console.log("DOC INFO: ", documentInfo)
+
   		try {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_CRI_VC_ISSUED",
