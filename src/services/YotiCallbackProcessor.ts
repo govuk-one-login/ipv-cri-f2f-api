@@ -246,6 +246,7 @@ export class YotiCallbackProcessor {
 					fullAddress: documentFields.structured_postal_address.formatted_address,
 					issuingCountry: documentFields.issuing_country
 				}]
+				console.log("UKDL DOC INFO: ", documentFields.issuing_country)
 			} 
 
 			else if (documentFields.document_type === 'NATIONAL_ID') {
