@@ -17,7 +17,7 @@ describe("DocumentSelectionHandler", () => {
 	it("return not found when resource not found", async () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 
-		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist"));
+		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
 	});
 
 	it("return not found when unsupported http method tried for documentSelection", async () => {
