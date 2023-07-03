@@ -379,26 +379,35 @@ function getDocumentFields() {
 	return documentFields;
 }
 
-const gpg45Score = [
-	{
-		"checkDetails": [
-				{
-					"checkMethod": "vri",
-					"identityCheckPolicy": "published",
-					"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-				},
-				{
-					"checkMethod": "pvr",
-					"photoVerificationProcessLevel": 3,
-					"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-				},
-		],
-			"strengthScore": 3,
-			"type": "IdentityCheck",
-			"validityScore": 2,
-			"verificationScore": 3,
-	},
-];
+function getDrivingPermitFields() {
+	const documentFields = {
+		"full_name": "LEEROY JENKINS",
+		"date_of_birth": "1988-12-04",
+		"given_names": "LEEROY",
+		"family_name": "JENKINS",
+		"place_of_birth": "UNITED KINGDOM",
+		"gender": "MALE",
+		"structured_postal_address": {
+			"address_format": 1,
+			"building_number": "122",
+			"address_line1": "122 BURNS CRESCENT",
+			"address_line2": "EDINBURGH",
+			"address_line3": "EH1 9GP",
+			"town_city": "STORMWIND",
+			"postal_code": "EH1 9GP",
+			"country_iso": "GBR",
+			"country": "United Kingdom",
+			"formatted_address": "122 BURNS CRESCENT\nStormwind\nEH1 9GP"
+		},
+		"document_type": "DRIVING_LICENCE",
+		"issuing_country": "GBR",
+		"document_number": "LJENK533401372",
+		"expiration_date": "2025-09-28",
+		"date_of_issue": "2015-09-28",
+		"issuing_authority": "DVLA",
+	};
+	return documentFields;
+}
 
 const VALID_REQUEST = {
 	"session_id":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
@@ -432,7 +441,7 @@ describe("YotiCallbackProcessor", () => {
 		mockYotiCallbackProcessor.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 	});
 
-	it.only("Return successful response with 200 OK when YOTI session created with UK Passport", async () => {
+	it("Return successful response with 200 OK when YOTI session created with UK Passport", async () => {
 		jest.useFakeTimers();
 		jest.setSystemTime(absoluteTimeNow());
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
@@ -533,6 +542,151 @@ describe("YotiCallbackProcessor", () => {
 								"documentNumber":"533401372",
 								"expiryDate":"2025-09-28",
 								"icaoIssuerCode":"GBR",
+								 },
+						],
+					 },
+					 "evidence":[
+						{
+								 "type":"IdentityCheck",
+								 "strengthScore":3,
+								 "validityScore":2,
+								 "verificationScore":3,
+								 "checkDetails":[
+								{
+											 "checkMethod":"vri",
+											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+											 "identityCheckPolicy":"published",
+								},
+								{
+											 "checkMethod":"pvr",
+											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+											 "photoVerificationProcessLevel":3,
+								},
+								 ],
+						},
+					 ],
+				},
+		 })],
+		});
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+		expect(out.body).toBe("OK");
+		jest.useRealTimers();
+	});
+
+	it("Return successful response with 200 OK when YOTI session created with driving permit", async () => {
+		documentFields = getDrivingPermitFields();
+		completedYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE"
+		jest.useFakeTimers();
+		jest.setSystemTime(absoluteTimeNow());
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+		console.log("TEST DOC FIELDS, ", documentFields)
+
+		// @ts-ignore
+		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_YOTI_RESPONSE_RECEIVED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined}});
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined},
+		extensions: {
+			evidence: [
+				{
+					"type": "IdentityCheck",
+					"strengthScore": 3,
+					"validityScore": 2,
+					"verificationScore": 3,
+					"checkDetails": [
+						{
+							"checkMethod": "vri",
+							"identityCheckPolicy": "published",
+							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+						},
+						{
+							"checkMethod": "pvr",
+							"photoVerificationProcessLevel": 3,
+							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+						},
+				],
+				"ci": undefined,
+				}
+			]
+		}, 
+			restricted: {
+				user: {
+					"name": "LEEROY JENKINS",
+					"birthDate": "1988-12-04"
+				},
+				"drivingPermit": [{
+					"documentType": "DRIVING_LICENCE",
+					"personalNumber": "LJENK533401372",
+					"expiryDate": "2025-09-28",
+					"issuingCountry": "GBR",
+					"issuedBy": "DVLA",
+					"issueDate": "2015-09-28",
+					"fullAddress": "122 BURNS CRESCENT\nStormwind\nEH1 9GP"
+				}]
+			}
+		});
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+			sub: "testsub",
+			state: "Y@atr",
+			"https://vocab.account.gov.uk/v1/credentialJWT": [JSON.stringify({
+				"sub":"testsub",
+				"nbf":absoluteTimeNow(),
+				"iss":"https://XXX-c.env.account.gov.uk",
+				"iat":absoluteTimeNow(),
+				"vc":{
+					"@context":[
+					 Constants.W3_BASE_CONTEXT,
+					 Constants.DI_CONTEXT,
+					],
+					"type": [Constants.VERIFIABLE_CREDENTIAL, Constants.IDENTITY_CHECK_CREDENTIAL],
+					 "credentialSubject":{
+						"name":[
+								 {
+								"nameParts":[
+											 {
+										"value":"LEEROY",
+										"type":"GivenName",
+											 },
+											 {
+										"value":"JENKINS",
+										"type":"FamilyName",
+											 },
+								],
+								 },
+						],
+						"birthDate":[
+								 {
+								"value":"1988-12-04",
+								 },
+						],
+						"address":[
+							{
+								"buildingNumber":"122",
+								"streetName":"BURNS CRESCENT",
+								"addressLocality":"STORMWIND",
+								"postalCode":"EH1 9GP",
+								"addressCountry":"United Kingdom"
+							}
+						],
+						"drivingPermit":[
+								 {
+									"personalNumber": "LJENK533401372",
+									"expiryDate": "2025-09-28",
+										"issueDate": "2015-09-28",
+									"issuedBy": "DVLA",
+									
 								 },
 						],
 					 },
