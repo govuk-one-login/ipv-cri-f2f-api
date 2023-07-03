@@ -52,7 +52,7 @@ export class UserInfoRequestProcessor {
     		sub = await this.validationHelper.eventToSubjectIdentifier(this.kmsJwtAdapter, event);
     	} catch (error) {
     		if (error instanceof AppError) {
-    			this.logger.error({ message: `Error validating Authentication Access token from headers: ${error.message}` });
+    			this.logger.error({ message: "Error validating Authentication Access token from headers" , error});
     			return new Response( HttpCodesEnum.BAD_REQUEST, "Failed to Validate - Authentication header: " + error.message );
     		}
     	}
@@ -66,8 +66,8 @@ export class UserInfoRequestProcessor {
     		}
 			this.logger.info({ message :"Found Session: " });
 			this.logger.appendKeys({ sessionId: session.sessionId });
-    	} catch (err) {
-			this.logger.error({ message: "Error processing userInfo request", err });
+    	} catch (error) {
+			this.logger.error({ message: "Error processing userInfo request", error });
     		return new Response(HttpCodesEnum.BAD_REQUEST, `No session found with the sessionId: ${sub}`);
     	}
 

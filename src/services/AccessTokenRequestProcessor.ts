@@ -56,12 +56,12 @@ export class AccessTokenRequestProcessor {
 					this.logger.info(`No session found by authorization code: : ${requestPayload.code}`, { messageCode: MessageCodes.SESSION_NOT_FOUND });
 					return new Response(HttpCodesEnum.UNAUTHORIZED, `No session found by authorization code: ${requestPayload.code}`);
 				}
-				this.logger.info({ message: "Found Session" });
 				this.logger.appendKeys({ sessionId: session.sessionId });
-			} catch (err) {
+				this.logger.info({ message: "Found Session" });
+			} catch (error) {
 				this.logger.error("Error while retrieving the session", {
 					messageCode: MessageCodes.SESSION_NOT_FOUND,
-					error: err,
+					error: error,
 				});
 				return new Response(HttpCodesEnum.UNAUTHORIZED, "Error while retrieving the session");
 			}

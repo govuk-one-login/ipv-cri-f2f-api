@@ -48,7 +48,7 @@ export class AccessToken implements LambdaInterface {
 					resource: event.resource,
 					messageCode: MessageCodes.RESOURCE_NOT_FOUND,
 				});
-				throw new AppError(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist" + { resource: event.resource });
+				return new Response(HttpCodesEnum.NOT_FOUND, "");
 
 		}
 	}
