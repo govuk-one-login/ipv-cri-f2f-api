@@ -4,6 +4,7 @@ import { VALID_SESSION, RESOURCE_NOT_FOUND } from "./data/session-events";
 import { SessionRequestProcessor } from "../../services/SessionRequestProcessor";
 import { CONTEXT } from "./data/context";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
+import {Response} from "../../utils/Response";
 
 const mockedSessionRequestProcessor = mock<SessionRequestProcessor>();
 
@@ -26,8 +27,6 @@ describe("SessionHandler", () => {
 	it("return not found when resource not found", async () => {
 		SessionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedSessionRequestProcessor);
 
-		expect(lambdaHandler(RESOURCE_NOT_FOUND, CONTEXT)).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.NOT_FOUND,
-		}));
+		return expect(lambdaHandler(RESOURCE_NOT_FOUND, CONTEXT)).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
 	});
 });

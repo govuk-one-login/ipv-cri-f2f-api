@@ -34,7 +34,7 @@ export class SendEmailProcessor {
 
 	async processRequest(eventBody: any): Promise<EmailResponse> {
 
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
 
     	await this.validationHelper.validateModel(email, this.logger);
 

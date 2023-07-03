@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "./enums/HttpCodesEnum";
+import { Logger } from "@aws-lambda-powertools/logger";
 
 /**
  * Object to represent data contained in email messages sent by this lambda
@@ -18,13 +19,13 @@ export class Email {
 		this.referenceId = randomUUID();
 	}
 
-	static parseRequest(data: any): Email {
+	static parseRequest(data: any, logger: Logger): Email {
 		try {
 
 			const obj = JSON.parse(data);
 			return new Email(obj);
 		} catch (error: any) {
-			console.log("Cannot parse Email data", Email.name, "parseBody", { data });
+			logger.error("Cannot parse Email data");
 			throw new AppError( HttpCodesEnum.BAD_REQUEST, "Cannot parse Email data");
 		}
 	}
