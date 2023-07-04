@@ -12,6 +12,7 @@ import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { F2fService } from "./F2fService";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
+import { MessageCodes } from "../models/enums/MessageCodes";
 
 export class UserInfoRequestProcessor {
     private static instance: UserInfoRequestProcessor;
@@ -51,7 +52,7 @@ export class UserInfoRequestProcessor {
     		sub = await this.validationHelper.eventToSubjectIdentifier(this.kmsJwtAdapter, event);
     	} catch (error) {
     		if (error instanceof AppError) {
-    			this.logger.error({ message: "Error validating Authentication Access token from headers: " + error.message });
+    			this.logger.error({ message: "Error validating Authentication Access token from headers" , error});
     			return new Response( HttpCodesEnum.BAD_REQUEST, "Failed to Validate - Authentication header: " + error.message );
     		}
     	}
@@ -59,11 +60,14 @@ export class UserInfoRequestProcessor {
     	let session :ISessionItem | undefined;
     	try {
     		session = await this.f2fService.getSessionById(sub as string);
-    		this.logger.info({ message :"Found Session: " + JSON.stringify(session) });
     		if (!session) {
+				this.logger.info(`No session found with the sessionId: ${sub}`, { messageCode: MessageCodes.SESSION_NOT_FOUND });
     			return new Response(HttpCodesEnum.BAD_REQUEST, `No session found with the sessionId: ${sub}`);
     		}
-    	} catch (err) {
+			this.logger.info({ message :"Found Session: " });
+			this.logger.appendKeys({ sessionId: session.sessionId });
+    	} catch (error) {
+			this.logger.error({ message: "Error processing userInfo request", error });
     		return new Response(HttpCodesEnum.BAD_REQUEST, `No session found with the sessionId: ${sub}`);
     	}
 
@@ -71,11 +75,13 @@ export class UserInfoRequestProcessor {
     	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
     	if (session.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED) {
 
+			this.logger.info("Returning success response");
 			return new Response(HttpCodesEnum.ACCEPTED, JSON.stringify({
 				sub: session.subject,
 				"https://vocab.account.gov.uk/v1/credentialStatus": "pending",
 			}));
 		} else {
+			this.logger.error(`AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state- ${session.authSessionState}`);
 			return new Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state- ${session.authSessionState}`);
 		}
 	}

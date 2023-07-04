@@ -510,7 +510,7 @@ Resources:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of Session is used. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${SessionFunction}-concurrency"
+      AlarmName: !Sub "${AWS::StackName}-SessionFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
       Dimensions:
@@ -535,7 +535,7 @@ Resources:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${SessionFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${SessionFunction}-throttles"
+      AlarmName: !Sub "${AWS::StackName}-SessionFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
@@ -635,7 +635,7 @@ Resources:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of Token concurrency is used. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${TokenFunction}-concurrency"
+      AlarmName: !Sub "${AWS::StackName}-TokenFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
       Dimensions:
@@ -660,7 +660,7 @@ Resources:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${TokenFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${TokenFunction}-throttles"
+      AlarmName: !Sub "${AWS::StackName}-TokenFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
@@ -767,7 +767,7 @@ Resources:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of authorization concurrency is used. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${AuthorizationFunction}-concurrency"
+      AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
       Dimensions:
@@ -792,7 +792,7 @@ Resources:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${AuthorizationFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${AuthorizationFunction}-throttles"
+      AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
@@ -927,7 +927,7 @@ Resources:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of Document selection concurrency is used. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${DocumentSelectionFunction}-concurrency"
+      AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
       Dimensions:
@@ -952,7 +952,7 @@ Resources:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${DocumentSelectionFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${DocumentSelectionFunction}-throttles"
+      AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
@@ -1124,7 +1124,7 @@ Resources:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of JsonWeb Keys concurrency is used. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${JsonWebKeysFunction}-concurrency"
+      AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
       Dimensions:
@@ -1149,7 +1149,7 @@ Resources:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${JsonWebKeysFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${JsonWebKeysFunction}-throttles"
+      AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
@@ -1272,7 +1272,7 @@ Resources:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of GovNotify concurrency is used. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${GovNotifyFunction}-concurrency"
+      AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
       Dimensions:
@@ -1297,7 +1297,7 @@ Resources:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${GovNotifyFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${GovNotifyFunction}-throttles"
+      AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
@@ -1409,7 +1409,7 @@ Resources:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of UserInfro concurrency is used. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${UserInfoFunction}-concurrency"
+      AlarmName: !Sub "${AWS::StackName}-UserInfoFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
       Dimensions:
@@ -1434,7 +1434,7 @@ Resources:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${UserInfoFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${UserInfoFunction}-throttles"
+      AlarmName: !Sub "${AWS::StackName}-UserInfoFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
@@ -1741,7 +1741,7 @@ Resources:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of Yoticallback concurrency is used. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${YotiCallbackFunction}-concurrency"
+      AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
       Dimensions:
@@ -1766,7 +1766,7 @@ Resources:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${YotiCallbackFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-${YotiCallbackFunction}-throttles"
+      AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
@@ -1968,7 +1968,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-DocumentSelection25XXApiGwErrorAlarm"
+      AlarmName: !Sub "${AWS::StackName}-DocumentSelection5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the DocumentSelection endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
@@ -2030,7 +2030,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-UserInfoV25XXApiGwErrorCriticalAlarm"
+      AlarmName: !Sub "${AWS::StackName}-DocumentSelection5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the DocumentSelection endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
@@ -2092,7 +2092,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-UserInfo25XXApiGwErrorAlarm"
+      AlarmName: !Sub "${AWS::StackName}-UserInfo5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the UserInfo endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
@@ -2216,7 +2216,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-Token25XXApiGwErrorAlarm"
+      AlarmName: !Sub "${AWS::StackName}-Token5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the Token endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
@@ -3256,66 +3256,6 @@ Resources:
             Period: 60
             Stat: Maximum
 
-  200SuccessAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-200SuccessAlarm"
-      AlarmDescription: !Sub "There has been an out of hours 200success response on the userInfo endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
-      AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
-      InsufficientDataActions: []
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanThreshold
-      Metrics:
-        - Id: e1
-          Label: Expression1
-          ReturnData: true
-          Expression: IF(HOUR(m1) > 20 AND HOUR(m1) < 8, m1)
-        - Id: m1
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: UserInfo/StatusCodes # MK - Identify the success point
-              MetricName: 200Success
-            Period: 60
-            Stat: Sum
-
-  UserInfo500ErrorAlarm: #MK - Identiy
-    Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-500ErrorAlarm"
-      AlarmDescription: !Sub "Trigger the alarm if the userinfo endpoint returns a 500Error response out of hours. ${SupportManualURL}"
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
-      AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
-      InsufficientDataActions: []
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanThreshold
-      Metrics:
-        - Id: e1
-          Label: Expression1
-          ReturnData: true
-          Expression: IF(HOUR(m1) > 20 AND HOUR(m1) < 8, m1)
-        - Id: m1
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: UserInfo/StatusCodes
-              MetricName: 500Error
-            Period: 60
-            Stat: Sum
-
   TXMASQSOldMessagesAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
@@ -3999,36 +3939,6 @@ Resources:
                   "title": "Latency Alarm - ${AWS::StackName}",
                   "annotations": {
                     "alarms": ["${LatencyAlarm.Arn}"]
-                  },
-                  "view": "timeSeries",
-                  "stacked": false
-                }
-              },
-              {
-                "height": 6,
-                "width": 12,
-                "y": 0,
-                "x": 12,
-                "type": "metric",
-                "properties": {
-                  "title": "200 Success OOH - ${AWS::StackName}",
-                  "annotations": {
-                    "alarms": ["${200SuccessAlarm.Arn}"]
-                  },
-                  "view": "timeSeries",
-                  "stacked": false
-                }
-              },
-              {
-                "height": 6,
-                "width": 12,
-                "y": 6,
-                "x": 0,
-                "type": "metric",
-                "properties": {
-                  "title": "User Info 500 - ${AWS::StackName}",
-                  "annotations": {
-                    "alarms": ["${UserInfo500ErrorAlarm.Arn}"]
                   },
                   "view": "timeSeries",
                   "stacked": false

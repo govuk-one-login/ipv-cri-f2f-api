@@ -15,9 +15,7 @@ export class ValidationHelper {
 			await validateOrReject(model, { forbidUnknownValues: true });
 		} catch (errors) {
 			const errorDetails = this.getErrors(errors);
-			console.log(`${model.constructor.name}`);
-			console.log("**** Error validating " + `${model.constructor.name}` + "   " + JSON.stringify(errorDetails));
-			console.log(`Failed to validate data - ${model.constructor.name}`, "ValidationHelper", HttpCodesEnum.UNPROCESSABLE_ENTITY, errorDetails);
+			logger.error({ message: `Error validating ${model.constructor.name}`, errorDetails });
 			throw new AppError(HttpCodesEnum.UNPROCESSABLE_ENTITY, `Failed to Validate - ${model.constructor.name} ${errorDetails}` );
 		}
 	}
@@ -36,6 +34,7 @@ export class ValidationHelper {
 	async eventToSubjectIdentifier(jwtAdapter: KmsJwtAdapter, event: APIGatewayProxyEvent): Promise<string> {
 		const headerValue = event.headers.authorization ?? event.headers.Authorization;
 		if (headerValue === null || headerValue === undefined) {
+
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing header: Authorization header value is missing or invalid auth_scheme");
 		}
 		const authHeader = event.headers.Authorization as string;

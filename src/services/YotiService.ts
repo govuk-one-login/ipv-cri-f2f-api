@@ -189,7 +189,7 @@ export class YotiService {
 				yotiRequest.config,
 			);
 
-			this.logger.appendKeys({ yotiSessionId: data.session_id })
+			this.logger.appendKeys({ yotiSessionId: data.session_id });
 
 			this.logger.info("Received response for create /sessions");
 			return data.session_id;

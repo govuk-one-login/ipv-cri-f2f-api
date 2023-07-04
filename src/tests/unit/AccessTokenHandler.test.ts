@@ -3,6 +3,7 @@ import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { AccessTokenRequestProcessor } from "../../services/AccessTokenRequestProcessor";
 import { lambdaHandler } from "../../AccessTokenHandler";
 import { RESOURCE_NOT_FOUND, VALID_ACCESSTOKEN } from "./data/accessToken-events";
+import {Response} from "../../utils/Response";
 
 const mockedAccessTokenRequestProcessor = mock<AccessTokenRequestProcessor>();
 
@@ -25,8 +26,6 @@ describe("AccessTokenHandler", () => {
 	it("return not found when resource not found", async () => {
 		AccessTokenRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedAccessTokenRequestProcessor);
 
-		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "F2F")).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.NOT_FOUND,
-		}));
+		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "F2F")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
 	});
 });

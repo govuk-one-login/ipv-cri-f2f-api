@@ -103,7 +103,7 @@ export class DocumentSelection implements LambdaInterface {
 					messageCode: MessageCodes.RESOURCE_NOT_FOUND,
 					resource: event.resource,
 				});
-				return new Response(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist");
+				return new Response(HttpCodesEnum.NOT_FOUND, "");
 
 		}
 	}
