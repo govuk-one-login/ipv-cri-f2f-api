@@ -69,6 +69,7 @@ describe("AuthorizationRequestProcessor", () => {
 		expect(mockF2fService.setAuthorizationCode).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {
 			event_name: "F2F_CRI_AUTH_CODE_ISSUED",
 			client_id: "ipv-core-stub",
@@ -83,6 +84,7 @@ describe("AuthorizationRequestProcessor", () => {
 				user_id: "sub",
 			}
 		})
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {
 			event_name: "F2F_CRI_END",
 			client_id: "ipv-core-stub",
