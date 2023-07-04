@@ -3947,36 +3947,6 @@ Resources:
               {
                 "height": 6,
                 "width": 12,
-                "y": 0,
-                "x": 12,
-                "type": "metric",
-                "properties": {
-                  "title": "200 Success OOH - ${AWS::StackName}",
-                  "annotations": {
-                    "alarms": ["${200SuccessAlarm.Arn}"]
-                  },
-                  "view": "timeSeries",
-                  "stacked": false
-                }
-              },
-              {
-                "height": 6,
-                "width": 12,
-                "y": 6,
-                "x": 0,
-                "type": "metric",
-                "properties": {
-                  "title": "User Info 500 - ${AWS::StackName}",
-                  "annotations": {
-                    "alarms": ["${UserInfo500ErrorAlarm.Arn}"]
-                  },
-                  "view": "timeSeries",
-                  "stacked": false
-                }
-              },
-              {
-                "height": 6,
-                "width": 12,
                 "y": 6,
                 "x": 12,
                 "type": "metric",
