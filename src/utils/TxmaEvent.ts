@@ -1,8 +1,7 @@
-import { CredentialSubject, ResidencePermit, IdentityCard, DrivingPermit, Passport, VerifiedCredential, VerifiedCredentialEvidence, VerifiedCredentialSubject } from "./IVeriCredential";
+import { ResidencePermit, IdentityCard, DrivingPermit, Passport, VerifiedCredentialEvidence, VerifiedCredentialSubject } from "./IVeriCredential";
 import { ISessionItem } from "../models/ISessionItem";
 import { absoluteTimeNow } from "./DateTimeUtils";
 import { PostOfficeInfo } from "../models/YotiPayloads";
-import { PassThrough } from "stream";
 
 export type TxmaEventName =
 	"F2F_CRI_START"
