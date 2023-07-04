@@ -20,6 +20,7 @@ const metrics = new Metrics({ namespace: "F2F" });
 function getMockSessionItem(): ISessionItem {
 	const sess: ISessionItem = {
 		sessionId: "sdfsdg",
+		// pragma: allowlist nextline secret
 		clientId: "ipv-core-stub",
 		// pragma: allowlist nextline secret
 		accessToken: "AbCdEf123456",
