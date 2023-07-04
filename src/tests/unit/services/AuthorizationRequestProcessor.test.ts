@@ -72,7 +72,7 @@ describe("AuthorizationRequestProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {
 			event_name: "F2F_CRI_AUTH_CODE_ISSUED",
 			client_id: sess.clientId,
-			component_id: process.env.ISSUER,
+			component_id: "https://XXX-c.env.account.gov.uk",
 			timestamp: absoluteTimeNow(),
 			user: {
 				govuk_signin_journey_id: sess.clientSessionId,
