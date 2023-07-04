@@ -20,10 +20,8 @@ const metrics = new Metrics({ namespace: "F2F" });
 function getMockSessionItem(): ISessionItem {
 	const sess: ISessionItem = {
 		sessionId: "sdfsdg",
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		clientId: "ipv-core-stub",
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		accessToken: "AbCdEf123456",
+		// accessToken: "AbCdEf123456",
 		clientSessionId: "sdfssg",
 		authorizationCode: "",
 		authorizationCodeExpiryDate: 0,
