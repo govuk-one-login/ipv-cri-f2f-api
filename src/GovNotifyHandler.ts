@@ -8,6 +8,7 @@ import { getParameter } from "./utils/Config";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 import { failEntireBatch, passEntireBatch } from "./utils/SqsBatchResponseHelper";
+import { MessageCodes } from "./models/enums/MessageCodes";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.EMAIL_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -26,30 +27,41 @@ class GovNotifyHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: SQSEvent, _context: Context): Promise<SQSBatchResponse> {
+	async handler(event: SQSEvent, context: Context): Promise<SQSBatchResponse> {
+
+		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
+		logger.setPersistentLogAttributes({});
+		logger.addContext(context);
+
 		if (event.Records.length === 1) {
 			const record: SQSRecord = event.Records[0];
-			logger.debug("Starting to process record", { record });
+			logger.debug("Starting to process record");
 
 			try {
 				const body = JSON.parse(record.body);
-				logger.debug("Parsed SQS event body", body);
+				logger.debug("Parsed SQS event body");
 				if (!YOTI_PRIVATE_KEY) {
 					logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
 					try {
 						YOTI_PRIVATE_KEY = await getParameter(this.environmentVariables.yotiKeySsmPath());
-					} catch (err) {
-						logger.error(`failed to get param from ssm at ${this.environmentVariables.yotiKeySsmPath()}`, { err });
-						throw err;
+					} catch (error) {
+						logger.error(`failed to get param from ssm at ${this.environmentVariables.yotiKeySsmPath()}`, {
+							messageCode: MessageCodes.MISSING_CONFIGURATION,
+							error,
+						});
+						throw error;
 					}
 				}
 				if (!GOVUKNOTIFY_API_KEY) {
 					logger.info({ message: "Fetching GOVUKNOTIFY_API_KEY from SSM" });
 					try {
 						GOVUKNOTIFY_API_KEY = await getParameter(this.environmentVariables.govNotifyApiKeySsmPath());
-					} catch (err) {
-						logger.error(`failed to get param from ssm at ${this.environmentVariables.govNotifyApiKeySsmPath()}`, { err });
-						throw err;
+					} catch (error) {
+						logger.error(`failed to get param from ssm at ${this.environmentVariables.govNotifyApiKeySsmPath()}`, {
+							messageCode: MessageCodes.MISSING_CONFIGURATION,
+							error,
+						});
+						throw error;
 					}
 				}
 				await SendEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY).processRequest(body);
@@ -58,7 +70,7 @@ class GovNotifyHandler implements LambdaInterface {
 
 
 			} catch (error) {
-				logger.error("Email could not be sent. Returning failed message", "Handler");
+				logger.error({message: "Email could not be sent. Returning failed message", error} );
 				return failEntireBatch;
 			}
 

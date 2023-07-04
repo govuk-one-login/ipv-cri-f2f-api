@@ -23,8 +23,8 @@ describe("E2E Negative Path /documentSelection Endpoint", () => {
 
 	it("E2E Happy Path Journey - Incorrect Session Id", async () => {
 		const response = await postDocumentSelection(dataPassport, "sessionId");
-		expect(response.status).toBe(400);
-		expect(response.data).toBe("Session id must be a valid uuid");
+		expect(response.status).toBe(401);
+		expect(response.data).toBe("Unauthorized");
 	});
 });
 
@@ -70,9 +70,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
 		// Post User Info
 		const userInfoResponse = await userInfoPost("Bearer " + constants.DEV_F2F_EXPIRED_ACCESS_TOKEN);
-		// console.log("Bearer " + constants.DEV_F2F_EXPIRED_ACCESS_TOKEN)
-		// console.log(userInfoResponse.status);
-		expect(userInfoResponse.status).toBe(400); 
+		expect(userInfoResponse.status).toBe(400);
 		expect(userInfoResponse.data).toBe("Failed to Validate - Authentication header: Verification of exp failed"); 
 	});
 

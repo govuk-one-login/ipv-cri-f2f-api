@@ -117,37 +117,6 @@ export class F2fService {
 		return sessionItem.Items[0] as ISessionItem;
 	}
 
-	//This is not currently used in F2F
-	// async saveF2FData(sessionId: string, f2fData: F2fSession): Promise<void> {
-	// 	const saveF2FCommand: any = new UpdateCommand({
-	// 		TableName: this.tableName,
-	// 		Key: { sessionId },
-	// 		UpdateExpression:
-	// 			"SET given_names = :given_names, family_names = :family_names, date_of_birth = :date_of_birth, authSessionState = :authSessionState",
-
-	// 		ExpressionAttributeValues: {
-	// 			":given_names": f2fData.given_names,
-	// 			":family_names": f2fData.family_names,
-	// 			":date_of_birth": f2fData.date_of_birth,
-	// 			":authSessionState": AuthSessionState.F2F_DATA_RECEIVED,
-	// 		},
-	// 	});
-
-	// 	this.logger.info({
-	// 		message: "updating F2F data in dynamodb",
-	// 		saveF2FCommand,
-	// 	});
-	// 	try {
-	// 		await this.dynamo.send(saveF2FCommand);
-	// 		this.logger.info({ message: "updated F2F data in dynamodb" });
-	// 	} catch (error) {
-	// 		this.logger.error({ message: "got error saving F2F data", error });
-	// 		throw new AppError(HttpCodesEnum.SERVER_ERROR,
-	// 			"Failed to set claimed identity data ",
-	// 		);
-	// 	}
-	// }
-
 	async setAuthorizationCode(sessionId: string, uuid: string): Promise<void> {
 
 		const updateSessionCommand = new UpdateCommand({
@@ -161,13 +130,13 @@ export class F2fService {
 			},
 		});
 
-		this.logger.info({ message: "updating authorizationCode dynamodb", updateSessionCommand });
+		this.logger.info( { message: "updating authorizationCode dynamodb" }, { tableName: this.tableName } );
 
 		try {
 			await this.dynamo.send(updateSessionCommand);
 			this.logger.info({ message: "updated authorizationCode in dynamodb" });
-		} catch (e: any) {
-			this.logger.error({ message: "got error setting auth code", e });
+		} catch (error: any) {
+			this.logger.error({ message: "got error setting auth code", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to set authorization code ");
 		}
 	}
@@ -180,7 +149,7 @@ export class F2fService {
 				QueueUrl: process.env.TXMA_QUEUE_URL,
 			};
 
-			this.logger.info({ message: "Sending message to TxMA", messageBody });
+			this.logger.info({ message: "Sending message to TxMA", eventName: event.event_name });
 
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to TxMA");
@@ -209,13 +178,13 @@ export class F2fService {
 	async sendToIPVCore(event: IPVCoreEvent): Promise<void> {
 		try {
 			const messageBody = JSON.stringify(event);
-			const queueUrl = this.environmentVariables.getIpvCoreQueueURL(this.logger)
+			const queueUrl = this.environmentVariables.getIpvCoreQueueURL(this.logger);
 			const params = {
 				MessageBody: messageBody,
 				QueueUrl: queueUrl,
 			};
 
-			this.logger.info({ message: "Sending message to IPV Core Queue", queueUrl, messageBody });
+			this.logger.info({ message: "Sending message to IPV Core Queue", queueUrl });
 
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to IPV Core");
@@ -259,7 +228,7 @@ export class F2fService {
 			},
 		});
 
-		this.logger.info({ message: "updating Access token details in dynamodb", updateAccessTokenDetailsCommand });
+		this.logger.info({ message: "updating Access token details in dynamodb" }, { tableName: this.tableName });
 		try {
 			await this.dynamo.send(updateAccessTokenDetailsCommand);
 			this.logger.info({ message: "updated Access token details in dynamodb" });

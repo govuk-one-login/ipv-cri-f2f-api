@@ -49,7 +49,11 @@ class Session implements LambdaInterface {
 					return new Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
 				}
 			default:
-				throw new AppError(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist" + { resource: event.resource });
+				logger.error("Requested resource does not exist", {
+					messageCode: MessageCodes.RESOURCE_NOT_FOUND,
+					resource: event.resource,
+				});
+				return new Response(HttpCodesEnum.NOT_FOUND, "");
 		}
 
 	}

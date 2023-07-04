@@ -4,11 +4,12 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Constants } from "./utils/Constants";
 import { ResourcesEnum } from "./models/enums/ResourcesEnum";
-import { Response } from "./utils/Response";
+import { Response, unauthorizedResponse } from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "./services/DocumentSelectionRequestProcessor";
 import { AppError } from "./utils/AppError";
 import { getParameter } from "./utils/Config";
+import { MessageCodes } from "./models/enums/MessageCodes";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
@@ -26,10 +27,16 @@ export class DocumentSelection implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
+
+		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
+		logger.setPersistentLogAttributes({});
+		logger.addContext(context);
+
 		if (!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0) {
 			logger.error("Environment variable SSM_PATH is not configured");
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
+
 		switch (event.resource) {
 			case ResourcesEnum.DOCUMENTSELECTION:
 				if (event.httpMethod === "POST") {
@@ -37,37 +44,66 @@ export class DocumentSelection implements LambdaInterface {
 						let sessionId;
 						if (event.headers) {
 							sessionId = event.headers[Constants.X_SESSION_ID];
+							logger.appendKeys({ sessionId });
 							if (sessionId) {
-								logger.info({ message: "Session id", sessionId });
 								if (!Constants.REGEX_UUID.test(sessionId)) {
-									return new Response(HttpCodesEnum.BAD_REQUEST, "Session id must be a valid uuid");
+									logger.error("Session id must be a valid uuid",
+										{
+											messageCode: MessageCodes.INVALID_SESSION_ID,
+										});
+									return unauthorizedResponse;
 								}
 							} else {
-								return new Response(HttpCodesEnum.BAD_REQUEST, "Missing header: session-id is required");
+								logger.error("Missing header: session-id is required",
+									{
+										messageCode: MessageCodes.MISSING_SESSION_ID,
+									});
+								return unauthorizedResponse;
 							}
 						} else {
-							return new Response(HttpCodesEnum.BAD_REQUEST, "Empty headers");
+							logger.error("Empty headers",
+								{
+									messageCode: MessageCodes.EMPTY_HEADERS,
+								});
+							return unauthorizedResponse;
 						}
 
 						if (!YOTI_PRIVATE_KEY) {
 							logger.info({ message: "Fetching key from SSM" });
 							try {
 								YOTI_PRIVATE_KEY = await getParameter(this.YOTI_KEY_SSM_PATH);
-							} catch (err) {
-								logger.error(`failed to get param from ssm at ${this.YOTI_KEY_SSM_PATH}`, { err });
-								throw err;
+							} catch (error) {
+								logger.error(`failed to get param from ssm at ${this.YOTI_KEY_SSM_PATH}`, {
+									messageCode: MessageCodes.MISSING_CONFIGURATION,
+									error,
+								});
+								return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 							}
 						}
+						logger.info("Starting DocumentSelectionRequestProcessor",
+							{
+								resource: event.resource,
+							});
 						return await DocumentSelectionRequestProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event, sessionId);
-					} catch (err) {
-						logger.error({ message: "An error has occurred. ", err });
+					} catch (error) {
+						logger.error({ message: "An error has occurred. ",
+							error,
+							messageCode: MessageCodes.SERVER_ERROR,
+						});
+						if (error instanceof AppError) {
+							return new Response(error.statusCode, error.message);
+						}
 						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 					}
 				}
 				return new Response(HttpCodesEnum.NOT_FOUND, "");
 
 			default:
-				throw new AppError(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist" + { resource: event.resource });
+				logger.error("Requested resource does not exist", {
+					messageCode: MessageCodes.RESOURCE_NOT_FOUND,
+					resource: event.resource,
+				});
+				return new Response(HttpCodesEnum.NOT_FOUND, "");
 
 		}
 	}
