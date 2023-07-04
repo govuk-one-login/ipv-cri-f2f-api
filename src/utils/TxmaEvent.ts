@@ -51,11 +51,11 @@ export interface TxmaEvent extends BaseTxmaEvent {
 	"extensions"?: ExtensionObject;
 }
 
-export const buildCoreEventFields = (session: ISessionItem, issuer: string, sourceIp?: string | undefined, getNow: () => number = absoluteTimeNow): BaseTxmaEvent => {
+export const buildCoreEventFields = (session: ISessionItem, issuer: string, sourceIp?: string | undefined, getNow: () => number = absoluteTimeNow, yotiSessionId?: string): BaseTxmaEvent => {
 	return {
 		user: {
 			user_id: session.subject,
-			transaction_id: session.yotiSessionId,
+			transaction_id: yotiSessionId,
 			persistent_session_id: session.persistentSessionId,
 			session_id: session.sessionId,
 			govuk_signin_journey_id: session.clientSessionId,
