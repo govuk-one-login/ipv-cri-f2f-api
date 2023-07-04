@@ -9,6 +9,7 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { AuthorizationRequestProcessor } from "../../../services/AuthorizationRequestProcessor";
 import { VALID_AUTHCODE } from "../data/auth-events";
+import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 
 let authorizationRequestProcessorTest: AuthorizationRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -68,6 +69,34 @@ describe("AuthorizationRequestProcessor", () => {
 		expect(mockF2fService.setAuthorizationCode).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {
+			event_name: "F2F_CRI_AUTH_CODE_ISSUED",
+			client_id: sess.clientId,
+			component_id: process.env.ISSUER,
+			timestamp: absoluteTimeNow(),
+			user: {
+				govuk_signin_journey_id: sess.clientSessionId,
+				ip_address: sess.clientIpAddress,
+				persistent_session_id: sess.persistentSessionId,
+				session_id: sess.sessionId,
+				transaction_id: undefined,
+				user_id: "sub",
+			}
+		})
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {
+			event_name: "F2F_CRI_END",
+			client_id: sess.clientId,
+			component_id: process.env.ISSUER,
+			timestamp: absoluteTimeNow(),
+			user: {
+				govuk_signin_journey_id: sess.clientSessionId,
+				ip_address: sess.clientIpAddress,
+				persistent_session_id: sess.persistentSessionId,
+				session_id: sess.sessionId,
+				transaction_id: undefined,
+				user_id: "sub",
+			}
+		})
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
