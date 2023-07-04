@@ -14,7 +14,7 @@ describe("AbortHandler", () => {
 		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist"));
 	});
 
-	it("return not found when unsupported http method tried for documentSelection", async () => {
+	it("return not found when unsupported http method tried for abort endpoint", async () => {
 		AbortRequestProcessor.getInstance = jest.fn().mockReturnValue(AbortRequestProcessor);
 
 		return expect(lambdaHandler(UNSUPPORTED_METHOD, "")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));

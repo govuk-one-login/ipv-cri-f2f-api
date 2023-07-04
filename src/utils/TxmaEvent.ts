@@ -8,6 +8,7 @@ export type TxmaEventName =
 	| "F2F_YOTI_PDF_EMAILED"
 	| "F2F_YOTI_START"
 	| "F2F_YOTI_END"
+	| "F2F_CRI_SESSION_ABORTED"
 	| "F2F_CRI_VC_ISSUED";
 
 export interface TxmaUser {

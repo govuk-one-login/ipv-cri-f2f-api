@@ -59,7 +59,7 @@ export class AbortHandler implements LambdaInterface {
 							return unauthorizedResponse;
 						}
 
-						logger.info("Starting DocumentSelectionRequestProcessor",
+						logger.info("Starting AbortRequestProcessor",
 							{
 								resource: event.resource,
 							});

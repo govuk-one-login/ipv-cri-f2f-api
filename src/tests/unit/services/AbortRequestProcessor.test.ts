@@ -9,13 +9,12 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 
-let abortRequestProcessor: AbortRequestProcessor;
-let f2fSessionItem: ISessionItem;
-
 const mockF2fService = mock<F2fService>();
 const logger = mock<Logger>();
-const metrics = new Metrics({ namespace: "F2F" });
 
+let abortRequestProcessor: AbortRequestProcessor;
+let f2fSessionItem: ISessionItem;
+const metrics = new Metrics({ namespace: "F2F" });
 const sessionId = "RandomF2FSessionID";
 function getMockSessionItem(): ISessionItem {
 	const sessionInfo: ISessionItem = {
@@ -54,6 +53,7 @@ describe("AbortRequestProcessor", () => {
 
 	it("throws error if session cannot be found", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(undefined);
+
 		await expect(abortRequestProcessor.processRequest(sessionId)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.BAD_REQUEST,
 			message: "Missing details in SESSION table",
@@ -85,6 +85,17 @@ describe("AbortRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.FOUND_REDIRECT);
 		expect(out.body).toBe("Session has been aborted");
 		expect(out.headers).toStrictEqual({ Location:`${f2fSessionItem.redirectUri}?error=access_denied&state=${AuthSessionState.F2F_CRI_SESSION_ABORTED}` });
+	});
+
+	it("sends TxMA event after auth session state has been updated", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+
+		await abortRequestProcessor.processRequest(sessionId);
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(expect.objectContaining({
+			event_name: "F2F_CRI_SESSION_ABORTED",
+		}));
 	});
 
 	it("returns failed response if auth session state cannot be updated", async () => {

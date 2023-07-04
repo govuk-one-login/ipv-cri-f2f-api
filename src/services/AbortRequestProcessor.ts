@@ -5,6 +5,8 @@ import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
+import { absoluteTimeNow } from "../utils/DateTimeUtils";
+import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
@@ -71,6 +73,19 @@ export class AbortRequestProcessor {
   		} else {
   			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
   		}
+  	}
+
+  	try {
+  		await this.f2fService.sendToTXMA({
+  			event_name: "F2F_CRI_SESSION_ABORTED",
+  			...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer() as string, f2fSessionInfo.clientIpAddress, absoluteTimeNow),
+  		});
+  	} catch (error) {
+  		this.logger.error("Auth session successfully created. Failed to send CIC_CRI_START event to TXMA", {
+  			sessionId: f2fSessionInfo.sessionId,
+  			error,
+  			messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
+  		});
   	}
 
   	const redirectUri = `${f2fSessionInfo.redirectUri}?error=access_denied&state=${AuthSessionState.F2F_CRI_SESSION_ABORTED}`;
