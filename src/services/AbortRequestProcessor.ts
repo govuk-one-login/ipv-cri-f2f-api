@@ -81,8 +81,7 @@ export class AbortRequestProcessor {
   			...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer() as string, f2fSessionInfo.clientIpAddress, absoluteTimeNow),
   		});
   	} catch (error) {
-  		this.logger.error("Auth session successfully created. Failed to send CIC_CRI_START event to TXMA", {
-  			sessionId: f2fSessionInfo.sessionId,
+  		this.logger.error("Auth session successfully aborted. Failed to send F2F_CRI_SESSION_ABORTED event to TXMA", {
   			error,
   			messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
   		});

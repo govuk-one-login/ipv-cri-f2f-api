@@ -1004,7 +1004,7 @@ Resources:
                 - "kms:GenerateDataKey"
               Resource: !GetAtt [TxMAKMSEncryptionKey, Arn]
       Events:
-        documentSelection:
+        abort:
           Type: Api
           Properties:
             Path: /abort

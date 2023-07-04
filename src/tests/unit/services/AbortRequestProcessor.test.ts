@@ -98,6 +98,21 @@ describe("AbortRequestProcessor", () => {
 		}));
 	});
 
+	it("logs error if sending TxMA event fails, but successful response is still returned", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.sendToTXMA.mockRejectedValueOnce({});
+
+		const out: Response = await abortRequestProcessor.processRequest(sessionId);
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(logger.error).toHaveBeenCalledWith("Auth session successfully aborted. Failed to send F2F_CRI_SESSION_ABORTED event to TXMA", {
+  			error: {},
+  			messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
+		});
+		expect(out.statusCode).toBe(HttpCodesEnum.FOUND_REDIRECT);
+		expect(out.body).toBe("Session has been aborted");
+	});
+
 	it("returns failed response if auth session state cannot be updated", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.updateSessionAuthState.mockRejectedValueOnce("Error updating auth session state");
