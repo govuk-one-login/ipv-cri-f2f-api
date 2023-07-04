@@ -116,23 +116,23 @@ export class DocumentSelectionRequestProcessor {
   			}
   		}
 
-			try {
-				await this.f2fService.sendToTXMA({
-					event_name: "F2F_YOTI_START",
-					...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow),
-          extensions: {
-            post_office_details: {
-              ...postOfficeSelection
-            }
-          },
-          restricted: {
-            documentType: selectedDocument,
-            issuingCountry: countryCode
-          }
-				});
-			} catch (error) {
-				this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
-			}
+  		try {
+  			await this.f2fService.sendToTXMA({
+  				event_name: "F2F_YOTI_START",
+  				...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow),
+  				extensions: {
+  					post_office_details: {
+  						...postOfficeSelection,
+  					},
+  				},
+  				restricted: {
+  					documentType: selectedDocument,
+  					issuingCountry: countryCode,
+  				},
+  			});
+  		} catch (error) {
+  			this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
+  		}
 			
 
   		return new Response(HttpCodesEnum.OK, "Instructions PDF Generated");

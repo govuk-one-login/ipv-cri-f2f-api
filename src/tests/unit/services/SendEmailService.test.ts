@@ -70,7 +70,7 @@ describe("SendEmailProcessor", () => {
 
 	it("Returns EmailResponse when email is sent successfully", async () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
-		console.log("MOCK EMAIL RESPONSE", mockEmailResponse)
+		console.log("MOCK EMAIL RESPONSE", mockEmailResponse);
 		const sess = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
@@ -79,7 +79,7 @@ describe("SendEmailProcessor", () => {
 		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
 		const emailResponse = await sendEmailServiceTest.sendEmail(email);
 
-		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1)
+		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		expect(emailResponse.emailFailureMessage).toBe("");

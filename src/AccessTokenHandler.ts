@@ -25,9 +25,9 @@ export class AccessToken implements LambdaInterface {
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
 
-				// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
-				logger.setPersistentLogAttributes({});
-				logger.addContext(context);
+		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
+		logger.setPersistentLogAttributes({});
+		logger.addContext(context);
 
 		switch (event.resource) {
 			case ResourcesEnum.TOKEN:

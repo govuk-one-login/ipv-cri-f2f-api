@@ -12,6 +12,7 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MockKmsJwtAdapterForVc } from "../utils/MockJwtVerifierSigner";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { Constants } from "../../../utils/Constants";
+import { MessageCodes } from "../../../models/enums/MessageCodes";
 
 let mockYotiCallbackProcessor: YotiCallbackProcessor;
 const mockF2fService = mock<F2fService>();
@@ -1179,141 +1180,6 @@ describe("YotiCallbackProcessor", () => {
 		jest.clearAllMocks();
 	});
 
-
-		// @ts-ignore
-		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
-
-		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
-
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_YOTI_RESPONSE_RECEIVED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined}});
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined},
-		extensions: {
-			evidence: [
-				{
-					"type": "IdentityCheck",
-					"strengthScore": 3,
-					"validityScore": 2,
-					"verificationScore": 3,
-					"checkDetails": [
-						{
-							"checkMethod": "vri",
-							"identityCheckPolicy": "published",
-							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-						},
-						{
-							"checkMethod": "pvr",
-							"photoVerificationProcessLevel": 3,
-							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-						},
-				],
-				"ci": undefined,
-				}
-			]
-		}, 
-			restricted: {
-				user: {
-					"name": "LEEROY JENKINS",
-					"birthDate": "1988-12-04"
-				},
-				"drivingPermit": [{
-					"documentType": "DRIVING_LICENCE",
-					"personalNumber": "LJENK533401372",
-					"expiryDate": "2025-09-28",
-					"issuingCountry": "GBR",
-					"issuedBy": "DVLA",
-					"issueDate": "2015-09-28",
-					"fullAddress": "122 BURNS CRESCENT\nStormwind\nEH1 9GP"
-				}]
-			}
-		});
-
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
-			sub: "testsub",
-			state: "Y@atr",
-			"https://vocab.account.gov.uk/v1/credentialJWT": [JSON.stringify({
-				"sub":"testsub",
-				"nbf":absoluteTimeNow(),
-				"iss":"https://XXX-c.env.account.gov.uk",
-				"iat":absoluteTimeNow(),
-				"vc":{
-					"@context":[
-					 Constants.W3_BASE_CONTEXT,
-					 Constants.DI_CONTEXT,
-					],
-					"type": [Constants.VERIFIABLE_CREDENTIAL, Constants.IDENTITY_CHECK_CREDENTIAL],
-					 "credentialSubject":{
-						"name":[
-								 {
-								"nameParts":[
-											 {
-										"value":"LEEROY",
-										"type":"GivenName",
-											 },
-											 {
-										"value":"JENKINS",
-										"type":"FamilyName",
-											 },
-								],
-								 },
-						],
-						"birthDate":[
-								 {
-								"value":"1988-12-04",
-								 },
-						],
-						"address":[
-							{
-								"buildingNumber":"122",
-								"streetName":"BURNS CRESCENT",
-								"addressLocality":"STORMWIND",
-								"postalCode":"EH1 9GP",
-								"addressCountry":"United Kingdom"
-							}
-						],
-						"drivingPermit":[
-								 {
-									"personalNumber": "LJENK533401372",
-									"expiryDate": "2025-09-28",
-										"issueDate": "2015-09-28",
-									"issuedBy": "DVLA",
-									
-								 },
-						],
-					 },
-					 "evidence":[
-						{
-								 "type":"IdentityCheck",
-								 "strengthScore":3,
-								 "validityScore":2,
-								 "verificationScore":3,
-								 "checkDetails":[
-								{
-											 "checkMethod":"vri",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-											 "identityCheckPolicy":"published",
-								},
-								{
-											 "checkMethod":"pvr",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-											 "photoVerificationProcessLevel":3,
-								},
-								 ],
-						},
-					 ],
-				},
-		 })],
-		});
-		expect(out.statusCode).toBe(HttpCodesEnum.OK);
-		expect(out.body).toBe("OK");
-		jest.useRealTimers();
-	});
-
 	it("Return successful response with 200 OK when YOTI session created with EU driving permit", async () => {
 		documentFields = getEuDrivingPermitFields();
 		const euDLYotiSession = getCompletedYotiSession();
@@ -1765,8 +1631,8 @@ describe("YotiCallbackProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(logger.error).toHaveBeenNthCalledWith(1, "Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.");
-		expect(logger.error).toHaveBeenNthCalledWith(2, "Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.");
+		expect(logger.error).toHaveBeenNthCalledWith(1, "Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", { messageCode: MessageCodes.FAILED_TO_WRITE_TXMA });
+		expect(logger.error).toHaveBeenNthCalledWith(2, "Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", { error: {}, messageCode: MessageCodes.FAILED_TO_WRITE_TXMA });
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
@@ -1798,5 +1664,4 @@ describe("YotiCallbackProcessor", () => {
 			message: "Yoti Session not complete",
 		}));
 	});
-
 });
