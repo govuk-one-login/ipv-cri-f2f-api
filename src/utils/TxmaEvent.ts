@@ -21,7 +21,7 @@ export interface TxmaUser {
 	"session_id": string;
 	"govuk_signin_journey_id": string;
 	"ip_address"?: string | undefined;
-	"email"?: string
+	"email"?: string;
 }
 
 export interface BaseTxmaEvent {
@@ -33,8 +33,8 @@ export interface BaseTxmaEvent {
 
 export interface RestrictedObject {
 	"user"?: VerifiedCredentialSubject;
-	"documentType"?: string,
-	"issuingCountry"?: string,
+	"documentType"?: string;
+	"issuingCountry"?: string;
 	"passport"?: Passport;
 	"drivingPermit"?: DrivingPermit;
 	"residencePermit"?: ResidencePermit;

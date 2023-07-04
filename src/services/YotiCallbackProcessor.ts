@@ -150,7 +150,7 @@ export class YotiCallbackProcessor {
 					
   			});
   		} catch (error) {
-  			this.logger.error("Failed to write TXMA event F2F_YOTI_END to SQS queue.", {
+  			this.logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", {
   				messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
   			});
   		}
@@ -199,65 +199,60 @@ export class YotiCallbackProcessor {
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core", { shouldThrow: true });
   		}
 
-			// Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
+  		// Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
-			let documentInfo;
-			let docName: any;
+  		let documentInfo;
+  		let docName: any;
 
-			if (documentFields.document_type === 'PASSPORT') {
-				docName = "passport"
-				documentInfo = [{
-					documentType: documentFields.document_type,
-					documentNumber: documentFields.document_number,
-					expiryDate: documentFields.expiration_date,
-					icaoIssuerCode: documentFields.issuing_country
-				} ]
-			} 
-			else if (documentFields.document_type === 'RESIDENCE_PERMIT') {
-				docName = "residencePermit"
-				documentInfo = [{
-					documentType: documentFields.document_type,
-					documentNumber: documentFields.document_number,
-					expiryDate: documentFields.expiration_date,
-					issueDate: documentFields.date_of_issue,
-					icaoIssuerCode: documentFields.issuing_country
-				}]
-			} 
-			else if (documentFields.document_type === "DRIVING_LICENCE" && documentFields.issuing_country != "GBR") {
-				docName = "drivingPermit"
-				documentInfo = [{
-					documentType: documentFields.document_type,
-					personalNumber: documentFields.document_number,
-					expiryDate: documentFields.expiration_date,
-					issuedBy: documentFields.place_of_issue,
-					issueDate: documentFields.date_of_issue,
-					issuingCountry: documentFields.issuing_country
-				}]
+  		if (documentFields.document_type === "PASSPORT") {
+  			docName = "passport";
+  			documentInfo = [{
+  				documentType: documentFields.document_type,
+  				documentNumber: documentFields.document_number,
+  				expiryDate: documentFields.expiration_date,
+  				icaoIssuerCode: documentFields.issuing_country,
+  			} ];
+  		} else if (documentFields.document_type === "RESIDENCE_PERMIT") {
+  			docName = "residencePermit";
+  			documentInfo = [{
+  				documentType: documentFields.document_type,
+  				documentNumber: documentFields.document_number,
+  				expiryDate: documentFields.expiration_date,
+  				issueDate: documentFields.date_of_issue,
+  				icaoIssuerCode: documentFields.issuing_country,
+  			}];
+  		} else if (documentFields.document_type === "DRIVING_LICENCE" && documentFields.issuing_country != "GBR") {
+  			docName = "drivingPermit";
+  			documentInfo = [{
+  				documentType: documentFields.document_type,
+  				personalNumber: documentFields.document_number,
+  				expiryDate: documentFields.expiration_date,
+  				issuedBy: documentFields.place_of_issue,
+  				issueDate: documentFields.date_of_issue,
+  				issuingCountry: documentFields.issuing_country,
+  			}];
 
-			}
-			else if (documentFields.document_type === 'DRIVING_LICENCE') {
-				docName = "drivingPermit"
-				documentInfo = [{
-					documentType: documentFields.document_type,
-					personalNumber: documentFields.document_number,
-					expiryDate: documentFields.expiration_date,
-					issuedBy: documentFields.issuing_authority,
-					issueDate: documentFields.date_of_issue,
-					fullAddress: documentFields.structured_postal_address.formatted_address,
-					issuingCountry: documentFields.issuing_country
-				}]
-			} 
-
-			else if (documentFields.document_type === 'NATIONAL_ID') {
-				docName = "idCard"
-				documentInfo = [{
-					documentType: documentFields.document_type,
-					documentNumber: documentFields.document_number,
-					expiryDate: documentFields.expiration_date,
-					issueDate: documentFields.date_of_issue,
-					icaoIssuerCode: documentFields.issuing_country
-				}]
-			} 
+  		} else if (documentFields.document_type === "DRIVING_LICENCE") {
+  			docName = "drivingPermit";
+  			documentInfo = [{
+  				documentType: documentFields.document_type,
+  				personalNumber: documentFields.document_number,
+  				expiryDate: documentFields.expiration_date,
+  				issuedBy: documentFields.issuing_authority,
+  				issueDate: documentFields.date_of_issue,
+  				fullAddress: documentFields.structured_postal_address.formatted_address,
+  				issuingCountry: documentFields.issuing_country,
+  			}];
+  		} else if (documentFields.document_type === "NATIONAL_ID") {
+  			docName = "idCard";
+  			documentInfo = [{
+  				documentType: documentFields.document_type,
+  				documentNumber: documentFields.document_number,
+  				expiryDate: documentFields.expiration_date,
+  				issueDate: documentFields.date_of_issue,
+  				icaoIssuerCode: documentFields.issuing_country,
+  			}];
+  		} 
 
 
   		try {
@@ -269,26 +264,26 @@ export class YotiCallbackProcessor {
   					f2fSession.clientIpAddress,
   					absoluteTimeNow,
   				),
-					extensions: {
-						evidence: [
-							{
-								type: evidence[0].type,
-								strengthScore: evidence[0].strengthScore,
-								validityScore: evidence[0].validityScore,
-								verificationScore: evidence[0].verificationScore,
-								ci: evidence[0].ci,
-								checkDetails: evidence[0].checkDetails
-							}
-						]
-					},
-					restricted: {
-						user: {
-							name: documentFields.full_name,
-							birthDate: documentFields.date_of_birth
-						},
-						[docName]: documentInfo,
+  				extensions: {
+  					evidence: [
+  						{
+  							type: evidence[0].type,
+  							strengthScore: evidence[0].strengthScore,
+  							validityScore: evidence[0].validityScore,
+  							verificationScore: evidence[0].verificationScore,
+  							ci: evidence[0].ci,
+  							checkDetails: evidence[0].checkDetails,
+  						},
+  					],
+  				},
+  				restricted: {
+  					user: {
+  						name: documentFields.full_name,
+  						birthDate: documentFields.date_of_birth,
+  					},
+  					[docName]: documentInfo,
 
-					}
+  				},
   			});
   		} catch (error) {
   			this.logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", {

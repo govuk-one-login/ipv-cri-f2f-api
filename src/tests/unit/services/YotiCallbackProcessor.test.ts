@@ -12,6 +12,7 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MockKmsJwtAdapterForVc } from "../utils/MockJwtVerifierSigner";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { Constants } from "../../../utils/Constants";
+import { MessageCodes } from "../../../models/enums/MessageCodes";
 
 let mockYotiCallbackProcessor: YotiCallbackProcessor;
 const mockF2fService = mock<F2fService>();
@@ -1217,8 +1218,8 @@ describe("YotiCallbackProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(logger.error).toHaveBeenNthCalledWith(1, "Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.");
-		expect(logger.error).toHaveBeenNthCalledWith(2, "Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.");
+		expect(logger.error).toHaveBeenNthCalledWith(1, "Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", { messageCode: MessageCodes.FAILED_TO_WRITE_TXMA });
+		expect(logger.error).toHaveBeenNthCalledWith(2, "Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", { error: {}, messageCode: MessageCodes.FAILED_TO_WRITE_TXMA });
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
@@ -1250,5 +1251,4 @@ describe("YotiCallbackProcessor", () => {
 			message: "Yoti Session not complete",
 		}));
 	});
-
 });
