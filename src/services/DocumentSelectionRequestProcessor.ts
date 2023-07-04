@@ -119,7 +119,7 @@ export class DocumentSelectionRequestProcessor {
   		try {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_YOTI_START",
-  				...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow),
+  				...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow, yotiSessionId),
   				extensions: {
   					post_office_details: {
   						...postOfficeSelection,

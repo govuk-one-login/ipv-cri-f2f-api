@@ -252,7 +252,6 @@ export class YotiCallbackProcessor {
   			}];
   		} 
 
-
   		try {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_CRI_VC_ISSUED",
