@@ -82,8 +82,9 @@ describe("AbortRequestProcessor", () => {
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(sessionId, AuthSessionState.F2F_CRI_SESSION_ABORTED);
-		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+		expect(out.statusCode).toBe(HttpCodesEnum.FOUND_REDIRECT);
 		expect(out.body).toBe("Session has been aborted");
+		expect(out.headers).toStrictEqual({ Location:`${f2fSessionItem.redirectUri}?error=access_denied&state=${AuthSessionState.F2F_CRI_SESSION_ABORTED}` });
 	});
 
 	it("returns failed response if auth session state cannot be updated", async () => {
