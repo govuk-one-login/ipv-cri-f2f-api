@@ -71,28 +71,28 @@ describe("AuthorizationRequestProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {
 			event_name: "F2F_CRI_AUTH_CODE_ISSUED",
-			client_id: sess.clientId,
+			client_id: "ipv-core-stub",
 			component_id: "https://XXX-c.env.account.gov.uk",
 			timestamp: absoluteTimeNow(),
 			user: {
-				govuk_signin_journey_id: sess.clientSessionId,
-				ip_address: sess.clientIpAddress,
-				persistent_session_id: sess.persistentSessionId,
-				session_id: sess.sessionId,
+				govuk_signin_journey_id: "sdfssg",
+				ip_address: "127.0.0.1",
+				persistent_session_id: "sdgsdg",
+				session_id: "sdfsdg",
 				transaction_id: undefined,
 				user_id: "sub",
 			}
 		})
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {
 			event_name: "F2F_CRI_END",
-			client_id: sess.clientId,
-			component_id: process.env.ISSUER,
+			client_id: "ipv-core-stub",
+			component_id: "https://XXX-c.env.account.gov.uk",
 			timestamp: absoluteTimeNow(),
 			user: {
-				govuk_signin_journey_id: sess.clientSessionId,
-				ip_address: sess.clientIpAddress,
-				persistent_session_id: sess.persistentSessionId,
-				session_id: sess.sessionId,
+				govuk_signin_journey_id: "sdfssg",
+				ip_address: "127.0.0.1",
+				persistent_session_id: "sdgsdg",
+				session_id: "sdfsdg",
 				transaction_id: undefined,
 				user_id: "sub",
 			}
