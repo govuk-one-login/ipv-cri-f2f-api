@@ -105,16 +105,16 @@ class MockYotiSessionHandler implements LambdaInterface {
 			 case ResourcesEnum.INSTRUCTIONS:
 				 if (event.httpMethod === "PUT") {
 					 try {
-						 logger.info("Event received: PutInstructions", {event});
+					 	logger.info("Event received: PutInstructions", {event});
 
-						 let payload = event.body;
-							let payloadParsed;
+					 	let payload = event.body;
+						let payloadParsed;
 
-						if(payload){
+						if(payload) {
 							if(event.isBase64Encoded){
 								payloadParsed=  JSON.parse(Buffer.from(payload, 'base64').toString('binary'));
 							}
-							else{
+							else {
 								payloadParsed = JSON.parse(payload);
 							}
 						}
