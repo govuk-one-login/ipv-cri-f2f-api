@@ -60,9 +60,10 @@ export class YotiService {
 		personDetails: PersonIdentityItem,
 	): ApplicantProfile {
 		const nameParts = personIdentityUtils.getNames(personDetails);
+		const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(' ') : nameParts.givenNames[0];
 
 		return {
-			full_name: `${nameParts.givenNames[0]} ${nameParts.familyNames[0]}`,
+			full_name: `${givenNames} ${nameParts.familyNames[0]}`,
 			date_of_birth: `${personDetails.birthDate.map((bd) => ({ value: bd.value }))[0].value}`,
 			structured_postal_address: personIdentityUtils.getYotiStructuredPostalAddress(personDetails),
 		};
@@ -222,10 +223,11 @@ export class YotiService {
 		PostOfficeSelection: PostOfficeInfo,
 	):Promise<number | undefined> {
 		const nameParts = personIdentityUtils.getNames(personDetails);
+		const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(' ') : nameParts.givenNames[0];
 
 		const payloadJSON = {
 			contact_profile: {
-				first_name: `${nameParts.givenNames[0]}`,
+				first_name: `${givenNames}`,
   			last_name: `${nameParts.familyNames[0]}`,
   			email: personIdentityUtils.getEmailAddress(personDetails),
 			},

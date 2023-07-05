@@ -125,7 +125,7 @@ function getYotiSessionInfo(): YotiSessionInfo {
 						{
 							"type":"DOCUMENT_SCHEME_VALIDITY_CHECK",
 							"state":"REQUIRED",
-							"scheme":"UK_DBS",
+							"scheme":"UK_GDS",
 						},
 						{
 							"type":"PROFILE_DOCUMENT_MATCH",

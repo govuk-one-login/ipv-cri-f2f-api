@@ -28,7 +28,7 @@ export const CREATE_SESSION = {
           "type": "DOCUMENT_SCHEME_VALIDITY_CHECK",
           "config": {
               "manual_check": "IBV",
-              "scheme": "UK_DBS"
+              "scheme": "UK_GDS"
           }
       },
       {

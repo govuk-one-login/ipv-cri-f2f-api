@@ -44,7 +44,7 @@ export const YOTI_CHECKS = {
 		"type": "DOCUMENT_SCHEME_VALIDITY_CHECK",
 		"config": {
 			"manual_check": MANUAL_CHECK_TYPE.IBV,
-			"scheme": "UK_DBS",
+			"scheme": "UK_GDS",
 		},
 	},
 	ID_DOCUMENT_AUTHENTICITY : {

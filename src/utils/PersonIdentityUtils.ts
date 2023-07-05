@@ -31,7 +31,7 @@ export const personIdentityUtils = {
 		return {
   		address_format: 1,
   		building_number: address.buildingNumber,
-  		address_line1: `${address.buildingName} ${address.streetName}`,
+  		address_line1: `${address.buildingNumber} ${address.buildingName ? `${address.buildingName} ` : ''}${address.streetName}`.trim(),
   		town_city: address.addressLocality,
   		postal_code: address.postalCode,
   		country_iso: "GBR",
