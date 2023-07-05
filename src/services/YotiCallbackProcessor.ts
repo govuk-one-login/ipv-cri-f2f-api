@@ -16,6 +16,7 @@ import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../utils/YotiPayloadEnums";
 import { MessageCodes } from "../models/enums/MessageCodes";
+import { DocumentTypes } from "../models/enums/DocumentTypes";
 
 export class YotiCallbackProcessor {
 
@@ -204,7 +205,7 @@ export class YotiCallbackProcessor {
   		let documentInfo;
   		let docName: any;
 
-  		if (documentFields.document_type === "PASSPORT") {
+  		if (documentFields.document_type === DocumentTypes.PASSPORT) {
   			docName = "passport";
   			documentInfo = [{
   				documentType: documentFields.document_type,
@@ -212,7 +213,7 @@ export class YotiCallbackProcessor {
   				expiryDate: documentFields.expiration_date,
   				icaoIssuerCode: documentFields.issuing_country,
   			} ];
-  		} else if (documentFields.document_type === "RESIDENCE_PERMIT") {
+  		} else if (documentFields.document_type === DocumentTypes.RESIDENCE_PERMIT) {
   			docName = "residencePermit";
   			documentInfo = [{
   				documentType: documentFields.document_type,
@@ -221,7 +222,7 @@ export class YotiCallbackProcessor {
   				issueDate: documentFields.date_of_issue,
   				icaoIssuerCode: documentFields.issuing_country,
   			}];
-  		} else if (documentFields.document_type === "DRIVING_LICENCE" && documentFields.issuing_country != "GBR") {
+  		} else if (documentFields.document_type === DocumentTypes.DRIVING_LICENCE && documentFields.issuing_country != "GBR") {
   			docName = "drivingPermit";
   			documentInfo = [{
   				documentType: documentFields.document_type,
@@ -232,7 +233,7 @@ export class YotiCallbackProcessor {
   				issuingCountry: documentFields.issuing_country,
   			}];
 
-  		} else if (documentFields.document_type === "DRIVING_LICENCE") {
+  		} else if (documentFields.document_type === DocumentTypes.DRIVING_LICENCE) {
   			docName = "drivingPermit";
   			documentInfo = [{
   				documentType: documentFields.document_type,
@@ -243,7 +244,7 @@ export class YotiCallbackProcessor {
   				fullAddress: documentFields.structured_postal_address.formatted_address,
   				issuingCountry: documentFields.issuing_country,
   			}];
-  		} else if (documentFields.document_type === "NATIONAL_ID") {
+  		} else if (documentFields.document_type === DocumentTypes.NATIONAL_ID) {
   			docName = "idCard";
   			documentInfo = [{
   				documentType: documentFields.document_type,
