@@ -13,7 +13,8 @@ import { MockKmsJwtAdapterForVc } from "../utils/MockJwtVerifierSigner";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { Constants } from "../../../utils/Constants";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
-import { TXMA_CORE_FIELDS, TXMA_VC_ISSUED } from "../data/txmaEvent";
+import { TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
+import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
 
 let mockYotiCallbackProcessor: YotiCallbackProcessor;
 const mockF2fService = mock<F2fService>();
@@ -612,51 +613,11 @@ describe("YotiCallbackProcessor", () => {
 		const ukDlcoreFields = TXMA_CORE_FIELDS
 		ukDlcoreFields.timestamp = absoluteTimeNow()
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, ukDlcoreFields);
-		const ukDlVcIssued =  TXMA_VC_ISSUED;
+		const ukDlVcIssued =  TXMA_DL_VC_ISSUED;
 		ukDlVcIssued.event_name = "F2F_CRI_VC_ISSUED"
 		ukDlVcIssued.timestamp = absoluteTimeNow()
-		ukDlVcIssued.restricted.user.name = "LEEROY JENKINS"
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined},
-		extensions: {
-			evidence: [
-				{
-					"type": "IdentityCheck",
-					"strengthScore": 3,
-					"validityScore": 2,
-					"verificationScore": 3,
-					"checkDetails": [
-						{
-							"checkMethod": "vri",
-							"identityCheckPolicy": "published",
-							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-						},
-						{
-							"checkMethod": "pvr",
-							"photoVerificationProcessLevel": 3,
-							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-						},
-				],
-				"ci": undefined,
-				}
-			]
-		}, 
-			restricted: {
-				user: {
-					"name": "LEEROY JENKINS",
-					"birthDate": "1988-12-04"
-				},
-				"drivingPermit": [{
-					"documentType": "DRIVING_LICENCE",
-					"personalNumber": "LJENK533401372",
-					"expiryDate": "2025-09-28",
-					"issuingCountry": "GBR",
-					"issuedBy": "DVLA",
-					"issueDate": "2015-09-28",
-					"fullAddress": "122 BURNS CRESCENT\nStormwind\nEH1 9GP"
-				}]
-			}
-		});
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, ukDlVcIssued);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);

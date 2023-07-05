@@ -56,3 +56,23 @@ export const TXMA_VC_ISSUED = {
     }]
   }
 }
+
+export const TXMA_DL_VC_ISSUED = {
+  ...TXMA_CORE_FIELDS,
+  ...TXMA_EXTENSION, 
+  restricted: {
+    user: {
+      "name": "LEEROY JENKINS",
+      "birthDate": "1988-12-04"
+    },
+    "drivingPermit": [{
+      "documentType": "DRIVING_LICENCE",
+      "personalNumber": "LJENK533401372",
+      "expiryDate": "2025-09-28",
+      "issuingCountry": "GBR",
+      "issuedBy": "DVLA",
+      "issueDate": "2015-09-28",
+      "fullAddress": "122 BURNS CRESCENT\nStormwind\nEH1 9GP"
+    }]
+  }
+}
