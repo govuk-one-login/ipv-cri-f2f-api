@@ -76,3 +76,58 @@ export const TXMA_DL_VC_ISSUED = {
     }]
   }
 }
+
+export const TXMA_EU_DL_VC_ISSUED = {
+  ...TXMA_CORE_FIELDS,
+  ...TXMA_EXTENSION, 
+  restricted: {
+    user: {
+      "name": "Erika - Mustermann",
+      "birthDate": "1988-12-04"
+    },
+    "drivingPermit": [{
+      "documentType": "DRIVING_LICENCE",
+      "personalNumber": "Z021AB37X13",
+      "expiryDate": "2036-03-19",
+      "issuingCountry": "DEU",
+      "issuedBy": "Landratsamt Mu sterhausen amSee",
+      "issueDate": "2021-03-20",
+    }]
+  }
+}
+
+export const TXMA_EEA_VC_ISSUED = {
+  ...TXMA_CORE_FIELDS,
+  ...TXMA_EXTENSION, 
+  restricted: {
+    user: {
+      "name": "Wiieke Liselotte De Bruijn",
+      "birthDate": "1988-12-04"
+    },
+    "idCard": [{
+      "documentType": "NATIONAL_ID",
+      "documentNumber": "SPEC12031",
+      "expiryDate": "2031-08-02",
+      "icaoIssuerCode": "NLD",
+      "issueDate": "2021-08-02",
+    }]
+  }
+}
+
+export const TXMA_BRP_VC_ISSUED = {
+  ...TXMA_CORE_FIELDS,
+  ...TXMA_EXTENSION, 
+  restricted: {
+    user: {
+      "name": "TECH REFRESH ICTHREEMALE",
+      "birthDate": "1988-12-04"
+    },
+    "residencePermit": [{
+      "documentType": "RESIDENCE_PERMIT",
+      "documentNumber": "RF9082242",
+      "expiryDate": "2024-11-11",
+      "issueDate": "2015-05-19",
+      "icaoIssuerCode": "GBR"
+    }]
+  }
+}

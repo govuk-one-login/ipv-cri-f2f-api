@@ -13,7 +13,7 @@ import { MockKmsJwtAdapterForVc } from "../utils/MockJwtVerifierSigner";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { Constants } from "../../../utils/Constants";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
-import { TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
+import { TXMA_BRP_VC_ISSUED, TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_EEA_VC_ISSUED, TXMA_EU_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
 import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
 
 let mockYotiCallbackProcessor: YotiCallbackProcessor;
@@ -725,45 +725,10 @@ describe("YotiCallbackProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, euDlcoreFields);
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined},
-		extensions: {
-			evidence: [
-				{
-					"type": "IdentityCheck",
-					"strengthScore": 3,
-					"validityScore": 2,
-					"verificationScore": 3,
-					"checkDetails": [
-						{
-							"checkMethod": "vri",
-							"identityCheckPolicy": "published",
-							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-						},
-						{
-							"checkMethod": "pvr",
-							"photoVerificationProcessLevel": 3,
-							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-						},
-				],
-				"ci": undefined,
-				}
-			]
-		}, 
-			restricted: {
-				user: {
-					"name": "Erika - Mustermann",
-					"birthDate": "1988-12-04"
-				},
-				"drivingPermit": [{
-					"documentType": "DRIVING_LICENCE",
-					"personalNumber": "Z021AB37X13",
-					"expiryDate": "2036-03-19",
-					"issuingCountry": "DEU",
-					"issuedBy": "Landratsamt Mu sterhausen amSee",
-					"issueDate": "2021-03-20",
-				}]
-			}
-		});
+		const euDlVcIssued =  TXMA_EU_DL_VC_ISSUED;
+		euDlVcIssued.event_name = "F2F_CRI_VC_ISSUED"
+		euDlVcIssued.timestamp = absoluteTimeNow()
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, euDlVcIssued)
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
@@ -861,49 +826,14 @@ describe("YotiCallbackProcessor", () => {
 		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
 		const eeaDlcoreFields = TXMA_CORE_FIELDS
 		eeaDlcoreFields.timestamp = absoluteTimeNow()
-
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, eeaDlcoreFields);
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined},
-		extensions: {
-			evidence: [
-				{
-					"type": "IdentityCheck",
-					"strengthScore": 3,
-					"validityScore": 2,
-					"verificationScore": 3,
-					"checkDetails": [
-						{
-							"checkMethod": "vri",
-							"identityCheckPolicy": "published",
-							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-						},
-						{
-							"checkMethod": "pvr",
-							"photoVerificationProcessLevel": 3,
-							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-						},
-				],
-				"ci": undefined,
-				}
-			]
-		}, 
-			restricted: {
-				user: {
-					"name": "Wiieke Liselotte De Bruijn",
-					"birthDate": "1988-12-04"
-				},
-				"idCard": [{
-					"documentType": "NATIONAL_ID",
-					"documentNumber": "SPEC12031",
-					"expiryDate": "2031-08-02",
-					"icaoIssuerCode": "NLD",
-					"issueDate": "2021-08-02",
-				}]
-			}
-		});
+		const eeaVcIssued =  TXMA_EEA_VC_ISSUED;
+		eeaVcIssued.event_name = "F2F_CRI_VC_ISSUED"
+		eeaVcIssued.timestamp = absoluteTimeNow()
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, eeaVcIssued)
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
@@ -1004,44 +934,10 @@ describe("YotiCallbackProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, brpCoreFields);
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {"client_id": "ipv-core-stub", "component_id": "https://XXX-c.env.account.gov.uk", "event_name": "F2F_CRI_VC_ISSUED", "timestamp": absoluteTimeNow(), "user": {"govuk_signin_journey_id": "sdfssg", "ip_address": "127.0.0.1", "persistent_session_id": "sdgsdg", "session_id": "RandomF2FSessionID", "transaction_id": undefined, "user_id": "testsub", "email": undefined},
-		extensions: {
-			evidence: [
-				{
-					"type": "IdentityCheck",
-					"strengthScore": 3,
-					"validityScore": 2,
-					"verificationScore": 3,
-					"checkDetails": [
-						{
-							"checkMethod": "vri",
-							"identityCheckPolicy": "published",
-							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-						},
-						{
-							"checkMethod": "pvr",
-							"photoVerificationProcessLevel": 3,
-							"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-						},
-				],
-				"ci": undefined,
-				}
-			]
-		}, 
-			restricted: {
-				user: {
-					"name": "TECH REFRESH ICTHREEMALE",
-					"birthDate": "1988-12-04"
-				},
-				"residencePermit": [{
-					"documentType": "RESIDENCE_PERMIT",
-					"documentNumber": "RF9082242",
-					"expiryDate": "2024-11-11",
-					"issueDate": "2015-05-19",
-					"icaoIssuerCode": "GBR"
-				}]
-			}
-		});
+		const brpVcIssued =  TXMA_BRP_VC_ISSUED;
+		brpVcIssued.event_name = "F2F_CRI_VC_ISSUED"
+		brpVcIssued.timestamp = absoluteTimeNow()
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, brpVcIssued);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
