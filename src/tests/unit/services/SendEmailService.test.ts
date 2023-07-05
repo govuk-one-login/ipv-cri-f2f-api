@@ -70,7 +70,6 @@ describe("SendEmailProcessor", () => {
 
 	it("Returns EmailResponse when email is sent successfully", async () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
-		console.log("MOCK EMAIL RESPONSE", mockEmailResponse);
 		const sess = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
