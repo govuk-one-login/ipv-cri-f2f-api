@@ -98,7 +98,7 @@ export class YotiRequestProcessor {
      */
     async createSession(event: APIGatewayProxyEvent, incomingPayload: any): Promise<Response> {
         this.logger.info("START OF CREATESESSION")
-
+	this.logger.info("/createSession Payload", {incomingPayload});
         const fullName = incomingPayload.resources.applicant_profile.full_name;
         const yotiSessionItem = new YotiSessionItem();
         const yotiSessionId = randomUUID();
