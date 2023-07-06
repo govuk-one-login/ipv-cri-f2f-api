@@ -1071,9 +1071,10 @@ Resources:
               - "sqs:ReceiveMessage"
             Resource:
               - !GetAtt TxMASQSQueue.Arn
-            Principal:
-              AWS:
-                - !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
+            # F2F-838 - Temporarily removed for Production Testing | Remove permissions for VCs and TxMA Event propagation downstream
+            # Principal:
+            #   AWS:
+            #     - !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
 
   TxMASQSQueueDeadLetterQueue:
     Type: AWS::SQS::Queue
@@ -1883,9 +1884,10 @@ Resources:
               - "sqs:ReceiveMessage"
             Resource:
               - !GetAtt IPVCoreSQSQueue.Arn
-            Principal:
-              AWS:
-                - !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
+            # F2F-838 - Temporarily removed for Production Testing | Remove permissions for VCs and TxMA Event propagation downstream
+            # Principal:
+            #   AWS:
+            #     - !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
 
   IPVCoreDeadLetterQueue:
     Type: AWS::SQS::Queue
