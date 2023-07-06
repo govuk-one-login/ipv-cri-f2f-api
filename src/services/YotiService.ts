@@ -225,11 +225,12 @@ export class YotiService {
 	):Promise<number | undefined> {
 		const nameParts = personIdentityUtils.getNames(personDetails);
 		const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(' ') : nameParts.givenNames[0];
+		const familyNames = nameParts.familyNames.length > 1 ? nameParts.familyNames.join(' ') : nameParts.familyNames[0];
 
 		const payloadJSON = {
 			contact_profile: {
 				first_name: givenNames,
-  			last_name: `${nameParts.familyNames[0]}`,
+  			last_name: familyNames,
   			email: personIdentityUtils.getEmailAddress(personDetails),
 			},
 			documents: requirements,
