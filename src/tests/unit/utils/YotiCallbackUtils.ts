@@ -350,7 +350,7 @@ export function getDrivingPermitFields() {
 			"postal_code": "EH1 9GP",
 			"country_iso": "GBR",
 			"country": "United Kingdom",
-			"formatted_address": "122 BURNS CRESCENT\nStormwind\nEH1 9GP"
+			"formatted_address": "122 BURNS CRESCENT\nStormwind\nEH1 9GP",
 		},
 		"document_type": "DRIVING_LICENCE",
 		"issuing_country": "GBR",
@@ -374,7 +374,7 @@ export function getEuDrivingPermitFields() {
 		"document_number": "Z021AB37X13",
 		"expiration_date": "2036-03-19",
 		"date_of_issue": "2021-03-20",
-		"place_of_issue": "Landratsamt Mu sterhausen amSee"
+		"place_of_issue": "Landratsamt Mu sterhausen amSee",
 	};
 	return documentFields;
 }
@@ -412,9 +412,9 @@ export function getBrpFields() {
 			"type": 1,
 			"line1": "IRGBRRF90822427<<<<<<<<<<<<<<<",
 			"line2": "9008010M1511114KEN<<<<<<<<<<<8",
-			"line3": "ICTHREEMALE<<TECH<REFRESH<<<<<"
+			"line3": "ICTHREEMALE<<TECH<REFRESH<<<<<",
 		},
-		"place_of_issue": "UK"
+		"place_of_issue": "UK",
 	};
 	return documentFields;
 }

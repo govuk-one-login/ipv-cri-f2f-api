@@ -82,8 +82,8 @@ describe("AuthorizationRequestProcessor", () => {
 				session_id: "sdfsdg",
 				transaction_id: undefined,
 				user_id: "sub",
-			}
-		})
+			},
+		});
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {
 			event_name: "F2F_CRI_END",
@@ -97,8 +97,8 @@ describe("AuthorizationRequestProcessor", () => {
 				session_id: "sdfsdg",
 				transaction_id: undefined,
 				user_id: "sub",
-			}
-		})
+			},
+		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
