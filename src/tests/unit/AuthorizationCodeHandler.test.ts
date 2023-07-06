@@ -33,8 +33,6 @@ describe("AuthorizationCodeHandler", () => {
 	it("return not found when resource not found", async () => {
 		AuthorizationRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedAuthorizationRequestProcessor);
 
-		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "AUTH_CODE")).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.NOT_FOUND,
-		}));
+		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "AUTH_CODE")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
 	});
 });

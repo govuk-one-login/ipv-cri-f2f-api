@@ -12,6 +12,7 @@ import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
+import { MessageCodes } from "../models/enums/MessageCodes";
 
 export class AuthorizationRequestProcessor {
 	private static instance: AuthorizationRequestProcessor;
@@ -47,10 +48,13 @@ export class AuthorizationRequestProcessor {
 
 		if (session != null) {
 			if (session.expiryDate < absoluteTimeNow()) {
+				this.logger.error("Session has expired", { messageCode: MessageCodes.EXPIRED_SESSION });
 				return new Response(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionId} has expired`);
 			}
 
-			this.logger.info({ message: "found session", session });
+			this.logger.info({ message: "Found Session" });
+			this.logger.appendKeys({ sessionId: session.sessionId });
+
 			this.metrics.addMetric("found session", MetricUnits.Count, 1);
 			if (session.authSessionState === AuthSessionState.F2F_YOTI_SESSION_CREATED) {
 
@@ -66,7 +70,9 @@ export class AuthorizationRequestProcessor {
 
 					});
 				} catch (error) {
-					this.logger.error("Failed to write TXMA event F2F_CRI_AUTH_CODE_ISSUED to SQS queue.");
+					this.logger.error("Failed to write TXMA event F2F_CRI_AUTH_CODE_ISSUED to SQS queue.", {
+						messageCode: MessageCodes.ERROR_WRITING_TXMA,
+					});
 				}
 
 				const f2fResp = {
@@ -77,12 +83,18 @@ export class AuthorizationRequestProcessor {
 					state: session?.state,
 				};
 
+				this.logger.info("Returning success response");
 				return new Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));
 			} else {
-				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_YOTI_SESSION_CREATED}`);
+				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_YOTI_SESSION_CREATED}`, {
+					messageCode: MessageCodes.INCORRECT_SESSION_STATE,
+				});
 				return new Response(HttpCodesEnum.UNAUTHORIZED, `Session is in the wrong state: ${session.authSessionState}`);
 			}
 		} else {
+			this.logger.error("No session found for session id", {
+				messageCode: MessageCodes.SESSION_NOT_FOUND,
+			});
 			return new Response(HttpCodesEnum.UNAUTHORIZED, `No session found with the session id: ${sessionId}`);
 		}
 	}

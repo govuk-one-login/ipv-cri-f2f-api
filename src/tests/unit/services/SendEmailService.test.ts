@@ -73,7 +73,7 @@ describe("SendEmailProcessor", () => {
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
 		const emailResponse = await sendEmailServiceTest.sendEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
@@ -98,7 +98,7 @@ describe("SendEmailProcessor", () => {
 			},
 		});
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
 		await expect(sendEmailServiceTest.sendEmail(email)).rejects.toThrow();
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
 	});
@@ -120,7 +120,7 @@ describe("SendEmailProcessor", () => {
 		});
 
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
 		await expect(sendEmailServiceTest.sendEmail(email)).rejects.toThrow();
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(4);
 	});
@@ -142,7 +142,7 @@ describe("SendEmailProcessor", () => {
 		});
 
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
 		await expect(sendEmailServiceTest.sendEmail(email)).rejects.toThrow();
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(4);
 	});
@@ -153,7 +153,7 @@ describe("SendEmailProcessor", () => {
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
 		const emailResponse = await sendEmailServiceTest.sendEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
@@ -173,7 +173,7 @@ describe("SendEmailProcessor", () => {
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
 		const emailResponse = await sendEmailServiceTest.sendEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
