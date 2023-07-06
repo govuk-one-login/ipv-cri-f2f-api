@@ -177,6 +177,9 @@ Conditions:
   IsPersonalIdentifiableInformationEnvironment: !Or
     - !Equals [!Ref Environment, integration]
     - !Equals [!Ref Environment, production]
+  IsNotBlockedSQSTemporary: !Or
+    - !Equals [!Ref Environment, staging]
+    - !Equals [!Ref Environment, integration]
   UseCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -997,6 +1000,11 @@ Resources:
               - "sqs:ReceiveMessage"
             Resource:
               - !GetAtt TxMASQSQueue.Arn
+            Principal: 
+              AWS: !If 
+                - IsNotBlockedSQSTemporary
+                - !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
+                - !Ref AWS::NoValue
             # F2F-838 - Temporarily removed for Production Testing | Remove permissions for VCs and TxMA Event propagation downstream
             # Principal:
             #   AWS:
@@ -1810,6 +1818,11 @@ Resources:
               - "sqs:ReceiveMessage"
             Resource:
               - !GetAtt IPVCoreSQSQueue.Arn
+             Principal: 
+              AWS: !If 
+                - IsNotBlockedSQSTemporary
+                - !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
+                - !Ref AWS::NoValue
             # F2F-838 - Temporarily removed for Production Testing | Remove permissions for VCs and TxMA Event propagation downstream
             # Principal:
             #   AWS:
