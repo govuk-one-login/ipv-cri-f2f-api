@@ -190,24 +190,6 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 	return session.Item as ISessionItem;
 }
 
-// export async function updateYotiSessionId(sessionId: string, yotiSessionId: any, updatedYotiSessionId: string): Promise<void> {
-// 	const dynamoDB = createDynamoDbClient();
-//
-// 	const updateSessionCommand = new UpdateCommand({
-// 		TableName: "session-f2f-cri-ddb",
-// 		Key: { sessionId },
-// 		UpdateExpression: "SET yotiSessionId=:yotiSessionId",
-// 		ExpressionAttributeValues: {
-// 			":yotiSessionId": updatedYotiSessionId,
-// 		},
-// 	});
-// 	try {
-// 		dynamoDB.send(updateSessionCommand);
-// 		console.info({ message: "updated yotiSessionId in dynamodb" });
-// 	} catch (e: any) {
-// 		console.error({ message: "got error updating yotiSessionId", e });
-// 	}
-// }
 
 export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 	const queueURL = constants.DEV_F2F_IPV_CORE_QUEUE_URL;
@@ -289,4 +271,10 @@ export function validateJwtToken(jwtToken:any, vcData: any, yotiId?: string):voi
 		console.log(actualContraIndicatiors);
 		expect(expectedContraIndicatiors.split(",")).toStrictEqual(actualContraIndicatiors);
 	}
+}
+
+export function printVerifiableCredential(jwtToken:any):void {
+	const [rawHead, rawBody, signature] = jwtToken.split(".");
+	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
+	console.log(decodedBody);
 }
