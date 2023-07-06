@@ -156,7 +156,7 @@ const generateInstructionsPayload = {
 	],
 	branch: {
 		type: "UK_POST_OFFICE",
-		name: "UK Post Office Branch",
+		name: "The Funkytown Post office",
 		address: "1 The Street, Funkytown",
 		post_code: "SW19 4NS",
 		location: {
@@ -467,6 +467,7 @@ describe("YotiService", () => {
 			},
 		];
 		const PostOfficeSelection = {
+			name: "The Funkytown Post office",
 			address: "1 The Street, Funkytown",
 			location: {
 				latitude: 0.34322,
@@ -486,6 +487,7 @@ describe("YotiService", () => {
 			const statusCode = await yotiService.generateInstructions(sessionID, personDetails, requirements, PostOfficeSelection);
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
+			// eslint-disable-next-line @typescript-eslint/unbound-method
 			expect(axios.put).toHaveBeenCalledWith(
 				"https://example.com/api/sessions/session123/instructions",
 				generateInstructionsPayload,
@@ -504,9 +506,10 @@ describe("YotiService", () => {
 
 			await expect(
 				yotiService.generateInstructions(sessionID, personDetails, requirements, PostOfficeSelection),
-			).rejects.toThrow(new AppError(HttpCodesEnum.SERVER_ERROR, "Error generationg Yoti instructions PDF"));
+			).rejects.toThrow(new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF"));
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
+			// eslint-disable-next-line @typescript-eslint/unbound-method
 			expect(axios.put).toHaveBeenCalledWith(
 				"https://example.com/api/sessions/session123/instructions",
 				generateInstructionsPayload,
