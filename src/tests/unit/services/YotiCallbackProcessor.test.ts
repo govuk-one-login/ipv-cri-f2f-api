@@ -90,12 +90,12 @@ describe("YotiCallbackProcessor", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		const coreFields = TXMA_CORE_FIELDS
-		coreFields.timestamp = absoluteTimeNow()
+		const coreFields = TXMA_CORE_FIELDS;
+		coreFields.timestamp = absoluteTimeNow();
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(coreFields);
 		const vcIssued =  TXMA_VC_ISSUED;
-		vcIssued.event_name = "F2F_CRI_VC_ISSUED"
-		vcIssued.timestamp = absoluteTimeNow()
+		vcIssued.event_name = "F2F_CRI_VC_ISSUED";
+		vcIssued.timestamp = absoluteTimeNow();
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(vcIssued);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
@@ -177,7 +177,7 @@ describe("YotiCallbackProcessor", () => {
 	it("Return successful response with 200 OK when YOTI session created with driving permit", async () => {
 		documentFields = getDrivingPermitFields();
 		const ukDLYotiSession =  getCompletedYotiSession();
-		ukDLYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE"
+		ukDLYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE";
 		jest.useFakeTimers();
 		jest.setSystemTime(absoluteTimeNow());
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(ukDLYotiSession);
@@ -191,12 +191,12 @@ describe("YotiCallbackProcessor", () => {
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
-		const ukDlcoreFields = TXMA_CORE_FIELDS
-		ukDlcoreFields.timestamp = absoluteTimeNow()
+		const ukDlcoreFields = TXMA_CORE_FIELDS;
+		ukDlcoreFields.timestamp = absoluteTimeNow();
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, ukDlcoreFields);
 		const ukDlVcIssued =  TXMA_DL_VC_ISSUED;
-		ukDlVcIssued.event_name = "F2F_CRI_VC_ISSUED"
-		ukDlVcIssued.timestamp = absoluteTimeNow()
+		ukDlVcIssued.event_name = "F2F_CRI_VC_ISSUED";
+		ukDlVcIssued.timestamp = absoluteTimeNow();
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, ukDlVcIssued);
 
@@ -243,15 +243,15 @@ describe("YotiCallbackProcessor", () => {
 								"streetName":"BURNS CRESCENT",
 								"addressLocality":"STORMWIND",
 								"postalCode":"EH1 9GP",
-								"addressCountry":"United Kingdom"
-							}
+								"addressCountry":"United Kingdom",
+							},
 						],
 						"drivingPermit":[
 								 {
-									"personalNumber": "LJENK533401372",
-									"expiryDate": "2025-09-28",
-										"issueDate": "2015-09-28",
-									"issuedBy": "DVLA",
+								"personalNumber": "LJENK533401372",
+								"expiryDate": "2025-09-28",
+								"issueDate": "2015-09-28",
+								"issuedBy": "DVLA",
 									
 								 },
 						],
@@ -287,8 +287,8 @@ describe("YotiCallbackProcessor", () => {
 	it("Return successful response with 200 OK when YOTI session created with EU driving permit", async () => {
 		documentFields = getEuDrivingPermitFields();
 		const euDLYotiSession = getCompletedYotiSession();
-		euDLYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE"
-		euDLYotiSession.resources.id_documents[0].issuing_country = "DEU"
+		euDLYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE";
+		euDLYotiSession.resources.id_documents[0].issuing_country = "DEU";
 		jest.useFakeTimers();
 		jest.setSystemTime(absoluteTimeNow());
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(euDLYotiSession);
@@ -299,17 +299,17 @@ describe("YotiCallbackProcessor", () => {
 		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
-		const euDlcoreFields = TXMA_CORE_FIELDS
-		euDlcoreFields.timestamp = absoluteTimeNow()
+		const euDlcoreFields = TXMA_CORE_FIELDS;
+		euDlcoreFields.timestamp = absoluteTimeNow();
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, euDlcoreFields);
 		const euDlVcIssued =  TXMA_EU_DL_VC_ISSUED;
-		euDlVcIssued.event_name = "F2F_CRI_VC_ISSUED"
-		euDlVcIssued.timestamp = absoluteTimeNow()
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, euDlVcIssued)
+		euDlVcIssued.event_name = "F2F_CRI_VC_ISSUED";
+		euDlVcIssued.timestamp = absoluteTimeNow();
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, euDlVcIssued);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
@@ -354,11 +354,11 @@ describe("YotiCallbackProcessor", () => {
 						],
 						"drivingPermit":[
 								 {
-									"personalNumber": "Z021AB37X13",
-									"expiryDate": "2036-03-19",
-									"issueDate": "2021-03-20",
-									"issuedBy": "Landratsamt Mu sterhausen amSee",
-									"issuingCountry": "DE"
+								"personalNumber": "Z021AB37X13",
+								"expiryDate": "2036-03-19",
+								"issueDate": "2021-03-20",
+								"issuedBy": "Landratsamt Mu sterhausen amSee",
+								"issuingCountry": "DE",
 								 },
 						],
 					 },
@@ -393,8 +393,8 @@ describe("YotiCallbackProcessor", () => {
 	it("Return successful response with 200 OK when YOTI session created with EEA Identity Card", async () => {
 		documentFields = getEeaIdCardFields();
 		const eeaYotiSession = getCompletedYotiSession();
-		eeaYotiSession.resources.id_documents[0].document_type = "NATIONAL_ID"
-		eeaYotiSession.resources.id_documents[0].issuing_country = "NLD"
+		eeaYotiSession.resources.id_documents[0].document_type = "NATIONAL_ID";
+		eeaYotiSession.resources.id_documents[0].issuing_country = "NLD";
 		jest.useFakeTimers();
 		jest.setSystemTime(absoluteTimeNow());
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(eeaYotiSession);
@@ -405,16 +405,16 @@ describe("YotiCallbackProcessor", () => {
 		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
-		const eeaDlcoreFields = TXMA_CORE_FIELDS
-		eeaDlcoreFields.timestamp = absoluteTimeNow()
+		const eeaDlcoreFields = TXMA_CORE_FIELDS;
+		eeaDlcoreFields.timestamp = absoluteTimeNow();
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, eeaDlcoreFields);
 		const eeaVcIssued =  TXMA_EEA_VC_ISSUED;
-		eeaVcIssued.event_name = "F2F_CRI_VC_ISSUED"
-		eeaVcIssued.timestamp = absoluteTimeNow()
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, eeaVcIssued)
+		eeaVcIssued.event_name = "F2F_CRI_VC_ISSUED";
+		eeaVcIssued.timestamp = absoluteTimeNow();
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, eeaVcIssued);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
@@ -459,10 +459,10 @@ describe("YotiCallbackProcessor", () => {
 						],
 						"idCard":[
 								 {
-									"documentNumber": "SPEC12031",
-									"expiryDate": "2031-08-02",
-									"issueDate": "2021-08-02",
-									"icaoIssuerCode": "NLD"
+								"documentNumber": "SPEC12031",
+								"expiryDate": "2031-08-02",
+								"issueDate": "2021-08-02",
+								"icaoIssuerCode": "NLD",
 								 },
 						],
 					 },
@@ -497,7 +497,7 @@ describe("YotiCallbackProcessor", () => {
 	it("Return successful response with 200 OK when YOTI session created with BRP", async () => {
 		documentFields = getBrpFields();
 		const brpYotiSession = getCompletedYotiSession();
-		brpYotiSession.resources.id_documents[0].document_type = "RESIDENCE_PERMIT"
+		brpYotiSession.resources.id_documents[0].document_type = "RESIDENCE_PERMIT";
 		jest.useFakeTimers();
 		jest.setSystemTime(absoluteTimeNow());
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(brpYotiSession);
@@ -508,16 +508,16 @@ describe("YotiCallbackProcessor", () => {
 		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
-		const brpCoreFields = TXMA_CORE_FIELDS
-		brpCoreFields.timestamp = absoluteTimeNow()
+		const brpCoreFields = TXMA_CORE_FIELDS;
+		brpCoreFields.timestamp = absoluteTimeNow();
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, brpCoreFields);
 		const brpVcIssued =  TXMA_BRP_VC_ISSUED;
-		brpVcIssued.event_name = "F2F_CRI_VC_ISSUED"
-		brpVcIssued.timestamp = absoluteTimeNow()
+		brpVcIssued.event_name = "F2F_CRI_VC_ISSUED";
+		brpVcIssued.timestamp = absoluteTimeNow();
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, brpVcIssued);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
@@ -563,10 +563,10 @@ describe("YotiCallbackProcessor", () => {
 						],
 						"residencePermit":[
 								 {
-									"documentNumber": "RF9082242",
-									"expiryDate": "2024-11-11",
-									"issueDate": "2015-05-19",
-									"icaoIssuerCode": "GBR"
+								"documentNumber": "RF9082242",
+								"expiryDate": "2024-11-11",
+								"issueDate": "2015-05-19",
+								"icaoIssuerCode": "GBR",
 								 },
 						],
 					 },

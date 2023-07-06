@@ -32,7 +32,7 @@ export interface BaseTxmaEvent {
 
 export interface RestrictedObject {
 	"user"?: VerifiedCredentialSubject;
-	"email"?: string,
+	"email"?: string;
 	"documentType"?: string;
 	"issuingCountry"?: string;
 	"passport"?: Passport;

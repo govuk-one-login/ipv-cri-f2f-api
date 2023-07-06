@@ -117,8 +117,8 @@ export class SendEmailService {
 							event_name: "F2F_YOTI_PDF_EMAILED",
 							...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow),
 							restricted: {
-								email: message.emailAddress
-							}
+								email: message.emailAddress,
+							},
 						});
 					} catch (error) {
 						this.logger.error("Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.");
