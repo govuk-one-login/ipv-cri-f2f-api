@@ -232,7 +232,7 @@ export class YotiService {
 			documents: requirements,
 			branch: {
 				type: UK_POST_OFFICE.type,
-				name: UK_POST_OFFICE.name,
+				name: PostOfficeSelection.name,
 				address: PostOfficeSelection.address,
 				post_code: PostOfficeSelection.post_code,
 				location: {
@@ -257,8 +257,8 @@ export class YotiService {
 
 			return HttpCodesEnum.OK;
 		} catch (err) {
-			this.logger.error({ message: "An error occurred when generationg Yoti instructions PDF ", err });
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generationg Yoti instructions PDF");
+			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF ", err });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF");
 		}
 	}
 
