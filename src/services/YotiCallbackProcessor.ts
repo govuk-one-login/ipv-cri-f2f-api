@@ -16,7 +16,7 @@ import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../utils/YotiPayloadEnums";
 import { MessageCodes } from "../models/enums/MessageCodes";
-import { DocumentTypes } from "../models/enums/DocumentTypes";
+import { DocumentTypes, DocumentNames } from "../models/enums/DocumentTypes";
 
 export class YotiCallbackProcessor {
 
@@ -201,10 +201,10 @@ export class YotiCallbackProcessor {
   		// Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
   		let documentInfo;
-  		let docName: any;
+  		let docName: string;
 
   		if (documentFields.document_type === DocumentTypes.PASSPORT) {
-  			docName = "passport";
+  			docName = DocumentNames.PASSPORT;
   			documentInfo = [{
   				documentType: documentFields.document_type,
   				documentNumber: documentFields.document_number,
@@ -212,7 +212,7 @@ export class YotiCallbackProcessor {
   				icaoIssuerCode: documentFields.issuing_country,
   			} ];
   		} else if (documentFields.document_type === DocumentTypes.RESIDENCE_PERMIT) {
-  			docName = "residencePermit";
+  			docName = DocumentNames.RESIDENCE_PERMIT;
   			documentInfo = [{
   				documentType: documentFields.document_type,
   				documentNumber: documentFields.document_number,
@@ -221,7 +221,7 @@ export class YotiCallbackProcessor {
   				icaoIssuerCode: documentFields.issuing_country,
   			}];
   		} else if (documentFields.document_type === DocumentTypes.DRIVING_LICENCE && documentFields.issuing_country != "GBR") {
-  			docName = "drivingPermit";
+  			docName = DocumentNames.DRIVING_LICENCE;
   			documentInfo = [{
   				documentType: documentFields.document_type,
   				personalNumber: documentFields.document_number,
@@ -232,7 +232,7 @@ export class YotiCallbackProcessor {
   			}];
 
   		} else if (documentFields.document_type === DocumentTypes.DRIVING_LICENCE) {
-  			docName = "drivingPermit";
+  			docName = DocumentNames.DRIVING_LICENCE;
   			documentInfo = [{
   				documentType: documentFields.document_type,
   				personalNumber: documentFields.document_number,
@@ -243,7 +243,7 @@ export class YotiCallbackProcessor {
   				issuingCountry: documentFields.issuing_country,
   			}];
   		} else if (documentFields.document_type === DocumentTypes.NATIONAL_ID) {
-  			docName = "idCard";
+  			docName = DocumentNames.NATIONAL_ID;
   			documentInfo = [{
   				documentType: documentFields.document_type,
   				documentNumber: documentFields.document_number,
@@ -251,7 +251,13 @@ export class YotiCallbackProcessor {
   				issueDate: documentFields.date_of_issue,
   				icaoIssuerCode: documentFields.issuing_country,
   			}];
-  		} 
+  		} else {
+				this.logger.error({message: `Unable to find document type ${documentFields.document_type}`, 
+				messageCode: MessageCodes.INVALID_DOCUMENT_TYPE 
+				})
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
+			}
+
 
   		try {
   			await this.f2fService.sendToTXMA({
