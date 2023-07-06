@@ -61,9 +61,10 @@ export class YotiService {
 	): ApplicantProfile {
 		const nameParts = personIdentityUtils.getNames(personDetails);
 		const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(' ') : nameParts.givenNames[0];
+		const familyNames = nameParts.familyNames.length > 1 ? nameParts.familyNames.join(' ') : nameParts.familyNames[0];
 
 		return {
-			full_name: `${givenNames} ${nameParts.familyNames[0]}`,
+			full_name: `${givenNames} ${familyNames}`,
 			date_of_birth: `${personDetails.birthDate.map((bd) => ({ value: bd.value }))[0].value}`,
 			structured_postal_address: personIdentityUtils.getYotiStructuredPostalAddress(personDetails),
 		};
@@ -227,7 +228,7 @@ export class YotiService {
 
 		const payloadJSON = {
 			contact_profile: {
-				first_name: `${givenNames}`,
+				first_name: givenNames,
   			last_name: `${nameParts.familyNames[0]}`,
   			email: personIdentityUtils.getEmailAddress(personDetails),
 			},

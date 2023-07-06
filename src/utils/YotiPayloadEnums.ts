@@ -9,6 +9,10 @@ export enum YotiDocumentTypesEnum {
 
 export const YOTI_DOCUMENT_COUNTRY_CODE = "GBR";
 
+export const YOTI_ADDRESS_FORMAT_CODE = 1;
+
+export const YOTI_SCHEME_CHECK = "UK_GDS"
+
 export const DOCUMENT_TYPES_WITH_CHIPS = ["PASSPORT", "NATIONAL_ID", "RESIDENCE_PERMIT"];
 
 export enum YotiSessionDocument {
@@ -44,7 +48,7 @@ export const YOTI_CHECKS = {
 		"type": "DOCUMENT_SCHEME_VALIDITY_CHECK",
 		"config": {
 			"manual_check": MANUAL_CHECK_TYPE.IBV,
-			"scheme": "UK_GDS",
+			"scheme": YOTI_SCHEME_CHECK,
 		},
 	},
 	ID_DOCUMENT_AUTHENTICITY : {
