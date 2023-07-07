@@ -261,8 +261,8 @@ export class YotiService {
 
 			return HttpCodesEnum.OK;
 		} catch (err) {
-			this.logger.error({ message: "An error occurred when generationg Yoti instructions PDF ", err });
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generationg Yoti instructions PDF");
+			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF ", err });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF");
 		}
 	}
 
