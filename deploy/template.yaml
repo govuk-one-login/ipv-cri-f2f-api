@@ -1818,7 +1818,7 @@ Resources:
               - "sqs:ReceiveMessage"
             Resource:
               - !GetAtt IPVCoreSQSQueue.Arn
-             Principal: 
+            Principal:
               AWS: !If 
                 - IsNotBlockedSQSTemporary
                 - !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
