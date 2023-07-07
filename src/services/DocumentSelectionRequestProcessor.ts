@@ -92,7 +92,7 @@ export class DocumentSelectionRequestProcessor {
   	const personDetails = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
 
   	if (!personDetails || !f2fSessionInfo) {
-  		this.logger.warn("Missing details in SESSION or PERSON IDENTITY tables", {
+  		this.logger.error("Missing details in SESSION or PERSON IDENTITY tables", {
   			messageCode: MessageCodes.SESSION_NOT_FOUND,
   		});
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
@@ -143,13 +143,19 @@ export class DocumentSelectionRequestProcessor {
   	const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
 
   	if (!yotiSessionId) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occured when creating Yoti Session");
+  		this.logger.error("An error occurred when creating Yoti Session", {
+  			messageCode: MessageCodes.FAILED_CREATING_SESSION,
+  		});
+  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when creating Yoti Session");
   	}
 
   	this.logger.info("Fetching Session Info");
   	const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId);
 
   	if (!yotiSessionInfo) {
+  		this.logger.error("An error occurred when fetching Yoti Session", {
+  			messageCode: MessageCodes.ERROR_RETRIEVING_SESSION,
+  		});
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when fetching Yoti Session");
   	}
 
@@ -179,6 +185,9 @@ export class DocumentSelectionRequestProcessor {
   		});
 
   	if (!requirements) {
+  		this.logger.error("Empty required resources in Yoti", {
+  			messageCode: MessageCodes.EMPTY_REQUIRED_RESOURCES,
+  		});
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Empty required resources in Yoti");
   	}
 
@@ -191,7 +200,10 @@ export class DocumentSelectionRequestProcessor {
   	);
 
   	if (generateInstructionsResponse !== HttpCodesEnum.OK) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occured when generating Yoti instructions pdf");
+  		this.logger.error("An error occurred when generating Yoti instructions pdf", {
+  			messageCode: MessageCodes.FAILED_TO_CREATE_PDF,
+  		});
+  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when generating Yoti instructions pdf");
   	}
 
   	return yotiSessionId;
@@ -206,7 +218,7 @@ export class DocumentSelectionRequestProcessor {
   			error,
   			messageCode: MessageCodes.FAILED_TO_WRITE_GOV_NOTIFY,
   		});
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occured when sending message to GovNotify handler");
+  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when sending message to GovNotify handler");
   	}
   }
 }

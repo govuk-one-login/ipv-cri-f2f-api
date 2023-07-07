@@ -33,7 +33,7 @@ export class DocumentSelection implements LambdaInterface {
 		logger.addContext(context);
 
 		if (!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0) {
-			logger.error("Environment variable SSM_PATH is not configured");
+			logger.error({ message: "Environment variable YOTI_KEY_SSM_PATH is not configured", messageCode: MessageCodes.MISSING_CONFIGURATION });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 
@@ -54,7 +54,7 @@ export class DocumentSelection implements LambdaInterface {
 									return unauthorizedResponse;
 								}
 							} else {
-								logger.error("Missing header: session-id is required",
+								logger.error(`Missing header: ${Constants.X_SESSION_ID} is required`,
 									{
 										messageCode: MessageCodes.MISSING_SESSION_ID,
 									});
@@ -96,6 +96,10 @@ export class DocumentSelection implements LambdaInterface {
 						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 					}
 				}
+				logger.error("Requested method does not exist", {
+					messageCode: MessageCodes.METHOD_NOT_IMPLEMENTED,
+					resource: event.resource,
+				});
 				return new Response(HttpCodesEnum.NOT_FOUND, "");
 
 			default:
@@ -103,7 +107,7 @@ export class DocumentSelection implements LambdaInterface {
 					messageCode: MessageCodes.RESOURCE_NOT_FOUND,
 					resource: event.resource,
 				});
-				return new Response(HttpCodesEnum.NOT_FOUND, "");
+				return new Response(HttpCodesEnum.NOT_FOUND, `Requested resource does not exist ${event.resource}`);
 
 		}
 	}
