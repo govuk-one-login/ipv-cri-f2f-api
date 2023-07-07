@@ -504,7 +504,7 @@ describe("YotiService", () => {
 
 			await expect(
 				yotiService.generateInstructions(sessionID, personDetails, requirements, PostOfficeSelection),
-			).rejects.toThrow(new AppError(HttpCodesEnum.SERVER_ERROR, "Error generationg Yoti instructions PDF"));
+			).rejects.toThrow(new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF"));
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.put).toHaveBeenCalledWith(
