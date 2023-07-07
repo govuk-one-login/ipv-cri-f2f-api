@@ -15,7 +15,6 @@ export interface ApplicantProfile {
 }
 
 export interface PostOfficeInfo {
-	name: string;
 	address: string;
 	post_code: string;
 	location: {
