@@ -831,15 +831,9 @@ components:
           type: object
           additionalProperties: false
           required:
-            - name
             - address
             - post_code
           properties:
-            name:
-              type: string
-              description: >-
-                display name of the post office, to be displayed literally in the instructions PDF
-              example: "Post Office"
             address:
               type: string
               description: >-
