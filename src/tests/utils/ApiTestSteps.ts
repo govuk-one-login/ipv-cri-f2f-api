@@ -276,5 +276,5 @@ export function validateJwtToken(jwtToken:any, vcData: any, yotiId?: string):voi
 export function printVerifiableCredential(jwtToken:any):void {
 	const [rawHead, rawBody, signature] = jwtToken.split(".");
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
-	console.log(decodedBody);
+	console.log(JSON.stringify(decodedBody, null, 2));
 }
