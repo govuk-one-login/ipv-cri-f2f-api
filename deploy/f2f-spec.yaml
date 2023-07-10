@@ -831,7 +831,6 @@ components:
           type: object
           additionalProperties: false
           required:
-            - name
             - address
             - post_code
           properties:

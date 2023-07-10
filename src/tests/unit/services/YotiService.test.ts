@@ -81,7 +81,7 @@ const createSessionPayload = {
 			type: "DOCUMENT_SCHEME_VALIDITY_CHECK",
 			config: {
 				manual_check: "IBV",
-				scheme: "UK_DBS",
+				scheme: "UK_GDS",
 			},
 		},
 		{
@@ -123,12 +123,12 @@ const createSessionPayload = {
 	],
 	resources: {
 		applicant_profile: {
-			full_name: "Frederick Flintstone",
+			full_name: "Frederick Joseph Flintstone",
 			date_of_birth: "1960-02-02",
 			structured_postal_address: {
 				address_format: 1,
 				building_number: "32",
-				address_line1: "Sherman Wallaby Way",
+				address_line1: "32 Sherman Wallaby Way",
 				town_city: "Sidney",
 				postal_code: "F1 1SH",
 				country_iso: "GBR",
@@ -140,7 +140,7 @@ const createSessionPayload = {
 
 const generateInstructionsPayload = {
 	contact_profile: {
-		first_name: "Frederick",
+		first_name: "Frederick Joseph",
 		last_name: "Flintstone",
 		email: "test123@gov.uk",
 	},
@@ -156,7 +156,7 @@ const generateInstructionsPayload = {
 	],
 	branch: {
 		type: "UK_POST_OFFICE",
-		name: "The Funkytown Post office",
+		name: "UK Post Office Branch",
 		address: "1 The Street, Funkytown",
 		post_code: "SW19 4NS",
 		location: {
@@ -207,7 +207,7 @@ describe("YotiService", () => {
 			const applicantProfile = yotiService["getApplicantProfile"](personDetails);
 			const expectedPostalAddress = {
 				address_format: 1,
-				address_line1: "Sherman Wallaby Way",
+				address_line1: "32 Sherman Wallaby Way",
 				building_number: "32",
 				country: "United Kingdom",
 				country_iso: "GBR",
@@ -215,7 +215,7 @@ describe("YotiService", () => {
 				town_city: "Sidney",
 			};
 
-			expect(applicantProfile.full_name).toBe("Frederick Flintstone");
+			expect(applicantProfile.full_name).toBe("Frederick Joseph Flintstone");
 			expect(applicantProfile.date_of_birth).toBe("1960-02-02");
 			expect(applicantProfile.structured_postal_address).toEqual(expectedPostalAddress);
 		});
@@ -301,7 +301,7 @@ describe("YotiService", () => {
 									state: "REQUIRED",
 								},
 								{
-									scheme: "UK_DBS",
+									scheme: "UK_GDS",
 									state: "REQUIRED",
 									type: "DOCUMENT_SCHEME_VALIDITY_CHECK",
 								},
@@ -367,7 +367,7 @@ describe("YotiService", () => {
 									type: "IBV_VISUAL_REVIEW_CHECK",
 								},
 								{
-									scheme: "UK_DBS",
+									scheme: "UK_GDS",
 									state: "REQUIRED",
 									type: "DOCUMENT_SCHEME_VALIDITY_CHECK",
 								},
@@ -467,7 +467,6 @@ describe("YotiService", () => {
 			},
 		];
 		const PostOfficeSelection = {
-			name: "The Funkytown Post office",
 			address: "1 The Street, Funkytown",
 			location: {
 				latitude: 0.34322,
@@ -487,7 +486,6 @@ describe("YotiService", () => {
 			const statusCode = await yotiService.generateInstructions(sessionID, personDetails, requirements, PostOfficeSelection);
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
-			// eslint-disable-next-line @typescript-eslint/unbound-method
 			expect(axios.put).toHaveBeenCalledWith(
 				"https://example.com/api/sessions/session123/instructions",
 				generateInstructionsPayload,
@@ -509,7 +507,6 @@ describe("YotiService", () => {
 			).rejects.toThrow(new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF"));
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
-			// eslint-disable-next-line @typescript-eslint/unbound-method
 			expect(axios.put).toHaveBeenCalledWith(
 				"https://example.com/api/sessions/session123/instructions",
 				generateInstructionsPayload,
