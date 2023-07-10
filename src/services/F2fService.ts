@@ -21,7 +21,7 @@ import { GovNotifyEvent } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { IPVCoreEvent } from "../utils/IPVCoreEvent";
-import {MessageCodes} from "../models/enums/MessageCodes";
+import { MessageCodes } from "../models/enums/MessageCodes";
 export class F2fService {
 	readonly tableName: string;
 
@@ -60,7 +60,7 @@ export class F2fService {
 		try {
 			session = await this.dynamo.send(getSessionCommand);
 		} catch (error) {
-			this.logger.error({ message: "getSessionById - failed executing get from dynamodb:" },{
+			this.logger.error({ message: "getSessionById - failed executing get from dynamodb:" }, {
 				messageCode: MessageCodes.FAILED_FETCHING_SESSION,
 				error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session");
