@@ -177,9 +177,10 @@ Conditions:
   IsPersonalIdentifiableInformationEnvironment: !Or
     - !Equals [!Ref Environment, integration]
     - !Equals [!Ref Environment, production]
-  IsNotBlockedSQSTemporary: !Or
+  IsOutboundSQSConnected: !Or
     - !Equals [!Ref Environment, staging]
     - !Equals [!Ref Environment, integration]
+    - !Equals [!Ref Environment, production]
   UseCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -1002,13 +1003,9 @@ Resources:
               - !GetAtt TxMASQSQueue.Arn
             Principal: 
               AWS: !If 
-                - IsNotBlockedSQSTemporary
+                - IsOutboundSQSConnected
                 - !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
                 - !Ref AWS::NoValue
-            # F2F-838 - Temporarily removed for Production Testing | Remove permissions for VCs and TxMA Event propagation downstream
-            # Principal:
-            #   AWS:
-            #     - !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
 
   TxMASQSQueueDeadLetterQueue:
     Type: AWS::SQS::Queue
@@ -1820,13 +1817,9 @@ Resources:
               - !GetAtt IPVCoreSQSQueue.Arn
             Principal:
               AWS: !If 
-                - IsNotBlockedSQSTemporary
+                - IsOutboundSQSConnected
                 - !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
                 - !Ref AWS::NoValue
-            # F2F-838 - Temporarily removed for Production Testing | Remove permissions for VCs and TxMA Event propagation downstream
-            # Principal:
-            #   AWS:
-            #     - !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
 
   IPVCoreDeadLetterQueue:
     Type: AWS::SQS::Queue
