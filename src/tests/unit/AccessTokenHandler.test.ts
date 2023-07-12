@@ -3,7 +3,7 @@ import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { AccessTokenRequestProcessor } from "../../services/AccessTokenRequestProcessor";
 import { lambdaHandler } from "../../AccessTokenHandler";
 import { RESOURCE_NOT_FOUND, VALID_ACCESSTOKEN } from "./data/accessToken-events";
-import {Response} from "../../utils/Response";
+import { Response } from "../../utils/Response";
 
 const mockedAccessTokenRequestProcessor = mock<AccessTokenRequestProcessor>();
 
