@@ -66,7 +66,7 @@ export class YotiService {
 		return {
 			full_name: `${givenNames} ${familyNames}`,
 			date_of_birth: `${personDetails.birthDate.map((bd) => ({ value: bd.value }))[0].value}`,
-			structured_postal_address: personIdentityUtils.getYotiStructuredPostalAddress(personDetails),
+			structured_postal_address: personIdentityUtils.getYotiStructuredPostalAddress(personDetails, this.logger),
 		};
 	}
 
