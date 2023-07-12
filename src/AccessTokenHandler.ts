@@ -6,9 +6,9 @@ import { Constants } from "./utils/Constants";
 import { ResourcesEnum } from "./models/enums/ResourcesEnum";
 import { Response } from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
-import { AppError } from "./utils/AppError";
 import { AccessTokenRequestProcessor } from "./services/AccessTokenRequestProcessor";
 import { MessageCodes } from "./models/enums/MessageCodes";
+import { AppError } from "./utils/AppError";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
@@ -35,8 +35,14 @@ export class AccessToken implements LambdaInterface {
 					try {
 						logger.info("Received token request:", { requestId: event.requestContext.requestId });
 						return await AccessTokenRequestProcessor.getInstance(logger, metrics).processRequest(event);
-					} catch (err) {
-						logger.error({ message: "An error has occurred. ", err });
+					} catch (error) {
+						logger.error({ message: "An error has occurred. ",
+							error,
+							messageCode: MessageCodes.SERVER_ERROR,
+						});
+						if (error instanceof AppError) {
+							return new Response(error.statusCode, error.message);
+						}
 						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 					}
 				}
