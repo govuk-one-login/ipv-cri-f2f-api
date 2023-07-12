@@ -140,7 +140,7 @@ export class DocumentSelectionRequestProcessor {
   	const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
 
   	if (!yotiSessionId) {
-		  this.logger.error("An error occurred when creating Yoti Session");
+		  this.logger.error("An error occurred when creating Yoti Session", {messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION});
 	      throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when creating Yoti Session");
   	}
 
