@@ -500,7 +500,7 @@ describe("YotiService", () => {
 			expect(statusCode).toBe(HttpCodesEnum.OK);
 		});
 
-		it("should include post office name if include in request", async () => {
+		it("should include post office name in Yoti call if included in request", async () => {
 			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123/instructions",
 				config: {},
