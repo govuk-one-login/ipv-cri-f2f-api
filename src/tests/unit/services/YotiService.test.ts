@@ -481,7 +481,7 @@ describe("YotiService", () => {
 		}
 
 
-		it("should generate instructions and return OK status code", async () => {
+		it("should generate instructions using hardcoded PO name and return OK status code", async () => {
 			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123/instructions",
 				config: {},
@@ -500,7 +500,7 @@ describe("YotiService", () => {
 			expect(statusCode).toBe(HttpCodesEnum.OK);
 		});
 
-		it("should include post office name in Yoti call if included in request", async () => {
+		it("should include the received PO name from FE in the Yoti putInstructions call", async () => {
 			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123/instructions",
 				config: {},
