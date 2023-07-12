@@ -25,7 +25,7 @@ export interface PostOfficeInfo {
 }
 
 export interface CreateSessionPayload {
-	client_session_token_ttl: string;
+	session_deadline: Date;
 	resources_ttl: string;
 	ibv_options: {
 		support: string;

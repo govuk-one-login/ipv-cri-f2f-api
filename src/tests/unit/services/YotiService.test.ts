@@ -53,8 +53,7 @@ const personDetails: PersonIdentityItem = {
 };
 
 const createSessionPayload = {
-	client_session_token_ttl: "950400",
-	resources_ttl: "1036800",
+	resources_ttl: "1209600",
 	ibv_options: {
 		support: "MANDATORY",
 	},
@@ -181,8 +180,8 @@ describe("YotiService", () => {
 		yotiService = new YotiService(
 			logger,
 			"CLIENT_SDK_ID",
-			"1036800",
-			"950400",
+			"1209600",
+			10,
 			"PEM_KEY",
 			"YOTI_BASE_URL",
 		);
@@ -254,10 +253,16 @@ describe("YotiService", () => {
 
 			axiosMock.post.mockResolvedValue({ data: { session_id: "session123" } });
 
+			const sessionDeadlineDate = new Date(new Date().getTime() + yotiService.YOTI_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000);
+			sessionDeadlineDate.setHours(22, 0, 0, 0);
+
 			const sessionId = await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL);
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
-			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", createSessionPayload, {});
+			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", {
+				session_deadline: sessionDeadlineDate,
+				...createSessionPayload
+			}, {});
 			expect(sessionId).toBe("session123");
 		});
 
