@@ -189,7 +189,7 @@ export class DocumentSelectionRequestProcessor {
   	);
 
   	if (generateInstructionsResponse !== HttpCodesEnum.OK) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occured when generating Yoti instructions pdf");
+  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when generating Yoti instructions pdf");
   	}
 
   	return yotiSessionId;
