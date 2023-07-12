@@ -255,7 +255,11 @@ export class F2fService {
 			Item: session,
 		});
 
-		this.logger.info({message: "Saving session data in DynamoDB"});
+		this.logger.info({
+			message:
+				"Saving session data in DynamoDB: " +
+				JSON.stringify([putSessionCommand]),
+		});
 		try {
 			await this.dynamo.send(putSessionCommand);
 			this.logger.info("Successfully created session in dynamodb");

@@ -9,7 +9,6 @@ import { PersonIdentityItem } from "../models/PersonIdentityItem";
 import { ApplicantProfile, PostOfficeInfo, YotiSessionInfo, CreateSessionPayload, YotiCompletedSession } from "../models/YotiPayloads";
 import { YotiDocumentTypesEnum, YOTI_REQUESTED_CHECKS, YOTI_REQUESTED_TASKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
-import {MessageCodes} from "../models/enums/MessageCodes";
 
 export class YotiService {
 	readonly logger: Logger;
@@ -194,11 +193,11 @@ export class YotiService {
 
 			this.logger.appendKeys({ yotiSessionId: data.session_id });
 
-			this.logger.info("Received response from Yoti for create /sessions");
+			this.logger.info("Received response for create /sessions");
 			return data.session_id;
-		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when creating Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION});
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session");
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when creating Yoti session ", err });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Yoti Session");
 		}
 	}
 
@@ -212,8 +211,8 @@ export class YotiService {
 			const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
 
 			return data;
-		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION});
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when fetching Yoti session ", err });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
 		}
 	}
@@ -261,8 +260,8 @@ export class YotiService {
 			);
 
 			return HttpCodesEnum.OK;
-		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS});
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF ", err });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF");
 		}
 	}
@@ -282,8 +281,8 @@ export class YotiService {
 				this.logger.debug("getPdf - Yoti", { yotiRequestConfig });
 				return (await axios.get(yotiRequest.url, yotiRequest.config)).data;
 
-			} catch (error: any) {
-				this.logger.error({ message: "An error occurred when fetching Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS});
+			} catch (err) {
+				this.logger.error( "An error occurred when fetching Yoti instructions PDF ", { "error": err });
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF");
 			}
 		} else {
@@ -301,8 +300,8 @@ export class YotiService {
 			const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
 
 			return data;
-		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_SESSION});
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when fetching Yoti session ", err });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
 		}
 	}
@@ -317,8 +316,8 @@ export class YotiService {
 			const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
 
 			return data;
-		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when fetching Yoti media content", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_MEDIA_CONTENT});
+		} catch (err) {
+			this.logger.error({ message: "An error occurred when fetching Yoti media content", err });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti media content");
 		}
 	}
