@@ -114,7 +114,7 @@ export class F2fService {
 
 		if (!sessionItem?.Items || sessionItem?.Items?.length !== 1) {
 			this.logger.error({ message: "Error retrieving Session by yoti session id" }, {
-				messageCode: MessageCodes.FAILED_FETCHING_PERSON_IDENTITY});
+				messageCode: MessageCodes.FAILED_FETCHING_BY_YOTI_SESSIONID });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session by yoti session id");
 		}
 
@@ -261,7 +261,7 @@ export class F2fService {
 			Item: session,
 		});
 
-		this.logger.info({message: "Saving session data in DynamoDB"});
+		this.logger.info({ message: "Saving session data in DynamoDB" });
 		try {
 			await this.dynamo.send(putSessionCommand);
 			this.logger.info("Successfully created session in dynamodb");

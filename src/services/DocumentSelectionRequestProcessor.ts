@@ -79,7 +79,7 @@ export class DocumentSelectionRequestProcessor {
   		}
   	} catch (error) {
   		this.logger.error("Error parsing the payload", {
-  			messageCode: MessageCodes.ERROR_PARSING_PAYLOAD
+  			messageCode: MessageCodes.ERROR_PARSING_PAYLOAD,
   		});
   		return new Response(HttpCodesEnum.SERVER_ERROR, "An error occurred parsing the payload");
   	}
@@ -105,7 +105,7 @@ export class DocumentSelectionRequestProcessor {
   			await this.f2fService.updateSessionWithYotiIdAndStatus(f2fSessionInfo.sessionId, yotiSessionId, AuthSessionState.F2F_YOTI_SESSION_CREATED);
   		} catch (error: any) {
   			this.logger.error("Error occurred during documentSelection orchestration", error.message,
-			{ messageCode: MessageCodes.FAILED_DOCUMENT_SELECTION_ORCHESTRATION});
+  				{ messageCode: MessageCodes.FAILED_DOCUMENT_SELECTION_ORCHESTRATION });
   			if (error instanceof AppError) {
   				return new Response(HttpCodesEnum.SERVER_ERROR, error.message);
   			} else {
@@ -140,7 +140,7 @@ export class DocumentSelectionRequestProcessor {
   	const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
 
   	if (!yotiSessionId) {
-		  this.logger.error("An error occurred when creating Yoti Session", {messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION});
+		  this.logger.error("An error occurred when creating Yoti Session", { messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });
 	      throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when creating Yoti Session");
   	}
 
@@ -177,7 +177,8 @@ export class DocumentSelectionRequestProcessor {
   		});
 
   	if (!requirements) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Empty required resources in Yoti");
+		  this.logger.error("Empty required resources in Yoti");
+  		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Empty required resources in Yoti");
   	}
 
   	this.logger.info({ message: "Generating Instructions PDF" }, { yotiSessionID: yotiSessionId });
@@ -189,7 +190,8 @@ export class DocumentSelectionRequestProcessor {
   	);
 
   	if (generateInstructionsResponse !== HttpCodesEnum.OK) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when generating Yoti instructions pdf");
+		  this.logger.error("An error occurred when generating Yoti instructions pdf");
+  		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when generating Yoti instructions pdf");
   	}
 
   	return yotiSessionId;

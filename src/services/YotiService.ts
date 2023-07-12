@@ -9,7 +9,7 @@ import { PersonIdentityItem } from "../models/PersonIdentityItem";
 import { ApplicantProfile, PostOfficeInfo, YotiSessionInfo, CreateSessionPayload, YotiCompletedSession } from "../models/YotiPayloads";
 import { YotiDocumentTypesEnum, YOTI_REQUESTED_CHECKS, YOTI_REQUESTED_TASKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
-import {MessageCodes} from "../models/enums/MessageCodes";
+import { MessageCodes } from "../models/enums/MessageCodes";
 
 export class YotiService {
 	readonly logger: Logger;
@@ -61,8 +61,8 @@ export class YotiService {
 		personDetails: PersonIdentityItem,
 	): ApplicantProfile {
 		const nameParts = personIdentityUtils.getNames(personDetails);
-		const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(' ') : nameParts.givenNames[0];
-		const familyNames = nameParts.familyNames.length > 1 ? nameParts.familyNames.join(' ') : nameParts.familyNames[0];
+		const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(" ") : nameParts.givenNames[0];
+		const familyNames = nameParts.familyNames.length > 1 ? nameParts.familyNames.join(" ") : nameParts.familyNames[0];
 
 		return {
 			full_name: `${givenNames} ${familyNames}`,
@@ -197,7 +197,7 @@ export class YotiService {
 			this.logger.info("Received response from Yoti for create /sessions");
 			return data.session_id;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when creating Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION});
+			this.logger.error({ message: "An error occurred when creating Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session");
 		}
 	}
@@ -213,7 +213,7 @@ export class YotiService {
 
 			return data;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION});
+			this.logger.error({ message: "An error occurred when fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
 		}
 	}
@@ -225,8 +225,8 @@ export class YotiService {
 		PostOfficeSelection: PostOfficeInfo,
 	):Promise<number | undefined> {
 		const nameParts = personIdentityUtils.getNames(personDetails);
-		const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(' ') : nameParts.givenNames[0];
-		const familyNames = nameParts.familyNames.length > 1 ? nameParts.familyNames.join(' ') : nameParts.familyNames[0];
+		const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(" ") : nameParts.givenNames[0];
+		const familyNames = nameParts.familyNames.length > 1 ? nameParts.familyNames.join(" ") : nameParts.familyNames[0];
 
 		const payloadJSON = {
 			contact_profile: {
@@ -262,7 +262,7 @@ export class YotiService {
 
 			return HttpCodesEnum.OK;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS});
+			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF");
 		}
 	}
@@ -283,7 +283,7 @@ export class YotiService {
 				return (await axios.get(yotiRequest.url, yotiRequest.config)).data;
 
 			} catch (error: any) {
-				this.logger.error({ message: "An error occurred when fetching Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS});
+				this.logger.error({ message: "An error occurred when fetching Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS });
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF");
 			}
 		} else {
@@ -302,7 +302,7 @@ export class YotiService {
 
 			return data;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_SESSION});
+			this.logger.error({ message: "An error occurred when fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_SESSION });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
 		}
 	}
@@ -318,7 +318,7 @@ export class YotiService {
 
 			return data;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when fetching Yoti media content", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_MEDIA_CONTENT});
+			this.logger.error({ message: "An error occurred when fetching Yoti media content", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_MEDIA_CONTENT });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti media content");
 		}
 	}
