@@ -59,8 +59,10 @@ export class F2fService {
 		let session;
 		try {
 			session = await this.dynamo.send(getSessionCommand);
-		} catch (e: any) {
-			this.logger.error({ message: "getSessionById - failed executing get from dynamodb:", e });
+		} catch (error) {
+			this.logger.error({ message: "getSessionById - failed executing get from dynamodb:" }, {
+				messageCode: MessageCodes.FAILED_FETCHING_SESSION,
+				error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session");
 		}
 
@@ -137,8 +139,10 @@ export class F2fService {
 			await this.dynamo.send(updateSessionCommand);
 			this.logger.info({ message: "updated authorizationCode in dynamodb" });
 		} catch (error: any) {
-			this.logger.error({ message: "got error setting auth code", error });
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to set authorization code ");
+			this.logger.error({ message: "Error updating authorizationCode" }, {
+				messageCode: MessageCodes.FAILED_UPDATING_SESSION,
+				error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to update the authorizationCode ");
 		}
 	}
 
@@ -251,11 +255,7 @@ export class F2fService {
 			Item: session,
 		});
 
-		this.logger.info({
-			message:
-				"Saving session data in DynamoDB: " +
-				JSON.stringify([putSessionCommand]),
-		});
+		this.logger.info({message: "Saving session data in DynamoDB"});
 		try {
 			await this.dynamo.send(putSessionCommand);
 			this.logger.info("Successfully created session in dynamodb");
