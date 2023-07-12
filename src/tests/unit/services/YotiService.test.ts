@@ -249,7 +249,7 @@ describe("YotiService", () => {
 			axiosMock.post.mockRejectedValueOnce(new Error("Failed to create session"));
 
 			await expect(yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL)).rejects.toThrow(
-				new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Yoti Session"),
+				new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session"),
 			);
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
