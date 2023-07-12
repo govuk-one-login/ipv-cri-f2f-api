@@ -5,7 +5,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-import { mock } from "jest-mock-extended";
+import { anyString, mock } from "jest-mock-extended";
 
 jest.mock("@aws-lambda-powertools/logger");
 jest.mock("axios");
@@ -52,8 +52,8 @@ const personDetails: PersonIdentityItem = {
 };
 
 const createSessionPayload = {
-	client_session_token_ttl: "950400",
-	resources_ttl: "1036800",
+	session_deadline: expect.any(Date),
+	resources_ttl: 1209600,
 	ibv_options: {
 		support: "MANDATORY",
 	},
@@ -177,8 +177,8 @@ describe("YotiService", () => {
 		yotiService = new YotiService(
 			logger,
 			"CLIENT_SDK_ID",
-			"1036800",
-			"950400",
+			1209600,
+			10,
 			"PEM_KEY",
 			"YOTI_BASE_URL",
 		);
@@ -232,12 +232,49 @@ describe("YotiService", () => {
 			});
 
 			axiosMock.post.mockResolvedValue({ data: { session_id: "session123" } });
+			jest.useFakeTimers();
+			const fakeTime = 1684933200.123;
+			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-06-01T13:00:00.000Z
 
 			const sessionId = await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL);
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", createSessionPayload, {});
 			expect(sessionId).toBe("session123");
+		});
+
+		it("should create a Yoti session and return the session ID", async () => {
+			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions",
+				config: {},
+			});
+
+			axiosMock.post.mockResolvedValue({ data: { session_id: "session123" } });
+
+			const sessionId = await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL);
+
+			expect(generateYotiRequestMock).toHaveBeenCalled();
+			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", createSessionPayload, {});
+			expect(sessionId).toBe("session123");
+		});
+
+		it("should calculate session_deadline correctly", async () => {
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions",
+				config: {},
+			});
+
+			axiosMock.post.mockResolvedValue({ data: { session_id: "session123" } });
+			jest.useFakeTimers();
+			const fakeTime = 1684933200.123;
+			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-06-01T13:00:00.000Z
+
+			await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL);
+
+			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", {
+				...createSessionPayload,
+				session_deadline: new Date("2023-06-03T21:00:00.000Z")
+			}, {});
 		});
 
 		it("should throw an AppError if there is an error creating the Yoti session", async () => {
