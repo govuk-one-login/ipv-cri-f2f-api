@@ -13,7 +13,7 @@ import { personIdentityInputRecord, personIdentityOutputRecord } from "../data/p
 const logger = mock<Logger>();
 
 let f2fService: F2fService;
-const tableName = "MYTABLE";
+const tableName = "SESSIONTABLE";
 const sessionId = "SESSID";
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
 const mockSqsClient = jest.mocked(sqsClient);
@@ -215,7 +215,7 @@ describe("F2f Service", () => {
 				Key: {
 					sessionId: "SESSID",
 				},
-				TableName: "MYTABLE",
+				TableName: "SESSIONTABLE",
 				UpdateExpression: "SET authSessionState = :authSessionState",
 			},
 		}));
@@ -229,7 +229,7 @@ describe("F2f Service", () => {
 				Item: {
 					sessionId: "SESSID",
 				},
-				TableName: "MYTABLE",
+				TableName: "SESSIONTABLE",
 			},
 		}));
 	});

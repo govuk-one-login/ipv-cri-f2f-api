@@ -65,6 +65,7 @@ describe("EnvironmentVariables", () => {
 
   describe("govNotifyApiKeySsmPath", () => {
     it("should return the value of GOVUKNOTIFY_API_KEY_SSM_PATH", () => {
+			// pragma: allowlist nextline secret
       process.env.GOVUKNOTIFY_API_KEY_SSM_PATH = "GOVUKNOTIFY_API_KEY_SSM_PATH_VALUE";
       const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
 

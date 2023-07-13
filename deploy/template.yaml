@@ -850,6 +850,9 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
+        - DynamoDBWritePolicy:
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
         - DynamoDBReadPolicy:
             TableName: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-session-table-name"
