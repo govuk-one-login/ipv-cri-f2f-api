@@ -143,12 +143,12 @@ export class YotiService {
 		countryCode: string,
 		yotiCallbackUrl: string,
 	): Promise<string | undefined> {
-		const sessionDeadlineDate = new Date(new Date().getTime() + (this.YOTI_SESSION_TTL_DAYS ? this.YOTI_SESSION_TTL_DAYS : 10) * 24 * 60 * 60 * 1000);
+		const sessionDeadlineDate = new Date(new Date().getTime() + this.YOTI_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000);
 		sessionDeadlineDate.setHours(22, 0, 0, 0);
 
 		const payloadJSON: CreateSessionPayload = {
 			session_deadline: sessionDeadlineDate,
-			resources_ttl: this.RESOURCES_TTL_SECS ? this.RESOURCES_TTL_SECS : "1209600",
+			resources_ttl: this.RESOURCES_TTL_SECS,
 			ibv_options: {
 				support: "MANDATORY",
 			},

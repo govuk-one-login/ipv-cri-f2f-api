@@ -97,8 +97,8 @@ export class EnvironmentVariables {
 				}
 
 				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS.trim().length === 0) {
-					this.YOTI_SESSION_TTL_DAYS = "950400";
-					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set. Setting to default - 11 days.");
+					this.YOTI_SESSION_TTL_DAYS = "10";
+					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set. Setting to default - 10 days.");
 				}
 				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS.trim().length === 0) {
 					this.RESOURCES_TTL_SECS = "1209600";
@@ -189,8 +189,8 @@ export class EnvironmentVariables {
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
 				}
 				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS.trim().length === 0) {
-					this.YOTI_SESSION_TTL_DAYS = "950400";
-					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set. Setting to default - 11 days.");
+					this.YOTI_SESSION_TTL_DAYS = "10";
+					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set. Setting to default - 10 days.");
 				}
 				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS.trim().length === 0) {
 					this.RESOURCES_TTL_SECS = "1209600";
@@ -209,8 +209,8 @@ export class EnvironmentVariables {
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
 				}
 				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS.trim().length === 0) {
-					this.YOTI_SESSION_TTL_DAYS = "950400";
-					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set. Setting to default - 11 days.");
+					this.YOTI_SESSION_TTL_DAYS = "10";
+					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set. Setting to default - 10 days.");
 				}
 				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS.trim().length === 0) {
 					this.RESOURCES_TTL_SECS = "1209600";
