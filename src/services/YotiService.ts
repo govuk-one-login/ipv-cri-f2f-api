@@ -237,7 +237,7 @@ export class YotiService {
 			documents: requirements,
 			branch: {
 				type: UK_POST_OFFICE.type,
-				name: UK_POST_OFFICE.name,
+				name: PostOfficeSelection.name ? PostOfficeSelection.name : UK_POST_OFFICE.name,
 				address: PostOfficeSelection.address,
 				post_code: PostOfficeSelection.post_code,
 				location: {
