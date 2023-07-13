@@ -88,7 +88,7 @@ export class F2fService {
 		try {
 			PersonInfo = await this.dynamo.send(getPersonIdentityCommand);
 		} catch (error: any) {
-			this.logger.error({ message: "getSessionById - failed executing get from dynamodb:" }, {
+			this.logger.error({ message: "getSessionById - failed executing get from dynamodb" }, {
 				messageCode: MessageCodes.FAILED_FETCHING_PERSON_IDENTITY,
 				error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session");

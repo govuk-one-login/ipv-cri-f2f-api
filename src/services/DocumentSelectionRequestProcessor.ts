@@ -148,7 +148,8 @@ export class DocumentSelectionRequestProcessor {
   	const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId);
 
   	if (!yotiSessionInfo) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when fetching Yoti Session");
+		  this.logger.error("An error occurred when fetching Yoti Session", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
+  		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when fetching Yoti Session");
   	}
 
   	const requirements = yotiSessionInfo.capture.required_resources
@@ -190,7 +191,7 @@ export class DocumentSelectionRequestProcessor {
   	);
 
   	if (generateInstructionsResponse !== HttpCodesEnum.OK) {
-		  this.logger.error("An error occurred when generating Yoti instructions pdf");
+		  this.logger.error("An error occurred when generating Yoti instructions pdf", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
   		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when generating Yoti instructions pdf");
   	}
 

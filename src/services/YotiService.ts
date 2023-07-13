@@ -213,7 +213,7 @@ export class YotiService {
 
 			return data;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
+			this.logger.error({ message: "Error fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
 		}
 	}
@@ -262,7 +262,7 @@ export class YotiService {
 
 			return HttpCodesEnum.OK;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
+			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF");
 		}
 	}

@@ -11,6 +11,8 @@ import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { YotiSessionInfo } from "../../../models/YotiPayloads";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
+import { MessageCodes } from "../../../models/enums/MessageCodes";
+import { AppError } from "../../../utils/AppError";
 
 let mockDocumentSelectionRequestProcessor: DocumentSelectionRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -255,10 +257,15 @@ describe("DocumentSelectionRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(undefined);
 
-		return expect(mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234")).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.BAD_REQUEST,
-			message: "Missing details in SESSION or PERSON IDENTITY tables",
-		}));
+		try {
+			await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		} catch (error) {
+			expect(error).toEqual(new AppError( HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables"));
+			expect(logger.warn).toHaveBeenNthCalledWith(1,
+				"Missing details in SESSION or PERSON IDENTITY tables", { "messageCode": "SESSION_NOT_FOUND" },
+			);
+		}
+
 	});
 
 	it("Throw server error if Yoti Session already exists", async () => {
@@ -274,6 +281,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 		expect(out.body).toBe("Yoti session already exists for this authorization session or Session is in the wrong state");
+		expect(logger.warn).toHaveBeenCalledWith(
+			"Yoti session already exists for this authorization session or Session is in the wrong state: F2F_YOTI_SESSION_CREATED", { "messageCode": "STATE_MISMATCH" },
+		);
 	});
 
 	it("Throw server error if Yoti Session creation fails", async () => {
@@ -286,6 +296,13 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error occurred when creating Yoti Session");
+		expect(logger.error).toHaveBeenCalledTimes(2);
+		expect(logger.error).toHaveBeenNthCalledWith(1,
+			"An error occurred when creating Yoti Session", { "messageCode": "FAILED_CREATING_YOTI_SESSION" },
+		);
+		expect(logger.error).toHaveBeenNthCalledWith(2,
+			"Error occurred during documentSelection orchestration", "An error occurred when creating Yoti Session", { "messageCode": "FAILED_DOCUMENT_SELECTION_ORCHESTRATION" },
+		);
 	});
 
 	it("Throw server error if Yoti Session info fetch fails", async () => {
@@ -300,6 +317,13 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe( "An error occurred when fetching Yoti Session");
+		expect(logger.error).toHaveBeenCalledTimes(2);
+		expect(logger.error).toHaveBeenNthCalledWith(1,
+			"An error occurred when fetching Yoti Session", { "messageCode": "FAILED_FETCHING_YOTI_SESSION" },
+		);
+		expect(logger.error).toHaveBeenNthCalledWith(2,
+			"Error occurred during documentSelection orchestration", "An error occurred when fetching Yoti Session", { "messageCode": "FAILED_DOCUMENT_SELECTION_ORCHESTRATION" },
+		);
 	});
 
 	it("Throw server error if Yoti pdf generation fails", async () => {
@@ -316,6 +340,14 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe( "An error occurred when generating Yoti instructions pdf");
+		expect(logger.error).toHaveBeenCalledTimes(2);
+		expect(logger.error).toHaveBeenNthCalledWith(1,
+			"An error occurred when generating Yoti instructions pdf", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS },
+		);
+		expect(logger.error).toHaveBeenNthCalledWith(2,
+			"Error occurred during documentSelection orchestration", "An error occurred when generating Yoti instructions pdf", { "messageCode": "FAILED_DOCUMENT_SELECTION_ORCHESTRATION" },
+		);
+
 	});
 
 	it("Return 200 when write to txMA fails", async () => {
@@ -355,6 +387,13 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error occurred when sending message to GovNotify handler");
+		expect(logger.error).toHaveBeenCalledTimes(2);
+		expect(logger.error).toHaveBeenNthCalledWith(1,
+			"Yoti session created, failed to post message to GovNotify SQS Queue", { "error": "Failed to send to GovNotify Queue", "messageCode": "FAILED_TO_WRITE_GOV_NOTIFY" },
+		);
+		expect(logger.error).toHaveBeenNthCalledWith(2,
+			"Error occurred during documentSelection orchestration", "An error occurred when sending message to GovNotify handler", { "messageCode": "FAILED_DOCUMENT_SELECTION_ORCHESTRATION" },
+		);
 	});
 
 	it("Return 500 when updating the session returns an error", async () => {

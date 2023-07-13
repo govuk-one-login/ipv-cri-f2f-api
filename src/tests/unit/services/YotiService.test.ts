@@ -252,6 +252,9 @@ describe("YotiService", () => {
 				new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session"),
 			);
 
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "An error occurred when creating Yoti session", "messageCode": "FAILED_CREATING_YOTI_SESSION", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to create session" },
+			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", expect.any(Object), expect.any(Object));
 		});
@@ -449,6 +452,9 @@ describe("YotiService", () => {
 				new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session"),
 			);
 
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "Error fetching Yoti session", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to fetch session info" },
+			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123/configuration", expect.any(Object));
 		});
@@ -506,6 +512,9 @@ describe("YotiService", () => {
 				yotiService.generateInstructions(sessionID, personDetails, requirements, PostOfficeSelection),
 			).rejects.toThrow(new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF"));
 
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "An error occurred when generating Yoti instructions PDF", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to generate instructions" },
+			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.put).toHaveBeenCalledWith(
 				"https://example.com/api/sessions/session123/instructions",
@@ -555,6 +564,9 @@ describe("YotiService", () => {
 				new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF"),
 			);
 
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "An error occurred when fetching Yoti instructions PDF", "messageCode": "FAILED_YOTI_GET_INSTRUCTIONS", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to fetch PDF" },
+			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith(
 				"https://example.com/api/sessions/session123/instructions/pdf",
@@ -593,6 +605,9 @@ describe("YotiService", () => {
 				new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session"),
 			);
 
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "An error occurred when fetching Yoti session", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to fetch completed session info" },
+			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123", expect.any(Object));
 		});
@@ -638,6 +653,9 @@ describe("YotiService", () => {
 			expect(axios.get).toHaveBeenCalledWith(
 				yotiRequest.url,
 				yotiRequest.config,
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "An error occurred when fetching Yoti media content", "messageCode": "FAILED_YOTI_GET_MEDIA_CONTENT", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to fetch media content" },
 			);
 		});
 	});
