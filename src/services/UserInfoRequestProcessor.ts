@@ -52,7 +52,7 @@ export class UserInfoRequestProcessor {
     		sub = await this.validationHelper.eventToSubjectIdentifier(this.kmsJwtAdapter, event);
     	} catch (error) {
     		if (error instanceof AppError) {
-    			this.logger.error({ message: "Error validating Authentication Access token from headers" , error});
+    			this.logger.error({ message: "Error validating Authentication Access token from headers", error });
     			return new Response( HttpCodesEnum.BAD_REQUEST, "Failed to Validate - Authentication header: " + error.message );
     		}
     	}
