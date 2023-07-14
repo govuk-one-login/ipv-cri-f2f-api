@@ -141,7 +141,7 @@ Mappings:
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
+      GOVUKNOTIFYTEMPLATEID: "ccba5634-33e9-4e0d-96c1-57067db941af"
       CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
       RESOURCESTTL: 1036800 # Default 12 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f"}]'
@@ -1736,7 +1736,7 @@ Resources:
         - !Sub "alias/YotiCallbackEncryptionKey-${AWS::StackName}"
         - alias/YotiCallbackEncryptionKey
       TargetKeyId: !Ref YotiCallbackEncryptionKey
-  
+
   YotiCallbackConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
@@ -2839,7 +2839,7 @@ Resources:
                   Value: POST
             Period: 60
             Stat: Sum
-            
+
   DocumentSelection4XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
@@ -3217,7 +3217,7 @@ Resources:
                   Value: POST
             Period: 60
             Stat: Sum
-  
+
   LatencyAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
