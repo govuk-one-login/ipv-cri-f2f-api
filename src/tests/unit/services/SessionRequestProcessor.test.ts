@@ -318,7 +318,7 @@ describe("SessionRequestProcessor", () => {
 		expect(mockF2fService.createAuthSession).toHaveBeenNthCalledWith(
 			1,
 			expect.objectContaining({
-				expiryDate: Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL!),
+				expiryDate: Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL_SECS!),
 			}),
 		);
 		// the next assertion checks that the value has no more than 10 digits, i.e. is in secs not ms

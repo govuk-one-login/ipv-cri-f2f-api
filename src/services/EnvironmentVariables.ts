@@ -38,7 +38,7 @@ export class EnvironmentVariables {
 
 	private readonly ENCRYPTION_KEY_IDS = process.env.ENCRYPTION_KEY_IDS;
 
-	private readonly AUTH_SESSION_TTL_IN_SECS = process.env.AUTH_SESSION_TTL;
+	private readonly AUTH_SESSION_TTL_IN_SECS = +process.env.AUTH_SESSION_TTL_SECS!;
 
 	private readonly SIGNING_KEY_IDS = process.env.SIGNING_KEY_IDS;
 
@@ -50,9 +50,9 @@ export class EnvironmentVariables {
 
 	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
 
-	private YOTI_SESSION_TTL_DAYS = process.env.YOTI_SESSION_TTL_DAYS;
+	private YOTI_SESSION_TTL_DAYS = +process.env.YOTI_SESSION_TTL_DAYS!;
 
-	private RESOURCES_TTL_SECS = process.env.RESOURCES_TTL_SECS;
+	private RESOURCES_TTL_SECS = +process.env.RESOURCES_TTL_SECS!;
 
 	private YOTI_INSTRUCTIONS_PDF_MAX_RETRIES = process.env.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES;
 
@@ -97,15 +97,14 @@ export class EnvironmentVariables {
 				}
 
 				if (!this.YOTI_SESSION_TTL_DAYS
-					|| this.YOTI_SESSION_TTL_DAYS.trim().length === 0
-					|| +this.YOTI_SESSION_TTL_DAYS.trim() === 0) {
-					this.YOTI_SESSION_TTL_DAYS = "10";
-					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set. Setting to default - 10 days.");
+					|| this.YOTI_SESSION_TTL_DAYS < 10) {
+					this.YOTI_SESSION_TTL_DAYS = 10;
+					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set or below 10 days. Setting to minimum - 10 days.");
 				}
 
-				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS.trim().length === 0) {
-					this.RESOURCES_TTL_SECS = "1209600";
-					logger.warn("RESOURCES_TTL_SECS env var is not set. Setting to default - 12 days.");
+				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS < 1209600) {
+					this.RESOURCES_TTL_SECS = 1209600;
+					logger.warn("RESOURCES_TTL_SECS env var is not set or below 12 days. Setting to minimum - 12 days.");
 				}
 				if (!this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS
 					|| this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS.trim().length === 0
@@ -149,10 +148,10 @@ export class EnvironmentVariables {
 				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 					!this.CLIENT_CONFIG || this.CLIENT_CONFIG.trim().length === 0 ||
 					!this.ENCRYPTION_KEY_IDS || this.ENCRYPTION_KEY_IDS.trim().length === 0 ||
-					!this.AUTH_SESSION_TTL_IN_SECS || this.AUTH_SESSION_TTL_IN_SECS.trim().length === 0 ||
+					!this.AUTH_SESSION_TTL_IN_SECS ||
 					!this.ISSUER || this.ISSUER.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0) {
-					logger.error("Environment variable SESSION_TABLE or CLIENT_CONFIG or ENCRYPTION_KEY_IDS or AUTH_SESSION_TTL is not configured");
+					logger.error("Environment variable SESSION_TABLE or CLIENT_CONFIG or ENCRYPTION_KEY_IDS or AUTH_SESSION_TTL_SECS is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Session Service incorrectly configured");
 				}
 				break;
@@ -191,13 +190,13 @@ export class EnvironmentVariables {
 					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
 				}
-				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS.trim().length === 0) {
-					this.YOTI_SESSION_TTL_DAYS = "10";
-					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set. Setting to default - 10 days.");
+				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS < 10) {
+					this.YOTI_SESSION_TTL_DAYS = 10;
+					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set or below 10 days. Setting to minimum - 10 days.");
 				}
-				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS.trim().length === 0) {
-					this.RESOURCES_TTL_SECS = "1209600";
-					logger.warn("RESOURCES_TTL_SECS env var is not set. Setting to default - 12 days.");
+				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS < 1209600) {
+					this.RESOURCES_TTL_SECS = 1209600;
+					logger.warn("RESOURCES_TTL_SECS env var is not set or below 12 days. Setting to minimum - 12 days.");
 				}
 				break;
 			}
@@ -211,13 +210,13 @@ export class EnvironmentVariables {
 					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
 				}
-				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS.trim().length === 0) {
-					this.YOTI_SESSION_TTL_DAYS = "10";
-					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set. Setting to default - 10 days.");
+				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS < 10) {
+					this.YOTI_SESSION_TTL_DAYS = 10;
+					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set or below 10 days. Setting to minimum - 10 days.");
 				}
-				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS.trim().length === 0) {
-					this.RESOURCES_TTL_SECS = "1209600";
-					logger.warn("RESOURCES_TTL_SECS env var is not set. Setting to default - 12 days.");
+				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS < 1209600) {
+					this.RESOURCES_TTL_SECS = 1209600;
+					logger.warn("RESOURCES_TTL_SECS env var is not set or below 12 days. Setting to minimum - 12 days.");
 				}
 				break;
 			}
@@ -305,7 +304,7 @@ export class EnvironmentVariables {
 		return this.CLIENT_CONFIG;
 	}
 
-	authSessionTtlInSecs(): any {
+	authSessionTtlInSecs(): number {
 		return this.AUTH_SESSION_TTL_IN_SECS;
 	}
 

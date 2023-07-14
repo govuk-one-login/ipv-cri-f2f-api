@@ -288,8 +288,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
 
-		expect(mockF2fService.updateSessionTtl).toHaveBeenNthCalledWith(1, "RandomF2FSessionID", Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL!), "SESSIONTABLE");
-		expect(mockF2fService.updateSessionTtl).toHaveBeenNthCalledWith(2, "RandomF2FSessionID", Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL!), "PERSONIDENTITYTABLE");
+		expect(mockF2fService.updateSessionTtl).toHaveBeenNthCalledWith(1, "RandomF2FSessionID", Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL_SECS!), "SESSIONTABLE");
+		expect(mockF2fService.updateSessionTtl).toHaveBeenNthCalledWith(2, "RandomF2FSessionID", Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL_SECS!), "PERSONIDENTITYTABLE");
 	});
 
 	it("Throw server error if Yoti Session already exists", async () => {

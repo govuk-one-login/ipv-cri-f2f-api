@@ -339,7 +339,7 @@ export class F2fService {
 			birthDate: this.mapbirthDate(sharedClaims.birthDate),
 			emailAddress: sharedClaims.emailAddress,
 			name: this.mapNames(sharedClaims.name),
-			expiryDate: Math.floor((Date.now() / 1000) + Number(this.environmentVariables.authSessionTtlInSecs())),
+			expiryDate: Math.floor((Date.now() / 1000) + this.environmentVariables.authSessionTtlInSecs()),
 			createdDate: Math.floor(Date.now() / 1000),
 		};
 	}

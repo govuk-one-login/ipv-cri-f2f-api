@@ -273,7 +273,7 @@ describe("F2f Service", () => {
 			clientCommand: expect.objectContaining({
 				input: expect.objectContaining({
 					Item: expect.objectContaining({
-						expiryDate: Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL!),
+						expiryDate: Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL_SECS!),
 						createdDate: Math.floor(fakeTime),
 					}),
 				}),
