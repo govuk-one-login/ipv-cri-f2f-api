@@ -49,7 +49,7 @@ Mappings:
       IPVStubID: "BD7B2A5D"
       JWKSURI: "https://api.review-o.build.account.gov.uk"
       IPVSTUBURL: "ipvstub.review-o.build.account.gov.uk"
-      OAUTHFRONTBASEURI:  "https://review-o.build.account.gov.uk"
+      OAUTHFRONTBASEURI:  "https://www.review-o.build.account.gov.uk"
     staging:
       IPVStubID: "9CDA6F61"
     integration:
