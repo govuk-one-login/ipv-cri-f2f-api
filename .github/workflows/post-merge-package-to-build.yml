@@ -7,7 +7,6 @@ on:
     paths-ignore:
       - 'infra-l2-dynamo/**'
       - 'infra-l2-kms/**'
-      - 'infra-l2-waf/**'
       - 'f2f-ipv-stub/**'
       - 'infra-l2-outbound-proxy/**'
 
