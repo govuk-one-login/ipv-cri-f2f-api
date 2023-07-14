@@ -70,7 +70,7 @@ describe("PersonIdentityUtils", () => {
 	});
 
 	it("should return the expected structured_postal_address when all fields are present", () => {
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails, logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
 
 		expect(addressDetails).toStrictEqual(expectedStructuralPostalAddress);
 	});
@@ -78,7 +78,7 @@ describe("PersonIdentityUtils", () => {
 	it("should return the expected structured_postal_address when sub_building is empty", () => {
 		// set subBuildingName to an empty string
 		personDetails.addresses[0].subBuildingName = "";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails, logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
 
 		expectedStructuralPostalAddress.sub_building = "";
 		expectedStructuralPostalAddress.address_line1 = "Sherman";
@@ -90,7 +90,7 @@ describe("PersonIdentityUtils", () => {
 		// set buildingName to an empty string
 		personDetails.addresses[0].buildingName = "";
 		personDetails.addresses[0].subBuildingName = "Flat 5";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails, logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
 
 		expectedStructuralPostalAddress.building = "";
 		expectedStructuralPostalAddress.sub_building = "Flat 5";
@@ -103,7 +103,7 @@ describe("PersonIdentityUtils", () => {
 		// set subBuildingName and buildingName to an empty string
 		personDetails.addresses[0].subBuildingName = "";
 		personDetails.addresses[0].buildingName = "";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails, logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
 
 		expectedStructuralPostalAddress.sub_building = "";
 		expectedStructuralPostalAddress.building = "";
@@ -120,7 +120,7 @@ describe("PersonIdentityUtils", () => {
 		personDetails.addresses[0].subBuildingName = "Flat 5";
 		personDetails.addresses[0].buildingName = "Sherman";
 		personDetails.addresses[0].buildingNumber = "";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails, logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
 
 		expectedStructuralPostalAddress.sub_building = "Flat 5";
 		expectedStructuralPostalAddress.building = "Sherman";
@@ -136,7 +136,7 @@ describe("PersonIdentityUtils", () => {
 		personDetails.addresses[0].subBuildingName = "Flat 5";
 		personDetails.addresses[0].buildingName = "";
 		personDetails.addresses[0].buildingNumber = "";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails, logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
 
 		expectedStructuralPostalAddress.sub_building = "Flat 5";
 		expectedStructuralPostalAddress.building = "";
@@ -152,7 +152,7 @@ describe("PersonIdentityUtils", () => {
 		personDetails.addresses[0].subBuildingName = "";
 		personDetails.addresses[0].buildingName = "Sherman";
 		personDetails.addresses[0].buildingNumber = "";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails, logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
 
 		expectedStructuralPostalAddress.sub_building = "";
 		expectedStructuralPostalAddress.building = "Sherman";

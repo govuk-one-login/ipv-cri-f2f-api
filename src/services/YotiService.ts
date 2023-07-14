@@ -64,10 +64,15 @@ export class YotiService {
 		const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(" ") : nameParts.givenNames[0];
 		const familyNames = nameParts.familyNames.length > 1 ? nameParts.familyNames.join(" ") : nameParts.familyNames[0];
 
+		const address = personDetails.addresses[0];
+		if (address.addressCountry !== "GB") {
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Invalid country code");
+		}
+		
 		return {
 			full_name: `${givenNames} ${familyNames}`,
 			date_of_birth: `${personDetails.birthDate.map((bd) => ({ value: bd.value }))[0].value}`,
-			structured_postal_address: personIdentityUtils.getYotiStructuredPostalAddress(personDetails, this.logger),
+			structured_postal_address: personIdentityUtils.getYotiStructuredPostalAddress(address, this.logger),
 		};
 	}
 
