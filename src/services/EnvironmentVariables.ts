@@ -96,10 +96,13 @@ export class EnvironmentVariables {
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 				}
 
-				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS.trim().length === 0) {
+				if (!this.YOTI_SESSION_TTL_DAYS
+					|| this.YOTI_SESSION_TTL_DAYS.trim().length === 0
+					|| +this.YOTI_SESSION_TTL_DAYS.trim() === 0) {
 					this.YOTI_SESSION_TTL_DAYS = "10";
 					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set. Setting to default - 10 days.");
 				}
+
 				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS.trim().length === 0) {
 					this.RESOURCES_TTL_SECS = "1209600";
 					logger.warn("RESOURCES_TTL_SECS env var is not set. Setting to default - 12 days.");
@@ -322,12 +325,12 @@ export class EnvironmentVariables {
 		return this.PERSON_IDENTITY_TABLE_NAME;
 	}
 
-	resourcesTtlInSeconds(): any {
-		return this.RESOURCES_TTL_SECS;
+	resourcesTtlInSeconds(): number {
+		return +this.RESOURCES_TTL_SECS!;
 	}
 
-	clientSessionTokenTtlInDays(): any {
-		return this.YOTI_SESSION_TTL_DAYS;
+	clientSessionTokenTtlInDays(): number {
+		return +this.YOTI_SESSION_TTL_DAYS!;
 	}
 
 	yotiInstructionsPdfMaxRetries(): number {

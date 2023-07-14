@@ -275,4 +275,36 @@ describe("F2f Service", () => {
 		}));
 		jest.useRealTimers();
 	});
+
+	it.each([
+		["should update session table with updated ttl", "SESSID", 123456, "SESSIONTABLE"],
+		["should update person identity table with updated ttl", "SESSID", 123456, "PERSONTABLE"],
+	])("update ttl - %s", async (description, sessionId, expiryDate, tableName) => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		await f2fService.updateSessionTtl(sessionId, expiryDate, tableName);
+		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
+			input: {
+				ExpressionAttributeValues: {
+					":expiryDate": expiryDate,
+				},
+				Key: {
+					sessionId: sessionId,
+				},
+				TableName: tableName,
+				UpdateExpression: "SET expiryDate = :expiryDate",
+			},
+		}));
+	});
+	
+
+	it.each([
+		["should throw 500 if fails to update session ttl", "SESSIONTABLE"],
+		["should throw 500 if fails to update person identity ttl", "PERSONTABLE"],
+	])("update ttl - %s", async (description, tableName) => {
+		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+		await expect(f2fService.updateSessionTtl(FAILURE_VALUE, 123456, tableName)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+			message: `updateItem - failed: got error updating ${tableName} ttl`
+		}));
+	});	
 });
