@@ -202,9 +202,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
-
-		expect(mockF2fService.updateSessionTtl).toHaveBeenNthCalledWith(1, "RandomF2FSessionID", Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL!), "SESSIONTABLE");
-		expect(mockF2fService.updateSessionTtl).toHaveBeenNthCalledWith(2, "RandomF2FSessionID", Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL!), "PERSONIDENTITYTABLE");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
 	});
@@ -266,6 +263,26 @@ describe("DocumentSelectionRequestProcessor", () => {
 			statusCode: HttpCodesEnum.BAD_REQUEST,
 			message: "Missing details in SESSION or PERSON IDENTITY tables",
 		}));
+	});
+
+	it("Should update the TTL on both Session & Person Identity Tables", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
+
+		mockYotiService.fetchSessionInfo.mockResolvedValueOnce(yotiSessionInfo);
+
+		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
+
+		jest.useFakeTimers();
+		const fakeTime = 1684933200.123;
+		jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.000Z
+
+		await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
+
+		expect(mockF2fService.updateSessionTtl).toHaveBeenNthCalledWith(1, "RandomF2FSessionID", Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL!), "SESSIONTABLE");
+		expect(mockF2fService.updateSessionTtl).toHaveBeenNthCalledWith(2, "RandomF2FSessionID", Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL!), "PERSONIDENTITYTABLE");
 	});
 
 	it("Throw server error if Yoti Session already exists", async () => {
@@ -378,6 +395,30 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
+		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
+		expect(out.body).toBe("An error has occurred");
+	});
+
+	it("Return 500 when updating the TTLs returns an error", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
+
+		mockYotiService.fetchSessionInfo.mockResolvedValueOnce(yotiSessionInfo);
+
+		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
+
+		jest.useFakeTimers();
+		const fakeTime = 1684933200.123;
+		jest.setSystemTime(new Date(fakeTime * 1000));
+
+		mockF2fService.updateSessionTtl.mockRejectedValueOnce("Got error updating SESSIONTABLE ttl");
+
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
