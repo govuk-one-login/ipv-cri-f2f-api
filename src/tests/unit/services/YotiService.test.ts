@@ -52,7 +52,7 @@ const personDetails: PersonIdentityItem = {
 };
 
 const createSessionPayload = {
-	resources_ttl: "1209600",
+	resources_ttl: 1209600,
 	ibv_options: {
 		support: "MANDATORY",
 	},
@@ -176,7 +176,7 @@ describe("YotiService", () => {
 		yotiService = new YotiService(
 			logger,
 			"CLIENT_SDK_ID",
-			"1209600",
+			1209600,
 			10,
 			"PEM_KEY",
 			"YOTI_BASE_URL",

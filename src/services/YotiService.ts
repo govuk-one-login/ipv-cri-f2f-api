@@ -23,11 +23,11 @@ export class YotiService {
 
 	readonly YOTI_SESSION_TTL_DAYS: number;
 
-	readonly RESOURCES_TTL_SECS:string;
+	readonly RESOURCES_TTL_SECS:number;
 
 	readonly YOTI_BASE_URL: string;
 
-	constructor(logger: Logger, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: string, YOTI_SESSION_TTL_DAYS: number, PEM_KEY: string, YOTI_BASE_URL: string) {
+	constructor(logger: Logger, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number, PEM_KEY: string, YOTI_BASE_URL: string) {
 		this.RESOURCES_TTL_SECS = RESOURCES_TTL_SECS;
 		this.YOTI_SESSION_TTL_DAYS = YOTI_SESSION_TTL_DAYS;
 		this.logger = logger;
@@ -39,7 +39,7 @@ export class YotiService {
 	static getInstance(
 		logger: Logger,
 		CLIENT_SDK_ID: string,
-		RESOURCES_TTL_SECS: string,
+		RESOURCES_TTL_SECS: number,
 		YOTI_SESSION_TTL_DAYS: number,
 		PEM_KEY: string,
 		YOTI_BASE_URL: string,

@@ -187,12 +187,12 @@ describe("EnvironmentVariables", () => {
 
   describe("resourcesTtlInSeconds", () => {
     it("should return the value of RESOURCES_TTL_SECS", () => {
-      process.env.RESOURCES_TTL_SECS = "RESOURCES_TTL_SECS_VALUE";
+      process.env.RESOURCES_TTL_SECS = "1209600";
       const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
 
       const result = envVars.resourcesTtlInSeconds();
 
-      expect(result).toBe("RESOURCES_TTL_SECS_VALUE");
+      expect(result).toBe(1209600);
     });
   });
 
@@ -203,7 +203,7 @@ describe("EnvironmentVariables", () => {
 
       const result = envVars.clientSessionTokenTtlInDays();
 
-      expect(result).toBe("10");
+      expect(result).toBe(10);
     });
   });
 
