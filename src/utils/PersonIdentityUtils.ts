@@ -1,5 +1,5 @@
 import { PersonIdentityAddress, PersonIdentityItem } from "../models/PersonIdentityItem";
-import { YOTI_DOCUMENT_COUNTRY_CODE, YOTI_ADDRESS_FORMAT_CODE } from "./YotiPayloadEnums";
+import { YOTI_DOCUMENT_COUNTRY, YOTI_DOCUMENT_COUNTRY_CODE, YOTI_ADDRESS_FORMAT_CODE } from "./YotiPayloadEnums";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { MessageCodes } from "../models/enums/MessageCodes";
 
@@ -28,9 +28,7 @@ export const personIdentityUtils = {
 		return personDetails.emailAddress;
 	},
 
-	getYotiStructuredPostalAddress(personDetails: PersonIdentityItem, logger: Logger) : { address_format: number; building_number: string; sub_building: string; building: string; address_line1: string; address_line2: string; town_city: string; postal_code: string; country_iso: string; country: string } {
-		const address = personDetails.addresses[0];
-
+	getYotiStructuredPostalAddress(address: PersonIdentityAddress, logger: Logger) : { address_format: number; building_number: string; sub_building: string; building: string; address_line1: string; address_line2: string; town_city: string; postal_code: string; country_iso: string; country: string } {
 		const { addressLine1, addressLine2 } = this.getYotiAddressLines(address, logger);
 
 		return {
@@ -43,7 +41,7 @@ export const personIdentityUtils = {
 			town_city: address.addressLocality,
 			postal_code: address.postalCode,
 			country_iso: YOTI_DOCUMENT_COUNTRY_CODE,
-			country: address.addressCountry,
+			country: YOTI_DOCUMENT_COUNTRY,
 		};
 	},
 
