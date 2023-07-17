@@ -9,6 +9,7 @@ import { TxmaEvent } from "../../../utils/TxmaEvent";
 import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { personIdentityInputRecord, personIdentityOutputRecord } from "../data/personIdentity-records";
+import { AppError } from "../../../utils/AppError";
 
 const logger = mock<Logger>();
 
@@ -83,7 +84,12 @@ describe("F2f Service", () => {
 			expiryDate: absoluteTimeNow() - 500,
 		};
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: expiredSession });
-		await expect(f2fService.getSessionById("1234")).rejects.toThrow("Session with session id: 1234 has expired");
+		try {
+			await f2fService.getSessionById("1234");
+		} catch (error) {
+			expect(error).toEqual(new AppError(HttpCodesEnum.UNAUTHORIZED, "Session with session id: 1234 has expired"));
+			expect(logger.error).toHaveBeenCalledWith("Session with session id: 1234 has expired");
+		}
 	});
 
 	it("Should not throw an error and return undefined when set AuthorizationCode F2F data doesn't exist", async () => {
@@ -274,5 +280,25 @@ describe("F2f Service", () => {
 			}),
 		}));
 		jest.useRealTimers();
+	});
+
+	it("Should throw an error when session by yoti sessionId doesn't exist", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		try {
+			await f2fService.getSessionByYotiId("1234");
+		} catch (error) {
+			expect(error).toEqual(new AppError(HttpCodesEnum.UNAUTHORIZED, "Error retrieving Session by yoti session id"));
+			expect(logger.error).toHaveBeenCalledWith({ "message": "Error retrieving Session by yoti session id" }, { "messageCode": "FAILED_FETCHING_BY_YOTI_SESSIONID" });
+		}
+	});
+
+	it("Should throw an error when Person record by sessionId doesn't exist", async () => {
+		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+		try {
+			await f2fService.getPersonIdentityById("1234");
+		} catch (error) {
+			expect(error).toEqual(new AppError(HttpCodesEnum.UNAUTHORIZED, "Error retrieving Session"));
+			expect(logger.error).toHaveBeenCalledWith({ "message": "getSessionById - failed executing get from dynamodb" }, { "error": {}, "messageCode": "FAILED_FETCHING_PERSON_IDENTITY" });
+		}
 	});
 });
