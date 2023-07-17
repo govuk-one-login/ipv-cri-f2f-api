@@ -55,7 +55,7 @@ export const handler = async (
         buildingName: "Sherman",
         streetName: "Wallaby Way",
         addressLocality: "Sidney",
-        addressCountry: "United Kingdom",
+        addressCountry: "GB",
         postalCode: "F1 1SH",
       },
     ],
