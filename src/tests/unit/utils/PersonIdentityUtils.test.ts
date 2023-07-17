@@ -206,6 +206,18 @@ describe("PersonIdentityUtils", () => {
 
 		expect(()=>{personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);}).toThrow(new AppError(HttpCodesEnum.BAD_REQUEST, "Missing all mandatory postalAddress fields, unable to create the session"));
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(logger.error).toHaveBeenCalledWith({ "message": "subBuildingName, buildingName, buildingNumber and streetName are missing or empty for this postalAddress" }, { "messageCode": "MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS" });
+		expect(logger.error).toHaveBeenCalledWith({ "message": "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session" }, { "messageCode": "MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS" });
+	});
+
+	it("should throw an error if all mandatory postalAddress except streetName fields either missing/empty", () => {
+		// set subBuildingName and buildingName to an empty string
+		delete personDetails.addresses[0].subBuildingName;
+		personDetails.addresses[0].buildingName = "   ";
+		personDetails.addresses[0].buildingNumber = "   ";
+		personDetails.addresses[0].streetName = "Funny Street";
+
+		expect(()=>{personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);}).toThrow(new AppError(HttpCodesEnum.BAD_REQUEST, "Missing all mandatory postalAddress fields, unable to create the session"));
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(logger.error).toHaveBeenCalledWith({ "message": "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session" }, { "messageCode": "MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS" });
 	});
 });
