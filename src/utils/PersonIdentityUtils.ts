@@ -54,8 +54,13 @@ export const personIdentityUtils = {
 
 	getYotiAddressLines(address: PersonIdentityAddress, logger: Logger) : { addressLine1: string; addressLine2: string } {
 		let addressLine1, addressLine2;
-		if (!this.checkIfValidString([address.subBuildingName]) && !this.checkIfValidString([address.buildingName]) && !this.checkIfValidString([address.buildingNumber]) && !this.checkIfValidString([ address.streetName]) ||
-			!this.checkIfValidString([address.subBuildingName]) && !this.checkIfValidString([address.buildingName]) && !this.checkIfValidString([address.buildingNumber])) {
+		if ((!this.checkIfValidString([address.subBuildingName]) &&
+			!this.checkIfValidString([address.buildingName]) &&
+			!this.checkIfValidString([address.buildingNumber]) &&
+			!this.checkIfValidString([ address.streetName])) ||
+			(!this.checkIfValidString([address.subBuildingName]) &&
+				!this.checkIfValidString([address.buildingName]) &&
+				!this.checkIfValidString([address.buildingNumber]))) {
 			// Throw an error if all the mandatory postalAddress fields- subBuildingName, buildingName, buildingNumber and streetName exists and is a valid string or atleast one of subBuildingName, buildingName, buildingNumber is a valid string
 			logger.error({ message: "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session" }, { messageCode: MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS });
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing all mandatory postalAddress fields, unable to create the session");
@@ -85,5 +90,5 @@ export const personIdentityUtils = {
 			return false;
 		}
 		return true;
-	}
+	},
 };
