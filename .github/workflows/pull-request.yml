@@ -101,7 +101,7 @@ jobs:
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
         with:
-          version: 1.70.0
+          use-installer: true
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v1-node16
