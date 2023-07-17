@@ -238,7 +238,7 @@ describe("YotiService", () => {
 				],
 			};
 
-			expect(() => {yotiService["getApplicantProfile"](invalidPersonDetails)}).toThrow(new AppError(HttpCodesEnum.BAD_REQUEST, "Invalid country code"));
+			expect(() => {yotiService["getApplicantProfile"](invalidPersonDetails);}).toThrow(new AppError(HttpCodesEnum.BAD_REQUEST, "Invalid country code"));
 		});
 	});
 
@@ -505,7 +505,7 @@ describe("YotiService", () => {
 		const PostOfficeSelectionWithName = {
 			...PostOfficeSelection,
 			name: "The Funkytown Post office",
-		}
+		};
 
 
 		it("should generate instructions using hardcoded PO name and return OK status code", async () => {
@@ -543,7 +543,7 @@ describe("YotiService", () => {
 					...generateInstructionsPayload.branch,
 					name: "The Funkytown Post office",
 				},
-			}
+			};
 	
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.put).toHaveBeenCalledWith(

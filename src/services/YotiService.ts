@@ -66,6 +66,7 @@ export class YotiService {
 
 		const address = personDetails.addresses[0];
 		if (address.addressCountry !== "GB") {
+			this.logger.error({ message: "Invalid country code in the postalAddress" }, { messageCode: MessageCodes.INVALID_COUNTRY_CODE });
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Invalid country code");
 		}
 		
