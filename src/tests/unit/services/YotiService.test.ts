@@ -234,7 +234,7 @@ describe("YotiService", () => {
 			axiosMock.post.mockResolvedValue({ data: { session_id: "session123" } });
 			jest.useFakeTimers();
 			const fakeTime = 1684933200.123;
-			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-06-01T13:00:00.000Z
+			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
 
 			const sessionId = await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL);
 
@@ -267,7 +267,7 @@ describe("YotiService", () => {
 			axiosMock.post.mockResolvedValue({ data: { session_id: "session123" } });
 			jest.useFakeTimers();
 			const fakeTime = 1684933200.123;
-			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-06-01T13:00:00.000Z
+			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
 
 			await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL);
 
