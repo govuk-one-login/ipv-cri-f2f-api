@@ -32,7 +32,7 @@ export const personIdentityUtils = {
 		return {
   		address_format: YOTI_ADDRESS_FORMAT_CODE,
   		building_number: address.buildingNumber,
-  		address_line1: `${address.buildingNumber} ${address.buildingName ? `${address.buildingName} ` : ''}${address.streetName}`.trim(),
+  		address_line1: `${address.buildingNumber} ${address.buildingName ? `${address.buildingName} ` : ""}${address.streetName}`.trim(),
   		town_city: address.addressLocality,
   		postal_code: address.postalCode,
   		country_iso: YOTI_DOCUMENT_COUNTRY_CODE,
