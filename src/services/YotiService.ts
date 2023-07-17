@@ -140,7 +140,7 @@ export class YotiService {
 		yotiCallbackUrl: string,
 	): Promise<string | undefined> {
 		const sessionDeadlineDate = new Date(new Date().getTime() + this.YOTI_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000);
-		sessionDeadlineDate.setHours(22, 0, 0, 0);
+		sessionDeadlineDate.setUTCHours(22, 0, 0, 0);
 
 		const payloadJSON: CreateSessionPayload = {
 			session_deadline: sessionDeadlineDate,

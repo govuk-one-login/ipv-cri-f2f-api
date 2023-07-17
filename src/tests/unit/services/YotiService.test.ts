@@ -273,7 +273,7 @@ describe("YotiService", () => {
 
 			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", {
 				...createSessionPayload,
-				session_deadline: new Date("2023-06-03T21:00:00.000Z"),
+				session_deadline: new Date("2023-06-03T22:00:00.000Z"),
 			}, {});
 		});
 
