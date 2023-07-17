@@ -177,6 +177,10 @@ Conditions:
   IsPersonalIdentifiableInformationEnvironment: !Or
     - !Equals [!Ref Environment, integration]
     - !Equals [!Ref Environment, production]
+  IsOutboundSQSConnected: !Or
+    - !Equals [!Ref Environment, staging]
+    - !Equals [!Ref Environment, integration]
+    - !Equals [!Ref Environment, production]
   UseCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -1003,10 +1007,11 @@ Resources:
               - "sqs:ReceiveMessage"
             Resource:
               - !GetAtt TxMASQSQueue.Arn
-            # F2F-838 - Temporarily removed for Production Testing | Remove permissions for VCs and TxMA Event propagation downstream
-            # Principal:
-            #   AWS:
-            #     - !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
+            Principal: 
+              AWS: !If 
+                - IsOutboundSQSConnected
+                - !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
+                - !Ref AWS::NoValue
 
   TxMASQSQueueDeadLetterQueue:
     Type: AWS::SQS::Queue
@@ -1816,10 +1821,11 @@ Resources:
               - "sqs:ReceiveMessage"
             Resource:
               - !GetAtt IPVCoreSQSQueue.Arn
-            # F2F-838 - Temporarily removed for Production Testing | Remove permissions for VCs and TxMA Event propagation downstream
-            # Principal:
-            #   AWS:
-            #     - !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
+            Principal:
+              AWS: !If 
+                - IsOutboundSQSConnected
+                - !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
+                - !Ref AWS::NoValue
 
   IPVCoreDeadLetterQueue:
     Type: AWS::SQS::Queue
