@@ -99,13 +99,13 @@ export class DocumentSelectionRequestProcessor {
 
   	if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
 
-			try {
+  		try {
   			yotiSessionId = await this.createSessionGenerateInstructions(personDetails, f2fSessionInfo, postOfficeSelection, selectedDocument, countryCode);
   			await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
   			await this.f2fService.updateSessionWithYotiIdAndStatus(f2fSessionInfo.sessionId, yotiSessionId, AuthSessionState.F2F_YOTI_SESSION_CREATED);
-				const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
-				await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
-				await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName())
+  			const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
+  			await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
+  			await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
   		} catch (error: any) {
   			this.logger.error("Error occurred during documentSelection orchestration", error.message,
   				{ messageCode: MessageCodes.FAILED_DOCUMENT_SELECTION_ORCHESTRATION });

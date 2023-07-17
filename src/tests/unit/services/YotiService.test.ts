@@ -273,7 +273,7 @@ describe("YotiService", () => {
 
 			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", {
 				...createSessionPayload,
-				session_deadline: new Date("2023-06-03T21:00:00.000Z")
+				session_deadline: new Date("2023-06-03T21:00:00.000Z"),
 			}, {});
 		});
 
@@ -521,7 +521,7 @@ describe("YotiService", () => {
 		const PostOfficeSelectionWithName = {
 			...PostOfficeSelection,
 			name: "The Funkytown Post office",
-		}
+		};
 
 
 		it("should generate instructions using hardcoded PO name and return OK status code", async () => {
@@ -559,7 +559,7 @@ describe("YotiService", () => {
 					...generateInstructionsPayload.branch,
 					name: "The Funkytown Post office",
 				},
-			}
+			};
 	
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.put).toHaveBeenCalledWith(

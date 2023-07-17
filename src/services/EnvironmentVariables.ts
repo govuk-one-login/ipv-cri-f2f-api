@@ -325,11 +325,11 @@ export class EnvironmentVariables {
 	}
 
 	resourcesTtlInSeconds(): number {
-		return +this.RESOURCES_TTL_SECS!;
+		return +this.RESOURCES_TTL_SECS;
 	}
 
 	clientSessionTokenTtlInDays(): number {
-		return +this.YOTI_SESSION_TTL_DAYS!;
+		return +this.YOTI_SESSION_TTL_DAYS;
 	}
 
 	yotiInstructionsPdfMaxRetries(): number {

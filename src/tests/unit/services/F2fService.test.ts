@@ -313,7 +313,7 @@ describe("F2f Service", () => {
 					":expiryDate": expiryDate,
 				},
 				Key: {
-					sessionId: sessionId,
+					sessionId,
 				},
 				TableName: tableName,
 				UpdateExpression: "SET expiryDate = :expiryDate",
@@ -329,7 +329,7 @@ describe("F2f Service", () => {
 		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
 		await expect(f2fService.updateSessionTtl(FAILURE_VALUE, 123456, tableName)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
-			message: `updateItem - failed: got error updating ${tableName} ttl`
+			message: `updateItem - failed: got error updating ${tableName} ttl`,
 		}));
 	});	
 });
