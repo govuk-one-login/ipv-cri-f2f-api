@@ -339,8 +339,8 @@ export class F2fService {
 			birthDate: this.mapbirthDate(sharedClaims.birthDate),
 			emailAddress: sharedClaims.emailAddress,
 			name: this.mapNames(sharedClaims.name),
-			expiryDate: Math.floor((Date.now() / 1000) + Number(this.environmentVariables.authSessionTtlInSecs())),
-			createdDate: Math.floor(Date.now() / 1000),
+			expiryDate: absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs(),
+			createdDate: absoluteTimeNow(),
 		};
 	}
 
@@ -378,6 +378,26 @@ export class F2fService {
 		} catch (error) {
 			this.logger.error({ message: "Got error saving auth state details", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving auth state details");
+		}
+	}
+
+	async updateSessionTtl(sessionId: string, sessionTtl: number, tableName: string = this.tableName): Promise<void> {
+		const updateStateCommand = new UpdateCommand({
+			TableName: tableName,
+			Key: { sessionId },
+			UpdateExpression: "SET expiryDate = :expiryDate",
+			ExpressionAttributeValues: {
+				":expiryDate": sessionTtl,
+			},
+		});
+
+		this.logger.info({ message: `Updating ${tableName} table TTL`, updateStateCommand });
+		try {
+			await this.dynamo.send(updateStateCommand);
+			this.logger.info({ message: `Updated ${tableName} TTL in dynamodb` });
+		} catch (error) {
+			this.logger.error({ message: `Got error updating ${tableName} ttl`, error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName} ttl`);
 		}
 	}
 
