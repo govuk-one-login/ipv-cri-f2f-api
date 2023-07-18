@@ -1,5 +1,5 @@
 {
-    "target": "",
+    "target": "https://api.review-o.build.account.gov.uk",
     "yotiMockID": "0000",
     "shared_claims": {
         "name": [

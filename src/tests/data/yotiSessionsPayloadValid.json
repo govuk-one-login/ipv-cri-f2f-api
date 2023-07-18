@@ -112,7 +112,10 @@
    ],
    "resources": {
        "applicant_profile": {
-           "additionalProp1": {}
+           "additionalProp1": {},
+           "structured_postal_address":{
+               "building_number":"1A"
+           }
        }
    }
 }
