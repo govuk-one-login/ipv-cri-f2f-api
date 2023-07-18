@@ -99,12 +99,11 @@ export class YotiRequestProcessor {
      */
     async createSession(event: APIGatewayProxyEvent, incomingPayload: any): Promise<Response> {
         this.logger.info("START OF CREATESESSION")
-	this.logger.info("/createSession Payload", {incomingPayload});
-        this.logger.info("-----incomingPayload", {incomingPayload});
+	    this.logger.info("/createSession Payload", {incomingPayload});
         if( (!incomingPayload.resources.applicant_profile.structured_postal_address.building_number || incomingPayload.resources.applicant_profile.structured_postal_address.building_number === "") &&
             (!incomingPayload.resources.applicant_profile.structured_postal_address.sub_building || incomingPayload.resources.applicant_profile.structured_postal_address.sub_building === "") &&
             (!incomingPayload.resources.applicant_profile.structured_postal_address.building || incomingPayload.resources.applicant_profile.structured_postal_address.building === "") ){
-
+            this.logger.error("Bad Request: structured_postal_address is INVALID");
             return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SESSIONS_INVALID_ADDRESS_400));
         }
         const fullName = incomingPayload.resources.applicant_profile.full_name;
