@@ -28,7 +28,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		expect(response.data).toBe("Instructions PDF Generated");
 	});
 
-    it("buildingNumber missing", async () => {
+    it("buildingNumber and subBuildingName missing", async () => {
         f2fStubPayload.shared_claims.address[0].buildingNumber = "";
         f2fStubPayload.shared_claims.address[0].buildingName = "19 A";
         f2fStubPayload.shared_claims.address[0].subBuildingName = "";
@@ -69,7 +69,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Instructions PDF Generated");
 	});
-	
+
 	it("incorrect country code", async () => {
 		f2fStubPayload.shared_claims.address[0].buildingNumber = "";
 		f2fStubPayload.shared_claims.address[0].buildingName = "19 A";
