@@ -1,6 +1,6 @@
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
-import { postDocumentSelection, startStubServiceAndReturnSessionId, updateAddress} from "../utils/ApiTestSteps";
+import { postDocumentSelection, startStubServiceAndReturnSessionId} from "../utils/ApiTestSteps";
 import { constants } from "../utils/ApiConstants";
 describe("E2E Happy Path /documentSelection Endpoint", () => {
 	let sessionId: any;
