@@ -13,8 +13,9 @@ jest.mock("axios");
 const personDetails: PersonIdentityItem = {
 	addresses: [
 		{
-			addressCountry: "United Kingdom",
+			addressCountry: "GB",
 			buildingName: "Sherman",
+			subBuildingName: "Flat 5",
 			uprn: 123456789,
 			streetName: "Wallaby Way",
 			postalCode: "F1 1SH",
@@ -128,7 +129,10 @@ const createSessionPayload = {
 			structured_postal_address: {
 				address_format: 1,
 				building_number: "32",
-				address_line1: "32 Sherman Wallaby Way",
+				sub_building: "Flat 5",
+				building: "Sherman",
+				address_line1: "Flat 5 Sherman",
+				address_line2: "32 Wallaby Way",
 				town_city: "Sidney",
 				postal_code: "F1 1SH",
 				country_iso: "GBR",
@@ -207,17 +211,34 @@ describe("YotiService", () => {
 			const applicantProfile = yotiService["getApplicantProfile"](personDetails);
 			const expectedPostalAddress = {
 				address_format: 1,
-				address_line1: "32 Sherman Wallaby Way",
 				building_number: "32",
-				country: "United Kingdom",
-				country_iso: "GBR",
-				postal_code: "F1 1SH",
+				sub_building: "Flat 5",
+				building: "Sherman",
+				address_line1: "Flat 5 Sherman",
+				address_line2: "32 Wallaby Way",
 				town_city: "Sidney",
+				postal_code: "F1 1SH",
+				country_iso: "GBR",
+				country: "United Kingdom",
 			};
 
 			expect(applicantProfile.full_name).toBe("Frederick Joseph Flintstone");
 			expect(applicantProfile.date_of_birth).toBe("1960-02-02");
 			expect(applicantProfile.structured_postal_address).toEqual(expectedPostalAddress);
+		});
+
+		it("should throw an error if country code is not GB", () => {
+			const invalidPersonDetails = {
+				...personDetails,
+				addresses: [
+					{
+						...personDetails.addresses[0],
+						addressCountry: "GBR",
+					},
+				],
+			};
+
+			expect(() => {yotiService["getApplicantProfile"](invalidPersonDetails);}).toThrow(new AppError(HttpCodesEnum.BAD_REQUEST, "Invalid country code"));
 		});
 	});
 
