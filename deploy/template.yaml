@@ -141,7 +141,7 @@ Mappings:
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
+      GOVUKNOTIFYTEMPLATEID: "ccba5634-33e9-4e0d-96c1-57067db941af"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f"}]'
@@ -1012,8 +1012,8 @@ Resources:
               - "sqs:ReceiveMessage"
             Resource:
               - !GetAtt TxMASQSQueue.Arn
-            Principal: 
-              AWS: !If 
+            Principal:
+              AWS: !If
                 - IsOutboundSQSConnected
                 - !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
                 - !Ref AWS::NoValue
@@ -1827,7 +1827,7 @@ Resources:
             Resource:
               - !GetAtt IPVCoreSQSQueue.Arn
             Principal:
-              AWS: !If 
+              AWS: !If
                 - IsOutboundSQSConnected
                 - !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
                 - !Ref AWS::NoValue
