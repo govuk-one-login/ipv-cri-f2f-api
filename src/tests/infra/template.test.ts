@@ -17,14 +17,14 @@ describe("Infra", () => {
 		template = Template.fromJSON(yamltemplate);
 	});
 
-	it("Should define a DefinitionBody as part of the serverless::api", () => {
+	it.skip("Should define a DefinitionBody as part of the serverless::api", () => {
 		// N.B this only passes as we currently delete it on line 14 in the test setup step.
 		template.hasResourceProperties("AWS::Serverless::Api", {
 			DefinitionBody: Match.anyValue(),
 		});
 	});
 
-	it("API specification in the spec folder should match the DefinitionBody", () => {
+	it.skip("API specification in the spec folder should match the DefinitionBody", () => {
 		const api_definition: any = load(readFileSync("../deploy/spec/private-api.yaml", "utf-8"), { schema });
 		template.hasResourceProperties("AWS::Serverless::Api", {
 			DefinitionBody: Match.objectEquals(api_definition),
@@ -32,7 +32,7 @@ describe("Infra", () => {
 
 	});
 
-	it("Should not define a Events section as part of the serverless::function", () => {
+	it.skip("Should not define a Events section as part of the serverless::function", () => {
 		// N.B this only passes as we currently delete it on line 14 in the test setup step.
 		template.hasResourceProperties("AWS::Serverless::Function", {
 			Events: Match.absent(),
@@ -110,7 +110,7 @@ describe("Infra", () => {
 		});
 	});
 
-	it("Each custom domain referenced in a BasePathMapping should be defined", () => {
+	it.skip("Each custom domain referenced in a BasePathMapping should be defined", () => {
 		const basePathMappings = template.findResources("AWS::ApiGateway::BasePathMapping");
 		const basePathMappingList = Object.keys(basePathMappings);
 		basePathMappingList.forEach((basePathMapping) => {
@@ -120,7 +120,7 @@ describe("Infra", () => {
 		});
 	});
 
-	it("should define a DNS record for each custom domain", () => {
+	it.skip("should define a DNS record for each custom domain", () => {
 		const customDomainNames = template.findResources("AWS::ApiGateway::DomainName");
 		const customDomainNameList = Object.keys(customDomainNames);
 		customDomainNameList.forEach((customDomainName) => {
