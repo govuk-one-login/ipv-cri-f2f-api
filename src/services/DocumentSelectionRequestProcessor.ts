@@ -36,7 +36,7 @@ export class DocumentSelectionRequestProcessor {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
-  	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInSeconds(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
+  	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   }
 
@@ -103,6 +103,9 @@ export class DocumentSelectionRequestProcessor {
   			yotiSessionId = await this.createSessionGenerateInstructions(personDetails, f2fSessionInfo, postOfficeSelection, selectedDocument, countryCode);
   			await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
   			await this.f2fService.updateSessionWithYotiIdAndStatus(f2fSessionInfo.sessionId, yotiSessionId, AuthSessionState.F2F_YOTI_SESSION_CREATED);
+  			const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
+  			await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
+  			await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
   		} catch (error: any) {
   			this.logger.error("Error occurred during documentSelection orchestration", error.message,
   				{ messageCode: MessageCodes.FAILED_DOCUMENT_SELECTION_ORCHESTRATION });
