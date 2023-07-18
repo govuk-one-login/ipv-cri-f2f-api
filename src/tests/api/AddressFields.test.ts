@@ -2,6 +2,7 @@ import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId} from "../utils/ApiTestSteps";
 import { constants } from "../utils/ApiConstants";
+
 describe("E2E Happy Path /documentSelection Endpoint", () => {
 	let sessionId: any;
 	beforeEach(async () => {
@@ -12,6 +13,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
         f2fStubPayload.shared_claims.address[0].postalCode = "F1 1SH";
         f2fStubPayload.shared_claims.address[0].streetName = "Wallaby Way";
 	});
+
 	it("buildingName and subBuildingName missing", async () => {
         f2fStubPayload.shared_claims.address[0].buildingNumber = "32";
         f2fStubPayload.shared_claims.address[0].buildingName = "";
@@ -25,6 +27,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Instructions PDF Generated");
 	});
+
     it("buildingNumber missing", async () => {
         f2fStubPayload.shared_claims.address[0].buildingNumber = "";
         f2fStubPayload.shared_claims.address[0].buildingName = "19 A";
@@ -38,6 +41,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Instructions PDF Generated");
 	});
+
     it("buildingNumber and buildingName is missing", async () => {
         f2fStubPayload.shared_claims.address[0].buildingNumber = "";
         f2fStubPayload.shared_claims.address[0].buildingName = "";
@@ -51,6 +55,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Instructions PDF Generated");
 	});
+
     it("buildingNumber is missing", async () => {
         f2fStubPayload.shared_claims.address[0].buildingNumber = "";
         f2fStubPayload.shared_claims.address[0].buildingName = "19 A";
@@ -64,6 +69,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Instructions PDF Generated");
 	});
+	
 	it("incorrect country code", async () => {
 		f2fStubPayload.shared_claims.address[0].buildingNumber = "";
 		f2fStubPayload.shared_claims.address[0].buildingName = "19 A";
