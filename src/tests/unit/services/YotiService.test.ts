@@ -81,7 +81,7 @@ const createSessionPayload = {
 			type: "DOCUMENT_SCHEME_VALIDITY_CHECK",
 			config: {
 				manual_check: "IBV",
-				scheme: "UK_DBS",
+				scheme: "UK_GDS",
 			},
 		},
 		{
@@ -123,12 +123,12 @@ const createSessionPayload = {
 	],
 	resources: {
 		applicant_profile: {
-			full_name: "Frederick Flintstone",
+			full_name: "Frederick Joseph Flintstone",
 			date_of_birth: "1960-02-02",
 			structured_postal_address: {
 				address_format: 1,
 				building_number: "32",
-				address_line1: "Sherman Wallaby Way",
+				address_line1: "32 Sherman Wallaby Way",
 				town_city: "Sidney",
 				postal_code: "F1 1SH",
 				country_iso: "GBR",
@@ -140,7 +140,7 @@ const createSessionPayload = {
 
 const generateInstructionsPayload = {
 	contact_profile: {
-		first_name: "Frederick",
+		first_name: "Frederick Joseph",
 		last_name: "Flintstone",
 		email: "test123@gov.uk",
 	},
@@ -207,7 +207,7 @@ describe("YotiService", () => {
 			const applicantProfile = yotiService["getApplicantProfile"](personDetails);
 			const expectedPostalAddress = {
 				address_format: 1,
-				address_line1: "Sherman Wallaby Way",
+				address_line1: "32 Sherman Wallaby Way",
 				building_number: "32",
 				country: "United Kingdom",
 				country_iso: "GBR",
@@ -215,7 +215,7 @@ describe("YotiService", () => {
 				town_city: "Sidney",
 			};
 
-			expect(applicantProfile.full_name).toBe("Frederick Flintstone");
+			expect(applicantProfile.full_name).toBe("Frederick Joseph Flintstone");
 			expect(applicantProfile.date_of_birth).toBe("1960-02-02");
 			expect(applicantProfile.structured_postal_address).toEqual(expectedPostalAddress);
 		});
@@ -249,9 +249,12 @@ describe("YotiService", () => {
 			axiosMock.post.mockRejectedValueOnce(new Error("Failed to create session"));
 
 			await expect(yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL)).rejects.toThrow(
-				new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Yoti Session"),
+				new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session"),
 			);
 
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "An error occurred when creating Yoti session", "messageCode": "FAILED_CREATING_YOTI_SESSION", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to create session" },
+			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", expect.any(Object), expect.any(Object));
 		});
@@ -301,7 +304,7 @@ describe("YotiService", () => {
 									state: "REQUIRED",
 								},
 								{
-									scheme: "UK_DBS",
+									scheme: "UK_GDS",
 									state: "REQUIRED",
 									type: "DOCUMENT_SCHEME_VALIDITY_CHECK",
 								},
@@ -367,7 +370,7 @@ describe("YotiService", () => {
 									type: "IBV_VISUAL_REVIEW_CHECK",
 								},
 								{
-									scheme: "UK_DBS",
+									scheme: "UK_GDS",
 									state: "REQUIRED",
 									type: "DOCUMENT_SCHEME_VALIDITY_CHECK",
 								},
@@ -449,6 +452,9 @@ describe("YotiService", () => {
 				new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session"),
 			);
 
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "Error fetching Yoti session", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to fetch session info" },
+			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123/configuration", expect.any(Object));
 		});
@@ -475,7 +481,13 @@ describe("YotiService", () => {
 			post_code: "SW19 4NS",
 		};
 
-		it("should generate instructions and return OK status code", async () => {
+		const PostOfficeSelectionWithName = {
+			...PostOfficeSelection,
+			name: "The Funkytown Post office",
+		}
+
+
+		it("should generate instructions using hardcoded PO name and return OK status code", async () => {
 			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123/instructions",
 				config: {},
@@ -494,6 +506,33 @@ describe("YotiService", () => {
 			expect(statusCode).toBe(HttpCodesEnum.OK);
 		});
 
+		it("should include the received PO name from FE in the Yoti putInstructions call", async () => {
+			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123/instructions",
+				config: {},
+			});
+
+			axiosMock.put.mockResolvedValueOnce({});
+
+			const statusCode = await yotiService.generateInstructions(sessionID, personDetails, requirements, PostOfficeSelectionWithName);
+
+			const generateInstructionsPayloadWithName = {
+				...generateInstructionsPayload,
+				branch: {
+					...generateInstructionsPayload.branch,
+					name: "The Funkytown Post office",
+				},
+			}
+	
+			expect(generateYotiRequestMock).toHaveBeenCalled();
+			expect(axios.put).toHaveBeenCalledWith(
+				"https://example.com/api/sessions/session123/instructions",
+				generateInstructionsPayloadWithName,
+				{},
+			);
+			expect(statusCode).toBe(HttpCodesEnum.OK);
+		});
+
 		it("should throw an AppError if there is an error generating the instructions PDF", async () => {
 			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123/instructions",
@@ -504,8 +543,11 @@ describe("YotiService", () => {
 
 			await expect(
 				yotiService.generateInstructions(sessionID, personDetails, requirements, PostOfficeSelection),
-			).rejects.toThrow(new AppError(HttpCodesEnum.SERVER_ERROR, "Error generationg Yoti instructions PDF"));
+			).rejects.toThrow(new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF"));
 
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "An error occurred when generating Yoti instructions PDF", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to generate instructions" },
+			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.put).toHaveBeenCalledWith(
 				"https://example.com/api/sessions/session123/instructions",
@@ -555,6 +597,9 @@ describe("YotiService", () => {
 				new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF"),
 			);
 
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "An error occurred when fetching Yoti instructions PDF", "messageCode": "FAILED_YOTI_GET_INSTRUCTIONS", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to fetch PDF" },
+			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith(
 				"https://example.com/api/sessions/session123/instructions/pdf",
@@ -593,6 +638,9 @@ describe("YotiService", () => {
 				new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session"),
 			);
 
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "An error occurred when fetching Yoti session", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to fetch completed session info" },
+			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123", expect.any(Object));
 		});
@@ -638,6 +686,9 @@ describe("YotiService", () => {
 			expect(axios.get).toHaveBeenCalledWith(
 				yotiRequest.url,
 				yotiRequest.config,
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "An error occurred when fetching Yoti media content", "messageCode": "FAILED_YOTI_GET_MEDIA_CONTENT", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to fetch media content" },
 			);
 		});
 	});
