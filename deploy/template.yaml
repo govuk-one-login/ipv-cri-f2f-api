@@ -142,8 +142,8 @@ Mappings:
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
-      CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
-      RESOURCETTLSECS: 1036800 # Default 12 days
+      YOTISESSIONTTLDAYS: 10 # Default 10 days
+      RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f"}]'
       AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
