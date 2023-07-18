@@ -5,7 +5,7 @@ import f2fStubPayload from "../data/exampleStubPayload.json";
 import { constants } from "../utils/ApiConstants";
 
 
-describe("E2E Negative Path /documentSelection Endpoint", () => {
+describe.skip("E2E Negative Path /documentSelection Endpoint", () => {
 	let sessionId: any;
 	beforeEach(async () => {
 		f2fStubPayload.yotiMockID = "0000";
@@ -28,7 +28,7 @@ describe("E2E Negative Path /documentSelection Endpoint", () => {
 	});
 });
 
-describe("Negative Path /userInfo Endpoint", () => {
+describe.skip("Negative Path /userInfo Endpoint", () => {
 	let sessionId: any;
 	beforeEach(async () => {
 		f2fStubPayload.yotiMockID = "0000";

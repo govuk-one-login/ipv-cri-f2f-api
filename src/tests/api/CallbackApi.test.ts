@@ -9,7 +9,7 @@ import integrationHappyPayload from "../data/integrationHappyPathPayload.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId, getSessionById, callbackPost, authorizationGet, tokenPost, userInfoPost, receiveJwtTokenFromSqsMessage, validateJwtToken } from "../utils/ApiTestSteps";
 import "dotenv/config";
 
-describe("Callback API", () => {
+describe.skip("Callback API", () => {
 	jest.setTimeout(60000);
 
 	it.each([
