@@ -19,7 +19,7 @@ permissions:
   id-token: write
   contents: read
 
-env: # Only adding the variables in that are required for 
+env: # Only adding the variables in that are required for
   AWS_REGION: eu-west-2
 
 jobs:
@@ -78,8 +78,8 @@ jobs:
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
         with:
-          version: 1.70.0
-        
+          use-installer: true
+
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:

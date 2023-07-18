@@ -86,10 +86,10 @@ Mappings:
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
-      CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
-      RESOURCESTTL: 1036800 # Default 12 days
+      YOTISESSIONTTLDAYS: 10 # Default 10 days
+      RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"}]'
-      AUTHSESSIONTTL: "950400" # 11 days in seconds
+      AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       LAMBDACONCURRENCYTHRESHOLD: 16
     build:
@@ -100,10 +100,10 @@ Mappings:
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
-      CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
-      RESOURCESTTL: 1036800 # Default 12 days
+      YOTISESSIONTTLDAYS: 10 # Default 10 days
+      RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect"}]'
-      AUTHSESSIONTTL: "950400" # 11 days in seconds
+      AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       LAMBDACONCURRENCYTHRESHOLD: 16
     staging:
@@ -114,10 +114,10 @@ Mappings:
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
-      CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
-      RESOURCESTTL: 1036800 # Default 12 days
+      YOTISESSIONTTLDAYS: 10 # Default 10 days
+      RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json","clientId":"03A5A659-17AA-453F-B905-95D2804823D1","redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f"}]'
-      AUTHSESSIONTTL: "950400" # 11 days in seconds
+      AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
       LAMBDACONCURRENCYTHRESHOLD: 16
     integration:
@@ -128,10 +128,10 @@ Mappings:
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
-      CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
-      RESOURCESTTL: 1036800 # Default 12 days
+      YOTISESSIONTTLDAYS: 10 # Default 10 days
+      RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback?id=f2f"}]'
-      AUTHSESSIONTTL: "950400" # 11 days in seconds
+      AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
       LAMBDACONCURRENCYTHRESHOLD: 16
     production:
@@ -141,11 +141,11 @@ Mappings:
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
-      CLIENTSESSIONTOKENTTL: 950400 # Default 11 days
-      RESOURCESTTL: 1036800 # Default 12 days
+      GOVUKNOTIFYTEMPLATEID: "ccba5634-33e9-4e0d-96c1-57067db941af"
+      YOTISESSIONTTLDAYS: 10 # Default 10 days
+      RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f"}]'
-      AUTHSESSIONTTL: "950400" # 11 days in seconds
+      AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
       LAMBDACONCURRENCYTHRESHOLD: 16
   TxMAAccounts:
@@ -175,6 +175,10 @@ Conditions:
     - !Equals [!Ref Environment, integration]
     - !Equals [!Ref Environment, production]
   IsPersonalIdentifiableInformationEnvironment: !Or
+    - !Equals [!Ref Environment, integration]
+    - !Equals [!Ref Environment, production]
+  IsOutboundSQSConnected: !Or
+    - !Equals [!Ref Environment, staging]
     - !Equals [!Ref Environment, integration]
     - !Equals [!Ref Environment, production]
   UseCodeSigning:
@@ -414,8 +418,8 @@ Resources:
       CodeUri: ../src/
       Environment:
         Variables:
-          AUTH_SESSION_TTL:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTL ]
+          AUTH_SESSION_TTL_SECS:
+            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
           POWERTOOLS_SERVICE_NAME: SessionHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           PERSON_IDENTITY_TABLE_NAME:
@@ -823,6 +827,8 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+          AUTH_SESSION_TTL_SECS:
+            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
           YOTICALLBACKURL: !If
@@ -840,14 +846,17 @@ Resources:
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           YOTIBASEURL: !FindInMap [EnvironmentVariables, !Ref Environment, YOTIBASEURL]
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
-          CLIENT_SESSION_TOKEN_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
-          RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
+          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
         - DynamoDBReadPolicy:
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
+        - DynamoDBWritePolicy:
             TableName: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
         - DynamoDBReadPolicy:
@@ -1003,10 +1012,11 @@ Resources:
               - "sqs:ReceiveMessage"
             Resource:
               - !GetAtt TxMASQSQueue.Arn
-            # F2F-838 - Temporarily removed for Production Testing | Remove permissions for VCs and TxMA Event propagation downstream
-            # Principal:
-            #   AWS:
-            #     - !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
+            Principal:
+              AWS: !If
+                - IsOutboundSQSConnected
+                - !FindInMap [TxMAAccounts, !Ref Environment, EVENTS]
+                - !Ref AWS::NoValue
 
   TxMASQSQueueDeadLetterQueue:
     Type: AWS::SQS::Queue
@@ -1188,8 +1198,8 @@ Resources:
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
           YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          CLIENT_SESSION_TOKEN_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTSESSIONTOKENTTL]
-          RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCESTTL]
+          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -1736,7 +1746,7 @@ Resources:
         - !Sub "alias/YotiCallbackEncryptionKey-${AWS::StackName}"
         - alias/YotiCallbackEncryptionKey
       TargetKeyId: !Ref YotiCallbackEncryptionKey
-  
+
   YotiCallbackConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
@@ -1816,10 +1826,11 @@ Resources:
               - "sqs:ReceiveMessage"
             Resource:
               - !GetAtt IPVCoreSQSQueue.Arn
-            # F2F-838 - Temporarily removed for Production Testing | Remove permissions for VCs and TxMA Event propagation downstream
-            # Principal:
-            #   AWS:
-            #     - !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
+            Principal:
+              AWS: !If
+                - IsOutboundSQSConnected
+                - !FindInMap [EnvironmentVariables, !Ref Environment, IPVCOREACCOUNT]
+                - !Ref AWS::NoValue
 
   IPVCoreDeadLetterQueue:
     Type: AWS::SQS::Queue
@@ -2839,7 +2850,7 @@ Resources:
                   Value: POST
             Period: 60
             Stat: Sum
-            
+
   DocumentSelection4XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
@@ -3217,7 +3228,7 @@ Resources:
                   Value: POST
             Period: 60
             Stat: Sum
-  
+
   LatencyAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"

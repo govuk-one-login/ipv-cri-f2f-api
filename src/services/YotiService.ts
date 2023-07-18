@@ -10,6 +10,7 @@ import { ApplicantProfile, PostOfficeInfo, YotiSessionInfo, CreateSessionPayload
 import { YotiDocumentTypesEnum, YOTI_REQUESTED_CHECKS, YOTI_REQUESTED_TASKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 import { MessageCodes } from "../models/enums/MessageCodes";
+import { absoluteTimeNow } from "../utils/DateTimeUtils";
 
 export class YotiService {
 	readonly logger: Logger;
@@ -20,15 +21,15 @@ export class YotiService {
 
 	readonly PEM_KEY: string;
 
-	readonly CLIENT_SESSION_TOKEN_TTL_SECS: string;
+	readonly YOTI_SESSION_TTL_DAYS: number;
 
-	readonly RESOURCES_TTL_SECS:string;
+	readonly RESOURCES_TTL_SECS:number;
 
 	readonly YOTI_BASE_URL: string;
 
-	constructor(logger: Logger, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: string, CLIENT_SESSION_TOKEN_TTL_SECS: string, PEM_KEY: string, YOTI_BASE_URL: string) {
+	constructor(logger: Logger, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number, PEM_KEY: string, YOTI_BASE_URL: string) {
 		this.RESOURCES_TTL_SECS = RESOURCES_TTL_SECS;
-		this.CLIENT_SESSION_TOKEN_TTL_SECS = CLIENT_SESSION_TOKEN_TTL_SECS;
+		this.YOTI_SESSION_TTL_DAYS = YOTI_SESSION_TTL_DAYS;
 		this.logger = logger;
 		this.CLIENT_SDK_ID = CLIENT_SDK_ID;
 		this.PEM_KEY = PEM_KEY;
@@ -38,13 +39,13 @@ export class YotiService {
 	static getInstance(
 		logger: Logger,
 		CLIENT_SDK_ID: string,
-		RESOURCES_TTL_SECS: string,
-		CLIENT_SESSION_TOKEN_TTL_SECS: string,
+		RESOURCES_TTL_SECS: number,
+		YOTI_SESSION_TTL_DAYS: number,
 		PEM_KEY: string,
 		YOTI_BASE_URL: string,
 	): YotiService {
 		if (!YotiService.instance) {
-			YotiService.instance = new YotiService(logger, CLIENT_SDK_ID, RESOURCES_TTL_SECS, CLIENT_SESSION_TOKEN_TTL_SECS, PEM_KEY, YOTI_BASE_URL);
+			YotiService.instance = new YotiService(logger, CLIENT_SDK_ID, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS, PEM_KEY, YOTI_BASE_URL);
 		}
 		return YotiService.instance;
 	}
@@ -144,9 +145,12 @@ export class YotiService {
 		countryCode: string,
 		yotiCallbackUrl: string,
 	): Promise<string | undefined> {
+		const sessionDeadlineDate = new Date(new Date().getTime() + this.YOTI_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000);
+		sessionDeadlineDate.setUTCHours(22, 0, 0, 0);
+
 		const payloadJSON: CreateSessionPayload = {
-			client_session_token_ttl: this.CLIENT_SESSION_TOKEN_TTL_SECS ? this.CLIENT_SESSION_TOKEN_TTL_SECS : "950400",
-			resources_ttl: this.RESOURCES_TTL_SECS ? this.RESOURCES_TTL_SECS : "1036800",
+			session_deadline: sessionDeadlineDate,
+			resources_ttl: this.RESOURCES_TTL_SECS,
 			ibv_options: {
 				support: "MANDATORY",
 			},

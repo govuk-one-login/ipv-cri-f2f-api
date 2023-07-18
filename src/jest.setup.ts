@@ -1,10 +1,10 @@
-process.env.SESSION_TABLE = 'MYTABLE'
+process.env.SESSION_TABLE = 'SESSIONTABLE'
 process.env.KMS_KEY_ARN = 'MYKMSKEY'
 process.env.ISSUER = 'https://XXX-c.env.account.gov.uk'
 process.env.TXMA_QUEUE_URL = "MYQUEUE"
 process.env.CLIENT_CONFIG = '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json","clientId":"ipv-core-stub","redirectUri":"http://localhost:8085/callback"}]'
 process.env.ENCRYPTION_KEY_IDS = 'EncryptionKeyArn'
-process.env.AUTH_SESSION_TTL = '950400'
+process.env.AUTH_SESSION_TTL_SECS = '950400'
 process.env.REGION = 'eu-west-2'
 process.env.GOVUKNOTIFY_TEMPLATE_ID = "bea2a584-4dca-4970-a90d-93977e752fdf"
 process.env.YOTISDK = "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
