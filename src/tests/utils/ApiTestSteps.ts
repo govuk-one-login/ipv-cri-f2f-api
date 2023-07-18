@@ -63,7 +63,6 @@ export async function postDocumentSelection(userData:any, sessionId:any): Promis
 	}
 }
 
-
 export async function authorizationGet(sessionId: any):Promise<any> {
 	const path = "/authorization";
 	try {

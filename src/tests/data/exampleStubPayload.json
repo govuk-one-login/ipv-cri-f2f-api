@@ -1,4 +1,5 @@
 {
+    "target": "",
     "yotiMockID": "0000",
     "shared_claims": {
         "name": [
@@ -29,9 +30,10 @@
                 "uprn": "123456789",
                 "buildingNumber": "32",
                 "buildingName": "London",
+                "subBuildingName": "Flat 20",
                 "streetName": "Demo",
                 "addressLocality": "London",
-                "addressCountry": "United Kingdom",
+                "addressCountry": "GB",
                 "postalCode": "SW19"
             }
         ],
