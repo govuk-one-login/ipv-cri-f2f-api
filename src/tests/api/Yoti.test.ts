@@ -1,7 +1,7 @@
 import yotiRequestData from "../data/yotiSessionsPayloadValid.json";
 import { postYotiSession, getYotiSessionsConfiguration, putYotiSessionsInstructions, getYotiSessionsInstructions } from "../utils/ApiTestSteps";
 
-describe.skip("Yoti /sessions endpoint", () => {
+describe("Yoti /sessions endpoint", () => {
 
 	//responseCode, user_tracking_ui
 	const postSessionsParams = [

@@ -13,7 +13,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		console.log("session id: " + sessionId);
 	});
 
-	it.skip("E2E Happy Path Journey - Passport", async () => {
+	it("E2E Happy Path Journey - Passport", async () => {
 		expect(sessionId).toBeTruthy();
 		const response = await postDocumentSelection(dataPassport, sessionId);
 		expect(response.status).toBe(200);
@@ -34,7 +34,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		console.log(userInfoResponse.data);
 	});
 
-	it.skip("E2E Happy Path Journey - Drivers Licence", async () => {
+	it("E2E Happy Path Journey - Drivers Licence", async () => {
 		const response = await postDocumentSelection(dataDriversLicense, sessionId);
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Instructions PDF Generated");
@@ -54,7 +54,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		console.log(userInfoResponse.data);
 	});
 
-	it.skip("E2E Happy Path Journey - Biometric Residence Permit", async () => {
+	it("E2E Happy Path Journey - Biometric Residence Permit", async () => {
 		const response = await postDocumentSelection(dataBrp, sessionId);
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Instructions PDF Generated");
