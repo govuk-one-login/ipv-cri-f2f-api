@@ -160,12 +160,9 @@ export class YotiCallbackProcessor {
 		let unsignedJWT;
 		try {
 			unsignedJWT = await this.verifiableCredentialService.generateVerifiableCredentialJwt(f2fSession, credentialSubject, evidence, absoluteTimeNow);
-			if (!unsignedJWT) {
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unable to generate JWT", {
-					messageCode: MessageCodes.FAILED_GENERATING_JWT,
-				});
+			if (unsignedJWT) {
+				signedJWT = await this.verifiableCredentialService.signGeneratedVerifiableCredentialJwt(unsignedJWT);
 			}
-			signedJWT = await this.verifiableCredentialService.signGeneratedVerifiableCredentialJwt(unsignedJWT);
 		} catch (error) {
   			if (error instanceof AppError) {
   				this.logger.error({ message: "Error generating signed verifiable credential jwt" }, {

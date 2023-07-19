@@ -5,6 +5,7 @@ import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { Constants } from "../utils/Constants";
 import {
+	CredentialJwt,
 	VerifiedCredential,
 	VerifiedCredentialEvidence,
 	VerifiedCredentialSubject,
@@ -46,10 +47,15 @@ export class VerifiableCredentialService {
   	return VerifiableCredentialService.instance;
   }
 
-	async signGeneratedVerifiableCredentialJwt(result: any): Promise<string> {
+	async signGeneratedVerifiableCredentialJwt(result: CredentialJwt): Promise<string> {
 		try {
-			// Sign the VC
-			return await this.kmsJwtAdapter.sign(result);
+			if(result){
+				// Sign the VC
+				const signedJwt = await this.kmsJwtAdapter.sign(result);
+				this.logger.info({message: "Successfully Signed Generated Verified Credential jwt"});
+				return signedJwt;
+			}
+			return "";
 		} catch (error) {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt");
 		}
@@ -60,11 +66,11 @@ export class VerifiableCredentialService {
 		credentialSubject: VerifiedCredentialSubject,
 		evidence: VerifiedCredentialEvidence,
 		getNow: () => number,
-	): Promise<any> {
+	): Promise<CredentialJwt> {
 		const now = getNow();
 		const subject = sessionItem?.subject as string;
 		const verifiedCredential: VerifiedCredential = this.buildVerifiableCredential(credentialSubject, evidence);
-		const result = {
+		const result: CredentialJwt = {
 			sub: `${subject}`,
 			nbf: now,
 			iss: this.issuer,
@@ -72,7 +78,7 @@ export class VerifiableCredentialService {
 			vc: verifiedCredential,
 		};
 
-		this.logger.info({message: "Verified Credential jwt: "});
+		this.logger.info({message: "Generated Verified Credential jwt"});
 		return result;
 	}
 

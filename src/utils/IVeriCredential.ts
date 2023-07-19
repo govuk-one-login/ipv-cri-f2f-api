@@ -20,8 +20,8 @@ export interface CredentialJwt {
 	iss: string;
 	nbf: number;
 	sub: string;
-	aud: string;
-	exp: number;
+	aud?: string;
+	exp?: number;
 	vc: VerifiedCredential;
 }
 export interface JwtHeader {
