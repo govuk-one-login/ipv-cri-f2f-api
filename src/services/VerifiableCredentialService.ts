@@ -73,7 +73,6 @@ export class VerifiableCredentialService {
 		};
 
 		this.logger.info({message: "Verified Credential jwt: "});
-		console.log("RICHA " + JSON.stringify(result));
 		return result;
 	}
 
