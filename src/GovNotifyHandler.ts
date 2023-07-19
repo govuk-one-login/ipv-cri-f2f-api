@@ -70,7 +70,7 @@ class GovNotifyHandler implements LambdaInterface {
 
 
 			} catch (error) {
-				logger.error({message: "Email could not be sent. Returning failed message", error} );
+				logger.error({ message: "Email could not be sent. Returning failed message", error } );
 				return failEntireBatch;
 			}
 

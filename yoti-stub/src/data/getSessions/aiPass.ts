@@ -269,7 +269,7 @@ export const AI_PASS = {
 					},
 					"created": "2023-04-05T10:18:16Z",
 					"last_updated": "2023-04-05T10:18:16Z",
-					"scheme": "UK_DBS"
+					"scheme": "UK_GDS"
 			},
 			{
 					"type": "PROFILE_DOCUMENT_MATCH",

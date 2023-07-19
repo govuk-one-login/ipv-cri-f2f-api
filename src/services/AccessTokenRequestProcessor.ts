@@ -14,6 +14,7 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { MessageCodes } from "../models/enums/MessageCodes";
+import { AppError } from "../utils/AppError";
 
 export class AccessTokenRequestProcessor {
 	private static instance: AccessTokenRequestProcessor;
@@ -48,7 +49,16 @@ export class AccessTokenRequestProcessor {
 
 	async processRequest(event: APIGatewayProxyEvent): Promise<Response> {
 		try {
-			const requestPayload = this.accessTokenRequestValidationHelper.validatePayload(event.body);
+			let requestPayload;
+			try {
+				requestPayload = this.accessTokenRequestValidationHelper.validatePayload(event.body);
+			} catch (error) {
+				this.logger.error("Failed validating the Access token request body.", { messageCode: MessageCodes.FAILED_VALIDATING_ACCESS_TOKEN_REQUEST_BODY });
+				if (error instanceof AppError) {
+					return new Response(error.statusCode, error.message);
+				}
+				return new Response(HttpCodesEnum.UNAUTHORIZED, "An error has occurred while validating the Access token request payload.");
+			}
 			let session: ISessionItem | undefined;
 			try {
 				session = await this.f2fService.getSessionByAuthorizationCode(requestPayload.code);
@@ -58,10 +68,13 @@ export class AccessTokenRequestProcessor {
 				}
 				this.logger.appendKeys({ sessionId: session.sessionId });
 				this.logger.info({ message: "Found Session" });
+				this.logger.appendKeys({
+					govuk_signin_journey_id: session?.clientSessionId,
+				});
 			} catch (error) {
 				this.logger.error("Error while retrieving the session", {
 					messageCode: MessageCodes.SESSION_NOT_FOUND,
-					error: error,
+					error,
 				});
 				return new Response(HttpCodesEnum.UNAUTHORIZED, "Error while retrieving the session");
 			}
@@ -98,7 +111,7 @@ export class AccessTokenRequestProcessor {
 					}),
 				};
 			} else {
-				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_AUTH_CODE_ISSUED}`);
+				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_AUTH_CODE_ISSUED}`, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
 				return new Response(HttpCodesEnum.UNAUTHORIZED, `Session is in the wrong state: ${session.authSessionState}`);
 			}
 		} catch (err: any) {
