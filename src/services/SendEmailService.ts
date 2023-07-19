@@ -112,11 +112,13 @@ export class SendEmailService {
 				this.logger.debug("sendEmail - response status after sending Email", SendEmailService.name, emailResponse.status);
 				const session = await this.f2fService.getSessionById(message.sessionId);
 				if (session != null) {
+					const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow)
 					try {
 						await this.f2fService.sendToTXMA({
 							event_name: "F2F_YOTI_PDF_EMAILED",
-							...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow),
-							restricted: {
+							...coreEventFields,
+							user: {
+								...coreEventFields.user,
 								email: message.emailAddress,
 							},
 						});

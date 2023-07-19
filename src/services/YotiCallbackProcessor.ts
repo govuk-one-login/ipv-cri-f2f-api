@@ -166,8 +166,6 @@ export class YotiCallbackProcessor {
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Credential Subject or Evidence payload");
   		}
 
-
-
   		let signedJWT;
   		try {
   			signedJWT = await this.verifiableCredentialService.generateSignedVerifiableCredentialJwt(f2fSession, credentialSubject, evidence, absoluteTimeNow);
@@ -260,7 +258,6 @@ export class YotiCallbackProcessor {
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
   		}
 
-
   		try {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_CRI_VC_ISSUED",
@@ -288,7 +285,6 @@ export class YotiCallbackProcessor {
   						birthDate: documentFields.date_of_birth,
   					},
   					[docName]: documentInfo,
-
   				},
   			});
   		} catch (error) {
