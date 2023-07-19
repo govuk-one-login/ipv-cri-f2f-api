@@ -482,18 +482,17 @@ describe("YotiCallbackProcessor", () => {
 					 "evidence":[
 						{
 								 "type":"IdentityCheck",
+							     "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 								 "strengthScore":3,
 								 "validityScore":2,
 								 "verificationScore":3,
 								 "checkDetails":[
 								{
 											 "checkMethod":"vri",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-											 "identityCheckPolicy":"published",
+											 "identityCheckPolicy":"published"
 								},
 								{
 											 "checkMethod":"pvr",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 											 "photoVerificationProcessLevel":3,
 								},
 								 ],
