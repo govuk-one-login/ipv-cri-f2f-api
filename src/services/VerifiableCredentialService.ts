@@ -46,32 +46,36 @@ export class VerifiableCredentialService {
   	return VerifiableCredentialService.instance;
   }
 
-  async generateSignedVerifiableCredentialJwt(
-  	sessionItem: ISessionItem | undefined,
-  	credentialSubject: VerifiedCredentialSubject,
-  	evidence: VerifiedCredentialEvidence,
-  	getNow: () => number,
-  ): Promise<string> {
-  	const now = getNow();
-  	const subject = sessionItem?.subject as string;
-  	const verifiedCredential: VerifiedCredential = this.buildVerifiableCredential(credentialSubject, evidence);
-  	const result = {
-  		sub: `${subject}`,
-  		nbf: now,
-  		iss: this.issuer,
-  		iat: now,
-  		vc: verifiedCredential,
-  	};
+	async signGeneratedVerifiableCredentialJwt(result: any): Promise<string> {
+		try {
+			// Sign the VC
+			return await this.kmsJwtAdapter.sign(result);
+		} catch (error) {
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt");
+		}
+	}
 
-  	this.logger.info({ message: "Verified Credential jwt: " });
-  	try {
-  		// Sign the VC
-  		const signedVerifiedCredential = await this.kmsJwtAdapter.sign(result);
-  		return signedVerifiedCredential;
-  	} catch (error) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt");
-  	}
-  }
+	async generateVerifiableCredentialJwt(
+		sessionItem: ISessionItem | undefined,
+		credentialSubject: VerifiedCredentialSubject,
+		evidence: VerifiedCredentialEvidence,
+		getNow: () => number,
+	): Promise<any> {
+		const now = getNow();
+		const subject = sessionItem?.subject as string;
+		const verifiedCredential: VerifiedCredential = this.buildVerifiableCredential(credentialSubject, evidence);
+		const result = {
+			sub: `${subject}`,
+			nbf: now,
+			iss: this.issuer,
+			iat: now,
+			vc: verifiedCredential,
+		};
+
+		this.logger.info({message: "Verified Credential jwt: "});
+		console.log("RICHA " + JSON.stringify(result));
+		return result;
+	}
 
   private buildVerifiableCredential(
   	credentialSubject: VerifiedCredentialSubject,
