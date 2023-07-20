@@ -51,7 +51,7 @@ describe("AuthorizationRequestProcessor", () => {
 		jest.clearAllMocks();
 	});
 
-	it.only("Return successful response with 200 OK when auth code", async () => {
+	it("Return successful response with 200 OK when auth code", async () => {
 		const sess = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
