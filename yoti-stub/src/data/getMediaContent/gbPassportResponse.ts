@@ -1,9 +1,9 @@
 export const GBR_PASSPORT = {
-	"full_name": "Kenneth Decerqueira",
+	"full_name": "KENNETH DECERQUEIRA",
 	"date_of_birth": "1965-07-08",
 	"nationality": "GBR",
-	"given_names": "Kenneth",
-	"family_name": "Decerqueira",
+	"given_names": "KENNETH",
+	"family_name": "DECERQUEIRA",
 	"place_of_birth": "CROYDON",
 	"gender": "FEMALE",
 	"document_type": "PASSPORT",
