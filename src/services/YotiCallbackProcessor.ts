@@ -148,7 +148,13 @@ export class YotiCallbackProcessor {
   					f2fSession.clientIpAddress,
   					absoluteTimeNow,
   				),
-					
+					extensions: {
+						evidence: [
+							{
+								txn: yotiSessionID
+							}
+						]
+					}
   			});
   		} catch (error) {
   			this.logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", {
@@ -277,6 +283,7 @@ export class YotiCallbackProcessor {
   							strengthScore: evidence[0].strengthScore,
   							validityScore: evidence[0].validityScore,
   							verificationScore: evidence[0].verificationScore,
+								txn: yotiSessionID,
   							ci: evidence[0].ci,
   							checkDetails: evidence[0].checkDetails,
   						},
