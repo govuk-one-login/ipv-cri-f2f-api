@@ -116,7 +116,7 @@ export class SendEmailService {
 					try {
 						await this.f2fService.sendToTXMA({
 							event_name: "F2F_YOTI_PDF_EMAILED",
-							...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow),
+							...coreEventFields,
 							extensions: {
 								evidence: [
 									{
@@ -124,8 +124,6 @@ export class SendEmailService {
 									}
 								]
 							},
-							restricted: {
-							...coreEventFields,
 							user: {
 								...coreEventFields.user,
 								email: message.emailAddress,
