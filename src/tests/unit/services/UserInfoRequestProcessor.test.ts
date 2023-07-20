@@ -70,6 +70,14 @@ describe("UserInfoRequestProcessor", () => {
 			"https://vocab.account.gov.uk/v1/credentialStatus": "pending",
 		}));
 		expect(out.statusCode).toBe(HttpCodesEnum.ACCEPTED);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(logger.appendKeys).toHaveBeenCalledWith({
+			govuk_signin_journey_id: "sdfssg",
+		});
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(logger.appendKeys).toHaveBeenCalledWith({
+			sessionId: "sdfsdg",
+		});
 	});
 
 	it("Return 401 when Authorization header is missing in the request", async () => {

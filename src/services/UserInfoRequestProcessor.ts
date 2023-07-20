@@ -66,6 +66,9 @@ export class UserInfoRequestProcessor {
     		}
 			this.logger.info({ message :"Found Session: " });
 			this.logger.appendKeys({ sessionId: session.sessionId });
+			this.logger.appendKeys({
+				govuk_signin_journey_id: session?.clientSessionId,
+			});
     	} catch (error) {
 			this.logger.error({ message: "Error processing userInfo request", error });
     		return new Response(HttpCodesEnum.BAD_REQUEST, `No session found with the sessionId: ${sub}`);
