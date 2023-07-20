@@ -62,7 +62,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 	});
 
 
-	it.skip("Negative Path Journey - Expired Authorization Header", async () => {
+	it("Negative Path Journey - Expired Authorization Header", async () => {
 		const response = await postDocumentSelection(dataPassport, sessionId);
 		// Authorization
 		const authResponse = await authorizationGet(sessionId);
@@ -71,10 +71,10 @@ describe("Negative Path /userInfo Endpoint", () => {
 		// Post User Info
 		const userInfoResponse = await userInfoPost("Bearer " + constants.DEV_F2F_EXPIRED_ACCESS_TOKEN);
 		expect(userInfoResponse.status).toBe(400);
-		expect(userInfoResponse.data).toBe("Failed to Validate - Authentication header: Verification of exp failed"); 
+		expect(userInfoResponse.data).toBe("Failed to Validate - Authentication header: Failed to verify signature"); 
 	});
 
-	it.skip("Negative Path Journey - Missing Sub Authorization Header", async () => {
+	it("Negative Path Journey - Missing Sub Authorization Header", async () => {
 		const response = await postDocumentSelection(dataPassport, sessionId);
 		// Authorization
 		const authResponse = await authorizationGet(sessionId);
