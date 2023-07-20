@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { SQSEvent } from "aws-lambda";
 // @ts-ignore
@@ -31,7 +32,7 @@ const logger = mock<Logger>();
 let sqsEvent: SQSEvent;
 const mockF2fService = mock<F2fService>();
 function getMockSessionItem(): ISessionItem {
-	const sess: ISessionItem = {
+	const session: ISessionItem = {
 		sessionId: "sdfsdg",
 		clientId: "ipv-core-stub",
 		accessToken: "123456",
@@ -49,7 +50,7 @@ function getMockSessionItem(): ISessionItem {
 		attemptCount: 1,
 		authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
 	};
-	return sess;
+	return session;
 }
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
@@ -70,8 +71,8 @@ describe("SendEmailProcessor", () => {
 
 	it("Returns EmailResponse when email is sent successfully", async () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
-		const sess = getMockSessionItem();
-		mockF2fService.getSessionById.mockResolvedValue(sess);
+		const session = getMockSessionItem();
+		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
@@ -79,8 +80,22 @@ describe("SendEmailProcessor", () => {
 		const emailResponse = await sendEmailServiceTest.sendEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({
+			event_name: "F2F_YOTI_PDF_EMAILED",
+			client_id: "ipv-core-stub",
+			component_id: "https://XXX-c.env.account.gov.uk",
+			timestamp: absoluteTimeNow(),
+			user: {
+			  email: email.emailAddress,
+			  govuk_signin_journey_id: session.clientSessionId,
+			  ip_address: session.clientIpAddress,
+			  persistent_session_id: session.persistentSessionId,
+			  session_id: session.sessionId,
+			  transaction_id: undefined,
+			  user_id: session.subject,
+			},
+		});
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 
@@ -159,16 +174,14 @@ describe("SendEmailProcessor", () => {
 		const emailResponse = await sendEmailServiceTest.sendEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(0);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue, session not found for sessionId: ", "eb26c8e0-397b-4f5e-b7a5-62cd0c6e510b");
 		expect(emailResponse?.emailFailureMessage).toBe("");
 	});
 
 	it("Returns EmailResponse when email is sent successfully and write to txMA fails", async () => {
-		const sess = getMockSessionItem();
-		mockF2fService.getSessionById.mockResolvedValue(sess);
+		const session = getMockSessionItem();
+		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.sendToTXMA.mockRejectedValue({});
 
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
@@ -179,9 +192,7 @@ describe("SendEmailProcessor", () => {
 		const emailResponse = await sendEmailServiceTest.sendEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.");
 		expect(emailResponse?.emailFailureMessage).toBe("");
 	});
