@@ -1,14 +1,19 @@
 {
+    "yotiMockID": "0000",
     "shared_claims": {
         "name": [
             {
                 "nameParts": [
                     {
-                        "value": "Kenneth",
+                        "value": "API",
                         "type": "GivenName"
                     },
                     {
-                        "value": "Decerqueira",
+                        "value": "Automated",
+                        "type": "GivenName"
+                    },
+                    {
+                        "value": "Test",
                         "type": "FamilyName"
                     }
                 ]
@@ -16,7 +21,7 @@
         ],
         "birthDate": [
             {
-                "value": "1965-07-08"
+                "value": "1960-02-02"
             }
         ],
         "address": [
@@ -28,7 +33,6 @@
                 "addressCountry": "GB",
                 "postalCode": "BA2 5AA"
             }
-
         ],
         "emailAddress": "test@domain.com"
     }
