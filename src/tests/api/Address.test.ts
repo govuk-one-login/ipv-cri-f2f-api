@@ -7,7 +7,6 @@ describe("Address fields tests", () => {
 	let sessionId: any;
 	beforeEach(async () => {
         f2fStubPayload.yotiMockID = "0000";
-        //f2fStubPayload.target = `${constants.DEV_CRI_F2F_API_URL}`;
         f2fStubPayload.shared_claims.address[0].uprn = "123456789";
         f2fStubPayload.shared_claims.address[0].addressLocality = "Sidney";
         f2fStubPayload.shared_claims.address[0].postalCode = "F1 1SH";
