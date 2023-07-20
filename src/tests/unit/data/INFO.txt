@@ -1,0 +1,5 @@
+NOTES
+--------
+
+F2F Unit tests are verifying the generated VC against SPOT schema present here : https://github.com/alphagov/di-ipv-spot/blob/main/validation-function/src/main/resources/schemas/credential-mvp-schema.json
+A copy of this has been added in this folder as spot-schema.json
