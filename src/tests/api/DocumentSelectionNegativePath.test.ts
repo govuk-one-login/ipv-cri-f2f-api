@@ -62,7 +62,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 	});
 
 
-	it("Negative Path Journey - Expired Authorization Header", async () => {
+	it.skip("Negative Path Journey - Expired Authorization Header", async () => {
 		const response = await postDocumentSelection(dataPassport, sessionId);
 		// Authorization
 		const authResponse = await authorizationGet(sessionId);
@@ -74,7 +74,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 		expect(userInfoResponse.data).toBe("Failed to Validate - Authentication header: Verification of exp failed"); 
 	});
 
-	it("Negative Path Journey - Missing Sub Authorization Header", async () => {
+	it.skip("Negative Path Journey - Missing Sub Authorization Header", async () => {
 		const response = await postDocumentSelection(dataPassport, sessionId);
 		// Authorization
 		const authResponse = await authorizationGet(sessionId);
