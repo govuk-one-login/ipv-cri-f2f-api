@@ -21,13 +21,12 @@
         ],
         "address": [
             {
-                "address_format": 1,
-                "building_number": "8",
-                "address_line1": " HADLEY ROAD",
-                "town_city": "BATH",
-                "postal_code": "BA2 5AA",
-                "country_iso": "GBR",
-                "country": "GB"
+                "uprn": "123456788",
+                "buildingNumber": "8",
+                "streetName": "HADLEY ROAD",
+                "addressLocality": "BATH",
+                "addressCountry": "GB",
+                "postalCode": "BA2 5AA"
             }
 
         ],
