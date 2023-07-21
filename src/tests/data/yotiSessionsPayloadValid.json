@@ -111,11 +111,21 @@
         }
     ],
     "resources": {
-        "applicant_profile": {
-            "additionalProp1": {},
-            "structured_postal_address":{
-                "building_number":"1A"
-            }
-        }
-    }
-}
+     "applicant_profile": {
+         "full_name": "",
+         "date_of_birth": "1960-02-02",
+         "structured_postal_address": {
+             "address_format": 1,
+             "building_number": "32",
+             "sub_building": "Flat 5",
+             "building": "Sherman",
+             "address_line1": "Flat 5 Sherman",
+             "address_line2": "32 Wallaby Way",
+             "town_city": "Sidney",
+             "postal_code": "F1 1SH",
+             "country_iso": "GBR",
+             "country": "GB"
+         }
+     }
+ }
+ }
