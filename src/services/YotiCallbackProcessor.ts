@@ -166,10 +166,14 @@ export class YotiCallbackProcessor {
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Credential Subject or Evidence payload");
   		}
 
-  		let signedJWT;
-  		try {
-  			signedJWT = await this.verifiableCredentialService.generateSignedVerifiableCredentialJwt(f2fSession, credentialSubject, evidence, absoluteTimeNow);
-  		} catch (error) {
+		let signedJWT;
+		let unsignedJWT;
+		try {
+			unsignedJWT = await this.verifiableCredentialService.generateVerifiableCredentialJwt(f2fSession, credentialSubject, evidence, absoluteTimeNow);
+			if (unsignedJWT) {
+				signedJWT = await this.verifiableCredentialService.signGeneratedVerifiableCredentialJwt(unsignedJWT);
+			}
+		} catch (error) {
   			if (error instanceof AppError) {
   				this.logger.error({ message: "Error generating signed verifiable credential jwt" }, {
   					error,
