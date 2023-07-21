@@ -98,7 +98,7 @@ describe("YotiCallbackProcessor", () => {
 		const vcIssued =  TXMA_VC_ISSUED;
 		vcIssued.event_name = "F2F_CRI_VC_ISSUED";
 		vcIssued.timestamp = absoluteTimeNow();
-		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(vcIssued);
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, vcIssued);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
@@ -260,18 +260,17 @@ describe("YotiCallbackProcessor", () => {
 					 "evidence":[
 						{
 								 "type":"IdentityCheck",
+							      "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 								 "strengthScore":3,
 								 "validityScore":2,
 								 "verificationScore":3,
 								 "checkDetails":[
 								{
 											 "checkMethod":"vri",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 											 "identityCheckPolicy":"published",
 								},
 								{
 											 "checkMethod":"pvr",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 											 "photoVerificationProcessLevel":3,
 								},
 								 ],
@@ -366,18 +365,17 @@ describe("YotiCallbackProcessor", () => {
 					 "evidence":[
 						{
 								 "type":"IdentityCheck",
+							     "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 								 "strengthScore":3,
 								 "validityScore":2,
 								 "verificationScore":3,
 								 "checkDetails":[
 								{
 											 "checkMethod":"vri",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 											 "identityCheckPolicy":"published",
 								},
 								{
 											 "checkMethod":"pvr",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 											 "photoVerificationProcessLevel":3,
 								},
 								 ],
@@ -470,18 +468,17 @@ describe("YotiCallbackProcessor", () => {
 					 "evidence":[
 						{
 								 "type":"IdentityCheck",
+							     "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 								 "strengthScore":3,
 								 "validityScore":2,
 								 "verificationScore":3,
 								 "checkDetails":[
 								{
 											 "checkMethod":"vri",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 											 "identityCheckPolicy":"published",
 								},
 								{
 											 "checkMethod":"pvr",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 											 "photoVerificationProcessLevel":3,
 								},
 								 ],
@@ -574,18 +571,17 @@ describe("YotiCallbackProcessor", () => {
 					 "evidence":[
 						{
 								 "type":"IdentityCheck",
+							      "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 								 "strengthScore":3,
 								 "validityScore":2,
 								 "verificationScore":3,
 								 "checkDetails":[
 								{
 											 "checkMethod":"vri",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 											 "identityCheckPolicy":"published",
 								},
 								{
 											 "checkMethod":"pvr",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 											 "photoVerificationProcessLevel":3,
 								},
 								 ],

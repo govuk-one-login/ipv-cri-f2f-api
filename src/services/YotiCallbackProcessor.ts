@@ -16,7 +16,7 @@ import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../utils/YotiPayloadEnums";
 import { MessageCodes } from "../models/enums/MessageCodes";
-import { DocumentTypes, DocumentNames } from "../models/enums/DocumentTypes";
+import {DocumentNames, DocumentTypes} from "../models/enums/DocumentTypes";
 
 export class YotiCallbackProcessor {
 
@@ -126,15 +126,7 @@ export class YotiCallbackProcessor {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
   	}
 
-  	this.logger.info({ message: "Document Fields" }, { documentFields });
-
-  	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
-
-  	if (!f2fSession) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
-  	}
-
-  	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
+  	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED" or "F2F_AUTH_CODE_ISSUED"
   	if (
   		f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
       f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED
@@ -148,7 +140,7 @@ export class YotiCallbackProcessor {
   					f2fSession.clientIpAddress,
   					absoluteTimeNow,
   				),
-					
+
   			});
   		} catch (error) {
   			this.logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", {
@@ -182,6 +174,7 @@ export class YotiCallbackProcessor {
   				return new Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the verifiableCredential Jwt");
   			}
   		}
+
   		if (!signedJWT) {
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unable to create signed JWT", {
   				messageCode: MessageCodes.FAILED_SIGNING_JWT,
@@ -256,8 +249,8 @@ export class YotiCallbackProcessor {
   				icaoIssuerCode: documentFields.issuing_country,
   			}];
   		} else {
-  			this.logger.error({ message: `Unable to find document type ${documentFields.document_type}`, 
-  				messageCode: MessageCodes.INVALID_DOCUMENT_TYPE, 
+  			this.logger.error({ message: `Unable to find document type ${documentFields.document_type}`,
+  				messageCode: MessageCodes.INVALID_DOCUMENT_TYPE,
   			});
   			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
   		}
@@ -275,6 +268,7 @@ export class YotiCallbackProcessor {
   					evidence: [
   						{
   							type: evidence[0].type,
+							txn: yotiSessionID,
   							strengthScore: evidence[0].strengthScore,
   							validityScore: evidence[0].validityScore,
   							verificationScore: evidence[0].verificationScore,
@@ -297,7 +291,7 @@ export class YotiCallbackProcessor {
   				messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
   			});
   		}
-	
+
   		await this.f2fService.updateSessionAuthState(
   			f2fSession.sessionId,
   			AuthSessionState.F2F_CREDENTIAL_ISSUED,
