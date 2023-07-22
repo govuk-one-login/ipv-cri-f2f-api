@@ -1,4 +1,0 @@
-F2FYotiStubURL	https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk
-F2FBackendURL	https://api-f2f-cri-api-mjafer.review-o.dev.account.gov.uk/
-F2FIPVStubExecuteURL	https://0qtxg80z58.execute-api.eu-west-2.amazonaws.com/dev/
-F2FApiGatewayId	9fwzinn3ke
