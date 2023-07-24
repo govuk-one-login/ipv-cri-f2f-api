@@ -9,6 +9,7 @@ import { ISessionItem } from "../../../models/ISessionItem";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { MockKmsJwtAdapter } from "../utils/MockJwtVerifierSigner";
 import { F2fService } from "../../../services/F2fService";
+import { MessageCodes } from "../../../models/enums/MessageCodes";
 
 let userInforequestProcessorTest: UserInfoRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -131,6 +132,10 @@ describe("UserInfoRequestProcessor", () => {
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 		expect(out.body).toContain("No session found with the sessionId: ");
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(logger.error).toHaveBeenCalledWith(
+			"No session found with the sessionId: sessionId", { messageCode: MessageCodes.SESSION_NOT_FOUND },
+		);
 	});
 
 	it("Return 401 when AuthSessionState is not F2F_ACCESS_TOKEN_ISSUED", async () => {
@@ -142,6 +147,10 @@ describe("UserInfoRequestProcessor", () => {
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 		expect(out.body).toContain("AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED, actual state- F2F_AUTH_CODE_ISSUED");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(logger.error).toHaveBeenCalledWith(
+			{ message: "AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED, actual state- F2F_AUTH_CODE_ISSUED" }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
+		);
 	});
 
 });

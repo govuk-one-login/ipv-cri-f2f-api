@@ -61,7 +61,7 @@ export class UserInfoRequestProcessor {
     	try {
     		session = await this.f2fService.getSessionById(sub as string);
     		if (!session) {
-				this.logger.info(`No session found with the sessionId: ${sub}`, { messageCode: MessageCodes.SESSION_NOT_FOUND });
+				this.logger.error(`No session found with the sessionId: ${sub}`, { messageCode: MessageCodes.SESSION_NOT_FOUND });
     			return new Response(HttpCodesEnum.BAD_REQUEST, `No session found with the sessionId: ${sub}`);
     		}
 			this.logger.info({ message :"Found Session: " });
@@ -77,14 +77,14 @@ export class UserInfoRequestProcessor {
     	this.metrics.addMetric("found session", MetricUnits.Count, 1);
     	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
     	if (session.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED) {
-
 			this.logger.info("Returning success response");
 			return new Response(HttpCodesEnum.ACCEPTED, JSON.stringify({
 				sub: session.subject,
 				"https://vocab.account.gov.uk/v1/credentialStatus": "pending",
 			}));
 		} else {
-			this.logger.error(`AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state- ${session.authSessionState}`);
+			this.logger.error({ message: `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state- ${session.authSessionState}` },
+				{ messageCode: MessageCodes.INCORRECT_SESSION_STATE });
 			return new Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state- ${session.authSessionState}`);
 		}
 	}
