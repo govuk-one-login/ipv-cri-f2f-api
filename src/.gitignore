@@ -5,3 +5,6 @@ dist/
 reports/
 build/
 .DS_Store
+docker_vars.env
+cf-output.txt
+results/

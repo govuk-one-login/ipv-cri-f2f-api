@@ -46,6 +46,10 @@ Parameters:
     Description: "Link to the F2F support manual"
     Type: String
     Default: 'https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3623583745/F2F+Support+Documentation'
+  IPVStubStackName:
+    Type: String
+    Default: "f2f-ipv-stub"
+    Description: The name of theIPV stub stack deployed.
 
 Mappings:
   EnvironmentConfiguration: # This is where you store per-environment settings.
@@ -174,6 +178,8 @@ Conditions:
     - !Equals [!Ref Environment, staging]
     - !Equals [!Ref Environment, integration]
     - !Equals [!Ref Environment, production]
+  IsNotProdLikeEnvironment: !Not
+    - !Condition IsProdLikeEnvironment
   IsPersonalIdentifiableInformationEnvironment: !Or
     - !Equals [!Ref Environment, integration]
     - !Equals [!Ref Environment, production]
@@ -4386,3 +4392,12 @@ Outputs:
           !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
     Export:
       Name: !Sub ${AWS::StackName}-F2FBackendURL
+  F2FIPVStubExecuteURL:
+    Condition: IsNotProdLikeEnvironment
+    Description: "F2F IPV Stub"
+    Value:
+      Fn::ImportValue: !Sub '${IPVStubStackName}-IPVStubExecuteUrl'
+  F2FYotiStubURL:
+    Condition: IsNotProdLikeEnvironment
+    Description: "F2F Yoti Stub"
+    Value: !FindInMap [EnvironmentVariables, !Ref Environment, YOTIBASEURL]
