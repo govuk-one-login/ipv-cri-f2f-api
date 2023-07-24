@@ -393,7 +393,7 @@ components:
           enum: [ DOCUMENT_SCHEME_VALIDITY_CHECK ]
         scheme:
           type: string
-          example: "UK_DBS"
+          example: "UK_GDS"
         state:
           type: string
           enum: [ CREATED, READY, PENDING, DONE, INTERNAL_ERROR ]
@@ -1572,7 +1572,7 @@ components:
       #            propertyName: type
       #            mapping:
       #              PROOF_OF_ADDRESS: "#/components/schemas/ProveAddressObjective"
-      #              UK_DBS: "#/components/schemas/UkDbsObjective"
+      #              UK_GDS: "#/components/schemas/UkDbsObjective"
       required:
         - type
         - objective
@@ -1591,7 +1591,7 @@ components:
       properties:
         type:
           type: string
-          enum: [UK_DBS]
+          enum: [UK_GDS]
         config:
           type: object
       required:

@@ -70,6 +70,7 @@ import {BRP} from "../data/getMediaContent/gbBrp";
 import {GET_MEDIA_CONTENT_401} from "../data/getMediaContent/getMediaContent401";
 import {GET_MEDIA_CONTENT_404} from "../data/getMediaContent/getMediaContent404";
 import {sleep} from "../utils/Sleep";
+import {POST_SESSIONS_INVALID_ADDRESS_400} from "../data/postSessions/postSessionsInvalidAddress400";
 
 export class YotiRequestProcessor {
     private static instance: YotiRequestProcessor;
@@ -98,7 +99,13 @@ export class YotiRequestProcessor {
      */
     async createSession(event: APIGatewayProxyEvent, incomingPayload: any): Promise<Response> {
         this.logger.info("START OF CREATESESSION")
-
+	    this.logger.info("/createSession Payload", {incomingPayload});
+        if( (!incomingPayload.resources.applicant_profile.structured_postal_address.building_number || incomingPayload.resources.applicant_profile.structured_postal_address.building_number === "") &&
+            (!incomingPayload.resources.applicant_profile.structured_postal_address.sub_building || incomingPayload.resources.applicant_profile.structured_postal_address.sub_building === "") &&
+            (!incomingPayload.resources.applicant_profile.structured_postal_address.building || incomingPayload.resources.applicant_profile.structured_postal_address.building === "") ){
+            this.logger.error("Bad Request: structured_postal_address is INVALID");
+            return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SESSIONS_INVALID_ADDRESS_400));
+        }
         const fullName = incomingPayload.resources.applicant_profile.full_name;
         const yotiSessionItem = new YotiSessionItem();
         const yotiSessionId = randomUUID();
