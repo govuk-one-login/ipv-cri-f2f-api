@@ -84,7 +84,7 @@ describe("AbortRequestProcessor", () => {
 		expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(sessionId, AuthSessionState.F2F_CRI_SESSION_ABORTED);
 		expect(out.statusCode).toBe(HttpCodesEnum.FOUND_REDIRECT);
 		expect(out.body).toBe("Session has been aborted");
-		expect(out.headers).toStrictEqual({ Location:`${f2fSessionItem.redirectUri}?error=access_denied&state=${AuthSessionState.F2F_CRI_SESSION_ABORTED}` });
+		expect(out.headers).toStrictEqual({ Location:`${f2fSessionItem.redirectUri}?error=access_denied&state=${f2fSessionItem.state}` });
 	});
 
 	it("sends TxMA event after auth session state has been updated", async () => {

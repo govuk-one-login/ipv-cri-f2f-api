@@ -87,7 +87,7 @@ export class AbortRequestProcessor {
   		});
   	}
 
-  	const redirectUri = `${f2fSessionInfo.redirectUri}?error=access_denied&state=${AuthSessionState.F2F_CRI_SESSION_ABORTED}`;
+  	const redirectUri = `${f2fSessionInfo.redirectUri}?error=access_denied&state=${f2fSessionInfo.state}`;
   	return new Response(HttpCodesEnum.FOUND_REDIRECT, "Session has been aborted", { Location: redirectUri });
   }
 }
