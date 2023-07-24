@@ -12,6 +12,8 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MockKmsJwtAdapterForVc } from "../utils/MockJwtVerifierSigner";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { Constants } from "../../../utils/Constants";
+import {VerifiableCredentialService} from "../../../services/VerifiableCredentialService";
+import {AppError} from "../../../utils/AppError";
 
 let mockYotiCallbackProcessor: YotiCallbackProcessor;
 const mockF2fService = mock<F2fService>();
@@ -482,18 +484,17 @@ describe("YotiCallbackProcessor", () => {
 					 "evidence":[
 						{
 								 "type":"IdentityCheck",
+							     "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 								 "strengthScore":3,
 								 "validityScore":2,
 								 "verificationScore":3,
 								 "checkDetails":[
 								{
 											 "checkMethod":"vri",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-											 "identityCheckPolicy":"published",
+											 "identityCheckPolicy":"published"
 								},
 								{
 											 "checkMethod":"pvr",
-											 "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 											 "photoVerificationProcessLevel":3,
 								},
 								 ],
@@ -576,6 +577,48 @@ describe("YotiCallbackProcessor", () => {
 		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Yoti Session not complete",
+		}));
+	});
+
+	it("Throws server error if signGeneratedVerifiableCredentialJwt returns empty string", async () => {
+		completedYotiSession.state = "COMPLETED";
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+		jest.spyOn(VerifiableCredentialService.prototype as any,"signGeneratedVerifiableCredentialJwt").mockReturnValue("");
+
+		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+			message: "Unable to create signed JWT",
+		}));
+	});
+
+	it("Returns server error response if signGeneratedVerifiableCredentialJwt throws error", async () => {
+		completedYotiSession.state = "COMPLETED";
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+		jest.spyOn(VerifiableCredentialService.prototype as any,"signGeneratedVerifiableCredentialJwt").mockRejectedValueOnce(new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt"))
+
+		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).resolves.toEqual(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+			body: "Failed to sign the verifiableCredential Jwt",
+		}));
+	});
+
+	it("Throws server error if generateVerifiableCredentialJwt returns empty string", async () => {
+		completedYotiSession.state = "COMPLETED";
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+		jest.spyOn(VerifiableCredentialService.prototype as any,"generateVerifiableCredentialJwt").mockReturnValue("");
+
+		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+			message: "Unable to create signed JWT",
 		}));
 	});
 });
