@@ -1178,9 +1178,13 @@ components:
       properties:
         reason:
           type: string
-          description: >-
-            The reason for authorization rejection.
+          description: The reason for the abort request
           example: session_expired
+          enum:
+            # User has specifically requested to abort
+            - ACCESS_DENIED
+            # The service is shut down for operational reasons
+            - OAUTH_NOT_ENABLED
   parameters:
     SessionHeader:
       name: session-id
