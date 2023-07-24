@@ -45,11 +45,10 @@ export class AuthorizationRequestProcessor {
 	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
 
 		const session = await this.f2fService.getSessionById(sessionId);
-
+		this.logger.appendKeys({ sessionId });
 		if (session != null) {
 			if (session.expiryDate < absoluteTimeNow()) {
 				this.logger.error("Session has expired", { messageCode: MessageCodes.EXPIRED_SESSION });
-				this.logger.appendKeys({ sessionId });
 				return new Response(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionId} has expired`);
 			}
 

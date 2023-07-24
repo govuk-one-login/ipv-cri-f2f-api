@@ -40,7 +40,6 @@ class AuthorizationCodeHandler implements LambdaInterface {
 
 						if (event.headers) {
 							sessionId = event.headers[Constants.SESSION_ID];
-							logger.appendKeys({ sessionId })
 							if (sessionId) {
 								logger.appendKeys({ sessionId });
 
