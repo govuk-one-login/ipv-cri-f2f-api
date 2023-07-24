@@ -1179,7 +1179,7 @@ components:
         reason:
           type: string
           description: The reason for the abort request
-          example: session_expired
+          example: ACCESS_DENIED
           enum:
             # User has specifically requested to abort
             - ACCESS_DENIED
