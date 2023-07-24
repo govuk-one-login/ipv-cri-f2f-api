@@ -29,6 +29,13 @@ export const TXMA_CORE_FIELDS = {
 	"component_id": "https://XXX-c.env.account.gov.uk",
 	"event_name": "F2F_YOTI_RESPONSE_RECEIVED",
 	"timestamp": 1,
+	"extensions": {
+		"evidence": [
+			{
+				"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91"
+			}
+		]
+	},
 	"user": {
 		"govuk_signin_journey_id": "sdfssg",
 		"ip_address": "127.0.0.1",

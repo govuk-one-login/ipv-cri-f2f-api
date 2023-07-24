@@ -35,6 +35,7 @@ function getMockSessionItem(): ISessionItem {
 		clientIpAddress: "127.0.0.1",
 		attemptCount: 1,
 		authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
+		yotiSessionId: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 	};
 	return sess;
 }
@@ -90,6 +91,13 @@ describe("AuthorizationRequestProcessor", () => {
 			client_id: "ipv-core-stub",
 			component_id: "https://XXX-c.env.account.gov.uk",
 			timestamp: absoluteTimeNow(),
+			extensions: {
+				evidence: [
+					{
+						txn: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91"
+					}
+				]
+			},
 			user: {
 				govuk_signin_journey_id: "sdfssg",
 				ip_address: "127.0.0.1",

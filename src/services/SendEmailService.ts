@@ -117,6 +117,13 @@ export class SendEmailService {
 						await this.f2fService.sendToTXMA({
 							event_name: "F2F_YOTI_PDF_EMAILED",
 							...coreEventFields,
+							extensions: {
+								evidence: [
+									{
+										txn: session.yotiSessionId
+									}
+								]
+							},
 							user: {
 								...coreEventFields.user,
 								email: message.emailAddress,

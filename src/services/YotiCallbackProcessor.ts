@@ -140,6 +140,13 @@ export class YotiCallbackProcessor {
   					f2fSession.clientIpAddress,
   					absoluteTimeNow,
   				),
+					extensions: {
+						evidence: [
+							{
+								txn: yotiSessionID
+							}
+						]
+					}
 
   			});
   		} catch (error) {
@@ -268,7 +275,7 @@ export class YotiCallbackProcessor {
   					evidence: [
   						{
   							type: evidence[0].type,
-							txn: yotiSessionID,
+								txn: yotiSessionID,
   							strengthScore: evidence[0].strengthScore,
   							validityScore: evidence[0].validityScore,
   							verificationScore: evidence[0].verificationScore,
