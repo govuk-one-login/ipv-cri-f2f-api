@@ -7,7 +7,6 @@ on:
     paths-ignore:
       - 'infra-l2-dynamo/**'
       - 'infra-l2-kms/**'
-      - 'infra-l2-waf/**'
       - 'f2f-ipv-stub/**'
       - 'infra-l2-outbound-proxy/**'
 
@@ -18,7 +17,7 @@ permissions:
   id-token: write
   contents: read
 
-env: # Only adding the variables in that are required for 
+env: # Only adding the variables in that are required for
   AWS_REGION: eu-west-2
 
 jobs:
@@ -34,6 +33,8 @@ jobs:
 
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v1-node16

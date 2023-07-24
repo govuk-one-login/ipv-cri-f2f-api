@@ -54,6 +54,9 @@ export class AuthorizationRequestProcessor {
 
 			this.logger.info({ message: "Found Session" });
 			this.logger.appendKeys({ sessionId: session.sessionId });
+			this.logger.appendKeys({
+				govuk_signin_journey_id: session?.clientSessionId,
+			});
 
 			this.metrics.addMetric("found session", MetricUnits.Count, 1);
 			if (session.authSessionState === AuthSessionState.F2F_YOTI_SESSION_CREATED) {

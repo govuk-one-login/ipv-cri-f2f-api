@@ -105,7 +105,21 @@ class MockYotiSessionHandler implements LambdaInterface {
 			 case ResourcesEnum.INSTRUCTIONS:
 				 if (event.httpMethod === "PUT") {
 					 try {
-						 logger.info("Event received: PutInstructions", {event});
+					 	logger.info("Event received: PutInstructions", {event});
+
+					 	let payload = event.body;
+						let payloadParsed;
+
+						if(payload) {
+							if(event.isBase64Encoded){
+								payloadParsed=  JSON.parse(Buffer.from(payload, 'base64').toString('binary'));
+							}
+							else {
+								payloadParsed = JSON.parse(payload);
+							}
+						}
+
+						logger.info("PutInstructions payload", {payloadParsed});
 
 						 if (event && event.pathParameters) {
 							 // Extract attributes from queryStringParameters and add them to the data object
