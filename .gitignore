@@ -2,3 +2,4 @@
 .aws-sam/
 .env
 .idea/
+cf-output.txt
