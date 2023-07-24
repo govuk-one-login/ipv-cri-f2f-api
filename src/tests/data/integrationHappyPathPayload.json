@@ -5,15 +5,11 @@
             {
                 "nameParts": [
                     {
-                        "value": "API",
+                        "value": "Kenneth",
                         "type": "GivenName"
                     },
                     {
-                        "value": "Automated",
-                        "type": "GivenName"
-                    },
-                    {
-                        "value": "Test",
+                        "value": "Decerqueira",
                         "type": "FamilyName"
                     }
                 ]
@@ -21,7 +17,7 @@
         ],
         "birthDate": [
             {
-                "value": "1960-02-02"
+                "value": "1965-07-08"
             }
         ],
         "address": [
@@ -33,6 +29,7 @@
                 "addressCountry": "GB",
                 "postalCode": "BA2 5AA"
             }
+            
         ],
         "emailAddress": "test@domain.com"
     }
