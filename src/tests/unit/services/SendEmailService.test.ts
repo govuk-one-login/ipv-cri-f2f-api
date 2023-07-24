@@ -52,6 +52,13 @@ function getMockSessionItem(): ISessionItem {
 	};
 	return session;
 }
+
+const timestamp = 1689952318;
+
+jest.mock("../../../utils/DateTimeUtils", () => ({
+	absoluteTimeNow: () => timestamp,
+}))
+
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
 		sendEmailServiceTest = SendEmailService.getInstance(logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY);
@@ -85,7 +92,7 @@ describe("SendEmailProcessor", () => {
 			event_name: "F2F_YOTI_PDF_EMAILED",
 			client_id: "ipv-core-stub",
 			component_id: "https://XXX-c.env.account.gov.uk",
-			timestamp: absoluteTimeNow(),
+			timestamp: timestamp,
 			user: {
 			  email: email.emailAddress,
 			  govuk_signin_journey_id: session.clientSessionId,
