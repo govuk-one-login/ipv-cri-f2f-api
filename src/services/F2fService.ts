@@ -68,6 +68,7 @@ export class F2fService {
 
 		if (session.Item) {
 			if (session.Item.expiryDate < absoluteTimeNow()) {
+				this.logger.error(`Session with session id: ${sessionId} has expired`);
 				throw new AppError(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionId} has expired`);
 			}
 			return session.Item as ISessionItem;
@@ -86,8 +87,10 @@ export class F2fService {
 		let PersonInfo;
 		try {
 			PersonInfo = await this.dynamo.send(getPersonIdentityCommand);
-		} catch (e: any) {
-			this.logger.error({ message: "getSessionById - failed executing get from dynamodb:", e });
+		} catch (error: any) {
+			this.logger.error({ message: "getSessionById - failed executing get from dynamodb" }, {
+				messageCode: MessageCodes.FAILED_FETCHING_PERSON_IDENTITY,
+				error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session");
 		}
 
@@ -110,10 +113,13 @@ export class F2fService {
 		const sessionItem = await this.dynamo.query(params);
 
 		if (!sessionItem?.Items || sessionItem?.Items?.length !== 1) {
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session by yoit session id");
+			this.logger.error({ message: "Error retrieving Session by yoti session id" }, {
+				messageCode: MessageCodes.FAILED_FETCHING_BY_YOTI_SESSIONID });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session by yoti session id");
 		}
 
 		if (sessionItem.Items[0].expiryDate < absoluteTimeNow()) {
+			this.logger.error(`Session with session id: ${sessionItem.Items[0].sessionId} has expired`);
 			throw new AppError(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionItem.Items[0].sessionId} has expired`);
 		}
 
@@ -255,11 +261,7 @@ export class F2fService {
 			Item: session,
 		});
 
-		this.logger.info({
-			message:
-				"Saving session data in DynamoDB: " +
-				JSON.stringify([putSessionCommand]),
-		});
+		this.logger.info({ message: "Saving session data in DynamoDB" });
 		try {
 			await this.dynamo.send(putSessionCommand);
 			this.logger.info("Successfully created session in dynamodb");
@@ -337,8 +339,8 @@ export class F2fService {
 			birthDate: this.mapbirthDate(sharedClaims.birthDate),
 			emailAddress: sharedClaims.emailAddress,
 			name: this.mapNames(sharedClaims.name),
-			expiryDate: Math.floor((Date.now() / 1000) + Number(this.environmentVariables.authSessionTtlInSecs())),
-			createdDate: Math.floor(Date.now() / 1000),
+			expiryDate: absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs(),
+			createdDate: absoluteTimeNow(),
 		};
 	}
 
@@ -376,6 +378,26 @@ export class F2fService {
 		} catch (error) {
 			this.logger.error({ message: "Got error saving auth state details", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving auth state details");
+		}
+	}
+
+	async updateSessionTtl(sessionId: string, sessionTtl: number, tableName: string = this.tableName): Promise<void> {
+		const updateStateCommand = new UpdateCommand({
+			TableName: tableName,
+			Key: { sessionId },
+			UpdateExpression: "SET expiryDate = :expiryDate",
+			ExpressionAttributeValues: {
+				":expiryDate": sessionTtl,
+			},
+		});
+
+		this.logger.info({ message: `Updating ${tableName} table TTL`, updateStateCommand });
+		try {
+			await this.dynamo.send(updateStateCommand);
+			this.logger.info({ message: `Updated ${tableName} TTL in dynamodb` });
+		} catch (error) {
+			this.logger.error({ message: `Got error updating ${tableName} ttl`, error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName} ttl`);
 		}
 	}
 

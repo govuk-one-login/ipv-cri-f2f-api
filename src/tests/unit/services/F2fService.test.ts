@@ -9,11 +9,12 @@ import { TxmaEvent } from "../../../utils/TxmaEvent";
 import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { personIdentityInputRecord, personIdentityOutputRecord } from "../data/personIdentity-records";
+import { AppError } from "../../../utils/AppError";
 
 const logger = mock<Logger>();
 
 let f2fService: F2fService;
-const tableName = "MYTABLE";
+const tableName = "SESSIONTABLE";
 const sessionId = "SESSID";
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
 const mockSqsClient = jest.mocked(sqsClient);
@@ -83,7 +84,12 @@ describe("F2f Service", () => {
 			expiryDate: absoluteTimeNow() - 500,
 		};
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: expiredSession });
-		await expect(f2fService.getSessionById("1234")).rejects.toThrow("Session with session id: 1234 has expired");
+		try {
+			await f2fService.getSessionById("1234");
+		} catch (error) {
+			expect(error).toEqual(new AppError(HttpCodesEnum.UNAUTHORIZED, "Session with session id: 1234 has expired"));
+			expect(logger.error).toHaveBeenCalledWith("Session with session id: 1234 has expired");
+		}
 	});
 
 	it("Should not throw an error and return undefined when set AuthorizationCode F2F data doesn't exist", async () => {
@@ -215,7 +221,7 @@ describe("F2f Service", () => {
 				Key: {
 					sessionId: "SESSID",
 				},
-				TableName: "MYTABLE",
+				TableName: "SESSIONTABLE",
 				UpdateExpression: "SET authSessionState = :authSessionState",
 			},
 		}));
@@ -229,7 +235,7 @@ describe("F2f Service", () => {
 				Item: {
 					sessionId: "SESSID",
 				},
-				TableName: "MYTABLE",
+				TableName: "SESSIONTABLE",
 			},
 		}));
 	});
@@ -267,7 +273,7 @@ describe("F2f Service", () => {
 			clientCommand: expect.objectContaining({
 				input: expect.objectContaining({
 					Item: expect.objectContaining({
-						expiryDate: Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL!),
+						expiryDate: Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL_SECS!),
 						createdDate: Math.floor(fakeTime),
 					}),
 				}),
@@ -275,4 +281,55 @@ describe("F2f Service", () => {
 		}));
 		jest.useRealTimers();
 	});
+
+	it("Should throw an error when session by yoti sessionId doesn't exist", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		try {
+			await f2fService.getSessionByYotiId("1234");
+		} catch (error) {
+			expect(error).toEqual(new AppError(HttpCodesEnum.UNAUTHORIZED, "Error retrieving Session by yoti session id"));
+			expect(logger.error).toHaveBeenCalledWith({ "message": "Error retrieving Session by yoti session id" }, { "messageCode": "FAILED_FETCHING_BY_YOTI_SESSIONID" });
+		}
+	});
+
+	it("Should throw an error when Person record by sessionId doesn't exist", async () => {
+		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+		try {
+			await f2fService.getPersonIdentityById("1234");
+		} catch (error) {
+			expect(error).toEqual(new AppError(HttpCodesEnum.UNAUTHORIZED, "Error retrieving Session"));
+			expect(logger.error).toHaveBeenCalledWith({ "message": "getSessionById - failed executing get from dynamodb" }, { "error": {}, "messageCode": "FAILED_FETCHING_PERSON_IDENTITY" });
+		}
+	});
+	it.each([
+		["should update session table with updated ttl", "SESSID", 123456, "SESSIONTABLE"],
+		["should update person identity table with updated ttl", "SESSID", 123456, "PERSONTABLE"],
+	])("update ttl - %s", async (description, sessionId, expiryDate, tableName) => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		await f2fService.updateSessionTtl(sessionId, expiryDate, tableName);
+		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
+			input: {
+				ExpressionAttributeValues: {
+					":expiryDate": expiryDate,
+				},
+				Key: {
+					sessionId,
+				},
+				TableName: tableName,
+				UpdateExpression: "SET expiryDate = :expiryDate",
+			},
+		}));
+	});
+	
+
+	it.each([
+		["should throw 500 if fails to update session ttl", "SESSIONTABLE"],
+		["should throw 500 if fails to update person identity ttl", "PERSONTABLE"],
+	])("update ttl - %s", async (description, tableName) => {
+		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+		await expect(f2fService.updateSessionTtl(FAILURE_VALUE, 123456, tableName)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+			message: `updateItem - failed: got error updating ${tableName} ttl`,
+		}));
+	});	
 });
