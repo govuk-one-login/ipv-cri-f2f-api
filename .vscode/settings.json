@@ -1,0 +1,7 @@
+{
+    "jest.jestCommandLine": "./node_modules/.bin/jest",
+    "jest.rootPath": "./src",
+    "eslint.workingDirectories": [
+        "src"
+    ]
+}

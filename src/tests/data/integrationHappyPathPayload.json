@@ -1,4 +1,5 @@
 {
+    "yotiMockID": "0000",
     "shared_claims": {
         "name": [
             {
@@ -28,7 +29,7 @@
                 "addressCountry": "GB",
                 "postalCode": "BA2 5AA"
             }
-
+            
         ],
         "emailAddress": "test@domain.com"
     }
