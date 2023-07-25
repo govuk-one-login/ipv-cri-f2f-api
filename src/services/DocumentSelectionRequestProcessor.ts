@@ -101,11 +101,17 @@ export class DocumentSelectionRequestProcessor {
 
   		try {
   			yotiSessionId = await this.createSessionGenerateInstructions(personDetails, f2fSessionInfo, postOfficeSelection, selectedDocument, countryCode);
-  			await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
-  			await this.f2fService.updateSessionWithYotiIdAndStatus(f2fSessionInfo.sessionId, yotiSessionId, AuthSessionState.F2F_YOTI_SESSION_CREATED);
-  			const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
-  			await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
-  			await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
+			  if (yotiSessionId) {
+				  await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
+				  await this.f2fService.updateSessionWithYotiIdAndStatus(f2fSessionInfo.sessionId, yotiSessionId, AuthSessionState.F2F_YOTI_SESSION_CREATED);
+				  const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
+				  await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
+				  await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
+			  } else {
+				  this.logger.error(`No session found with yotiSessionId ${yotiSessionId}`);
+				  throw new AppError(HttpCodesEnum.BAD_REQUEST, `No session found with yotiSessionId ${yotiSessionId}`);
+			  }
+
   		} catch (error: any) {
   			this.logger.error("Error occurred during documentSelection orchestration", error.message,
   				{ messageCode: MessageCodes.FAILED_DOCUMENT_SELECTION_ORCHESTRATION });
@@ -119,13 +125,26 @@ export class DocumentSelectionRequestProcessor {
   		try {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_YOTI_START",
-  				...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow),
+  				...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow, yotiSessionId),
+  				extensions: {
+  					evidence: [
+  						{
+  							txn: yotiSessionId,
+  						},
+  					],
+  					post_office_details: {
+  						...postOfficeSelection,
+  					},
+  				},
+  				restricted: {
+  					documentType: selectedDocument,
+  					issuingCountry: countryCode,
+  				},
   			});
   		} catch (error) {
-  			this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", {
-  				messageCode: MessageCodes.ERROR_WRITING_TXMA,
-  			});
+  			this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
   		}
+
 
   		return new Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 

@@ -473,11 +473,11 @@ describe("GenerateVerifiableCredential", () => {
 						checkDetails: [
 							{
 								checkMethod: "vcrypt",
-								identityCheckPolicy: "published"
+								identityCheckPolicy: "published",
 							},
 							{
 								biometricVerificationProcessLevel: 3,
-								checkMethod: "bvr"
+								checkMethod: "bvr",
 							},
 						],
 						strengthScore: 4,
