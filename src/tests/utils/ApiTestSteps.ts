@@ -290,3 +290,16 @@ export function validateJwtToken(jwtToken:any, vcData: any, yotiId?: string):voi
 		expect(expectedContraIndicatiors.split(",")).toStrictEqual(actualContraIndicatiors);
 	}
 }
+
+	export async function postAbortSession(reasion:any, sessionId:any): Promise<any> {
+		const path = constants.DEV_CRI_F2F_API_URL + "/abort";
+		console.log(path);
+		try {
+			const postRequest = await API_INSTANCE.post(path, reasion, { headers:{ "x-govuk-signin-session-id": sessionId } });
+			return postRequest;
+	
+		} catch (error: any) {
+			console.log(`Error response from endpoint: ${error}`);
+			return error.response;
+		}
+	}
