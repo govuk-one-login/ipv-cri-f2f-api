@@ -108,8 +108,8 @@ export class DocumentSelectionRequestProcessor {
 				  await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
 				  await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
 			  } else {
-				  this.logger.error(`No session foud with yotiSessionId ${yotiSessionId}`);
-				  throw new AppError(HttpCodesEnum.BAD_REQUEST, `No session foud with yotiSessionId ${yotiSessionId}`);
+				  this.logger.error(`No session found with yotiSessionId ${yotiSessionId}`);
+				  throw new AppError(HttpCodesEnum.BAD_REQUEST, `No session found with yotiSessionId ${yotiSessionId}`);
 			  }
 
   		} catch (error: any) {
