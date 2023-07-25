@@ -81,7 +81,7 @@ describe("AuthorizationRequestProcessor", () => {
 				ip_address: "127.0.0.1",
 				persistent_session_id: "sdgsdg",
 				session_id: "sdfsdg",
-				transaction_id: undefined,
+				transaction_id: "",
 				user_id: "sub",
 			},
 		});
@@ -103,7 +103,7 @@ describe("AuthorizationRequestProcessor", () => {
 				ip_address: "127.0.0.1",
 				persistent_session_id: "sdgsdg",
 				session_id: "sdfsdg",
-				transaction_id: undefined,
+				transaction_id: "",
 				user_id: "sub",
 			},
 		});

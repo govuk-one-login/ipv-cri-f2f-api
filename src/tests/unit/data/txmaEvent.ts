@@ -41,7 +41,7 @@ export const TXMA_CORE_FIELDS = {
 		"ip_address": "127.0.0.1",
 		"persistent_session_id": "sdgsdg",
 		"session_id": "RandomF2FSessionID",
-		"transaction_id": undefined,
+		"transaction_id": "",
 		"user_id": "testsub",
 		"email": undefined,
 	},

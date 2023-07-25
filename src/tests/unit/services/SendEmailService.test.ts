@@ -107,7 +107,7 @@ describe("SendEmailProcessor", () => {
 			  ip_address: session.clientIpAddress,
 			  persistent_session_id: session.persistentSessionId,
 			  session_id: session.sessionId,
-			  transaction_id: undefined,
+			  transaction_id: "",
 			  user_id: session.subject,
 			},
 		});
