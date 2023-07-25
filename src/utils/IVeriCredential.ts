@@ -83,11 +83,11 @@ export class JsonWebTokenError extends Error {
 }
 
 export type VerifiedCredentialEvidence = Array<{
-	type?: string;
-	txn?: string;
-	strengthScore?: number;
-	validityScore?: number;
-	verificationScore?: number;
+	type: string;
+	txn: string;
+	strengthScore: number;
+	validityScore: number;
+	verificationScore: number;
 	checkDetails?: Array<{
 		photoVerificationProcessLevel?: number;
 		checkMethod: string;

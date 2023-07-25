@@ -40,8 +40,30 @@ export interface RestrictedObject {
 	"idCard"?: IdentityCard;
 }
 
+export type VerifiedCredentialEvidenceTxMA = Array<{
+	type?: string;
+	txn: string;
+	strengthScore?: number;
+	validityScore?: number;
+	verificationScore?: number;
+	checkDetails?: Array<{
+		photoVerificationProcessLevel?: number;
+		checkMethod: string;
+		identityCheckPolicy?: string;
+		activityFrom?: string;
+		biometricVerificationProcessLevel?: number;
+	}>;
+	ci?: string[];
+	failedCheckDetails?: Array<{
+		photoVerificationProcessLevel?: number;
+		checkMethod: string;
+		identityCheckPolicy?: string;
+		biometricVerificationProcessLevel?: number;
+	}>;
+}>;
+
 export interface ExtensionObject {
-	"evidence"?: VerifiedCredentialEvidence;
+	"evidence": VerifiedCredentialEvidenceTxMA;
 	"post_office_details"?: PostOfficeInfo;
 }
 

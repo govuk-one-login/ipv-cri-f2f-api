@@ -32,9 +32,9 @@ export const TXMA_CORE_FIELDS = {
 	"extensions": {
 		"evidence": [
 			{
-				"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91"
-			}
-		]
+				"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+			},
+		],
 	},
 	"user": {
 		"govuk_signin_journey_id": "sdfssg",
@@ -55,12 +55,12 @@ export const TXMA_VC_ISSUED = {
 			"name": "ANGELA ZOE UK SPECIMEN",
 			"birthDate": "1988-12-04",
 		},
-		"passport": [{
+		"passport": {
 			"documentType": "PASSPORT",
 			"documentNumber": "533401372",
 			"expiryDate": "2025-09-28",
 			"icaoIssuerCode": "GBR",
-		}],
+		},
 	},
 };
 
@@ -72,7 +72,7 @@ export const TXMA_DL_VC_ISSUED = {
 			"name": "LEEROY JENKINS",
 			"birthDate": "1988-12-04",
 		},
-		"drivingPermit": [{
+		"drivingPermit": {
 			"documentType": "DRIVING_LICENCE",
 			"personalNumber": "LJENK533401372",
 			"expiryDate": "2025-09-28",
@@ -80,7 +80,7 @@ export const TXMA_DL_VC_ISSUED = {
 			"issuedBy": "DVLA",
 			"issueDate": "2015-09-28",
 			"fullAddress": "122 BURNS CRESCENT\nStormwind\nEH1 9GP",
-		}],
+		},
 	},
 };
 
@@ -92,14 +92,14 @@ export const TXMA_EU_DL_VC_ISSUED = {
 			"name": "Erika - Mustermann",
 			"birthDate": "1988-12-04",
 		},
-		"drivingPermit": [{
+		"drivingPermit": {
 			"documentType": "DRIVING_LICENCE",
 			"personalNumber": "Z021AB37X13",
 			"expiryDate": "2036-03-19",
 			"issuingCountry": "DEU",
 			"issuedBy": "Landratsamt Mu sterhausen amSee",
 			"issueDate": "2021-03-20",
-		}],
+		},
 	},
 };
 
@@ -111,13 +111,13 @@ export const TXMA_EEA_VC_ISSUED = {
 			"name": "Wiieke Liselotte De Bruijn",
 			"birthDate": "1988-12-04",
 		},
-		"idCard": [{
+		"idCard": {
 			"documentType": "NATIONAL_ID",
 			"documentNumber": "SPEC12031",
 			"expiryDate": "2031-08-02",
 			"icaoIssuerCode": "NLD",
 			"issueDate": "2021-08-02",
-		}],
+		},
 	},
 };
 
@@ -129,12 +129,12 @@ export const TXMA_BRP_VC_ISSUED = {
 			"name": "TECH REFRESH ICTHREEMALE",
 			"birthDate": "1988-12-04",
 		},
-		"residencePermit": [{
+		"residencePermit": {
 			"documentType": "RESIDENCE_PERMIT",
 			"documentNumber": "RF9082242",
 			"expiryDate": "2024-11-11",
 			"issueDate": "2015-05-19",
 			"icaoIssuerCode": "GBR",
-		}],
+		},
 	},
 };

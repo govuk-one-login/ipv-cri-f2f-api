@@ -93,10 +93,10 @@ export class AuthorizationRequestProcessor {
 						extensions: {
 							evidence: [
 								{
-									txn: session.yotiSessionId
-								}
-							]
-						}
+									txn: session.yotiSessionId || "",
+								},
+							],
+						},
 					});
 				} catch (error) {
 					this.logger.error("Failed to write TXMA event F2F_CRI_END to SQS queue.", { error, messageCode: MessageCodes.FAILED_TO_WRITE_TXMA });
