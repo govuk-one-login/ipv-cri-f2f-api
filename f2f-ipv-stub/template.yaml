@@ -139,7 +139,7 @@ Resources:
       ParentId: !GetAtt IPVStubApiGw.RootResourceId
       PathPart: redirect
 
-  RedirectMethodGet:
+  RedirectMethodPost:
     DependsOn:
       - RedirectPath
       - IPVStubRedirectFunction
@@ -152,6 +152,35 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
+        Uri: !Join
+          - ""
+          - - "arn:"
+            - !Ref "AWS::Partition"
+            - ":apigateway:"
+            - !Ref "AWS::Region"
+            - ":lambda:path/2015-03-31/functions/"
+            - !GetAtt IPVStubRedirectFunction.Arn
+            - /invocations
+        IntegrationResponses:
+          - StatusCode: 200
+      MethodResponses:
+        - StatusCode: 200
+        - StatusCode: 400
+        - StatusCode: 500
+
+  RedirectMethodGet:
+    DependsOn:
+      - RedirectPath
+      - IPVStubRedirectFunction
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId: !Ref IPVStubApiGw
+      ResourceId: !Ref RedirectPath
+      HttpMethod: GET
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: GET
         Uri: !Join
           - ""
           - - "arn:"
@@ -254,6 +283,7 @@ Resources:
   # -----------------------------------------
   IPVStubApiGwDeployment:
     DependsOn:
+      - RedirectMethodPost
       - RedirectMethodGet
       - JwksMethodGet
       - StartF2FMethodGet

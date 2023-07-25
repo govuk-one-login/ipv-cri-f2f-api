@@ -3,6 +3,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
+  console.log("Redirect Event Received: ", event);
   if (event.queryStringParameters?.error != null) {
     return {
       statusCode: 200,
