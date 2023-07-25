@@ -15,7 +15,7 @@ export type TxmaEventName =
 
 export interface TxmaUser {
 	"user_id": string;
-	"transaction_id"?: string;
+	"transaction_id": string;
 	"persistent_session_id": string;
 	"session_id": string;
 	"govuk_signin_journey_id": string;
@@ -77,6 +77,7 @@ export const buildCoreEventFields = (session: ISessionItem, issuer: string, sour
 	return {
 		user: {
 			user_id: session.subject,
+			transaction_id: "",
 			persistent_session_id: session.persistentSessionId,
 			session_id: session.sessionId,
 			govuk_signin_journey_id: session.clientSessionId,

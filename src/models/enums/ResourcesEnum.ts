@@ -7,4 +7,5 @@ export enum ResourcesEnum {
 	DOCUMENTSELECTION = "/documentSelection",
 	SESSION = "/session",
 	USERINFO = "/userinfo",
+	ABORT = "/abort",
 }
