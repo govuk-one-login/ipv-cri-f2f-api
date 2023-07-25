@@ -12,8 +12,8 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MockKmsJwtAdapterForVc } from "../utils/MockJwtVerifierSigner";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { Constants } from "../../../utils/Constants";
-import {VerifiableCredentialService} from "../../../services/VerifiableCredentialService";
-import {AppError} from "../../../utils/AppError";
+import { VerifiableCredentialService } from "../../../services/VerifiableCredentialService";
+import { AppError } from "../../../utils/AppError";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { TXMA_BRP_VC_ISSUED, TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_EEA_VC_ISSUED, TXMA_EU_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
 import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
@@ -158,7 +158,7 @@ describe("YotiCallbackProcessor", () => {
 								 "checkDetails":[
 								{
 											 "checkMethod":"vri",
-											 "identityCheckPolicy":"published"
+											 "identityCheckPolicy":"published",
 								},
 								{
 											 "checkMethod":"pvr",
@@ -672,7 +672,7 @@ describe("YotiCallbackProcessor", () => {
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
-		jest.spyOn(VerifiableCredentialService.prototype as any,"signGeneratedVerifiableCredentialJwt").mockReturnValue("");
+		jest.spyOn(VerifiableCredentialService.prototype as any, "signGeneratedVerifiableCredentialJwt").mockReturnValue("");
 
 		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
@@ -686,7 +686,7 @@ describe("YotiCallbackProcessor", () => {
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
-		jest.spyOn(VerifiableCredentialService.prototype as any,"signGeneratedVerifiableCredentialJwt").mockRejectedValueOnce(new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt"))
+		jest.spyOn(VerifiableCredentialService.prototype as any, "signGeneratedVerifiableCredentialJwt").mockRejectedValueOnce(new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt"));
 
 		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).resolves.toEqual(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
@@ -700,7 +700,7 @@ describe("YotiCallbackProcessor", () => {
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
-		jest.spyOn(VerifiableCredentialService.prototype as any,"generateVerifiableCredentialJwt").mockReturnValue("");
+		jest.spyOn(VerifiableCredentialService.prototype as any, "generateVerifiableCredentialJwt").mockReturnValue("");
 
 		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,

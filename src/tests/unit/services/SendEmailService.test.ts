@@ -49,7 +49,7 @@ function getMockSessionItem(): ISessionItem {
 		clientIpAddress: "127.0.0.1",
 		attemptCount: 1,
 		authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
-		yotiSessionId: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91"
+		yotiSessionId: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 	};
 	return session;
 }
@@ -58,7 +58,7 @@ const timestamp = 1689952318;
 
 jest.mock("../../../utils/DateTimeUtils", () => ({
 	absoluteTimeNow: () => timestamp,
-}))
+}));
 
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
@@ -93,13 +93,13 @@ describe("SendEmailProcessor", () => {
 			event_name: "F2F_YOTI_PDF_EMAILED",
 			client_id: "ipv-core-stub",
 			component_id: "https://XXX-c.env.account.gov.uk",
-			timestamp: timestamp,
+			timestamp,
 			extensions: {
 				evidence: [
 					{
-						txn: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91"
-					}
-				]
+						txn: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+					},
+				],
 			},
 			user: {
 			  email: email.emailAddress,
