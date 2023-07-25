@@ -50,6 +50,14 @@ Parameters:
     Type: String
     Default: "f2f-ipv-stub"
     Description: The name of theIPV stub stack deployed.
+  LambdaConcurrency:
+    Description: "Reserved concurrency for Lambdas running in non-DEV environments"
+    Type: Number
+    Default: 20
+  ApplyReservedConcurrencyInDev:
+    Description: "Set to true to apply reserved concurrency when deploying in DEV environments"
+    Type: String
+    Default: "false"
 
 Mappings:
   EnvironmentConfiguration: # This is where you store per-environment settings.
@@ -174,6 +182,10 @@ Conditions:
   CreateDevResources: !Equals
     - !Ref Environment
     - dev
+  ApplyReservedConcurrency: !Or
+    - !Not
+      - !Condition CreateDevResources
+    - !Equals [!Ref ApplyReservedConcurrencyInDev, "true"]
   IsProdLikeEnvironment: !Or
     - !Equals [!Ref Environment, staging]
     - !Equals [!Ref Environment, integration]
@@ -422,6 +434,10 @@ Resources:
       FunctionName: !Sub "F2F-Session-${AWS::StackName}"
       Handler: SessionHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           AUTH_SESSION_TTL_SECS:
@@ -573,6 +589,10 @@ Resources:
       FunctionName: !Sub "Access-Token-${AWS::StackName}"
       Handler: AccessTokenHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: AccessTokenHandler
@@ -697,6 +717,10 @@ Resources:
       FunctionName: !Sub "F2F-Authorization-${AWS::StackName}"
       Handler: AuthorizationCodeHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: AuthorizationCodeHandler
@@ -829,6 +853,10 @@ Resources:
       FunctionName: !Sub "Document-Selection-${AWS::StackName}"
       Handler: DocumentSelectionHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
@@ -994,6 +1022,10 @@ Resources:
       FunctionName: !Sub "Abort-${AWS::StackName}"
       Handler: AbortHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: AbortHandler
@@ -1158,8 +1190,8 @@ Resources:
       CodeUri: ../src/
       Handler: JwksHandler.lambdaHandler
       ReservedConcurrentExecutions: !If
-        - IsProdLikeEnvironment
-        - 80
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
         - !Ref AWS::NoValue
       Policies:
         - AWSXRayDaemonWriteAccess
@@ -1268,6 +1300,10 @@ Resources:
       Handler: GovNotifyHandler.lambdaHandler
       CodeUri: ../src/
       Timeout: 300
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
@@ -1416,6 +1452,10 @@ Resources:
       FunctionName: !Sub "User-Info-${AWS::StackName}"
       Handler: UserInfoHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: UserInfoHandler
@@ -1624,6 +1664,10 @@ Resources:
       FunctionName: !Sub "F2F-YotiCallback-${AWS::StackName}"
       Handler: YotiCallbackHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: YotiCallbackHandler
