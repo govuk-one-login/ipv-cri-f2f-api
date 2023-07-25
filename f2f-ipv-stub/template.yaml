@@ -148,10 +148,10 @@ Resources:
       AuthorizationType: NONE
       RestApiId: !Ref IPVStubApiGw
       ResourceId: !Ref RedirectPath
-      HttpMethod: POST
+      HttpMethod: GET
       Integration:
         Type: AWS_PROXY
-        IntegrationHttpMethod: POST
+        IntegrationHttpMethod: GET
         Uri: !Join
           - ""
           - - "arn:"
