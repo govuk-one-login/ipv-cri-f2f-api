@@ -51,7 +51,7 @@ jobs:
           BUILD_TEST_ECR_REPOSITORY: ${{ secrets.BUILD_TEST_ECR_REPOSITORY }}
           IMAGE_TAG: latest
         run: |
-          docker build -f Dockerfile.test -t $ECR_REGISTRY/$BUILD_TEST_ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$BUILD_TEST_ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$BUILD_TEST_ECR_REPOSITORY:$IMAGE_TAG
           cosign sign --key awskms:///${BUILD_CONTAINER_SIGN_KMS_KEY} $ECR_REGISTRY/$BUILD_TEST_ECR_REPOSITORY:$IMAGE_TAG
 
