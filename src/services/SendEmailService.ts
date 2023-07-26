@@ -42,18 +42,18 @@ export class SendEmailService {
 	 * @param environmentVariables
 	 * @private
 	 */
-	private constructor(logger: Logger, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string) {
+	private constructor(logger: Logger, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, govnotifyServiceId: string) {
     	this.logger = logger;
     	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
-    	this.govNotify = new NotifyClient(GOVUKNOTIFY_API_KEY);
+    	this.govNotify = new NotifyClient(this.environmentVariables.govukNotifyApiUrl(), govnotifyServiceId, GOVUKNOTIFY_API_KEY);
 		this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
     	this.govNotifyErrorMapper = new GovNotifyErrorMapper();
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 	}
 
-	static getInstance(logger: Logger, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string): SendEmailService {
+	static getInstance(logger: Logger, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, govnotifyServiceId: string): SendEmailService {
     	if (!this.instance) {
-    		this.instance = new SendEmailService(logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY);
+    		this.instance = new SendEmailService(logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId);
     	}
     	return this.instance;
 	}

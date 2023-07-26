@@ -64,7 +64,8 @@ class GovNotifyHandler implements LambdaInterface {
 						throw error;
 					}
 				}
-				await SendEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY).processRequest(body);
+				const govnotifyServiceId = GOVUKNOTIFY_API_KEY.substring(GOVUKNOTIFY_API_KEY.length - 73, GOVUKNOTIFY_API_KEY.length - 37);
+				await SendEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(body);
 				logger.debug("Finished processing record from SQS");
 				return passEntireBatch;
 

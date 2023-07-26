@@ -1,0 +1,305 @@
+openapi: 3.0.2
+info:
+  title:
+     Fn::Sub: "${AWS::StackName} - GovNotify Stub Service"
+  version: 1.0.0
+
+tags:
+  - name: Public Endpoints
+    description: Endpoints accessible by the public domain
+
+paths:
+
+  /govnotify/v2/notifications/email:
+    post:
+      tags:
+        - Backend Endpoint for GovNotify
+      summary: Mock GovNotify's Send email endpoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendEmailPayload"
+        required: false
+      responses:
+        201:
+          description: Email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendEmailResponseBody"
+        400:
+          $ref: "#/components/responses/400"
+        403:
+          $ref: "#/components/responses/403"
+        429:
+          $ref: "#/components/responses/429"
+        500:
+          $ref: "#/components/responses/500"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Gov-Notify-Stub-${AWS::StackName}:live/invocations
+        responses:
+          default:
+            statusCode: "201"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+components:
+  ## ---------------------
+  ## Schema Definitions
+  ## ---------------------
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              property:
+                type: string
+              message:
+                type: string
+            required:
+              - property
+              - message
+      required:
+        - code
+        - message
+
+    SendEmailPayload:
+      type: object
+      description: Send Email Payload
+      properties:
+        template_id:
+          description: Email template_id
+          type: string
+          format: uuid
+
+    SendEmailResponseBody:
+      type: object
+      description: Send Email Response Body
+      properties:
+        emailSentDateTime:
+          type: string
+        emailFailureMessage:
+          type: string
+        metadata:
+          type: object
+      required:
+        - emailSentDateTime
+        - metadata
+
+   ## ---------------------
+  ## Response Definitions
+  ## ---------------------
+  responses:
+    400:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            PAYLOAD_VALIDATION:
+              $ref: "#/components/examples/PayloadValidationError"
+            MALFORMED_DIGEST:
+              $ref: "#/components/examples/MalformedRequestDigestError"
+            MALFORMED_TOKEN:
+              $ref: "#/components/examples/MalformedRequestTokenError"
+    401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            BAD_TOKEN:
+              $ref: "#/components/examples/BadTokenError"
+            BAD_SDK_ID:
+              $ref: "#/components/examples/BadSdkIdError"
+            BAD_PUBLIC_KEY:
+              $ref: "#/components/examples/BadPublicKeyError"
+            MESSAGE_SIGNING:
+              $ref: "#/components/examples/MessageSigningError"
+    403:
+      description: Auth Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            SCHEME_NOT_FOUND:
+              $ref: "#/components/examples/SchemeNotFoundError"
+            SCHEME_VALIDATION_REQUIREMENT_NOT_FOUND:
+              $ref: "#/components/examples/SchemeValidationRequirementNotFoundError"
+    429:
+      description: Too Many Requests Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            TOO_MANY_REQUESTS:
+              $ref: "#/components/examples/TooManyRequestsError"
+    500:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            SERVER_ERROR:
+              $ref: "#/components/examples/UnexpectedServerError"
+    503:
+      description: Service Unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            TEMPORARILY_UNAVAILABLE:
+              $ref: "#/components/examples/TemporarilyUnavailableError"
+
+  ## ---------------------
+  ## Security Schemes
+  ## ---------------------
+  securitySchemes:
+    X-Yoti-Auth-Digest:
+      type: apiKey
+      name: X-Yoti-Auth-Digest
+      in: header
+      description: "Signed request performed by back-end SDKs that includes a `X-Yoti-Auth-Digest`"
+    X-Yoti-Auth-Token:
+      type: apiKey
+      name: X-Yoti-Auth-Token
+      in: header
+      description: "`X-Yoti-Auth-Token` header containing the `client_session_token` value obtained via the `Session` creation endpoint."
+
+  ## ---------------------
+  ## Example Definitions
+  ## ---------------------
+  examples:
+    UnauthorisedSdkIdError:
+      value:
+        code: INSUFFICIENT_PERMISSION
+        message: The Yoti App associated with this sdk_id does not have permission to use Yoti Doc Scan
+    SessionNotReadyError:
+      value:
+        code: SESSION_NOT_READY
+        message: Cannot begin this session until integrator provides all required resources (Face Capture)
+
+    PayloadValidationError:
+      value:
+        code: PAYLOAD_VALIDATION
+        message: There were errors validating the payload
+        errors:
+          - property: The JSON property name
+            message: The error message associated with the property
+    MalformedRequestDigestError:
+      value:
+        code: MALFORMED_REQUEST
+        errors:
+          - property: header.X-Yoti-Auth-Digest
+            message: must not be null or empty
+    MalformedRequestTokenError:
+      value:
+        code: MALFORMED_REQUEST
+        errors:
+          - property: header.X-Yoti-Auth-Token
+            message: must not be null or empty
+    MessageSigningError:
+      value:
+        code: MESSAGE_SIGNING
+        message: The message was not signed correctly
+    AppNotFoundError:
+      value:
+        code: APP_NOT_FOUND
+        message: The referenced application does not exist
+    MediaContentNotFoundError:
+      value:
+        code: MEDIA_CONTENT_NOT_FOUND
+        message: No media content found matching the id provided
+    SessionNotFoundError:
+      value:
+        code: SESSION_NOT_FOUND
+        message: No session found matching the sessionId provided
+    SchemeNotFoundError:
+      value:
+        code: SCHEME_NOT_FOUND
+        message: No scheme found that matches provided scheme name
+    SchemeValidationRequirementNotFoundError:
+      value:
+        code: SCHEME_VALIDATION_REQUIREMENT_NOT_FOUND
+        message: No scheme validation found for requested issuing country and/or document type
+    SessionExpiredError:
+      value:
+        code: SESSION_EXPIRED
+        message: The session has expired
+    SessionLockedError:
+      value:
+        code: SESSION_LOCKED
+        message: The session is locked or completed
+    BadSdkIdError:
+      value:
+        code: BAD_SDK_ID
+        message: Cannot authorize your request for the session with the given sdkId
+    BadTokenError:
+      value:
+        code: BAD_TOKEN
+        message: Cannot authorize your request for the session with the given token
+    BadPublicKeyError:
+      value:
+        code: BAD_PUBLIC_KEY
+        message: Cannot parse the public key provided
+    InstructionsNotCompleteError:
+      value:
+        code: INSTRUCTIONS_NOT_COMPLETE
+        message: No instructions have been provided
+    TooManyRequestsError:
+      value:
+        code: TOO_MANY_REQUESTS
+        message: Exceeded permissible limits
+
+    UnexpectedServerError:
+      value:
+        code: SERVER_ERROR
+        message: An unexpected error occurred on the server
+    TemporarilyUnavailableError:
+      value:
+        code: TEMPORARILY_UNAVAILABLE
+        message: Unable to complete your request right now.  Please try again later
+    ValidInstructionsViewRequestExample:
+      value:
+        contact_profile:
+          first_name: John
+          last_name: Doe
+          email: john.doe@gmail.com
+        documents:
+          - requirement_id: someIdDocumentRequirementId
+            document:
+              type: ID_DOCUMENT
+              country_code: GBR
+              document_type: PASSPORT
+          - requirement_id: someSupplementaryDocumentRequirementId
+            document:
+              type: SUPPLEMENTARY_DOCUMENT
+              country_code: USA
+              document_type: UTILITY_BILL
+        branch:
+          type: UK_POST_OFFICE
+          fad_code: 1234567
+          name: UK Post Office Branch
+          address: 123 Post Office Road, London
+          post_code: ABC 123
+          location:
+            latitude: 0.34322
+            longitude: -42.48372

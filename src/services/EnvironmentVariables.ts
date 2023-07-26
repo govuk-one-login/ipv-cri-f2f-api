@@ -10,6 +10,8 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
  */
 export class EnvironmentVariables {
 
+	private readonly GOVUKNOTIFY_API = process.env.GOVUKNOTIFY_API;
+
 	private readonly GOVUKNOTIFY_TEMPLATE_ID = process.env.GOVUKNOTIFY_TEMPLATE_ID;
 
 	private GOVUKNOTIFY_MAX_RETRIES = process.env.GOVUKNOTIFY_MAX_RETRIES;
@@ -70,7 +72,8 @@ export class EnvironmentVariables {
 					!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
-					!this.GOVUKNOTIFY_API_KEY_SSM_PATH || this.GOVUKNOTIFY_API_KEY_SSM_PATH.trim().length === 0) {
+					!this.GOVUKNOTIFY_API_KEY_SSM_PATH || this.GOVUKNOTIFY_API_KEY_SSM_PATH.trim().length === 0 ||
+					!this.GOVUKNOTIFY_API || this.GOVUKNOTIFY_API.trim().length === 0) {
 					logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 				}
@@ -338,6 +341,10 @@ export class EnvironmentVariables {
 
 	yotiInstructionsPdfBackoffPeriod(): number {
 		return +this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS!;
+	}
+
+	govukNotifyApiUrl(): any {
+		return this.GOVUKNOTIFY_API;
 	}
 
 }
