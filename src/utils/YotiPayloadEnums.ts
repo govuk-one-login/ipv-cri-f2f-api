@@ -9,9 +9,11 @@ export enum YotiDocumentTypesEnum {
 
 export const YOTI_DOCUMENT_COUNTRY_CODE = "GBR";
 
+export const YOTI_DOCUMENT_COUNTRY = "United Kingdom";
+
 export const YOTI_ADDRESS_FORMAT_CODE = 1;
 
-export const YOTI_SCHEME_CHECK = "UK_GDS"
+export const YOTI_SCHEME_CHECK = "UK_GDS";
 
 export const DOCUMENT_TYPES_WITH_CHIPS = ["PASSPORT", "NATIONAL_ID", "RESIDENCE_PERMIT"];
 

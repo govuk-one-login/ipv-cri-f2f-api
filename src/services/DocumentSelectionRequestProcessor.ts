@@ -36,7 +36,7 @@ export class DocumentSelectionRequestProcessor {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
-  	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInSeconds(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
+  	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   }
 
@@ -72,7 +72,7 @@ export class DocumentSelectionRequestProcessor {
   		selectedDocument = eventBody.document_selection.document_selected;
   		countryCode = eventBody.document_selection.country_code;
   		if (!postOfficeSelection || !selectedDocument) {
-  			this.logger.error("Missing mandatory fields in request payload", {
+  			this.logger.error("Missing mandatory fields (post_office_selection or document_selection.document_selected) in request payload", {
   				messageCode: MessageCodes.MISSING_MANDATORY_FIELDS,
   			});
   			return new Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
@@ -80,7 +80,6 @@ export class DocumentSelectionRequestProcessor {
   	} catch (error) {
   		this.logger.error("Error parsing the payload", {
   			messageCode: MessageCodes.ERROR_PARSING_PAYLOAD,
-  			error,
   		});
   		return new Response(HttpCodesEnum.SERVER_ERROR, "An error occurred parsing the payload");
   	}
@@ -102,13 +101,20 @@ export class DocumentSelectionRequestProcessor {
 
   		try {
   			yotiSessionId = await this.createSessionGenerateInstructions(personDetails, f2fSessionInfo, postOfficeSelection, selectedDocument, countryCode);
-  			await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
-  			await this.f2fService.updateSessionWithYotiIdAndStatus(f2fSessionInfo.sessionId, yotiSessionId, AuthSessionState.F2F_YOTI_SESSION_CREATED);
-  		} catch (error) {
-  			this.logger.error("Error occurred during documentSelection orchestration", {
-  				error,
-  				messageCode: MessageCodes.SERVER_ERROR,
-  			});
+			  if (yotiSessionId) {
+				  await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
+				  await this.f2fService.updateSessionWithYotiIdAndStatus(f2fSessionInfo.sessionId, yotiSessionId, AuthSessionState.F2F_YOTI_SESSION_CREATED);
+				  const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
+				  await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
+				  await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
+			  } else {
+				  this.logger.error(`No session found with yotiSessionId ${yotiSessionId}`);
+				  throw new AppError(HttpCodesEnum.BAD_REQUEST, `No session found with yotiSessionId ${yotiSessionId}`);
+			  }
+
+  		} catch (error: any) {
+  			this.logger.error("Error occurred during documentSelection orchestration", error.message,
+  				{ messageCode: MessageCodes.FAILED_DOCUMENT_SELECTION_ORCHESTRATION });
   			if (error instanceof AppError) {
   				return new Response(HttpCodesEnum.SERVER_ERROR, error.message);
   			} else {
@@ -119,13 +125,26 @@ export class DocumentSelectionRequestProcessor {
   		try {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_YOTI_START",
-  				...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow),
+  				...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow, yotiSessionId),
+  				extensions: {
+  					evidence: [
+  						{
+  							txn: yotiSessionId,
+  						},
+  					],
+  					post_office_details: {
+  						...postOfficeSelection,
+  					},
+  				},
+  				restricted: {
+  					documentType: selectedDocument,
+  					issuingCountry: countryCode,
+  				},
   			});
   		} catch (error) {
-  			this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", {
-  				messageCode: MessageCodes.ERROR_WRITING_TXMA,
-  			});
+  			this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
   		}
+
 
   		return new Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 
@@ -143,14 +162,16 @@ export class DocumentSelectionRequestProcessor {
   	const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
 
   	if (!yotiSessionId) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occured when creating Yoti Session");
+		  this.logger.error("An error occurred when creating Yoti Session", { messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });
+	      throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when creating Yoti Session");
   	}
 
   	this.logger.info("Fetching Session Info");
   	const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId);
 
   	if (!yotiSessionInfo) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when fetching Yoti Session");
+		  this.logger.error("An error occurred when fetching Yoti Session", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
+  		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when fetching Yoti Session");
   	}
 
   	const requirements = yotiSessionInfo.capture.required_resources
@@ -179,7 +200,8 @@ export class DocumentSelectionRequestProcessor {
   		});
 
   	if (!requirements) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Empty required resources in Yoti");
+		  this.logger.error("Empty required resources in Yoti");
+  		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Empty required resources in Yoti");
   	}
 
   	this.logger.info({ message: "Generating Instructions PDF" }, { yotiSessionID: yotiSessionId });
@@ -191,7 +213,8 @@ export class DocumentSelectionRequestProcessor {
   	);
 
   	if (generateInstructionsResponse !== HttpCodesEnum.OK) {
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occured when generating Yoti instructions pdf");
+		  this.logger.error("An error occurred when generating Yoti instructions pdf", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
+  		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when generating Yoti instructions pdf");
   	}
 
   	return yotiSessionId;
@@ -206,7 +229,7 @@ export class DocumentSelectionRequestProcessor {
   			error,
   			messageCode: MessageCodes.FAILED_TO_WRITE_GOV_NOTIFY,
   		});
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occured when sending message to GovNotify handler");
+  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when sending message to GovNotify handler");
   	}
   }
 }

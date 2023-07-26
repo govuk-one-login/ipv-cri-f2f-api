@@ -3,8 +3,8 @@ import { mock } from "jest-mock-extended";
 import { VALID_USERINFO, RESOURCE_NOT_FOUND } from "./data/userInfo-events";
 import { UserInfoRequestProcessor } from "../../services/UserInfoRequestProcessor";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
-import {CONTEXT} from "./data/context";
-import {Response} from "../../utils/Response";
+import { CONTEXT } from "./data/context";
+import { Response } from "../../utils/Response";
 
 const mockedUserInfoRequestProcessor = mock<UserInfoRequestProcessor>();
 

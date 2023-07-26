@@ -685,6 +685,126 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
+  /abort:
+    post:
+      operationId: abort
+      summary: Terminate a session without issuing an authorization code
+      description: >-
+        End the users session in a failed state. Enables the OAuth2 error to be performed by the front end on redirect. This service can only be used once per session.
+      requestBody:
+        description: A JSON object describing the reason for authorization rejection.
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AbortRequest"
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      tags:
+        - Backend - CI CRI specific
+      responses:
+        "200":
+          description: OK
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+            Content-Security-Policy:
+              schema:
+                type: "string"
+            Feature-Policy:
+              schema:
+                type: "string"
+            Referrer-Policy:
+              schema:
+                type: "string"
+        "401":
+          description: Unauthorized
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+            Content-Security-Policy:
+              schema:
+                type: "string"
+            Feature-Policy:
+              schema:
+                type: "string"
+            Referrer-Policy:
+              schema:
+                type: "string"
+        "500":
+          description: Internal Server Error
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+            Content-Security-Policy:
+              schema:
+                type: "string"
+            Feature-Policy:
+              schema:
+                type: "string"
+            Referrer-Policy:
+              schema:
+                type: "string"
+      # TODO should be changed to "both" when lambda is using the body
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AbortFunction.Arn}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
 
 components:
   schemas:
@@ -831,7 +951,6 @@ components:
           type: object
           additionalProperties: false
           required:
-            - name
             - address
             - post_code
           properties:
@@ -1054,6 +1173,19 @@ components:
             - F2F_SESSION_ABORTED
             - F2F_AUTH_CODE_ISSUED
             - F2F_ACCESS_TOKEN_ISSUED
+    AbortRequest:
+      type: object
+      additionalProperties: true
+      properties:
+        reason:
+          type: string
+          description: The reason for the abort request
+          example: ACCESS_DENIED
+          enum:
+            # User has specifically requested to abort
+            - ACCESS_DENIED
+            # The service is shut down for operational reasons
+            - OAUTH_NOT_ENABLED
   parameters:
     SessionHeader:
       name: session-id

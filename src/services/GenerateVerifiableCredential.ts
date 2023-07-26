@@ -414,17 +414,14 @@ export class GenerateVerifiableCredential {
   	const evidence: VerifiedCredentialEvidence = [
   		{
   			type: "IdentityCheck",
+  			txn: yotiSessionId,
   			strengthScore: this.calculateStrengthScore(documentType, yotiCountryCode, documentContainsValidChip),
   			validityScore,
   			verificationScore,
   		},
   	];
 
-  	if (
-  		evidence[0].strengthScore === 0 ||
-			evidence[0].validityScore === 0 ||
-			evidence[0].verificationScore === 0
-  	) {
+  	if (evidence[0].strengthScore === 0 || evidence[0].validityScore === 0 || evidence[0].verificationScore === 0) {
   		const contraIndicators = this.getContraIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);
   		if (contraIndicators.length >= 1) {
   			evidence[0].ci = contraIndicators;
@@ -444,12 +441,10 @@ export class GenerateVerifiableCredential {
   		evidence[0].checkDetails = [
   			{
   				checkMethod: documentContainsValidChip ? "vcrypt" : "vri",
-  				txn: yotiSessionId,
   				identityCheckPolicy: "published",
   			},
   			{
   				checkMethod: manualFaceMatchCheck ? "pvr" : "bvr",
-  				txn: yotiSessionId,
   			},
   		];
 

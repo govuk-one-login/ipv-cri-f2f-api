@@ -412,6 +412,7 @@ describe("GenerateVerifiableCredential", () => {
 					},
 					evidence: [
 						{
+							txn: mockYotiSessionId,
 							failedCheckDetails: [
 								{
 									checkMethod: "vcrypt",
@@ -468,16 +469,15 @@ describe("GenerateVerifiableCredential", () => {
 				},
 				evidence: [
 					{
+						txn: "yoti-session-id",
 						checkDetails: [
 							{
 								checkMethod: "vcrypt",
 								identityCheckPolicy: "published",
-								txn: "yoti-session-id",
 							},
 							{
 								biometricVerificationProcessLevel: 3,
 								checkMethod: "bvr",
-								txn: "yoti-session-id",
 							},
 						],
 						strengthScore: 4,

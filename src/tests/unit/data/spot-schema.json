@@ -1,0 +1,315 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "nonEmptyString": {
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "properties": {
+    "exp": {
+      "exclusiveMinimum": 0,
+      "type": "integer"
+    },
+    "iat": {
+      "exclusiveMinimum": 0,
+      "type": "integer"
+    },
+    "iss": {
+      "$ref": "#/definitions/nonEmptyString"
+    },
+    "jti": {
+      "$ref": "#/definitions/nonEmptyString",
+      "format": "uri"
+    },
+    "nbf": {
+      "exclusiveMinimum": 0,
+      "type": "integer"
+    },
+    "sub": {
+      "$ref": "#/definitions/nonEmptyString"
+    },
+    "vc": {
+      "properties": {
+        "@context": {
+          "items": [
+            {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          ],
+          "type": "array"
+        },
+        "credentialSubject": {
+          "properties": {
+            "birthDate": {
+              "items": [
+                {
+                  "properties": {
+                    "value": {
+                      "$ref": "#/definitions/nonEmptyString",
+                      "format": "date"
+                    }
+                  },
+                  "required": [
+                    "value"
+                  ],
+                  "type": "object"
+                }
+              ],
+              "type": "array"
+            },
+            "name": {
+              "items": [
+                {
+                  "properties": {
+                    "nameParts": {
+                      "items": [
+                        {
+                          "properties": {
+                            "type": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            },
+                            "value": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "type"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "properties": {
+                            "type": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            },
+                            "value": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "type"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "properties": {
+                            "type": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            },
+                            "value": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "type"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "properties": {
+                            "type": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            },
+                            "value": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "type"
+                          ],
+                          "type": "object"
+                        }
+                      ],
+                      "type": "array"
+                    },
+                    "validFrom": {
+                      "$ref": "#/definitions/nonEmptyString",
+                      "format": "date"
+                    }
+                  },
+                  "required": [
+                    "nameParts"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "properties": {
+                    "nameParts": {
+                      "items": [
+                        {
+                          "properties": {
+                            "type": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            },
+                            "value": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "type"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "properties": {
+                            "type": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            },
+                            "value": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "type"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "properties": {
+                            "type": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            },
+                            "value": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "type"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "properties": {
+                            "type": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            },
+                            "value": {
+                              "$ref": "#/definitions/nonEmptyString"
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "type"
+                          ],
+                          "type": "object"
+                        }
+                      ],
+                      "type": "array"
+                    },
+                    "validUntil": {
+                      "$ref": "#/definitions/nonEmptyString",
+                      "format": "date"
+                    }
+                  },
+                  "required": [
+                    "nameParts"
+                  ],
+                  "type": "object"
+                }
+              ],
+              "type": "array"
+            }
+          },
+          "required": [
+            "name",
+            "birthDate"
+          ],
+          "type": "object"
+        },
+        "evidence": {
+          "items": [
+            {
+              "properties": {
+                "activityHistoryScore": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "ci": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "identityFraudScore": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "strengthScore": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "txn": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "validityScore": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "verificationScore": {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "type",
+                "txn"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "array"
+        },
+        "type": {
+          "items": [
+            {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          ],
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "credentialSubject",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "vot": {
+      "$ref": "#/definitions/nonEmptyString",
+      "pattern": "P[1-4]"
+    },
+    "vtm": {
+      "$ref": "#/definitions/nonEmptyString",
+      "format": "uri"
+    }
+  },
+  "required": [
+    "sub",
+    "iss",
+    "nbf",
+    "vc"
+  ],
+  "type": "object"
+}

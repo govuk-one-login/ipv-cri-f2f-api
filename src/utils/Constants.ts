@@ -10,6 +10,8 @@ export class Constants {
 
 	static readonly DOCUMENT_SELECTION_LOGGER_SVC_NAME = "DocumentSelectionHandler";
 
+	static readonly ABORT_LOGGER_SVC_NAME = "AbortHandler";
+
 	static readonly USERINFO_LOGGER_SVC_NAME = "UserInfoHandler";
 
 	static readonly YOTI_CALLBACK_SVC_NAME = "YotiCallbackHandler";

@@ -20,8 +20,8 @@ export interface CredentialJwt {
 	iss: string;
 	nbf: number;
 	sub: string;
-	aud: string;
-	exp: number;
+	aud?: string;
+	exp?: number;
 	vc: VerifiedCredential;
 }
 export interface JwtHeader {
@@ -84,13 +84,13 @@ export class JsonWebTokenError extends Error {
 
 export type VerifiedCredentialEvidence = Array<{
 	type: string;
+	txn: string;
 	strengthScore: number;
 	validityScore: number;
 	verificationScore: number;
 	checkDetails?: Array<{
 		photoVerificationProcessLevel?: number;
 		checkMethod: string;
-		txn: string;
 		identityCheckPolicy?: string;
 		activityFrom?: string;
 		biometricVerificationProcessLevel?: number;
@@ -110,7 +110,7 @@ export interface VerifiedCredentialSubject {
 	address?: Address[];
 	drivingPermit?: DrivingPermit[];
 	passport?: Passport[];
-	residencePermit?: any[];
+	residencePermit?: ResidencePermit[];
 	idCard?: any[];
 }
 
@@ -143,6 +143,7 @@ export interface Address {
 }
 
 export interface DrivingPermit {
+	documentType?: string;
 	personalNumber?: string;
 	expiryDate?: string;
 	issuedBy?: string;
@@ -152,7 +153,24 @@ export interface DrivingPermit {
 }
 
 export interface Passport {
+	documentType?: string;
 	documentNumber?: string;
 	expiryDate?: string;
+	icaoIssuerCode?: string;
+}
+
+export interface ResidencePermit {
+	documentType?: string;
+	documentNumber?: string;
+	expiryDate?: string;
+	issueDate?: string;
+	icaoIssuerCode?: string;
+}
+
+export interface IdentityCard {
+	documentType?: string;
+	documentNumber?: string;
+	expiryDate?: string;
+	issueDate?: string;
 	icaoIssuerCode?: string;
 }
