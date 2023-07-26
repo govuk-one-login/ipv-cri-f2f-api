@@ -155,6 +155,19 @@ Resources:
         Name: MockGovNotifyRestApi
         Source: govnotify
 
+  MockGovNotifyRestApiUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      ApiStages:
+        - ApiId: !Ref MockGovNotifyRestApi
+          Stage: !Ref Environment
+      Quota:
+        Limit: 250000
+        Period: DAY
+      Throttle:
+        BurstLimit: 3000 # requests the API can handle concurrently
+        RateLimit: 50 # allowed requests per second
+
   MockGovNotifyAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
