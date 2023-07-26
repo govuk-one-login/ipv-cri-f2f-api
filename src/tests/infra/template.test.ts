@@ -142,16 +142,10 @@ describe("Infra", () => {
 		template.hasOutput("F2FBackendURL", {
 			Value: {
 				"Fn::Sub": [
-					"https://api-${AWS::StackName}.${DNSSUFFIX}/",
+					"https://${CustomDomainName}",
 					{
-						DNSSUFFIX: {
-							"Fn::FindInMap": [
-								"EnvironmentVariables",
-								{
-									Ref: "Environment",
-								},
-								"DNSSUFFIX"
-							],
+						CustomDomainName: {
+							Ref: "F2FApiCustomDomainName"
 						},
 					},
 				],
