@@ -49,7 +49,7 @@ export class GenerateVerifiableCredential {
    * UK Passports with valid chip
    * National ID with valid chip
    * Residential Permits
-
+   
    * The following Documents will get a strength score of 3
    * UK Passports without valid chip
    * UK Driving Licence
@@ -414,15 +414,14 @@ export class GenerateVerifiableCredential {
   	const evidence: VerifiedCredentialEvidence = [
   		{
   			type: "IdentityCheck",
-			txn: yotiSessionId,
+  			txn: yotiSessionId,
   			strengthScore: this.calculateStrengthScore(documentType, yotiCountryCode, documentContainsValidChip),
   			validityScore,
   			verificationScore,
   		},
   	];
 
-  	if (evidence[0].strengthScore === 0 || evidence[0].validityScore === 0 || evidence[0].verificationScore === 0)
-	  {
+  	if (evidence[0].strengthScore === 0 || evidence[0].validityScore === 0 || evidence[0].verificationScore === 0) {
   		const contraIndicators = this.getContraIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);
   		if (contraIndicators.length >= 1) {
   			evidence[0].ci = contraIndicators;
@@ -445,7 +444,7 @@ export class GenerateVerifiableCredential {
   				identityCheckPolicy: "published",
   			},
   			{
-  				checkMethod: manualFaceMatchCheck ? "pvr" : "bvr"
+  				checkMethod: manualFaceMatchCheck ? "pvr" : "bvr",
   			},
   		];
 

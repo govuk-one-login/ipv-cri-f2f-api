@@ -74,7 +74,8 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		console.log(userInfoResponse.data);
 	});
 
-	it(" Happy Path Journey - Validate Session Expiray is Updated after Document Selection ", async () => {
+	// Test Suspended - additional engineering work is required to facilitate the validation of BE systems, designs and US to follow	
+	it.skip("Happy Path Journey - Validate Session Expiray is Updated after Document Selection", async () => {
 		//Get yoti expiry time
 		const initinalSessionRecord = await getSessionById(sessionId, "session-f2f-cri-ddb");
 		const initinalYotiSessionExpiry: any = initinalSessionRecord?.expiryDate;

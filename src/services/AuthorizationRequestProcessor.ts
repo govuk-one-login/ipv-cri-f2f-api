@@ -43,9 +43,10 @@ export class AuthorizationRequestProcessor {
 	}
 
 	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
-
+		
+		this.logger.appendKeys({ sessionId });
 		const session = await this.f2fService.getSessionById(sessionId);
-
+		
 		if (session != null) {
 			if (session.expiryDate < absoluteTimeNow()) {
 				this.logger.error("Session has expired", { messageCode: MessageCodes.EXPIRED_SESSION });
@@ -86,7 +87,22 @@ export class AuthorizationRequestProcessor {
 					state: session?.state,
 				};
 
-				this.logger.info("Returning success response");
+				try {
+					await this.f2fService.sendToTXMA({
+						event_name: "F2F_CRI_END",
+						...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow),
+						extensions: {
+							evidence: [
+								{
+									txn: session.yotiSessionId || "",
+								},
+							],
+						},
+					});
+				} catch (error) {
+					this.logger.error("Failed to write TXMA event F2F_CRI_END to SQS queue.", { error, messageCode: MessageCodes.FAILED_TO_WRITE_TXMA });
+				}
+
 				return new Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));
 			} else {
 				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_YOTI_SESSION_CREATED}`, {

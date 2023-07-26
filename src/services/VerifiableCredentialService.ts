@@ -47,40 +47,40 @@ export class VerifiableCredentialService {
   	return VerifiableCredentialService.instance;
   }
 
-	async signGeneratedVerifiableCredentialJwt(result: CredentialJwt): Promise<string> {
-		try {
-			if(result){
-				// Sign the VC
-				const signedJwt = await this.kmsJwtAdapter.sign(result);
-				this.logger.info({message: "Successfully Signed Generated Verified Credential jwt"});
-				return signedJwt;
-			}
-			return "";
-		} catch (error) {
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt");
-		}
-	}
+  async signGeneratedVerifiableCredentialJwt(result: CredentialJwt): Promise<string> {
+  	try {
+  		if (result) {
+  			// Sign the VC
+  			const signedJwt = await this.kmsJwtAdapter.sign(result);
+  			this.logger.info({ message: "Successfully Signed Generated Verified Credential jwt" });
+  			return signedJwt;
+  		}
+  		return "";
+  	} catch (error) {
+  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt");
+  	}
+  }
 
-	async generateVerifiableCredentialJwt(
-		sessionItem: ISessionItem | undefined,
-		credentialSubject: VerifiedCredentialSubject,
-		evidence: VerifiedCredentialEvidence,
-		getNow: () => number,
-	): Promise<CredentialJwt> {
-		const now = getNow();
-		const subject = sessionItem?.subject as string;
-		const verifiedCredential: VerifiedCredential = this.buildVerifiableCredential(credentialSubject, evidence);
-		const result: CredentialJwt = {
-			sub: `${subject}`,
-			nbf: now,
-			iss: this.issuer,
-			iat: now,
-			vc: verifiedCredential,
-		};
+  async generateVerifiableCredentialJwt(
+  	sessionItem: ISessionItem | undefined,
+  	credentialSubject: VerifiedCredentialSubject,
+  	evidence: VerifiedCredentialEvidence,
+  	getNow: () => number,
+  ): Promise<CredentialJwt> {
+  	const now = getNow();
+  	const subject = sessionItem?.subject as string;
+  	const verifiedCredential: VerifiedCredential = this.buildVerifiableCredential(credentialSubject, evidence);
+  	const result: CredentialJwt = {
+  		sub: `${subject}`,
+  		nbf: now,
+  		iss: this.issuer,
+  		iat: now,
+  		vc: verifiedCredential,
+  	};
 
-		this.logger.info({message: "Generated Verified Credential jwt"});
-		return result;
-	}
+  	this.logger.info({ message: "Generated Verified Credential jwt" });
+  	return result;
+  }
 
   private buildVerifiableCredential(
   	credentialSubject: VerifiedCredentialSubject,
