@@ -30,13 +30,15 @@ describe("Callback API", () => {
 		// Post User Info
 		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
 		expect(userInfoResponse.status).toBe(202);
+
+		// Test Suspended - additional engineering work is required to facilitate the validation of BE systems, designs and US to follow
 		// Get Yoti Session Id
-		const session = await getSessionById(sessionId, "session-f2f-cri-ddb");
-		const yotiSessionId: any = session?.yotiSessionId;
-		console.log(yotiSessionId);
-		// Yoti Callback
-		const callbackResponse = await callbackPost(yotiSessionId);
-		expect(userInfoResponse.status).toBe(202);
+		// const session = await getSessionById(sessionId, "session-f2f-cri-ddb");
+		// const yotiSessionId: any = session?.yotiSessionId;
+		// console.log(yotiSessionId);
+		// // Yoti Callback
+		// const callbackResponse = await callbackPost(yotiSessionId);
+		// expect(userInfoResponse.status).toBe(202);
 		// Verifiable Credential Validation
 		//await setTimeout(10000);
 		//const jwtToken = await receiveJwtTokenFromSqsMessage();
@@ -59,13 +61,15 @@ describe("Callback API", () => {
 		// Post User Info
 		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
 		expect(userInfoResponse.status).toBe(202);
+
+		// Test Suspended - additional engineering work is required to facilitate the validation of BE systems, designs and US to follow
 		// Get Yoti Session Id
-		const session = await getSessionById(sessionId, "session-f2f-cri-ddb");
-		const yotiSessionId: any = session?.yotiSessionId;
-		console.log(yotiSessionId);
+		// const session = await getSessionById(sessionId, "session-f2f-cri-ddb");
+		// const yotiSessionId: any = session?.yotiSessionId;
+		// console.log(yotiSessionId);
 		// Yoti Callback
-		const callbackResponse = await callbackPost(yotiSessionId);
-		expect(userInfoResponse.status).toBe(202);
+		// const callbackResponse = await callbackPost(yotiSessionId);
+		// expect(userInfoResponse.status).toBe(202);
 		// Verifiable Credential Validation
 		//await setTimeout(10000);
 		//const jwtToken = await receiveJwtTokenFromSqsMessage();
