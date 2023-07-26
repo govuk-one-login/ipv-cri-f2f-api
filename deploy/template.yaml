@@ -4387,9 +4387,8 @@ Outputs:
   F2FBackendURL:
     Description: "F2F Backend URL"
     Value: !Sub
-      - "https://api-${AWS::StackName}.${DNSSUFFIX}/"
-      - DNSSUFFIX:
-          !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+      - "https://${CustomDomainName}"
+      - CustomDomainName: !Ref F2FApiCustomDomainName
     Export:
       Name: !Sub ${AWS::StackName}-F2FBackendURL
   F2FIPVStubExecuteURL:
