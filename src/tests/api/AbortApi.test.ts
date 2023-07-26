@@ -19,9 +19,13 @@ describe("E2E Happy Path /abort enpoint", () => {
 	});
 
 	it("E2E Happy Path Journey - Abort Previously Aborted Session", async () => {
-		const response = await postAbortSession(abortPayload, "e6bf8c21-9e49-46fa-b602-0c0e46055425");
-		expect(response.status).toBe(200);
-		expect(response.data).toBe("Session has already been aborted");
+		expect(sessionId).toBeTruthy();
+		const firstResponse = await postAbortSession(abortPayload, sessionId);
+		expect(firstResponse.request.path).toContain("/redirect?error=access_denied&state=");
+
+		const secondResponse = await postAbortSession(abortPayload, sessionId);
+		expect(secondResponse.status).toBe(200);
+		expect(secondResponse.data).toBe("Session has already been aborted");
 	});
 });
 
