@@ -1,0 +1,23 @@
+{
+  "name": "test-harness",
+  "version": "1.0.0",
+  "description": "Harness to enable automation testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "GDS",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-lambda-powertools/logger": "^1.12.1",
+    "@aws-lambda-powertools/metrics": "^1.12.1",
+    "esbuild": "^0.14.14"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.119",
+    "@types/node": "^20.4.5"
+  },
+  "engines": {
+    "node": "^18.0.0"
+  }
+}
