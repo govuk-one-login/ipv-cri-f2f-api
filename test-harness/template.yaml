@@ -42,11 +42,15 @@ Mappings:
       CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
       TxMASQS: arn:aws:sqs:eu-west-2:440208678480:f2f-cri-api-TxMASQSQueue-3bDDN8hQxMfT
       TxMAKey: "arn:aws:kms:eu-west-2:440208678480:key/93ba6f33-9cb9-4609-b6e1-c4347b5893b0"
+      IPVCoreSQS: "arn:aws:sqs:eu-west-2:440208678480:f2f-cri-api-IPVCoreSQSQueue-RZMtPmFpB6WO"
+      IPVCoreKey: "arn:aws:kms:eu-west-2:440208678480:key/edb6d987-bab1-40dd-8da0-7d732f1f82e3"
     build:
       CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
       # TODO
       TxMASQS: "mock-sqs"
       TxMAKey: "mock-kms"
+      IPVCoreSQS: "mock-sqs"
+      IPVCoreKey: "mock-kms"
 
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
@@ -148,11 +152,33 @@ Resources:
                 - "sqs:ChangeMessageVisibility"
                 - "sqs:ReceiveMessage"
               Resource: !FindInMap [PlatformConfiguration, !Ref Environment, TxMASQS]
+        - Statement:
+            - Sid: IPVCoreKMSDecryptkeysPolicy
+              Effect: Allow
+              Action:
+                - "kms:Decrypt"
+              Resource: !FindInMap [PlatformConfiguration, !Ref Environment, IPVCoreKey]
+            - Sid: IPVCoreSQSConsumeEventPolicy
+              Effect: Allow
+              Action:
+                - "sqs:DeleteMessage"
+                - "sqs:GetQueueAttributes"
+                - "sqs:ChangeMessageVisibility"
+                - "sqs:ReceiveMessage"
+              Resource: !FindInMap [PlatformConfiguration, !Ref Environment, IPVCoreSQS]
       Events:
         SQSEvent:
           Type: SQS
           Properties:
             Queue: !FindInMap [PlatformConfiguration, !Ref Environment, TxMASQS]
+            BatchSize: 1
+            Enabled: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !FindInMap [PlatformConfiguration, !Ref Environment, IPVCoreSQS]
             BatchSize: 1
             Enabled: true
             FunctionResponseTypes:
