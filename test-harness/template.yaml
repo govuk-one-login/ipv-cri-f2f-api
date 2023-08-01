@@ -134,10 +134,14 @@ Resources:
       FunctionName: !Sub "F2F-Test-Dequeue-${AWS::StackName}"
       Handler: DequeueHandler.lambdaHandler
       CodeUri: ./src/
-      # Environment:
-      #   Variables:
-      #     TXMA_QUEUE_URL: !Ref TxMASQSQueue
+      Environment:
+        Variables:
+          EVENT_TEST_BUCKET_NAME: !Ref EventTestBucket
       Policies:
+        - S3WritePolicy:
+            BucketName: !Ref EventTestBucket
+        - S3ReadPolicy:
+            BucketName: !Ref EventTestBucket
         - Statement:
             - Sid: TxMAKMSDecryptkeysPolicy
               Effect: Allow
@@ -193,4 +197,20 @@ Resources:
         EntryPoints:
           - DequeueHandler.ts
 
+  EventTestBucket:
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-f2f-event-test-${Environment}
+      VersioningConfiguration:
+        Status: "Enabled"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 # Outputs:
