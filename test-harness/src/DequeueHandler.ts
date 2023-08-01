@@ -1,10 +1,10 @@
 import { SQSEvent, SQSRecord } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 import { Constants } from "./utils/Constants";
 
-const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.DEQUEUE_LOGGER_SVC_NAME;
 
@@ -13,15 +13,44 @@ const logger = new Logger({
 	serviceName: POWERTOOLS_SERVICE_NAME,
 });
 
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
+const s3Client = new S3Client({
+	region: process.env.REGION,
+	maxAttempts: 2,
+	requestHandler: new NodeHttpHandler({
+		connectionTimeout: 29000,
+		socketTimeout: 29000,
+	}),
+});
 
 class DequeueHandler implements LambdaInterface {
-	async handler(event: SQSEvent, context: any): Promise<any> {
-		const record: SQSRecord = event.Records[0];
-		const body = JSON.parse(record.body);
+	async handler(event: SQSEvent): Promise<any> {
+		logger.info("Starting to process records");
 
-		logger.info(`The dequeue lambda has been triggered with event ${body.event_name}`)
-		return true;
+		return event.Records.map(async (record: SQSRecord) => {
+			const body = JSON.parse(record.body);
+			const bucket = process.env.EVENT_TEST_BUCKET_NAME;
+			const propertyName = process.env.PROPERTY_NAME || "sub";
+			const folder = process.env.BUCKET_FOLDER_PREFIX;
+			const timestamp = Math.floor(Date.now() / 1000);
+			const key = `${folder}${body[propertyName]}-${timestamp}-${record.messageId}`;
+
+			const uploadParams = {
+				Bucket: bucket,
+				Key: key,
+				Body: JSON.stringify(body),
+				ContentType: "application/json",
+			};
+			
+			try {
+				logger.info(`Uploading object with key ${key} to bucket ${bucket}`);
+				await s3Client.send(new PutObjectCommand(uploadParams));
+			} catch (error) {
+				logger.error({ message: "Error writing keys to S3 bucket", error });
+				throw new Error("Error writing keys to S3 bucket");
+			}
+
+			return JSON.stringify(body);
+		});
   }
 }
 
