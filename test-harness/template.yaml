@@ -18,7 +18,7 @@ Parameters:
     Description: "The ARN of the permissions boundary to apply when creating IAM roles"
     Type: String
     Default: "none"
-  # Do we need this?
+  # TODO Do we need this?
   SecretPrefix:
     Type: String
     Default: "none"
@@ -40,32 +40,19 @@ Mappings:
   PlatformConfiguration:
     dev:
       CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+      TxMASQS: arn:aws:sqs:eu-west-2:440208678480:f2f-cri-api-TxMASQSQueue-3bDDN8hQxMfT
+      TxMAKey: "arn:aws:kms:eu-west-2:440208678480:key/93ba6f33-9cb9-4609-b6e1-c4347b5893b0"
     build:
       CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+      # TODO
+      TxMASQS: "mock-sqs"
+      TxMAKey: "mock-kms"
 
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
     build:
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-
-  TxMAAccounts:
-    # EVENTS is used to egress to TxM - we might not need it here?
-    dev:
-      AUDIT: arn:aws:iam::725018305812:root
-      EVENTS: arn:aws:iam::248098332657:root
-    build:
-      AUDIT: arn:aws:iam::761029721660:root
-      EVENTS: arn:aws:iam::750703655225:root
-    staging:
-      AUDIT: arn:aws:iam::778587367904:root
-      EVENTS: arn:aws:iam::178023842775:root
-    integration:
-      AUDIT: arn:aws:iam::423448613278:root
-      EVENTS: arn:aws:iam::729485541398:root
-    production:
-      AUDIT: arn:aws:iam::348043515437:root
-      EVENTS: arn:aws:iam::451773080033:root
 
 Conditions:
   UseCodeSigning:
@@ -110,16 +97,14 @@ Globals:
       - arm64
     Environment:
       Variables:
-        # These should always be alphabetically organised.
-        AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
-        POWERTOOLS_LOG_LEVEL: DEBUG # The LogLevel for the AWS PowerTools LogHelper
-        POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
+        AWS_STACK_NAME: !Sub ${AWS::StackName}
+        POWERTOOLS_LOG_LEVEL: DEBUG
+        POWERTOOLS_METRICS_NAMESPACE: F2F-CRI
         SECRET_PREFIX: !If [
           UseSecretPrefix,
           !Ref SecretPrefix,
           !Ref AWS::StackName,
         ] # What is this? @TODO
-        #  SQS_AUDIT_EVENT_PREFIX: CIC-F2F # The prefix to add to TxMA event messages
     AutoPublishAlias: live
 
 Resources:
@@ -147,24 +132,31 @@ Resources:
       CodeUri: ./src/
       # Environment:
       #   Variables:
-          # TXMA_QUEUE_URL: !Ref TxMASQSQueue
+      #     TXMA_QUEUE_URL: !Ref TxMASQSQueue
       Policies:
         - Statement:
             - Sid: TxMAKMSDecryptkeysPolicy
               Effect: Allow
               Action:
                 - "kms:Decrypt"
-              Resource:
-                - !GetAtt MockTxMASQSQueue.Arn
+              Resource: !FindInMap [PlatformConfiguration, !Ref Environment, TxMAKey]
             - Sid: TxMASQSConsumeEventPolicy
               Effect: Allow
               Action:
-                # - "sqs:DeleteMessage"
+                - "sqs:DeleteMessage"
                 - "sqs:GetQueueAttributes"
                 - "sqs:ChangeMessageVisibility"
                 - "sqs:ReceiveMessage"
-              Resource:
-                - !GetAtt MockTxMASQSQueue.Arn
+              Resource: !FindInMap [PlatformConfiguration, !Ref Environment, TxMASQS]
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !FindInMap [PlatformConfiguration, !Ref Environment, TxMASQS]
+            BatchSize: 1
+            Enabled: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
 
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
@@ -174,16 +166,5 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - DequeueHandler.ts
-
-  MockTxMASQSQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      MessageRetentionPeriod:
-        !FindInMap [
-          EnvironmentVariables,
-          !Ref Environment,
-          TXMAMESSAGERETENTIONPERIODDAYS,
-        ]
-      VisibilityTimeout: 60
 
 # Outputs:
