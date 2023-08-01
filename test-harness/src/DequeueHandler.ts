@@ -1,4 +1,4 @@
-import { SQSEvent } from "aws-lambda";
+import { SQSEvent, SQSRecord } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -17,7 +17,11 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 
 class DequeueHandler implements LambdaInterface {
 	async handler(event: SQSEvent, context: any): Promise<any> {
-		logger.info("The dequeue lambda has been triggered")
+		const record: SQSRecord = event.Records[0];
+		const body = JSON.parse(record.body);
+
+		logger.info(`The dequeue lambda has been triggered with event ${body.event_name}`)
+		return true;
   }
 }
 
