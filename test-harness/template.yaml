@@ -132,8 +132,8 @@ Resources:
       Environment:
         Variables:
           EVENT_TEST_BUCKET_NAME: !Ref EventTestBucket
-          PROPERTY_NAME: "session_id"
-          BUCKET_FOLDER_PREFIX: "/txma"
+          PROPERTY_NAME: "client_id"
+          BUCKET_FOLDER_PREFIX: "txma/"
       Policies:
         - S3WritePolicy:
             BucketName: !Ref EventTestBucket
@@ -184,7 +184,7 @@ Resources:
         Variables:
           EVENT_TEST_BUCKET_NAME: !Ref EventTestBucket
           PROPERTY_NAME: "sub"
-          BUCKET_FOLDER_PREFIX: "/ipv-core"
+          BUCKET_FOLDER_PREFIX: "ipv-core/"
       Policies:
         - S3WritePolicy:
             BucketName: !Ref EventTestBucket
@@ -241,4 +241,9 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteAfter24Hours
+            Status: Enabled
+            ExpirationInDays: 1
 # Outputs:
