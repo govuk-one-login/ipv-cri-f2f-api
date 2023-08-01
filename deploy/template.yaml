@@ -4446,3 +4446,23 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Yoti Stub"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, YOTIBASEURL]
+  TxMASQSQueue: 
+    Description: "Arn of the TxMASQSQueue"
+    Value: !GetAtt TxMASQSQueue.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-TxMASQSQueue-arn
+  TxMAKMSEncryptionKey: 
+    Description: "Arn of the TxMAKMSEncryptionKey"
+    Value: !GetAtt TxMAKMSEncryptionKey.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-TxMAKMSEncryptionKey-arn
+  IPVCoreSQSQueue: 
+    Description: "Arn of the IPVCoreSQSQueue"
+    Value: !GetAtt IPVCoreSQSQueue.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-IPVCoreSQSQueue-arn
+  IPVCoreQueueEncryptionKey: 
+    Description: "Arn of the IPVCoreQueueEncryptionKey"
+    Value: !GetAtt IPVCoreQueueEncryptionKey.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-IPVCoreQueueEncryptionKey-arn
