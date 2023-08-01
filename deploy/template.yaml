@@ -923,7 +923,7 @@ Resources:
     DependsOn:
       - "AuthorizationFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: "DeployConcurrencyAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1477,7 +1477,7 @@ Resources:
     DependsOn:
       - "JsonWebKeysFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: "DeployConcurrencyAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
