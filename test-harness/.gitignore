@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+results/
+dist/
+.aws-sam
+reports/
+build/
+.DS_Store
+cf-output.txt
+docker_vars.env

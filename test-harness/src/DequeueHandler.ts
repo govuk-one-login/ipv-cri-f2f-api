@@ -1,4 +1,3 @@
-import { SQSEvent, SQSRecord } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -9,12 +8,12 @@ import { BatchItemFailure } from "./utils/BatchItemFailure";
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.DEQUEUE_LOGGER_SVC_NAME;
 
-const logger = new Logger({
+export const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
 	serviceName: POWERTOOLS_SERVICE_NAME,
 });
 
-const s3Client = new S3Client({
+export const s3Client = new S3Client({
 	region: process.env.REGION,
 	maxAttempts: 2,
 	requestHandler: new NodeHttpHandler({
@@ -24,7 +23,7 @@ const s3Client = new S3Client({
 });
 
 class DequeueHandler implements LambdaInterface {
-	async handler(event: SQSEvent): Promise<any> {
+	async handler(event: any): Promise<any> {
 		logger.info("Starting to process records");
 		const batchFailures: BatchItemFailure[] = [];
 
@@ -45,7 +44,7 @@ class DequeueHandler implements LambdaInterface {
 			
 			try {
 				logger.info(`Uploading object with key ${key} to bucket ${bucket}`);
-				return await s3Client.send(new PutObjectCommand(uploadParams));
+				await s3Client.send(new PutObjectCommand(uploadParams));
 			} catch (error) {
 				batchFailures.push(new BatchItemFailure(record.messageId));
 				logger.error({ message: "Error writing keys to S3 bucket", error });
