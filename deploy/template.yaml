@@ -664,7 +664,7 @@ Resources:
 
   TokenConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: "DeployConcurrencyAlarms"
     Properties:
       ActionsEnabled: true
       AlarmActions:
