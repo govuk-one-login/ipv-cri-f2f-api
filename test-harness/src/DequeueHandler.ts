@@ -31,9 +31,11 @@ class DequeueHandler implements LambdaInterface {
 			const body = JSON.parse(record.body);
 			const bucket = process.env.EVENT_TEST_BUCKET_NAME;
 			const propertyName = process.env.PROPERTY_NAME || "sub";
+			// Accounts for values that are nested (eg user.session_id)
+			const propertyValue = propertyName.split('.').reduce((acc, key) => acc[key], body)
 			const folder = process.env.BUCKET_FOLDER_PREFIX;
-			const timestamp = Math.floor(Date.now() / 1000);
-			const key = `${folder}${body[propertyName]}-${timestamp}-${record.messageId}`;
+			const timestamp = new Date().toISOString();
+			const key = `${folder}${propertyValue}-${timestamp}-${record.messageId}`;
 
 			const uploadParams = {
 				Bucket: bucket,
