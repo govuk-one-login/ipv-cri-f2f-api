@@ -18,7 +18,6 @@ Parameters:
     AllowedValues:
       - "dev"
       - "build"
-      - "staging"
 
     ConstraintDescription: Ensure environment variable is set to one of dev, build.
   PermissionsBoundary:
@@ -38,25 +37,17 @@ Mappings:
     build:
       logretentionindays: 3
       apiTracingEnabled: true
-    staging:
-      logretentionindays: 3
-      apiTracingEnabled: true
 
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
       GOVNOTIFYSTUBURL: "govnotifystub.review-o.dev.account.gov.uk"
     build:
       GOVNOTIFYSTUBURL: "govnotifystub.review-o.build.account.gov.uk"
-    staging:
-      GOVNOTIFYSTUBURL: "govnotifystub.review-o.staging.account.gov.uk"
 
 Conditions:
   CreateDevResources: !Equals
     - !Ref Environment
     - dev
-  IsProdLikeEnvironment: !Equals
-    - !Ref Environment
-    - staging
   UseCodeSigning:
     Fn::Not:
       - Fn::Equals:
