@@ -13,6 +13,8 @@ export const UK_PASSPORT_MEDIA_ID: string = '0100'
 
 export const UK_PASSPORT_MEDIA_ID_JOYCE: string = '0129'
 
+export const UK_PASSPORT_ONLY_FULLNAME_MEDIA_ID: string = '0150'
+
 export const NON_UK_PASSPORT_MEDIA_ID: string = '0200'
 
 export const BRP_MEDIA_ID: string = "0300"

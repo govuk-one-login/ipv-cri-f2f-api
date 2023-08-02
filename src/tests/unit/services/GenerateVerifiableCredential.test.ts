@@ -14,6 +14,20 @@ import {
 describe("GenerateVerifiableCredential", () => {
 	let logger: Logger;
 	let generateVerifiableCredential: GenerateVerifiableCredential;
+	const VcNameParts = [
+		{
+			"nameParts": [
+				{
+					"value": "John",
+					"type": "GivenName",
+				},
+				{
+					"value": "Doe",
+					"type": "FamilyName",
+				},
+			],
+		},
+	];
 
 	beforeEach(() => {
 		logger = new Logger();
@@ -213,10 +227,22 @@ describe("GenerateVerifiableCredential", () => {
 	describe("attachPersonName", () => {
 		it("should attach the person name to the credential subject", () => {
 			const credentialSubject = {};
-			const givenName = "John";
-			const familyName = "Doe";
+			const VcNameParts = [
+				{
+					"nameParts": [
+						{
+							"value": "John",
+							"type": "GivenName",
+						},
+						{
+							"value": "Doe",
+							"type": "FamilyName",
+						},
+					],
+				},
+			];
 
-			const result = generateVerifiableCredential["attachPersonName"](credentialSubject, givenName, familyName);
+			const result = generateVerifiableCredential["attachPersonName"](credentialSubject, VcNameParts);
 
 			expect(result).toEqual({
 				name: [
@@ -274,6 +300,7 @@ describe("GenerateVerifiableCredential", () => {
 			const credentialSubject = {};
 			const documentType = "DRIVING_LICENCE";
 			const documentFields = {
+				full_name: "Joe Blog",
 				given_names: "Joe",
 				family_name: "Blog",
 				date_of_birth: "01-01-2010",
@@ -303,6 +330,7 @@ describe("GenerateVerifiableCredential", () => {
 			const credentialSubject = {};
 			const documentType = "PASSPORT";
 			const documentFields = {
+				full_name: "Joe Blog",
 				given_names: "Joe",
 				family_name: "Blog",
 				date_of_birth: "01-01-2010",
@@ -328,6 +356,7 @@ describe("GenerateVerifiableCredential", () => {
 			const credentialSubject = {};
 			const documentType = "INVALID_DOCUMENT";
 			const documentFields = {
+				full_name: "Joe Blog",
 				given_names: "Joe",
 				family_name: "Blog",
 				date_of_birth: "01-01-2010",
@@ -342,6 +371,7 @@ describe("GenerateVerifiableCredential", () => {
 	describe("getVerifiedCredentialInformation", () => {
 		const mockYotiSessionId = "yoti-session-id";
 		const mockDocumentFields = {
+			full_name: "John Doe",
 			given_names: "John",
 			family_name: "Doe",
 			date_of_birth: "1990-01-01",
@@ -379,6 +409,7 @@ describe("GenerateVerifiableCredential", () => {
 					mockYotiSessionId,
 					mockCompletedYotiSessionPayload,
 					mockDocumentFields,
+					VcNameParts,
 				);
 
 				expect(result).toEqual({
@@ -436,6 +467,7 @@ describe("GenerateVerifiableCredential", () => {
 				mockYotiSessionId,
 				mockCompletedYotiSessionPayload,
 				mockDocumentFields,
+				VcNameParts,
 			);
 
 			expect(result).toEqual({
@@ -508,7 +540,7 @@ describe("GenerateVerifiableCredential", () => {
 			};
 
 			expect(() =>
-				generateVerifiableCredential.getVerifiedCredentialInformation(mockYotiSessionId, incompletePayload, mockDocumentFields),
+				generateVerifiableCredential.getVerifiedCredentialInformation(mockYotiSessionId, incompletePayload, mockDocumentFields, VcNameParts),
 			).toThrow("Missing mandatory checks in Yoti completed payload");
 		});
 
@@ -546,7 +578,7 @@ describe("GenerateVerifiableCredential", () => {
 			};
 
 			expect(() =>
-				generateVerifiableCredential.getVerifiedCredentialInformation(mockYotiSessionId, incompletePayload, mockDocumentFields),
+				generateVerifiableCredential.getVerifiedCredentialInformation(mockYotiSessionId, incompletePayload, mockDocumentFields, VcNameParts),
 			).toThrow("Mandatory checks not all completed");
 		});
 	});
