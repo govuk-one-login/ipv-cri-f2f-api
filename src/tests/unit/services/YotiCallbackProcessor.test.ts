@@ -15,6 +15,7 @@ import { Constants } from "../../../utils/Constants";
 import { VerifiableCredentialService } from "../../../services/VerifiableCredentialService";
 import { AppError } from "../../../utils/AppError";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
+import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { TXMA_BRP_VC_ISSUED, TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_EEA_VC_ISSUED, TXMA_EU_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
 import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
 
@@ -51,13 +52,57 @@ function getMockSessionItem(): ISessionItem {
 	return sessionInfo;
 }
 
+function getPersonIdentityItem(): PersonIdentityItem {
+	const personIdentityItem: PersonIdentityItem = {
+		"addresses": [
+			{
+				"addressCountry": "United Kingdom",
+				"buildingName": "Sherman",
+				"uprn": 123456789,
+				"streetName": "Wallaby Way",
+				"postalCode": "F1 1SH",
+				"buildingNumber": "32",
+				"addressLocality": "Sidney",
+			},
+		],
+		"sessionId": "RandomF2FSessionID",
+		"emailAddress": "viveak.vadivelkarasan@digital.cabinet-office.gov.uk",
+		"birthDate": [
+			{
+				"value":"1960-02-02",
+			},
+		],
+		"name": [
+			{
+				"nameParts": [
+					{
+						"type": "GivenName",
+						"value": "Frederick",
+					},
+					{
+						"type": "GivenName",
+						"value": "Joseph",
+					},
+					{
+						"type": "FamilyName",
+						"value": "Flintstone",
+					},
+				],
+			},
+		],
+		expiryDate: 1612345678,
+		createdDate: 1612335678,
+	};
+	return personIdentityItem;
+}
+
 const VALID_REQUEST = {
 	"session_id":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 	"topic" : "session_completion",
 };
 
 describe("YotiCallbackProcessor", () => {
-	let f2fSessionItem: ISessionItem, completedYotiSession: YotiCompletedSession, documentFields: any;
+	let f2fSessionItem: ISessionItem, personIdentityItem: PersonIdentityItem, completedYotiSession: YotiCompletedSession, documentFields: any;
 	beforeAll(() => {
 		mockYotiCallbackProcessor = new YotiCallbackProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore
@@ -68,6 +113,7 @@ describe("YotiCallbackProcessor", () => {
 		completedYotiSession = getCompletedYotiSession();
 		documentFields = getDocumentFields();
 		f2fSessionItem = getMockSessionItem();
+		personIdentityItem = getPersonIdentityItem();
 
 	});
 
@@ -594,6 +640,143 @@ describe("YotiCallbackProcessor", () => {
 		expect(out.body).toBe("OK");
 		jest.useRealTimers();
 		jest.clearAllMocks();
+	});
+
+	it("Should call getNamesFromYoti if DocumentFields contains both given_name and family_name fields", async () => {
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+		// @ts-ignore
+		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+		await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+		expect(logger.info).toHaveBeenCalledWith("Getting NameParts using Yoti DocumentFields Info");
+	});	
+
+	it("Should call getNamesFromPersonIdentity if DocumentFields does not contain given_name", async () => {
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce({ 
+			...documentFields,
+			given_names: undefined,
+			full_name: "FrEdErIcK Joseph Flintstone",
+		});
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+		// @ts-ignore
+		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+		
+		await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+		expect(logger.info).toHaveBeenCalledWith("Getting NameParts using F2F Person Identity Info");
+	});	
+
+	it("Should use name casing from documentFields when using getNamesFromPersonIdentity", async () => {
+		jest.useFakeTimers();
+		jest.setSystemTime(absoluteTimeNow());
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce({ 
+			...documentFields,
+			given_names: undefined,
+			full_name: "FrEdErIcK Joseph Flintstone",
+		});
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+		// @ts-ignore
+		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+		await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+			sub: "testsub",
+			state: "Y@atr",
+			"https://vocab.account.gov.uk/v1/credentialJWT": [JSON.stringify({
+				"sub":"testsub",
+				"nbf":absoluteTimeNow(),
+				"iss":"https://XXX-c.env.account.gov.uk",
+				"iat":absoluteTimeNow(),
+				"vc":{
+					"@context":[
+					 Constants.W3_BASE_CONTEXT,
+					 Constants.DI_CONTEXT,
+					],
+					"type": [Constants.VERIFIABLE_CREDENTIAL, Constants.IDENTITY_CHECK_CREDENTIAL],
+					 "credentialSubject":{
+						"name":[
+								 {
+								"nameParts":[
+											 {
+										"value":"FrEdErIcK",
+										"type":"GivenName",
+											 },
+											 {
+										"value":"Joseph",
+										"type":"GivenName",
+											 },
+											 {
+										"value":"Flintstone",
+										"type":"FamilyName",
+											 },
+								],
+								 },
+						],
+						"birthDate":[
+								 {
+								"value":"1988-12-04",
+								 },
+						],
+						"passport":[
+								 {
+								"documentNumber":"RF9082242",
+								"expiryDate":"2024-11-11",
+								"icaoIssuerCode":"GBR",
+								 },
+						],
+					 },
+					 "evidence":[
+						{
+								 "type":"IdentityCheck",
+							"txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+								 "strengthScore":3,
+								 "validityScore":2,
+								 "verificationScore":3,
+								 "checkDetails":[
+								{
+											 "checkMethod":"vri",
+											 "identityCheckPolicy":"published",
+								},
+								{
+											 "checkMethod":"pvr",
+											 "photoVerificationProcessLevel":3,
+								},
+								 ],
+						},
+					 ],
+				},
+		 })],
+		});
+		jest.useRealTimers();
+	});
+
+	it("Should throw an error of name mismatch between F2F and Yoti DocumentFields", async () => {
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce({ 
+			...documentFields,
+			given_names: undefined,
+			full_name: "Joseph FrEdErIcK Flintstone",
+		});
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+		// @ts-ignore
+		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+			message: "FullName mismatch between F2F & YOTI",
+		}));
 	});
 
 	it("Throw server error if completed Yoti session can not be found", async () => {
