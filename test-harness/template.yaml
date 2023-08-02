@@ -117,7 +117,7 @@ Resources:
       Environment:
         Variables:
           EVENT_TEST_BUCKET_NAME: !Ref EventTestBucket
-          PROPERTY_NAME: "client_id"
+          PROPERTY_NAME: "user.session_id"
           BUCKET_FOLDER_PREFIX: "txma/"
       Policies:
         - S3WritePolicy:
