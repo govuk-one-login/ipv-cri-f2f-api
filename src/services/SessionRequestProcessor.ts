@@ -195,10 +195,16 @@ export class SessionRequestProcessor {
   		}
   	}
 
+		const sourceIp = event.requestContext.identity?.sourceIp;
   	try {
+			const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer() as string, sourceIp, absoluteTimeNow);
   		await this.f2fService.sendToTXMA({
   			event_name: "F2F_CRI_START",
-  			...buildCoreEventFields(session, this.environmentVariables.issuer() as string, session.clientIpAddress, absoluteTimeNow),
+  			...coreEventFields,
+				user: {
+					...coreEventFields.user,
+					govuk_signin_journey_id: session.clientSessionId
+				}
   		});
   	} catch (error) {
   		this.logger.error("Auth session successfully created. Failed to send CIC_CRI_START event to TXMA", {

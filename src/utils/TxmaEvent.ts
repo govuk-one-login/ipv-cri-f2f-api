@@ -18,7 +18,7 @@ export interface TxmaUser {
 	"user_id": string;
 	"persistent_session_id": string;
 	"session_id": string;
-	"govuk_signin_journey_id": string;
+	"govuk_signin_journey_id"?: string;
 	"ip_address"?: string | undefined;
 	"email"?: string;
 }
@@ -65,6 +65,7 @@ export type VerifiedCredentialEvidenceTxMA = Array<{
 export interface ExtensionObject {
 	"evidence": VerifiedCredentialEvidenceTxMA;
 	"post_office_details"?: PostOfficeInfo;
+	"previous_govuk_signin_journey_id"?: string;
 }
 
 export interface TxmaEvent extends BaseTxmaEvent {
@@ -73,13 +74,12 @@ export interface TxmaEvent extends BaseTxmaEvent {
 	"extensions"?: ExtensionObject;
 }
 
-export const buildCoreEventFields = (session: ISessionItem, issuer: string, sourceIp?: string | undefined, getNow: () => number = absoluteTimeNow, yotiSessionId?: string): BaseTxmaEvent => {
+export const buildCoreEventFields = (session: ISessionItem, issuer: string, sourceIp?: string | undefined, getNow: () => number = absoluteTimeNow): BaseTxmaEvent => {
 	return {
 		user: {
 			user_id: session.subject,
 			persistent_session_id: session.persistentSessionId,
 			session_id: session.sessionId,
-			govuk_signin_journey_id: session.clientSessionId,
 			ip_address: sourceIp,
 		},
 		client_id: session.clientId,

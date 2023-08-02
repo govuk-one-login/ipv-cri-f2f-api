@@ -143,6 +143,7 @@ export class YotiCallbackProcessor {
 						  absoluteTimeNow,
 					  ),
 					  extensions: {
+							previous_govuk_signin_journey_id: yotiSessionID,
 						  evidence: [
 							  {
 								  txn: yotiSessionID,
@@ -255,7 +256,7 @@ export class YotiCallbackProcessor {
 				  documentType: documentFields.document_type,
 				  personalNumber: documentFields.document_number,
 				  expiryDate: documentFields.expiration_date,
-				  issuingCountry: documentFields.issuing_country,
+				  issuingCountry: documentFields.issuing_country
 			  };
 			  if (documentFields.issuing_country !== "GBR") {
 				  documentInfo.issuedBy = documentFields.place_of_issue;
@@ -292,6 +293,7 @@ export class YotiCallbackProcessor {
 				  absoluteTimeNow,
 			  ),
 			  extensions: {
+					previous_govuk_signin_journey_id: yotiSessionID,
 				  evidence: [
 					  {
 						  type: evidence[0].type,

@@ -95,7 +95,6 @@ export class KmsJwtAdapter {
 
 	async decrypt(serializedJwe: string): Promise<string> {
 		const jweComponents = serializedJwe.split(".");
-
 		if (jweComponents.length !== 5) {
 			throw new JsonWebTokenError("Error decrypting JWE: Missing component");
 		}

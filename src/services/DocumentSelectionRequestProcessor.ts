@@ -7,7 +7,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
-import { buildCoreEventFields } from "../utils/TxmaEvent";
+import { TxmaUser, buildCoreEventFields } from "../utils/TxmaEvent";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { buildGovNotifyEventFields } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
@@ -122,10 +122,17 @@ export class DocumentSelectionRequestProcessor {
   			}
   		}
 
+			const sourceIp = event.requestContext.identity?.sourceIp;
+
   		try {
+				const coreEventFields = buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), sourceIp, absoluteTimeNow);
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_YOTI_START",
-  				...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow, yotiSessionId),
+  				...coreEventFields,
+					user: {
+						...coreEventFields.user,
+						govuk_signin_journey_id: yotiSessionId,
+					},
   				extensions: {
   					evidence: [
   						{
