@@ -231,3 +231,81 @@ Resources:
           - Id: DeleteAfter24Hours
             Status: Enabled
             ExpirationInDays: 1
+
+  AccessTestHarnessRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyName: AccessTestHarnessBucket
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:GetObject"
+                  - "s3:ListBucket"
+                Resource:
+                  - !Sub "arn:aws:s3:::${EventTestBucket}"
+                  - !Sub "arn:aws:s3:::${EventTestBucket}/*"
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
+
+  ### Start of API Gateway definition.
+
+  TestHarnessRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      OpenApiVersion: 3.0.1
+      AccessLogSetting:
+        Format: "$context.requestId $context.httpMethod $context.path"
+        DestinationArn: !GetAtt TestHarnessAPIGatewayAccessLogGroup.Arn
+      EndpointConfiguration:
+        Type: REGIONAL
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: './test-harness-spec.yaml'
+        OpenApiVersion: 3.0.1
+      MethodSettings:
+        - LoggingLevel: INFO
+          MetricsEnabled: true
+          ThrottlingBurstLimit: 400
+          ThrottlingRateLimit: 200
+          DataTraceEnabled: false
+          HttpMethod: "*"
+          ResourcePath: "/*"
+      TracingEnabled: true
+
+  TestHarnessAPIGatewayAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+      Tags:
+        - Key: Product
+          Value: GOV.UK Sign In
+        - Key: System
+          Value: Dev Platform
+        - Key: Environment
+          Value: Demo
+        - Key: Service
+          Value: backend
+        - Key: Name
+          Value: APIGatewayAccessLogGroup
+
+  ### End of API Gateway definition.

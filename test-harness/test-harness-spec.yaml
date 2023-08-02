@@ -1,0 +1,105 @@
+---
+openapi: 3.0.1
+info:
+  title:
+    Fn::Sub: ${AWS::StackName} - F2F Test automation harness API
+  version: "1.0"
+  description: F2F Test automation harness API specification
+servers:
+  - url: https://www.example.com
+tags:
+  - name: Testing - API to enable automation
+    description: Endpoint implemented to enable testing
+paths:
+  /test-object/{object-key+}:
+    get:
+      operationId: getTestObject
+      summary: endpoint to get test objects
+      description: Endpoint returns objects that have been added to the TxMA or IPV
+        Core SQS queues for test automation purposes
+      parameters:
+        - $ref: '#/components/parameters/ObjectKey'
+      responses:
+        "202":
+          description: Accepted
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+            Strict-Transport-Security:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+            X-Frame-Options:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+            Strict-Transport-Security:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+            X-Frame-Options:
+              schema:
+                type: string
+        "500":
+          description: Internal Server Error
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+            Strict-Transport-Security:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+            X-Frame-Options:
+              schema:
+                type: string
+      x-amazon-apigateway-request-validator: both
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        credentials:
+          Fn::GetAtt:
+            - AccessTestHarnessRole
+            - Arn
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${EventTestBucket}/{key}"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.path.key: "method.request.path.object-key"
+        responses:
+          default:
+            statusCode: "202"
+        type: aws
+
+components:
+  parameters:
+    ObjectKey:
+      in: path
+      name: object-key
+      example: /ipv-core/sub-timestamp-messageId
+      required: true
+      description: Key to query bucket with
+      schema:
+        type: string
+        minLength: 1
