@@ -8,7 +8,7 @@ This test harness is only designed to be used in dev and build environments
 1. Deploy a custom F2F stack with the changes that you'd like to test. If you would like to test against what is in dev then ignore this step
 2. Update the test-harness/samconfig.toml with a stack name, and the backend stack that you'd like to use (if you don't change this the dev stack will be used)
 3. Trigger the events that you are looking for 
-4. Call the / endpoint with x to confirm they exist
+4. Call the /test-object/{object-key} with a key to get the object from the s3 bucket or without a key to list all objects in the s3 bucket
 
 ## Architecture
 ![Architecture diagram](./docs/test-harness.png)
