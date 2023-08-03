@@ -277,8 +277,7 @@ export class YotiCallbackProcessor {
 			  };
 			  break;
 		  default:
-			  const errorMessage = `Unable to find document type ${documentFields.document_type}`;
-			  this.logger.error({ message: errorMessage, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
+			  this.logger.error({ message: `Unable to find document type ${documentFields.document_type}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
 	  }
 
