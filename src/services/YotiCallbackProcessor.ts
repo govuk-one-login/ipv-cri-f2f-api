@@ -305,11 +305,9 @@ export class YotiCallbackProcessor {
 				  ],
 			  },
 			  restricted: {
-				  user: {
-					  name: documentFields.full_name,
-					  birthDate: documentFields.date_of_birth,
-				  },
-				  [docName]: documentInfo,
+				  name: documentFields.full_name, // TODO, TO be updated with nameParts as part of F2F-1000 ticket.
+				  birthDate: [{ value: documentFields.date_of_birth }],
+				  [docName]: [documentInfo],
 			  },
 		  });
 	  } catch (error) {

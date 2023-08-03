@@ -132,9 +132,19 @@ export class DocumentSelectionRequestProcessor {
   							txn: yotiSessionId,
   						},
   					],
-  					post_office_details: {
-  						...postOfficeSelection,
-  					},
+  					post_office_details: [
+						  {
+							  name: postOfficeSelection.name,
+							  address: postOfficeSelection.address,
+							  post_code: postOfficeSelection.post_code,
+							  location: [
+								  {
+									  latitude: postOfficeSelection.location.latitude,
+									  longitude: postOfficeSelection.location.longitude
+								  }
+							  ]
+  						}
+						  ],
   				},
   				restricted: {
   					documentType: selectedDocument,
