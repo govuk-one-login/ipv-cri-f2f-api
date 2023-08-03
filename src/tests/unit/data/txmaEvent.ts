@@ -1,5 +1,6 @@
 const TXMA_EXTENSION = {
 	extensions: {
+		"previous_govuk_signin_journey_id": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 		evidence: [
 			{
 				"type": "IdentityCheck",
@@ -30,6 +31,7 @@ export const TXMA_CORE_FIELDS = {
 	"event_name": "F2F_YOTI_RESPONSE_RECEIVED",
 	"timestamp": 1,
 	"extensions": {
+		"previous_govuk_signin_journey_id": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 		"evidence": [
 			{
 				"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
@@ -37,7 +39,7 @@ export const TXMA_CORE_FIELDS = {
 		],
 	},
 	"user": {
-		"govuk_signin_journey_id": "sdfssg",
+		// "govuk_signin_journey_id": "sdfssg",
 		"ip_address": "127.0.0.1",
 		"persistent_session_id": "sdgsdg",
 		"session_id": "RandomF2FSessionID",

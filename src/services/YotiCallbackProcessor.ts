@@ -133,15 +133,14 @@ export class YotiCallbackProcessor {
 			  f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
 			  f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED
 		  ) {
+				const coreEventFields = buildCoreEventFields(f2fSession, this.environmentVariables.issuer(), f2fSession.clientIpAddress, absoluteTimeNow);
 			  try {
 				  await this.f2fService.sendToTXMA({
 					  event_name: "F2F_YOTI_RESPONSE_RECEIVED",
-					  ...buildCoreEventFields(
-						  f2fSession,
-						  this.environmentVariables.issuer(),
-						  f2fSession.clientIpAddress,
-						  absoluteTimeNow,
-					  ),
+					  ...coreEventFields,
+						user: {
+							...coreEventFields.user,
+						},
 					  extensions: {
 							previous_govuk_signin_journey_id: yotiSessionID,
 						  evidence: [
