@@ -15,10 +15,10 @@ import {
     BRP_MEDIA_ID,
     EU_DL_MEDIA_ID,
     EEA_ID_MEDIA_ID,
-		IPV_INTEG_FULL_NAME_PAUL_BUTTIVANT_UNHAPPY,
-		UK_PASSPORT_ONLY_FULLNAME_MEDIA_ID,
-		UK_PASSPORT_GIVEN_NAME_MEDIA_ID,
-		UK_PASSPORT_FAMILY_NAME_MEDIA_ID
+    IPV_INTEG_FULL_NAME_PAUL_BUTTIVANT_UNHAPPY,
+    UK_PASSPORT_ONLY_FULLNAME_MEDIA_ID,
+    UK_PASSPORT_GIVEN_NAME_MEDIA_ID,
+    UK_PASSPORT_FAMILY_NAME_MEDIA_ID
 } from "../utils/Constants";
 import {HttpCodesEnum} from "../utils/HttpCodesEnum";
 import {YotiSessionItem} from "../models/YotiSessionItem";
@@ -756,23 +756,23 @@ export class YotiRequestProcessor {
                         VALID_RESPONSE_NFC_0150.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0150.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_ONLY_FULLNAME_MEDIA_ID);
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0150));
 
-										case '0151': // UK Passport Success - Only FullName & GivenName in DocumentFields 
-											logger.debug(JSON.stringify(yotiSessionRequest));
-											const VALID_RESPONSE_NFC_0151 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
+                    case '0151': // UK Passport Success - Only FullName & GivenName in DocumentFields 
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+			const VALID_RESPONSE_NFC_0151 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
-											VALID_RESPONSE_NFC_0151.session_id = sessionId;
-											VALID_RESPONSE_NFC_0151.resources.id_documents[0].document_fields.media.id = sessionId;
-											VALID_RESPONSE_NFC_0151.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0151.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_GIVEN_NAME_MEDIA_ID);
-											return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0151));
+			VALID_RESPONSE_NFC_0151.session_id = sessionId;
+			VALID_RESPONSE_NFC_0151.resources.id_documents[0].document_fields.media.id = sessionId;
+			VALID_RESPONSE_NFC_0151.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0151.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_GIVEN_NAME_MEDIA_ID);
+			return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0151));
 
-										case '0152': // UK Passport Success - Only FullName & FamilyName in DocumentFields 
-											logger.debug(JSON.stringify(yotiSessionRequest));
-											const VALID_RESPONSE_NFC_0152 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
+                    case '0152': // UK Passport Success - Only FullName & FamilyName in DocumentFields 
+			logger.debug(JSON.stringify(yotiSessionRequest));
+			const VALID_RESPONSE_NFC_0152 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
-											VALID_RESPONSE_NFC_0152.session_id = sessionId;
-											VALID_RESPONSE_NFC_0152.resources.id_documents[0].document_fields.media.id = sessionId;
-											VALID_RESPONSE_NFC_0152.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0152.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_FAMILY_NAME_MEDIA_ID);
-											return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0152));
+			VALID_RESPONSE_NFC_0152.session_id = sessionId;
+			VALID_RESPONSE_NFC_0152.resources.id_documents[0].document_fields.media.id = sessionId;
+			VALID_RESPONSE_NFC_0152.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0152.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_FAMILY_NAME_MEDIA_ID);
+			return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0152));
 
                     default:
                         return undefined;
@@ -1211,11 +1211,11 @@ export class YotiRequestProcessor {
             case UK_PASSPORT_ONLY_FULLNAME_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_ONLY_FULLNAME));
 
-						case UK_PASSPORT_GIVEN_NAME_MEDIA_ID:
-							return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_GIVEN_NAME));
+            case UK_PASSPORT_GIVEN_NAME_MEDIA_ID:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_GIVEN_NAME));
 
-						case UK_PASSPORT_FAMILY_NAME_MEDIA_ID:
-							return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_FAMILY_NAME));
+            case UK_PASSPORT_FAMILY_NAME_MEDIA_ID:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_FAMILY_NAME));
 
             case NON_UK_PASSPORT_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT));
