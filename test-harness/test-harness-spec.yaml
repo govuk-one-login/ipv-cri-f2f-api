@@ -19,6 +19,7 @@ paths:
         Core SQS queues for test automation purposes
       parameters:
         - $ref: '#/components/parameters/ObjectKey'
+        - $ref: '#/components/parameters/Prefix'
       responses:
         "202":
           description: Accepted
@@ -87,6 +88,7 @@ paths:
         requestParameters:
           integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
           integration.request.path.key: "method.request.path.object-key"
+          integration.request.querystring.prefix: "method.request.querystring.prefix"
         responses:
           default:
             statusCode: "202"
@@ -103,3 +105,11 @@ components:
       schema:
         type: string
         minLength: 1
+    Prefix:
+      in: query
+      name: prefix
+      example: txma/
+      required: false
+      description: Prefix to list objects from bucket with
+      schema:
+        type: string
