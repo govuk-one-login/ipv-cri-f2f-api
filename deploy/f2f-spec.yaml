@@ -203,6 +203,7 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
+
   /authorization:
     get:
       operationId: getAuthorization
@@ -448,6 +449,89 @@ paths:
             X-Frame-Options:
               schema:
                 type: "string"
+        "401":
+          description: Unauthorized
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "500":
+          description: Internal Server Error
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DocumentSelectionFunction.Arn}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+
+  /sessionConfiguration:
+    get:
+      operationId: getSessionConfiguration
+      summary: return the session configuration information as provided in the JAR
+      description: >-
+        return the session configuration information as provided in the JAR used to initiate
+        this identity proving session
+      tags:
+        - Backend - F2F CRI specific
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        "200":
+          description: >-
+            OK - session configuration data returned
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionConfigurationResponse"
         "401":
           description: Unauthorized
           headers:
@@ -1101,6 +1185,18 @@ components:
           description: >-
             The lifetime in seconds of the issued access token
           example: 3600
+    SessionConfigurationResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        evidence_requested:
+          type: object
+          additionalProperties: true
+          properties:
+            strengthScore:
+              type: number
+              description: if supplied, minimum strength score required
+              example: 4
     OAuthErrorResponse:
       type: object
       additionalProperties: true
