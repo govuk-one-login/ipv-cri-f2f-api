@@ -189,7 +189,53 @@ paths:
           default:
             statusCode: "200"
         type: aws
-
+  /dynamodb/{tableName}/{itemId}:
+    get:
+      operationId: getDynamoDbItem
+      summary: Endpoint to get items from DynamoDB
+      description: Endpoint returns items from the specified DynamoDB table
+      parameters:
+        - name: tableName
+          in: path
+          description: Name of the DynamoDB table
+          required: true
+          schema:
+            type: string
+        - name: itemId
+          in: path
+          description: ID of the item in the DynamoDB table
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item:
+                    type: object
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      x-amazon-apigateway-request-validator: both
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        credentials:
+          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/GetItem"
+        passthroughBehavior: "when_no_match"
+        requestParameters:
+          integration.request.path.tableName: "method.request.path.tableName"
+          integration.request.path.itemId: "method.request.path.itemId"
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
 components:
   securitySchemes:
     SigV4Reference:

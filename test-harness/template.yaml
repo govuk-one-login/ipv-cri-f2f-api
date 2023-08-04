@@ -253,11 +253,46 @@ Resources:
                   - "s3:ListBucket"
                 Resource:
                   - !Sub "arn:aws:s3:::${EventTestBucket}"
-                  - !Sub "arn:aws:s3:::${EventTestBucket}/*"
+                  - !Sub "arn:aws:s3:::${EventTestBucket}/txma/*"
+                  - !Sub "arn:aws:s3:::${EventTestBucket}/ipv-core/*"
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
+
+  ### Start of API Gateway definition.
+
+  DynamoDbAccessRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+      - PolicyName: DynamoDbReadAccess
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: 
+            - dynamodb:GetItem
+            - dynamodb:Query
+            - dynamodb:Scan
+            Resource: "*"
+              # Fn::ImportValue: !Sub "${BackendStack}-SessionTableName"
+      - PolicyName: KMSDecryptPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: 
+            - kms:Decrypt
+            Resource: "*"
+              # Fn::ImportValue: !Sub "${BackendStack}-SessionTableEncryptionKey-id"
 
   ### Start of API Gateway definition.
 
@@ -276,7 +311,6 @@ Resources:
           Name: AWS::Include
           Parameters:
             Location: './test-harness-spec.yaml'
-        OpenApiVersion: 3.0.1
       MethodSettings:
         - LoggingLevel: INFO
           MetricsEnabled: true
@@ -286,6 +320,14 @@ Resources:
           HttpMethod: "*"
           ResourcePath: "/*"
       TracingEnabled: true
+      Tags:
+        Product: GOV.UK Sign In
+        System: F2F
+        Environment: !Ref Environment
+        Service: TestHarness
+        Name: TestHarnessRestApi
+        Source: alphagov/di-devplatform-demo-sam-app/sam-app/template.yaml
+
 
   TestHarnessAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
