@@ -36,8 +36,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Prefix'
       responses:
-        "202":
-          description: Accepted
+        "200":
+          description: OK
           headers:
             Cache-Control:
               schema:
@@ -105,7 +105,7 @@ paths:
           integration.request.querystring.prefix: "method.request.querystring.prefix"
         responses:
           default:
-            statusCode: "202"
+            statusCode: "200"
         type: aws
   /object/{object-key+}:
     get:
@@ -118,8 +118,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ObjectKey'
       responses:
-        "202":
-          description: Accepted
+        "200":
+          description: OK
           headers:
             Cache-Control:
               schema:
@@ -187,7 +187,7 @@ paths:
           integration.request.path.key: "method.request.path.object-key"
         responses:
           default:
-            statusCode: "202"
+            statusCode: "200"
         type: aws
 
 components:
