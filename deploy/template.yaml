@@ -50,6 +50,18 @@ Parameters:
     Type: String
     Default: "f2f-ipv-stub"
     Description: The name of theIPV stub stack deployed.
+  LambdaConcurrency:
+    Description: "Reserved concurrency for Lambdas running in non-DEV environments"
+    Type: Number
+    Default: 20
+  LambdaConcurrencyThreshold:
+    Description: "Threshold for Reserved concurrency running in non-DEV environments"
+    Type: Number
+    Default: 16  #80% of Lambda concurrency
+  ApplyReservedConcurrencyInDev:
+    Description: "Set to true to apply reserved concurrency when deploying in DEV environments"
+    Type: String
+    Default: "false"
 
 Mappings:
   EnvironmentConfiguration: # This is where you store per-environment settings.
@@ -95,7 +107,6 @@ Mappings:
       CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"}]'
       AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
-      LAMBDACONCURRENCYTHRESHOLD: 16
     build:
       YOTIBASEURL: "https://yotistub.review-o.build.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
@@ -109,7 +120,6 @@ Mappings:
       CLIENTS: '[{"jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect"}]'
       AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
-      LAMBDACONCURRENCYTHRESHOLD: 16
     staging:
       YOTIBASEURL: "https://yotistub.review-o.staging.account.gov.uk"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
@@ -123,7 +133,6 @@ Mappings:
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json","clientId":"03A5A659-17AA-453F-B905-95D2804823D1","redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f"}]'
       AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
-      LAMBDACONCURRENCYTHRESHOLD: 16
     integration:
       YOTIBASEURL: "https://proxy.review-o.integration.account.gov.uk/yoti"
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
@@ -137,7 +146,6 @@ Mappings:
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback?id=f2f"}]'
       AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
-      LAMBDACONCURRENCYTHRESHOLD: 16
     production:
       YOTIBASEURL: "https://proxy.review-o.account.gov.uk/yoti"
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
@@ -151,7 +159,6 @@ Mappings:
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f"}]'
       AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
-      LAMBDACONCURRENCYTHRESHOLD: 16
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
     dev:
@@ -174,6 +181,10 @@ Conditions:
   CreateDevResources: !Equals
     - !Ref Environment
     - dev
+  ApplyReservedConcurrency: !Or
+    - !Not
+      - !Condition CreateDevResources
+    - !Equals [!Ref ApplyReservedConcurrencyInDev, "true"]
   IsProdLikeEnvironment: !Or
     - !Equals [!Ref Environment, staging]
     - !Equals [!Ref Environment, integration]
@@ -205,6 +216,9 @@ Conditions:
   DeployAlarms: !Or
     - Condition: IsProdLikeEnvironment
     - !Equals [!Ref DeployAlarmsInNonProdLikeEnvironment, true]
+  DeployConcurrencyAlarms: !And
+    - Condition: DeployAlarms
+    - Condition: ApplyReservedConcurrency
 
 Globals:
   Function:
@@ -422,6 +436,10 @@ Resources:
       FunctionName: !Sub "F2F-Session-${AWS::StackName}"
       Handler: SessionHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           AUTH_SESSION_TTL_SECS:
@@ -517,7 +535,7 @@ Resources:
 
   SessionConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: "DeployConcurrencyAlarms"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -536,7 +554,7 @@ Resources:
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      Threshold: !FindInMap [EnvironmentVariables, !Ref Environment, LAMBDACONCURRENCYTHRESHOLD]
+      Threshold: !Ref LambdaConcurrencyThreshold
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
@@ -573,6 +591,10 @@ Resources:
       FunctionName: !Sub "Access-Token-${AWS::StackName}"
       Handler: AccessTokenHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: AccessTokenHandler
@@ -642,7 +664,7 @@ Resources:
 
   TokenConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: "DeployConcurrencyAlarms"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -661,7 +683,7 @@ Resources:
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      Threshold: !FindInMap [EnvironmentVariables, !Ref Environment, LAMBDACONCURRENCYTHRESHOLD]
+      Threshold: !Ref LambdaConcurrencyThreshold
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
@@ -697,6 +719,10 @@ Resources:
       FunctionName: !Sub "F2F-Authorization-${AWS::StackName}"
       Handler: AuthorizationCodeHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: AuthorizationCodeHandler
@@ -774,7 +800,7 @@ Resources:
 
   AuthorizationConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: "DeployConcurrencyAlarms"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -793,7 +819,7 @@ Resources:
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      Threshold: !FindInMap [EnvironmentVariables, !Ref Environment, LAMBDACONCURRENCYTHRESHOLD]
+      Threshold: !Ref LambdaConcurrencyThreshold
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
@@ -829,6 +855,10 @@ Resources:
       FunctionName: !Sub "Document-Selection-${AWS::StackName}"
       Handler: DocumentSelectionHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
@@ -939,7 +969,7 @@ Resources:
 
   DocumentSelectionConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: "DeployConcurrencyAlarms"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -958,7 +988,7 @@ Resources:
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      Threshold: !FindInMap [EnvironmentVariables, !Ref Environment, LAMBDACONCURRENCYTHRESHOLD]
+      Threshold: !Ref LambdaConcurrencyThreshold
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
@@ -994,6 +1024,10 @@ Resources:
       FunctionName: !Sub "Abort-${AWS::StackName}"
       Handler: AbortHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: AbortHandler
@@ -1158,8 +1192,8 @@ Resources:
       CodeUri: ../src/
       Handler: JwksHandler.lambdaHandler
       ReservedConcurrentExecutions: !If
-        - IsProdLikeEnvironment
-        - 80
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
         - !Ref AWS::NoValue
       Policies:
         - AWSXRayDaemonWriteAccess
@@ -1212,7 +1246,7 @@ Resources:
 
   JsonWebKeysConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: "DeployConcurrencyAlarms"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1231,7 +1265,7 @@ Resources:
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      Threshold: !FindInMap [EnvironmentVariables, !Ref Environment, LAMBDACONCURRENCYTHRESHOLD]
+      Threshold: !Ref LambdaConcurrencyThreshold
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
@@ -1268,6 +1302,10 @@ Resources:
       Handler: GovNotifyHandler.lambdaHandler
       CodeUri: ../src/
       Timeout: 300
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
@@ -1360,7 +1398,7 @@ Resources:
 
   GovNotifyConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: "DeployConcurrencyAlarms"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1379,7 +1417,7 @@ Resources:
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      Threshold: !FindInMap [EnvironmentVariables, !Ref Environment, LAMBDACONCURRENCYTHRESHOLD]
+      Threshold: !Ref LambdaConcurrencyThreshold
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
@@ -1416,6 +1454,10 @@ Resources:
       FunctionName: !Sub "User-Info-${AWS::StackName}"
       Handler: UserInfoHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: UserInfoHandler
@@ -1497,7 +1539,7 @@ Resources:
 
   UserInfoConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: "DeployConcurrencyAlarms"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1516,7 +1558,7 @@ Resources:
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      Threshold: !FindInMap [EnvironmentVariables, !Ref Environment, LAMBDACONCURRENCYTHRESHOLD]
+      Threshold: !Ref LambdaConcurrencyThreshold
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
@@ -1624,6 +1666,10 @@ Resources:
       FunctionName: !Sub "F2F-YotiCallback-${AWS::StackName}"
       Handler: YotiCallbackHandler.lambdaHandler
       CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: YotiCallbackHandler
@@ -1829,7 +1875,7 @@ Resources:
 
   YotiCallbackConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: "DeployConcurrencyAlarms"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1848,7 +1894,7 @@ Resources:
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      Threshold: !FindInMap [EnvironmentVariables, !Ref Environment, LAMBDACONCURRENCYTHRESHOLD]
+      Threshold: !Ref LambdaConcurrencyThreshold
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
@@ -3610,7 +3656,7 @@ Resources:
 
   ConcurrencyAlarmDashboard:
     Type: AWS::CloudWatch::Dashboard
-    Condition: DeployAlarms
+    Condition: DeployConcurrencyAlarms
     Properties:
       DashboardName: !Sub '${AWS::StackName}-Concurrency-Alarm-Overview'
       DashboardBody:
