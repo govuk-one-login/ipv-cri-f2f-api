@@ -23,7 +23,7 @@ x-amazon-apigateway-policy:
       Resource: "execute-api:/*"
 
 paths:
-  /get-session/{sessionId}:
+  /getRecord/{tableName}/{sessionId}:
     get:
       operationId: getSessionByIds
       summary: Get a session by sessionId from DynamoDB
@@ -34,6 +34,12 @@ paths:
         - name: sessionId
           in: path
           description: The value of the sessionId primary key to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+        - name: tableName
+          in: path
+          description: The name of the table to find the record in DynamoDB
           required: true
           schema:
             type: string
@@ -62,10 +68,11 @@ paths:
         requestParameters:
           integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
           integration.request.path.sessionId: "method.request.path.sessionId"
+          integration.request.path.tableName: "method.request.path.tableName"
         requestTemplates:
           application/json: |
             {
-              "TableName": "session-infra-l2-dynamo-viveak",
+              "TableName": "$input.params('tableName')",
               "Key": {
                 "sessionId": {
                   "S": "$input.params('sessionId')"
