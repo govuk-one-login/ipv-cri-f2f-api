@@ -311,6 +311,7 @@ Resources:
           Name: AWS::Include
           Parameters:
             Location: './test-harness-spec.yaml'
+          OpenApiVersion: 3.0.1
       MethodSettings:
         - LoggingLevel: INFO
           MetricsEnabled: true
