@@ -1,28 +1,125 @@
 ---
 openapi: 3.0.1
+
 info:
   title:
     Fn::Sub: ${AWS::StackName} - F2F Test automation harness API
   version: "1.0"
   description: F2F Test automation harness API specification
+
 servers:
   - url: https://www.example.com
+
 tags:
   - name: Testing - API to enable automation
     description: Endpoint implemented to enable testing
+
+x-amazon-apigateway-policy:
+  Version: "2012-10-17"
+  Statement:
+    - Effect: "Allow"
+      Principal:
+        AWS: "${AWS::AccountId}"
+      Action: "execute-api:Invoke"
+      Resource: "execute-api:/*"
+
 paths:
-  /test-object/{object-key+}:
+  /bucket/:
     get:
-      operationId: getTestObject
-      summary: endpoint to get test objects
-      description: Endpoint returns objects that have been added to the TxMA or IPV
-        Core SQS queues for test automation purposes
+      operationId: getBucket
+      summary: List the contents of the test harness bucket
+      description: >-
+        Endpoint to list the contents of the test harness bucket. Up to 1000 objects are returned, sorted by ascending
+        key. A `prefix` can be specified as a query parameter to filter the results.
+      security:
+        - SigV4Reference: []
       parameters:
-        - $ref: '#/components/parameters/ObjectKey'
         - $ref: '#/components/parameters/Prefix'
       responses:
-        "202":
-          description: Accepted
+        "200":
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+            Strict-Transport-Security:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+            X-Frame-Options:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+            Strict-Transport-Security:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+            X-Frame-Options:
+              schema:
+                type: string
+        "500":
+          description: Internal Server Error
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+            Strict-Transport-Security:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+            X-Frame-Options:
+              schema:
+                type: string
+      x-amazon-apigateway-request-validator: both
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        credentials:
+          Fn::GetAtt:
+            - AccessTestHarnessRole
+            - Arn
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${EventTestBucket}/"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.querystring.prefix: "method.request.querystring.prefix"
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
+  /object/{object-key+}:
+    get:
+      operationId: getTestObject
+      summary: Get an object from the test bucket
+      description: >-
+        Endpoint returns the contents of a specific object from the test bucket.
+      security:
+        - SigV4Reference: []
+      parameters:
+        - $ref: '#/components/parameters/ObjectKey'
+      responses:
+        "200":
+          description: OK
           headers:
             Cache-Control:
               schema:
@@ -88,13 +185,18 @@ paths:
         requestParameters:
           integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
           integration.request.path.key: "method.request.path.object-key"
-          integration.request.querystring.prefix: "method.request.querystring.prefix"
         responses:
           default:
-            statusCode: "202"
+            statusCode: "200"
         type: aws
 
 components:
+  securitySchemes:
+    SigV4Reference:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: awsSigv4
   parameters:
     ObjectKey:
       in: path

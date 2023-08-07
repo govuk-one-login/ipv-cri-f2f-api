@@ -102,6 +102,8 @@ export const handler = async (
       responseType: "code",
       clientId: config.clientId,
       AuthorizeLocation: `${process.env.OAUTH_FRONT_BASE_URI}/oauth2/authorize?request=${request}&response_type=code&client_id=${config.clientId}`,
+      sub: payload.sub,
+      state: payload.state,
     }),
   };
 };
