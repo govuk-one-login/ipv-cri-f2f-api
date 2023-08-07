@@ -1,18 +1,31 @@
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
+import { aws4Interceptor } from "aws4-axios";
 import { constants } from "../utils/ApiConstants";
-import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { createDynamoDbClient } from "../../utils/DynamoDBFactory";
 import { sqsClient } from "../../utils/SqsClient";
 import { ISessionItem } from "../../models/ISessionItem";
-import { ReceiveMessageCommand, DeleteMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
+import { ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import { jwtUtils } from "../../utils/JwtUtils";
+import { XMLParser } from "fast-xml-parser";
+
 const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
 const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
+const HARNESS_API_INSTANCE : AxiosInstance = axios.create({baseURL: "https://uboz0e1cvi.execute-api.eu-west-2.amazonaws.com/dev/"});
+const awsSigv4Interceptor = aws4Interceptor({
+	options: {
+		region: "eu-west-2",
+		service: "execute-api",
+	},
+});
+HARNESS_API_INSTANCE.interceptors.request.use(awsSigv4Interceptor);
 
+const xmlParser = new XMLParser();
 
 export async function startStubServiceAndReturnSessionId(stubPayload: any): Promise<any> {
 	const stubResponse = await stubStartPost(stubPayload);
 	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+	postRequest.data.sub = stubResponse.data.sub
 	return postRequest;
 }
 
@@ -208,6 +221,33 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 // 		console.error({ message: "got error updating yotiSessionId", e });
 // 	}
 // }
+
+/**
+ * Retrieves an object from the bucket with the specified prefix, which is the latest message dequeued from the SQS
+ * queue under test
+ * @param prefix
+ * @returns {any} - returns either the body of the SQS message or undefined if no such message found
+ */
+export async function getDequeuedSqsMessage(prefix: string): Promise<any>{
+	const listObjectsResponse = await HARNESS_API_INSTANCE.get("bucket/", {
+		params: {
+			prefix: "ipv-core/" + prefix,
+		}
+	});
+	const listObjectsParsedResponse = xmlParser.parse(listObjectsResponse.data);
+	if(!listObjectsParsedResponse?.ListBucketResult?.Contents) {
+		return undefined;
+	}
+	let key: string;
+	if(Array.isArray(listObjectsParsedResponse?.ListBucketResult?.Contents)) {
+		key = listObjectsParsedResponse.ListBucketResult.Contents.at(-1).Key;
+	} else {
+		key = listObjectsParsedResponse.ListBucketResult.Contents.Key;
+	}
+
+	const getObjectResponse = await HARNESS_API_INSTANCE.get("object/"+key, {});
+	return getObjectResponse.data
+}
 
 export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 	const queueURL = constants.DEV_F2F_IPV_CORE_QUEUE_URL;
