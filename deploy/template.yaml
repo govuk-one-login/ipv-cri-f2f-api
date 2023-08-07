@@ -4466,3 +4466,27 @@ Outputs:
     Value: !GetAtt IPVCoreQueueEncryptionKey.Arn
     Export:
       Name: !Sub ${AWS::StackName}-IPVCoreQueueEncryptionKey-arn
+  SessionTableARN: 
+    Description: "Arn of the Session DynamoDB table"
+    Value:
+      Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-arn"
+    Export:
+      Name: !Sub ${AWS::StackName}-SessionTable-arn
+  PersonIdentityTableARN: 
+    Description: "Arn of the Person Identity DynamoDB table"
+    Value:
+      Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-arn"
+    Export:
+      Name: !Sub ${AWS::StackName}-PersonIdentityTable-arn
+  SessionTableEcryptionARN: 
+    Description: "Arn of the SessionTableEncryptionKey"
+    Value:
+      Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-arn"
+    Export:
+      Name: !Sub ${AWS::StackName}-SessionTableEncryptionKey-arn
+  PersonIdentityTableEncryptionARN: 
+    Description: "Arn of the PersonTableEncryptionKey"
+    Value:
+      Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-key-arn"
+    Export:
+      Name: !Sub ${AWS::StackName}-PersonIdentityTableEncryptionKey-arn
