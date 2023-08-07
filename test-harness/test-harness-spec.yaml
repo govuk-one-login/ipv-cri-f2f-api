@@ -1,14 +1,13 @@
----
 openapi: 3.0.1
 
 info:
-  title:
-    Fn::Sub: ${AWS::StackName} - F2F Test automation harness API
+  title: ${AWS::StackName} - F2F Test automation harness API
   version: "1.0"
   description: F2F Test automation harness API specification
 
-servers:
-  - url: https://www.example.com
+x-amazon-apigateway-globals:
+  servers:
+    - url: https://www.example.com
 
 tags:
   - name: Testing - API to enable automation
@@ -24,6 +23,60 @@ x-amazon-apigateway-policy:
       Resource: "execute-api:/*"
 
 paths:
+  /get-session/{sessionId}:
+    get:
+      operationId: getSessionByIds
+      summary: Get a session by sessionId from DynamoDB
+      description: |
+        Endpoint to get a session from DynamoDB using sessionId as the primary key.
+        If a session is found, it will be returned. Otherwise, it will return "No session found".
+      parameters:
+        - name: sessionId
+          in: path
+          description: The value of the sessionId primary key to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session:
+                    type: object
+                    description: The found session from DynamoDB.
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      x-amazon-apigateway-request-validator: both
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        credentials:
+          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
+        uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/GetItem"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.path.sessionId: "method.request.path.sessionId"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "session-infra-l2-dynamo-viveak",
+              "Key": {
+                "sessionId": {
+                  "S": "$input.params('sessionId')"
+                }
+              }
+            }
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
+
   /bucket/:
     get:
       operationId: getBucket
@@ -31,65 +84,20 @@ paths:
       description: >-
         Endpoint to list the contents of the test harness bucket. Up to 1000 objects are returned, sorted by ascending
         key. A `prefix` can be specified as a query parameter to filter the results.
-      security:
-        - SigV4Reference: []
       parameters:
-        - $ref: '#/components/parameters/Prefix'
+        - name: prefix
+          in: query
+          description: Prefix to list objects from the bucket with
+          required: false
+          schema:
+            type: string
       responses:
         "200":
-          description: OK
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            Content-Type:
-              schema:
-                type: string
-            Strict-Transport-Security:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-            X-Frame-Options:
-              schema:
-                type: string
+          description: Success
         "401":
           description: Unauthorized
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            Content-Type:
-              schema:
-                type: string
-            Strict-Transport-Security:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-            X-Frame-Options:
-              schema:
-                type: string
         "500":
           description: Internal Server Error
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            Content-Type:
-              schema:
-                type: string
-            Strict-Transport-Security:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-            X-Frame-Options:
-              schema:
-                type: string
       x-amazon-apigateway-request-validator: both
       x-amazon-apigateway-integration:
         httpMethod: GET
@@ -97,8 +105,7 @@ paths:
           Fn::GetAtt:
             - AccessTestHarnessRole
             - Arn
-        uri:
-          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${EventTestBucket}/"
+        uri: "arn:aws:apigateway:${AWS::Region}:s3:path/${EventTestBucket}/"
         passthroughBehavior: when_no_match
         requestParameters:
           integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
@@ -107,16 +114,21 @@ paths:
           default:
             statusCode: "200"
         type: aws
-  /object/{object-key+}:
+
+  /object/{object-key}:
     get:
       operationId: getTestObject
       summary: Get an object from the test bucket
       description: >-
         Endpoint returns the contents of a specific object from the test bucket.
-      security:
-        - SigV4Reference: []
       parameters:
-        - $ref: '#/components/parameters/ObjectKey'
+        - name: object-key
+          in: path
+          description: Key to query the bucket with
+          required: true
+          schema:
+            type: string
+            minLength: 1
       responses:
         "200":
           description: OK
@@ -138,40 +150,8 @@ paths:
                 type: string
         "401":
           description: Unauthorized
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            Content-Type:
-              schema:
-                type: string
-            Strict-Transport-Security:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-            X-Frame-Options:
-              schema:
-                type: string
         "500":
           description: Internal Server Error
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-            Content-Type:
-              schema:
-                type: string
-            Strict-Transport-Security:
-              schema:
-                type: string
-            X-Content-Type-Options:
-              schema:
-                type: string
-            X-Frame-Options:
-              schema:
-                type: string
       x-amazon-apigateway-request-validator: both
       x-amazon-apigateway-integration:
         httpMethod: GET
@@ -179,8 +159,7 @@ paths:
           Fn::GetAtt:
             - AccessTestHarnessRole
             - Arn
-        uri:
-          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${EventTestBucket}/{key}"
+        uri: "arn:aws:apigateway:${AWS::Region}:s3:path/${EventTestBucket}/{key}"
         passthroughBehavior: when_no_match
         requestParameters:
           integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
@@ -197,21 +176,3 @@ components:
       name: Authorization
       in: header
       x-amazon-apigateway-authtype: awsSigv4
-  parameters:
-    ObjectKey:
-      in: path
-      name: object-key
-      example: /ipv-core/sub-timestamp-messageId
-      required: true
-      description: Key to query bucket with
-      schema:
-        type: string
-        minLength: 1
-    Prefix:
-      in: query
-      name: prefix
-      example: txma/
-      required: false
-      description: Prefix to list objects from bucket with
-      schema:
-        type: string
