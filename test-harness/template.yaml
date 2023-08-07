@@ -280,19 +280,17 @@ Resources:
           - Effect: Allow
             Action: 
             - dynamodb:GetItem
-            - dynamodb:Query
-            - dynamodb:Scan
-            Resource: "*"
-              # Fn::ImportValue: !Sub "${BackendStack}-SessionTableName"
-      - PolicyName: KMSDecryptPolicy
+            Resource:
+              Fn::ImportValue: !Sub "${BackendStack}-SessionTable-arn"
+      - PolicyName: DynamoKMSDecryptPolicy
         PolicyDocument:
           Version: 2012-10-17
           Statement:
           - Effect: Allow
             Action: 
             - kms:Decrypt
-            Resource: "*"
-              # Fn::ImportValue: !Sub "${BackendStack}-SessionTableEncryptionKey-id"
+            Resource:
+              Fn::ImportValue: !Sub "${BackendStack}-SessionTableEncryptionKey-arn"
 
   ### Start of API Gateway definition.
 
