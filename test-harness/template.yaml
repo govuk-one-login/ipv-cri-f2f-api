@@ -273,7 +273,7 @@ Resources:
               Service: apigateway.amazonaws.com
         Version: 2012-10-17
       Policies:
-      - PolicyName: DynamoDbReadAccess
+      - PolicyName: SessionTableReadAccess
         PolicyDocument:
           Version: 2012-10-17
           Statement:
@@ -282,7 +282,7 @@ Resources:
             - dynamodb:GetItem
             Resource:
               Fn::ImportValue: !Sub "${BackendStack}-SessionTable-arn"
-      - PolicyName: DynamoKMSDecryptPolicy
+      - PolicyName: SessionTableDecryptPolicy
         PolicyDocument:
           Version: 2012-10-17
           Statement:
@@ -291,6 +291,24 @@ Resources:
             - kms:Decrypt
             Resource:
               Fn::ImportValue: !Sub "${BackendStack}-SessionTableEncryptionKey-arn"
+      - PolicyName: PersonIdentityReadAccess
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: 
+            - dynamodb:GetItem
+            Resource:
+              Fn::ImportValue: !Sub "${BackendStack}-PersonIdentityTable-arn"
+      - PolicyName: PersonIdentityDecryptPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: 
+            - kms:Decrypt
+            Resource:
+              Fn::ImportValue: !Sub "${BackendStack}-PersonIdentityTableEncryptionKey-arn"
 
   ### Start of API Gateway definition.
 
