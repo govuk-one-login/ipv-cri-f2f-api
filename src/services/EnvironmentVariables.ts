@@ -229,6 +229,13 @@ export class EnvironmentVariables {
 				}
 				break;
 			}
+			case ServicesEnum.SESSION_CONFIG_SERVICE: {
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0  ) {
+					logger.error("Environment variable SESSION_TABLE is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "SessionConfig Service incorrectly configured");
+				}
+				break;
+			}
 			default:
 				break;
 		}
