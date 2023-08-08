@@ -171,7 +171,7 @@ export class SessionRequestProcessor {
   		clientIpAddress: clientIpAddress as string,
   		attemptCount: 0,
   		authSessionState: "F2F_SESSION_CREATED",
-		evidence_requested: jwtPayload.evidence_requested
+  		evidence_requested: jwtPayload.evidence_requested,
   	};
 
   	try {

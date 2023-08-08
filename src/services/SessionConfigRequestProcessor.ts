@@ -60,14 +60,13 @@ export class SessionConfigRequestProcessor {
 			});
 
 			this.metrics.addMetric("found session", MetricUnits.Count, 1);
-				const f2fResp = {
-					evidence_requested: session.evidence_requested
-				}
+			const f2fResp = {
+				evidence_requested: session.evidence_requested,
+			};
 
-			if(session.evidence_requested?.strengthScore && session.evidence_requested?.strengthScore == 4)
-			{
+			if (session.evidence_requested?.strengthScore && session.evidence_requested?.strengthScore == 4) {
 				this.logger.info("Requested Strength score 4");
-			}else{
+			} else {
 				this.logger.info("Requested Strength score missing or less than 4");
 			}
 

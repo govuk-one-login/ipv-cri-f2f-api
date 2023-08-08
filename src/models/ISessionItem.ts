@@ -1,4 +1,4 @@
-import {EvidenceRequested} from "../utils/IVeriCredential";
+import { EvidenceRequested } from "../utils/IVeriCredential";
 
 export interface IF2fSession {
 	given_names?: string[];

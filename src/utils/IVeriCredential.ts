@@ -30,7 +30,7 @@ export interface JwtHeader {
 	kid?: string;
 }
 // standard claims https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
-export interface EvidenceRequested{
+export interface EvidenceRequested {
 	strengthScore?: number;
 	validityScore?: number;
 	verificationScore?: number;
