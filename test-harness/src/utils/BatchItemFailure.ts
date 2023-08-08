@@ -2,7 +2,7 @@
  * Class to contain identifier (id) of record that fails processing
  */
 
- export class BatchItemFailure {
+export class BatchItemFailure {
   readonly itemIdentifier: string;
 
   constructor(itemIdentifier: string) {
