@@ -196,6 +196,7 @@ export class SessionRequestProcessor {
   	}
 
 		const sourceIp = event.requestContext.identity?.sourceIp;
+		
   	try {
 			const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer() as string, sourceIp, absoluteTimeNow);
   		await this.f2fService.sendToTXMA({
