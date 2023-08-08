@@ -5,8 +5,12 @@ import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 import { Constants } from "./utils/Constants";
 import { BatchItemFailure } from "./utils/BatchItemFailure";
 
-const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
-const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.DEQUEUE_LOGGER_SVC_NAME;
+const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL
+	? process.env.POWERTOOLS_LOG_LEVEL
+	: Constants.DEBUG;
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME
+	? process.env.POWERTOOLS_SERVICE_NAME
+	: Constants.DEQUEUE_LOGGER_SVC_NAME;
 
 export const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
@@ -32,7 +36,9 @@ class DequeueHandler implements LambdaInterface {
 			const bucket = process.env.EVENT_TEST_BUCKET_NAME;
 			const propertyName = process.env.PROPERTY_NAME || "sub";
 			// Accounts for values that are nested (eg user.session_id)
-			const propertyValue = propertyName.split('.').reduce((acc, key) => acc[key], body)
+			const propertyValue = propertyName
+				.split(".")
+				.reduce((acc, key) => acc[key], body);
 			const folder = process.env.BUCKET_FOLDER_PREFIX;
 			const timestamp = new Date().toISOString();
 			const key = `${folder}${propertyValue}-${timestamp}-${record.messageId}`;
@@ -43,7 +49,7 @@ class DequeueHandler implements LambdaInterface {
 				Body: JSON.stringify(body),
 				ContentType: "application/json",
 			};
-			
+
 			try {
 				logger.info(`Uploading object with key ${key} to bucket ${bucket}`);
 				await s3Client.send(new PutObjectCommand(uploadParams));
@@ -51,9 +57,9 @@ class DequeueHandler implements LambdaInterface {
 				batchFailures.push(new BatchItemFailure(record.messageId));
 				logger.error({ message: "Error writing keys to S3 bucket", error });
 			}
-		};
+		}
 
-		logger.info("Finished processing records")
+		logger.info("Finished processing records");
 		return { batchItemFailures: batchFailures };
   }
 }
