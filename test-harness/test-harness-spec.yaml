@@ -1,7 +1,8 @@
 openapi: 3.0.1
 
 info:
-  title: ${AWS::StackName} - F2F Test automation harness API
+  title:
+     Fn::Sub: "${AWS::StackName} - F2F Credential Issuer Private API"
   version: "1.0"
   description: F2F Test automation harness API specification
 
@@ -112,7 +113,8 @@ paths:
           Fn::GetAtt:
             - AccessTestHarnessRole
             - Arn
-        uri: "arn:aws:apigateway:${AWS::Region}:s3:path/${EventTestBucket}/"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${EventTestBucket}/"
         passthroughBehavior: when_no_match
         requestParameters:
           integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
@@ -166,7 +168,8 @@ paths:
           Fn::GetAtt:
             - AccessTestHarnessRole
             - Arn
-        uri: "arn:aws:apigateway:${AWS::Region}:s3:path/${EventTestBucket}/{key}"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${EventTestBucket}/{key}"
         passthroughBehavior: when_no_match
         requestParameters:
           integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
