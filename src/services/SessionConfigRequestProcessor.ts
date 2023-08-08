@@ -1,15 +1,12 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
-import { randomUUID } from "crypto";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { ValidationHelper } from "../utils/ValidationHelper";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
-import { AuthSessionState } from "../models/enums/AuthSessionState";
-import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
