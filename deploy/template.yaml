@@ -4446,3 +4446,59 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Yoti Stub"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, YOTIBASEURL]
+  TxMASQSQueue: 
+    Description: "Arn of the TxMASQSQueue"
+    Value: !GetAtt TxMASQSQueue.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-TxMASQSQueue-arn
+  TxMAKMSEncryptionKey: 
+    Description: "Arn of the TxMAKMSEncryptionKey"
+    Value: !GetAtt TxMAKMSEncryptionKey.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-TxMAKMSEncryptionKey-arn
+  IPVCoreSQSQueue: 
+    Description: "Arn of the IPVCoreSQSQueue"
+    Value: !GetAtt IPVCoreSQSQueue.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-IPVCoreSQSQueue-arn
+  IPVCoreQueueEncryptionKey: 
+    Description: "Arn of the IPVCoreQueueEncryptionKey"
+    Value: !GetAtt IPVCoreQueueEncryptionKey.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-IPVCoreQueueEncryptionKey-arn
+  SessionTableName: 
+    Description: "Name of the Session DynamoDB table"
+    Value:
+      Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+    Export:
+      Name: !Sub ${AWS::StackName}-SessionTable-name
+  SessionTableARN: 
+    Description: "Arn of the Session DynamoDB table"
+    Value:
+      Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-arn"
+    Export:
+      Name: !Sub ${AWS::StackName}-SessionTable-arn
+  SessionTableEcryptionARN: 
+    Description: "Arn of the SessionTableEncryptionKey"
+    Value:
+      Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-arn"
+    Export:
+      Name: !Sub ${AWS::StackName}-SessionTableEncryptionKey-arn
+  PersonIdentityTableName: 
+    Description: "Name of the Person Identity DynamoDB table"
+    Value:
+      Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
+    Export:
+      Name: !Sub ${AWS::StackName}-PersonIdentityTable-name
+  PersonIdentityTableARN: 
+    Description: "Arn of the Person Identity DynamoDB table"
+    Value:
+      Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-arn"
+    Export:
+      Name: !Sub ${AWS::StackName}-PersonIdentityTable-arn
+  PersonIdentityTableEncryptionARN: 
+    Description: "Arn of the PersonTableEncryptionKey"
+    Value:
+      Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-key-arn"
+    Export:
+      Name: !Sub ${AWS::StackName}-PersonIdentityTableEncryptionKey-arn
