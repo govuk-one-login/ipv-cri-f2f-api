@@ -7,6 +7,8 @@ import { APIGatewayProxyEvent } from "aws-lambda";
 import { absoluteTimeNow } from "./DateTimeUtils";
 import { Constants } from "./Constants";
 import { JwtPayload } from "./IVeriCredential";
+import { PersonIdentityAddress } from "../models/PersonIdentityItem";
+import { MessageCodes } from "../models/enums/MessageCodes";
 
 export class ValidationHelper {
 
@@ -99,5 +101,72 @@ export class ValidationHelper {
 
 		return "";
 	};
+
+	isAddressFormatValid = (jwtPayload: JwtPayload): { errorMessage: string; errorMessageCode: string } => {
+		const personIdentityAddresses: PersonIdentityAddress[] = jwtPayload.shared_claims.address;
+		for (const address of personIdentityAddresses) {
+			console.log("each address: " + address);
+			if (!this.checkIfValidCountryCode(address.addressCountry)) {
+				return {
+					errorMessage: "Invalid country code in the postalAddress",
+					errorMessageCode: MessageCodes.INVALID_COUNTRY_CODE,
+				};
+			} else if (!this.checkIfAddressIsValid(address)) {
+				// Validation fails if all the mandatory postalAddress fields- subBuildingName, buildingName, buildingNumber and streetName are missing and is not a valid string or if all the 3 mandatory fields- subBuildingName, buildingName, buildingNumber are missing or not a valid string
+				return {
+					errorMessage: "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session",
+					errorMessageCode: MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS,
+				};
+			}
+		}
+		return {
+			errorMessage: "",
+			errorMessageCode: "",
+		};
+	};
+
+	/**
+	 * Checks if the countryCode is 'GB'.
+	 *
+	 * @param countryCode
+	 */
+	checkIfValidCountryCode(countryCode: string): boolean {
+		if (countryCode !== "GB") {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Validation fails if all the mandatory postalAddress fields- subBuildingName, buildingName, buildingNumber and streetName are missing and is not a valid string or if all the 3 mandatory fields- subBuildingName, buildingName, buildingNumber are missing or not a valid string
+	 *
+	 *
+	 * @param address
+	 */
+	checkIfAddressIsValid(address: PersonIdentityAddress): boolean {
+		if ((!this.checkIfValidString([address.subBuildingName]) &&
+				!this.checkIfValidString([address.buildingName]) &&
+				!this.checkIfValidString([address.buildingNumber]) &&
+				!this.checkIfValidString([ address.streetName])) ||
+			(!this.checkIfValidString([address.subBuildingName]) &&
+				!this.checkIfValidString([address.buildingName]) &&
+				!this.checkIfValidString([address.buildingNumber]))) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Checks if all string values in the array are defined and does not
+	 * contain spaces only
+	 *
+	 * @param params
+	 */
+	checkIfValidString(params: Array<string | undefined>): boolean {
+		if (params.some((param) => (!param || !param.trim()) )) {
+			return false;
+		}
+		return true;
+	}
 
 }
