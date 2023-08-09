@@ -14,14 +14,14 @@ tags:
   - name: Testing - API to enable automation
     description: Endpoint implemented to enable testing
 
-x-amazon-apigateway-policy:
-  Version: "2012-10-17"
-  Statement:
-    - Effect: "Allow"
-      Principal:
-        AWS: "${AWS::AccountId}"
-      Action: "execute-api:Invoke"
-      Resource: "execute-api:/*"
+# x-amazon-apigateway-policy:
+#   Version: "2012-10-17"
+#   Statement:
+#     - Effect: "Allow"
+#       Principal:
+#         AWS: "${AWS::AccountId}"
+#       Action: "execute-api:Invoke"
+#       Resource: "execute-api:/*"
 
 paths:
   getRecordBySessionId/{tableName}/{sessionId}:
@@ -239,7 +239,7 @@ paths:
             statusCode: "200"
         type: aws
 
-  /object/{object-key}:
+  /object/{object-key+}:
     get:
       operationId: getTestObject
       summary: Get an object from the test bucket
@@ -294,10 +294,10 @@ paths:
             statusCode: "200"
         type: aws
 
-components:
-  securitySchemes:
-    SigV4Reference:
-      type: apiKey
-      name: Authorization
-      in: header
-      x-amazon-apigateway-authtype: awsSigv4
+# components:
+#   securitySchemes:
+#     SigV4Reference:
+#       type: apiKey
+#       name: Authorization
+#       in: header
+#       x-amazon-apigateway-authtype: awsSigv4

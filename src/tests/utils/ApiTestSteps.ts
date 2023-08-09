@@ -11,7 +11,7 @@ import { XMLParser } from "fast-xml-parser";
 
 const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
 const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
-const HARNESS_API_INSTANCE : AxiosInstance = axios.create({baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
+const HARNESS_API_INSTANCE : AxiosInstance = axios.create({ baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
 const awsSigv4Interceptor = aws4Interceptor({
 	options: {
 		region: "eu-west-2",
@@ -25,7 +25,7 @@ const xmlParser = new XMLParser();
 export async function startStubServiceAndReturnSessionId(stubPayload: any): Promise<any> {
 	const stubResponse = await stubStartPost(stubPayload);
 	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-	postRequest.data.sub = stubResponse.data.sub
+	postRequest.data.sub = stubResponse.data.sub;
 	return postRequest;
 }
 
@@ -184,16 +184,29 @@ export function generateRandomAlphanumeric(substringStart: number, substringEnd:
 }
 
 export async function getSessionById(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
-	let session;
+	interface OriginalValue {
+		N?: string;
+		S?: string;
+	}
+	
+	interface OriginalSessionItem {
+		[key: string]: OriginalValue;
+	}
+
+	let session: ISessionItem | undefined;
 	try {
-		const response = await HARNESS_API_INSTANCE.get(`getRecordBySessionId/${tableName}/${sessionId}`, {});
-		session = response.data;
+		const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
+		const originalSession = response.data.Item;
+		session = Object.fromEntries(
+			Object.entries(originalSession).map(([key, value]) => [key, value.N ?? value.S]),
+		) as unknown as ISessionItem;
+		console.log("transformedData", session);
 	} catch (e: any) {
 		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
 	}
 
-	console.log('getSessionById Response', session.Items[0]);
-	return session.Item as ISessionItem;
+	console.log("getSessionById Response", session);
+	return session;
 }
 
 export async function getSessionByYotiId(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
@@ -205,7 +218,7 @@ export async function getSessionByYotiId(sessionId: string, tableName: string): 
 		console.error({ message: "getSessionByYotiId - failed getting session from Dynamo", e });
 	}
 
-	console.log('getSessionByYotiId Response', session.Items[0]);
+	console.log("getSessionByYotiId Response", session.Items[0]);
 	return session.Items[0] as ISessionItem;
 }
 
@@ -218,7 +231,7 @@ export async function getSessionByAuthCode(sessionId: string, tableName: string)
 		console.error({ message: "getSessionByAuthCode - failed getting session from Dynamo", e });
 	}
 
-	console.log('getSessionByAuthCode Response', session.Items[0]);
+	console.log("getSessionByAuthCode Response", session.Items[0]);
 	return session.Items[0] as ISessionItem;
 }
 
@@ -245,28 +258,29 @@ export async function getSessionByAuthCode(sessionId: string, tableName: string)
 /**
  * Retrieves an object from the bucket with the specified prefix, which is the latest message dequeued from the SQS
  * queue under test
+ *
  * @param prefix
  * @returns {any} - returns either the body of the SQS message or undefined if no such message found
  */
-export async function getDequeuedSqsMessage(prefix: string): Promise<any>{
-	const listObjectsResponse = await HARNESS_API_INSTANCE.get("bucket/", {
+export async function getDequeuedSqsMessage(prefix: string): Promise<any> {
+	const listObjectsResponse = await HARNESS_API_INSTANCE.get("/bucket/", {
 		params: {
 			prefix: "ipv-core/" + prefix,
-		}
+		},
 	});
 	const listObjectsParsedResponse = xmlParser.parse(listObjectsResponse.data);
-	if(!listObjectsParsedResponse?.ListBucketResult?.Contents) {
+	if (!listObjectsParsedResponse?.ListBucketResult?.Contents) {
 		return undefined;
 	}
 	let key: string;
-	if(Array.isArray(listObjectsParsedResponse?.ListBucketResult?.Contents)) {
+	if (Array.isArray(listObjectsParsedResponse?.ListBucketResult?.Contents)) {
 		key = listObjectsParsedResponse.ListBucketResult.Contents.at(-1).Key;
 	} else {
 		key = listObjectsParsedResponse.ListBucketResult.Contents.Key;
 	}
 
-	const getObjectResponse = await HARNESS_API_INSTANCE.get("object/"+key, {});
-	return getObjectResponse.data
+	const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + key, {});
+	return getObjectResponse.data;
 }
 
 export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
@@ -351,15 +365,15 @@ export function validateJwtToken(jwtToken:any, vcData: any, yotiId?: string):voi
 	}
 }
 
-	export async function postAbortSession(reasion:any, sessionId:any): Promise<any> {
-		const path = constants.DEV_CRI_F2F_API_URL + "/abort";
-		console.log(path);
-		try {
-			const postRequest = await API_INSTANCE.post(path, reasion, { headers:{ "x-govuk-signin-session-id": sessionId } });
-			return postRequest;
+export async function postAbortSession(reasion:any, sessionId:any): Promise<any> {
+	const path = constants.DEV_CRI_F2F_API_URL + "/abort";
+	console.log(path);
+	try {
+		const postRequest = await API_INSTANCE.post(path, reasion, { headers:{ "x-govuk-signin-session-id": sessionId } });
+		return postRequest;
 	
-		} catch (error: any) {
-			console.log(`Error response from endpoint: ${error}`);
-			return error.response;
-		}
+	} catch (error: any) {
+		console.log(`Error response from endpoint: ${error}`);
+		return error.response;
 	}
+}

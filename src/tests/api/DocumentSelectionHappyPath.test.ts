@@ -76,7 +76,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 	});
 
 	// Test Suspended - additional engineering work is required to facilitate the validation of BE systems, designs and US to follow	
-	it.skip("Happy Path Journey - Validate Session Expiray is Updated after Document Selection", async () => {
+	it("Happy Path Journey - Validate Session Expiray is Updated after Document Selection", async () => {
 		//Get yoti expiry time
 		const initinalSessionRecord = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const initinalYotiSessionExpiry: any = initinalSessionRecord?.expiryDate;
@@ -95,7 +95,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		const updatedYotiSessionExpiry: any = updatedSessionRecord?.expiryDate;
 		console.log(updatedYotiSessionExpiry);
 
-		expect(updatedYotiSessionExpiry).toBeGreaterThan(initinalYotiSessionExpiry);
+		expect(Number(updatedYotiSessionExpiry)).toBeGreaterThan(Number(initinalYotiSessionExpiry));
 	});
 });
 
