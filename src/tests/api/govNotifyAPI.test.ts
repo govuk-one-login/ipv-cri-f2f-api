@@ -1,4 +1,4 @@
-import govNotifyRequestData from "../data/gov_notify_body.json";
+import govNotifyRequestData from "../data/govNotifyStubPayload.json";
 import { postGovNotifyRequest } from "../utils/ApiTestSteps";
 
 describe("GovNotify Endpoint /v2/notifications/emai", () => {
