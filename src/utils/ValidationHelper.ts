@@ -105,10 +105,9 @@ export class ValidationHelper {
 	isAddressFormatValid = (jwtPayload: JwtPayload): { errorMessage: string; errorMessageCode: string } => {
 		const personIdentityAddresses: PersonIdentityAddress[] = jwtPayload.shared_claims.address;
 		for (const address of personIdentityAddresses) {
-			console.log("each address: " + address);
 			if (!this.checkIfValidCountryCode(address.addressCountry)) {
 				return {
-					errorMessage: "Invalid country code in the postalAddress",
+					errorMessage: "Invalid country code: country code is not GB in the postalAddress",
 					errorMessageCode: MessageCodes.INVALID_COUNTRY_CODE,
 				};
 			} else if (!this.checkIfAddressIsValid(address)) {

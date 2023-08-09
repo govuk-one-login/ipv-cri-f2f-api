@@ -43,7 +43,7 @@ describe("ValidationHelper", () => {
 		jwtPayload.shared_claims.address[0].addressCountry = "United Kingdom";
 		const { errorMessage, errorMessageCode } = validationHelper.isAddressFormatValid(jwtPayload);
 
-		expect(errorMessage).toBe("Invalid country code in the postalAddress");
+		expect(errorMessage).toBe("Invalid country code: country code is not GB in the postalAddress");
 		expect(errorMessageCode).toStrictEqual(MessageCodes.INVALID_COUNTRY_CODE);
 	});
 
