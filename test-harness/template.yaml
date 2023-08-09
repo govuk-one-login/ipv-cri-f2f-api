@@ -45,10 +45,15 @@ Mappings:
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
+      TESTHARBESSURL: "testharness.review-o.dev.account.gov.uk"
     build:
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
+      TESTHARBESSURL: "testharness.review-o.build.account.gov.uk"
 
 Conditions:
+  CreateDevResources: !Equals
+    - !Ref Environment
+    - dev
   UseCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -282,6 +287,18 @@ Resources:
             - dynamodb:GetItem
             Resource:
               Fn::ImportValue: !Sub "${BackendStack}-SessionTable-arn"
+          - Effect: Allow
+            Action: 
+            - dynamodb:Query
+            Resource:
+              "Fn::Sub": [
+                "${tableName}/index/*",
+                {
+                  "tableName": {
+                    Fn::ImportValue: !Sub "${BackendStack}-SessionTable-arn"
+                  }
+                }
+              ]
       - PolicyName: SessionTableDecryptPolicy
         PolicyDocument:
           Version: 2012-10-17
@@ -368,3 +385,40 @@ Resources:
           Value: APIGatewayAccessLogGroup
 
   ### End of API Gateway definition.
+
+  TestHarnessCustomDomain:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !If
+        - CreateDevResources
+        - !Sub
+          - "${AWS::StackName}-${TESTHARBESSURL}"
+          - TESTHARBESSURL:
+              !FindInMap [ EnvironmentVariables, !Ref Environment, TESTHARBESSURL ]
+        - !FindInMap [ EnvironmentVariables, !Ref Environment, TESTHARBESSURL ]
+      DomainNameConfigurations:
+        - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
+          EndpointType: REGIONAL
+          SecurityPolicy: TLS_1_2
+
+  TestHarnessApiDomainRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Ref TestHarnessCustomDomain
+      Type: A
+      HostedZoneId: !Sub "{{resolve:ssm:/${Environment}/Platform/Route53/PrimaryZoneID}}"
+      AliasTarget:
+        DNSName: !GetAtt TestHarnessCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt TestHarnessCustomDomain.RegionalHostedZoneId
+        EvaluateTargetHealth: false
+
+  # Base Path Mapping
+  TestHarnessApiBasePathMapping:
+    Type: 'AWS::ApiGateway::BasePathMapping'
+    Properties:
+      DomainName: !Ref TestHarnessCustomDomain
+      RestApiId: !Ref TestHarnessRestApi
+
+      # workaround for sam bug - see https://github.com/aws/serverless-application-model/issues/192#issuecomment-520893111
+      # noinspection YamlUnresolvedReferences
+      Stage: !Ref TestHarnessRestApi.Stage

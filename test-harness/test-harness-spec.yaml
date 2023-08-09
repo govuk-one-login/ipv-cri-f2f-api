@@ -24,7 +24,7 @@ x-amazon-apigateway-policy:
       Resource: "execute-api:/*"
 
 paths:
-  /getRecord/{tableName}/{sessionId}:
+  /{tableName}/getRecordById/{sessionId}:
     get:
       operationId: getSessionByIds
       summary: Get a session by sessionId from DynamoDB
@@ -85,6 +85,124 @@ paths:
             statusCode: "200"
         type: aws
 
+  /{tableName}/getSessionByAuthCode/{authCode}:
+    get:
+      operationId: getSessionByIds
+      summary: Get a session by identifier from DynamoDB
+      description: |
+        Endpoint to get a session from DynamoDB using either authCode or yotiSessionId as the primary key.
+        If a session is found, it will be returned. Otherwise, it will return "No session found".
+      parameters:
+        - name: tableName
+          in: path
+          description: The name of the table to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+        - name: authCode
+          in: path
+          description: The value of the secondary index identifier to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session:
+                    type: object
+                    description: The found session from DynamoDB.
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      x-amazon-apigateway-request-validator: both
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        credentials:
+          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
+        uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.path.tableName: "method.request.path.tableName"
+          integration.request.path.authCode: "method.request.path.authCode"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName":"$input.params('tableName')",
+              "IndexName":"authorizationCode-index",
+              "KeyConditionExpression": "authorizationCode = :authorizationCode",
+              "ExpressionAttributeValues":{
+                  ":authorizationCode":{
+                    "S":"$input.params('authCode')"
+                  }
+              }
+            }
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
+
+  /{tableName}/getSessionByYotiId/{yotiSessionId}:
+    get:
+      operationId: getSessionByIds
+      summary: Get a session by identifier from DynamoDB
+      description: |
+        Endpoint to get a session from DynamoDB using either authCode or yotiSessionId as the primary key.
+        If a session is found, it will be returned. Otherwise, it will return "No session found".
+      parameters:
+        - name: tableName
+          in: path
+          description: The name of the table to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+        - name: yotiSessionId
+          in: path
+          description: The value of the secondary index identifier to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      x-amazon-apigateway-request-validator: both
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        credentials:
+          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
+        uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.path.tableName: "method.request.path.tableName"
+          integration.request.path.yotiSessionId: "method.request.path.yotiSessionId"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName":"$input.params('tableName')",
+              "IndexName":"yotiSessionId-index",
+              "KeyConditionExpression": "yotiSessionId = :yotiSessionId",
+              "ExpressionAttributeValues":{
+                  ":yotiSessionId":{
+                    "S":"$input.params('yotiSessionId')"
+                  }
+              }
+            }
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
+  
   /bucket/:
     get:
       operationId: getBucket
