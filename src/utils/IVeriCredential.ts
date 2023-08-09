@@ -150,7 +150,6 @@ export interface DrivingPermit {
 	issueDate?: string;
 	fullAddress?: string;
 	issuingCountry?: string;
-	issueNumber?: string;
 }
 
 export interface Passport {

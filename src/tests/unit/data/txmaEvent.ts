@@ -39,7 +39,6 @@ export const TXMA_CORE_FIELDS = {
 		],
 	},
 	"user": {
-		// "govuk_signin_journey_id": "sdfssg",
 		"ip_address": "127.0.0.1",
 		"persistent_session_id": "sdgsdg",
 		"session_id": "RandomF2FSessionID",
