@@ -24,13 +24,12 @@ x-amazon-apigateway-policy:
       Resource: "execute-api:/*"
 
 paths:
-  /{tableName}/getRecordById/{sessionId}:
+  getRecordBySessionId/{tableName}/{sessionId}:
     get:
-      operationId: getSessionByIds
+      operationId: getRecordById
       summary: Get a session by sessionId from DynamoDB
       description: |
         Endpoint to get a session from DynamoDB using sessionId as the primary key.
-        If a session is found, it will be returned. Otherwise, it will return "No session found".
       parameters:
         - name: sessionId
           in: path
@@ -85,13 +84,12 @@ paths:
             statusCode: "200"
         type: aws
 
-  /{tableName}/getSessionByAuthCode/{authCode}:
+  getSessionByAuthCode/{tableName}/{authCode}:
     get:
-      operationId: getSessionByIds
-      summary: Get a session by identifier from DynamoDB
+      operationId: getSessionByAuthCode
+      summary: Get a session by using authorizationCode-index from DynamoDB
       description: |
         Endpoint to get a session from DynamoDB using either authCode or yotiSessionId as the primary key.
-        If a session is found, it will be returned. Otherwise, it will return "No session found".
       parameters:
         - name: tableName
           in: path
@@ -148,13 +146,12 @@ paths:
             statusCode: "200"
         type: aws
 
-  /{tableName}/getSessionByYotiId/{yotiSessionId}:
+  getSessionByYotiId/{tableName}/{yotiSessionId}:
     get:
       operationId: getSessionByIds
-      summary: Get a session by identifier from DynamoDB
+      summary: Get a session by using yotiSessionId-index from DynamoDB
       description: |
         Endpoint to get a session from DynamoDB using either authCode or yotiSessionId as the primary key.
-        If a session is found, it will be returned. Otherwise, it will return "No session found".
       parameters:
         - name: tableName
           in: path

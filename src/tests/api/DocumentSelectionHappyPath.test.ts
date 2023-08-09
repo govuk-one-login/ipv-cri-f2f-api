@@ -3,6 +3,7 @@ import dataDriversLicense from "../data/docSelectionPayloadDriversLicenceValid.j
 import dataBrp from "../data/docSelectionPayloadBrpValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId, authorizationGet, tokenPost, userInfoPost, stubStartPostNoSharedClaims, sessionPost, getSessionById } from "../utils/ApiTestSteps";
+import { constants } from "../utils/ApiConstants";
 
 describe("E2E Happy Path /documentSelection Endpoint", () => {
 	let sessionId: any;
@@ -77,7 +78,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 	// Test Suspended - additional engineering work is required to facilitate the validation of BE systems, designs and US to follow	
 	it.skip("Happy Path Journey - Validate Session Expiray is Updated after Document Selection", async () => {
 		//Get yoti expiry time
-		const initinalSessionRecord = await getSessionById(sessionId, "session-f2f-cri-ddb");
+		const initinalSessionRecord = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const initinalYotiSessionExpiry: any = initinalSessionRecord?.expiryDate;
 		console.log(initinalYotiSessionExpiry);
 
@@ -90,7 +91,7 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 		expect(response.data).toBe("Instructions PDF Generated");
 
 		//Get updated yoti expiry time
-		const updatedSessionRecord = await getSessionById(sessionId, "session-f2f-cri-ddb");
+		const updatedSessionRecord = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const updatedYotiSessionExpiry: any = updatedSessionRecord?.expiryDate;
 		console.log(updatedYotiSessionExpiry);
 

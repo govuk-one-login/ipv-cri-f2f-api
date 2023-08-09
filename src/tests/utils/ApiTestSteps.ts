@@ -11,7 +11,7 @@ import { XMLParser } from "fast-xml-parser";
 
 const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
 const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
-const HARNESS_API_INSTANCE : AxiosInstance = axios.create({baseURL: "https://uboz0e1cvi.execute-api.eu-west-2.amazonaws.com/dev/"});
+const HARNESS_API_INSTANCE : AxiosInstance = axios.create({baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
 const awsSigv4Interceptor = aws4Interceptor({
 	options: {
 		region: "eu-west-2",
@@ -184,30 +184,50 @@ export function generateRandomAlphanumeric(substringStart: number, substringEnd:
 }
 
 export async function getSessionById(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
-	const dynamoDB = createDynamoDbClient();
-
-	const getSessionCommand = new GetCommand({
-		TableName: tableName,
-		Key: {
-			sessionId,
-		},
-	});
-
 	let session;
 	try {
-		session = await dynamoDB.send(getSessionCommand);
+		const response = await HARNESS_API_INSTANCE.get(`getRecordBySessionId/${tableName}/${sessionId}`, {});
+		session = response.data;
 	} catch (e: any) {
-		console.error({ message: "getSessionById - failed executing get from dynamodb:", e });
+		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
 	}
 
+	console.log('getSessionById Response', session.Items[0]);
 	return session.Item as ISessionItem;
 }
+
+export async function getSessionByYotiId(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
+	let session;
+	try {
+		const response = await HARNESS_API_INSTANCE.get(`getSessionByYotiId/${tableName}/${sessionId}`, {});
+		session = response.data;
+	} catch (e: any) {
+		console.error({ message: "getSessionByYotiId - failed getting session from Dynamo", e });
+	}
+
+	console.log('getSessionByYotiId Response', session.Items[0]);
+	return session.Items[0] as ISessionItem;
+}
+
+export async function getSessionByAuthCode(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
+	let session;
+	try {
+		const response = await HARNESS_API_INSTANCE.get(`getSessionByAuthCode/${tableName}/${sessionId}`, {});
+		session = response.data;
+	} catch (e: any) {
+		console.error({ message: "getSessionByAuthCode - failed getting session from Dynamo", e });
+	}
+
+	console.log('getSessionByAuthCode Response', session.Items[0]);
+	return session.Items[0] as ISessionItem;
+}
+
 
 // export async function updateYotiSessionId(sessionId: string, yotiSessionId: any, updatedYotiSessionId: string): Promise<void> {
 // 	const dynamoDB = createDynamoDbClient();
 //
 // 	const updateSessionCommand = new UpdateCommand({
-// 		TableName: "session-f2f-cri-ddb",
+// 		TableName: constants.DEV_F2F_SESSION_TABLE_NAME,
 // 		Key: { sessionId },
 // 		UpdateExpression: "SET yotiSessionId=:yotiSessionId",
 // 		ExpressionAttributeValues: {

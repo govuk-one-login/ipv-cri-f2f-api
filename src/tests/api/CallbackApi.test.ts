@@ -18,6 +18,7 @@ import {
 	getDequeuedSqsMessage
 } from "../utils/ApiTestSteps";
 import "dotenv/config";
+import { constants } from "../utils/ApiConstants";
 
 describe("Callback API", () => {
 	jest.setTimeout(60000);
@@ -47,7 +48,7 @@ describe("Callback API", () => {
 		expect(userInfoResponse.status).toBe(202);
 
 		// Get Yoti Session Id
-		const session = await getSessionById(sessionId, "session-f2f-cri-ddb");
+		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId: any = session?.yotiSessionId;
 		console.log(yotiSessionId);
 
@@ -86,7 +87,7 @@ describe("Callback API", () => {
 
 		// Test Suspended - additional engineering work is required to facilitate the validation of BE systems, designs and US to follow
 		// Get Yoti Session Id
-		// const session = await getSessionById(sessionId, "session-f2f-cri-ddb");
+		// const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		// const yotiSessionId: any = session?.yotiSessionId;
 		// console.log(yotiSessionId);
 		// Yoti Callback
