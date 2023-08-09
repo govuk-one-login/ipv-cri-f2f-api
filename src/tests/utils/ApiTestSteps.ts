@@ -6,8 +6,9 @@ import { sqsClient } from "../../utils/SqsClient";
 import { ISessionItem } from "../../models/ISessionItem";
 import { ReceiveMessageCommand, DeleteMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 import { jwtUtils } from "../../utils/JwtUtils";
-const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
-const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
+const API_INSTANCE = axios.create({ baseURL: constants.DEV_CRI_F2F_API_URL });
+const YOTI_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_YOTI_STUB_URL });
+const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOVUKNOTIFYAPI });
 
 
 export async function startStubServiceAndReturnSessionId(stubPayload: any): Promise<any> {
@@ -16,7 +17,7 @@ export async function startStubServiceAndReturnSessionId(stubPayload: any): Prom
 	return postRequest;
 }
 
-export async function stubStartPost(stubPayload: any):Promise<any> {
+export async function stubStartPost(stubPayload: any): Promise<any> {
 	const path = constants.DEV_IPV_F2F_STUB_URL;
 	try {
 		const postRequest = await axios.post(`${path}`, stubPayload);
@@ -28,7 +29,7 @@ export async function stubStartPost(stubPayload: any):Promise<any> {
 	}
 }
 
-export async function stubStartPostNoSharedClaims(requestBody:any):Promise<any> {
+export async function stubStartPostNoSharedClaims(requestBody: any): Promise<any> {
 	const path = constants.DEV_IPV_F2F_STUB_URL;
 	try {
 		const postRequest = await axios.post(`${path}`, requestBody);
@@ -40,7 +41,7 @@ export async function stubStartPostNoSharedClaims(requestBody:any):Promise<any> 
 	}
 }
 
-export async function sessionPost(clientId?: string, request?: string):Promise<any> {
+export async function sessionPost(clientId?: string, request?: string): Promise<any> {
 	const path = "/session";
 	try {
 		const postRequest = await API_INSTANCE.post(path, { client_id: clientId, request });
@@ -52,10 +53,10 @@ export async function sessionPost(clientId?: string, request?: string):Promise<a
 	}
 }
 
-export async function postDocumentSelection(userData:any, sessionId:any): Promise<any> {
+export async function postDocumentSelection(userData: any, sessionId: any): Promise<any> {
 	const path = "/documentSelection";
 	try {
-		const postRequest = await API_INSTANCE.post(path, userData, { headers:{ "x-govuk-signin-session-id": sessionId } });
+		const postRequest = await API_INSTANCE.post(path, userData, { headers: { "x-govuk-signin-session-id": sessionId } });
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
@@ -64,10 +65,10 @@ export async function postDocumentSelection(userData:any, sessionId:any): Promis
 }
 
 
-export async function authorizationGet(sessionId: any):Promise<any> {
+export async function authorizationGet(sessionId: any): Promise<any> {
 	const path = "/authorization";
 	try {
-		const getRequest = await API_INSTANCE.get(path, { headers:{ "session-id": sessionId } });
+		const getRequest = await API_INSTANCE.get(path, { headers: { "session-id": sessionId } });
 		return getRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
@@ -75,10 +76,10 @@ export async function authorizationGet(sessionId: any):Promise<any> {
 	}
 }
 
-export async function tokenPost(authCode?: any, redirectUri?: any ):Promise<any> {
+export async function tokenPost(authCode?: any, redirectUri?: any): Promise<any> {
 	const path = "/token";
 	try {
-		const postRequest = await API_INSTANCE.post( path, `code=${authCode}&grant_type=authorization_code&redirect_uri=${redirectUri}`, { headers:{ "Content-Type" : "text/plain" } });
+		const postRequest = await API_INSTANCE.post(path, `code=${authCode}&grant_type=authorization_code&redirect_uri=${redirectUri}`, { headers: { "Content-Type": "text/plain" } });
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
@@ -86,10 +87,10 @@ export async function tokenPost(authCode?: any, redirectUri?: any ):Promise<any>
 	}
 }
 
-export async function userInfoPost(accessToken?: any):Promise<any> {
+export async function userInfoPost(accessToken?: any): Promise<any> {
 	const path = "/userinfo";
 	try {
-		const postRequest = await API_INSTANCE.post( path, null, { headers: { "Authorization": `${accessToken}` } });
+		const postRequest = await API_INSTANCE.post(path, null, { headers: { "Authorization": `${accessToken}` } });
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
@@ -97,7 +98,7 @@ export async function userInfoPost(accessToken?: any):Promise<any> {
 	}
 }
 
-export async function callbackPost(sessionId: any):Promise<any> {
+export async function callbackPost(sessionId: any): Promise<any> {
 	const path = "/callback";
 	try {
 		const postRequest = await API_INSTANCE.post(path, {
@@ -125,7 +126,7 @@ export async function postYotiSession(trackingId: any, userData: any): Promise<a
 	}
 }
 
-export async function getYotiSessionsConfiguration(sessionId:any): Promise<any> {
+export async function getYotiSessionsConfiguration(sessionId: any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/configuration";
 	console.log(path);
 	try {
@@ -138,7 +139,7 @@ export async function getYotiSessionsConfiguration(sessionId:any): Promise<any> 
 	}
 }
 
-export async function putYotiSessionsInstructions(sessionId:any): Promise<any> {
+export async function putYotiSessionsInstructions(sessionId: any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions";
 	console.log(path);
 	try {
@@ -152,7 +153,7 @@ export async function putYotiSessionsInstructions(sessionId:any): Promise<any> {
 }
 
 
-export async function getYotiSessionsInstructions(sessionId:any): Promise<any> {
+export async function getYotiSessionsInstructions(sessionId: any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions/pdf";
 	console.log(path);
 	try {
@@ -233,10 +234,10 @@ export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 			jwtToken = array[2];
 			await sqsClient.send(
 				new DeleteMessageCommand({
-				  QueueUrl: queueURL,
-				  ReceiptHandle: m.ReceiptHandle,
+					QueueUrl: queueURL,
+					ReceiptHandle: m.ReceiptHandle,
 				}),
-			  );
+			);
 		}
 	} catch (e: any) {
 		console.error({ message: "got error receiving messages: ", e });
@@ -245,7 +246,7 @@ export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 	return jwtToken;
 }
 
-export function validateJwtToken(jwtToken:any, vcData: any, yotiId?: string):void {
+export function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): void {
 	const [rawHead, rawBody, signature] = jwtToken.split(".");
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
 	// Strength Score
@@ -291,15 +292,34 @@ export function validateJwtToken(jwtToken:any, vcData: any, yotiId?: string):voi
 	}
 }
 
-	export async function postAbortSession(reasion:any, sessionId:any): Promise<any> {
-		const path = constants.DEV_CRI_F2F_API_URL + "/abort";
-		console.log(path);
-		try {
-			const postRequest = await API_INSTANCE.post(path, reasion, { headers:{ "x-govuk-signin-session-id": sessionId } });
-			return postRequest;
-	
-		} catch (error: any) {
-			console.log(`Error response from endpoint: ${error}`);
-			return error.response;
-		}
+export async function postAbortSession(reasion: any, sessionId: any): Promise<any> {
+	const path = constants.DEV_CRI_F2F_API_URL + "/abort";
+	console.log(path);
+	try {
+		const postRequest = await API_INSTANCE.post(path, reasion, { headers: { "x-govuk-signin-session-id": sessionId } });
+		return postRequest;
+
+	} catch (error: any) {
+		console.log(`Error response from endpoint: ${error}`);
+		return error.response;
 	}
+}
+
+export async function postGovNotifyRequest(mockDelimitator: any, userData: any): Promise<any> {
+	const path = "/v2/notifications/email";
+	try {
+		// update email to contain mock delimitator before the @ - this determines the behaviour of the GovNotify mock
+		userData.email_address = insertBeforeLastOccurrence(userData.email_address, "@", mockDelimitator);
+		const postRequest = await GOV_NOTIFY_INSTANCE.post(path, userData);
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+
+	function insertBeforeLastOccurrence(strToSearch: string, strToFind: string, strToInsert: string) {
+		var n = strToSearch.lastIndexOf(strToFind);
+		if (n < 0) return strToSearch;
+		return strToSearch.substring(0, n) + strToInsert + strToSearch.substring(n);
+	}
+}
