@@ -220,6 +220,15 @@ export class EnvironmentVariables {
 				}
 				break;
 			}
+			case ServicesEnum.ABORT_SERVICE: {
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+				!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
+				!this.ISSUER || this.ISSUER.trim().length === 0) {
+					logger.error("Environment variable SESSION_TABLE or TXMA_QUEUE_URL or ISSUER is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Abort Service incorrectly configured");
+				}
+				break;
+			}
 			default:
 				break;
 		}

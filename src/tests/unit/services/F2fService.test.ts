@@ -27,7 +27,6 @@ function getTXMAEventPayload(): TxmaEvent {
 		event_name: "F2F_YOTI_PDF_EMAILED",
 		user: {
 			user_id: "sessionCliendId",
-			transaction_id: "",
 			persistent_session_id: "sessionPersistentSessionId",
 			session_id: "sessionID",
 			govuk_signin_journey_id: "clientSessionId",
