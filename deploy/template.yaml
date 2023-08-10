@@ -427,6 +427,42 @@ Resources:
         DNSName: !GetAtt F2FApiCustomDomainName.RegionalDomainName
         HostedZoneId: !GetAtt F2FApiCustomDomainName.RegionalHostedZoneId
 
+  F2FRestAPIFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref F2FAPIGatewayAccessLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "F2FResetAPI-Fatalerror"
+
+  F2FRestAPIFatalErrorAlarm:
+    DependsOn:
+      - "F2FRestAPIFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-F2FRestAPI-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: F2FResetAPI-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
   ### End of API Gateway Custom Domain definition
 
   ### Function Definition
@@ -534,6 +570,42 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref SessionFunction
       Principal: apigateway.amazonaws.com
+
+  SessionFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref SessionFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "SessionFunction-Fatalerror"
+
+  SessionFunctionFatalErrorAlarm:
+    DependsOn:
+      - "SessionFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-SessionFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: SessionFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   SessionConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
@@ -663,6 +735,42 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref TokenFunction
       Principal: apigateway.amazonaws.com
+
+  TokenFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref TokenFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "TokenFunction-Fatalerror"
+
+  TokenFunctionFatalErrorAlarm:
+    DependsOn:
+      - "TokenFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-TokenFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: TokenFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   TokenConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
@@ -799,6 +907,42 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref AuthorizationFunction
       Principal: apigateway.amazonaws.com
+
+  AuthorizationFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref AuthorizationFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "AuthorizationFunction-Fatalerror"
+
+  AuthorizationFunctionFatalErrorAlarm:
+    DependsOn:
+      - "AuthorizationFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: AuthorizationFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   AuthorizationConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
@@ -969,6 +1113,42 @@ Resources:
       FunctionName: !Ref DocumentSelectionFunction
       Principal: apigateway.amazonaws.com
 
+  DocumentSelectionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref DocumentSelectionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "DocumentSelection-Fatalerror"
+
+  DocumentSelectionFatalErrorAlarm:
+    DependsOn:
+      - "DocumentSelectionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-DocumentSelection-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: DocumentSelection-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
   DocumentSelectionConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployConcurrencyAlarms"
@@ -1090,6 +1270,42 @@ Resources:
         !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
       FilterPattern: ""
       LogGroupName: !Ref AbortLogGroup
+
+  AbortFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref AbortLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "AbortFunction-Fatalerror"
+
+  AbortFunctionFatalErrorAlarm:
+    DependsOn:
+      - "AbortFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-AbortFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: AbortFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   AbortPermission:
     Type: AWS::Lambda::Permission
@@ -1246,6 +1462,42 @@ Resources:
       FunctionName: !GetAtt JsonWebKeysFunction.Arn
       Principal: events.amazonaws.com
 
+  JsonWebKeysFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref JsonWebKeysLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "JsonWebKeysFunction-Fatalerror"
+
+  JsonWebKeysFunctionFatalErrorAlarm:
+    DependsOn:
+      - "JsonWebKeysFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: JsonWebKeysFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
   JsonWebKeysConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployConcurrencyAlarms"
@@ -1398,6 +1650,42 @@ Resources:
       FunctionName: !Ref GovNotifyFunction
       Principal: apigateway.amazonaws.com
 
+  GovNotifyFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref GovNotifyFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "GovNotifyFunction-Fatalerror"
+
+  GovNotifyFunctionFatalErrorAlarm:
+    DependsOn:
+      - "GovNotifyFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: GovNotifyFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
   GovNotifyConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployConcurrencyAlarms"
@@ -1538,6 +1826,42 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref UserInfoFunction
       Principal: apigateway.amazonaws.com
+
+  UserInfoFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref UserInfoFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "UserInfoFunction-Fatalerror"
+
+  UserInfoFunctionFatalErrorAlarm:
+    DependsOn:
+      - "UserInfoFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-UserInfoFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: UserInfoFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   UserInfoConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
@@ -1874,6 +2198,42 @@ Resources:
         - !Sub "alias/YotiCallbackEncryptionKey-${AWS::StackName}"
         - alias/YotiCallbackEncryptionKey
       TargetKeyId: !Ref YotiCallbackEncryptionKey
+
+  YotiCallbackFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref YotiCallbackFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "YotiCallbackFunction-Fatalerror"
+
+  YotiCallbackFunctionFatalErrorAlarm:
+    DependsOn:
+      - "YotiCallbackFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: YotiCallbackFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   YotiCallbackConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
