@@ -89,7 +89,7 @@ paths:
       operationId: getSessionByAuthCode
       summary: Get a session by using authorizationCode-index from DynamoDB
       description: |
-        Endpoint to get a session from DynamoDB using either authCode or yotiSessionId as the primary key.
+        Endpoint to get a session from DynamoDB using either authCode as the primary key
       parameters:
         - name: tableName
           in: path
@@ -151,7 +151,7 @@ paths:
       operationId: getSessionByIds
       summary: Get a session by using yotiSessionId-index from DynamoDB
       description: |
-        Endpoint to get a session from DynamoDB using either authCode or yotiSessionId as the primary key.
+        Endpoint to get a session from DynamoDB using either yotiSessionId as the primary key.
       parameters:
         - name: tableName
           in: path

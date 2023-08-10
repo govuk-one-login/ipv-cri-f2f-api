@@ -264,7 +264,7 @@ Resources:
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
 
-  ### Start of API Gateway definition.
+  ### Start of DynamoDb Access Role definition.
 
   DynamoDbAccessRole:
     Type: "AWS::IAM::Role"
