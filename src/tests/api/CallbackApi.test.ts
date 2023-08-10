@@ -76,7 +76,7 @@ describe("Callback API", () => {
 		const sub = sessionResponse.data.sub;
 
 		// Document Selection
-		const response = await postDocumentSelection(dataPassport, sessionId);
+		const response = await postDocumentSelection(docSelectionData, sessionId);
 		expect(response.status).toBe(200);
 		// Authorization
 		const authResponse = await authorizationGet(sessionId);
