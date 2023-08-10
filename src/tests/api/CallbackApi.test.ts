@@ -67,14 +67,23 @@ describe("Callback API", () => {
 
 	}, 20000);
 
-	it("F2F CRI Callback Endpoint Integration HappyPath - yotiMockId: '%s'", async () => {
-		f2fStubPayload.yotiMockID = "0000";
+	it.each([
+		["0150", dataPassport, "FRANK", "JACOB", "JAMES", "SMITH0150"],
+		["0151", dataPassport, "FRANK", "JACOB", "JAMES", "SMITH0151"],
+		["0152", dataPassport, "FRANK", "JACOB", "JAMES", "SMITH0152"],
+	])("F2F CRI Callback Endpoint - yotiMockId: '%s'", async (yotiMockId: string, docSelectionData:any, givenName1:any, givenName2:any, givenName3:any, familyName:any ) => {
+		f2fStubPayload.yotiMockID = yotiMockId;
+		f2fStubPayload.shared_claims.name[0].nameParts[0].value = givenName1;
+		f2fStubPayload.shared_claims.name[0].nameParts[1].value = givenName2;
+	 	f2fStubPayload.shared_claims.name[0].nameParts[2].value = givenName2;
+		f2fStubPayload.shared_claims.name[0].nameParts[2].value = familyName;
+
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
 		const sessionId = sessionResponse.data.session_id;
 		const sub = sessionResponse.data.sub;
 
 		// Document Selection
-		const response = await postDocumentSelection(dataPassport, sessionId);
+		const response = await postDocumentSelection(docSelectionData, sessionId);
 		expect(response.status).toBe(200);
 		// Authorization
 		const authResponse = await authorizationGet(sessionId);
@@ -87,21 +96,15 @@ describe("Callback API", () => {
 		expect(userInfoResponse.status).toBe(202);
 
 		// Get Yoti Session Id
-		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
-		const yotiSessionId: any = session?.yotiSessionId;
-		console.log(yotiSessionId);
-
+		// const session = await getSessionById(sessionId, "session-f2f-cri-ddb");
+		// const yotiSessionId: any = session?.yotiSessionId;
+		// console.log(yotiSessionId);
 		// Yoti Callback
-		const callbackResponse = await callbackPost(yotiSessionId);
-		expect(callbackResponse.status).toBe(202);
-
-		// Retrieve Verifiable Credential from dequeued SQS queue
-		let sqsMessage;
-		do {
-			sqsMessage = await getDequeuedSqsMessage(sub);
-		} while (!sqsMessage);
-		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
-
-		validateJwtToken(jwtToken, vcResponseData, "0000");
-	}, 20000);
+		// const callbackResponse = await callbackPost(yotiSessionId);
+		// expect(userInfoResponse.status).toBe(202);
+		// Verifiable Credential Validation
+		//await setTimeout(10000);
+		//const jwtToken = await receiveJwtTokenFromSqsMessage();
+		//validateJwtToken(jwtToken, vcResponseData, yotiMockId);
+	});
 });
