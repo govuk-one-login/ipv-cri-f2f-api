@@ -107,7 +107,7 @@ Mappings:
       CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"}]'
       AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
-      TESTHARNESSURL: "http://f2f-test-harness-testharness.review-o.dev.account.gov.uk/"
+      TESTHARNESSURL: "http://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
     build:
       YOTIBASEURL: "https://yotistub.review-o.build.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
@@ -121,7 +121,7 @@ Mappings:
       CLIENTS: '[{"jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect"}]'
       AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
-      TESTHARNESSURL: "http://f2f-test-harness-testharness.review-o.build.account.gov.uk/"
+      TESTHARNESSURL: "http://f2f-test-harness-testharness.review-o.build.account.gov.uk"
     staging:
       YOTIBASEURL: "https://yotistub.review-o.staging.account.gov.uk"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
