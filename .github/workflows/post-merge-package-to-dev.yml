@@ -8,6 +8,7 @@ on:
       - 'infra-l2-dynamo/**'
       - 'infra-l2-kms/**'
       - 'f2f-ipv-stub/**'
+      - 'test-harness/**'
       - 'infra-l2-outbound-proxy/**'
 
   # Allows you to run this workflow manually from the Actions tab
@@ -19,6 +20,7 @@ permissions:
 
 env: # Only adding the variables in that are required for
   AWS_REGION: eu-west-2
+  DEV_F2F_TEST_HARNESS_URL: ${{ secrets.DEV_TEST_HARNESS_API_ENDPOINT }}
 
 jobs:
   deploy-to-dev:

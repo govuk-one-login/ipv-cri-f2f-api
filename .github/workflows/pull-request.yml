@@ -32,6 +32,7 @@ env: # Only adding the variables in that are required for
   DEV_F2F_YOTI_STUB_URL: ${{ secrets.DEV_F2F_YOTI_STUB_URL }}
   DEV_F2F_EXPIRED_ACCESS_TOKEN: ${{ secrets.DEV_F2F_EXPIRED_ACCESS_TOKEN }}
   DEV_F2F_MISSING_SUB_ACCESS_TOKEN: ${{ secrets.DEV_F2F_MISSING_SUB_ACCESS_TOKEN }}
+  DEV_F2F_TEST_HARNESS_URL: ${{ secrets.DEV_TEST_HARNESS_API_ENDPOINT }}
 
 jobs:
   run-code-check:
