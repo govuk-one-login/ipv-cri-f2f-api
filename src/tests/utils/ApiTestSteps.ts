@@ -275,23 +275,25 @@ export async function validateTxMAEventData(keyList: any): Promise<any> {
 	let i:any;
 	for (i = 0; i < keyList.length; i++) {
 		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
-		const txmaJsonObject = JSON.parse(JSON.stringify(getObjectResponse.data, null, 2));
 		console.log(JSON.stringify(getObjectResponse.data, null, 2));
-
+		let valid = true;
 		import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json" )
 			.then((jsonSchema) => {
 				const validate = ajv.compile(jsonSchema);
-				const valid = validate(txmaJsonObject);
+				valid = validate(getObjectResponse.data);
 				if (!valid) {
-					console.log(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+					console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
 				}
 			})
 			.catch((err) => {
 				console.log(err.message);
+			})
+			.finally(() => {
+				expect(valid).toBe(true);
 			});
 	}
-
-} 
+}
+ 
 
 /**
  * Retrieves an object from the bucket with the specified prefix, which is the latest message dequeued from the SQS
