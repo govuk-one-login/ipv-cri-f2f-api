@@ -283,7 +283,7 @@ export async function validateTxMAEventData(keyList: any): Promise<any> {
 				const validate = ajv.compile(jsonSchema);
 				const valid = validate(txmaJsonObject);
 				if (!valid) {
-					console.log(validate.errors);
+					console.log(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
 				}
 			})
 			.catch((err) => {
