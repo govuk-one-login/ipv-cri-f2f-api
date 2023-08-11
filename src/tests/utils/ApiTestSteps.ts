@@ -246,7 +246,7 @@ export async function getSessionByAuthCode(sessionId: string, tableName: string)
  * @param prefix
  * @returns {any} - returns either the body of the SQS message or undefined if no such message found
  */
-export async function getSqsEventList(folder: string, prefix: string): Promise<any> {
+export async function getSqsEventList(folder: string, prefix: string, txmaEventSize:number): Promise<any> {
 	let keys: any[];
 	let keyList: any[];
 	let i:any;
@@ -266,7 +266,7 @@ export async function getSqsEventList(folder: string, prefix: string): Promise<a
 		for (i = 0; i < keys.length; i++) {
 			keyList.push(listObjectsParsedResponse?.ListBucketResult?.Contents.at(i).Key);
 		} 
-	} while (keys.length < 6 );
+	} while (keys.length < txmaEventSize );
 	return keyList;
 }
 
