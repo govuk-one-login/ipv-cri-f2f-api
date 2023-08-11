@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import Ajv from "ajv";
 import { aws4Interceptor } from "aws4-axios";
 import { constants } from "../utils/ApiConstants";
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
@@ -21,6 +22,8 @@ const awsSigv4Interceptor = aws4Interceptor({
 HARNESS_API_INSTANCE.interceptors.request.use(awsSigv4Interceptor);
 
 const xmlParser = new XMLParser();
+const ajv = new Ajv({ strictTuples: false });
+
 
 export async function startStubServiceAndReturnSessionId(stubPayload: any): Promise<any> {
 	const stubResponse = await stubStartPost(stubPayload);
@@ -236,24 +239,59 @@ export async function getSessionByAuthCode(sessionId: string, tableName: string)
 }
 
 
-// export async function updateYotiSessionId(sessionId: string, yotiSessionId: any, updatedYotiSessionId: string): Promise<void> {
-// 	const dynamoDB = createDynamoDbClient();
-//
-// 	const updateSessionCommand = new UpdateCommand({
-// 		TableName: constants.DEV_F2F_SESSION_TABLE_NAME,
-// 		Key: { sessionId },
-// 		UpdateExpression: "SET yotiSessionId=:yotiSessionId",
-// 		ExpressionAttributeValues: {
-// 			":yotiSessionId": updatedYotiSessionId,
-// 		},
-// 	});
-// 	try {
-// 		dynamoDB.send(updateSessionCommand);
-// 		console.info({ message: "updated yotiSessionId in dynamodb" });
-// 	} catch (e: any) {
-// 		console.error({ message: "got error updating yotiSessionId", e });
-// 	}
-// }
+/**
+ * Retrieves an object from the bucket with the specified prefix, which is the latest message dequeued from the SQS
+ * queue under test
+ *
+ * @param prefix
+ * @returns {any} - returns either the body of the SQS message or undefined if no such message found
+ */
+export async function getSqsEventList(folder: string, prefix: string): Promise<any> {
+	let keys: any[];
+	let keyList: any[];
+	let i:any;
+	do {
+		const listObjectsResponse = await HARNESS_API_INSTANCE.get("/bucket/", {
+			params: {
+				prefix: folder + prefix,
+			},
+		});
+		const listObjectsParsedResponse = xmlParser.parse(listObjectsResponse.data);
+		if (!listObjectsParsedResponse?.ListBucketResult?.Contents) {
+			return undefined;
+		}
+		keys = listObjectsParsedResponse?.ListBucketResult?.Contents;
+		console.log(listObjectsParsedResponse?.ListBucketResult?.Contents);
+		keyList = [];
+		for (i = 0; i < keys.length; i++) {
+			keyList.push(listObjectsParsedResponse?.ListBucketResult?.Contents.at(i).Key);
+		} 
+	} while (keys.length < 6 );
+	return keyList;
+}
+
+
+export async function validateTxMAEventData(keyList: any): Promise<any> {
+	let i:any;
+	for (i = 0; i < keyList.length; i++) {
+		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
+		const txmaJsonObject = JSON.parse(JSON.stringify(getObjectResponse.data, null, 2));
+		console.log(JSON.stringify(getObjectResponse.data, null, 2));
+
+		import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json" )
+			.then((jsonSchema) => {
+				const validate = ajv.compile(jsonSchema);
+				const valid = validate(txmaJsonObject);
+				if (!valid) {
+					console.log(validate.errors);
+				}
+			})
+			.catch((err) => {
+				console.log(err.message);
+			});
+	}
+
+} 
 
 /**
  * Retrieves an object from the bucket with the specified prefix, which is the latest message dequeued from the SQS
