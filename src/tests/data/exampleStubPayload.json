@@ -14,10 +14,6 @@
                         "type": "GivenName"
                     },
                     {
-                        "value": "API",
-                        "type": "GivenName"
-                    },
-                    {
                         "value": "Test",
                         "type": "FamilyName"
                     }
