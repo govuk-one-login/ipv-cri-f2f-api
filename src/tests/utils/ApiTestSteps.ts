@@ -365,6 +365,16 @@ export function validateJwtToken(jwtToken:any, vcData: any, yotiId?: string):voi
 	}
 }
 
+export function validateJwtTokenNamePart(jwtToken:any, givenName1:any, givenName2:any, givenName3:any, familyName:any):void {
+	const [rawHead, rawBody, signature] = jwtToken.split(".");
+	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
+	expect(decodedBody.vc.credentialSubject.name[0].nameParts[0].value).toBe(givenName1);
+	expect(decodedBody.vc.credentialSubject.name[0].nameParts[1].value).toBe(givenName2);
+	expect(decodedBody.vc.credentialSubject.name[0].nameParts[2].value).toBe(givenName3);
+	expect(decodedBody.vc.credentialSubject.name[0].nameParts[3].value).toBe(familyName);
+
+}
+
 export async function postAbortSession(reasion:any, sessionId:any): Promise<any> {
 	const path = constants.DEV_CRI_F2F_API_URL + "/abort";
 	console.log(path);
