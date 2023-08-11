@@ -15,6 +15,8 @@ export DEV_CRI_F2F_API_URL=$(remove_quotes "$CFN_F2FBackendURL")
 export DEV_IPV_F2F_STUB_URL=$(remove_quotes "$CFN_F2FIPVStubExecuteURL")start
 # shellcheck disable=SC2154
 export DEV_F2F_YOTI_STUB_URL=$(remove_quotes "$CFN_F2FYotiStubURL")
+# shellcheck disable=SC2154
+export DEV_F2F_TEST_HARNESS_URL=$(remove_quotes "$CFN_F2FTestHarnessURL")
 
 cd /src; npm run test:api
 cp -rf results $TEST_REPORT_ABSOLUTE_DIR
