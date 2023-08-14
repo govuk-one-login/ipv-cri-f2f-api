@@ -267,6 +267,7 @@ Resources:
   DynamoDbAccessRole:
     Type: "AWS::IAM::Role"
     Properties:
+      RoleName: !Sub "f2f-test-harness-${AWS::StackName}-apigw"
       AssumeRolePolicyDocument:
         Statement:
           - Action: "sts:AssumeRole"
