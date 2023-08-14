@@ -17,7 +17,7 @@ import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../utils/YotiPayloadEnums";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
-import { DrivingPermit, IdentityCard, Passport, ResidencePermit } from "../utils/IVeriCredential";
+import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "../utils/IVeriCredential";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
 export class YotiCallbackProcessor {
@@ -163,7 +163,9 @@ export class YotiCallbackProcessor {
   			const missingGivenName = this.checkMissingField(given_names, "given_names");
   			const missingFamilyName = this.checkMissingField(family_name, "family_name");
   			const missingFullName = this.checkMissingField(full_name, "full_name");
-  			let VcNameParts;
+  			let VcNameParts: Name[];
+
+  			this.logger.info("Missing details check", { missingGivenName, missingFamilyName, missingFullName });
 
   			// If all three name fields are missing, log an error and throw an exception
   			if (missingGivenName && missingFamilyName && missingFullName) {
@@ -174,7 +176,6 @@ export class YotiCallbackProcessor {
   			}
 
   			if (missingGivenName || missingFamilyName) {
-					
   				const personDetails = await this.f2fService.getPersonIdentityById(f2fSession.sessionId, this.environmentVariables.personIdentityTableName());
 
   				if (!personDetails) {

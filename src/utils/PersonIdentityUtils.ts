@@ -29,8 +29,11 @@ export const personIdentityUtils = {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, errorMessage);
 		}
 
+		// Remove family name from the full name and split at spaces
 		const yotiGivenNameParts = yotiFullName.replace(new RegExp(f2fFamilyName, "i"), "").match(/\S+/g);
+		// Map the array of given names into the correct format
 		const nameParts = yotiGivenNameParts.map((name: string) => ({ value: name.trim(), type: "GivenName" }));
+		// Remove the given names from the full name, remove surrounding spaces, and map to correct format
 		nameParts.push({ value: yotiFullName.replace(new RegExp(f2fGivenNames, "i"), "").trim(), type: "FamilyName" });
 
 		return [{ nameParts }];
