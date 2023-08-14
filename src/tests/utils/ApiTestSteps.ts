@@ -124,6 +124,16 @@ export async function callbackPost(sessionId: any):Promise<any> {
 	}
 }
 
+export async function sessionConfigurationGet(sessionId: any):Promise<any> {
+	const path = "/sessionConfiguration";
+	try {
+		const getRequest = await API_INSTANCE.get(path, { headers:{ "x-govuk-signin-session-id": sessionId } });
+		return getRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+}
 export async function postYotiSession(trackingId: any, userData: any): Promise<any> {
 	const path = "/sessions";
 	try {
