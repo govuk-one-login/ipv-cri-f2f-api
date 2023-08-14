@@ -275,54 +275,58 @@ Resources:
               Service: apigateway.amazonaws.com
         Version: 2012-10-17
       Policies:
-      - PolicyName: SessionTableReadAccess
-        PolicyDocument:
-          Version: 2012-10-17
-          Statement:
-          - Effect: Allow
-            Action: 
-            - dynamodb:GetItem
-            Resource:
-              Fn::ImportValue: !Sub "${BackendStack}-SessionTable-arn"
-          - Effect: Allow
-            Action: 
-            - dynamodb:Query
-            Resource:
-              "Fn::Sub": [
-                "${tableName}/index/*",
-                {
-                  "tableName": {
-                    Fn::ImportValue: !Sub "${BackendStack}-SessionTable-arn"
+        - PolicyName: SessionTableReadAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Effect: Allow
+              Action:
+              - dynamodb:GetItem
+              Resource:
+                Fn::ImportValue: !Sub "${BackendStack}-SessionTable-arn"
+            - Effect: Allow
+              Action:
+              - dynamodb:Query
+              Resource:
+                "Fn::Sub": [
+                  "${tableName}/index/*",
+                  {
+                    "tableName": {
+                      Fn::ImportValue: !Sub "${BackendStack}-SessionTable-arn"
+                    }
                   }
-                }
-              ]
-      - PolicyName: SessionTableDecryptPolicy
-        PolicyDocument:
-          Version: 2012-10-17
-          Statement:
-          - Effect: Allow
-            Action: 
-            - kms:Decrypt
-            Resource:
-              Fn::ImportValue: !Sub "${BackendStack}-SessionTableEncryptionKey-arn"
-      - PolicyName: PersonIdentityReadAccess
-        PolicyDocument:
-          Version: 2012-10-17
-          Statement:
-          - Effect: Allow
-            Action: 
-            - dynamodb:GetItem
-            Resource:
-              Fn::ImportValue: !Sub "${BackendStack}-PersonIdentityTable-arn"
-      - PolicyName: PersonIdentityDecryptPolicy
-        PolicyDocument:
-          Version: 2012-10-17
-          Statement:
-          - Effect: Allow
-            Action: 
-            - kms:Decrypt
-            Resource:
-              Fn::ImportValue: !Sub "${BackendStack}-PersonIdentityTableEncryptionKey-arn"
+                ]
+        - PolicyName: SessionTableDecryptPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Effect: Allow
+              Action:
+              - kms:Decrypt
+              Resource:
+                Fn::ImportValue: !Sub "${BackendStack}-SessionTableEncryptionKey-arn"
+        - PolicyName: PersonIdentityReadAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Effect: Allow
+              Action:
+              - dynamodb:GetItem
+              Resource:
+                Fn::ImportValue: !Sub "${BackendStack}-PersonIdentityTable-arn"
+        - PolicyName: PersonIdentityDecryptPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Effect: Allow
+              Action:
+              - kms:Decrypt
+              Resource:
+                Fn::ImportValue: !Sub "${BackendStack}-PersonIdentityTableEncryptionKey-arn"
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
 
   ### Start of API Gateway definition.
 
