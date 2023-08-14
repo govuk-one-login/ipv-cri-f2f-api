@@ -746,7 +746,7 @@ Resources:
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      Threshold: !FindInMap [ EnvironmentVariables, !Ref Environment, LAMBDACONCURRENCYTHRESHOLD ]
+      Threshold: !Ref LambdaConcurrencyThreshold
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
@@ -1247,29 +1247,6 @@ Resources:
       - "DocumentSelectionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-DocumentSelection-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
-      AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
-      InsufficientDataActions: [ ]
-      MetricName: DocumentSelection-Fatalerror
-      Namespace: !Sub "${AWS::StackName}/LogMessages"
-      Statistic: Sum
-      Dimensions: [ ]
-      Period: 60
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-
-  DocumentSelectionConcurrency80Alarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DocumentSelection-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
