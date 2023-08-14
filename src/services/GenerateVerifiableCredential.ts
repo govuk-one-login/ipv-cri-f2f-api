@@ -190,7 +190,7 @@ export class GenerateVerifiableCredential {
 
   private attachPersonName(
   	credentialSubject: VerifiedCredentialSubject,
-  	VcNameParts: any,
+  	VcNameParts: Name[],
   ): VerifiedCredentialSubject {
   	credentialSubject.name = VcNameParts;
 
