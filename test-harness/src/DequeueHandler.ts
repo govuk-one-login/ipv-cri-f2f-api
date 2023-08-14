@@ -1,3 +1,4 @@
+import { SQSEvent } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -27,7 +28,7 @@ export const s3Client = new S3Client({
 });
 
 class DequeueHandler implements LambdaInterface {
-	async handler(event: any): Promise<any> {
+	async handler(event: SQSEvent): Promise<any> {
 		logger.info("Starting to process records");
 		const batchFailures: BatchItemFailure[] = [];
 
