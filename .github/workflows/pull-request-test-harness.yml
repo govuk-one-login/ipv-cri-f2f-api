@@ -1,4 +1,4 @@
-name: Pull Request CI
+name: Pull Request CI - Test harness
 on:
   # Triggers the workflow on push or pull request events but only for the "main" or "develop" branch
   pull_request:
@@ -9,14 +9,8 @@ on:
       - reopened
       - ready_for_review
       - synchronize
-    paths-ignore:
-      - 'infra-l2-dynamo/**'
-      - 'infra-l2-kms/**'
-      - 'f2f-ipv-stub/**'
-      - 'infra-l2-outbound-proxy/**'
-      - 'yoti-stub/**'
+    paths:
       - 'test-harness/**'
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -27,12 +21,6 @@ permissions:
 
 env: # Only adding the variables in that are required for
   AWS_REGION: eu-west-2
-  DEV_CRI_F2F_API_URL: ${{ secrets.DEV_CRI_F2F_API_URL }}
-  DEV_IPV_F2F_STUB_URL: ${{ secrets.DEV_IPV_F2F_STUB_URL }}
-  DEV_F2F_YOTI_STUB_URL: ${{ secrets.DEV_F2F_YOTI_STUB_URL }}
-  DEV_F2F_EXPIRED_ACCESS_TOKEN: ${{ secrets.DEV_F2F_EXPIRED_ACCESS_TOKEN }}
-  DEV_F2F_MISSING_SUB_ACCESS_TOKEN: ${{ secrets.DEV_F2F_MISSING_SUB_ACCESS_TOKEN }}
-  DEV_F2F_TEST_HARNESS_URL: ${{ secrets.DEV_TEST_HARNESS_API_ENDPOINT }}
 
 jobs:
   run-code-check:
@@ -41,14 +29,14 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./src/
+        working-directory: test-harness/src/
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
         with:
           submodules: true
 
-      - name: Checks if commiting secrets to repo
+      - name: Checks if committing secrets to repo
         uses: pre-commit/action@v3.0.0
         with:
           extra_args: "detect-secrets --all-files"
@@ -74,18 +62,8 @@ jobs:
       - name: Run lint
         run: npm run lint
 
-      - name: Archive lint results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: lint-report
-          path: src/reports/eslint/reportFile.html
-
       - name: Run Tests
         run: npm run test:unit
-
-      - name: Run Infra checks
-        run: npm run test:infra
 
   sam-validate:
     name: SAM Validate
@@ -93,7 +71,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./deploy/
+        working-directory: test-harness
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
@@ -106,9 +84,9 @@ jobs:
           use-installer: true
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.CRI_F2F_GH_VALIDATE_ROLE_ARN }}
+          role-to-assume: ${{ secrets.GH_DEV_TEST_HARNESS_VALIDATE_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Cache SAM builds

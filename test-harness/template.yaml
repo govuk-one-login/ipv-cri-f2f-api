@@ -1,0 +1,421 @@
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Digital Identity F2F Test Automation Harness"
+
+Parameters:
+  CodeSigningConfigArn:
+    Type: String
+    Default: "none"
+    Description: >
+      The ARN of the Code Signing Config to use, provided by the deployment pipeline
+  Environment:
+    Description: "The environment type"
+    Type: "String"
+    AllowedValues:
+      - "dev"
+      - "build"
+  PermissionsBoundary:
+    Description: "The ARN of the permissions boundary to apply when creating IAM roles"
+    Type: String
+    Default: "none"
+  VpcStackName:
+    Type: String
+    Default: "vpc-cri"
+    Description: The name of the VPC stack deployed.
+  BackendStack:
+    Description: The stack name of the API stack under test
+    Default: f2f-cri-api
+    Type: String
+
+Mappings:
+  EnvironmentConfiguration: # This is where you store per-environment settings.
+    dev:
+      logretentionindays: 3
+      apiTracingEnabled: true
+    build:
+      logretentionindays: 3
+      apiTracingEnabled: true
+
+  PlatformConfiguration:
+    dev:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+    build:
+      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
+
+  EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
+    dev:
+      TESTHARNESSURL: "testharness.review-o.dev.account.gov.uk"
+    build:
+      TESTHARNESSURL: "testharness.review-o.build.account.gov.uk"
+
+Conditions:
+  CreateDevResources: !Equals
+    - !Ref Environment
+    - dev
+  UseCodeSigning:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref CodeSigningConfigArn
+          - "none"
+  UsePermissionsBoundary:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref PermissionsBoundary
+          - "none"
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    VpcConfig:
+      SecurityGroupIds:
+        - !GetAtt LambdaEgressSecurityGroup.GroupId
+      SubnetIds:
+        - Fn::ImportValue:
+            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdA"
+        - Fn::ImportValue:
+            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdB"
+    PermissionsBoundary: !If
+      - UsePermissionsBoundary
+      - !Ref PermissionsBoundary
+      - !Ref AWS::NoValue
+    CodeSigningConfigArn: !If
+      - UseCodeSigning
+      - !Ref CodeSigningConfigArn
+      - !Ref AWS::NoValue
+    Timeout: 30 # seconds
+    Tracing: Active
+    MemorySize: 1024
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        AWS_STACK_NAME: !Sub ${AWS::StackName}
+        POWERTOOLS_LOG_LEVEL: DEBUG
+        POWERTOOLS_METRICS_NAMESPACE: F2F-CRI
+    AutoPublishAlias: live
+
+Resources:
+  LambdaEgressSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: >-
+        Permits outbound on port 443 from within the VPC to the internet.
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow to the wider internet on port 443
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      VpcId:
+        Fn::ImportValue: !Sub "${VpcStackName}-VpcId"
+
+  ### Function Definition
+  ## DequeueTxMAHandler
+  DequeueTxMAFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "F2F-Test-Dequeue-TxMA-${AWS::StackName}"
+      Handler: DequeueHandler.lambdaHandler
+      CodeUri: ./src/
+      Environment:
+        Variables:
+          EVENT_TEST_BUCKET_NAME: !Ref EventTestBucket
+          PROPERTY_NAME: "user.session_id"
+          BUCKET_FOLDER_PREFIX: "txma/"
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref EventTestBucket
+        - S3ReadPolicy:
+            BucketName: !Ref EventTestBucket
+        - Statement:
+            - Sid: TxMAKMSDecryptkeysPolicy
+              Effect: Allow
+              Action:
+                - "kms:Decrypt"
+              Resource:
+                Fn::ImportValue: !Sub "${BackendStack}-TxMAKMSEncryptionKey-arn"
+            - Sid: TxMASQSConsumeEventPolicy
+              Effect: Allow
+              Action:
+                - "sqs:DeleteMessage"
+                - "sqs:GetQueueAttributes"
+                - "sqs:ChangeMessageVisibility"
+                - "sqs:ReceiveMessage"
+              Resource:
+                Fn::ImportValue: !Sub "${BackendStack}-TxMASQSQueue-arn"
+      Events:
+        TxMASQSEvent:
+          Type: SQS
+          Properties:
+            Queue:
+              Fn::ImportValue: !Sub "${BackendStack}-TxMASQSQueue-arn"
+            Enabled: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - DequeueHandler.ts
+  
+  ## DequeueIPVCoreHandler
+  DequeueIPVCoreFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "F2F-Test-Dequeue-IPV-core-${AWS::StackName}"
+      Handler: DequeueHandler.lambdaHandler
+      CodeUri: ./src/
+      Environment:
+        Variables:
+          EVENT_TEST_BUCKET_NAME: !Ref EventTestBucket
+          PROPERTY_NAME: "sub"
+          BUCKET_FOLDER_PREFIX: "ipv-core/"
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref EventTestBucket
+        - S3ReadPolicy:
+            BucketName: !Ref EventTestBucket
+        - Statement:
+            - Sid: IPVCoreKMSDecryptkeysPolicy
+              Effect: Allow
+              Action:
+                - "kms:Decrypt"
+              Resource:
+                Fn::ImportValue: !Sub "${BackendStack}-IPVCoreQueueEncryptionKey-arn"
+            - Sid: IPVCoreSQSConsumeEventPolicy
+              Effect: Allow
+              Action:
+                - "sqs:DeleteMessage"
+                - "sqs:GetQueueAttributes"
+                - "sqs:ChangeMessageVisibility"
+                - "sqs:ReceiveMessage"
+              Resource:
+                Fn::ImportValue: !Sub "${BackendStack}-IPVCoreSQSQueue-arn"
+      Events:
+        IPVCoreSQSEvent:
+          Type: SQS
+          Properties:
+            Queue:
+              Fn::ImportValue: !Sub "${BackendStack}-IPVCoreSQSQueue-arn"
+            Enabled: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - DequeueHandler.ts
+
+  EventTestBucket:
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-f2f-event-test-${Environment}
+      VersioningConfiguration:
+        Status: "Enabled"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteAfter24Hours
+            Status: Enabled
+            ExpirationInDays: 1
+
+  AccessTestHarnessRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyName: AccessTestHarnessBucket
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:GetObject"
+                  - "s3:ListBucket"
+                Resource:
+                  - !Sub "arn:aws:s3:::${EventTestBucket}"
+                  - !Sub "arn:aws:s3:::${EventTestBucket}/txma/*"
+                  - !Sub "arn:aws:s3:::${EventTestBucket}/ipv-core/*"
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
+
+  ### Start of DynamoDb Access Role definition.
+
+  DynamoDbAccessRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+      - PolicyName: SessionTableReadAccess
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: 
+            - dynamodb:GetItem
+            Resource:
+              Fn::ImportValue: !Sub "${BackendStack}-SessionTable-arn"
+          - Effect: Allow
+            Action: 
+            - dynamodb:Query
+            Resource:
+              "Fn::Sub": [
+                "${tableName}/index/*",
+                {
+                  "tableName": {
+                    Fn::ImportValue: !Sub "${BackendStack}-SessionTable-arn"
+                  }
+                }
+              ]
+      - PolicyName: SessionTableDecryptPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: 
+            - kms:Decrypt
+            Resource:
+              Fn::ImportValue: !Sub "${BackendStack}-SessionTableEncryptionKey-arn"
+      - PolicyName: PersonIdentityReadAccess
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: 
+            - dynamodb:GetItem
+            Resource:
+              Fn::ImportValue: !Sub "${BackendStack}-PersonIdentityTable-arn"
+      - PolicyName: PersonIdentityDecryptPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: 
+            - kms:Decrypt
+            Resource:
+              Fn::ImportValue: !Sub "${BackendStack}-PersonIdentityTableEncryptionKey-arn"
+
+  ### Start of API Gateway definition.
+
+  TestHarnessRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      OpenApiVersion: 3.0.1
+      AccessLogSetting:
+        Format: "$context.requestId $context.httpMethod $context.path"
+        DestinationArn: !GetAtt TestHarnessAPIGatewayAccessLogGroup.Arn
+      EndpointConfiguration:
+        Type: REGIONAL
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: './test-harness-spec.yaml'
+          OpenApiVersion: 3.0.1
+      MethodSettings:
+        - LoggingLevel: INFO
+          MetricsEnabled: true
+          ThrottlingBurstLimit: 400
+          ThrottlingRateLimit: 200
+          DataTraceEnabled: false
+          HttpMethod: "*"
+          ResourcePath: "/*"
+      TracingEnabled: true
+      Tags:
+        Product: GOV.UK Sign In
+        System: F2F
+        Environment: !Ref Environment
+        Service: TestHarness
+        Name: TestHarnessRestApi
+        Source: alphagov/di-devplatform-demo-sam-app/sam-app/template.yaml
+
+
+  TestHarnessAPIGatewayAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+      Tags:
+        - Key: Product
+          Value: GOV.UK Sign In
+        - Key: System
+          Value: Dev Platform
+        - Key: Environment
+          Value: Demo
+        - Key: Service
+          Value: backend
+        - Key: Name
+          Value: APIGatewayAccessLogGroup
+
+  ### End of API Gateway definition.
+
+  TestHarnessCustomDomain:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !If
+        - CreateDevResources
+        - !Sub
+          - "${AWS::StackName}-${TESTHARNESSURL}"
+          - TESTHARNESSURL:
+              !FindInMap [ EnvironmentVariables, !Ref Environment, TESTHARNESSURL ]
+        - !FindInMap [ EnvironmentVariables, !Ref Environment, TESTHARNESSURL ]
+      DomainNameConfigurations:
+        - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
+          EndpointType: REGIONAL
+          SecurityPolicy: TLS_1_2
+
+  TestHarnessApiDomainRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Ref TestHarnessCustomDomain
+      Type: A
+      HostedZoneId: !Sub "{{resolve:ssm:/${Environment}/Platform/Route53/PrimaryZoneID}}"
+      AliasTarget:
+        DNSName: !GetAtt TestHarnessCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt TestHarnessCustomDomain.RegionalHostedZoneId
+        EvaluateTargetHealth: false
+
+  # Base Path Mapping
+  TestHarnessApiBasePathMapping:
+    Type: 'AWS::ApiGateway::BasePathMapping'
+    Properties:
+      DomainName: !Ref TestHarnessCustomDomain
+      RestApiId: !Ref TestHarnessRestApi
+
+      # workaround for sam bug - see https://github.com/aws/serverless-application-model/issues/192#issuecomment-520893111
+      # noinspection YamlUnresolvedReferences
+      Stage: !Ref TestHarnessRestApi.Stage
