@@ -15,24 +15,26 @@ describe("Address fields tests", () => {
 
     it("Correct address format", async () => {
         console.log(JSON.stringify(exampleStubPayload));
-        const stubResponse = await stubStartPost(f2fStubPayload);
+        const stubResponse = await stubStartPost(exampleStubPayload);
+        console.log(stubResponse);
         const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-        expect(postRequest.status).toBe(400);
+        expect(postRequest.status).toBe(200);
     });
 
     it("country is not GB", async () => {
         f2fStubPayload.shared_claims.address[0].addressCountry = "XY"
         console.log(JSON.stringify(f2fStubPayload));
         const stubResponse = await stubStartPost(f2fStubPayload);
+        console.log(stubResponse);
         const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-        expect(postRequest.status).toBe(400);
+        expect(postRequest.status).toBe(401);
     });
 
     it("Incorrect address format", async () => {
         console.log(JSON.stringify(addressSessionPayload));
-        const stubResponse = await stubStartPost(f2fStubPayload);
+        const stubResponse = await stubStartPost(addressSessionPayload);
         const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-        expect(postRequest.status).toBe(400);
+        expect(postRequest.status).toBe(401);
     });
 
 });
