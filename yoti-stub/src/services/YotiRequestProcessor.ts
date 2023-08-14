@@ -76,7 +76,6 @@ import {GET_MEDIA_CONTENT_404} from "../data/getMediaContent/getMediaContent404"
 import {sleep} from "../utils/Sleep";
 import {POST_SESSIONS_INVALID_ADDRESS_400} from "../data/postSessions/postSessionsInvalidAddress400";
 import { GBR_PASSPORT_ONLY_FULLNAME } from "../data/getMediaContent/gbPassportOnlyFullname";
-import { GBR_PASSPORT_ONLY_FULLNAME } from "../data/getMediaContent/gbPassportOnlyFullname";
 import { GBR_PASSPORT_GIVEN_NAME } from "../data/getMediaContent/gbPassportGivenName";
 import { GBR_PASSPORT_FAMILY_NAME } from "../data/getMediaContent/gbPassportFamilyName";
 
