@@ -43,11 +43,9 @@ Mappings:
 
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
-      TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      TESTHARBESSURL: "testharness.review-o.dev.account.gov.uk"
+      TESTHARNESSURL: "testharness.review-o.dev.account.gov.uk"
     build:
-      TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      TESTHARBESSURL: "testharness.review-o.build.account.gov.uk"
+      TESTHARNESSURL: "testharness.review-o.build.account.gov.uk"
 
 Conditions:
   CreateDevResources: !Equals
@@ -391,10 +389,10 @@ Resources:
       DomainName: !If
         - CreateDevResources
         - !Sub
-          - "${AWS::StackName}-${TESTHARBESSURL}"
-          - TESTHARBESSURL:
-              !FindInMap [ EnvironmentVariables, !Ref Environment, TESTHARBESSURL ]
-        - !FindInMap [ EnvironmentVariables, !Ref Environment, TESTHARBESSURL ]
+          - "${AWS::StackName}-${TESTHARNESSURL}"
+          - TESTHARNESSURL:
+              !FindInMap [ EnvironmentVariables, !Ref Environment, TESTHARNESSURL ]
+        - !FindInMap [ EnvironmentVariables, !Ref Environment, TESTHARNESSURL ]
       DomainNameConfigurations:
         - CertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
           EndpointType: REGIONAL

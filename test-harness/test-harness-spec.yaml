@@ -58,7 +58,7 @@ paths:
           description: Unauthorized
         "500":
           description: Internal Server Error
-      x-amazon-apigateway-request-validator: both
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: POST
         credentials:
@@ -118,7 +118,7 @@ paths:
           description: Unauthorized
         "500":
           description: Internal Server Error
-      x-amazon-apigateway-request-validator: both
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: POST
         credentials:
@@ -172,7 +172,7 @@ paths:
           description: Unauthorized
         "500":
           description: Internal Server Error
-      x-amazon-apigateway-request-validator: both
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: POST
         credentials:
@@ -221,7 +221,7 @@ paths:
           description: Unauthorized
         "500":
           description: Internal Server Error
-      x-amazon-apigateway-request-validator: both
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: GET
         credentials:
@@ -276,7 +276,7 @@ paths:
           description: Unauthorized
         "500":
           description: Internal Server Error
-      x-amazon-apigateway-request-validator: both
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: GET
         credentials:

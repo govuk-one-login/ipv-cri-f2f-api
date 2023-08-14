@@ -1,3 +1,4 @@
+import { SQSEvent } from "aws-lambda";
 import { lambdaHandler, logger, s3Client } from "../../DequeueHandler";
 import { BatchItemFailure } from "../../utils/BatchItemFailure";
 
@@ -42,7 +43,7 @@ describe("DequeueHandler", () => {
   it("Returns no batchItemFailures if all events were successfully sent to S3 where property name is sub", async () => {
     jest.spyOn(s3Client, "send").mockReturnValueOnce();
 
-    const result = await lambdaHandler(event);
+    const result = await lambdaHandler(event as SQSEvent);
     expect(logger.info).toHaveBeenCalledWith("Starting to process records");
     expect(logger.info).toHaveBeenCalledWith(
 			`Uploading object with key ipv-core/test_SUB_1-2020-01-01T00:00:00.000Z-11111 to bucket test-bucket`,
@@ -77,7 +78,7 @@ describe("DequeueHandler", () => {
 
     jest.spyOn(s3Client, "send").mockReturnValueOnce();
 
-    const result = await lambdaHandler(txmaEvent);
+    const result = await lambdaHandler(txmaEvent as SQSEvent);
     expect(logger.info).toHaveBeenCalledWith("Starting to process records");
     expect(logger.info).toHaveBeenCalledWith(
 			`Uploading object with key ipv-core/test_user_id_1-2020-01-01T00:00:00.000Z-11111 to bucket test-bucket`,
@@ -95,7 +96,7 @@ describe("DequeueHandler", () => {
 			throw error;
 		});
 
-    const result = await lambdaHandler(event);
+    const result = await lambdaHandler(event as SQSEvent);
     expect(logger.error).toHaveBeenCalledWith({
 			message: "Error writing keys to S3 bucket",
 			error,
