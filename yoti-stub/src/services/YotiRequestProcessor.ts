@@ -83,7 +83,6 @@ import {POST_SESSIONS_INVALID_ADDRESS_400} from "../data/postSessions/postSessio
 import {GBR_PASSPORT_JOYCE} from "../data/getMediaContent/gbPassportResponseJOYCE";
 import { GBR_PASSPORT_ONLY_FULLNAME } from "../data/getMediaContent/gbPassportOnlyFullname";
 import { GBR_PASSPORT_ONLY_FULLNAME } from "../data/getMediaContent/gbPassportOnlyFullname";
-import { GBR_PASSPORT_ONLY_FULLNAME } from "../data/getMediaContent/gbPassportOnlyFullname";
 import { GBR_PASSPORT_GIVEN_NAME } from "../data/getMediaContent/gbPassportGivenName";
 import { GBR_PASSPORT_FAMILY_NAME } from "../data/getMediaContent/gbPassportFamilyName";
 
