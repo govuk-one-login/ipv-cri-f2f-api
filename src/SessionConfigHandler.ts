@@ -45,7 +45,7 @@ class SessionConfigHandler implements LambdaInterface {
 								logger.appendKeys({ sessionId });
 
 								if (!Constants.REGEX_UUID.test(sessionId)) {
-									logger.error("Session id not not a valid uuid", { messageCode: MessageCodes.FAILED_VALIDATING_SESSION_ID });
+									logger.error("Session id is not a valid uuid", { messageCode: MessageCodes.FAILED_VALIDATING_SESSION_ID });
 									return new Response(HttpCodesEnum.BAD_REQUEST, "Session id must be a valid uuid");
 								}
 							} else {

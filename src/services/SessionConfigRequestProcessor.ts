@@ -62,9 +62,11 @@ export class SessionConfigRequestProcessor {
 			};
 
 			if (session.evidence_requested?.strengthScore && session.evidence_requested?.strengthScore == 4) {
-				this.logger.info("Requested Strength score 4");
+				this.logger.info("Requested Strength score is 4");
+			} else if(session.evidence_requested?.strengthScore && session.evidence_requested?.strengthScore < 4) {
+				this.logger.info("Requested Strength score is less than 4");
 			} else {
-				this.logger.info("Requested Strength score missing or less than 4");
+				this.logger.info("Requested Strength score is not present");
 			}
 
 			return new Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));

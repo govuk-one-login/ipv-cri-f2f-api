@@ -558,9 +558,9 @@ Resources:
 
   SessionFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsProdLikeEnvironment
     Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
       FilterPattern: ""
       LogGroupName: !Ref SessionFunctionLogGroup
 
@@ -712,9 +712,9 @@ Resources:
 
   SessionConfigFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsProdLikeEnvironment
     Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
       FilterPattern: ""
       LogGroupName: !Ref SessionFunctionLogGroup
 
@@ -1041,7 +1041,7 @@ Resources:
     DependsOn:
       - "AuthorizationFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1595,7 +1595,7 @@ Resources:
     DependsOn:
       - "JsonWebKeysFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -4946,37 +4946,37 @@ Outputs:
     Value: !GetAtt IPVCoreQueueEncryptionKey.Arn
     Export:
       Name: !Sub ${AWS::StackName}-IPVCoreQueueEncryptionKey-arn
-  SessionTableName: 
+  SessionTableName:
     Description: "Name of the Session DynamoDB table"
     Value:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
     Export:
       Name: !Sub ${AWS::StackName}-SessionTable-name
-  SessionTableARN: 
+  SessionTableARN:
     Description: "Arn of the Session DynamoDB table"
     Value:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-arn"
     Export:
       Name: !Sub ${AWS::StackName}-SessionTable-arn
-  SessionTableEcryptionARN: 
+  SessionTableEcryptionARN:
     Description: "Arn of the SessionTableEncryptionKey"
     Value:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-arn"
     Export:
       Name: !Sub ${AWS::StackName}-SessionTableEncryptionKey-arn
-  PersonIdentityTableName: 
+  PersonIdentityTableName:
     Description: "Name of the Person Identity DynamoDB table"
     Value:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
     Export:
       Name: !Sub ${AWS::StackName}-PersonIdentityTable-name
-  PersonIdentityTableARN: 
+  PersonIdentityTableARN:
     Description: "Arn of the Person Identity DynamoDB table"
     Value:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-arn"
     Export:
       Name: !Sub ${AWS::StackName}-PersonIdentityTable-arn
-  PersonIdentityTableEncryptionARN: 
+  PersonIdentityTableEncryptionARN:
     Description: "Arn of the PersonTableEncryptionKey"
     Value:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-key-arn"
