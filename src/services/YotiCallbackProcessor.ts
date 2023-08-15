@@ -320,8 +320,7 @@ export class YotiCallbackProcessor {
 			  };
 			  break;
 		  default:
-			  const errorMessage = `Unable to find document type ${documentFields.document_type}`;
-			  this.logger.error({ message: errorMessage, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
+			  this.logger.error({ message: `Unable to find document type ${documentFields.document_type}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
 	  }
 
@@ -348,11 +347,9 @@ export class YotiCallbackProcessor {
 				  ],
 			  },
 			  restricted: {
-				  user: {
-					  name: documentFields.full_name,
-					  birthDate: documentFields.date_of_birth,
-				  },
-				  [docName]: documentInfo,
+				  name: documentFields.full_name, // TODO, TO be updated with nameParts as part of F2F-1000 ticket.
+				  birthDate: [{ value: documentFields.date_of_birth }],
+				  [docName]: [documentInfo],
 			  },
 		  });
 	  } catch (error) {

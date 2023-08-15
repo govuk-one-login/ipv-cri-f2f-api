@@ -11,3 +11,12 @@ export enum DocumentNames {
 	DRIVING_LICENCE = "drivingPermit",
 	NATIONAL_ID = "idCard",
 }
+
+export enum AllDocumentTypes {
+	UK_PASSPORT = "ukPassport",
+	NON_UK_PASSPORT = "nonUkPassport",
+	UK_PHOTOCARD_DL = "ukPhotocardDl",
+	BRP = "brp",
+	EU_PHOTOCARD_DL = "euPhotocardDl",
+	EEA_IDENTITY_CARD = "eeaIdentityCard",
+}
