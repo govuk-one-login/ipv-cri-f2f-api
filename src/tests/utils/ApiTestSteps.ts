@@ -2,14 +2,10 @@ import axios, { AxiosInstance } from "axios";
 import Ajv from "ajv";
 import { aws4Interceptor } from "aws4-axios";
 import { constants } from "../utils/ApiConstants";
-import { GetCommand } from "@aws-sdk/lib-dynamodb";
-import { createDynamoDbClient } from "../../utils/DynamoDBFactory";
 import { sqsClient } from "../../utils/SqsClient";
 import { ISessionItem } from "../../models/ISessionItem";
 import { ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import { jwtUtils } from "../../utils/JwtUtils";
-const API_INSTANCE = axios.create({ baseURL: constants.DEV_CRI_F2F_API_URL });
-const YOTI_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_YOTI_STUB_URL });
 const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOVUKNOTIFYAPI });
 import { XMLParser } from "fast-xml-parser";
 
