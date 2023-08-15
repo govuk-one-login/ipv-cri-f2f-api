@@ -30,6 +30,13 @@ export interface JwtHeader {
 	kid?: string;
 }
 // standard claims https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
+export interface EvidenceRequested {
+	strengthScore?: number;
+	validityScore?: number;
+	verificationScore?: number;
+	activityHistoryScore?: number;
+	identityFraudScore?: number;
+}
 export interface JwtPayload {
 	[key: string]: any;
 	iss?: string;
@@ -39,6 +46,7 @@ export interface JwtPayload {
 	nbf?: number | undefined;
 	iat?: number | undefined;
 	jti?: string | undefined;
+	evidence_requested?: EvidenceRequested | undefined;
 }
 export interface JWKSBody {
 	keys: Jwk[];
