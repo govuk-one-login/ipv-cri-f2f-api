@@ -424,3 +424,12 @@ Resources:
       # workaround for sam bug - see https://github.com/aws/serverless-application-model/issues/192#issuecomment-520893111
       # noinspection YamlUnresolvedReferences
       Stage: !Ref TestHarnessRestApi.Stage
+
+Outputs:
+  TestHarnessExecuteUrl:
+    Description: "API Gateway endpoint URL for the test harness endpoints"
+    Export:
+      Name: !Sub "${AWS::StackName}-TestHarnessExecuteUrl"
+    Value: !Sub
+      - "https://${URL}/"
+      - URL: !Ref TestHarnessCustomDomain
