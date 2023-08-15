@@ -82,6 +82,8 @@ paths:
         responses:
           default:
             statusCode: "200"
+        security:
+          - SigV4Reference: []
         type: aws
 
   getSessionByAuthCode/{tableName}/{authCode}:
@@ -144,6 +146,8 @@ paths:
         responses:
           default:
             statusCode: "200"
+        security:
+          - SigV4Reference: []
         type: aws
 
   getSessionByYotiId/{tableName}/{yotiSessionId}:
@@ -198,6 +202,8 @@ paths:
         responses:
           default:
             statusCode: "200"
+        security:
+          - SigV4Reference: []
         type: aws
   
   /bucket/:
@@ -237,6 +243,8 @@ paths:
         responses:
           default:
             statusCode: "200"
+        security:
+          - SigV4Reference: []
         type: aws
 
   /object/{object-key+}:
@@ -292,6 +300,8 @@ paths:
         responses:
           default:
             statusCode: "200"
+        security:
+          - SigV4Reference: []
         type: aws
 
 components:
