@@ -87,7 +87,8 @@ describe("F2f Service", () => {
 			await f2fService.getSessionById("1234");
 		} catch (error) {
 			expect(error).toEqual(new AppError(HttpCodesEnum.UNAUTHORIZED, "Session with session id: 1234 has expired"));
-			expect(logger.error).toHaveBeenCalledWith("Session with session id: 1234 has expired");
+			// eslint-disable-next-line @typescript-eslint/unbound-method
+			expect(logger.error).toHaveBeenCalledWith({ message: "Session with session id: 1234 has expired" }, { messageCode: "EXPIRED_SESSION" });
 		}
 	});
 
