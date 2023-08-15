@@ -1,0 +1,303 @@
+openapi: 3.0.1
+
+info:
+  title:
+     Fn::Sub: "${AWS::StackName} - F2F Credential Issuer Private API"
+  version: "1.0"
+  description: F2F Test automation harness API specification
+
+x-amazon-apigateway-globals:
+  servers:
+    - url: https://www.example.com
+
+tags:
+  - name: Testing - API to enable automation
+    description: Endpoint implemented to enable testing
+
+# x-amazon-apigateway-policy:
+#   Version: "2012-10-17"
+#   Statement:
+#     - Effect: "Allow"
+#       Principal:
+#         AWS: "${AWS::AccountId}"
+#       Action: "execute-api:Invoke"
+#       Resource: "execute-api:/*"
+
+paths:
+  getRecordBySessionId/{tableName}/{sessionId}:
+    get:
+      operationId: getRecordById
+      summary: Get a session by sessionId from DynamoDB
+      description: |
+        Endpoint to get a session from DynamoDB using sessionId as the primary key.
+      parameters:
+        - name: sessionId
+          in: path
+          description: The value of the sessionId primary key to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+        - name: tableName
+          in: path
+          description: The name of the table to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session:
+                    type: object
+                    description: The found session from DynamoDB.
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        credentials:
+          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
+        uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/GetItem"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.path.sessionId: "method.request.path.sessionId"
+          integration.request.path.tableName: "method.request.path.tableName"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "$input.params('tableName')",
+              "Key": {
+                "sessionId": {
+                  "S": "$input.params('sessionId')"
+                }
+              }
+            }
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
+
+  getSessionByAuthCode/{tableName}/{authCode}:
+    get:
+      operationId: getSessionByAuthCode
+      summary: Get a session by using authorizationCode-index from DynamoDB
+      description: |
+        Endpoint to get a session from DynamoDB using either authCode as the primary key
+      parameters:
+        - name: tableName
+          in: path
+          description: The name of the table to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+        - name: authCode
+          in: path
+          description: The value of the secondary index identifier to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session:
+                    type: object
+                    description: The found session from DynamoDB.
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        credentials:
+          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
+        uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.path.tableName: "method.request.path.tableName"
+          integration.request.path.authCode: "method.request.path.authCode"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName":"$input.params('tableName')",
+              "IndexName":"authorizationCode-index",
+              "KeyConditionExpression": "authorizationCode = :authorizationCode",
+              "ExpressionAttributeValues":{
+                  ":authorizationCode":{
+                    "S":"$input.params('authCode')"
+                  }
+              }
+            }
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
+
+  getSessionByYotiId/{tableName}/{yotiSessionId}:
+    get:
+      operationId: getSessionByIds
+      summary: Get a session by using yotiSessionId-index from DynamoDB
+      description: |
+        Endpoint to get a session from DynamoDB using either yotiSessionId as the primary key.
+      parameters:
+        - name: tableName
+          in: path
+          description: The name of the table to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+        - name: yotiSessionId
+          in: path
+          description: The value of the secondary index identifier to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        credentials:
+          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
+        uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.path.tableName: "method.request.path.tableName"
+          integration.request.path.yotiSessionId: "method.request.path.yotiSessionId"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName":"$input.params('tableName')",
+              "IndexName":"yotiSessionId-index",
+              "KeyConditionExpression": "yotiSessionId = :yotiSessionId",
+              "ExpressionAttributeValues":{
+                  ":yotiSessionId":{
+                    "S":"$input.params('yotiSessionId')"
+                  }
+              }
+            }
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
+  
+  /bucket/:
+    get:
+      operationId: getBucket
+      summary: List the contents of the test harness bucket
+      description: >-
+        Endpoint to list the contents of the test harness bucket. Up to 1000 objects are returned, sorted by ascending
+        key. A `prefix` can be specified as a query parameter to filter the results.
+      parameters:
+        - name: prefix
+          in: query
+          description: Prefix to list objects from the bucket with
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        credentials:
+          Fn::GetAtt:
+            - AccessTestHarnessRole
+            - Arn
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${EventTestBucket}/"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.querystring.prefix: "method.request.querystring.prefix"
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
+
+  /object/{object-key+}:
+    get:
+      operationId: getTestObject
+      summary: Get an object from the test bucket
+      description: >-
+        Endpoint returns the contents of a specific object from the test bucket.
+      parameters:
+        - name: object-key
+          in: path
+          description: Key to query the bucket with
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+            Strict-Transport-Security:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+            X-Frame-Options:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        credentials:
+          Fn::GetAtt:
+            - AccessTestHarnessRole
+            - Arn
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${EventTestBucket}/{key}"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.path.key: "method.request.path.object-key"
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
+
+# components:
+#   securitySchemes:
+#     SigV4Reference:
+#       type: apiKey
+#       name: Authorization
+#       in: header
+#       x-amazon-apigateway-authtype: awsSigv4

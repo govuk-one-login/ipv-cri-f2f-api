@@ -1,19 +1,37 @@
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
+import Ajv from "ajv";
+import { aws4Interceptor } from "aws4-axios";
 import { constants } from "../utils/ApiConstants";
-import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { createDynamoDbClient } from "../../utils/DynamoDBFactory";
 import { sqsClient } from "../../utils/SqsClient";
 import { ISessionItem } from "../../models/ISessionItem";
-import { ReceiveMessageCommand, DeleteMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
+import { ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import { jwtUtils } from "../../utils/JwtUtils";
 const API_INSTANCE = axios.create({ baseURL: constants.DEV_CRI_F2F_API_URL });
 const YOTI_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_YOTI_STUB_URL });
 const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOVUKNOTIFYAPI });
+import { XMLParser } from "fast-xml-parser";
+
+const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
+const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
+const HARNESS_API_INSTANCE : AxiosInstance = axios.create({ baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
+const awsSigv4Interceptor = aws4Interceptor({
+	options: {
+		region: "eu-west-2",
+		service: "execute-api",
+	},
+});
+HARNESS_API_INSTANCE.interceptors.request.use(awsSigv4Interceptor);
+
+const xmlParser = new XMLParser();
+const ajv = new Ajv({ strictTuples: false });
 
 
 export async function startStubServiceAndReturnSessionId(stubPayload: any): Promise<any> {
 	const stubResponse = await stubStartPost(stubPayload);
 	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+	postRequest.data.sub = stubResponse.data.sub;
 	return postRequest;
 }
 
@@ -112,6 +130,16 @@ export async function callbackPost(sessionId: any): Promise<any> {
 	}
 }
 
+export async function sessionConfigurationGet(sessionId: any):Promise<any> {
+	const path = "/sessionConfiguration";
+	try {
+		const getRequest = await API_INSTANCE.get(path, { headers:{ "x-govuk-signin-session-id": sessionId } });
+		return getRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+}
 export async function postYotiSession(trackingId: any, userData: any): Promise<any> {
 	const path = "/sessions";
 	try {
@@ -172,43 +200,141 @@ export function generateRandomAlphanumeric(substringStart: number, substringEnd:
 }
 
 export async function getSessionById(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
-	const dynamoDB = createDynamoDbClient();
-
-	const getSessionCommand = new GetCommand({
-		TableName: tableName,
-		Key: {
-			sessionId,
-		},
-	});
-
-	let session;
-	try {
-		session = await dynamoDB.send(getSessionCommand);
-	} catch (e: any) {
-		console.error({ message: "getSessionById - failed executing get from dynamodb:", e });
+	interface OriginalValue {
+		N?: string;
+		S?: string;
 	}
 
-	return session.Item as ISessionItem;
+	interface OriginalSessionItem {
+		[key: string]: OriginalValue;
+	}
+
+	let session: ISessionItem | undefined;
+	try {
+		const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
+		const originalSession = response.data.Item;
+		session = Object.fromEntries(
+			Object.entries(originalSession).map(([key, value]) => [key, value.N ?? value.S]),
+		) as unknown as ISessionItem;
+		console.log("transformedData", session);
+	} catch (e: any) {
+		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
+	}
+
+	console.log("getSessionById Response", session);
+	return session;
 }
 
-// export async function updateYotiSessionId(sessionId: string, yotiSessionId: any, updatedYotiSessionId: string): Promise<void> {
-// 	const dynamoDB = createDynamoDbClient();
-//
-// 	const updateSessionCommand = new UpdateCommand({
-// 		TableName: "session-f2f-cri-ddb",
-// 		Key: { sessionId },
-// 		UpdateExpression: "SET yotiSessionId=:yotiSessionId",
-// 		ExpressionAttributeValues: {
-// 			":yotiSessionId": updatedYotiSessionId,
-// 		},
-// 	});
-// 	try {
-// 		dynamoDB.send(updateSessionCommand);
-// 		console.info({ message: "updated yotiSessionId in dynamodb" });
-// 	} catch (e: any) {
-// 		console.error({ message: "got error updating yotiSessionId", e });
-// 	}
-// }
+export async function getSessionByYotiId(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
+	let session;
+	try {
+		const response = await HARNESS_API_INSTANCE.get(`getSessionByYotiId/${tableName}/${sessionId}`, {});
+		session = response.data;
+	} catch (e: any) {
+		console.error({ message: "getSessionByYotiId - failed getting session from Dynamo", e });
+	}
+
+	console.log("getSessionByYotiId Response", session.Items[0]);
+	return session.Items[0] as ISessionItem;
+}
+
+export async function getSessionByAuthCode(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
+	let session;
+	try {
+		const response = await HARNESS_API_INSTANCE.get(`getSessionByAuthCode/${tableName}/${sessionId}`, {});
+		session = response.data;
+	} catch (e: any) {
+		console.error({ message: "getSessionByAuthCode - failed getting session from Dynamo", e });
+	}
+
+	console.log("getSessionByAuthCode Response", session.Items[0]);
+	return session.Items[0] as ISessionItem;
+}
+
+
+/**
+ * Retrieves an object from the bucket with the specified prefix, which is the latest message dequeued from the SQS
+ * queue under test
+ *
+ * @param prefix
+ * @returns {any} - returns either the body of the SQS message or undefined if no such message found
+ */
+export async function getSqsEventList(folder: string, prefix: string, txmaEventSize:number): Promise<any> {
+	let keys: any[];
+	let keyList: any[];
+	let i:any;
+	do {
+		const listObjectsResponse = await HARNESS_API_INSTANCE.get("/bucket/", {
+			params: {
+				prefix: folder + prefix,
+			},
+		});
+		const listObjectsParsedResponse = xmlParser.parse(listObjectsResponse.data);
+		if (!listObjectsParsedResponse?.ListBucketResult?.Contents) {
+			return undefined;
+		}
+		keys = listObjectsParsedResponse?.ListBucketResult?.Contents;
+		console.log(listObjectsParsedResponse?.ListBucketResult?.Contents);
+		keyList = [];
+		for (i = 0; i < keys.length; i++) {
+			keyList.push(listObjectsParsedResponse?.ListBucketResult?.Contents.at(i).Key);
+		}
+	} while (keys.length < txmaEventSize );
+	return keyList;
+}
+
+
+export async function validateTxMAEventData(keyList: any): Promise<any> {
+	let i:any;
+	for (i = 0; i < keyList.length; i++) {
+		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
+		console.log(JSON.stringify(getObjectResponse.data, null, 2));
+		let valid = true;
+		import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json" )
+			.then((jsonSchema) => {
+				const validate = ajv.compile(jsonSchema);
+				valid = validate(getObjectResponse.data);
+				if (!valid) {
+					console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+				}
+			})
+			.catch((err) => {
+				console.log(err.message);
+			})
+			.finally(() => {
+				expect(valid).toBe(true);
+			});
+	}
+}
+
+
+/**
+ * Retrieves an object from the bucket with the specified prefix, which is the latest message dequeued from the SQS
+ * queue under test
+ *
+ * @param prefix
+ * @returns {any} - returns either the body of the SQS message or undefined if no such message found
+ */
+export async function getDequeuedSqsMessage(prefix: string): Promise<any> {
+	const listObjectsResponse = await HARNESS_API_INSTANCE.get("/bucket/", {
+		params: {
+			prefix: "ipv-core/" + prefix,
+		},
+	});
+	const listObjectsParsedResponse = xmlParser.parse(listObjectsResponse.data);
+	if (!listObjectsParsedResponse?.ListBucketResult?.Contents) {
+		return undefined;
+	}
+	let key: string;
+	if (Array.isArray(listObjectsParsedResponse?.ListBucketResult?.Contents)) {
+		key = listObjectsParsedResponse.ListBucketResult.Contents.at(-1).Key;
+	} else {
+		key = listObjectsParsedResponse.ListBucketResult.Contents.Key;
+	}
+
+	const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + key, {});
+	return getObjectResponse.data;
+}
 
 export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 	const queueURL = constants.DEV_F2F_IPV_CORE_QUEUE_URL;
@@ -292,11 +418,11 @@ export function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): v
 	}
 }
 
-export async function postAbortSession(reasion: any, sessionId: any): Promise<any> {
+export async function postAbortSession(reasion:any, sessionId:any): Promise<any> {
 	const path = constants.DEV_CRI_F2F_API_URL + "/abort";
 	console.log(path);
 	try {
-		const postRequest = await API_INSTANCE.post(path, reasion, { headers: { "x-govuk-signin-session-id": sessionId } });
+		const postRequest = await API_INSTANCE.post(path, reasion, { headers:{ "x-govuk-signin-session-id": sessionId } });
 		return postRequest;
 
 	} catch (error: any) {

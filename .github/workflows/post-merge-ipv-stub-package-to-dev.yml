@@ -16,7 +16,7 @@ env:
 
 jobs:
   deploy-to-dev:
-    name: Validate & Deploy SAM template to Dev Envrionment
+    name: Validate & Deploy SAM template to Dev Environment
     runs-on: ubuntu-latest
     defaults:
       run:
