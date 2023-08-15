@@ -68,7 +68,7 @@ export class F2fService {
 
 		if (session.Item) {
 			if (session.Item.expiryDate < absoluteTimeNow()) {
-				this.logger.error(`Session with session id: ${sessionId} has expired`);
+				this.logger.error({ message: `Session with session id: ${sessionId} has expired` }, { messageCode: MessageCodes.EXPIRED_SESSION });
 				throw new AppError(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionId} has expired`);
 			}
 			return session.Item as ISessionItem;

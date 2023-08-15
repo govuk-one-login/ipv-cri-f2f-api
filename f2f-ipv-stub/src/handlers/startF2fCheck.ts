@@ -82,8 +82,12 @@ export const handler = async (
       overrides?.shared_claims != null
         ? overrides.shared_claims
         : defaultClaims,
+    evidence_requested: overrides?.evidence_requested
   };
 
+  if(!overrides?.evidence_requested){
+    delete payload.evidence_requested
+  }
   if (overrides?.yotiMockID != null) {
     if (overrides?.yotiMockID.length > 4) {
       throw new Error("Only 4 digits values allowed for yotiMockID");
@@ -91,6 +95,8 @@ export const handler = async (
     payload.shared_claims.name[0].nameParts[2].value =
       payload.shared_claims.name[0].nameParts[2].value + overrides?.yotiMockID;
   }
+
+  console.log("Generate payload is"+JSON.stringify(payload));
   const signedJwt = await sign(payload, config.signingKey);
   const publicEncryptionKey: CryptoKey = await getPublicEncryptionKey(config);
   const request = await encrypt(signedJwt, publicEncryptionKey);
