@@ -17,6 +17,8 @@ import { ISessionItem } from "../models/ISessionItem";
 import { PersonIdentityItem } from "../models/PersonIdentityItem";
 import { PostOfficeInfo } from "../models/YotiPayloads";
 import { MessageCodes } from "../models/enums/MessageCodes";
+import { AllDocumentTypes, DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
+import { DrivingPermit, IdentityCard, Passport, ResidencePermit } from "../utils/IVeriCredential";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -122,6 +124,31 @@ export class DocumentSelectionRequestProcessor {
   			}
   		}
 
+  		let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
+  		switch (selectedDocument) {
+  			case AllDocumentTypes.UK_PASSPORT:
+  				docName = DocumentNames.PASSPORT;
+  				break;
+  			case AllDocumentTypes.NON_UK_PASSPORT:
+  				docName = DocumentNames.PASSPORT;
+  				break;
+  			case AllDocumentTypes.BRP:
+  				docName = DocumentNames.RESIDENCE_PERMIT;
+  				break;
+  			case AllDocumentTypes.UK_PHOTOCARD_DL:
+  				docName = DocumentNames.DRIVING_LICENCE;
+  				break;
+  			case AllDocumentTypes.EU_PHOTOCARD_DL:
+  				docName = DocumentNames.DRIVING_LICENCE;
+  				break;
+  			case AllDocumentTypes.EEA_IDENTITY_CARD:
+  				docName = DocumentNames.NATIONAL_ID;
+  				break;
+  			default:
+  				this.logger.error({ message: `Unable to find document type ${selectedDocument}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
+  				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
+  		}
+
   		try {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_YOTI_START",
@@ -132,13 +159,27 @@ export class DocumentSelectionRequestProcessor {
   							txn: yotiSessionId,
   						},
   					],
-  					post_office_details: {
-  						...postOfficeSelection,
-  					},
+  					post_office_details: [
+						  {
+							  name: postOfficeSelection.name,
+							  address: postOfficeSelection.address,
+							  post_code: postOfficeSelection.post_code,
+							  location: [
+								  {
+									  latitude: postOfficeSelection.location.latitude,
+									  longitude: postOfficeSelection.location.longitude,
+								  },
+							  ],
+  						},
+						  ],
   				},
   				restricted: {
-  					documentType: selectedDocument,
-  					issuingCountry: countryCode,
+  					[docName]: [
+  						{
+  							documentType: selectedDocument,
+  							issuingCountry: countryCode,
+  						},
+  					],
   				},
   			});
   		} catch (error) {
