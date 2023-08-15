@@ -1,4 +1,12 @@
 
+export interface EvidenceRequested{
+  strengthScore?: number;
+  validityScore?: number;
+  verificationScore?: number;
+  activityHistoryScore?: number;
+  identityFraudScore?: number;
+}
+
 export interface JarPayload {
   [key: string]: any
   sub: string
@@ -13,6 +21,7 @@ export interface JarPayload {
   scope?: string
   nonce?: string
   iss?: string
+  evidence_requested?: EvidenceRequested | undefined
 }
 export interface Jwks {
   keys: JsonWebKey[]

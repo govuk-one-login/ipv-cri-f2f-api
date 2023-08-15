@@ -32,6 +32,8 @@ export interface BaseTxmaEvent {
 
 export interface RestrictedObject {
 	"user"?: VerifiedCredentialSubject;
+	"name"?: object[];
+	"birthDate"?: object[];
 	"documentType"?: string;
 	"issuingCountry"?: string;
 	"passport"?: Passport;
@@ -64,7 +66,7 @@ export type VerifiedCredentialEvidenceTxMA = Array<{
 
 export interface ExtensionObject {
 	"evidence": VerifiedCredentialEvidenceTxMA;
-	"post_office_details"?: PostOfficeInfo;
+	"post_office_details"?: PostOfficeDetails;
 }
 
 export interface TxmaEvent extends BaseTxmaEvent {
@@ -87,3 +89,13 @@ export const buildCoreEventFields = (session: ISessionItem, issuer: string, sour
 		component_id: issuer,
 	};
 };
+
+export type PostOfficeDetails = Array<{
+	name?: string;
+	address: string;
+	post_code: string;
+	location: Array<{
+		latitude: number;
+		longitude: number;
+	}>;
+}>;
