@@ -126,7 +126,7 @@ export class YotiRequestProcessor {
         }
 
         //For IPV Integration happy path JOYCE
-        if (IPV_INTEG_FULL_NAME_JOYCE === fullName ) {
+        if (IPV_INTEG_FULL_NAME_JOYCE.toUpperCase() === fullName.toUpperCase() ) {
             //Replacing returned yoti sessionid with success 0100 at the end to return GBR_PASSPORT
             yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0129");
             return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
