@@ -239,7 +239,7 @@ export class YotiCallbackProcessor {
 				  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core", { shouldThrow: true });
 			  }
 
-			  await this.sendYotiEventsToTxMA(documentFields, VcNameParts, f2fSession, yotiSessionID, evidence);
+			  await this.sendYotiEventsToTxMA(documentFields, f2fSession, yotiSessionID, evidence);
 
 			  await this.f2fService.updateSessionAuthState(
 				  f2fSession.sessionId,
@@ -267,7 +267,7 @@ export class YotiCallbackProcessor {
   	return false;
   }
 
-  async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any): Promise<any> {
+  async sendYotiEventsToTxMA(documentFields: any, f2fSession: any, yotiSessionID: string, evidence: any): Promise<any> {
 	  // Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
 	  let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
@@ -347,7 +347,7 @@ export class YotiCallbackProcessor {
 				  ],
 			  },
 			  restricted: {
-				  name: VcNameParts,
+				  name: documentFields.full_name, // TODO, TO be updated with nameParts as part of F2F-1000 ticket.
 				  birthDate: [{ value: documentFields.date_of_birth }],
 				  [docName]: [documentInfo],
 			  },

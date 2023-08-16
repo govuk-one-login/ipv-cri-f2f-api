@@ -50,13 +50,7 @@ export const TXMA_VC_ISSUED = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_EXTENSION,
 	restricted: {
-		"name": [{
-			"nameParts": [
-				{ "value": "ANGELA", "type": "GivenName" },
-				{ "value": "ZOE", "type": "GivenName" },
-				{ "value": "UK SPECIMEN", "type": "FamilyName" },
-			],
-		}],
+		"name": "ANGELA ZOE UK SPECIMEN",
 		"birthDate": [
 			{
 				"value": "1988-12-04",
@@ -77,12 +71,7 @@ export const TXMA_DL_VC_ISSUED = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_EXTENSION,
 	restricted: {
-		"name": [{
-			"nameParts": [
-				{ "value": "LEEROY", "type": "GivenName" },
-				{ "value": "JENKINS", "type": "FamilyName" },
-			],
-		}],
+		"name": "LEEROY JENKINS",
 		"birthDate": [
 			{
 				"value": "1988-12-04",
@@ -106,13 +95,7 @@ export const TXMA_EU_DL_VC_ISSUED = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_EXTENSION,
 	restricted: {
-		"name": [{
-			"nameParts": [
-				{ "value": "Erika", "type": "GivenName" },
-				{ "value": "-", "type": "GivenName" },
-				{ "value": "Mustermann", "type": "FamilyName" },
-			],
-		}],
+		"name": "Erika - Mustermann",
 		"birthDate": [
 			{
 				"value": "1988-12-04",
@@ -135,13 +118,7 @@ export const TXMA_EEA_VC_ISSUED = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_EXTENSION,
 	restricted: {
-		"name": [{
-			"nameParts": [
-				{ "value": "Wiieke", "type": "GivenName" },
-				{ "value": "Liselotte", "type": "GivenName" },
-				{ "value": "De Bruijn", "type": "FamilyName" },
-			],
-		}],
+		"name": "Wiieke Liselotte De Bruijn",
 		"birthDate": [
 			{
 				"value": "1988-12-04",
@@ -163,13 +140,7 @@ export const TXMA_BRP_VC_ISSUED = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_EXTENSION,
 	restricted: {
-		"name": [{
-			"nameParts": [
-				{ "value": "TECH", "type": "GivenName" },
-				{ "value": "REFRESH", "type": "GivenName" },
-				{ "value": "ICTHREEMALE", "type": "FamilyName" },
-			],
-		}],
+		"name": "TECH REFRESH ICTHREEMALE",
 		"birthDate": [
 			{
 				"value": "1988-12-04",
