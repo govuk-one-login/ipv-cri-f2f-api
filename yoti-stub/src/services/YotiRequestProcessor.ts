@@ -11,6 +11,7 @@ import {
     UK_PASSPORT_MEDIA_ID,
     UK_PASSPORT_THIN_FILE_MEDIA_ID,
     NON_UK_PASSPORT_MEDIA_ID,
+    NON_UK_PASSPORT_THIN_FILE_MEDIA_ID,
     SUPPORTED_DOCUMENTS,
     IPV_INTEG_FULL_NAME_HAPPY,
     IPV_INTEG_FULL_NAME_UNHAPPY,
@@ -63,6 +64,7 @@ import {GET_INSTRUCTIONS_PDF_409} from "../data/getInstructionsPdf/getInstructio
 import {GET_INSTRUCTIONS_PDF_500} from "../data/getInstructionsPdf/getInstructionsPdf500";
 import {GET_INSTRUCTIONS_PDF_503} from "../data/getInstructionsPdf/getInstructionsPdf503";
 import {ESP_PASSPORT} from "../data/getMediaContent/espPassportResponse";
+import {DEU_PASSPORT_THIN_FILE} from "../data/getMediaContent/deuPassportResponse";
 import {NLD_NATIONAL_ID} from "../data/getMediaContent/nldNationalId";
 import {GBR_PASSPORT, GBR_PASSPORT_THIN_FILE} from "../data/getMediaContent/gbPassportResponse";
 import {GBR_DRIVING_LICENCE, GBR_DRIVING_LICENCE_THIN_FILE} from "../data/getMediaContent/gbDriversLicenseResponse";
@@ -844,6 +846,16 @@ export class YotiRequestProcessor {
                         };
                         console.log('modifiedPayload', JSON.stringify(modifiedPayload));
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+                    case '0206': // Non-UK Passport Success - Thin file
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        const VALID_RESPONSE_NFC_0206 = JSON.parse(JSON.stringify(DEU_PASSPORT_THIN_FILE));
+
+                        VALID_RESPONSE_NFC_0206.session_id = sessionId;
+                        VALID_RESPONSE_NFC_0206.resources.id_documents[0].document_fields.media.id = sessionId;
+                        VALID_RESPONSE_NFC_0206.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0206.resources.id_documents[0].document_fields.media.id, NON_UK_PASSPORT_THIN_FILE_MEDIA_ID);
+                        VALID_RESPONSE_NFC_0206.resources.id_documents[0].issuing_country = "DEU";
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0206));
                     default:
                         return undefined;
                 }
@@ -1199,6 +1211,12 @@ export class YotiRequestProcessor {
 
             case UK_PASSPORT_THIN_FILE_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_THIN_FILE));
+
+            case NON_UK_PASSPORT_MEDIA_ID:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT));
+
+            case NON_UK_PASSPORT_THIN_FILE_MEDIA_ID:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(DEU_PASSPORT_THIN_FILE));
 
             case NON_UK_PASSPORT_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT));
