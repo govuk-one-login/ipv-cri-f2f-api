@@ -24,3 +24,21 @@ export const GBR_DRIVING_LICENCE = {
 	"date_of_issue": "2013-01-19",
 	"issuing_authority": "DVLA"
 }
+
+export const GBR_DRIVING_LICENCE_THIN_FILE = {
+	"dobDay": "16",
+	"dobMonth": "05",
+	"dobYear": "1945",
+	"postcode": "G52 2JG",
+	"address": "15, REGENTS PARK, CRAIGAVON, BT66 7EP",
+	"gender": "FEMALE",
+	"surname": "BASU",
+	"firstName": "JOYCE",
+	"place_of_birth": "UNITED KINGDOM",
+	"document_type": "DRIVING_LICENCE",
+	"issuing_country": "GBR",
+	"document_number": "MORGA753116SM9IJ35",
+	"expiration_date": "2023-01-18",
+	"date_of_issue": "2013-01-19",
+	"issuing_authority": "DVLA"
+}

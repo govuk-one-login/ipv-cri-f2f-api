@@ -9,6 +9,8 @@ export enum DocumentMapping {
 
 export const UK_DL_MEDIA_ID: string = '0000'
 
+export const UK_DL_THIN_FILE_MEDIA_ID: string = '0002'
+
 export const UK_PASSPORT_MEDIA_ID: string = '0100'
 
 export const NON_UK_PASSPORT_MEDIA_ID: string = '0200'

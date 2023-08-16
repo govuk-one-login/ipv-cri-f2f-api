@@ -7,6 +7,7 @@ import {Logger} from "@aws-lambda-powertools/logger";
 import {
     DocumentMapping,
     UK_DL_MEDIA_ID,
+    UK_DL_THIN_FILE_MEDIA_ID,
     UK_PASSPORT_MEDIA_ID,
     NON_UK_PASSPORT_MEDIA_ID,
     SUPPORTED_DOCUMENTS,
@@ -63,7 +64,7 @@ import {GET_INSTRUCTIONS_PDF_503} from "../data/getInstructionsPdf/getInstructio
 import {ESP_PASSPORT} from "../data/getMediaContent/espPassportResponse";
 import {NLD_NATIONAL_ID} from "../data/getMediaContent/nldNationalId";
 import {GBR_PASSPORT} from "../data/getMediaContent/gbPassportResponse";
-import {GBR_DRIVING_LICENCE} from "../data/getMediaContent/gbDriversLicenseResponse";
+import {GBR_DRIVING_LICENCE, GBR_DRIVING_LICENCE_THIN_FILE} from "../data/getMediaContent/gbDriversLicenseResponse";
 import {DEU_DRIVING_LICENCE} from "../data/getMediaContent/euDriversLicenseResponse";
 import {GET_MEDIA_CONTENT_400} from "../data/getMediaContent/getMediaContent400";
 import {BRP} from "../data/getMediaContent/gbBrp";
@@ -238,6 +239,16 @@ export class YotiRequestProcessor {
                             })
                         };
                         return new Response(HttpCodesEnum.OK, JSON.stringify(updatedPayload));
+                    
+                    case '0002': // UK Driving License Success - Thin file
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        const VALID_DL_THIS_FILE_RESPONSE_0002 = JSON.parse(JSON.stringify(GBR_DRIVING_LICENCE_THIN_FILE));
+                        VALID_DL_THIS_FILE_RESPONSE_0002.session_id = sessionId; // Sets the session_id in the JSON response to match this function's
+                        VALID_DL_THIS_FILE_RESPONSE_0002.resources.id_documents[0].document_fields.media.id = sessionId; // Media.id is also assigned the sessionId
+                        // The last 4 digits of the media.id are changed to match the media code for UK DL
+                        VALID_DL_THIS_FILE_RESPONSE_0002.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_THIS_FILE_RESPONSE_0002.resources.id_documents[0].document_fields.media.id, UK_DL_THIN_FILE_MEDIA_ID);
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_THIS_FILE_RESPONSE_0002));
+
                     default:
                         return undefined;
                 }
@@ -1169,6 +1180,9 @@ export class YotiRequestProcessor {
         switch (lastUuidChars) {
             case UK_DL_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE));
+
+            case UK_DL_THIN_FILE_MEDIA_ID:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE_THIN_FILE));
 
             case UK_PASSPORT_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
