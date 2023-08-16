@@ -143,29 +143,24 @@ export class ValidationHelper {
 	 * @param address
 	 */
 	checkIfAddressIsValid(address: PersonIdentityAddress): boolean {
-		if ((!this.checkIfValidString([address.subBuildingName]) &&
-				!this.checkIfValidString([address.buildingName]) &&
-				!this.checkIfValidString([address.buildingNumber]) &&
-				!this.checkIfValidString([ address.streetName])) ||
-			(!this.checkIfValidString([address.subBuildingName]) &&
-				!this.checkIfValidString([address.buildingName]) &&
-				!this.checkIfValidString([address.buildingNumber]))) {
+		if ((!this.checkIfValidString([address.subBuildingName, address.buildingName, address.buildingNumber, address.streetName])) ||
+			(!this.checkIfValidString([address.subBuildingName, address.buildingName, address.buildingNumber]))) {
 			return false;
 		}
 		return true;
 	}
 
 	/**
-	 * Checks if all string values in the array are defined and does not
+	 * Returns true if any string in the array is defined and does not
 	 * contain spaces only
 	 *
 	 * @param params
 	 */
 	checkIfValidString(params: Array<string | undefined>): boolean {
-		if (params.some((param) => (!param || !param.trim()) )) {
-			return false;
+		if (params.some((param) => (param && param.trim()) )) {
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 }
