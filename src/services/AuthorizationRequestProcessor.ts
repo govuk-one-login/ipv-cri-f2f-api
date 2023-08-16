@@ -68,9 +68,14 @@ export class AuthorizationRequestProcessor {
 
 				this.metrics.addMetric("Set authorization code", MetricUnits.Count, 1);
 				try {
+					const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow);
 					await this.f2fService.sendToTXMA({
 						event_name: "F2F_CRI_AUTH_CODE_ISSUED",
-						...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow),
+						...coreEventFields,
+						user: {
+							...coreEventFields.user,
+							govuk_signin_journey_id: session.clientSessionId
+						}
 
 					});
 				} catch (error) {
@@ -92,6 +97,7 @@ export class AuthorizationRequestProcessor {
 						event_name: "F2F_CRI_END",
 						...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow),
 						extensions: {
+							previous_govuk_signin_journey_id: session.yotiSessionId,
 							evidence: [
 								{
 									txn: session.yotiSessionId || "",

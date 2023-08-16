@@ -150,9 +150,14 @@ export class DocumentSelectionRequestProcessor {
   		}
 
   		try {
+				const coreEventFields = buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow);
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_YOTI_START",
-  				...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow, yotiSessionId),
+  				...coreEventFields,
+					user: {
+						...coreEventFields.user,
+						govuk_signin_journey_id: yotiSessionId,
+					},
   				extensions: {
   					evidence: [
   						{

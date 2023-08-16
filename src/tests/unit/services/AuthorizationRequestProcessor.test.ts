@@ -91,6 +91,7 @@ describe("AuthorizationRequestProcessor", () => {
 			component_id: "https://XXX-c.env.account.gov.uk",
 			timestamp: absoluteTimeNow(),
 			extensions: {
+				"previous_govuk_signin_journey_id": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 				evidence: [
 					{
 						txn: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
@@ -98,7 +99,6 @@ describe("AuthorizationRequestProcessor", () => {
 				],
 			},
 			user: {
-				govuk_signin_journey_id: "sdfssg",
 				ip_address: "127.0.0.1",
 				persistent_session_id: "sdgsdg",
 				session_id: "sdfsdg",
