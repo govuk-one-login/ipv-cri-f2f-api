@@ -13,6 +13,8 @@ export const UK_DL_THIN_FILE_MEDIA_ID: string = '0002'
 
 export const UK_PASSPORT_MEDIA_ID: string = '0100'
 
+export const UK_PASSPORT_THIN_FILE_MEDIA_ID: string = '0129'
+
 export const NON_UK_PASSPORT_MEDIA_ID: string = '0200'
 
 export const BRP_MEDIA_ID: string = "0300"
