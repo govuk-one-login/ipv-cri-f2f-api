@@ -14,7 +14,11 @@ import {
     IPV_INTEG_FULL_NAME_UNHAPPY,
     BRP_MEDIA_ID,
     EU_DL_MEDIA_ID,
-    EEA_ID_MEDIA_ID, IPV_INTEG_FULL_NAME_PAUL_BUTTIVANT_UNHAPPY
+    EEA_ID_MEDIA_ID,
+    IPV_INTEG_FULL_NAME_PAUL_BUTTIVANT_UNHAPPY,
+    IPV_INTEG_FULL_NAME_JOYCE,
+    IPV_INTEG_FULL_NAME_PAUL,
+    IPV_INTEG_FULL_NAME_ANTHONY, UK_PASSPORT_MEDIA_ID_JOYCE
 } from "../utils/Constants";
 import {HttpCodesEnum} from "../utils/HttpCodesEnum";
 import {YotiSessionItem} from "../models/YotiSessionItem";
@@ -71,6 +75,7 @@ import {GET_MEDIA_CONTENT_401} from "../data/getMediaContent/getMediaContent401"
 import {GET_MEDIA_CONTENT_404} from "../data/getMediaContent/getMediaContent404";
 import {sleep} from "../utils/Sleep";
 import {POST_SESSIONS_INVALID_ADDRESS_400} from "../data/postSessions/postSessionsInvalidAddress400";
+import {GBR_PASSPORT_JOYCE} from "../data/getMediaContent/gbPassportResponseJOYCE";
 
 export class YotiRequestProcessor {
     private static instance: YotiRequestProcessor;
@@ -117,6 +122,13 @@ export class YotiRequestProcessor {
         if (IPV_INTEG_FULL_NAME_HAPPY === fullName) {
             //Replacing returned yoti sessionid with success 0100 at the end to return GBR_PASSPORT
             yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0100");
+            return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+        }
+
+        //For IPV Integration happy path JOYCE
+        if (IPV_INTEG_FULL_NAME_JOYCE === fullName ) {
+            //Replacing returned yoti sessionid with success 0100 at the end to return GBR_PASSPORT
+            yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0129");
             return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
         }
 
@@ -739,6 +751,15 @@ export class YotiRequestProcessor {
                         console.log('modifiedPayload', JSON.stringify(modifiedPayload));
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
+                    case '0129': // UK Passport Success -JOYCE
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        const VALID_RESPONSE_NFC_0129 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
+
+                        VALID_RESPONSE_NFC_0129.session_id = sessionId;
+                        VALID_RESPONSE_NFC_0129.resources.id_documents[0].document_fields.media.id = sessionId;
+                        VALID_RESPONSE_NFC_0129.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0129.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID_JOYCE);
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0129));
+
                     default:
                         return undefined;
                 }
@@ -1172,6 +1193,9 @@ export class YotiRequestProcessor {
 
             case UK_PASSPORT_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
+
+            case UK_PASSPORT_MEDIA_ID_JOYCE:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_JOYCE));
 
             case NON_UK_PASSPORT_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT));
