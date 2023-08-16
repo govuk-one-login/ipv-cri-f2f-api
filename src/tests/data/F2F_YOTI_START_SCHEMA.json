@@ -1,133 +1,137 @@
 {
-    "type": "object",
-    "properties": {
+  "type": "object",
+  "properties": {
       "event_name": {
-        "type": "string"
+          "type": "string"
       },
       "user": {
-        "type": "object",
-        "properties": {
-          "user_id": {
-            "type": "string"
+          "type": "object",
+          "properties": {
+              "user_id": {
+                  "type": "string"
+              },
+              "session_id": {
+                  "type": "string"
+              },
+              "ip_address": {
+                  "type": "string"
+              },
+              "govuk_signin_journey_id": {
+                  "type": "string"
+              }
           },
-          "session_id": {
-            "type": "string"
-          },
-          "govuk_signin_journey_id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "user_id",
-          "session_id",
-          "govuk_signin_journey_id"
-        ]
+          "required": [
+              "user_id",
+              "session_id",
+              "ip_address",
+              "govuk_signin_journey_id"
+          ]
       },
       "client_id": {
-        "type": "string"
+          "type": "string"
       },
       "timestamp": {
-        "type": "integer"
+          "type": "integer"
       },
       "component_id": {
-        "type": "string"
+          "type": "string"
       },
       "extensions": {
-        "type": "object",
-        "properties": {
-          "evidence": {
-            "type": "array",
-            "items": [
-              {
-                "type": "object",
-                "properties": {
-                  "txn": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "txn"
-                ]
-              }
-            ]
-          },
-          "post_office_details": {
-            "type": "array",
-            "items": [
-              {
-                "type": "object",
-                "properties": {
-                  "address": {
-                    "type": "string"
-                  },
-                  "post_code": {
-                    "type": "string"
-                  },
-                  "location": {
-                    "type": "array",
-                    "items": [
+          "type": "object",
+          "properties": {
+              "evidence": {
+                  "type": "array",
+                  "items": [
                       {
-                        "type": "object",
-                        "properties": {
-                          "latitude": {
-                            "type": "number"
+                          "type": "object",
+                          "properties": {
+                              "txn": {
+                                  "type": "string"
+                              }
                           },
-                          "longitude": {
-                            "type": "number"
-                          }
-                        },
-                        "required": [
-                          "latitude",
-                          "longitude"
-                        ]
+                          "required": [
+                              "txn"
+                          ]
                       }
-                    ]
-                  }
-                },
-                "required": [
-                  "address",
-                  "post_code",
-                  "location"
-                ]
+                  ]
+              },
+              "post_office_details": {
+                  "type": "array",
+                  "items": [
+                      {
+                          "type": "object",
+                          "properties": {
+                              "address": {
+                                  "type": "string"
+                              },
+                              "post_code": {
+                                  "type": "string"
+                              },
+                              "location": {
+                                  "type": "array",
+                                  "items": [
+                                      {
+                                          "type": "object",
+                                          "properties": {
+                                              "latitude": {
+                                                  "type": "number"
+                                              },
+                                              "longitude": {
+                                                  "type": "number"
+                                              }
+                                          },
+                                          "required": [
+                                              "latitude",
+                                              "longitude"
+                                          ]
+                                      }
+                                  ]
+                              }
+                          },
+                          "required": [
+                              "address",
+                              "post_code",
+                              "location"
+                          ]
+                      }
+                  ]
               }
-            ]
-          }
-        },
-        "required": [
-          "evidence",
-          "post_office_details"
-        ]
+          },
+          "required": [
+              "evidence",
+              "post_office_details"
+          ]
       },
       "restricted": {
-        "type": "object",
-        "properties": {
-          "passport": {
-            "type": "array",
-            "items": [
-              {
-                "type": "object",
-                "properties": {
-                  "documentType": {
-                    "type": "string"
-                  },
-                  "issuingCountry": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "documentType",
-                  "issuingCountry"
-                ]
+          "type": "object",
+          "properties": {
+              "passport": {
+                  "type": "array",
+                  "items": [
+                      {
+                          "type": "object",
+                          "properties": {
+                              "documentType": {
+                                  "type": "string"
+                              },
+                              "issuingCountry": {
+                                  "type": "string"
+                              }
+                          },
+                          "required": [
+                              "documentType",
+                              "issuingCountry"
+                          ]
+                      }
+                  ]
               }
-            ]
-          }
-        },
-        "required": [
-          "passport"
-        ]
+          },
+          "required": [
+              "passport"
+          ]
       }
-    },
-    "required": [
+  },
+  "required": [
       "event_name",
       "user",
       "client_id",
@@ -135,5 +139,5 @@
       "component_id",
       "extensions",
       "restricted"
-    ]
-  }
+  ]
+}
