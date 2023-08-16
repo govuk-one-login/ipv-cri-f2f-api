@@ -9,15 +9,27 @@ export enum DocumentMapping {
 
 export const UK_DL_MEDIA_ID: string = '0000'
 
+export const UK_DL_WRONG_NON_SPACE_CHARS: string = '0002'
+
 export const UK_PASSPORT_MEDIA_ID: string = '0100'
 
 export const UK_PASSPORT_ONLY_FULLNAME_MEDIA_ID: string = '0150'
 
+export const UK_PASSPORT_GIVEN_NAME_MEDIA_ID: string = '0151'
+
+export const UK_PASSPORT_FAMILY_NAME_MEDIA_ID: string = '0152'
+
+export const UK_PASSPORT_GIVEN_NAME_WRONG_SPLIT: string = '0153'
+
 export const NON_UK_PASSPORT_MEDIA_ID: string = '0200'
+
+export const NON_UK_PASSPORT_WRONG_SPLIT_SURNAME: string = '0206'
 
 export const BRP_MEDIA_ID: string = "0300"
 
 export const EU_DL_MEDIA_ID: string = "0400"
+
+export const EU_DL_INCORRECT_NAME_SEQUENCE: string = '0402'
 
 export const EEA_ID_MEDIA_ID: string = "0500"
 

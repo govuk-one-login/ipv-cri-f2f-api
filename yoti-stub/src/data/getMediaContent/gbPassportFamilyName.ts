@@ -1,7 +1,8 @@
-export const GBR_PASSPORT_ONLY_FULLNAME = {
-	"full_name":"FRANK JACOB JAMES SMITH0150",
+export const GBR_PASSPORT_FAMILY_NAME = {
+	"full_name":"FRANK JACOB JAMES SMITH0152",
 	"date_of_birth":"1965-07-08",
 	"nationality":"GBR",
+	"family_name": "SMITH0152",
 	"place_of_birth":"CROYDON",
 	"gender":"FEMALE",
 	"document_type":"PASSPORT",
