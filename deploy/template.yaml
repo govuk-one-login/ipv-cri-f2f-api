@@ -121,7 +121,7 @@ Mappings:
       CLIENTS: '[{"jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect"}]'
       AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
-      TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.build.account.gov.uk"
+      TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
     staging:
       YOTIBASEURL: "https://yotistub.review-o.staging.account.gov.uk"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
@@ -558,9 +558,9 @@ Resources:
 
   SessionFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsProdLikeEnvironment
     Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
       FilterPattern: ""
       LogGroupName: !Ref SessionFunctionLogGroup
 
@@ -650,6 +650,124 @@ Resources:
       Dimensions:
         - Name: FunctionName
           Value: !Ref SessionFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+  ## SessionConfiguration
+
+  SessionConfigFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: SessionConfigFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-SessionConfig-${AWS::StackName}"
+      Handler: SessionConfigHandler.lambdaHandler
+      CodeUri: ../src/
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: SessionConfigHandler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-id"
+      Events:
+        session:
+          Type: Api
+          Properties:
+            Path: /sessionConfiguration
+            Method: get
+            RestApiId: !Ref F2FRestApi
+
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - SessionConfigHandler.ts
+
+  SessionConfigFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-SessionConfig-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  SessionConfigFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref SessionFunctionLogGroup
+
+  SessionConfigFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SessionConfigFunction
+      Principal: apigateway.amazonaws.com
+
+  SessionConfigConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of Session is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-SessionConfigFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SessionConfigFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  SessionConfigThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: [ ]
+      AlarmDescription: !Sub "Trigger if the ${SessionConfigFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-SessionConfigFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SessionConfigFunction
       TreatMissingData: notBreaching
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
@@ -4808,57 +4926,57 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Yoti Stub"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, YOTIBASEURL]
-  TxMASQSQueue: 
+  TxMASQSQueue:
     Description: "Arn of the TxMASQSQueue"
     Value: !GetAtt TxMASQSQueue.Arn
     Export:
       Name: !Sub ${AWS::StackName}-TxMASQSQueue-arn
-  TxMAKMSEncryptionKey: 
+  TxMAKMSEncryptionKey:
     Description: "Arn of the TxMAKMSEncryptionKey"
     Value: !GetAtt TxMAKMSEncryptionKey.Arn
     Export:
       Name: !Sub ${AWS::StackName}-TxMAKMSEncryptionKey-arn
-  IPVCoreSQSQueue: 
+  IPVCoreSQSQueue:
     Description: "Arn of the IPVCoreSQSQueue"
     Value: !GetAtt IPVCoreSQSQueue.Arn
     Export:
       Name: !Sub ${AWS::StackName}-IPVCoreSQSQueue-arn
-  IPVCoreQueueEncryptionKey: 
+  IPVCoreQueueEncryptionKey:
     Description: "Arn of the IPVCoreQueueEncryptionKey"
     Value: !GetAtt IPVCoreQueueEncryptionKey.Arn
     Export:
       Name: !Sub ${AWS::StackName}-IPVCoreQueueEncryptionKey-arn
-  SessionTableName: 
+  SessionTableName:
     Description: "Name of the Session DynamoDB table"
     Value:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
     Export:
       Name: !Sub ${AWS::StackName}-SessionTable-name
-  SessionTableARN: 
+  SessionTableARN:
     Description: "Arn of the Session DynamoDB table"
     Value:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-arn"
     Export:
       Name: !Sub ${AWS::StackName}-SessionTable-arn
-  SessionTableEcryptionARN: 
+  SessionTableEcryptionARN:
     Description: "Arn of the SessionTableEncryptionKey"
     Value:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-arn"
     Export:
       Name: !Sub ${AWS::StackName}-SessionTableEncryptionKey-arn
-  PersonIdentityTableName: 
+  PersonIdentityTableName:
     Description: "Name of the Person Identity DynamoDB table"
     Value:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
     Export:
       Name: !Sub ${AWS::StackName}-PersonIdentityTable-name
-  PersonIdentityTableARN: 
+  PersonIdentityTableARN:
     Description: "Arn of the Person Identity DynamoDB table"
     Value:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-arn"
     Export:
       Name: !Sub ${AWS::StackName}-PersonIdentityTable-arn
-  PersonIdentityTableEncryptionARN: 
+  PersonIdentityTableEncryptionARN:
     Description: "Arn of the PersonTableEncryptionKey"
     Value:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-key-arn"

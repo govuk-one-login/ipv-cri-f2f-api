@@ -135,6 +135,13 @@ export class SessionRequestProcessor {
   		return unauthorizedResponse;
   	}
 
+  	// Validate the address format of the shared_claims received from the jwt.
+  	const { errorMessage, errorMessageCode } = this.validationHelper.isAddressFormatValid(jwtPayload);
+  	if (errorMessage.length > 0) {
+  		this.logger.error( { message: errorMessage }, { messageCode : errorMessageCode });
+  		return unauthorizedResponse;
+  	}
+
   	const sessionId: string = randomUUID();
   	this.logger.appendKeys({
   		sessionId,
@@ -171,6 +178,7 @@ export class SessionRequestProcessor {
   		clientIpAddress: clientIpAddress as string,
   		attemptCount: 0,
   		authSessionState: "F2F_SESSION_CREATED",
+  		evidence_requested: jwtPayload.evidence_requested,
   	};
 
   	try {
