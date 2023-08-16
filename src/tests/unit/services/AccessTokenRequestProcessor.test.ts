@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -23,12 +24,7 @@ let mockSession: ISessionItem;
 jest.mock("../../../utils/KmsJwtAdapter");
 const passingKmsJwtAdapterFactory = (_signingKeys: string) => new MockKmsSigningTokenJwtAdapter();
 const failingKmsJwtSigningAdapterFactory = (_signingKeys: string) => new MockFailingKmsSigningJwtAdapter();
-
-
-const logger = new Logger({
-	logLevel: "DEBUG",
-	serviceName: "F2F",
-});
+const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "F2F" });
 const ENCODED_REDIRECT_URI = encodeURIComponent("http://localhost:8085/callback");
 const AUTHORIZATION_CODE = randomUUID();
@@ -88,6 +84,9 @@ describe("AccessTokenRequestProcessor", () => {
 			"expires_in": Constants.TOKEN_EXPIRY_SECONDS,
 		}));
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+
+		expect(logger.appendKeys).toHaveBeenCalledWith({ govuk_signin_journey_id: mockSession.clientSessionId });
+		expect(logger.appendKeys).toHaveBeenCalledWith({ sessionId: mockSession.sessionId });
 	});
 
 	it("Returns 401 Unauthorized response when body is missing", async () => {
