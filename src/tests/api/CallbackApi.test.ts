@@ -19,6 +19,7 @@ import {
 	getDequeuedSqsMessage,
 	validateTxMAEventData,
 	validateJwtTokenNamePart,
+	getSqsEventList,
 } from "../utils/ApiTestSteps";
 import "dotenv/config";
 import { constants } from "../utils/ApiConstants";

@@ -5,6 +5,7 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 import { AppError } from "./AppError";
 import { HttpCodesEnum } from "./HttpCodesEnum";
 import { Name } from "./IVeriCredential";
+import { ValidationHelper } from "./ValidationHelper";
 
 export const personIdentityUtils = {
 
