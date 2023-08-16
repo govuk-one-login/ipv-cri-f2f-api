@@ -5,6 +5,7 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 import { AppError } from "./AppError";
 import { HttpCodesEnum } from "./HttpCodesEnum";
 import { Name } from "./IVeriCredential";
+import { ValidationHelper } from "./ValidationHelper";
 
 export const personIdentityUtils = {
 
@@ -85,18 +86,14 @@ export const personIdentityUtils = {
 	},
 
 	getYotiAddressLines(address: PersonIdentityAddress, logger: Logger) : { addressLine1: string; addressLine2: string } {
+
+		const validationHelper = new ValidationHelper();
 		let addressLine1, addressLine2;
-		if ((!this.checkIfValidString([address.subBuildingName]) &&
-			!this.checkIfValidString([address.buildingName]) &&
-			!this.checkIfValidString([address.buildingNumber]) &&
-			!this.checkIfValidString([ address.streetName])) ||
-			(!this.checkIfValidString([address.subBuildingName]) &&
-				!this.checkIfValidString([address.buildingName]) &&
-				!this.checkIfValidString([address.buildingNumber]))) {
+		if (!validationHelper.checkIfAddressIsValid(address)) {
 			// Throw an error if all the mandatory postalAddress fields- subBuildingName, buildingName, buildingNumber and streetName exists and is a valid string or atleast one of subBuildingName, buildingName, buildingNumber is a valid string
 			logger.error({ message: "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session" }, { messageCode: MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS });
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing all mandatory postalAddress fields, unable to create the session");
-		} else if ( !this.checkIfValidString([address.subBuildingName]) && !this.checkIfValidString([address.buildingName])) {
+		} else if ( !validationHelper.checkIfValidString([address.subBuildingName, address.buildingName])) {
 			// Log a warning message if subBuildingName and buildingName is absent and hence setting the addressLine1 with buildingNumber and StreetName and setting the addressLine2 to an empty string.
 			logger.warn({ message: "subBuildingName and buildingName is empty for this postalAddress" }, { messageCode: MessageCodes.MISSING_SUB_BUILDING_AND_BUILDING_NAME });
 			addressLine1 = `${address.buildingNumber} ${address.streetName}`.trim();
@@ -111,16 +108,4 @@ export const personIdentityUtils = {
 
 	},
 
-	/**
-	 * Checks if all string values in the array are defined and does not
-	 * contain spaces only
-	 *
-	 * @param params
-	 */
-	checkIfValidString(params: Array<string | undefined>): boolean {
-		if (params.some((param) => (!param || !param.trim()) )) {
-			return false;
-		}
-		return true;
-	},
 };
