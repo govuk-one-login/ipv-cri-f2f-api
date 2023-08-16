@@ -1,0 +1,43 @@
+{
+    "type": "object",
+    "properties": {
+      "event_name": {
+        "type": "string"
+      },
+      "user": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "govuk_signin_journey_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "session_id",
+          "govuk_signin_journey_id"
+        ]
+      },
+      "client_id": {
+        "type": "string"
+      },
+      "timestamp": {
+        "type": "integer"
+      },
+      "component_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "event_name",
+      "user",
+      "client_id",
+      "timestamp",
+      "component_id"
+    ]
+  }

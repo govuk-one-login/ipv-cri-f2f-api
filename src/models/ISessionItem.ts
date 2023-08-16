@@ -1,3 +1,5 @@
+import { EvidenceRequested } from "../utils/IVeriCredential";
+
 export interface IF2fSession {
 	given_names?: string[];
 	family_names?: string[];
@@ -24,5 +26,6 @@ export interface ISessionItem extends IF2fSession {
 	attemptCount: number;
 	authSessionState: string;
 	yotiSessionId?: string;
+	evidence_requested?: EvidenceRequested;
 }
 
