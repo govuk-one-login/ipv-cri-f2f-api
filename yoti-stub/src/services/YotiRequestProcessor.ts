@@ -22,7 +22,9 @@ import {
     UK_PASSPORT_GIVEN_NAME_WRONG_SPLIT,
     UK_DL_WRONG_NON_SPACE_CHARS,
     EU_DL_INCORRECT_NAME_SEQUENCE,
-    NON_UK_PASSPORT_WRONG_SPLIT_SURNAME
+    NON_UK_PASSPORT_WRONG_SPLIT_SURNAME,
+    UK_PASSPORT_MEDIA_ID_JOYCE,
+    IPV_INTEG_FULL_NAME_JOYCE
 } from "../utils/Constants";
 import {HttpCodesEnum} from "../utils/HttpCodesEnum";
 import {YotiSessionItem} from "../models/YotiSessionItem";
@@ -80,7 +82,6 @@ import {GET_MEDIA_CONTENT_404} from "../data/getMediaContent/getMediaContent404"
 import {sleep} from "../utils/Sleep";
 import {POST_SESSIONS_INVALID_ADDRESS_400} from "../data/postSessions/postSessionsInvalidAddress400";
 import {GBR_PASSPORT_JOYCE} from "../data/getMediaContent/gbPassportResponseJOYCE";
-import { GBR_PASSPORT_ONLY_FULLNAME } from "../data/getMediaContent/gbPassportOnlyFullname";
 import { GBR_PASSPORT_ONLY_FULLNAME } from "../data/getMediaContent/gbPassportOnlyFullname";
 import { GBR_PASSPORT_GIVEN_NAME } from "../data/getMediaContent/gbPassportGivenName";
 import { GBR_PASSPORT_FAMILY_NAME } from "../data/getMediaContent/gbPassportFamilyName";
@@ -1281,11 +1282,9 @@ export class YotiRequestProcessor {
             case UK_PASSPORT_ONLY_FULLNAME_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_ONLY_FULLNAME));
 
-            case UK_PASSPORT_ONLY_FULLNAME_MEDIA_ID:
-                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_ONLY_FULLNAME));
-
 			case UK_PASSPORT_GIVEN_NAME_MEDIA_ID:
 				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_GIVEN_NAME));
+                
 			case UK_PASSPORT_FAMILY_NAME_MEDIA_ID:
 				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_FAMILY_NAME));
 

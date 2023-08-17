@@ -1,9 +1,9 @@
 export const GBR_PASSPORT_WRONG_SPLIT_GIVEN_NAME = {
-	"full_name": "FREDERICK JON FLINTSTONE",
+	"full_name": "FREDERICK JON FLINTSTONE0153",
 	"date_of_birth": "1965-07-08",
 	"nationality": "GBR",
 	"given_names": "FREDERICK",
-	"family_name": "JON FLINTSTONE",
+	"family_name": "JON FLINTSTONE0153",
 	"place_of_birth": "CROYDON",
 	"gender": "FEMALE",
 	"document_type": "PASSPORT",

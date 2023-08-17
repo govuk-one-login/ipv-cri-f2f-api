@@ -1,8 +1,8 @@
 export const DEU_DRIVING_LICENCE_INCORRECT_NAME_SEQUENCE = {
-	"full_name": "FREDERICK SMITH JON FLINTSTONE",
+	"full_name": "FREDERICK SMITH JON FLINTSTONE0402",
 	"date_of_birth": "1964-08-12",
 	"given_names": "FREDERICK SMITH JON",
-	"family_name": "FLINTSTONE",
+	"family_name": "FLINTSTONE0402",
 	"place_of_birth": "Berlin",
 	"document_type": "DRIVING_LICENCE",
 	"issuing_country": "DEU",

@@ -1,8 +1,8 @@
 export const GBR_DRIVING_LICENCE_NON_SPACE_CHARS_RETURNED_WRONG = {
-	"full_name": "FREDERICK DOM FLINTSTONE",
+	"full_name": "FREDERICK DOM FLINTSTONE0002",
 	"date_of_birth": "1976-03-11",
 	"given_names": "FREDERICK DOM",
-	"family_name": "FLINTSTONE",
+	"family_name": "FLINTSTONE0002",
 	"place_of_birth": "UNITED KINGDOM",
 	"gender": "FEMALE",
 	"structured_postal_address": {

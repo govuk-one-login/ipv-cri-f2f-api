@@ -1,9 +1,9 @@
 export const ESP_PASSPORT_WRONG_SPLIT_SURNAMES = {
-	"full_name": "FREDERICK JON FLINTSTONE",
+	"full_name": "FREDERICK JON FLINTSTONE0206",
 	"date_of_birth": "1992-04-10",
 	"nationality": "ESP",
 	"given_names": "FREDERICK JON De",
-	"family_name": "FLINTSTONE",
+	"family_name": "FLINTSTONE0206",
 	"place_of_birth": "MADRID (MADRID)",
 	"gender": "FEMALE",
 	"document_type": "PASSPORT",
