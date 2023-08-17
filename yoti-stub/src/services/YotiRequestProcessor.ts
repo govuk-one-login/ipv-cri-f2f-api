@@ -76,6 +76,8 @@ import {GET_MEDIA_CONTENT_404} from "../data/getMediaContent/getMediaContent404"
 import {sleep} from "../utils/Sleep";
 import {POST_SESSIONS_INVALID_ADDRESS_400} from "../data/postSessions/postSessionsInvalidAddress400";
 import {GBR_PASSPORT_JOYCE} from "../data/getMediaContent/gbPassportResponseJOYCE";
+import {GBR_PASSPORT_PAUL} from "../data/getMediaContent/gbPassportResponsePAUL";
+import {GBR_PASSPORT_ANTHONY} from "../data/getMediaContent/gbPassportResponseANTHONY";
 
 export class YotiRequestProcessor {
     private static instance: YotiRequestProcessor;
@@ -1228,6 +1230,12 @@ export class YotiRequestProcessor {
 
             case UK_PASSPORT_MEDIA_ID_JOYCE:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_JOYCE));
+
+            case UK_PASSPORT_MEDIA_ID_PAUL:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_PAUL));
+
+            case UK_PASSPORT_MEDIA_ID_ANTHONY:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_ANTHONY));
 
             case NON_UK_PASSPORT_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT));
