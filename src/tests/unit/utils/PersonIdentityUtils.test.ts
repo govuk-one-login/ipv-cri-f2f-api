@@ -48,6 +48,25 @@ const personDetails: PersonIdentityItem = {
 	createdDate: 1612335678,
 };
 
+const documentFields = {
+	full_name: "FREDERICK JOSEPH FLINTSTONE",
+	date_of_birth: "1965-07-08",
+	nationality: "GBR",
+	place_of_birth: "CROYDON",
+	gender: "FEMALE",
+	document_type: "PASSPORT",
+	issuing_country: "GBR",
+	document_number: "533401372",
+	expiration_date: "2030-01-01",
+	date_of_issue: "2015-09-28",
+	issuing_authority: "HMPO",
+	mrz: {
+		type: 2,
+		line1: "P<GBRUK<SPECIMEN<<KENNETH<DECERQUEIRA<<<<<<<<<<<<<<<<",
+		line2: "5334013720GBR8812049F2509286<<<<<<<<<<<<<<00",
+	},
+};
+
 const expectedStructuralPostalAddress =  {
 	address_format: 1,
 	building_number: "32",
@@ -70,6 +89,7 @@ describe("PersonIdentityUtils", () => {
 	beforeEach(() => {
 		jest.resetAllMocks();
 	});
+
 
 	it("should return the expected structured_postal_address when all fields are present", () => {
 		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
@@ -219,5 +239,51 @@ describe("PersonIdentityUtils", () => {
 		expect(()=>{personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);}).toThrow(new AppError(HttpCodesEnum.BAD_REQUEST, "Missing all mandatory postalAddress fields, unable to create the session"));
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith({ "message": "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session" }, { "messageCode": "MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS" });
+	});
+
+	describe("GetNamesFromYoti", () => {	
+		it("return VcNameParts if F2F Name data matches Yoti Name data", () => {
+			const VcNameParts = personIdentityUtils.getNamesFromYoti("FRED JOHN", "SMITH");
+	
+			expect(VcNameParts).toEqual([{ "nameParts":[{ "value":"FRED", "type":"GivenName" }, { "value":"JOHN", "type":"GivenName" }, { "value":"SMITH", "type":"FamilyName" }] }]);
+		});
+	});
+
+	describe("GetNamesFromPersonIdentity", () => {	
+		it.each([
+			["return VcNameParts if F2F Name data matches Yoti Name data", documentFields, false, { "nameParts":[{ "value":"FREDERICK", "type":"GivenName" }, { "value":"JOSEPH", "type":"GivenName" }, { "value":"FLINTSTONE", "type":"FamilyName" }] }],
+			["return VcNameParts with the name case as is from Yoti DocumentFields", { ...documentFields, full_name: "FrEdErIcK JoSePh fLiNtStOnE" }, false, { "nameParts":[{ "value":"FrEdErIcK", "type":"GivenName" }, { "value":"JoSePh", "type":"GivenName" }, { "value":"fLiNtStOnE", "type":"FamilyName" }] }],
+			["should throw an error if familyName in F2F does not match the familyName in DocumentFields", { ...documentFields, full_name: "FREDERICK JOSEPH FLINT" }, true, null],
+			["should throw an error if givenName in F2F does not match the givenName in DocumentFields", { ...documentFields, full_name: "JOSEPH FREDERICK FLINTSTONE" }, true, null],
+			["should throw an error if order of names in F2F not same as in Yoti DocumentFields", { ...documentFields, full_name: "FRED JOSEPH FLINTSTONE" }, true, null],
+		])(
+			"%s",
+			(_description, testData, shouldThrow, expectedVcNameParts) => {
+				if (shouldThrow) {
+					expect(() =>
+						personIdentityUtils.getNamesFromPersonIdentity(
+							personDetails,
+							testData,
+							logger,
+						),
+					).toThrow(
+						new AppError(HttpCodesEnum.SERVER_ERROR, "FullName mismatch between F2F & YOTI"),
+					);
+					expect(logger.error).toHaveBeenCalledWith(
+						{ message: "FullName mismatch between F2F & YOTI" },
+						{ messageCode: "VENDOR_SESSION_NAME_MISMATCH" },
+					);
+				} else {
+					if (expectedVcNameParts !== null) {
+						const VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(
+							personDetails,
+							testData,
+							logger,
+						);
+						expect(VcNameParts[0].nameParts).toEqual(expectedVcNameParts.nameParts);
+					}
+				}
+			},
+		);
 	});
 });

@@ -7,6 +7,7 @@ import { YotiCheckRecommendation, YotiDocumentFields, YotiCompletedSession, Yoti
 import {
 	VerifiedCredentialEvidence,
 	VerifiedCredentialSubject,
+	Name,
 } from "../utils/IVeriCredential";
 import { EU_DL_COUNTRIES } from "../models/EuDrivingLicenceCodes";
 
@@ -189,15 +190,9 @@ export class GenerateVerifiableCredential {
 
   private attachPersonName(
   	credentialSubject: VerifiedCredentialSubject,
-  	givenName: string,
-  	familyName: string,
+  	VcNameParts: Name[],
   ): VerifiedCredentialSubject {
-  	const givenNames = givenName.split(/\s+/);
-  	const nameParts = givenNames.map((name) => ({ value: name, type: "GivenName" }));
-
-  	nameParts.push({ value: familyName, type: "FamilyName" });
-
-  	credentialSubject.name = [{ nameParts }];
+  	credentialSubject.name = VcNameParts;
 
   	return credentialSubject;
   }
@@ -323,6 +318,7 @@ export class GenerateVerifiableCredential {
   	yotiSessionId: string,
   	completedYotiSessionPayload: YotiCompletedSession,
   	documentFields: YotiDocumentFields,
+  	VcNameParts: Name[],
   ): {
   		credentialSubject: VerifiedCredentialSubject;
   		evidence: VerifiedCredentialEvidence;
@@ -374,9 +370,9 @@ export class GenerateVerifiableCredential {
   	//Attach individuals name information to the VC payload
   	credentialSubject = this.attachPersonName(
   		credentialSubject,
-  		documentFields.given_names,
-  		documentFields.family_name,
+  		VcNameParts,
   	);
+
   	//Attach individuals DOB to the VC payload
   	credentialSubject = this.attachDOB(credentialSubject, documentFields.date_of_birth);
   	//If address info present in Media document attach individuals Address to the VC payload

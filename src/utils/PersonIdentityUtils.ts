@@ -4,9 +4,41 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AppError } from "./AppError";
 import { HttpCodesEnum } from "./HttpCodesEnum";
+import { Name } from "./IVeriCredential";
 import { ValidationHelper } from "./ValidationHelper";
 
 export const personIdentityUtils = {
+
+	getNamesFromYoti(givenName: string, familyName: string): Name[] {
+		const givenNames = givenName.split(/\s+/);
+		const nameParts = givenNames.map((name) => ({ value: name, type: "GivenName" }));
+		nameParts.push({ value: familyName, type: "FamilyName" });
+		return [{ nameParts }];
+	},
+
+	getNamesFromPersonIdentity(personDetails: PersonIdentityItem, documentFields: any, logger: Logger): Name[] {
+		const { full_name: yotiFullName } = documentFields;
+		const { givenNames, familyNames } = this.getNames(personDetails);
+		const f2fGivenNames = givenNames.join(" ");
+		const f2fFamilyName = familyNames.join(" ");
+
+		// Check if the fullName in f2f matches the fullName in DocumentFields
+		const doesFullNameMatch = `${f2fGivenNames.toLowerCase()} ${f2fFamilyName.toLowerCase()}` === yotiFullName.toLowerCase();
+		if (!doesFullNameMatch) {
+			const errorMessage = "FullName mismatch between F2F & YOTI";
+			logger.error({ message: errorMessage }, { messageCode: MessageCodes.VENDOR_SESSION_NAME_MISMATCH });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, errorMessage);
+		}
+
+		// Remove family name from the full name and split at spaces
+		const yotiGivenNameParts = yotiFullName.replace(new RegExp(f2fFamilyName, "i"), "").match(/\S+/g);
+		// Map the array of given names into the correct format
+		const nameParts = yotiGivenNameParts.map((name: string) => ({ value: name.trim(), type: "GivenName" }));
+		// Remove the given names from the full name, remove surrounding spaces, and map to correct format
+		nameParts.push({ value: yotiFullName.replace(new RegExp(f2fGivenNames, "i"), "").trim(), type: "FamilyName" });
+
+		return [{ nameParts }];
+	},
 
 	getNames(personDetails: PersonIdentityItem) : { givenNames: string[]; familyNames: string[] } {
 		const givenNames: string[] = [];
