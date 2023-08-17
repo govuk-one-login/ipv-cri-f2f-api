@@ -60,13 +60,13 @@ describe("Callback API", () => {
 		const callbackResponse = await callbackPost(yotiSessionId);
 		expect(callbackResponse.status).toBe(202);
 
-		// // Retrieve Verifiable Credential from dequeued SQS queue
-		// let sqsMessage;
-		// do {
-		// 	sqsMessage = await getDequeuedSqsMessage(sub);
-		// } while (!sqsMessage);
-		// const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
-		// validateJwtToken(jwtToken, vcResponseData, yotiMockId);
+		// Retrieve Verifiable Credential from dequeued SQS queue
+		let sqsMessage;
+		do {
+			sqsMessage = await getDequeuedSqsMessage(sub);
+		} while (!sqsMessage);
+		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
+		validateJwtToken(jwtToken, vcResponseData, yotiMockId);
 
 	}, 20000);
 
@@ -98,14 +98,14 @@ describe("Callback API", () => {
 		const callbackResponse = await callbackPost(yotiSessionId);
 		expect(callbackResponse.status).toBe(202);
 
-		// // Retrieve Verifiable Credential from dequeued SQS queue
-		// let sqsMessage;
-		// do {
-		// 	sqsMessage = await getDequeuedSqsMessage(sub);
-		// } while (!sqsMessage);
-		// const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
+		// Retrieve Verifiable Credential from dequeued SQS queue
+		let sqsMessage;
+		do {
+			sqsMessage = await getDequeuedSqsMessage(sub);
+		} while (!sqsMessage);
+		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 
-		// validateJwtToken(jwtToken, vcResponseData, "0000");
+		validateJwtToken(jwtToken, vcResponseData, "0000");
 	}, 20000);
 
 	it.each([
@@ -147,13 +147,13 @@ describe("Callback API", () => {
 		const callbackResponse = await callbackPost(yotiSessionId);
 		console.log(callbackResponse.data);
 
-		// // Retrieve Verifiable Credential from dequeued SQS queue
-		// let sqsMessage;
-		// do {
-		// 	sqsMessage = await getDequeuedSqsMessage(sub);
-		// } while (!sqsMessage);
-		// const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
-		// validateJwtTokenNamePart(jwtToken, givenName1, givenName2, givenName3, familyName + yotiMockId);
+		// Retrieve Verifiable Credential from dequeued SQS queue
+		let sqsMessage;
+		do {
+			sqsMessage = await getDequeuedSqsMessage(sub);
+		} while (!sqsMessage);
+		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
+		validateJwtTokenNamePart(jwtToken, givenName1, givenName2, givenName3, familyName + yotiMockId);
 	}, 20000);
 
 	it("F2F CRI Callback Endpoint TxMA Validation", async () => {
@@ -184,12 +184,12 @@ describe("Callback API", () => {
 		const callbackResponse = await callbackPost(yotiSessionId);
 		expect(callbackResponse.status).toBe(202);
 
-		// // Retrieve Verifiable Credential from dequeued SQS queue
-		// let sqsMessage;
-		// do {
-		// 	sqsMessage = await getSqsEventList("txma/", sessionId, 6);
-		// } while (!sqsMessage);
-		// await validateTxMAEventData(sqsMessage);
+		// Retrieve Verifiable Credential from dequeued SQS queue
+		let sqsMessage;
+		do {
+			sqsMessage = await getSqsEventList("txma/", sessionId, 6);
+		} while (!sqsMessage);
+		await validateTxMAEventData(sqsMessage);
 
 	}, 20000);
 });

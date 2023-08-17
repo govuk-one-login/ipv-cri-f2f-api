@@ -116,7 +116,67 @@
             "type": "object",
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "nameParts": {
+                                    "type": "array",
+                                    "items": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "value": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "value",
+                                                "type"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "value": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "value",
+                                                "type"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "value": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "value",
+                                                "type"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "nameParts"
+                            ]
+                        }
+                    ]
                 },
                 "birthDate": {
                     "type": "array",
