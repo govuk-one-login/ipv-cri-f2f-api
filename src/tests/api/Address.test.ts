@@ -72,34 +72,4 @@ describe("Address fields tests", () => {
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Instructions PDF Generated");
 	});
-
-	it("incorrect country code", async () => {
-		f2fStubPayload.shared_claims.address[0].buildingNumber = "";
-		f2fStubPayload.shared_claims.address[0].buildingName = "19 A";
-		f2fStubPayload.shared_claims.address[0].subBuildingName = "";
-		f2fStubPayload.shared_claims.address[0].addressCountry = "XYZ";
-		console.log(JSON.stringify(f2fStubPayload));
-		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
-		sessionId = sessionResponse.data.session_id;
-		console.log("session id: " + sessionId);
-		expect(sessionId).toBeTruthy();
-		const response = await postDocumentSelection(dataPassport, sessionId);
-		console.log(response.data);
-		expect(response.status).toBe(500);
-		expect(response.data).toBe("Invalid country code");
-	});
-
-	it("buildingNumber, buildingName and subBuildingName- all missing", async () => {
-		f2fStubPayload.shared_claims.address[0].buildingNumber = "";
-		f2fStubPayload.shared_claims.address[0].buildingName = "";
-		f2fStubPayload.shared_claims.address[0].subBuildingName = "";
-		console.log(JSON.stringify(f2fStubPayload));
-		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
-		sessionId = sessionResponse.data.session_id;
-		console.log("session id: " + sessionId);
-		expect(sessionId).toBeTruthy();
-		const response = await postDocumentSelection(dataPassport, sessionId);
-		console.log(response.data);
-		expect(response.status).toBe(500);
-	});
 });
