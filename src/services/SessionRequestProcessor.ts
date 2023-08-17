@@ -59,7 +59,7 @@ export class SessionRequestProcessor {
   async processRequest(event: APIGatewayProxyEvent): Promise<Response> {
   	const deserialisedRequestBody = JSON.parse(event.body as string);
   	const requestBodyClientId = deserialisedRequestBody.client_id;
-  	const clientIpAddress = event.headers["x-forwarded-for"];
+  	const clientIpAddress = event.requestContext.identity?.sourceIp;
 
 
   	let configClient;
@@ -203,10 +203,8 @@ export class SessionRequestProcessor {
   		}
   	}
 
-		const sourceIp = event.requestContext.identity?.sourceIp;
-		
   	try {
-			const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer() as string, sourceIp, absoluteTimeNow);
+			const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer() as string, clientIpAddress, absoluteTimeNow);
   		await this.f2fService.sendToTXMA({
   			event_name: "F2F_CRI_START",
   			...coreEventFields,
