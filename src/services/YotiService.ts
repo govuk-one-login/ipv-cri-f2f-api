@@ -11,6 +11,7 @@ import { YotiDocumentTypesEnum, YOTI_REQUESTED_CHECKS, YOTI_REQUESTED_TASKS, YOT
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
+import { ValidationHelper } from "../utils/ValidationHelper";
 
 export class YotiService {
 	readonly logger: Logger;
@@ -27,6 +28,8 @@ export class YotiService {
 
 	readonly YOTI_BASE_URL: string;
 
+	readonly validationHelper: ValidationHelper;
+
 	constructor(logger: Logger, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number, PEM_KEY: string, YOTI_BASE_URL: string) {
 		this.RESOURCES_TTL_SECS = RESOURCES_TTL_SECS;
 		this.YOTI_SESSION_TTL_DAYS = YOTI_SESSION_TTL_DAYS;
@@ -34,6 +37,7 @@ export class YotiService {
 		this.CLIENT_SDK_ID = CLIENT_SDK_ID;
 		this.PEM_KEY = PEM_KEY;
 		this.YOTI_BASE_URL = YOTI_BASE_URL;
+		this.validationHelper = new ValidationHelper();
 	}
 
 	static getInstance(
@@ -66,7 +70,7 @@ export class YotiService {
 		const familyNames = nameParts.familyNames.length > 1 ? nameParts.familyNames.join(" ") : nameParts.familyNames[0];
 
 		const address = personDetails.addresses[0];
-		if (address.addressCountry !== "GB") {
+		if (!this.validationHelper.checkIfValidCountryCode(address.addressCountry)) {
 			this.logger.error({ message: "Invalid country code in the postalAddress" }, { messageCode: MessageCodes.INVALID_COUNTRY_CODE });
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Invalid country code");
 		}
