@@ -17,7 +17,8 @@ import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../utils/YotiPayloadEnums";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
-import { DrivingPermit, IdentityCard, Passport, ResidencePermit } from "../utils/IVeriCredential";
+import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "../utils/IVeriCredential";
+import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
 export class YotiCallbackProcessor {
 
@@ -156,9 +157,43 @@ export class YotiCallbackProcessor {
 					  messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
 				  });
 			  }
+				
+  			const { given_names, family_name, full_name } = documentFields;
 
-			  const { credentialSubject, evidence } =
-				  this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields);
+  			const missingGivenName = this.checkMissingField(given_names, "given_names");
+  			const missingFamilyName = this.checkMissingField(family_name, "family_name");
+  			const missingFullName = this.checkMissingField(full_name, "full_name");
+  			let VcNameParts: Name[];
+
+  			this.logger.info("Missing details check", { missingGivenName, missingFamilyName, missingFullName });
+
+  			// If all three name fields are missing, log an error and throw an exception
+  			if (missingGivenName && missingFamilyName && missingFullName) {
+  				this.logger.error({ message: "Missing Name Info in DocumentFields" }, {
+  					messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+  				});
+  				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Name Info in DocumentFields");
+  			}
+
+  			if (missingGivenName || missingFamilyName) {
+  				const personDetails = await this.f2fService.getPersonIdentityById(f2fSession.sessionId, this.environmentVariables.personIdentityTableName());
+
+  				if (!personDetails) {
+  					this.logger.warn("Missing details in PERSON IDENTITY tables", {
+  						messageCode: MessageCodes.PERSON_NOT_FOUND,
+  					});
+  					throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in PERSON IDENTITY tables");
+  				}
+
+  				this.logger.info("Getting NameParts using F2F Person Identity Info");
+  				VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(personDetails, documentFields, this.logger);
+  			} else {
+  				this.logger.info("Getting NameParts using Yoti DocumentFields Info");
+  				VcNameParts = personIdentityUtils.getNamesFromYoti(given_names, family_name);
+  			}
+
+
+			  const { credentialSubject, evidence } = this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields, VcNameParts);
 
 			  if (!credentialSubject || !evidence) {
 				  this.logger.error({ message: "Missing Credential Subject or Evidence payload" }, {
@@ -222,6 +257,14 @@ export class YotiCallbackProcessor {
 		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "");
 	  }
 
+  }
+
+  checkMissingField(field: string, fieldName: string): boolean {
+  	if (!field || field.trim() === "") {
+  		this.logger.info({ message: `Missing ${fieldName} field in documentFields response` });
+  		return true;
+  	}
+  	return false;
   }
 
   async sendYotiEventsToTxMA(documentFields: any, f2fSession: any, yotiSessionID: string, evidence: any): Promise<any> {
