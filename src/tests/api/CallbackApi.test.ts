@@ -110,8 +110,11 @@ describe("Callback API", () => {
 
 	it.each([
 		["0150", dataPassport, "FRANK", "JACOB", "JAMES", "SMITH"],
-		["0151", dataPassport,  "FRANK", "JACOB", "JAMES", "SMITH"],
-		["0152", dataPassport,  "FRANK", "JACOB", "JAMES", "SMITH"],
+		["0151", dataPassport, "FRANK", "JACOB", "JAMES", "SMITH"],
+		["0152", dataPassport, "FRANK", "JACOB", "JAMES", "SMITH"],
+		["0402", dataEuDrivingLicence, "FREDERICK", "SMITH", "JON", "FLINTSTONE"],
+		["0206", dataNonUkPassport, "FREDERICK", "JON", "De", "FLINTSTONE"],
+
 	])("F2F CRI Callback Endpoint Given Names in Yoti Response- yotiMockId: '%s'", async (yotiMockId: string, docSelectionData:any, givenName1:any, givenName2:any, givenName3:any, familyName:any ) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
 		f2fStubPayload.shared_claims.name[0].nameParts[0].value = givenName1;
