@@ -129,21 +129,21 @@ export class YotiRequestProcessor {
 
         //For IPV Integration happy path JOYCE
         if (IPV_INTEG_FULL_NAME_JOYCE.toUpperCase() === fullName.toUpperCase() ) {
-            //Replacing returned yoti sessionid with success 0100 at the end to return GBR_PASSPORT
+            //Replacing returned yoti sessionid with success 0129 at the end to return GBR_PASSPORT
             yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0129");
             return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
         }
 
         //For IPV Integration happy path PAUL
         if (IPV_INTEG_FULL_NAME_PAUL.toUpperCase() === fullName.toUpperCase() ) {
-            //Replacing returned yoti sessionid with success 0100 at the end to return GBR_PASSPORT
+            //Replacing returned yoti sessionid with success 0130 at the end to return GBR_PASSPORT
             yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0130");
             return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
         }
 
         //For IPV Integration happy path ANTHONY
         if (IPV_INTEG_FULL_NAME_ANTHONY.toUpperCase() === fullName.toUpperCase() ) {
-            //Replacing returned yoti sessionid with success 0100 at the end to return GBR_PASSPORT
+            //Replacing returned yoti sessionid with success 0131 at the end to return GBR_PASSPORT
             yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0131");
             return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
         }
