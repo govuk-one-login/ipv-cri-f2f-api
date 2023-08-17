@@ -16,9 +16,17 @@ import {
     EU_DL_MEDIA_ID,
     EEA_ID_MEDIA_ID,
     IPV_INTEG_FULL_NAME_PAUL_BUTTIVANT_UNHAPPY,
+    UK_PASSPORT_ONLY_FULLNAME_MEDIA_ID,
+    UK_PASSPORT_GIVEN_NAME_MEDIA_ID,
+    UK_PASSPORT_FAMILY_NAME_MEDIA_ID,
+    UK_PASSPORT_GIVEN_NAME_WRONG_SPLIT,
+    UK_DL_WRONG_NON_SPACE_CHARS,
+    EU_DL_INCORRECT_NAME_SEQUENCE,
+    NON_UK_PASSPORT_WRONG_SPLIT_SURNAME,
+    UK_PASSPORT_MEDIA_ID_JOYCE,
     IPV_INTEG_FULL_NAME_JOYCE,
     IPV_INTEG_FULL_NAME_PAUL,
-    IPV_INTEG_FULL_NAME_ANTHONY, UK_PASSPORT_MEDIA_ID_JOYCE
+    IPV_INTEG_FULL_NAME_ANTHONY, UK_PASSPORT_MEDIA_ID_ANTHONY, UK_PASSPORT_MEDIA_ID_PAUL
 } from "../utils/Constants";
 import {HttpCodesEnum} from "../utils/HttpCodesEnum";
 import {YotiSessionItem} from "../models/YotiSessionItem";
@@ -76,6 +84,15 @@ import {GET_MEDIA_CONTENT_404} from "../data/getMediaContent/getMediaContent404"
 import {sleep} from "../utils/Sleep";
 import {POST_SESSIONS_INVALID_ADDRESS_400} from "../data/postSessions/postSessionsInvalidAddress400";
 import {GBR_PASSPORT_JOYCE} from "../data/getMediaContent/gbPassportResponseJOYCE";
+import { GBR_PASSPORT_ONLY_FULLNAME } from "../data/getMediaContent/gbPassportOnlyFullname";
+import { GBR_PASSPORT_GIVEN_NAME } from "../data/getMediaContent/gbPassportGivenName";
+import { GBR_PASSPORT_FAMILY_NAME } from "../data/getMediaContent/gbPassportFamilyName";
+import { GBR_PASSPORT_WRONG_SPLIT_GIVEN_NAME } from "../data/getMediaContent/gbPassportWrongSplitGivenName";
+import { GBR_DRIVING_LICENCE_NON_SPACE_CHARS_RETURNED_WRONG } from "../data/getMediaContent/gbDriversLicenseNonSpaceCharsReturnedWrong";
+import { ESP_PASSPORT_WRONG_SPLIT_SURNAMES } from "../data/getMediaContent/espPassportWrongSplitSurnames";
+import { DEU_DRIVING_LICENCE_INCORRECT_NAME_SEQUENCE } from "../data/getMediaContent/euDriversLicenseIncorrectNameSequence";
+import {GBR_PASSPORT_PAUL} from "../data/getMediaContent/gbPassportResponsePAUL";
+import {GBR_PASSPORT_ANTHONY} from "../data/getMediaContent/gbPassportResponseANTHONY";
 
 export class YotiRequestProcessor {
     private static instance: YotiRequestProcessor;
@@ -127,8 +144,22 @@ export class YotiRequestProcessor {
 
         //For IPV Integration happy path JOYCE
         if (IPV_INTEG_FULL_NAME_JOYCE.toUpperCase() === fullName.toUpperCase() ) {
-            //Replacing returned yoti sessionid with success 0100 at the end to return GBR_PASSPORT
+            //Replacing returned yoti sessionid with success 0129 at the end to return GBR_PASSPORT
             yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0129");
+            return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+        }
+
+        //For IPV Integration happy path PAUL
+        if (IPV_INTEG_FULL_NAME_PAUL.toUpperCase() === fullName.toUpperCase() ) {
+            //Replacing returned yoti sessionid with success 0130 at the end to return GBR_PASSPORT
+            yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0130");
+            return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+        }
+
+        //For IPV Integration happy path ANTHONY
+        if (IPV_INTEG_FULL_NAME_ANTHONY.toUpperCase() === fullName.toUpperCase() ) {
+            //Replacing returned yoti sessionid with success 0131 at the end to return GBR_PASSPORT
+            yotiSessionItem.session_id = yotiSessionId.replace(lastYotiUuidChars, "0131");
             return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
         }
 
@@ -250,6 +281,15 @@ export class YotiRequestProcessor {
                             })
                         };
                         return new Response(HttpCodesEnum.OK, JSON.stringify(updatedPayload));
+
+                    case '0002': // UK Driving License Success - Non Space Characters in Name Returned Differently
+                    logger.debug(JSON.stringify(yotiSessionRequest));
+                    const VALID_DL_RESPONSE_0002 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
+                    VALID_DL_RESPONSE_0002.session_id = sessionId;
+                    VALID_DL_RESPONSE_0002.resources.id_documents[0].document_fields.media.id = sessionId;
+                    VALID_DL_RESPONSE_0002.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE_0002.resources.id_documents[0].document_fields.media.id, UK_DL_WRONG_NON_SPACE_CHARS);
+                    return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE_0002));
+
                     default:
                         return undefined;
                 }
@@ -760,6 +800,60 @@ export class YotiRequestProcessor {
                         VALID_RESPONSE_NFC_0129.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0129.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID_JOYCE);
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0129));
 
+                    case '0130': // UK Passport Success -PAUL
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        const VALID_RESPONSE_NFC_0130 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
+
+                        VALID_RESPONSE_NFC_0130.session_id = sessionId;
+                        VALID_RESPONSE_NFC_0130.resources.id_documents[0].document_fields.media.id = sessionId;
+                        VALID_RESPONSE_NFC_0130.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0130.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID_PAUL);
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0130));
+
+                    case '0131': // UK Passport Success -ANTHONY
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        const VALID_RESPONSE_NFC_0131 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
+
+                        VALID_RESPONSE_NFC_0131.session_id = sessionId;
+                        VALID_RESPONSE_NFC_0131.resources.id_documents[0].document_fields.media.id = sessionId;
+                        VALID_RESPONSE_NFC_0131.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0131.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID_ANTHONY);
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0131));
+
+                    case '0150': // UK Passport Success - Only FullName in DocumentFields
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        const VALID_RESPONSE_NFC_0150 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
+
+                        VALID_RESPONSE_NFC_0150.session_id = sessionId;
+                        VALID_RESPONSE_NFC_0150.resources.id_documents[0].document_fields.media.id = sessionId;
+                        VALID_RESPONSE_NFC_0150.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0150.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_ONLY_FULLNAME_MEDIA_ID);
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0150));
+
+										case '0151': // UK Passport Success - Only FullName & GivenName in DocumentFields
+											logger.debug(JSON.stringify(yotiSessionRequest));
+											const VALID_RESPONSE_NFC_0151 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
+
+											VALID_RESPONSE_NFC_0151.session_id = sessionId;
+											VALID_RESPONSE_NFC_0151.resources.id_documents[0].document_fields.media.id = sessionId;
+											VALID_RESPONSE_NFC_0151.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0151.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_GIVEN_NAME_MEDIA_ID);
+											return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0151));
+
+										case '0152': // UK Passport Success - Only FullName & FamilyName in DocumentFields
+											logger.debug(JSON.stringify(yotiSessionRequest));
+											const VALID_RESPONSE_NFC_0152 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
+
+											VALID_RESPONSE_NFC_0152.session_id = sessionId;
+											VALID_RESPONSE_NFC_0152.resources.id_documents[0].document_fields.media.id = sessionId;
+											VALID_RESPONSE_NFC_0152.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0152.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_FAMILY_NAME_MEDIA_ID);
+											return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0152));
+
+                    case '0153': // UK Passport Success - Wrong Split of GivenNames in DocumentFields
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        const VALID_RESPONSE_NFC_0153 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
+
+                        VALID_RESPONSE_NFC_0153.session_id = sessionId
+                        VALID_RESPONSE_NFC_0153.resources.id_documents[0].document_fields.media.id = sessionId;
+                        VALID_RESPONSE_NFC_0153.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0153.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_GIVEN_NAME_WRONG_SPLIT);
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0153));
+
                     default:
                         return undefined;
                 }
@@ -844,6 +938,17 @@ export class YotiRequestProcessor {
                         };
                         console.log('modifiedPayload', JSON.stringify(modifiedPayload));
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
+
+                    case '0206': // Non-UK Passport Success - Surnames Split Incorrectly
+                    logger.debug(JSON.stringify(yotiSessionRequest));
+                    const VALID_RESPONSE_NFC_0206 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
+
+                    VALID_RESPONSE_NFC_0206.session_id = sessionId;
+                    VALID_RESPONSE_NFC_0206.resources.id_documents[0].document_fields.media.id = sessionId;
+                    VALID_RESPONSE_NFC_0206.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0206.resources.id_documents[0].document_fields.media.id, NON_UK_PASSPORT_WRONG_SPLIT_SURNAME);
+                    VALID_RESPONSE_NFC_0206.resources.id_documents[0].issuing_country = "ESP";
+                    return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0206));
+
                     default:
                         return undefined;
                 }
@@ -944,6 +1049,16 @@ export class YotiRequestProcessor {
                             })
                         };
                         return new Response(HttpCodesEnum.OK, JSON.stringify(updatedPayload));
+
+                        case '0402': // EU Driving Licence Success - Incorrect Sequence of Names
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        const VALID_DL_RESPONSE_0402 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
+
+                        VALID_DL_RESPONSE_0402.session_id = sessionId;
+                        VALID_DL_RESPONSE_0402.resources.id_documents[0].document_fields.media.id = sessionId;
+                        VALID_DL_RESPONSE_0402.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE_0402.resources.id_documents[0].document_fields.media.id, EU_DL_INCORRECT_NAME_SEQUENCE);
+                        VALID_DL_RESPONSE_0402.resources.id_documents[0].issuing_country = "ESP";
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE_0402));
 
                     default:
                         return undefined;
@@ -1191,20 +1306,47 @@ export class YotiRequestProcessor {
             case UK_DL_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE));
 
+            case UK_DL_WRONG_NON_SPACE_CHARS:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE_NON_SPACE_CHARS_RETURNED_WRONG));
+
             case UK_PASSPORT_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
 
             case UK_PASSPORT_MEDIA_ID_JOYCE:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_JOYCE));
 
+            case UK_PASSPORT_ONLY_FULLNAME_MEDIA_ID:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_ONLY_FULLNAME));
+
+			case UK_PASSPORT_GIVEN_NAME_MEDIA_ID:
+				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_GIVEN_NAME));
+
+			case UK_PASSPORT_FAMILY_NAME_MEDIA_ID:
+				return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_FAMILY_NAME));
+
+            case UK_PASSPORT_GIVEN_NAME_WRONG_SPLIT:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_WRONG_SPLIT_GIVEN_NAME));
+
+            case UK_PASSPORT_MEDIA_ID_PAUL:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_PAUL));
+
+            case UK_PASSPORT_MEDIA_ID_ANTHONY:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT_ANTHONY));
+
             case NON_UK_PASSPORT_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT));
+
+            case NON_UK_PASSPORT_WRONG_SPLIT_SURNAME:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT_WRONG_SPLIT_SURNAMES));
 
             case BRP_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(BRP));
 
             case EU_DL_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(DEU_DRIVING_LICENCE));
+
+            case EU_DL_INCORRECT_NAME_SEQUENCE:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(DEU_DRIVING_LICENCE_INCORRECT_NAME_SEQUENCE));
 
             case EEA_ID_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(NLD_NATIONAL_ID));
@@ -1231,5 +1373,4 @@ export class YotiRequestProcessor {
                 return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming mediaId ${mediaId} didn't match any of the use cases`);
         }
     }
-
 }
