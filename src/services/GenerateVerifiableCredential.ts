@@ -156,6 +156,7 @@ export class GenerateVerifiableCredential {
   		if (value === "REJECT") {
   			switch (reason) {
   				case "COUNTERFEIT":
+					case "TAMPERED":
   					addToCI("D14");
   					break;
   				case "EXPIRED_DOCUMENT":
@@ -167,14 +168,12 @@ export class GenerateVerifiableCredential {
   				case "DOC_NUMBER_INVALID":
   					addToCI("D02");
   					break;
-  				case "TAMPERED":
   				case "DATA_MISMATCH":
   				case "CHIP_DATA_INTEGRITY_FAILED":
   				case "CHIP_SIGNATURE_VERIFICATION_FAILED":
   				case "CHIP_CSCA_VERIFICATION_FAILED":
   				case "MISSING_HOLOGRAM":
   				case "NO_HOLOGRAM_MOVEMENT":
-  					addToCI("D14");
   					break;
   				default:
   					break;
