@@ -721,7 +721,7 @@ Resources:
       DestinationArn:
         !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
       FilterPattern: ""
-      LogGroupName: !Ref SessionFunctionLogGroup
+      LogGroupName: !Ref SessionConfigFunctionLogGroup
 
   SessionConfigFunctionPermission:
     Type: AWS::Lambda::Permission
