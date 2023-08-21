@@ -44,7 +44,7 @@ export class Constants {
 
 	static readonly AUTHORIZATION_CODE_INDEX_NAME = "authCode-updated-index";
 
-	static readonly YOTI_SESSION_ID_INDEX_NAME = "yotiSessionId-index";
+	static readonly YOTI_SESSION_ID_INDEX_NAME = "yotiSessionId-updated-index";
 
 	static readonly TOKEN_EXPIRY_SECONDS = 3600;
 
