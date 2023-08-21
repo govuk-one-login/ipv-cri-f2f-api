@@ -62,7 +62,7 @@ jest.mock("../../../utils/DateTimeUtils", () => ({
 
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
-		sendEmailServiceTest = SendEmailService.getInstance(logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY);
+		sendEmailServiceTest = SendEmailService.getInstance(logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-ignore
 		sendEmailServiceTest.govNotify = mockGovNotify;
 		// @ts-ignore
