@@ -147,6 +147,8 @@ Resources:
         Source: govnotify
 
   MockGovNotifyRestApiUsagePlan:
+    DependsOn:
+      - "MockGovNotifyRestApi"
     Type: AWS::ApiGateway::UsagePlan
     Properties:
       ApiStages:

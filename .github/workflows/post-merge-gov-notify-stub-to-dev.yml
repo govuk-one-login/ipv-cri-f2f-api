@@ -16,7 +16,7 @@ env: # Only adding the variables in that are required for
   AWS_REGION: eu-west-2
 
 jobs:
-  deploy-to-build:
+  deploy-to-dev:
     name: Validate & Deploy GovNotify stub template to Dev Environment
     runs-on: ubuntu-latest
     defaults:
