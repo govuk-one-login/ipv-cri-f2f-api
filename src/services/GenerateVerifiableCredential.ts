@@ -156,7 +156,7 @@ export class GenerateVerifiableCredential {
   		if (value === "REJECT") {
   			switch (reason) {
   				case "COUNTERFEIT":
-					case "TAMPERED":
+				case "TAMPERED":
   					addToCI("D14");
   					break;
   				case "EXPIRED_DOCUMENT":
