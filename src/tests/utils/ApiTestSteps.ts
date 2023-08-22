@@ -280,11 +280,16 @@ export async function getSqsEventList(folder: string, prefix: string, txmaEventS
 }
 
 
-export async function validateTxMAEventData(keyList: any): Promise<any> {
+export async function validateTxMAEventData(keyList: any, clientSessionId:any): Promise<any> {
 	let i:any;
 	for (i = 0; i < keyList.length; i++) {
 		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
 		console.log(JSON.stringify(getObjectResponse.data, null, 2));
+		if (getObjectResponse.data.event_name === "F2F_CRI_START" || getObjectResponse.data.event_name === "F2F_YOTI_START" || getObjectResponse.data.event_name === "F2F_CRI_AUTH_CODE_ISSUED") {
+			expect(getObjectResponse.data.user.govuk_signin_journey_id).toBe(clientSessionId);
+		} else {
+			expect(getObjectResponse.data.extensions.previous_govuk_signin_journey_id).toBe(clientSessionId);
+		}		
 		let valid = true;
 		import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json" )
 			.then((jsonSchema) => {
