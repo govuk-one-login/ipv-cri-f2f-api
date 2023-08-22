@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/dot-notation */
+import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { GenerateVerifiableCredential } from "../../../services/GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../../../utils/YotiPayloadEnums";
@@ -12,7 +14,7 @@ import {
 } from "../data/yoti-session";
 
 describe("GenerateVerifiableCredential", () => {
-	let logger: Logger;
+	const logger = mock<Logger>();
 	let generateVerifiableCredential: GenerateVerifiableCredential;
 	const VcNameParts = [
 		{
@@ -30,7 +32,6 @@ describe("GenerateVerifiableCredential", () => {
 	];
 
 	beforeEach(() => {
-		logger = new Logger();
 		generateVerifiableCredential = GenerateVerifiableCredential.getInstance(logger);
 	});
 
@@ -221,6 +222,11 @@ describe("GenerateVerifiableCredential", () => {
 				);
 
 				expect(result).toEqual(contraIndicator);
+				expect(logger.info).toHaveBeenCalledWith({
+					message: "Handling authenticity rejection",
+					reason,
+					contraIndicator: contraIndicator[0],
+				});
 			},
 		);
 	});
