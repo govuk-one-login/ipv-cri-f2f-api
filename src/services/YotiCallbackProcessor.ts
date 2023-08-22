@@ -334,7 +334,7 @@ export class YotiCallbackProcessor {
 				  absoluteTimeNow,
 			  ),
 			  extensions: {
-					previous_govuk_signin_journey_id: f2fSession.clientIpAddress,
+					previous_govuk_signin_journey_id: f2fSession.clientSessionId,
 				  evidence: [
 					  {
 						  type: evidence[0].type,
