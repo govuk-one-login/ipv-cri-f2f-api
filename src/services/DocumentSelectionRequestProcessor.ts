@@ -125,24 +125,31 @@ export class DocumentSelectionRequestProcessor {
   		}
 
   		let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
+		  let docType: DocumentTypes.PASSPORT | DocumentTypes.DRIVING_LICENCE | DocumentTypes.RESIDENCE_PERMIT | DocumentTypes.NATIONAL_ID;
   		switch (selectedDocument) {
   			case AllDocumentTypes.UK_PASSPORT:
   				docName = DocumentNames.PASSPORT;
+				  docType = DocumentTypes.PASSPORT;
   				break;
   			case AllDocumentTypes.NON_UK_PASSPORT:
   				docName = DocumentNames.PASSPORT;
+  				docType = DocumentTypes.PASSPORT;
   				break;
   			case AllDocumentTypes.BRP:
   				docName = DocumentNames.RESIDENCE_PERMIT;
+  				docType = DocumentTypes.RESIDENCE_PERMIT;
   				break;
   			case AllDocumentTypes.UK_PHOTOCARD_DL:
   				docName = DocumentNames.DRIVING_LICENCE;
+  				docType = DocumentTypes.DRIVING_LICENCE;
   				break;
   			case AllDocumentTypes.EU_PHOTOCARD_DL:
   				docName = DocumentNames.DRIVING_LICENCE;
+  				docType = DocumentTypes.DRIVING_LICENCE;
   				break;
   			case AllDocumentTypes.EEA_IDENTITY_CARD:
   				docName = DocumentNames.NATIONAL_ID;
+  				docType = DocumentTypes.NATIONAL_ID;
   				break;
   			default:
   				this.logger.error({ message: `Unable to find document type ${selectedDocument}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
@@ -150,14 +157,14 @@ export class DocumentSelectionRequestProcessor {
   		}
 
   		try {
-				const coreEventFields = buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow);
+  			const coreEventFields = buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow);
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_YOTI_START",
   				...coreEventFields,
-					user: {
-						...coreEventFields.user,
-						govuk_signin_journey_id: yotiSessionId,
-					},
+  				user: {
+  					...coreEventFields.user,
+  					govuk_signin_journey_id: yotiSessionId,
+  				},
   				extensions: {
   					evidence: [
   						{
@@ -181,7 +188,7 @@ export class DocumentSelectionRequestProcessor {
   				restricted: {
   					[docName]: [
   						{
-  							documentType: selectedDocument,
+  							documentType: docType,
   							issuingCountry: countryCode,
   						},
   					],
