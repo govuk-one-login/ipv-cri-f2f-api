@@ -4995,4 +4995,4 @@ Outputs:
   F2FGovNotifyURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Gov Notify API"
-    Value: !FindInMap [EnvironmentVariables, !Ref Environment, GOVNOTIFYAPI]
+    Value: !FindInMap [EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI]
