@@ -161,10 +161,10 @@ export class DocumentSelectionRequestProcessor {
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_YOTI_START",
   				...coreEventFields,
-					user: {
-						...coreEventFields.user,
-						govuk_signin_journey_id: f2fSessionInfo.clientSessionId,
-					},
+  				user: {
+  					...coreEventFields.user,
+  					govuk_signin_journey_id: f2fSessionInfo.clientSessionId,
+  				},
   				extensions: {
   					evidence: [
   						{
