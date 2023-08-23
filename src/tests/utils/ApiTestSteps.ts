@@ -490,6 +490,6 @@ export function validateCriVcIssuedTxMAEvent(txmaEvent: any, yotiMockId: any): a
 			expect(txmaEvent.restricted.idCard[0].documentType).toBe("NATIONAL_ID");
 			break;
 		default:
-			console.log("!23");
+			console.warn("Yoti Mock Id provided does not match expected list");
 	}
 } 
