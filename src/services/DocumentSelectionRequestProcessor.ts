@@ -156,7 +156,7 @@ export class DocumentSelectionRequestProcessor {
   				...coreEventFields,
 					user: {
 						...coreEventFields.user,
-						govuk_signin_journey_id: yotiSessionId,
+						govuk_signin_journey_id: f2fSessionInfo.clientSessionId,
 					},
   				extensions: {
   					evidence: [
