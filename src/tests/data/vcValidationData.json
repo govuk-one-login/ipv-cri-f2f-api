@@ -131,7 +131,7 @@
         "verificationScore": 0,
         "checkMethod": null,
         "failedCheck": "01",
-        "ci": "F03,D14"
+        "ci": "F03"
     },
     "s0116":{
         "strengthScore": null,
@@ -159,14 +159,14 @@
         "validityScore": null,
         "verificationScore": 0,
         "checkMethod": null,
-        "ci": null
+        "ci": "D14"
     },
     "s0120":{
         "strengthScore": null,
         "validityScore": null,
         "verificationScore": 0,
         "checkMethod": null,
-        "ci": null
+        "ci": "D14"
     },
     "s0121":{
         "strengthScore": null,
