@@ -40,7 +40,7 @@ describe("Callback API", () => {
 		["0112", dataPassport],
 		["0113", dataPassport],
 		["0114", dataPassport],
-		// ["0115", dataPassport],
+		["0115", dataPassport],
 		["0116", dataPassport],
 		["0117", dataPassport],
 		["0118", dataPassport],
