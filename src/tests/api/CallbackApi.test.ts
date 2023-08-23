@@ -225,7 +225,7 @@ describe("Callback API", () => {
 		// Retrieve Verifiable Credential from dequeued SQS queue
 		let sqsMessage;
 		do {
-			sqsMessage = await getSqsEventList("txma/", sessionId, 6);
+			sqsMessage = await getSqsEventList("txma/", sessionId, 7);
 		} while (!sqsMessage);
 		await validateTxMAEventData(sqsMessage);
 
