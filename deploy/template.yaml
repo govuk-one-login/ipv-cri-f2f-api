@@ -4992,3 +4992,7 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Test Harness"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, TESTHARNESSURL]
+  F2FGovNotifyURL:
+    Condition: IsNotProdLikeEnvironment
+    Description: "F2F Gov Notify API"
+    Value: !FindInMap [EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI]

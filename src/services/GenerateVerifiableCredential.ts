@@ -77,7 +77,7 @@ export class GenerateVerifiableCredential {
   	} else {
   		switch (documentType) {
   			case "PASSPORT":
-  				return 3;
+  				return documentContainsValidChip ? 4 : 3;
   			case "DRIVING_LICENCE":
   				return 3;
   			case "NATIONAL_ID":
