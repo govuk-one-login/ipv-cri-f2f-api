@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/dot-notation */
+import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { GenerateVerifiableCredential } from "../../../services/GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../../../utils/YotiPayloadEnums";
@@ -12,7 +14,7 @@ import {
 } from "../data/yoti-session";
 
 describe("GenerateVerifiableCredential", () => {
-	let logger: Logger;
+	const logger = mock<Logger>();
 	let generateVerifiableCredential: GenerateVerifiableCredential;
 	const VcNameParts = [
 		{
@@ -30,7 +32,6 @@ describe("GenerateVerifiableCredential", () => {
 	];
 
 	beforeEach(() => {
-		logger = new Logger();
 		generateVerifiableCredential = GenerateVerifiableCredential.getInstance(logger);
 	});
 
@@ -197,12 +198,12 @@ describe("GenerateVerifiableCredential", () => {
 			{ reason: "FRAUD_LIST_MATCH", contraIndicator: ["F03"] },
 			{ reason: "DOC_NUMBER_INVALID", contraIndicator: ["D02"] },
 			{ reason: "TAMPERED", contraIndicator: ["D14"] },
-			{ reason: "DATA_MISMATCH", contraIndicator: ["D14"] },
+			{ reason: "DATA_MISMATCH", contraIndicator: [] },
 			{ reason: "MISSING_HOLOGRAM", contraIndicator: ["D14"] },
 			{ reason: "NO_HOLOGRAM_MOVEMENT", contraIndicator: ["D14"] },
-			{ reason: "CHIP_DATA_INTEGRITY_FAILED", contraIndicator: ["D14"] },
-			{ reason: "CHIP_SIGNATURE_VERIFICATION_FAILED", contraIndicator: ["D14"] },
-			{ reason: "CHIP_CSCA_VERIFICATION_FAILED", contraIndicator: ["D14"] },
+			{ reason: "CHIP_DATA_INTEGRITY_FAILED", contraIndicator: [] },
+			{ reason: "CHIP_SIGNATURE_VERIFICATION_FAILED", contraIndicator: [] },
+			{ reason: "CHIP_CSCA_VERIFICATION_FAILED", contraIndicator: [] },
 			{ reason: "UNKNOWN_REASON", contraIndicator: [] },
 		])(
 			"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
@@ -221,6 +222,11 @@ describe("GenerateVerifiableCredential", () => {
 				);
 
 				expect(result).toEqual(contraIndicator);
+				expect(logger.info).toHaveBeenCalledWith({
+					message: "Handling authenticity rejection",
+					reason,
+					contraIndicator: contraIndicator[0],
+				});
 			},
 		);
 	});
