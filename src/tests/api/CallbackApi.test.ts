@@ -20,6 +20,7 @@ import {
 	validateTxMAEventData,
 	validateJwtTokenNamePart,
 	getSqsEventList,
+	validateTxMAEvent,
 } from "../utils/ApiTestSteps";
 import "dotenv/config";
 import { constants } from "../utils/ApiConstants";
@@ -224,9 +225,53 @@ describe("Callback API", () => {
 		// Retrieve Verifiable Credential from dequeued SQS queue
 		let sqsMessage;
 		do {
-			sqsMessage = await getSqsEventList("txma/", sessionId, 6);
+			sqsMessage = await getSqsEventList("txma/", sessionId, 7);
 		} while (!sqsMessage);
 		await validateTxMAEventData(sqsMessage);
+
+	}, 20000);
+
+	it.each([
+		["0000", dataUkDrivingLicence],
+		["0101", dataPassport],
+		["0200", dataNonUkPassport],
+		["0300", dataBrp],
+		["0400", dataEuDrivingLicence],
+		["0500", dataEeaIdCard],
+	])("F2F CRI Callback Endpoint TxMA Validation - yotiMockId: '%s'", async (yotiMockId: string, docSelectionData:any) => {
+		f2fStubPayload.yotiMockID = yotiMockId;
+		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		const sessionId = sessionResponse.data.session_id;
+		const sub = sessionResponse.data.sub;
+
+		// Document Selection
+		const response = await postDocumentSelection(docSelectionData, sessionId);
+		expect(response.status).toBe(200);
+		// Authorization
+		const authResponse = await authorizationGet(sessionId);
+		expect(authResponse.status).toBe(200);
+		// // Post Token
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
+		expect(tokenResponse.status).toBe(200);
+		// Post User Info
+		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
+		expect(userInfoResponse.status).toBe(202);
+
+		// Get Yoti Session Id
+		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const yotiSessionId: any = session?.yotiSessionId;
+		console.log(yotiSessionId);
+
+		// Yoti Callback
+		const callbackResponse = await callbackPost(yotiSessionId);
+		expect(callbackResponse.status).toBe(202);
+
+		// Retrieve Verifiable Credential from dequeued SQS queue
+		let sqsMessage;
+		do {
+			sqsMessage = await getSqsEventList("txma/", sessionId, 7);
+		} while (!sqsMessage);
+		await validateTxMAEvent("F2F_CRI_VC_ISSUED", sqsMessage, yotiMockId);
 
 	}, 20000);
 });

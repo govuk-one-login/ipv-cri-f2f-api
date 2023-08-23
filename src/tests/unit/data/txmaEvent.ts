@@ -187,3 +187,68 @@ export const TXMA_BRP_VC_ISSUED = {
 		],
 	},
 };
+
+const TXMA_YOTI_START_EXTENSION = {
+	extensions: {
+		"evidence": [
+			{
+				"txn": "b83d54ce-1565-42ee-987a-97a1f48f27dg",
+			},
+		],
+		"post_office_details": [
+			{
+				"address": "1 The Street, Funkytown",
+				"location": [
+					{
+						"latitude": 0.34322,
+						"longitude": -42.48372,
+					},
+				],
+				"name": undefined,
+				"post_code": "SW19 4NS",
+			},
+		],
+	},
+};
+
+export const TXMA_PASSPORT_YOTI_START = {
+	...TXMA_CORE_FIELDS,
+	...TXMA_YOTI_START_EXTENSION,
+	restricted: {
+		"passport": [
+			{
+				"documentType": "PASSPORT",
+				"issuingCountry": undefined,
+			},
+		],
+	},
+	"timestamp": 1684933200,
+	"user": {
+		"govuk_signin_journey_id": "sdfssg",
+		"ip_address": "127.0.0.1",
+		"persistent_session_id": "sdgsdg",
+		"session_id": "RandomF2FSessionID",
+		"user_id": "sub",
+	},
+};
+
+export const TXMA_NATIONAL_ID_YOTI_START = {
+	...TXMA_CORE_FIELDS,
+	...TXMA_YOTI_START_EXTENSION,
+	restricted: {
+		"idCard": [
+			{
+				"documentType": "NATIONAL_ID",
+				"issuingCountry": undefined,
+			},
+		],
+	},
+	"timestamp": 1684933200,
+	"user": {
+		"govuk_signin_journey_id": "sdfssg",
+		"ip_address": "127.0.0.1",
+		"persistent_session_id": "sdgsdg",
+		"session_id": "RandomF2FSessionID",
+		"user_id": "sub",
+	},
+};

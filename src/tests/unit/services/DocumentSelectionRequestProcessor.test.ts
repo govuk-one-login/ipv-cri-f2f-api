@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/dot-notation */
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -5,7 +6,11 @@ import { F2fService } from "../../../services/F2fService";
 import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "../../../services/DocumentSelectionRequestProcessor";
-import { VALID_REQUEST } from "../data/documentSelection-events";
+import {
+	VALID_EEA_ID_CARD_REQUEST,
+	VALID_NON_UK_PASSPORT_REQUEST,
+	VALID_REQUEST,
+} from "../data/documentSelection-events";
 import { YotiService } from "../../../services/YotiService";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { YotiSessionInfo } from "../../../models/YotiPayloads";
@@ -13,6 +18,8 @@ import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { AppError } from "../../../utils/AppError";
+import { TXMA_NATIONAL_ID_YOTI_START, TXMA_PASSPORT_YOTI_START } from "../data/txmaEvent";
+import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 
 let mockDocumentSelectionRequestProcessor: DocumentSelectionRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -48,7 +55,7 @@ function getPersonIdentityItem(): PersonIdentityItem {
 	const personIdentityItem: PersonIdentityItem = {
 		"addresses": [
 			{
-				"addressCountry": "United Kingdom",
+				"addressCountry": "GB",
 				"buildingName": "Sherman",
 				"uprn": 123456789,
 				"streetName": "Wallaby Way",
@@ -200,6 +207,11 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
+		const passportYotiStart =  TXMA_PASSPORT_YOTI_START;
+		passportYotiStart.event_name = "F2F_YOTI_START";
+		passportYotiStart.timestamp = absoluteTimeNow();
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
@@ -220,10 +232,14 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
-
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_NON_UK_PASSPORT_REQUEST, "RandomF2FSessionID");
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
+		const passportYotiStart =  TXMA_PASSPORT_YOTI_START;
+		passportYotiStart.event_name = "F2F_YOTI_START";
+		passportYotiStart.timestamp = absoluteTimeNow();
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
@@ -245,10 +261,15 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_EEA_ID_CARD_REQUEST, "RandomF2FSessionID");
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
+		const nationalIdYotiStart =  TXMA_NATIONAL_ID_YOTI_START;
+		nationalIdYotiStart.event_name = "F2F_YOTI_START";
+		nationalIdYotiStart.timestamp = absoluteTimeNow();
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, nationalIdYotiStart);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
