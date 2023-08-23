@@ -303,6 +303,18 @@ export async function validateTxMAEventData(keyList: any): Promise<any> {
 	}
 }
 
+export async function validateTxMAEvent(txmaEvent: any, keyList: any, yotiMockId: any): Promise<any> {
+	let i:any;
+	for (i = 0; i < keyList.length; i++) {
+		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
+	
+		if (getObjectResponse.data.event_name === txmaEvent) {
+			console.log(JSON.stringify(getObjectResponse.data, null, 2));
+			validateCriVcIssuedTxMAEvent(getObjectResponse.data, yotiMockId);
+		}
+	}
+}
+
 
 /**
  * Retrieves an object from the bucket with the specified prefix, which is the latest message dequeued from the SQS
@@ -455,3 +467,29 @@ export async function postGovNotifyRequest(mockDelimitator: any, userData: any):
 		return strToSearch.substring(0, n) + strToInsert + strToSearch.substring(n);
 	}
 }
+
+export function validateCriVcIssuedTxMAEvent(txmaEvent: any, yotiMockId: any): any {
+	const yotiMockIdPrefix = yotiMockId.slice(0, 2);
+	switch (yotiMockIdPrefix) {
+		case "00":
+			expect(txmaEvent.restricted.drivingPermit[0].documentType).toBe("DRIVING_LICENCE");
+			break;
+		case "01":
+			expect(txmaEvent.restricted.passport[0].documentType).toBe("PASSPORT");
+			break;
+		case "02":
+			expect(txmaEvent.restricted.passport[0].documentType).toBe("PASSPORT");
+			break;
+		case "03":
+			expect(txmaEvent.restricted.residencePermit[0].documentType).toBe("RESIDENCE_PERMIT");
+			break;
+		case "04":
+			expect(txmaEvent.restricted.drivingPermit[0].documentType).toBe("DRIVING_LICENCE");
+			break;
+		case "05":
+			expect(txmaEvent.restricted.idCard[0].documentType).toBe("NATIONAL_ID");
+			break;
+		default:
+			console.log("!23");
+	}
+} 
