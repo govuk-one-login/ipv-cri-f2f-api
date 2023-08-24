@@ -618,9 +618,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of Session is used. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-SessionFunction-concurrency"
@@ -901,9 +901,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of Token concurrency is used. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-TokenFunction-concurrency"
@@ -1073,9 +1073,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of authorization concurrency is used. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-concurrency"
@@ -1278,9 +1278,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of Document selection concurrency is used. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunction-concurrency"
@@ -1627,9 +1627,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of JsonWeb Keys concurrency is used. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunction-concurrency"
@@ -1816,9 +1816,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of GovNotify concurrency is used. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-concurrency"
@@ -1993,9 +1993,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of UserInfro concurrency is used. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-UserInfoFunction-concurrency"
@@ -2365,9 +2365,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of Yoticallback concurrency is used. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-concurrency"
