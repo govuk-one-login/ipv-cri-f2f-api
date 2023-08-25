@@ -9,6 +9,17 @@ import { ValidationHelper } from "./ValidationHelper";
 
 export const personIdentityUtils = {
 
+	removeCaseInsensitive(originalString: string, stringToSearch: string) {
+		const lowerPattern = stringToSearch.toLowerCase();
+		const lowerString = originalString.toLowerCase();
+
+		const patternIndex = lowerString.indexOf(lowerPattern);
+		if (patternIndex === -1) return originalString;
+
+		const removedString = originalString.slice(0, patternIndex) + originalString.slice(patternIndex + stringToSearch.length);
+		return removedString;
+	},
+
 	getNamesFromYoti(givenName: string, familyName: string): Name[] {
 		const givenNames = givenName.split(/\s+/);
 		const nameParts = givenNames.map((name) => ({ value: name, type: "GivenName" }));
@@ -31,11 +42,11 @@ export const personIdentityUtils = {
 		}
 
 		// Remove family name from the full name and split at spaces
-		const yotiGivenNameParts = yotiFullName.replace(new RegExp(f2fFamilyName, "i"), "").match(/\S+/g);
+		const yotiGivenNameParts = (this.removeCaseInsensitive(yotiFullName, f2fFamilyName).trim()).split(" ").filter(part => part !== "");
 		// Map the array of given names into the correct format
 		const nameParts = yotiGivenNameParts.map((name: string) => ({ value: name.trim(), type: "GivenName" }));
 		// Remove the given names from the full name, remove surrounding spaces, and map to correct format
-		nameParts.push({ value: yotiFullName.replace(new RegExp(f2fGivenNames, "i"), "").trim(), type: "FamilyName" });
+		nameParts.push({ value: this.removeCaseInsensitive(yotiFullName, f2fGivenNames).trim(), type: "FamilyName" });
 
 		return [{ nameParts }];
 	},

@@ -241,6 +241,47 @@ describe("PersonIdentityUtils", () => {
 		expect(logger.error).toHaveBeenCalledWith({ "message": "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session" }, { "messageCode": "MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS" });
 	});
 
+	describe("removeCaseInsensitive", () => {
+		it("should remove case-insensitive stringToSearch from original string", () => {
+			const inputString = "Hello World";
+			const stringToSearch = "world";
+			const expected = "Hello ";
+
+			const result = personIdentityUtils.removeCaseInsensitive(inputString, stringToSearch);
+
+			expect(result).toBe(expected);
+		});
+
+		it("should not modify the original string if stringToSearch is not found", () => {
+			const inputString = "Hello World";
+			const stringToSearch = "universe";
+
+			const result = personIdentityUtils.removeCaseInsensitive(inputString, stringToSearch);
+
+			expect(result).toBe(inputString);
+		});
+
+		it("should handle empty input string", () => {
+			const inputString = "";
+			const stringToSearch = "test";
+			const expected = "";
+
+			const result = personIdentityUtils.removeCaseInsensitive(inputString, stringToSearch);
+
+			expect(result).toBe(expected);
+		});
+
+		it("should handle empty stringToSearch", () => {
+			const inputString = "Hello World";
+			const stringToSearch = "";
+			const expected = "Hello World";
+
+			const result = personIdentityUtils.removeCaseInsensitive(inputString, stringToSearch);
+
+			expect(result).toBe(expected);
+		});
+	});
+
 	describe("GetNamesFromYoti", () => {	
 		it("return VcNameParts if F2F Name data matches Yoti Name data", () => {
 			const VcNameParts = personIdentityUtils.getNamesFromYoti("FRED JOHN", "SMITH");
