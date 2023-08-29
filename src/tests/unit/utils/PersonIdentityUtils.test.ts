@@ -286,7 +286,7 @@ describe("PersonIdentityUtils", () => {
 			},
 		);
 		
-		it.only("should return VcNameParts for Boaty McBoatface Boat Test", () => {
+		it("should return VcNameParts for Boaty McBoatface Boat Test", () => {
 			const testData = { ...documentFields, full_name: "Boaty McBoatface Boat" };
 			const expectedVcNameParts = {
 				nameParts: [
