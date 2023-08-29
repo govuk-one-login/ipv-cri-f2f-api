@@ -8,18 +8,6 @@ import { Name } from "./IVeriCredential";
 import { ValidationHelper } from "./ValidationHelper";
 
 export const personIdentityUtils = {
-
-	removeCaseInsensitive(originalString: string, stringToSearch: string) {
-		const lowerPattern = stringToSearch.toLowerCase();
-		const lowerString = originalString.toLowerCase();
-
-		const patternIndex = lowerString.indexOf(lowerPattern);
-		if (patternIndex === -1) return originalString;
-
-		const removedString = originalString.slice(0, patternIndex) + originalString.slice(patternIndex + stringToSearch.length);
-		return removedString;
-	},
-
 	getNamesFromYoti(givenName: string, familyName: string): Name[] {
 		const givenNames = givenName.split(/\s+/);
 		const nameParts = givenNames.map((name) => ({ value: name, type: "GivenName" }));
@@ -32,7 +20,7 @@ export const personIdentityUtils = {
 		const { givenNames, familyNames } = this.getNames(personDetails);
 		const f2fGivenNames = givenNames.join(" ");
 		const f2fFamilyName = familyNames.join(" ");
-
+    
 		// Check if the fullName in f2f matches the fullName in DocumentFields
 		const doesFullNameMatch = `${f2fGivenNames.toLowerCase()} ${f2fFamilyName.toLowerCase()}` === yotiFullName.toLowerCase();
 		if (!doesFullNameMatch) {
@@ -40,14 +28,20 @@ export const personIdentityUtils = {
 			logger.error({ message: errorMessage }, { messageCode: MessageCodes.VENDOR_SESSION_NAME_MISMATCH });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, errorMessage);
 		}
-
-		// Remove family name from the full name and split at spaces
-		const yotiGivenNameParts = (this.removeCaseInsensitive(yotiFullName, f2fFamilyName).trim()).split(" ").filter(part => part !== "");
-		// Map the array of given names into the correct format
-		const nameParts = yotiGivenNameParts.map((name: string) => ({ value: name.trim(), type: "GivenName" }));
-		// Remove the given names from the full name, remove surrounding spaces, and map to correct format
-		nameParts.push({ value: this.removeCaseInsensitive(yotiFullName, f2fGivenNames).trim(), type: "FamilyName" });
-
+    
+		// Split the full name into words
+		const fullNameWords = yotiFullName.split(" ").filter((part: string) => part !== "");
+    
+		// Split the words into given names and family name parts
+		const nameParts = [];
+		for (const word of fullNameWords) {
+			if (f2fFamilyName.toLowerCase().includes(word.toLowerCase())) {
+				nameParts.push({ value: word.trim(), type: "FamilyName" });
+			} else {
+				nameParts.push({ value: word.trim(), type: "GivenName" });
+			}
+		}
+    
 		return [{ nameParts }];
 	},
 

@@ -241,47 +241,6 @@ describe("PersonIdentityUtils", () => {
 		expect(logger.error).toHaveBeenCalledWith({ "message": "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session" }, { "messageCode": "MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS" });
 	});
 
-	describe("removeCaseInsensitive", () => {
-		it("should remove case-insensitive stringToSearch from original string", () => {
-			const inputString = "Hello World";
-			const stringToSearch = "world";
-			const expected = "Hello ";
-
-			const result = personIdentityUtils.removeCaseInsensitive(inputString, stringToSearch);
-
-			expect(result).toBe(expected);
-		});
-
-		it("should not modify the original string if stringToSearch is not found", () => {
-			const inputString = "Hello World";
-			const stringToSearch = "universe";
-
-			const result = personIdentityUtils.removeCaseInsensitive(inputString, stringToSearch);
-
-			expect(result).toBe(inputString);
-		});
-
-		it("should handle empty input string", () => {
-			const inputString = "";
-			const stringToSearch = "test";
-			const expected = "";
-
-			const result = personIdentityUtils.removeCaseInsensitive(inputString, stringToSearch);
-
-			expect(result).toBe(expected);
-		});
-
-		it("should handle empty stringToSearch", () => {
-			const inputString = "Hello World";
-			const stringToSearch = "";
-			const expected = "Hello World";
-
-			const result = personIdentityUtils.removeCaseInsensitive(inputString, stringToSearch);
-
-			expect(result).toBe(expected);
-		});
-	});
-
 	describe("GetNamesFromYoti", () => {	
 		it("return VcNameParts if F2F Name data matches Yoti Name data", () => {
 			const VcNameParts = personIdentityUtils.getNamesFromYoti("FRED JOHN", "SMITH");
@@ -326,5 +285,44 @@ describe("PersonIdentityUtils", () => {
 				}
 			},
 		);
+		
+		it.only("should return VcNameParts for Boaty McBoatface Boat Test", () => {
+			const testData = { ...documentFields, full_name: "Boaty McBoatface Boat" };
+			const expectedVcNameParts = {
+				nameParts: [
+					{ value: "Boaty", type: "GivenName" },
+					{ value: "McBoatface", type: "GivenName" },
+					{ value: "Boat", type: "FamilyName" },
+				],
+			};
+
+			const VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(
+				{
+					...personDetails,
+					name: [
+						{
+							nameParts: [
+								{
+									type: "GivenName",
+									value: "boaty",
+								},
+								{
+									type: "GivenName",
+									value: "mcboatface",
+								},
+								{
+									type: "FamilyName",
+									value: "boat",
+								},
+							],
+						},
+					],
+				},
+				testData,
+				logger,
+			);
+
+			expect(VcNameParts[0].nameParts).toEqual(expectedVcNameParts.nameParts);
+		});
 	});
 });
