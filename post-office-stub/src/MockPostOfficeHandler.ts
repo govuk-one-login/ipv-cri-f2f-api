@@ -34,13 +34,15 @@ class MockPostOfficeHandler implements LambdaInterface {
 			if (payload) {
 				logger.info("Event body", { payload });
 				payloadParsed = JSON.parse(payload);
-
-				logger.info("PARSED JSON", { payloadParsed });
-				logger.info("PARSED POSTCODE", payloadParsed.searchString);
-				logger.info("FINISHED PARSING, awaiting return");
-				return await PostOfficeRequestProcessor.getInstance(logger, metrics).mockSearchLocations(payloadParsed.searchString);
+				if (payloadParsed.searchString && payloadParsed.productFilter) {
+					logger.info("PARSED JSON", { payload });
+					logger.info("PARSED POSTCODE", payloadParsed.searchString);
+					logger.info("FINISHED PARSING, awaiting return");
+					return await PostOfficeRequestProcessor.getInstance(logger, metrics).mockSearchLocations(payloadParsed.searchString);
+				} else {return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred - missing payload parameters");
 			}
-			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+			} 
+			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred - missing payload");
 
 		} catch (err: any) {
 			logger.error({ message: "An error has occurred.", err });
