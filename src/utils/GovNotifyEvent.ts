@@ -1,4 +1,5 @@
 import { PersonIdentityItem } from "../models/PersonIdentityItem";
+import { Constants } from "./Constants";
 import { personIdentityUtils } from "./PersonIdentityUtils";
 
 export interface GovNotifyEvent {
@@ -12,6 +13,14 @@ export interface GovNotifyEvent {
 	};
 }
 
+export interface ReminderEmailEvent {
+	"Message": {
+		"emailAddress": string;
+		"messageType": string;
+	};
+}
+
+
 export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, personDetails: PersonIdentityItem): GovNotifyEvent => {
 	const nameParts = personIdentityUtils.getNames(personDetails);
 
@@ -22,7 +31,17 @@ export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: stri
 			emailAddress: personIdentityUtils.getEmailAddress(personDetails),
 			firstName: nameParts.givenNames[0],
 			lastName: nameParts.familyNames[0],
-			messageType: "email",
+			messageType: Constants.PDF_EMAIL,
+		},
+	};
+};
+
+export const buildReminderEmailEventFields = (emailAddress: string): ReminderEmailEvent => {
+
+	return {
+		Message : {
+			emailAddress,
+			messageType: Constants.REMINDER_EMAIL,
 		},
 	};
 };

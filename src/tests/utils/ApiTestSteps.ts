@@ -480,7 +480,7 @@ export async function postGovNotifyRequest(mockDelimitator: any, userData: any):
 	}
 
 	function insertBeforeLastOccurrence(strToSearch: string, strToFind: string, strToInsert: string) {
-		var n = strToSearch.lastIndexOf(strToFind);
+		const n = strToSearch.lastIndexOf(strToFind);
 		if (n < 0) return strToSearch;
 		return strToSearch.substring(0, n) + strToInsert + strToSearch.substring(n);
 	}

@@ -74,8 +74,8 @@ export class AuthorizationRequestProcessor {
 						...coreEventFields,
 						user: {
 							...coreEventFields.user,
-							govuk_signin_journey_id: session.clientSessionId
-						}
+							govuk_signin_journey_id: session.clientSessionId,
+						},
 
 					});
 				} catch (error) {

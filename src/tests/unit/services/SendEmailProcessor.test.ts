@@ -37,7 +37,7 @@ describe("SendEmailProcessor", () => {
 	it("Returns success response when all required Email attributes exists", async () => {
 		const expectedDateTime = new Date().toISOString();
 		const mockEmailResponse = new EmailResponse(expectedDateTime, "", 201);
-		mockGovNotifyService.sendEmail.mockResolvedValue(mockEmailResponse);
+		mockGovNotifyService.sendYotiPdfEmail.mockResolvedValue(mockEmailResponse);
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
 		const emailResponse = await sendEmailProcessorTest.processRequest(eventBody);
 
