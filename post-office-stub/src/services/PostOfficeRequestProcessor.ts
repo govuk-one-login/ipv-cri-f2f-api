@@ -9,7 +9,6 @@ import { POST_REPONSE_429 } from "../data/postOfficeResponse/postResponse429";
 import { POST_REPONSE_500 } from "../data/postOfficeResponse/postResponse500";
 import { POST_REPONSE_503 } from "../data/postOfficeResponse/postResponse503";
 
-
 export class PostOfficeRequestProcessor {
     private static instance: PostOfficeRequestProcessor;
 
@@ -44,18 +43,18 @@ export class PostOfficeRequestProcessor {
     			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_REPONSE_400));
 			case "403":
 				this.logger.info({ message: "Returning 403 response back" });
-				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_REPONSE_403));
+				return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(POST_REPONSE_403));
 			case "429":
 				this.logger.info({ message: "Returning 429 response back" });
-				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_REPONSE_429));
+				return new Response(HttpCodesEnum.TOO_MANY_REQUESTS, JSON.stringify(POST_REPONSE_429));
     		case "500":
     			this.logger.info({ message: "Returning 500 response back" });
-    			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_REPONSE_500));
+    			return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(POST_REPONSE_500));
     		case "503":
     			this.logger.info({ message: "Returning 503 response back" });
-    			return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(POST_REPONSE_503));
+    			return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(POST_REPONSE_503));
     		default:
-    			this.logger.info({ message: "Successful resquest" });
+    			this.logger.info({ message: "Successful request" });
           return new Response(HttpCodesEnum.OK, JSON.stringify(POST_OFFICE_RESPONSE));
     	}
     }

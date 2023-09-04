@@ -2,8 +2,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Response } from "./utils/Response";
-import { ResourcesEnum } from "./models/enums/ResourcesEnum";
-
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { AppError } from "./utils/AppError";

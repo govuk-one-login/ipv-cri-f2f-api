@@ -27,6 +27,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LocationSearchResponse"
+        400:
+          $ref: "#/components/responses/400"
+        403:
+          $ref: "#/components/responses/403"
+        429:
+          $ref: "#/components/responses/429"
+        500:
+          $ref: "#/components/responses/500"
+        503:
+          $ref: "#/components/responses/503"
       x-amazon-apigateway-request-validator: "both"
       x-amazon-apigateway-integration:
         httpMethod: "POST"
@@ -101,6 +111,39 @@ components:
   ## Response Definitions
   ## ---------------------
   responses:
+    400:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            PAYLOAD_VALIDATION:
+              $ref: "#/components/examples/PayloadValidationError"
+            MALFORMED_DIGEST:
+              $ref: "#/components/examples/MalformedRequestDigestError"
+            MALFORMED_TOKEN:
+              $ref: "#/components/examples/MalformedRequestTokenError"
+    403:
+      description: Auth Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            SCHEME_NOT_FOUND:
+              $ref: "#/components/examples/SchemeNotFoundError"
+            SCHEME_VALIDATION_REQUIREMENT_NOT_FOUND:
+              $ref: "#/components/examples/SchemeValidationRequirementNotFoundError"
+    429:
+      description: Too Many Requests Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            TOO_MANY_REQUESTS:
+              $ref: "#/components/examples/TooManyRequestsError"
     500:
       description: Internal Server Error
       content:
@@ -123,6 +166,37 @@ components:
   ## Example Definitions
   ## ---------------------
   examples:
+    PayloadValidationError:
+      value:
+        code: PAYLOAD_VALIDATION
+        message: There were errors validating the payload
+        errors:
+          - property: The JSON property name
+            message: The error message associated with the property
+    MalformedRequestDigestError:
+      value:
+        code: MALFORMED_REQUEST
+        errors:
+          - property: header.X-Yoti-Auth-Digest
+            message: must not be null or empty
+    MalformedRequestTokenError:
+      value:
+        code: MALFORMED_REQUEST
+        errors:
+          - property: header.X-Yoti-Auth-Token
+            message: must not be null or empty
+    SchemeNotFoundError:
+      value:
+        code: SCHEME_NOT_FOUND
+        message: No scheme found that matches provided scheme name
+    SchemeValidationRequirementNotFoundError:
+      value:
+        code: SCHEME_VALIDATION_REQUIREMENT_NOT_FOUND
+        message: No scheme validation found for requested issuing country and/or document type
+    TooManyRequestsError:
+      value:
+        code: TOO_MANY_REQUESTS
+        message: Exceeded permissible limits
     UnexpectedServerError:
       value:
         code: SERVER_ERROR
