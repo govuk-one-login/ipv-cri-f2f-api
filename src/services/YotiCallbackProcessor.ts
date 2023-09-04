@@ -112,14 +112,25 @@ export class YotiCallbackProcessor {
 
 		  this.logger.info({ message: "Completed Yoti Session:" });
 
-		  const documentFieldsId = completedYotiSessionInfo.resources.id_documents[0].document_fields.media.id;
-
-		  if (!documentFieldsId) {
-			  this.logger.error({ message: "No document_fields ID found in completed Yoti Session" }, {
+  		const idDocumentsDocumentFields = completedYotiSessionInfo.resources.id_documents[0].document_fields;
+  		if (!idDocumentsDocumentFields) {
+			  this.logger.error({ message: "No document_fields found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 			  });
-			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields ID not found");
+			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields not populated");
+  		}
+
+		  const documentFieldsId = idDocumentsDocumentFields.media.id;
+		  if (!documentFieldsId) {
+  			const documentTextDataCheck = completedYotiSessionInfo.checks.find((check) => check.type === "ID_DOCUMENT_TEXT_DATA_CHECK");
+
+			  this.logger.error({ message: "No media ID found in completed Yoti Session" }, {
+				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+  				documentTextDataCheck:documentTextDataCheck?.report.recommendation,
+			  });
+			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields media ID not found");
 		  }
+
 		  const documentFields = await this.yotiService.getMediaContent(yotiSessionID, documentFieldsId);
 		  if (!documentFields) {
 			  this.logger.error({ message: "No document fields info found" }, {
@@ -134,16 +145,16 @@ export class YotiCallbackProcessor {
 			  f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
 			  f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED
 		  ) {
-				const coreEventFields = buildCoreEventFields(f2fSession, this.environmentVariables.issuer(), f2fSession.clientIpAddress, absoluteTimeNow);
+  			const coreEventFields = buildCoreEventFields(f2fSession, this.environmentVariables.issuer(), f2fSession.clientIpAddress, absoluteTimeNow);
 			  try {
 				  await this.f2fService.sendToTXMA({
 					  event_name: "F2F_YOTI_RESPONSE_RECEIVED",
 					  ...coreEventFields,
-						user: {
-							...coreEventFields.user,
-						},
+  					user: {
+  						...coreEventFields.user,
+  					},
 					  extensions: {
-							previous_govuk_signin_journey_id: f2fSession.clientSessionId,
+  						previous_govuk_signin_journey_id: f2fSession.clientSessionId,
 						  evidence: [
 							  {
 								  txn: yotiSessionID,
@@ -298,7 +309,7 @@ export class YotiCallbackProcessor {
 				  documentType: documentFields.document_type,
 				  personalNumber: documentFields.document_number,
 				  expiryDate: documentFields.expiration_date,
-				  issuingCountry: documentFields.issuing_country
+				  issuingCountry: documentFields.issuing_country,
 			  };
 			  if (documentFields.issuing_country !== "GBR") {
 				  documentInfo.issuedBy = documentFields.place_of_issue;
@@ -334,7 +345,7 @@ export class YotiCallbackProcessor {
 				  absoluteTimeNow,
 			  ),
 			  extensions: {
-					previous_govuk_signin_journey_id: f2fSession.clientSessionId,
+  				previous_govuk_signin_journey_id: f2fSession.clientSessionId,
 				  evidence: [
 					  {
 						  type: evidence[0].type,
