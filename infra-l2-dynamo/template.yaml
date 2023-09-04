@@ -88,6 +88,19 @@ Resources:
               - "authSessionState"
               - "clientSessionId"
             ProjectionType: "INCLUDE"
+        - IndexName: "authCode-updated-index"
+          KeySchema:
+            - AttributeName: "authorizationCode"
+              KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "sessionId"
+              - "redirectUri"
+              - "clientId"
+              - "authSessionState"
+              - "clientSessionId"
+              - "expiryDate"
+            ProjectionType: "INCLUDE"
         - IndexName: "yotiSessionId-index"
           KeySchema:
             - AttributeName: "yotiSessionId"
@@ -101,6 +114,21 @@ Resources:
               - "clientId"
               - "clientSessionId"
               - "authSessionState"
+            ProjectionType: "INCLUDE"
+        - IndexName: "yotiSessionId-updated-index"
+          KeySchema:
+            - AttributeName: "yotiSessionId"
+              KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "sessionId"
+              - "subject"
+              - "clientIpAddress"
+              - "state"
+              - "clientId"
+              - "clientSessionId"
+              - "authSessionState"
+              - "expiryDate"
             ProjectionType: "INCLUDE"
       TimeToLiveSpecification:
         AttributeName: expiryDate
