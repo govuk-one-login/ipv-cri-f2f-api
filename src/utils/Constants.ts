@@ -24,6 +24,8 @@ export class Constants {
 
 	static readonly SESSION_LOGGER_SVC_NAME : "SessionHandler";
 
+	static readonly REMINDER_EMAIL_LOGGER_SVC_NAME : "ReminderEmail";
+
 	static readonly DEBUG = "DEBUG";
 
 	static readonly INFO = "INFO";
@@ -46,6 +48,8 @@ export class Constants {
 
 	static readonly YOTI_SESSION_ID_INDEX_NAME = "yotiSessionId-index";
 
+	static readonly ATUH_SESSION_STATE_INDEX_NAME = "authSessionState-index";
+
 	static readonly TOKEN_EXPIRY_SECONDS = 3600;
 
 	static readonly REGEX_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -53,6 +57,10 @@ export class Constants {
 	static readonly GOV_NOTIFY = "GOV_NOTIFY";
 
 	static readonly ENV_VAR_UNDEFINED = "ENV Variables are undefined";
+
+	static readonly PDF_EMAIL = "PDF_EMAIL";
+
+	static readonly REMINDER_EMAIL = "REMINDER_EMAIL";
 
 	static readonly EMAIL_DISABLED = "EMAIL_DISABLED";
 

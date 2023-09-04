@@ -210,6 +210,57 @@ describe("F2f Service", () => {
 		}));
 	});
 
+	it("should throw error when session items are not found by auth session state", async () => {
+		mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [] });
+
+		await expect(f2fService.getSessionsByAuthSessionState("F2F_SESSION_CREATED")).rejects.toThrow("Error retrieving Sessions by authSessionState");
+	});
+
+	it("should return session items when sessions are found matching the auth session state", async () => {
+		mockDynamoDbClient.query = jest.fn().mockResolvedValue({
+			Items: [{
+				sessionId: "SESSID",
+				expiryDate: absoluteTimeNow() + 500,
+			},
+			{
+				sessionId: "SESSIDTWO",
+				expiryDate: absoluteTimeNow() + 500,
+			},
+			{
+				sessionId: "SESSIDTHREE",
+				expiryDate: absoluteTimeNow() + 500,
+			}],
+		});
+
+		const result = await f2fService.getSessionsByAuthSessionState("F2F_SESSION_STARTED");
+		expect(result).toEqual([{ sessionId: "SESSID", expiryDate: expect.any(Number) }, { sessionId: "SESSIDTWO", expiryDate: expect.any(Number) }, { sessionId: "SESSIDTHREE", expiryDate: expect.any(Number) }]);
+		expect(mockDynamoDbClient.query).toHaveBeenCalledWith(expect.objectContaining({
+			KeyConditionExpression: "authSessionState = :authSessionState",
+			ExpressionAttributeValues: {
+				":authSessionState": "F2F_SESSION_STARTED",
+			},
+		}));
+	});
+
+
+	it("should update session with reminded flag", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		await f2fService.updateReminderEmailFlag("SESSID", true);
+		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
+			input: {
+				ExpressionAttributeValues: {
+					":reminderEmailSent": true,
+				},
+				Key: {
+					sessionId: "SESSID",
+				},
+				TableName: "SESSIONTABLE",
+				UpdateExpression: "SET reminderEmailSent = :reminderEmailSent",
+			},
+		}));
+	});
+
+
 	it("should update session auth state", async () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
 		await f2fService.updateSessionAuthState("SESSID", "AUTH_STATE");
