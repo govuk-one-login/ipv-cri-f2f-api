@@ -2,8 +2,8 @@ version = 0.1
 [dev]
 [dev.deploy]
 [dev.deploy.parameters]
-stack_name = "f2f-govNotify-stub-stelios"
-s3_prefix = "f2f-govNotify-stub-stelios"
+stack_name = "f2f-govNotify-stub"
+s3_prefix = "f2f-govNotify-stub"
 region = "eu-west-2"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
