@@ -3,6 +3,9 @@ import { POST_OFFICE_RESPONSE } from "../data/postOfficeResponse/postOfficeSucce
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
+import { POST_REPONSE_400 } from "../data/postOfficeResponse/postResponse400";
+import { POST_REPONSE_403 } from "../data/postOfficeResponse/postResponse403";
+import { POST_REPONSE_429 } from "../data/postOfficeResponse/postResponse429";
 import { POST_REPONSE_500 } from "../data/postOfficeResponse/postResponse500";
 import { POST_REPONSE_503 } from "../data/postOfficeResponse/postResponse503";
 
@@ -36,11 +39,20 @@ export class PostOfficeRequestProcessor {
     	this.logger.info({ message: "last 3 digit chars", lastCodeChars });
 
     	switch (lastCodeChars) {
-    		case "500":
+			case "400":
     			this.logger.info({ message: "Returning 400 response back" });
+    			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_REPONSE_400));
+			case "403":
+				this.logger.info({ message: "Returning 403 response back" });
+				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_REPONSE_403));
+			case "429":
+				this.logger.info({ message: "Returning 429 response back" });
+				return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_REPONSE_429));
+    		case "500":
+    			this.logger.info({ message: "Returning 500 response back" });
     			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_REPONSE_500));
     		case "503":
-    			this.logger.info({ message: "Returning 403 response back" });
+    			this.logger.info({ message: "Returning 503 response back" });
     			return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(POST_REPONSE_503));
     		default:
     			this.logger.info({ message: "Successful resquest" });

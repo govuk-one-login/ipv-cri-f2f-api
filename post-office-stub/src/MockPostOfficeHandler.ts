@@ -32,8 +32,12 @@ class MockPostOfficeHandler implements LambdaInterface {
 			let payloadParsed;
 
 			if (payload) {
-				logger.info("Event body", { payload });
-				payloadParsed = JSON.parse(payload);
+				if(event.isBase64Encoded){
+					payloadParsed=  JSON.parse(Buffer.from(payload, 'base64').toString('binary'));
+				}
+				else{
+					payloadParsed = JSON.parse(payload);
+				}
 				if (payloadParsed.searchString && payloadParsed.productFilter) {
 					logger.info("PARSED JSON", { payload });
 					logger.info("PARSED POSTCODE", payloadParsed.searchString);
