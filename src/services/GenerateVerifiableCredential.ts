@@ -77,7 +77,7 @@ export class GenerateVerifiableCredential {
   	} else {
   		switch (documentType) {
   			case "PASSPORT":
-  				return 3;
+  				return documentContainsValidChip ? 4 : 3;
   			case "DRIVING_LICENCE":
   				return 3;
   			case "NATIONAL_ID":
@@ -154,31 +154,35 @@ export class GenerateVerifiableCredential {
   	const handleAuthenticityRejection = () => {
   		const { value, reason } = ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION;
   		if (value === "REJECT") {
+  			let contraIndicator;
+
   			switch (reason) {
   				case "COUNTERFEIT":
-  					addToCI("D14");
+  				case "TAMPERED":
+  				case "MISSING_HOLOGRAM":
+  				case "NO_HOLOGRAM_MOVEMENT":
+  					contraIndicator = "D14";
   					break;
   				case "EXPIRED_DOCUMENT":
-  					addToCI("D16");
+  					contraIndicator = "D16";
   					break;
   				case "FRAUD_LIST_MATCH":
-  					addToCI(["F03"]);
+  					contraIndicator = "F03";
   					break;
   				case "DOC_NUMBER_INVALID":
-  					addToCI("D02");
+  					contraIndicator = "D02";
   					break;
-  				case "TAMPERED":
   				case "DATA_MISMATCH":
   				case "CHIP_DATA_INTEGRITY_FAILED":
   				case "CHIP_SIGNATURE_VERIFICATION_FAILED":
   				case "CHIP_CSCA_VERIFICATION_FAILED":
-  				case "MISSING_HOLOGRAM":
-  				case "NO_HOLOGRAM_MOVEMENT":
-  					addToCI("D14");
   					break;
   				default:
   					break;
   			}
+
+  			this.logger.info({ message: "Handling authenticity rejection", reason, contraIndicator });
+  			if (contraIndicator) addToCI(contraIndicator);
   		}
   	};
 
@@ -403,7 +407,7 @@ export class GenerateVerifiableCredential {
 				subCheck.result === YotiSessionDocument.SUBCHECK_PASS,
   	);
 
-  	this.logger.info({ message: "Result of Manual FaceMatch Check" }, manualFaceMatchCheck);
+  	this.logger.info({ message: "Result of Manual FaceMatch Check", manualFaceMatchCheck });
 
   	const validityScore = this.calculateValidityScore(MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value, documentContainsValidChip);
   	const verificationScore  = this.calculateVerificationProcessLevel(validityScore, MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation.value);

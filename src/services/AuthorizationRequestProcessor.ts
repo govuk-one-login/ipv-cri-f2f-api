@@ -97,7 +97,7 @@ export class AuthorizationRequestProcessor {
 						event_name: "F2F_CRI_END",
 						...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow),
 						extensions: {
-							previous_govuk_signin_journey_id: session.yotiSessionId,
+							previous_govuk_signin_journey_id: session.clientSessionId,
 							evidence: [
 								{
 									txn: session.yotiSessionId || "",

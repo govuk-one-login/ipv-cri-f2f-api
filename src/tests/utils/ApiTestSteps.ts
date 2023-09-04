@@ -2,12 +2,11 @@ import axios, { AxiosInstance } from "axios";
 import Ajv from "ajv";
 import { aws4Interceptor } from "aws4-axios";
 import { constants } from "../utils/ApiConstants";
-import { GetCommand } from "@aws-sdk/lib-dynamodb";
-import { createDynamoDbClient } from "../../utils/DynamoDBFactory";
 import { sqsClient } from "../../utils/SqsClient";
 import { ISessionItem } from "../../models/ISessionItem";
 import { ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import { jwtUtils } from "../../utils/JwtUtils";
+const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOVUKNOTIFYAPI });
 import { XMLParser } from "fast-xml-parser";
 
 const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
@@ -32,7 +31,7 @@ export async function startStubServiceAndReturnSessionId(stubPayload: any): Prom
 	return postRequest;
 }
 
-export async function stubStartPost(stubPayload: any):Promise<any> {
+export async function stubStartPost(stubPayload: any): Promise<any> {
 	const path = constants.DEV_IPV_F2F_STUB_URL;
 	try {
 		const postRequest = await axios.post(`${path}`, stubPayload);
@@ -44,7 +43,7 @@ export async function stubStartPost(stubPayload: any):Promise<any> {
 	}
 }
 
-export async function stubStartPostNoSharedClaims(requestBody:any):Promise<any> {
+export async function stubStartPostNoSharedClaims(requestBody: any): Promise<any> {
 	const path = constants.DEV_IPV_F2F_STUB_URL;
 	try {
 		const postRequest = await axios.post(`${path}`, requestBody);
@@ -56,7 +55,7 @@ export async function stubStartPostNoSharedClaims(requestBody:any):Promise<any> 
 	}
 }
 
-export async function sessionPost(clientId?: string, request?: string):Promise<any> {
+export async function sessionPost(clientId?: string, request?: string): Promise<any> {
 	const path = "/session";
 	try {
 		const postRequest = await API_INSTANCE.post(path, { client_id: clientId, request });
@@ -68,10 +67,10 @@ export async function sessionPost(clientId?: string, request?: string):Promise<a
 	}
 }
 
-export async function postDocumentSelection(userData:any, sessionId:any): Promise<any> {
+export async function postDocumentSelection(userData: any, sessionId: any): Promise<any> {
 	const path = "/documentSelection";
 	try {
-		const postRequest = await API_INSTANCE.post(path, userData, { headers:{ "x-govuk-signin-session-id": sessionId } });
+		const postRequest = await API_INSTANCE.post(path, userData, { headers: { "x-govuk-signin-session-id": sessionId } });
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
@@ -80,10 +79,10 @@ export async function postDocumentSelection(userData:any, sessionId:any): Promis
 }
 
 
-export async function authorizationGet(sessionId: any):Promise<any> {
+export async function authorizationGet(sessionId: any): Promise<any> {
 	const path = "/authorization";
 	try {
-		const getRequest = await API_INSTANCE.get(path, { headers:{ "session-id": sessionId } });
+		const getRequest = await API_INSTANCE.get(path, { headers: { "session-id": sessionId } });
 		return getRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
@@ -91,10 +90,10 @@ export async function authorizationGet(sessionId: any):Promise<any> {
 	}
 }
 
-export async function tokenPost(authCode?: any, redirectUri?: any ):Promise<any> {
+export async function tokenPost(authCode?: any, redirectUri?: any): Promise<any> {
 	const path = "/token";
 	try {
-		const postRequest = await API_INSTANCE.post( path, `code=${authCode}&grant_type=authorization_code&redirect_uri=${redirectUri}`, { headers:{ "Content-Type" : "text/plain" } });
+		const postRequest = await API_INSTANCE.post(path, `code=${authCode}&grant_type=authorization_code&redirect_uri=${redirectUri}`, { headers: { "Content-Type": "text/plain" } });
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
@@ -102,10 +101,10 @@ export async function tokenPost(authCode?: any, redirectUri?: any ):Promise<any>
 	}
 }
 
-export async function userInfoPost(accessToken?: any):Promise<any> {
+export async function userInfoPost(accessToken?: any): Promise<any> {
 	const path = "/userinfo";
 	try {
-		const postRequest = await API_INSTANCE.post( path, null, { headers: { "Authorization": `${accessToken}` } });
+		const postRequest = await API_INSTANCE.post(path, null, { headers: { "Authorization": `${accessToken}` } });
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
@@ -113,7 +112,7 @@ export async function userInfoPost(accessToken?: any):Promise<any> {
 	}
 }
 
-export async function callbackPost(sessionId: any):Promise<any> {
+export async function callbackPost(sessionId: any): Promise<any> {
 	const path = "/callback";
 	try {
 		const postRequest = await API_INSTANCE.post(path, {
@@ -151,7 +150,7 @@ export async function postYotiSession(trackingId: any, userData: any): Promise<a
 	}
 }
 
-export async function getYotiSessionsConfiguration(sessionId:any): Promise<any> {
+export async function getYotiSessionsConfiguration(sessionId: any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/configuration";
 	console.log(path);
 	try {
@@ -164,7 +163,7 @@ export async function getYotiSessionsConfiguration(sessionId:any): Promise<any> 
 	}
 }
 
-export async function putYotiSessionsInstructions(sessionId:any): Promise<any> {
+export async function putYotiSessionsInstructions(sessionId: any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions";
 	console.log(path);
 	try {
@@ -178,7 +177,7 @@ export async function putYotiSessionsInstructions(sessionId:any): Promise<any> {
 }
 
 
-export async function getYotiSessionsInstructions(sessionId:any): Promise<any> {
+export async function getYotiSessionsInstructions(sessionId: any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions/pdf";
 	console.log(path);
 	try {
@@ -201,7 +200,7 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 		N?: string;
 		S?: string;
 	}
-	
+
 	interface OriginalSessionItem {
 		[key: string]: OriginalValue;
 	}
@@ -275,7 +274,7 @@ export async function getSqsEventList(folder: string, prefix: string, txmaEventS
 		keyList = [];
 		for (i = 0; i < keys.length; i++) {
 			keyList.push(listObjectsParsedResponse?.ListBucketResult?.Contents.at(i).Key);
-		} 
+		}
 	} while (keys.length < txmaEventSize );
 	return keyList;
 }
@@ -303,7 +302,19 @@ export async function validateTxMAEventData(keyList: any): Promise<any> {
 			});
 	}
 }
- 
+
+export async function validateTxMAEvent(txmaEvent: any, keyList: any, yotiMockId: any): Promise<any> {
+	let i:any;
+	for (i = 0; i < keyList.length; i++) {
+		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
+	
+		if (getObjectResponse.data.event_name === txmaEvent) {
+			console.log(JSON.stringify(getObjectResponse.data, null, 2));
+			validateCriVcIssuedTxMAEvent(getObjectResponse.data, yotiMockId);
+		}
+	}
+}
+
 
 /**
  * Retrieves an object from the bucket with the specified prefix, which is the latest message dequeued from the SQS
@@ -357,10 +368,10 @@ export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 			jwtToken = array[2];
 			await sqsClient.send(
 				new DeleteMessageCommand({
-				  QueueUrl: queueURL,
-				  ReceiptHandle: m.ReceiptHandle,
+					QueueUrl: queueURL,
+					ReceiptHandle: m.ReceiptHandle,
 				}),
-			  );
+			);
 		}
 	} catch (e: any) {
 		console.error({ message: "got error receiving messages: ", e });
@@ -369,7 +380,7 @@ export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 	return jwtToken;
 }
 
-export function validateJwtToken(jwtToken:any, vcData: any, yotiId?: string):void {
+export function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): void {
 	const [rawHead, rawBody, signature] = jwtToken.split(".");
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
 	// Strength Score
@@ -431,9 +442,54 @@ export async function postAbortSession(reasion:any, sessionId:any): Promise<any>
 	try {
 		const postRequest = await API_INSTANCE.post(path, reasion, { headers:{ "x-govuk-signin-session-id": sessionId } });
 		return postRequest;
-	
+
 	} catch (error: any) {
 		console.log(`Error response from endpoint: ${error}`);
 		return error.response;
 	}
 }
+
+export async function postGovNotifyRequest(mockDelimitator: any, userData: any): Promise<any> {
+	const path = "/v2/notifications/email";
+	try {
+		// update email to contain mock delimitator before the @ - this determines the behaviour of the GovNotify mock
+		userData.email_address = insertBeforeLastOccurrence(userData.email_address, "@", mockDelimitator);
+		const postRequest = await GOV_NOTIFY_INSTANCE.post(path, userData);
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+
+	function insertBeforeLastOccurrence(strToSearch: string, strToFind: string, strToInsert: string) {
+		var n = strToSearch.lastIndexOf(strToFind);
+		if (n < 0) return strToSearch;
+		return strToSearch.substring(0, n) + strToInsert + strToSearch.substring(n);
+	}
+}
+
+export function validateCriVcIssuedTxMAEvent(txmaEvent: any, yotiMockId: any): any {
+	const yotiMockIdPrefix = yotiMockId.slice(0, 2);
+	switch (yotiMockIdPrefix) {
+		case "00":
+			expect(txmaEvent.restricted.drivingPermit[0].documentType).toBe("DRIVING_LICENCE");
+			break;
+		case "01":
+			expect(txmaEvent.restricted.passport[0].documentType).toBe("PASSPORT");
+			break;
+		case "02":
+			expect(txmaEvent.restricted.passport[0].documentType).toBe("PASSPORT");
+			break;
+		case "03":
+			expect(txmaEvent.restricted.residencePermit[0].documentType).toBe("RESIDENCE_PERMIT");
+			break;
+		case "04":
+			expect(txmaEvent.restricted.drivingPermit[0].documentType).toBe("DRIVING_LICENCE");
+			break;
+		case "05":
+			expect(txmaEvent.restricted.idCard[0].documentType).toBe("NATIONAL_ID");
+			break;
+		default:
+			console.warn("Yoti Mock Id provided does not match expected list");
+	}
+} 

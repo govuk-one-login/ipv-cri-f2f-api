@@ -20,6 +20,7 @@ import {
 	validateTxMAEventData,
 	validateJwtTokenNamePart,
 	getSqsEventList,
+	validateTxMAEvent,
 } from "../utils/ApiTestSteps";
 import "dotenv/config";
 import { constants } from "../utils/ApiConstants";
@@ -29,6 +30,43 @@ describe("Callback API", () => {
 
 	it.each([
 		["0000", dataUkDrivingLicence],
+		["0001", dataUkDrivingLicence],
+		["0101", dataPassport],
+		["0102", dataPassport],
+		["0103", dataPassport],
+		["0108", dataPassport],
+		["0109", dataPassport],
+		["0110", dataPassport],
+		["0111", dataPassport],
+		["0112", dataPassport],
+		["0113", dataPassport],
+		["0114", dataPassport],
+		["0115", dataPassport],
+		["0116", dataPassport],
+		["0117", dataPassport],
+		["0118", dataPassport],
+		["0119", dataPassport],
+		["0120", dataPassport],
+		["0121", dataPassport],
+		["0122", dataPassport],
+		["0123", dataPassport],
+		["0124", dataPassport],
+		["0125", dataPassport],
+		["0200", dataNonUkPassport],
+		["0201", dataNonUkPassport],
+		["0202", dataNonUkPassport],
+		["0203", dataNonUkPassport],
+		["0204", dataNonUkPassport],
+		["0300", dataBrp],
+		["0301", dataBrp],
+		["0302", dataBrp],
+		["0303", dataBrp],
+		["0400", dataEuDrivingLicence],
+		["0401", dataEuDrivingLicence],
+		["0500", dataEeaIdCard],
+		["0501", dataEeaIdCard],
+		["0502", dataEeaIdCard],
+		["0503", dataEeaIdCard],
 	])("F2F CRI Callback Endpoint - yotiMockId: '%s'", async (yotiMockId: string, docSelectionData:any) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
@@ -187,9 +225,53 @@ describe("Callback API", () => {
 		// Retrieve Verifiable Credential from dequeued SQS queue
 		let sqsMessage;
 		do {
-			sqsMessage = await getSqsEventList("txma/", sessionId, 6);
+			sqsMessage = await getSqsEventList("txma/", sessionId, 7);
 		} while (!sqsMessage);
 		await validateTxMAEventData(sqsMessage);
+
+	}, 20000);
+
+	it.each([
+		["0000", dataUkDrivingLicence],
+		["0101", dataPassport],
+		["0200", dataNonUkPassport],
+		["0300", dataBrp],
+		["0400", dataEuDrivingLicence],
+		["0500", dataEeaIdCard],
+	])("F2F CRI Callback Endpoint TxMA Validation - yotiMockId: '%s'", async (yotiMockId: string, docSelectionData:any) => {
+		f2fStubPayload.yotiMockID = yotiMockId;
+		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		const sessionId = sessionResponse.data.session_id;
+		const sub = sessionResponse.data.sub;
+
+		// Document Selection
+		const response = await postDocumentSelection(docSelectionData, sessionId);
+		expect(response.status).toBe(200);
+		// Authorization
+		const authResponse = await authorizationGet(sessionId);
+		expect(authResponse.status).toBe(200);
+		// // Post Token
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
+		expect(tokenResponse.status).toBe(200);
+		// Post User Info
+		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
+		expect(userInfoResponse.status).toBe(202);
+
+		// Get Yoti Session Id
+		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const yotiSessionId: any = session?.yotiSessionId;
+		console.log(yotiSessionId);
+
+		// Yoti Callback
+		const callbackResponse = await callbackPost(yotiSessionId);
+		expect(callbackResponse.status).toBe(202);
+
+		// Retrieve Verifiable Credential from dequeued SQS queue
+		let sqsMessage;
+		do {
+			sqsMessage = await getSqsEventList("txma/", sessionId, 7);
+		} while (!sqsMessage);
+		await validateTxMAEvent("F2F_CRI_VC_ISSUED", sqsMessage, yotiMockId);
 
 	}, 20000);
 });
