@@ -805,17 +805,72 @@ describe("YotiCallbackProcessor", () => {
 			}));
 		});
 
-		it("Throws server error if session in Yoti does not contain document fields", () => {
+		it("Throws server error if session in Yoti does not contain document fields", async () => {
 			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
 			delete completedYotiSessionClone.resources.id_documents[0].document_fields;
+			completedYotiSessionClone.checks = [
+				{
+					type: "ID_DOCUMENT_TEXT_DATA_CHECK",
+					report: {
+						recommendation: {
+							value: "NOT_AVAILABLE",
+							reason: "EXTRACTION_FAILED",
+						},
+						breakdown: [],
+					},
+				},
+				{
+					type: "ID_DOCUMENT_AUTHENTICITY",
+					state: "DONE",
+					generated_media: [],
+					report: {
+						recommendation: {
+							value: "APPROVE",
+						},
+						breakdown: [
+							{
+								sub_check: "no_sign_of_forgery",
+								result: "PASS",
+								details: [],
+								process: "EXPERT_REVIEW",
+							},
+							{
+								sub_check: "no_sign_of_tampering",
+								result: "PASS",
+								details: [],
+								process: "EXPERT_REVIEW",
+							},
+							{
+								sub_check: "other_security_features",
+								result: "PASS",
+								details: [],
+								process: "EXPERT_REVIEW",
+							},
+							{
+								sub_check: "physical_document_captured",
+								result: "PASS",
+								details: [],
+								process: "EXPERT_REVIEW",
+							},
+						],
+					},
+				},
+			];
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 	
-			return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			await expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Yoti document_fields not populated",
 			}));
+			expect(logger.error).toHaveBeenCalledWith({ message: "No document_fields found in completed Yoti Session" }, {
+				messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+				ID_DOCUMENT_TEXT_DATA_CHECK: {
+					value: "NOT_AVAILABLE",
+					reason: "EXTRACTION_FAILED",
+				},
+			});
 		});
 
 		it("Throws server error if session in Yoti does not contain media ID", () => {

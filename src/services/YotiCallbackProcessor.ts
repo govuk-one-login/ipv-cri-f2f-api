@@ -114,19 +114,20 @@ export class YotiCallbackProcessor {
 
   		const idDocumentsDocumentFields = completedYotiSessionInfo.resources.id_documents[0].document_fields;
   		if (!idDocumentsDocumentFields) {
+  			// If there is no document_fields, yoti have told us there will always be ID_DOCUMENT_TEXT_DATA_CHECK
+  			const documentTextDataCheck = completedYotiSessionInfo.checks.find((check) => check.type === "ID_DOCUMENT_TEXT_DATA_CHECK");
+
 			  this.logger.error({ message: "No document_fields found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+  				ID_DOCUMENT_TEXT_DATA_CHECK: documentTextDataCheck?.report.recommendation,
 			  });
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields not populated");
   		}
 
 		  const documentFieldsId = idDocumentsDocumentFields.media.id;
 		  if (!documentFieldsId) {
-  			const documentTextDataCheck = completedYotiSessionInfo.checks.find((check) => check.type === "ID_DOCUMENT_TEXT_DATA_CHECK");
-
 			  this.logger.error({ message: "No media ID found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
-  				documentTextDataCheck:documentTextDataCheck?.report.recommendation,
 			  });
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields media ID not found");
 		  }
