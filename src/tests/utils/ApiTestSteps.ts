@@ -11,6 +11,7 @@ import { XMLParser } from "fast-xml-parser";
 
 const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
 const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
+const PO_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_PO_STUB_URL });
 const HARNESS_API_INSTANCE : AxiosInstance = axios.create({ baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
 const awsSigv4Interceptor = aws4Interceptor({
 	options: {
@@ -493,3 +494,17 @@ export function validateCriVcIssuedTxMAEvent(txmaEvent: any, yotiMockId: any): a
 			console.warn("Yoti Mock Id provided does not match expected list");
 	}
 } 
+
+//F2F-948
+export async function postPOCodeRequest(mockDelimitator: any, userData: any): Promise<any> {
+	const path = "/postoffice/locations/search";
+	try {
+		userData.searchString = userData.searchString + " " + mockDelimitator;
+		console.log("userData in try statement: ", userData);
+		const postRequest = await PO_INSTANCE.post(path,userData);
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+}
