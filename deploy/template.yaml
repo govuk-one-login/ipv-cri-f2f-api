@@ -2300,6 +2300,129 @@ Resources:
         - alias/GovNotifyEncryptionKey
       TargetKeyId: !Ref GovNotifyEncryptionKey
 
+  PipeSQStoYotiCallbackStepFunctionsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service: pipes.amazonaws.com
+        Version: 2012-10-17
+      # AssumeRolePolicyDocument: 
+      #   Version: 2012-10-17
+      #   Statement: 
+      #     - 
+      #       Effect: "Allow"
+      #       Principal: 
+      #         Service: 
+      #           - pipes.amazonaws.com
+      #       Action: 
+      #         - sts:AssumeRole
+      #       Condition:
+      #         StringEquals:
+      #           aws:SourceAccount: !Sub ${AWS::AccountId}
+      #           aws:SourceArn: !Sub arn:${AWS::Partition}:pipes:${AWS::Region}:${AWS::AccountId}:pipe/SQStoYotiCallbackStepFunctions
+      Policies:
+        - PolicyName: YotiCallbackStateMachine
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action:
+                - states:StartExecution
+                Resource: !Ref YotiCallbackStateMachine
+              -
+                Effect: Allow
+                Action:
+                - sqs:ReceiveMessage
+                - sqs:DeleteMessage
+                - sqs:GetQueueAttributes
+                Resource: !GetAtt YotiCallbackQueue.Arn
+
+  PipeSQStoYotiCallbackStepFunctions:
+    Type: AWS::Pipes::Pipe
+    Properties:
+      Name: !Sub "SQStoYotiCallbackStepFunctions-${AWS::StackName}"
+      RoleArn: !GetAtt PipeSQStoYotiCallbackStepFunctionsRole.Arn
+      Source: !GetAtt YotiCallbackQueue.Arn
+      Target: !Ref YotiCallbackStateMachine
+      TargetParameters:
+        StepFunctionStateMachineParameters:
+          InvocationType: FIRE_AND_FORGET
+
+  YotiCallbackStateMachine:
+    Type: AWS::Serverless::StateMachine
+    DependsOn: YotiCallbackStateMachineLogGroup
+    Properties:
+      Name: !Sub "F2F-YotiCallback-stepfunction-${AWS::StackName}"
+      DefinitionUri: ../src/stepFunctions/yotiCallback.asl.json
+      DefinitionSubstitutions:
+        YotiCallbackTopicFunctionArn: !GetAtt YotiCallbackTopicFunction.Arn
+        YotiCallbackFunctionArn: !GetAtt YotiCallbackFunction.Arn
+      Tracing:
+        Enabled: true
+      # Events:
+      #   SQSEvent:
+      #     Type: SQS
+      #     Properties:
+      #       Queue: !GetAtt YotiCallbackQueue.Arn
+      #       BatchSize: 1
+      #       Enabled: true
+      #       FunctionResponseTypes:
+      #         - ReportBatchItemFailures
+
+  YotiCallbackStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/step-function/F2F-YotiCallbackStateMachine-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  YotiCallbackQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      MessageRetentionPeriod: 1209600 # 14 days in seconds
+      VisibilityTimeout: 300
+      KmsMasterKeyId: !Ref YotiCallbackKeyAlias
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - "YotiCallbackQueueDeadLetterQueue"
+            - "Arn"
+        maxReceiveCount: 10
+
+  YotiCallbackTopicFunction: 
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "F2F-YotiCallback-topic-${AWS::StackName}"
+      Handler: YotiCallbackTopicHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: YotiCallbackTopicHandler
+          IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
+      Policies:
+        - AWSLambdaBasicExecutionRole
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - YotiCallbackTopicHandler.ts
+
   YotiCallbackFunction:
     Type: AWS::Serverless::Function
     DependsOn: YotiCallbackFunctionLogGroup
@@ -2385,15 +2508,6 @@ Resources:
               - "kms:Decrypt"
               - "kms:GenerateDataKey"
             Resource: !GetAtt IPVCoreQueueEncryptionKey.Arn
-      Events:
-        SQSEvent:
-          Type: SQS
-          Properties:
-            Queue: !GetAtt YotiCallbackQueue.Arn
-            BatchSize: 1
-            Enabled: true
-            FunctionResponseTypes:
-              - ReportBatchItemFailures
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -2429,18 +2543,6 @@ Resources:
       FunctionName: !Ref YotiCallbackFunction
       Principal: apigateway.amazonaws.com
 
-  YotiCallbackQueue:
-    Type: "AWS::SQS::Queue"
-    Properties:
-      MessageRetentionPeriod: 1209600 # 14 days in seconds
-      VisibilityTimeout: 300
-      KmsMasterKeyId: !Ref YotiCallbackKeyAlias
-      RedrivePolicy:
-        deadLetterTargetArn:
-          Fn::GetAtt:
-            - "YotiCallbackQueueDeadLetterQueue"
-            - "Arn"
-        maxReceiveCount: 10
 
   YotiCallbackQueueDeadLetterQueue:
     Type: "AWS::SQS::Queue"

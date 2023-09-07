@@ -65,7 +65,7 @@ class YotiCallbackHandler implements LambdaInterface {
 				if (body.topic === "session_completion") {
 					await CompletedSessionProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
 				} else if (body.topic ===  "thank_you_email_requested") {
-					await ThankYouEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
+					ThankYouEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
 				} else {
 					logger.warn("Unexpected topic received in request", {
 						topic: body.topic,
