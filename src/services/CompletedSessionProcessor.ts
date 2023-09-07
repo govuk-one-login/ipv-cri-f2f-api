@@ -20,9 +20,9 @@ import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "../utils/IVeriCredential";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
-export class YotiCallbackProcessor {
+export class CompletedSessionProcessor {
 
-  private static instance: YotiCallbackProcessor;
+  private static instance: CompletedSessionProcessor;
 
   private readonly logger: Logger;
 
@@ -59,15 +59,15 @@ export class YotiCallbackProcessor {
   	logger: Logger,
   	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
-  ): YotiCallbackProcessor {
-  	if (!YotiCallbackProcessor.instance) {
-  		YotiCallbackProcessor.instance = new YotiCallbackProcessor(
+  ): CompletedSessionProcessor {
+  	if (!CompletedSessionProcessor.instance) {
+  		CompletedSessionProcessor.instance = new CompletedSessionProcessor(
   			logger,
   			metrics,
   			YOTI_PRIVATE_KEY,
   		);
   	}
-  	return YotiCallbackProcessor.instance;
+  	return CompletedSessionProcessor.instance;
   }
 
   async processRequest(eventBody: any): Promise<Response> {

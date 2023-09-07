@@ -1,16 +1,16 @@
 import { mock } from "jest-mock-extended";
 import { lambdaHandler } from "../../YotiCallbackHandler";
-import { YotiCallbackProcessor } from "../../services/YotiCallbackProcessor";
+import { CompletedSessionProcessor } from "../../services/CompletedSessionProcessor";
 import { VALID_SQS_EVENT } from "./data/callback-events";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { AppError } from "../../utils/AppError";
 import { failEntireBatch } from "../../utils/SqsBatchResponseHelper";
 
-const mockedYotiCallbackProcessor = mock<YotiCallbackProcessor>();
+const mockedCompletedSessionProcessor = mock<CompletedSessionProcessor>();
 
-jest.mock("../../services/YotiCallbackProcessor", () => {
+jest.mock("../../services/CompletedSessionProcessor", () => {
 	return {
-		YotiCallbackProcessor: jest.fn(() => mockedYotiCallbackProcessor),
+		CompletedSessionProcessor: jest.fn(() => mockedCompletedSessionProcessor),
 	};
 });
 
@@ -21,11 +21,11 @@ jest.mock("../../utils/Config", () => {
 });
 describe("YotiCallbackHandler", () => {
 	it("return success response for YotiCallback", async () => {
-		YotiCallbackProcessor.getInstance = jest.fn().mockReturnValue(mockedYotiCallbackProcessor);
+		CompletedSessionProcessor.getInstance = jest.fn().mockReturnValue(mockedCompletedSessionProcessor);
 		await lambdaHandler(VALID_SQS_EVENT, "F2F");
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockedYotiCallbackProcessor.processRequest).toHaveBeenCalledTimes(1);
+		expect(mockedCompletedSessionProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
 
 	it("returns Bad request when number of records in the SQS message is more than 1", async () => {
@@ -35,7 +35,7 @@ describe("YotiCallbackHandler", () => {
 	});
 
 	it("errors when yoticallback processor throws AppError", async () => {
-		YotiCallbackProcessor.getInstance = jest.fn().mockImplementation(() => {
+		CompletedSessionProcessor.getInstance = jest.fn().mockImplementation(() => {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send VC");
 		});
 		const response = await lambdaHandler(VALID_SQS_EVENT, "F2F");
