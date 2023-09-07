@@ -27,7 +27,6 @@ import { constants } from "../utils/ApiConstants";
 
 describe("Callback API", () => {
 	jest.setTimeout(60000);
-
 	it.each([
 		["0000", dataUkDrivingLicence],
 		["0001", dataUkDrivingLicence],
@@ -239,10 +238,10 @@ describe("Callback API", () => {
 
 	}, 20000);
 
-
 	// F2F-1173 Passing yotiMockId to validateTxMAEventData function
 	it("F2F CRI Callback Endpoint TxMA Validation", async () => {
 		const yotiMockId = f2fStubPayload.yotiMockID = "0500";
+		f2fStubPayload.yotiMockID = yotiMockId;
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
 		const sessionId = sessionResponse.data.session_id;
 		const sub = sessionResponse.data.sub;

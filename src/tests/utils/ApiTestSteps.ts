@@ -280,116 +280,47 @@ export async function getSqsEventList(folder: string, prefix: string, txmaEventS
 }
 
 //F2F-1173 Added case statement 
-export async function validateTxMAEventData(keyList: any, yotiMockId: any): Promise<any> {
-	let i: any;
+export async function validateTxMAEventData(keyList: any, yotiMockID: any): Promise<any> {
+	let i:any;
+	const yotiMockIdPrefix = yotiMockID.slice(0, 2);
 	for (i = 0; i < keyList.length; i++) {
 		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
 		console.log(JSON.stringify(getObjectResponse.data, null, 2));
-		const yotiMockIdPrefix = yotiMockId.slice(0, 2);
 		let valid = true;
-		switch (yotiMockIdPrefix) {
-			case "00":
-				import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json")
-					.then((jsonSchema) => {
-						const validate = ajv.compile(jsonSchema);
-						valid = validate(getObjectResponse.data);
-						if (!valid) {
-							console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
-						}
-					})
-					.catch((err) => {
-						console.log(err.message);
-					})
-					.finally(() => {
-						expect(valid).toBe(true);
-					});
-				break;
-			case "01":
-				import("../data/" + getObjectResponse.data.event_name + "_UK_PASSPORT_SCHEMA.json")
-					.then((jsonSchema) => {
-						const validate = ajv.compile(jsonSchema);
-						valid = validate(getObjectResponse.data);
-						if (!valid) {
-							console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
-						}
-					})
-					.catch((err) => {
-						console.log(err.message);
-					})
-					.finally(() => {
-						expect(valid).toBe(true);
-					});
-				break;
-			case "02":
-				import("../data/" + getObjectResponse.data.event_name + "_NUK_PASSPORT_SCHEMA.json")
-					.then((jsonSchema) => {
-						const validate = ajv.compile(jsonSchema);
-						valid = validate(getObjectResponse.data);
-						if (!valid) {
-							console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
-						}
-					})
-					.catch((err) => {
-						console.log(err.message);
-					})
-					.finally(() => {
-						expect(valid).toBe(true);
-					});
-				break;
-			case "03":
-				import("../data/" + getObjectResponse.data.event_name + "_BRP_SCHEMA.json")
-					.then((jsonSchema) => {
-						const validate = ajv.compile(jsonSchema);
-						valid = validate(getObjectResponse.data);
-						if (!valid) {
-							console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
-						}
-					})
-					.catch((err) => {
-						console.log(err.message);
-					})
-					.finally(() => {
-						expect(valid).toBe(true);
-					});
-				break;
-			case "04":
-				import("../data/" + getObjectResponse.data.event_name + "_EUDL_SCHEMA.json")
-					.then((jsonSchema) => {
-						const validate = ajv.compile(jsonSchema);
-						valid = validate(getObjectResponse.data);
-						if (!valid) {
-							console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
-						}
-					})
-					.catch((err) => {
-						console.log(err.message);
-					})
-					.finally(() => {
-						expect(valid).toBe(true);
-					});
-				break;
-			case "05":
-				import("../data/" + getObjectResponse.data.event_name + "_NIC_SCHEMA.json")
-					.then((jsonSchema) => {
-						const validate = ajv.compile(jsonSchema);
-						valid = validate(getObjectResponse.data);
-						if (!valid) {
-							console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
-						}
-					})
-					.catch((err) => {
-						console.log(err.message);
-					})
-					.finally(() => {
-						expect(valid).toBe(true);
-					});
-				break;
-			default:
-				console.warn("Yoti Mock Id provided does not match expected list");
+		if (getObjectResponse.data.event_name === "F2F_CRI_VC_ISSUED") {
+			import("../data/" + getObjectResponse.data.event_name + yotiMockIdPrefix + "_SCHEMA.json" )
+				.then((jsonSchema) => {
+					const validate = ajv.compile(jsonSchema);
+					valid = validate(getObjectResponse.data);
+					if (!valid) {
+						console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+					}
+				})
+				.catch((err) => {
+					console.log(err.message);
+				})
+				.finally(() => {
+					expect(valid).toBe(true);
+				});
+		} else {
+			import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json" )
+				.then((jsonSchema) => {
+					const validate = ajv.compile(jsonSchema);
+					valid = validate(getObjectResponse.data);
+					if (!valid) {
+						console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+					}
+				})
+				.catch((err) => {
+					console.log(err.message);
+				})
+				.finally(() => {
+					expect(valid).toBe(true);
+				});
 		}
-
 	}
 }
+
 
 export async function validateTxMAEvent(txmaEvent: any, keyList: any, yotiMockId: any): Promise<any> {
 	console.log("validateTxMAEvent KeyList is: ", keyList);
