@@ -280,26 +280,44 @@ export async function getSqsEventList(folder: string, prefix: string, txmaEventS
 }
 
 
-export async function validateTxMAEventData(keyList: any): Promise<any> {
+export async function validateTxMAEventData(keyList: any, yotiMockID: any): Promise<any> {
 	let i:any;
+	const yotiMockIdPrefix = yotiMockID.slice(0, 2);
 	for (i = 0; i < keyList.length; i++) {
 		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
 		console.log(JSON.stringify(getObjectResponse.data, null, 2));
 		let valid = true;
-		import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json" )
-			.then((jsonSchema) => {
-				const validate = ajv.compile(jsonSchema);
-				valid = validate(getObjectResponse.data);
-				if (!valid) {
-					console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
-				}
-			})
-			.catch((err) => {
-				console.log(err.message);
-			})
-			.finally(() => {
-				expect(valid).toBe(true);
-			});
+		if (getObjectResponse.data.event_name === "F2F_CRI_VC_ISSUED" || getObjectResponse.data.event_name === "F2F_YOTI_START") {
+			import("../data/" + getObjectResponse.data.event_name + "_" + yotiMockIdPrefix + "_SCHEMA.json" )
+				.then((jsonSchema) => {
+					const validate = ajv.compile(jsonSchema);
+					valid = validate(getObjectResponse.data);
+					if (!valid) {
+						console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+					}
+				})
+				.catch((err) => {
+					console.log(err.message);
+				})
+				.finally(() => {
+					expect(valid).toBe(true);
+				});
+		} else {
+			import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json" )
+				.then((jsonSchema) => {
+					const validate = ajv.compile(jsonSchema);
+					valid = validate(getObjectResponse.data);
+					if (!valid) {
+						console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+					}
+				})
+				.catch((err) => {
+					console.log(err.message);
+				})
+				.finally(() => {
+					expect(valid).toBe(true);
+				});
+		}
 	}
 }
 

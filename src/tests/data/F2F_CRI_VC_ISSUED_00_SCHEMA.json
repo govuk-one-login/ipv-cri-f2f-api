@@ -1,0 +1,254 @@
+{
+    "type": "object",
+    "properties": {
+        "event_name": {
+            "type": "string"
+        },
+        "user": {
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "ip_address": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "user_id",
+                "session_id",
+                "ip_address"
+            ]
+        },
+        "client_id": {
+            "type": "string"
+        },
+        "timestamp": {
+            "type": "integer"
+        },
+        "component_id": {
+            "type": "string"
+        },
+        "extensions": {
+            "type": "object",
+            "properties": {
+                "previous_govuk_signin_journey_id": {
+                    "type": "string"
+                },
+                "evidence": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string"
+                                },
+                                "txn": {
+                                    "type": "string"
+                                },
+                                "strengthScore": {
+                                    "type": "integer"
+                                },
+                                "validityScore": {
+                                    "type": "integer"
+                                },
+                                "verificationScore": {
+                                    "type": "integer"
+                                },
+                                "checkDetails": {
+                                    "type": "array",
+                                    "items": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "checkMethod": {
+                                                    "type": "string"
+                                                },
+                                                "identityCheckPolicy": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "checkMethod",
+                                                "identityCheckPolicy"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "checkMethod": {
+                                                    "type": "string"
+                                                },
+                                                "biometricVerificationProcessLevel": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "checkMethod",
+                                                "biometricVerificationProcessLevel"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "type",
+                                "txn",
+                                "strengthScore",
+                                "validityScore",
+                                "verificationScore",
+                                "checkDetails"
+                            ]
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "previous_govuk_signin_journey_id",
+                "evidence"
+            ]
+        },
+        "restricted": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "nameParts": {
+                                    "type": "array",
+                                    "items": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "value": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "value",
+                                                "type"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "value": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "value",
+                                                "type"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "value": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "value",
+                                                "type"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "nameParts"
+                            ]
+                        }
+                    ]
+                },
+                "birthDate": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "value": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "value"
+                            ]
+                        }
+                    ]
+                },
+                "drivingPermit": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "documentType": {
+                                    "type": "string"
+                                },
+                                "personalNumber": {
+                                    "type": "string"
+                                },
+                                "expiryDate": {
+                                    "type": "string"
+                                },
+                                "issuingCountry": {
+                                    "type": "string"
+                                },
+                                "issuedBy": {
+                                    "type": "string"
+                                },
+                                "issueDate": {
+                                    "type": "string"
+                                },
+                                "fullAddress": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "documentType",
+                                "personalNumber",
+                                "expiryDate",
+                                "issuingCountry",
+                                "issuedBy",
+                                "issueDate",
+                                "fullAddress"
+                            ]
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "name",
+                "birthDate",
+                "drivingPermit"
+            ]
+        }
+    },
+    "required": [
+        "event_name",
+        "user",
+        "client_id",
+        "timestamp",
+        "component_id",
+        "extensions",
+        "restricted"
+    ]
+}

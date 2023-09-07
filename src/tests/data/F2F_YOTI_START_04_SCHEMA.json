@@ -1,0 +1,143 @@
+{
+    "type": "object",
+    "properties": {
+        "event_name": {
+            "type": "string"
+        },
+        "user": {
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "govuk_signin_journey_id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "user_id",
+                "session_id",
+                "ip_address",
+                "govuk_signin_journey_id"
+            ]
+        },
+        "client_id": {
+            "type": "string"
+        },
+        "timestamp": {
+            "type": "integer"
+        },
+        "component_id": {
+            "type": "string"
+        },
+        "extensions": {
+            "type": "object",
+            "properties": {
+                "evidence": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "txn": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "txn"
+                            ]
+                        }
+                    ]
+                },
+                "post_office_details": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "address": {
+                                    "type": "string"
+                                },
+                                "post_code": {
+                                    "type": "string"
+                                },
+                                "location": {
+                                    "type": "array",
+                                    "items": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "latitude": {
+                                                    "type": "number"
+                                                },
+                                                "longitude": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "required": [
+                                                "latitude",
+                                                "longitude"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "address",
+                                "post_code",
+                                "location"
+                            ]
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "evidence",
+                "post_office_details"
+            ]
+        },
+        "restricted": {
+            "type": "object",
+            "properties": {
+                "drivingPermit": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "documentType": {
+                                    "type": "string"
+                                },
+                                "issuingCountry": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "documentType",
+                                "issuingCountry"
+                            ]
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "drivingPermit"
+            ]
+        }
+    },
+    "required": [
+        "event_name",
+        "user",
+        "client_id",
+        "timestamp",
+        "component_id",
+        "extensions",
+        "restricted"
+    ]
+}
