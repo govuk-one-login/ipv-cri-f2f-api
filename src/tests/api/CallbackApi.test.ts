@@ -194,14 +194,21 @@ describe("Callback API", () => {
 		validateJwtTokenNamePart(jwtToken, givenName1, givenName2, givenName3, familyName + yotiMockId);
 	}, 20000);
 
-	it("F2F CRI Callback Endpoint TxMA Validation", async () => {
-		f2fStubPayload.yotiMockID = "0000";
+	it.each([
+		["0000", dataUkDrivingLicence],
+		["0101", dataPassport],
+		["0200", dataNonUkPassport],
+		["0300", dataBrp],
+		["0400", dataEuDrivingLicence],
+		["0500", dataEeaIdCard],
+	])("F2F CRI Callback Endpoint TxMA Validation", async (yotiMockId: string, docSelectionData:any) => {
+		f2fStubPayload.yotiMockID = yotiMockId;
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
 		const sessionId = sessionResponse.data.session_id;
 		const sub = sessionResponse.data.sub;
 
 		// Document Selection
-		const response = await postDocumentSelection(dataPassport, sessionId);
+		const response = await postDocumentSelection(docSelectionData, sessionId);
 		expect(response.status).toBe(200);
 		// Authorization
 		const authResponse = await authorizationGet(sessionId);
@@ -227,7 +234,7 @@ describe("Callback API", () => {
 		do {
 			sqsMessage = await getSqsEventList("txma/", sessionId, 7);
 		} while (!sqsMessage);
-		await validateTxMAEventData(sqsMessage);
+		await validateTxMAEventData(sqsMessage, yotiMockId);
 
 	}, 20000);
 
