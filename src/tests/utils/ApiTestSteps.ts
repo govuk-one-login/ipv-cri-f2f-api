@@ -9,9 +9,9 @@ import { jwtUtils } from "../../utils/JwtUtils";
 const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOVUKNOTIFYAPI });
 import { XMLParser } from "fast-xml-parser";
 
-const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
-const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
-const HARNESS_API_INSTANCE : AxiosInstance = axios.create({ baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
+const API_INSTANCE = axios.create({ baseURL: constants.DEV_CRI_F2F_API_URL });
+const YOTI_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_YOTI_STUB_URL });
+const HARNESS_API_INSTANCE: AxiosInstance = axios.create({ baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
 const awsSigv4Interceptor = aws4Interceptor({
 	options: {
 		region: "eu-west-2",
@@ -126,10 +126,10 @@ export async function callbackPost(sessionId: any): Promise<any> {
 	}
 }
 
-export async function sessionConfigurationGet(sessionId: any):Promise<any> {
+export async function sessionConfigurationGet(sessionId: any): Promise<any> {
 	const path = "/sessionConfiguration";
 	try {
-		const getRequest = await API_INSTANCE.get(path, { headers:{ "x-govuk-signin-session-id": sessionId } });
+		const getRequest = await API_INSTANCE.get(path, { headers: { "x-govuk-signin-session-id": sessionId } });
 		return getRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
@@ -255,10 +255,10 @@ export async function getSessionByAuthCode(sessionId: string, tableName: string)
  * @param prefix
  * @returns {any} - returns either the body of the SQS message or undefined if no such message found
  */
-export async function getSqsEventList(folder: string, prefix: string, txmaEventSize:number): Promise<any> {
+export async function getSqsEventList(folder: string, prefix: string, txmaEventSize: number): Promise<any> {
 	let keys: any[];
 	let keyList: any[];
-	let i:any;
+	let i: any;
 	do {
 		const listObjectsResponse = await HARNESS_API_INSTANCE.get("/bucket/", {
 			params: {
@@ -275,41 +275,132 @@ export async function getSqsEventList(folder: string, prefix: string, txmaEventS
 		for (i = 0; i < keys.length; i++) {
 			keyList.push(listObjectsParsedResponse?.ListBucketResult?.Contents.at(i).Key);
 		}
-	} while (keys.length < txmaEventSize );
+	} while (keys.length < txmaEventSize);
 	return keyList;
 }
 
-
-export async function validateTxMAEventData(keyList: any): Promise<any> {
-	let i:any;
+//F2F-1173 Added case statement 
+export async function validateTxMAEventData(keyList: any, yotiMockId: any): Promise<any> {
+	let i: any;
 	for (i = 0; i < keyList.length; i++) {
 		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
 		console.log(JSON.stringify(getObjectResponse.data, null, 2));
+		const yotiMockIdPrefix = yotiMockId.slice(0, 2);
 		let valid = true;
-		import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json" )
-			.then((jsonSchema) => {
-				const validate = ajv.compile(jsonSchema);
-				valid = validate(getObjectResponse.data);
-				if (!valid) {
-					console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
-				}
-			})
-			.catch((err) => {
-				console.log(err.message);
-			})
-			.finally(() => {
-				expect(valid).toBe(true);
-			});
+		switch (yotiMockIdPrefix) {
+			case "00":
+				import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json")
+					.then((jsonSchema) => {
+						const validate = ajv.compile(jsonSchema);
+						valid = validate(getObjectResponse.data);
+						if (!valid) {
+							console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+						}
+					})
+					.catch((err) => {
+						console.log(err.message);
+					})
+					.finally(() => {
+						expect(valid).toBe(true);
+					});
+				break;
+			case "01":
+				import("../data/" + getObjectResponse.data.event_name + "_UK_PASSPORT_SCHEMA.json")
+					.then((jsonSchema) => {
+						const validate = ajv.compile(jsonSchema);
+						valid = validate(getObjectResponse.data);
+						if (!valid) {
+							console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+						}
+					})
+					.catch((err) => {
+						console.log(err.message);
+					})
+					.finally(() => {
+						expect(valid).toBe(true);
+					});
+				break;
+			case "02":
+				import("../data/" + getObjectResponse.data.event_name + "_NUK_PASSPORT_SCHEMA.json")
+					.then((jsonSchema) => {
+						const validate = ajv.compile(jsonSchema);
+						valid = validate(getObjectResponse.data);
+						if (!valid) {
+							console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+						}
+					})
+					.catch((err) => {
+						console.log(err.message);
+					})
+					.finally(() => {
+						expect(valid).toBe(true);
+					});
+				break;
+			case "03":
+				import("../data/" + getObjectResponse.data.event_name + "_BRP_SCHEMA.json")
+					.then((jsonSchema) => {
+						const validate = ajv.compile(jsonSchema);
+						valid = validate(getObjectResponse.data);
+						if (!valid) {
+							console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+						}
+					})
+					.catch((err) => {
+						console.log(err.message);
+					})
+					.finally(() => {
+						expect(valid).toBe(true);
+					});
+				break;
+			case "04":
+				import("../data/" + getObjectResponse.data.event_name + "_EUDL_SCHEMA.json")
+					.then((jsonSchema) => {
+						const validate = ajv.compile(jsonSchema);
+						valid = validate(getObjectResponse.data);
+						if (!valid) {
+							console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+						}
+					})
+					.catch((err) => {
+						console.log(err.message);
+					})
+					.finally(() => {
+						expect(valid).toBe(true);
+					});
+				break;
+			case "05":
+				import("../data/" + getObjectResponse.data.event_name + "_NIC_SCHEMA.json")
+					.then((jsonSchema) => {
+						const validate = ajv.compile(jsonSchema);
+						valid = validate(getObjectResponse.data);
+						if (!valid) {
+							console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+						}
+					})
+					.catch((err) => {
+						console.log(err.message);
+					})
+					.finally(() => {
+						expect(valid).toBe(true);
+					});
+				break;
+			default:
+				console.warn("Yoti Mock Id provided does not match expected list");
+		}
+
 	}
 }
 
 export async function validateTxMAEvent(txmaEvent: any, keyList: any, yotiMockId: any): Promise<any> {
-	let i:any;
+	console.log("validateTxMAEvent KeyList is: ", keyList);
+	console.log("validateTxMAEvent txmaEvent: is: ", txmaEvent);
+	console.log("validateTxMAEvent yotiMockId is: ", yotiMockId);
+	let i: any;
 	for (i = 0; i < keyList.length; i++) {
 		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
-	
+
 		if (getObjectResponse.data.event_name === txmaEvent) {
-			console.log(JSON.stringify(getObjectResponse.data, null, 2));
+			console.log("validateTxMAEvent", JSON.stringify(getObjectResponse.data, null, 2));
 			validateCriVcIssuedTxMAEvent(getObjectResponse.data, yotiMockId);
 		}
 	}
@@ -426,7 +517,7 @@ export function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): v
 	}
 }
 
-export function validateJwtTokenNamePart(jwtToken:any, givenName1:any, givenName2:any, givenName3:any, familyName:any):void {
+export function validateJwtTokenNamePart(jwtToken: any, givenName1: any, givenName2: any, givenName3: any, familyName: any): void {
 	const [rawHead, rawBody, signature] = jwtToken.split(".");
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
 	expect(decodedBody.vc.credentialSubject.name[0].nameParts[0].value).toBe(givenName1);
@@ -436,11 +527,11 @@ export function validateJwtTokenNamePart(jwtToken:any, givenName1:any, givenName
 
 }
 
-export async function postAbortSession(reasion:any, sessionId:any): Promise<any> {
+export async function postAbortSession(reasion: any, sessionId: any): Promise<any> {
 	const path = constants.DEV_CRI_F2F_API_URL + "/abort";
 	console.log(path);
 	try {
-		const postRequest = await API_INSTANCE.post(path, reasion, { headers:{ "x-govuk-signin-session-id": sessionId } });
+		const postRequest = await API_INSTANCE.post(path, reasion, { headers: { "x-govuk-signin-session-id": sessionId } });
 		return postRequest;
 
 	} catch (error: any) {
