@@ -7,6 +7,7 @@ import { BatchItemFailure } from "./utils/BatchItemFailure";
 import { getParameter } from "./utils/Config";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { CompletedSessionProcessor } from "./services/CompletedSessionProcessor";
+import { ThankYouEmailProcessor } from "./services/ThankYouEmailProcessor";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 import { failEntireBatch, passEntireBatch } from "./utils/SqsBatchResponseHelper";
 import { MessageCodes } from "./models/enums/MessageCodes";
@@ -63,6 +64,8 @@ class YotiCallbackHandler implements LambdaInterface {
 
 				if (body.topic === "session_completion") {
 					await CompletedSessionProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
+				} else if (body.topic ===  "thank_you_email_requested") {
+					await ThankYouEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
 				} else {
 					logger.warn("Unexpected topic received in request", {
 						topic: body.topic,
