@@ -2302,7 +2302,6 @@ Resources:
 
   YotiCallbackStateMachine:
     Type: AWS::Serverless::StateMachine
-    DependsOn: YotiCallbackStateMachineLogGroup
     Properties:
       Name: !Sub "F2F-YotiCallback-stepfunction-${AWS::StackName}"
       DefinitionUri: ../src/stepFunctions/yotiCallback.asl.json
@@ -2312,37 +2311,12 @@ Resources:
         - AWSXrayWriteOnlyAccess
         - LambdaInvokePolicy:
             FunctionName: !Ref YotiCallbackFunction
-        - Statement:
-            - Sid: CloudWatchLogsAccess
-              Effect: Allow
-              Action:
-                - logs:CreateLogDelivery
-                - logs:GetLogDelivery
-                - logs:UpdateLogDelivery
-                - logs:DeleteLogDelivery
-                - logs:ListLogDeliveries
-                - logs:PutLogEvents
-                - logs:PutResourcePolicy
-                - logs:DescribeResourcePolicies
-                - logs:DescribeLogGroups
-              Resource: "*"
       Tracing:
         Enabled: true
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
-
-  YotiCallbackStateMachineLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/step-function/F2F-YotiCallbackStateMachine-${AWS::StackName}"
-      RetentionInDays:
-        !FindInMap [
-          EnvironmentConfiguration,
-          !Ref Environment,
-          logretentionindays,
-        ]
 
   TriggerYotiCallbackStateMachine:
     Type: AWS::Serverless::Function
