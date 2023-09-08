@@ -5,6 +5,8 @@ import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
 import { BatchItemFailure } from "./utils/BatchItemFailure";
 import { MessageCodes } from "./models/enums/MessageCodes";
+import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
+import { randomUUID } from "crypto";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -19,9 +21,8 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 
 class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 	// @metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	handler(event: SQSEvent, context: any): string | null {
+	async handler(event: SQSEvent, context: any): Promise<string | null | undefined> {
 
-		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
@@ -37,8 +38,33 @@ class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 			logger.debug("Parsed SQS event body", body);
 
 			if (body.topic === "session_completion" || body.topic ===  "thank_you_email_requested") {
-				logger.info("Matched topic, triggering state machine");
-				return body;
+				logger.info("Matched topic, triggering state machine", { arn: process.env.STATE_MACHINE_ARN });
+
+				const params = {
+					input: record.body,
+					name: randomUUID(),
+					// todo
+					stateMachineArn: process.env.STATE_MACHINE_ARN,
+			 };
+			 
+				//  StartExecution
+				logger.info("1");
+				// process.env.AWS_REGION
+				const stepFunctionsClient = new SFNClient({ region: "eu-west-2" });
+				logger.info("2");
+
+				const invokeCommand = new StartExecutionCommand(params);
+				logger.info("3", { invokeCommand });
+
+				try {
+					const result = await stepFunctionsClient.send(invokeCommand);
+					logger.info({ result, message: "step fn result " });
+					return body;
+
+				} catch (error) {
+					logger.error({ message: "errorrrr", error });
+				}
+
 
 			} else {
 				logger.warn("Unexpected topic received in request", {

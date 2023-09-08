@@ -2308,8 +2308,30 @@ Resources:
       DefinitionUri: ../src/stepFunctions/yotiCallback.asl.json
       DefinitionSubstitutions:
         YotiCallbackFunctionArn: !GetAtt YotiCallbackFunction.Arn
+      Policies:
+        - AWSXrayWriteOnlyAccess
+        - LambdaInvokePolicy:
+            FunctionName: !Ref YotiCallbackFunction
+        - Statement:
+            - Sid: CloudWatchLogsAccess
+              Effect: Allow
+              Action:
+                - logs:CreateLogDelivery
+                - logs:GetLogDelivery
+                - logs:UpdateLogDelivery
+                - logs:DeleteLogDelivery
+                - logs:ListLogDeliveries
+                - logs:PutLogEvents
+                - logs:PutResourcePolicy
+                - logs:DescribeResourcePolicies
+                - logs:DescribeLogGroups
+              Resource: "*"
       Tracing:
         Enabled: true
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
 
   YotiCallbackStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2341,6 +2363,7 @@ Resources:
           YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+          STATE_MACHINE_ARN: !GetAtt YotiCallbackStateMachine.Arn
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -2365,6 +2388,11 @@ Resources:
                   - "sqs:SendMessage"
                   - "sqs:ReceiveMessage"
                 Resource: !GetAtt YotiCallbackQueue.Arn
+        -  Statement:
+              - Effect: Allow
+                Action:
+                  - "states:StartExecution"
+                Resource: !GetAtt YotiCallbackStateMachine.Arn
       Events:
         SQSEvent:
           Type: SQS
