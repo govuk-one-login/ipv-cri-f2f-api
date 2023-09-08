@@ -2307,7 +2307,6 @@ Resources:
       Name: !Sub "F2F-YotiCallback-stepfunction-${AWS::StackName}"
       DefinitionUri: ../src/stepFunctions/yotiCallback.asl.json
       DefinitionSubstitutions:
-        YotiCallbackTopicFunctionArn: !GetAtt YotiCallbackTopicFunction.Arn
         YotiCallbackFunctionArn: !GetAtt YotiCallbackFunction.Arn
       Tracing:
         Enabled: true
@@ -2396,31 +2395,6 @@ Resources:
             - "YotiCallbackQueueDeadLetterQueue"
             - "Arn"
         maxReceiveCount: 10
-
-  YotiCallbackTopicFunction: 
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "F2F-YotiCallback-topic-${AWS::StackName}"
-      Handler: YotiCallbackTopicHandler.lambdaHandler
-      CodeUri: ../src/
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Environment:
-        Variables:
-          POWERTOOLS_SERVICE_NAME: YotiCallbackTopicHandler
-          IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
-      Policies:
-        - AWSLambdaBasicExecutionRole
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - YotiCallbackTopicHandler.ts
 
   YotiCallbackFunction:
     Type: AWS::Serverless::Function

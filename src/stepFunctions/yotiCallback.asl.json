@@ -1,13 +1,7 @@
 {
   "Comment": "Face to Face CRI - Yoti Callback State Machine",
-  "StartAt": "GetYotiCallbackTopic",
+  "StartAt": "TopicChoiceState",
   "States": {
-    "GetYotiCallbackTopic": {
-      "Type": "Task",
-      "Resource": "${YotiCallbackTopicFunctionArn}",
-      "OutputPath": "$.topic",
-      "Next": "TopicChoiceState"
-    },
     "TopicChoiceState": {
       "Type": "Choice",
       "Choices": [
