@@ -2300,59 +2300,6 @@ Resources:
         - alias/GovNotifyEncryptionKey
       TargetKeyId: !Ref GovNotifyEncryptionKey
 
-  PipeSQStoYotiCallbackStepFunctionsRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: "sts:AssumeRole"
-            Effect: Allow
-            Principal:
-              Service: pipes.amazonaws.com
-        Version: 2012-10-17
-      # AssumeRolePolicyDocument: 
-      #   Version: 2012-10-17
-      #   Statement: 
-      #     - 
-      #       Effect: "Allow"
-      #       Principal: 
-      #         Service: 
-      #           - pipes.amazonaws.com
-      #       Action: 
-      #         - sts:AssumeRole
-      #       Condition:
-      #         StringEquals:
-      #           aws:SourceAccount: !Sub ${AWS::AccountId}
-      #           aws:SourceArn: !Sub arn:${AWS::Partition}:pipes:${AWS::Region}:${AWS::AccountId}:pipe/SQStoYotiCallbackStepFunctions
-      Policies:
-        - PolicyName: YotiCallbackStateMachine
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              -
-                Effect: Allow
-                Action:
-                - states:StartExecution
-                Resource: !Ref YotiCallbackStateMachine
-              -
-                Effect: Allow
-                Action:
-                - sqs:ReceiveMessage
-                - sqs:DeleteMessage
-                - sqs:GetQueueAttributes
-                Resource: !GetAtt YotiCallbackQueue.Arn
-
-  PipeSQStoYotiCallbackStepFunctions:
-    Type: AWS::Pipes::Pipe
-    Properties:
-      Name: !Sub "SQStoYotiCallbackStepFunctions-${AWS::StackName}"
-      RoleArn: !GetAtt PipeSQStoYotiCallbackStepFunctionsRole.Arn
-      Source: !GetAtt YotiCallbackQueue.Arn
-      Target: !Ref YotiCallbackStateMachine
-      TargetParameters:
-        StepFunctionStateMachineParameters:
-          InvocationType: FIRE_AND_FORGET
-
   YotiCallbackStateMachine:
     Type: AWS::Serverless::StateMachine
     DependsOn: YotiCallbackStateMachineLogGroup
@@ -2364,15 +2311,6 @@ Resources:
         YotiCallbackFunctionArn: !GetAtt YotiCallbackFunction.Arn
       Tracing:
         Enabled: true
-      # Events:
-      #   SQSEvent:
-      #     Type: SQS
-      #     Properties:
-      #       Queue: !GetAtt YotiCallbackQueue.Arn
-      #       BatchSize: 1
-      #       Enabled: true
-      #       FunctionResponseTypes:
-      #         - ReportBatchItemFailures
 
   YotiCallbackStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2384,6 +2322,67 @@ Resources:
           !Ref Environment,
           logretentionindays,
         ]
+
+  TriggerYotiCallbackStateMachine:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "F2F-TriggerYotiCallbackStateMachine-${AWS::StackName}"
+      Handler: TriggerYotiCallbackStateMachineHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: YotiCallbackHandler
+          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
+          KMS_KEY_ARN:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "kms:Decrypt"
+              Resource: !GetAtt YotiCallbackEncryptionKey.Arn
+        - Statement:
+            - Sid: KMSPolicy
+              Effect: Allow
+              Action:
+                - kms:Verify
+                - kms:Sign
+              Resource:
+                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+        -  Statement:
+              - Effect: Allow
+                Action:
+                  - "sqs:SendMessage"
+                  - "sqs:ReceiveMessage"
+                Resource: !GetAtt YotiCallbackQueue.Arn
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt YotiCallbackQueue.Arn
+            BatchSize: 1
+            Enabled: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - TriggerYotiCallbackStateMachineHandler.ts
 
   YotiCallbackQueue:
     Type: "AWS::SQS::Queue"
