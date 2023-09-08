@@ -6,6 +6,7 @@ import { Constants } from "./utils/Constants";
 import { BatchItemFailure } from "./utils/BatchItemFailure";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
+import { fromEnv } from "@aws-sdk/credential-providers";
 import { randomUUID } from "crypto";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
@@ -46,17 +47,16 @@ class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 					// todo
 					stateMachineArn: process.env.STATE_MACHINE_ARN,
 			 };
-			 
-				//  StartExecution
-				logger.info("1");
-				// process.env.AWS_REGION
-				const stepFunctionsClient = new SFNClient({ region: "eu-west-2" });
-				logger.info("2");
-
-				const invokeCommand = new StartExecutionCommand(params);
-				logger.info("3", { invokeCommand });
 
 				try {
+					//  StartExecution
+					logger.info("1");
+					// process.env.AWS_REGION
+					const stepFunctionsClient = new SFNClient({ region: "eu-west-2", credentials: fromEnv() });
+					logger.info("2");
+
+					const invokeCommand = new StartExecutionCommand(params);
+					logger.info("3", { invokeCommand });
 					const result = await stepFunctionsClient.send(invokeCommand);
 					logger.info({ result, message: "step fn result " });
 					return body;
