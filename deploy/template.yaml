@@ -2331,12 +2331,6 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: TriggerYotiCallbackStateMachineHandler
-          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
-          YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           STATE_MACHINE_ARN: !GetAtt YotiCallbackStateMachine.Arn
       Policies:
         - AWSLambdaBasicExecutionRole
