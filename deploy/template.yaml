@@ -2356,7 +2356,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: YotiCallbackHandler
+          POWERTOOLS_SERVICE_NAME: TriggerYotiCallbackStateMachineHandler
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"

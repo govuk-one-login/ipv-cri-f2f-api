@@ -1,4 +1,3 @@
-import { SQSEvent, SQSRecord } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
@@ -31,20 +30,19 @@ class YotiCallbackHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
+	// TODO sort out the types as this is no longer an SQS event
 	async handler(event: any, context: any): Promise<any> {
 
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
-		logger.info({ message: "event", event });
-
 		try {
 			const body = JSON.parse(event.body);
 			logger.appendKeys({
 				yotiSessionId: body.session_id,
 			});
-			logger.debug("Parsed SQS event body", body);
+			logger.debug("Parsed event body", body);
 
 			if (!YOTI_PRIVATE_KEY) {
 				logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
