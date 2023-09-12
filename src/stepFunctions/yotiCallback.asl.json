@@ -19,7 +19,7 @@
     },
     "SessionCompletion": {
       "Type": "Task",
-      "Resource": "${YotiCallbackFunctionArn}",
+      "Resource": "${YotiSessionCompletionFunctionArn}",
       "End": true
     },
     "ThankYouEmailFunction": {

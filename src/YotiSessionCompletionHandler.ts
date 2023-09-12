@@ -2,10 +2,9 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
-import { BatchItemFailure } from "./utils/BatchItemFailure";
 import { getParameter } from "./utils/Config";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
-import { CompletedSessionProcessor } from "./services/CompletedSessionProcessor";
+import { YotiSessionCompletionProcessor } from "./services/YotiSessionCompletionProcessor";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 import { failEntireBatch, passEntireBatch } from "./utils/SqsBatchResponseHelper";
 import { MessageCodes } from "./models/enums/MessageCodes";
@@ -25,7 +24,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 
 let YOTI_PRIVATE_KEY: string;
 
-class YotiCallbackHandler implements LambdaInterface {
+class YotiSessionCompletionHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
@@ -37,11 +36,11 @@ class YotiCallbackHandler implements LambdaInterface {
 		logger.addContext(context);
 
 		try {
-			const body = JSON.parse(event.body);
+			const parsedEvent = JSON.parse(event);
 			logger.appendKeys({
-				yotiSessionId: body.session_id,
+				yotiSessionId: parsedEvent.session_id,
 			});
-			logger.debug("Parsed event body", body);
+			logger.debug("Parsed event parsedEvent", parsedEvent);
 
 			if (!YOTI_PRIVATE_KEY) {
 				logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
@@ -55,8 +54,7 @@ class YotiCallbackHandler implements LambdaInterface {
 					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
 			}
-
-			await CompletedSessionProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
+			await YotiSessionCompletionProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(parsedEvent);
 
 			logger.debug("Finished processing record from SQS");
 			return passEntireBatch;
@@ -81,8 +79,7 @@ class YotiCallbackHandler implements LambdaInterface {
 			}
 		}
 	}
-
 }
 
-const handlerClass = new YotiCallbackHandler();
+const handlerClass = new YotiSessionCompletionHandler();
 export const lambdaHandler = handlerClass.handler.bind(handlerClass);

@@ -2306,7 +2306,7 @@ Resources:
       Name: !Sub "F2F-YotiCallback-stepfunction-${AWS::StackName}"
       DefinitionUri: ../src/stepFunctions/yotiCallback.asl.json
       DefinitionSubstitutions:
-        YotiCallbackFunctionArn: !GetAtt YotiCallbackFunction.Arn
+        YotiSessionCompletionFunctionArn: !GetAtt YotiCallbackFunction.Arn
         ThankYouEmailFunctionArn: !GetAtt ThankYouEmailFunction.Arn
       Policies:
         - AWSXrayWriteOnlyAccess
@@ -2400,7 +2400,7 @@ Resources:
     DependsOn: YotiCallbackFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-YotiCallback-${AWS::StackName}"
-      Handler: YotiCallbackHandler.lambdaHandler
+      Handler: YotiSessionCompletionHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
         - ApplyReservedConcurrency
@@ -2408,7 +2408,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: YotiCallbackHandler
+          POWERTOOLS_SERVICE_NAME: YotiSessionCompletionHandler
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue:
               !Sub "${L2DynamoStackName}-person-identity-table-name"
@@ -2487,7 +2487,7 @@ Resources:
         Target: "es2020"
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
-          - YotiCallbackHandler.ts
+          - YotiSessionCompletionHandler.ts
 
   YotiCallbackFunctionLogGroup:
     Type: AWS::Logs::LogGroup

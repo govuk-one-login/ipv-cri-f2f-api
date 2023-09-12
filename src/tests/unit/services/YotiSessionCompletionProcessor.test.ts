@@ -5,7 +5,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
 import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-import { CompletedSessionProcessor } from "../../../services/CompletedSessionProcessor";
+import { YotiSessionCompletionProcessor } from "../../../services/YotiSessionCompletionProcessor";
 import { YotiService } from "../../../services/YotiService";
 import { YotiCompletedSession } from "../../../models/YotiPayloads";
 import { ISessionItem } from "../../../models/ISessionItem";
@@ -20,7 +20,7 @@ import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { TXMA_BRP_VC_ISSUED, TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_EEA_VC_ISSUED, TXMA_EU_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
 import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
 
-let mockCompletedSessionProcessor: CompletedSessionProcessor;
+let mockCompletedSessionProcessor: YotiSessionCompletionProcessor;
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 
@@ -102,10 +102,10 @@ const VALID_REQUEST = {
 	"topic" : "session_completion",
 };
 
-describe("CompletedSessionProcessor", () => {
+describe("YotiSessionCompletionProcessor", () => {
 	let f2fSessionItem: ISessionItem, personIdentityItem: PersonIdentityItem, completedYotiSession: YotiCompletedSession, documentFields: any;
 	beforeAll(() => {
-		mockCompletedSessionProcessor = new CompletedSessionProcessor(logger, metrics, "YOTIPRIM");
+		mockCompletedSessionProcessor = new YotiSessionCompletionProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore
 		mockCompletedSessionProcessor.f2fService = mockF2fService;
 		// @ts-ignore
