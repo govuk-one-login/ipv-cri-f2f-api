@@ -2307,10 +2307,13 @@ Resources:
       DefinitionUri: ../src/stepFunctions/yotiCallback.asl.json
       DefinitionSubstitutions:
         YotiCallbackFunctionArn: !GetAtt YotiCallbackFunction.Arn
+        ThankYouEmailFunctionArn: !GetAtt ThankYouEmailFunction.Arn
       Policies:
         - AWSXrayWriteOnlyAccess
         - LambdaInvokePolicy:
             FunctionName: !Ref YotiCallbackFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ThankYouEmailFunction
       Tracing:
         Enabled: true
       PermissionsBoundary: !If
@@ -2512,6 +2515,125 @@ Resources:
       FunctionName: !Ref YotiCallbackFunction
       Principal: apigateway.amazonaws.com
 
+  ThankYouEmailFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: ThankYouEmailFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-ThankYouEmail-${AWS::StackName}"
+      Handler: ThankYouEmailHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: ThankYouEmailHandler
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue:
+              !Sub "${L2DynamoStackName}-person-identity-table-name"
+          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
+          KMS_KEY_ARN:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+          IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-key-id"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-person-identity-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-person-identity-table-key-id"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "kms:Decrypt"
+              Resource: !GetAtt YotiCallbackEncryptionKey.Arn
+        - Statement:
+            - Sid: KMSPolicy
+              Effect: Allow
+              Action:
+                - kms:Verify
+                - kms:Sign
+              Resource:
+                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+        - Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt TxMASQSQueue.Arn
+          - Effect: Allow
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+        - Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt IPVCoreSQSQueue.Arn
+          - Effect: Allow
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !GetAtt IPVCoreQueueEncryptionKey.Arn
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - ThankYouEmailHandler.ts
+
+  ThankYouEmailFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-ThankYouEmail-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  ThankYouEmailFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsProdLikeEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref ThankYouEmailFunctionLogGroup
+
+  ThankYouEmailFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ThankYouEmailFunction
+      Principal: apigateway.amazonaws.com
 
   YotiCallbackQueueDeadLetterQueue:
     Type: "AWS::SQS::Queue"

@@ -5,7 +5,7 @@ import { Constants } from "./utils/Constants";
 import { BatchItemFailure } from "./utils/BatchItemFailure";
 import { getParameter } from "./utils/Config";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
-import { CompletedSessionProcessor } from "./services/CompletedSessionProcessor";
+import { ThankYouEmailProcessor } from "./services/ThankYouEmailProcessor";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 import { failEntireBatch, passEntireBatch } from "./utils/SqsBatchResponseHelper";
 import { MessageCodes } from "./models/enums/MessageCodes";
@@ -56,7 +56,7 @@ class YotiCallbackHandler implements LambdaInterface {
 				}
 			}
 
-			await CompletedSessionProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
+			ThankYouEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
 
 			logger.debug("Finished processing record from SQS");
 			return passEntireBatch;
