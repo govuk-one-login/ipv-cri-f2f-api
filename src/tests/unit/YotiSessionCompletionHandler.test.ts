@@ -4,7 +4,6 @@ import { YotiSessionCompletionProcessor } from "../../services/YotiSessionComple
 import { VALID_SESSION_COMPLETION_EVENT } from "./data/callback-events";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { AppError } from "../../utils/AppError";
-import { failEntireBatch } from "../../utils/SqsBatchResponseHelper";
 
 const mockedYotiSessionCompletionProcessor = mock<YotiSessionCompletionProcessor>();
 
@@ -16,7 +15,7 @@ jest.mock("../../services/YotiSessionCompletionProcessor", () => {
 
 jest.mock("../../utils/Config", () => {
 	return {
-		getParameter: jest.fn(() => {return "dgsdgsg";}),
+		getParameter: jest.fn(() => "dgsdgsg"),
 	};
 });
 describe("YotiSessionCompletionHandler", () => {
@@ -32,7 +31,9 @@ describe("YotiSessionCompletionHandler", () => {
 		YotiSessionCompletionProcessor.getInstance = jest.fn().mockImplementation(() => {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send VC");
 		});
-		const response = await lambdaHandler(JSON.stringify(VALID_SESSION_COMPLETION_EVENT), "F2F");
-		expect(response).toEqual(failEntireBatch);
+		await expect(lambdaHandler(JSON.stringify(VALID_SESSION_COMPLETION_EVENT), "F2F")).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+			message: "Failed to process session_completion event",
+		}));
 	});
 });
