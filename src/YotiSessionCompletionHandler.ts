@@ -10,6 +10,7 @@ import { failEntireBatch, passEntireBatch } from "./utils/SqsBatchResponseHelper
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { Response } from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
+import { YotiCallbackPayload } from "./type/YotiCallbackPayload";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -28,7 +29,6 @@ class YotiSessionCompletionHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	// TODO sort out the types as this is no longer an SQS event
 	async handler(event: any, context: any): Promise<any> {
 
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
@@ -36,7 +36,7 @@ class YotiSessionCompletionHandler implements LambdaInterface {
 		logger.addContext(context);
 
 		try {
-			const parsedEvent = JSON.parse(event);
+			const parsedEvent: YotiCallbackPayload = JSON.parse(event);
 			logger.appendKeys({
 				yotiSessionId: parsedEvent.session_id,
 			});

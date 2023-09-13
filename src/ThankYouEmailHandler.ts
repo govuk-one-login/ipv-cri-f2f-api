@@ -11,6 +11,7 @@ import { failEntireBatch, passEntireBatch } from "./utils/SqsBatchResponseHelper
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { Response } from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
+import { YotiCallbackPayload } from "./type/YotiCallbackPayload";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -29,7 +30,6 @@ class YotiCallbackHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	// TODO sort out the types as this is no longer an SQS event
 	async handler(event: any, context: any): Promise<any> {
 
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
@@ -37,11 +37,11 @@ class YotiCallbackHandler implements LambdaInterface {
 		logger.addContext(context);
 
 		try {
-			const body = JSON.parse(event.body);
+			const parsedBody: YotiCallbackPayload = JSON.parse(event.parsedBody);
 			logger.appendKeys({
-				yotiSessionId: body.session_id,
+				yotiSessionId: parsedBody.session_id,
 			});
-			logger.debug("Parsed event body", body);
+			logger.debug("Parsed event parsedBody", parsedBody);
 
 			if (!YOTI_PRIVATE_KEY) {
 				logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
@@ -56,7 +56,7 @@ class YotiCallbackHandler implements LambdaInterface {
 				}
 			}
 
-			ThankYouEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(body);
+			ThankYouEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(parsedBody);
 
 			logger.debug("Finished processing record from SQS");
 			return passEntireBatch;
