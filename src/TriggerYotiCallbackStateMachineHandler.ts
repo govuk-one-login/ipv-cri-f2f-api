@@ -8,6 +8,7 @@ import { randomUUID } from "crypto";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { YotiCallbackTopics } from "./models/enums/YotiCallbackTopics";
 import { Constants } from "./utils/Constants";
+import { passEntireBatch, failEntireBatch } from "./utils/SqsBatchResponseHelper";
 
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
@@ -24,7 +25,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	// TODO sort out the return type
-	async handler(event: SQSEvent, context: any): Promise<string | null | undefined> {
+	async handler(event: SQSEvent, context: any): Promise<any> {
 
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
@@ -58,7 +59,7 @@ class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 					return body;
 				} catch (error) {
 					logger.error({ message: "There was an error executing the yoti callback step function", error });
-					// TODO we might want to put the message in the DLQ in this instance
+					return error;
 				}
 
 			} else {
@@ -66,13 +67,13 @@ class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 					topic: body.topic,
 					messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
 				});
-				return null;
+				return passEntireBatch;
 			}
 		} else {
 			logger.warn("Unexpected no of records received", {
 				messageCode: MessageCodes.INCORRECT_BATCH_SIZE,
 			});
-			return null;
+			return failEntireBatch;
 
 		}
 	}
