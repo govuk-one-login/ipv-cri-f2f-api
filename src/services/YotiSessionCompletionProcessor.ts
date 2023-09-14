@@ -19,6 +19,7 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "../utils/IVeriCredential";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
+import { YotiCallbackPayload } from "../type/YotiCallbackPayload";
 
 export class YotiSessionCompletionProcessor {
 
@@ -70,7 +71,7 @@ export class YotiSessionCompletionProcessor {
   	return YotiSessionCompletionProcessor.instance;
   }
 
-  async processRequest(eventBody: any): Promise<Response> {
+  async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
   	const yotiSessionID = eventBody.session_id;
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });

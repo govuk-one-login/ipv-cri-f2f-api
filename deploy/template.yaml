@@ -2529,9 +2529,6 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: ThankYouEmailHandler
-          PERSON_IDENTITY_TABLE_NAME:
-            Fn::ImportValue:
-              !Sub "${L2DynamoStackName}-person-identity-table-name"
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
@@ -2545,10 +2542,10 @@ Resources:
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
-        - DynamoDBWritePolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
+        # - DynamoDBWritePolicy:
+        #     TableName:
+        #       Fn::ImportValue:
+        #         !Sub "${L2DynamoStackName}-session-table-name"
         - DynamoDBReadPolicy:
             TableName:
               Fn::ImportValue:
@@ -2557,14 +2554,6 @@ Resources:
             KeyId:
               Fn::ImportValue:
                 !Sub "${L2DynamoStackName}-session-table-key-id"
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-person-identity-table-name"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-person-identity-table-key-id"
         - Statement:
             - Effect: Allow
               Action:

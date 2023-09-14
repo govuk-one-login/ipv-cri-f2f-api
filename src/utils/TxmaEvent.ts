@@ -11,6 +11,7 @@ export type TxmaEventName =
 	| "F2F_YOTI_RESPONSE_RECEIVED"
 	| "F2F_CRI_VC_ISSUED"
 	| "F2F_CRI_END"
+	| "F2F_DOCUMENT_UPLOADED"
 	| "F2F_CRI_SESSION_ABORTED";
 
 
@@ -65,9 +66,10 @@ export type VerifiedCredentialEvidenceTxMA = Array<{
 }>;
 
 export interface ExtensionObject {
-	"evidence": VerifiedCredentialEvidenceTxMA;
+	"evidence"?: VerifiedCredentialEvidenceTxMA;
 	"previous_govuk_signin_journey_id"?: string;
 	"post_office_details"?: PostOfficeDetails;
+	"post_office_visit_details"?: PostOfficeVisitDetails;
 }
 
 export interface TxmaEvent extends BaseTxmaEvent {
@@ -99,3 +101,8 @@ export type PostOfficeDetails = Array<{
 		longitude: number;
 	}>;
 }>;
+
+export type PostOfficeVisitDetails = {
+	"post_office_date_of_visit": string;
+	"post_office_time_of_visit": string;
+};

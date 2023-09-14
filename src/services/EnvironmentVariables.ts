@@ -225,6 +225,25 @@ export class EnvironmentVariables {
 				}
 				break;
 			}
+			case ServicesEnum.THANK_YOU_EMAIL_SERVICE: {
+				if (!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 ||
+					!this.ISSUER || this.ISSUER.trim().length === 0 ||
+					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
+					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
+					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
+					logger.error("Environment variable YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
+				}
+				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS < 10) {
+					this.YOTI_SESSION_TTL_DAYS = 10;
+					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set or below 10 days. Setting to minimum - 10 days.");
+				}
+				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS < 1209600) {
+					this.RESOURCES_TTL_SECS = 1209600;
+					logger.warn("RESOURCES_TTL_SECS env var is not set or below 12 days. Setting to minimum - 12 days.");
+				}
+				break;
+			}
 			case ServicesEnum.ABORT_SERVICE: {
 				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 				!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||

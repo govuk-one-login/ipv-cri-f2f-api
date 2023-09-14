@@ -1,23 +1,18 @@
-import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
-import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { YotiService } from "./YotiService";
-import { HttpCodesEnum } from "../utils/HttpCodesEnum";
-import { buildCoreEventFields } from "../utils/TxmaEvent";
-import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { EnvironmentVariables } from "./EnvironmentVariables";
-import { ServicesEnum } from "../models/enums/ServicesEnum";
-import { VerifiableCredentialService } from "./VerifiableCredentialService";
-import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
-import { AuthSessionState } from "../models/enums/AuthSessionState";
-import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
-import { YotiSessionDocument } from "../utils/YotiPayloadEnums";
 import { MessageCodes } from "../models/enums/MessageCodes";
-import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
-import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "../utils/IVeriCredential";
-import { personIdentityUtils } from "../utils/PersonIdentityUtils";
+import { ServicesEnum } from "../models/enums/ServicesEnum";
+import { YotiCompletedSession } from "../models/YotiPayloads";
+import { YotiCallbackPayload } from "../type/YotiCallbackPayload";
+import { createDynamoDbClient } from "../utils/DynamoDBFactory";
+import { AppError } from "../utils/AppError";
+import { absoluteTimeNow } from "../utils/DateTimeUtils";
+import { HttpCodesEnum } from "../utils/HttpCodesEnum";
+import { Response } from "../utils/Response";
+import { buildCoreEventFields } from "../utils/TxmaEvent";
+import { YotiService } from "./YotiService";
 
 export class ThankYouEmailProcessor {
 
@@ -26,6 +21,8 @@ export class ThankYouEmailProcessor {
   private readonly logger: Logger;
 
   private readonly metrics: Metrics;
+
+  private readonly f2fService: F2fService;
 
   private readonly yotiService: YotiService;
 
@@ -38,7 +35,8 @@ export class ThankYouEmailProcessor {
   ) {
   	this.logger = logger;
   	this.metrics = metrics;
-  	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
+  	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.THANK_YOU_EMAIL_SERVICE);
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
   }
 
@@ -57,7 +55,63 @@ export class ThankYouEmailProcessor {
   	return ThankYouEmailProcessor.instance;
   }
 
-  processRequest(eventBody: any): void {
-  	console.log("hi");
+  async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
+  	const yotiSessionID = eventBody.session_id;
+
+  	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
+	  if (yotiSessionID) {
+		  const f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
+
+  		if (!f2fSession) {
+			  this.logger.error("Session not found", {
+				  messageCode: MessageCodes.SESSION_NOT_FOUND,
+			  });
+			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing info in session table");
+		  }
+
+  		this.logger.appendKeys({
+			  sessionId: f2fSession.sessionId,
+			  govuk_signin_journey_id: f2fSession.clientSessionId,
+		  });
+
+  		this.logger.info({ message: "Fetching yoti session" });
+		  const yotiSessionInfo: YotiCompletedSession | undefined = await this.yotiService.getCompletedSessionInfo(yotiSessionID);
+
+		  if (!yotiSessionInfo) {
+			  this.logger.error({ message: "No Yoti Session found with ID" }, {
+  				yotiSessionID,
+				  messageCode: MessageCodes.VENDOR_SESSION_NOT_FOUND,
+			  });
+			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not found");
+		  }
+
+  		const yotiSessionCreatedAt = yotiSessionInfo.resources.id_documents[0].created_at;
+  		// TODO
+  		const postOfficeDateOfVisit = "";
+  		const postOfficeTimeOfVisit = "";
+
+  		try {
+  			await this.f2fService.sendToTXMA({
+  				event_name: "F2F_DOCUMENT_UPLOADED",
+  				...buildCoreEventFields(f2fSession, this.environmentVariables.issuer() as string, f2fSession.clientIpAddress, absoluteTimeNow),
+  				extensions: {
+  					post_office_visit_details: {
+  						post_office_date_of_visit: postOfficeDateOfVisit,
+  						post_office_time_of_visit: postOfficeTimeOfVisit,
+  					},
+  				},
+  			});
+  		} catch (error: any) {
+  			this.logger.error("Failed to write TXMA event F2F_DOCUMENT_UPLOADED to SQS queue.", {
+  				messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
+  			});
+  		}
+
+  		return new Response(HttpCodesEnum.OK, "OK");
+
+  	} else {
+  		this.logger.error("Event does not include yoti session_id", { messageCode: MessageCodes.MISSING_SESSION_ID });
+  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Event does not include yoti session_id");
+  	}
   }
 }
