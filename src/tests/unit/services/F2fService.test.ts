@@ -216,6 +216,24 @@ describe("F2f Service", () => {
 		await expect(f2fService.getSessionsByAuthSessionState("F2F_SESSION_CREATED")).rejects.toThrow("Error retrieving Sessions by authSessionState");
 	});
 
+	it("should not return any session Items if the expiryDate has passed", async () => {
+		mockDynamoDbClient.query = jest.fn().mockResolvedValue({
+			Items: [
+			{
+				sessionId: "SESSIDTHREE",
+				expiryDate: absoluteTimeNow() - 500,
+			},
+			{
+				sessionId: "SESSIDTHREE",
+				expiryDate: absoluteTimeNow() - 300,
+			}
+		],
+		});
+
+		const result = await f2fService.getSessionsByAuthSessionState("F2F_SESSION_STARTED");
+		expect(result).toEqual([]);
+	});
+
 	it("should return session items when sessions are found matching the auth session state", async () => {
 		mockDynamoDbClient.query = jest.fn().mockResolvedValue({
 			Items: [{

@@ -16,6 +16,7 @@ import { F2fService } from "./F2fService";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { ReminderEmail } from "../models/ReminderEmail";
+import { MessageCodes } from "../models/enums/MessageCodes";
 
 
 /**
@@ -92,11 +93,11 @@ export class SendEmailService {
 				await this.sendF2FYotiEmailedEvent(message);
 				return emailResponse;
 			} else {
-				this.logger.error("sendYotiPdfEmail - Failed to fetch the Instructions pdf");
+				this.logger.error("Failed to fetch the Instructions pdf", { messageCode: MessageCodes.FAILED_FETHCING_YOTI_PDF });
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "sendYotiPdfEmail - Failed to fetch the Instructions pdf");
 			}
 		} catch (err: any) {
-			this.logger.error("sendYotiPdfEmail - Cannot send Email", SendEmailService.name, err.message);
+			this.logger.error("sendYotiPdfEmail - Cannot send Email", { messageCode: MessageCodes.FAILED_TO_SEND_PDF_EMAIL });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sendYotiPdfEmail - Cannot send Email");
 		}
 	}
@@ -112,8 +113,8 @@ export class SendEmailService {
 			const emailResponse = await this.sendGovNotification(this.environmentVariables.getReminderEmailTemplateId(this.logger), message, options);
 			return emailResponse;
 		} catch (err: any) {
-			this.logger.error("sendReminderEmail - Cannot send Email", SendEmailService.name, err.message);
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sendReminderEmail - Cannot send Email");
+			this.logger.error("Failed to send Reminder Email", { messageCode: MessageCodes.FAILED_TO_SEND_REMINDER_EMAIL });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sendReminderEmail - Failed sending Reminder Email");
 		}
 	}
 

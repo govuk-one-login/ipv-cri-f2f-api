@@ -131,7 +131,7 @@ describe("ReminderEmailProcessor", () => {
 
 		const result = await reminderEmailProcessor.processRequest();
 
-		expect(result).toEqual({ statusCode: 200, body: "Success" });
+		expect(result).toEqual({ statusCode: 200, body: "No F2F_SESSION_CREATED Records" });
 		expect(mockLogger.info).toHaveBeenCalledWith("No users with session state F2F_SESSION_CREATED");
 	});
 
@@ -147,7 +147,7 @@ describe("ReminderEmailProcessor", () => {
 
 		const result = await reminderEmailProcessor.processRequest();
 
-		expect(result).toEqual({ statusCode: 200, body: "Success" });
+		expect(result).toEqual({ statusCode: 200, body: "No F2F_SESSION_CREATED Sessons older than 5 days" });
 		expect(mockLogger.info).toHaveBeenCalledWith("No users with session state F2F_SESSION_CREATED older than 5 days");
 	});
 
@@ -166,6 +166,16 @@ describe("ReminderEmailProcessor", () => {
 		await reminderEmailProcessor.processRequest();
 
 		expect(mockLogger.error).toHaveBeenCalledWith("Error fetching record from Person Identity Table", { "error": "Error" });
+	});
+
+	it("should warn if no records are returned from person Identity Table", async () => {
+    
+		mockF2fService.getSessionsByAuthSessionState.mockResolvedValue(F2FSessionsWithYotiSession);
+		mockF2fService.getPersonIdentityById.mockResolvedValue(undefined);
+
+		await reminderEmailProcessor.processRequest();
+
+		expect(mockLogger.warn).toHaveBeenNthCalledWith(1, "No records returned from Person Identity Table");
 	});
 
 	it("should log an error if not able to send to GovNotify", async () => {

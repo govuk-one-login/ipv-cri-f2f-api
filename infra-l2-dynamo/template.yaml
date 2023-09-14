@@ -126,6 +126,7 @@ Resources:
               - "sessionId"
               - "createdDate"
               - "reminderEmailSent"
+              - "expiryDate"
             ProjectionType: "INCLUDE"
       TimeToLiveSpecification:
         AttributeName: expiryDate

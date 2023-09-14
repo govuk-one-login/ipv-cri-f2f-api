@@ -48,7 +48,7 @@ export class Constants {
 
 	static readonly YOTI_SESSION_ID_INDEX_NAME = "yotiSessionId-index";
 
-	static readonly ATUH_SESSION_STATE_INDEX_NAME = "authSessionState-index";
+	static readonly AUTH_SESSION_STATE_INDEX_NAME = "authSessionState-index";
 
 	static readonly TOKEN_EXPIRY_SECONDS = 3600;
 
