@@ -205,7 +205,7 @@ export class YotiCallbackProcessor {
   			}
 
 
-			  const { credentialSubject, evidence } = this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields, VcNameParts);
+			  const { credentialSubject, evidence, ciReasons } = this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields, VcNameParts);
 
 			  if (!credentialSubject || !evidence) {
 				  this.logger.error({ message: "Missing Credential Subject or Evidence payload" }, {
@@ -251,7 +251,7 @@ export class YotiCallbackProcessor {
 				  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core", { shouldThrow: true });
 			  }
 
-			  await this.sendYotiEventsToTxMA(documentFields, VcNameParts, f2fSession, yotiSessionID, evidence);
+			  await this.sendYotiEventsToTxMA(documentFields, VcNameParts, f2fSession, yotiSessionID, evidence, ciReasons);
 
 			  await this.f2fService.updateSessionAuthState(
 				  f2fSession.sessionId,
@@ -279,7 +279,7 @@ export class YotiCallbackProcessor {
   	return false;
   }
 
-  async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any): Promise<any> {
+  async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any, ciReasons?: string[]): Promise<any> {
 	  // Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
 	  let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
@@ -356,6 +356,7 @@ export class YotiCallbackProcessor {
 						  verificationScore: evidence[0].verificationScore,
 						  ci: evidence[0].ci,
 						  checkDetails: evidence[0].checkDetails,
+							ciReasons: ciReasons
 					  },
 				  ],
 			  },

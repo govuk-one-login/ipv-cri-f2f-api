@@ -121,76 +121,79 @@ export class GenerateVerifiableCredential {
   }
 
   private getContraIndicator(
-  	ID_DOCUMENT_FACE_MATCH_RECOMMENDATION: YotiCheckRecommendation,
-  	ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION: YotiCheckRecommendation,
-  ): string[] {
-  	const ci: string[] = [];
-
-  	const addToCI = (code: string | string[]) => {
-  		if (Array.isArray(code)) {
-  			ci.push(...code);
-  		} else {
-  			ci.push(code);
-  		}
-  	};
-
-  	const handleFaceMatchRejection = () => {
-  		const { value, reason } = ID_DOCUMENT_FACE_MATCH_RECOMMENDATION;
-  		if (value === "REJECT") {
-  			switch (reason) {
-  				case "FACE_NOT_GENUINE":
-  				case "LARGE_AGE_GAP":
-  				case "PHOTO_OF_MASK":
-  				case "PHOTO_OF_PHOTO":
-  				case "DIFFERENT_PERSON":
-  					addToCI("V01");
-  					break;
-  				default:
-  					break;
-  			}
-  		}
-  	};
-
-  	const handleAuthenticityRejection = () => {
-  		const { value, reason } = ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION;
-  		if (value === "REJECT") {
-  			let contraIndicator;
-
-  			switch (reason) {
-  				case "COUNTERFEIT":
-  				case "TAMPERED":
-  				case "MISSING_HOLOGRAM":
-  				case "NO_HOLOGRAM_MOVEMENT":
-  					contraIndicator = "D14";
-  					break;
-  				case "EXPIRED_DOCUMENT":
-  					contraIndicator = "D16";
-  					break;
-  				case "FRAUD_LIST_MATCH":
-  					contraIndicator = "F03";
-  					break;
-  				case "DOC_NUMBER_INVALID":
-  					contraIndicator = "D02";
-  					break;
-  				case "DATA_MISMATCH":
-  				case "CHIP_DATA_INTEGRITY_FAILED":
-  				case "CHIP_SIGNATURE_VERIFICATION_FAILED":
-  				case "CHIP_CSCA_VERIFICATION_FAILED":
-  					break;
-  				default:
-  					break;
-  			}
-
-  			this.logger.info({ message: "Handling authenticity rejection", reason, contraIndicator });
-  			if (contraIndicator) addToCI(contraIndicator);
-  		}
-  	};
-
-  	handleFaceMatchRejection();
-  	handleAuthenticityRejection();
-
-  	return ci;
-  }
+		ID_DOCUMENT_FACE_MATCH_RECOMMENDATION: YotiCheckRecommendation,
+		ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION: YotiCheckRecommendation,
+	): { contraIndicators: string[]; reasons: string[] } {
+		const contraIndicators: string[] = [];
+		const reasons: string[] = [];
+	
+		const addToCI = (code: string | string[], reason: string) => {
+			if (Array.isArray(code)) {
+				code.forEach((c) => {
+					contraIndicators.push(c);
+					reasons.push(reason);
+				});
+			} else {
+				contraIndicators.push(code);
+				reasons.push(reason);
+			}
+		};
+	
+		const handleFaceMatchRejection = () => {
+			const { value, reason } = ID_DOCUMENT_FACE_MATCH_RECOMMENDATION;
+			if (value === "REJECT") {
+				switch (reason) {
+					case "FACE_NOT_GENUINE":
+					case "LARGE_AGE_GAP":
+					case "PHOTO_OF_MASK":
+					case "PHOTO_OF_PHOTO":
+					case "DIFFERENT_PERSON":
+						addToCI("V01", reason);
+						break;
+					default:
+						break;
+				}
+			}
+		};
+	
+		const handleAuthenticityRejection = () => {
+			const { value, reason } = ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION;
+			if (value === "REJECT") {
+				let contraIndicator;
+				switch (reason) {
+					case "COUNTERFEIT":
+					case "TAMPERED":
+					case "MISSING_HOLOGRAM":
+					case "NO_HOLOGRAM_MOVEMENT":
+						contraIndicator = "D14";
+						break;
+					case "EXPIRED_DOCUMENT":
+						contraIndicator = "D16";
+						break;
+					case "FRAUD_LIST_MATCH":
+						contraIndicator = "F03";
+						break;
+					case "DOC_NUMBER_INVALID":
+						contraIndicator = "D02";
+						break;
+					case "DATA_MISMATCH":
+					case "CHIP_DATA_INTEGRITY_FAILED":
+					case "CHIP_SIGNATURE_VERIFICATION_FAILED":
+					case "CHIP_CSCA_VERIFICATION_FAILED":
+						break;
+					default:
+						break;
+				}
+				this.logger.info({ message: "Handling authenticity rejection", reason, contraIndicator });
+				if (contraIndicator) addToCI(contraIndicator, reason ? reason : '');
+			}
+		};
+	
+		handleFaceMatchRejection();
+		handleAuthenticityRejection();
+	
+		return { contraIndicators, reasons };
+	}
 
   private attachPersonName(
   	credentialSubject: VerifiedCredentialSubject,
@@ -326,11 +329,13 @@ export class GenerateVerifiableCredential {
   ): {
   		credentialSubject: VerifiedCredentialSubject;
   		evidence: VerifiedCredentialEvidence;
+			ciReasons?: string[]; 
   	} {
   	const { id_documents: idDocuments } = completedYotiSessionPayload.resources;
   	const { checks } = completedYotiSessionPayload;
   	const documentType = idDocuments[0].document_type;
   	const yotiCountryCode = idDocuments[0].issuing_country;
+		let ciReasons: string[] = [];
 
 		const docInfo = {
 			documentType, 
@@ -440,7 +445,8 @@ export class GenerateVerifiableCredential {
   	}
 
   	if (evidence[0].strengthScore === 0 || evidence[0].validityScore === 0 || evidence[0].verificationScore === 0) {
-  		const contraIndicators = this.getContraIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);
+  		const { contraIndicators, reasons } = this.getContraIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);
+			ciReasons = reasons;
   		if (contraIndicators.length >= 1) {
   			evidence[0].ci = contraIndicators;
   		}
@@ -474,6 +480,7 @@ export class GenerateVerifiableCredential {
   	return {
   		credentialSubject,
   		evidence,
+			ciReasons,
   	};
   }
 }

@@ -166,12 +166,12 @@ describe("GenerateVerifiableCredential", () => {
 
 	describe("getContraIndicator", () => {
 		it.each([
-			{ reason: "FACE_NOT_GENUINE", contraIndicator: ["V01"] },
-			{ reason: "LARGE_AGE_GAP", contraIndicator: ["V01"] },
-			{ reason: "PHOTO_OF_MASK", contraIndicator: ["V01"] },
-			{ reason: "PHOTO_OF_PHOTO", contraIndicator: ["V01"] },
-			{ reason: "DIFFERENT_PERSON", contraIndicator: ["V01"] },
-			{ reason: "UNKNOWN_REASON", contraIndicator: [] },
+			{ reason: "FACE_NOT_GENUINE", contraIndicator: {"contraIndicators": ["V01"], "reasons": ["FACE_NOT_GENUINE"]} },
+			{ reason: "LARGE_AGE_GAP", contraIndicator: {"contraIndicators": ["V01"], "reasons": ["LARGE_AGE_GAP"]} },
+			{ reason: "PHOTO_OF_MASK", contraIndicator: {"contraIndicators": ["V01"], "reasons": ["PHOTO_OF_MASK"]} },
+			{ reason: "PHOTO_OF_PHOTO", contraIndicator: {"contraIndicators": ["V01"], "reasons": ["PHOTO_OF_PHOTO"]} },
+			{ reason: "DIFFERENT_PERSON", contraIndicator: {"contraIndicators": ["V01"], "reasons": ["DIFFERENT_PERSON"]} },
+			{ reason: "UNKNOWN_REASON", contraIndicator: {"contraIndicators": [], "reasons": []} },
 		])(
 			"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
 			({ reason, contraIndicator }) => {
@@ -188,23 +188,23 @@ describe("GenerateVerifiableCredential", () => {
 					ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION,
 				);
 
-				expect(result).toEqual(contraIndicator);
+				expect(result).toEqual(contraIndicator.contraIndicators[0]);
 			},
 		);
 
 		it.each([
-			{ reason: "COUNTERFEIT", contraIndicator: ["D14"] },
-			{ reason: "EXPIRED_DOCUMENT", contraIndicator: ["D16"] },
-			{ reason: "FRAUD_LIST_MATCH", contraIndicator: ["F03"] },
-			{ reason: "DOC_NUMBER_INVALID", contraIndicator: ["D02"] },
-			{ reason: "TAMPERED", contraIndicator: ["D14"] },
-			{ reason: "DATA_MISMATCH", contraIndicator: [] },
-			{ reason: "MISSING_HOLOGRAM", contraIndicator: ["D14"] },
-			{ reason: "NO_HOLOGRAM_MOVEMENT", contraIndicator: ["D14"] },
-			{ reason: "CHIP_DATA_INTEGRITY_FAILED", contraIndicator: [] },
-			{ reason: "CHIP_SIGNATURE_VERIFICATION_FAILED", contraIndicator: [] },
-			{ reason: "CHIP_CSCA_VERIFICATION_FAILED", contraIndicator: [] },
-			{ reason: "UNKNOWN_REASON", contraIndicator: [] },
+			{ reason: "COUNTERFEIT", contraIndicator: {"contraIndicators": ["D14"], "reasons": ["COUNTERFEIT"]} },
+			{ reason: "EXPIRED_DOCUMENT", contraIndicator: {"contraIndicators": ["D16"], "reasons": ["EXPIRED_DOCUMENT"]} },
+			{ reason: "FRAUD_LIST_MATCH", contraIndicator: {"contraIndicators": ["F03"], "reasons": ["FRAUD_LIST_MATCH"]} },
+			{ reason: "DOC_NUMBER_INVALID", contraIndicator: {"contraIndicators": ["D02"], "reasons": ["DOC_NUMBER_INVALID"]} },
+			{ reason: "TAMPERED", contraIndicator: {"contraIndicators": ["D14"], "reasons": ["TAMPERED"]} },
+			{ reason: "DATA_MISMATCH", contraIndicator: {"contraIndicators": [], "reasons": []} },
+			{ reason: "MISSING_HOLOGRAM", contraIndicator: {"contraIndicators": ["D14"], "reasons": ["MISSING_HOLOGRAM"]} },
+			{ reason: "NO_HOLOGRAM_MOVEMENT", contraIndicator: {"contraIndicators": ["D14"], "reasons": ["NO_HOLOGRAM_MOVEMENT"]} },
+			{ reason: "CHIP_DATA_INTEGRITY_FAILED", contraIndicator: {"contraIndicators": [], "reasons": []} },
+			{ reason: "CHIP_SIGNATURE_VERIFICATION_FAILED", contraIndicator: {"contraIndicators": [], "reasons": []} },
+			{ reason: "CHIP_CSCA_VERIFICATION_FAILED", contraIndicator: {"contraIndicators": [], "reasons": []} },
+			{ reason: "UNKNOWN_REASON", contraIndicator: {"contraIndicators": [], "reasons": []} },
 		])(
 			"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
 			({ reason, contraIndicator }) => {
@@ -225,7 +225,7 @@ describe("GenerateVerifiableCredential", () => {
 				expect(logger.info).toHaveBeenCalledWith({
 					message: "Handling authenticity rejection",
 					reason,
-					contraIndicator: contraIndicator[0],
+					contraIndicator: contraIndicator.contraIndicators[0],
 				});
 			},
 		);
