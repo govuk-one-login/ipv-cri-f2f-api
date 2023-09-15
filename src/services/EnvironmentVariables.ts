@@ -213,7 +213,7 @@ export class EnvironmentVariables {
 					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
 					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
 					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
-					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Callback Service incorrectly configured");
 				}
 				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS < 10) {
 					this.YOTI_SESSION_TTL_DAYS = 10;
@@ -232,7 +232,7 @@ export class EnvironmentVariables {
 					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
 					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
 					logger.error("Environment variable YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
-					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Thank you email Service incorrectly configured");
 				}
 				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS < 10) {
 					this.YOTI_SESSION_TTL_DAYS = 10;

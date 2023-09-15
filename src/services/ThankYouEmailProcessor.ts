@@ -86,6 +86,8 @@ export class ThankYouEmailProcessor {
 		  }
 
   		const yotiSessionCreatedAt = yotiSessionInfo.resources.id_documents[0].created_at;
+
+  		console.log("yotiSessionCreatedAt", yotiSessionCreatedAt);
   		// TODO
   		const postOfficeDateOfVisit = "";
   		const postOfficeTimeOfVisit = "";
@@ -95,6 +97,7 @@ export class ThankYouEmailProcessor {
   				event_name: "F2F_DOCUMENT_UPLOADED",
   				...buildCoreEventFields(f2fSession, this.environmentVariables.issuer() as string, f2fSession.clientIpAddress, absoluteTimeNow),
   				extensions: {
+  					previous_govuk_signin_journey_id: f2fSession.clientSessionId,
   					post_office_visit_details: {
   						post_office_date_of_visit: postOfficeDateOfVisit,
   						post_office_time_of_visit: postOfficeTimeOfVisit,

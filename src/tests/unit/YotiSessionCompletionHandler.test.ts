@@ -18,10 +18,11 @@ jest.mock("../../utils/Config", () => {
 		getParameter: jest.fn(() => "dgsdgsg"),
 	};
 });
+
 describe("YotiSessionCompletionHandler", () => {
 	it("return success response for YotiCallback", async () => {
 		YotiSessionCompletionProcessor.getInstance = jest.fn().mockReturnValue(mockedYotiSessionCompletionProcessor);
-		await lambdaHandler(JSON.stringify(VALID_SESSION_COMPLETION_EVENT), "F2F");
+		await lambdaHandler(VALID_SESSION_COMPLETION_EVENT, "F2F");
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockedYotiSessionCompletionProcessor.processRequest).toHaveBeenCalledTimes(1);
@@ -31,7 +32,7 @@ describe("YotiSessionCompletionHandler", () => {
 		YotiSessionCompletionProcessor.getInstance = jest.fn().mockImplementation(() => {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send VC");
 		});
-		await expect(lambdaHandler(JSON.stringify(VALID_SESSION_COMPLETION_EVENT), "F2F")).rejects.toThrow(expect.objectContaining({
+		await expect(lambdaHandler(VALID_SESSION_COMPLETION_EVENT, "F2F")).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Failed to process session_completion event",
 		}));

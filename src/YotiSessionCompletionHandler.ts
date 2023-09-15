@@ -31,17 +31,13 @@ class YotiSessionCompletionHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: any, context: any): Promise<void | AppError> {
+	async handler(event: YotiCallbackPayload, context: any): Promise<void | AppError> {
 
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
 		try {
-			const parsedEvent: YotiCallbackPayload = JSON.parse(event);
-			logger.appendKeys({
-				yotiSessionId: parsedEvent.session_id,
-			});
-			logger.debug("Parsed event parsedEvent", parsedEvent);
+			logger.appendKeys({	yotiSessionId: event.session_id });
 
 			if (!YOTI_PRIVATE_KEY) {
 				logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
@@ -55,7 +51,7 @@ class YotiSessionCompletionHandler implements LambdaInterface {
 					return new AppError(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
 			}
-			await YotiSessionCompletionProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(parsedEvent);
+			await YotiSessionCompletionProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event);
 			logger.debug("Finished processing record from SQS");
 
 		} catch (error: any) {

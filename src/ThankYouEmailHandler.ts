@@ -27,20 +27,16 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 let YOTI_PRIVATE_KEY: string;
 
 class ThankYouEmailHandler implements LambdaInterface {
-	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
+	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.THANK_YOU_EMAIL_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: any, context: any): Promise<void | AppError> {
+	async handler(event: YotiCallbackPayload, context: any): Promise<void | AppError> {
 
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
 		try {
-			const parsedBody: YotiCallbackPayload = JSON.parse(event);
-			logger.appendKeys({
-				yotiSessionId: parsedBody.session_id,
-			});
-			logger.debug("Parsed event parsedBody", parsedBody);
+			logger.appendKeys({	yotiSessionId: event.session_id });
 
 			if (!YOTI_PRIVATE_KEY) {
 				logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
@@ -55,7 +51,7 @@ class ThankYouEmailHandler implements LambdaInterface {
 				}
 			}
 
-			await ThankYouEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(parsedBody);
+			await ThankYouEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event);
 			logger.debug("Finished processing record from SQS");
 
 		} catch (error: any) {

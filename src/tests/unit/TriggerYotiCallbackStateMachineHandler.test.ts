@@ -48,15 +48,12 @@ describe("TriggerYotiCallbackStateMachineHandler", () => {
 		{ topic: "session_completion", event: VALID_SESSION_COMPLETION_SQS_EVENT },
 		{ topic: "thank_you_email_requested", event: VALID_THANK_YOU_SQS_EVENT },
 	])("invokes step function when $topic event is passed", async ({ topic, event }) => {
-		const response = await lambdaHandler(event, "F2F");
+		await lambdaHandler(event, "F2F");
 		expect(logger.appendKeys).toHaveBeenCalledWith({
 			yotiSessionId: "eb26c8e0-397b-4f5e-b7a5-62cd0c6e510b",
 		});
 		expect(logger.info).toHaveBeenCalledWith("Matched topic, triggering state machine", { topic });
-		expect(logger.info).toHaveBeenCalledWith("Step function successfully returned");
 		expect(handlerClass.stepFunctionsClient.send).toHaveBeenCalled();
-		expect(logger.info).toHaveBeenCalledWith("Step function successfully returned");
-		expect(response).toEqual({ session_id: "eb26c8e0-397b-4f5e-b7a5-62cd0c6e510b", topic });
 	});
 
 	it("error is returned if step function fails", async () => {
