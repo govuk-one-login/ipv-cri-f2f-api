@@ -10,12 +10,11 @@ import { YotiCallbackTopics } from "./models/enums/YotiCallbackTopics";
 import { Constants } from "./utils/Constants";
 import { passEntireBatch, failEntireBatch } from "./utils/SqsBatchResponseHelper";
 
-
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.YOTI_CALLBACK_SVC_NAME;
 
-const logger = new Logger({
+export const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
 	serviceName: POWERTOOLS_SERVICE_NAME,
 });
@@ -23,8 +22,13 @@ const logger = new Logger({
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
+	stepFunctionsClient: SFNClient;
+
+	constructor() {
+		this.stepFunctionsClient = new SFNClient({ region: process.env.REGION, credentials: fromEnv() });
+	}
+
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	// TODO sort out the return type
 	async handler(event: SQSEvent, context: any): Promise<any> {
 
 		logger.setPersistentLogAttributes({});
@@ -51,15 +55,14 @@ class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 			 };
 
 				try {
-					const stepFunctionsClient: SFNClient = new SFNClient({ region: process.env.REGION, credentials: fromEnv() });
 					const invokeCommand: StartExecutionCommand = new StartExecutionCommand(params);
-					const result = await stepFunctionsClient.send(invokeCommand);
+					await this.stepFunctionsClient.send(invokeCommand);
 
-					logger.info({ result, message: "Step function result" });
+					logger.info("Step function successfully returned");
 					return body;
 				} catch (error) {
 					logger.error({ message: "There was an error executing the yoti callback step function", error });
-					return error;
+					throw error;
 				}
 
 			} else {
@@ -74,10 +77,9 @@ class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 				messageCode: MessageCodes.INCORRECT_BATCH_SIZE,
 			});
 			return failEntireBatch;
-
 		}
 	}
 }
 
-const handlerClass = new TriggerYotiCallbackStateMachineHandler();
+export const handlerClass = new TriggerYotiCallbackStateMachineHandler();
 export const lambdaHandler = handlerClass.handler.bind(handlerClass);
