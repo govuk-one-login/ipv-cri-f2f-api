@@ -42,7 +42,7 @@ export class Constants {
 
 	static readonly AUTHORIZATION_CODE = "authorization_code";
 
-	static readonly AUTHORIZATION_CODE_INDEX_NAME = "authCode-index";
+	static readonly AUTHORIZATION_CODE_INDEX_NAME = "authCode-updated-index";
 
 	static readonly YOTI_SESSION_ID_INDEX_NAME = "yotiSessionId-index";
 

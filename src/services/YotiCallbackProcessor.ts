@@ -17,7 +17,8 @@ import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../utils/YotiPayloadEnums";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
-import { DrivingPermit, IdentityCard, Passport, ResidencePermit } from "../utils/IVeriCredential";
+import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "../utils/IVeriCredential";
+import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
 export class YotiCallbackProcessor {
 
@@ -111,14 +112,26 @@ export class YotiCallbackProcessor {
 
 		  this.logger.info({ message: "Completed Yoti Session:" });
 
-		  const documentFieldsId = completedYotiSessionInfo.resources.id_documents[0].document_fields.media.id;
+  		const idDocumentsDocumentFields = completedYotiSessionInfo.resources.id_documents[0].document_fields;
+  		if (!idDocumentsDocumentFields) {
+  			// If there is no document_fields, yoti have told us there will always be ID_DOCUMENT_TEXT_DATA_CHECK
+  			const documentTextDataCheck = completedYotiSessionInfo.checks.find((check) => check.type === "ID_DOCUMENT_TEXT_DATA_CHECK");
 
+			  this.logger.error({ message: "No document_fields found in completed Yoti Session" }, {
+				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+  				ID_DOCUMENT_TEXT_DATA_CHECK: documentTextDataCheck?.report.recommendation,
+			  });
+			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields not populated");
+  		}
+
+		  const documentFieldsId = idDocumentsDocumentFields.media.id;
 		  if (!documentFieldsId) {
-			  this.logger.error({ message: "No document_fields ID found in completed Yoti Session" }, {
+			  this.logger.error({ message: "No media ID found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 			  });
-			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields ID not found");
+			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields media ID not found");
 		  }
+
 		  const documentFields = await this.yotiService.getMediaContent(yotiSessionID, documentFieldsId);
 		  if (!documentFields) {
 			  this.logger.error({ message: "No document fields info found" }, {
@@ -133,16 +146,16 @@ export class YotiCallbackProcessor {
 			  f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
 			  f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED
 		  ) {
+  			const coreEventFields = buildCoreEventFields(f2fSession, this.environmentVariables.issuer(), f2fSession.clientIpAddress, absoluteTimeNow);
 			  try {
 				  await this.f2fService.sendToTXMA({
 					  event_name: "F2F_YOTI_RESPONSE_RECEIVED",
-					  ...buildCoreEventFields(
-						  f2fSession,
-						  this.environmentVariables.issuer(),
-						  f2fSession.clientIpAddress,
-						  absoluteTimeNow,
-					  ),
+					  ...coreEventFields,
+  					user: {
+  						...coreEventFields.user,
+  					},
 					  extensions: {
+  						previous_govuk_signin_journey_id: f2fSession.clientSessionId,
 						  evidence: [
 							  {
 								  txn: yotiSessionID,
@@ -156,9 +169,43 @@ export class YotiCallbackProcessor {
 					  messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
 				  });
 			  }
+				
+  			const { given_names, family_name, full_name } = documentFields;
 
-			  const { credentialSubject, evidence } =
-				  this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields);
+  			const missingGivenName = this.checkMissingField(given_names, "given_names");
+  			const missingFamilyName = this.checkMissingField(family_name, "family_name");
+  			const missingFullName = this.checkMissingField(full_name, "full_name");
+  			let VcNameParts: Name[];
+
+  			this.logger.info("Missing details check", { missingGivenName, missingFamilyName, missingFullName });
+
+  			// If all three name fields are missing, log an error and throw an exception
+  			if (missingGivenName && missingFamilyName && missingFullName) {
+  				this.logger.error({ message: "Missing Name Info in DocumentFields" }, {
+  					messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+  				});
+  				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Name Info in DocumentFields");
+  			}
+
+  			if (missingGivenName || missingFamilyName) {
+  				const personDetails = await this.f2fService.getPersonIdentityById(f2fSession.sessionId, this.environmentVariables.personIdentityTableName());
+
+  				if (!personDetails) {
+  					this.logger.warn("Missing details in PERSON IDENTITY tables", {
+  						messageCode: MessageCodes.PERSON_NOT_FOUND,
+  					});
+  					throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in PERSON IDENTITY tables");
+  				}
+
+  				this.logger.info("Getting NameParts using F2F Person Identity Info");
+  				VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(personDetails, documentFields, this.logger);
+  			} else {
+  				this.logger.info("Getting NameParts using Yoti DocumentFields Info");
+  				VcNameParts = personIdentityUtils.getNamesFromYoti(given_names, family_name);
+  			}
+
+
+			  const { credentialSubject, evidence } = this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields, VcNameParts);
 
 			  if (!credentialSubject || !evidence) {
 				  this.logger.error({ message: "Missing Credential Subject or Evidence payload" }, {
@@ -204,7 +251,7 @@ export class YotiCallbackProcessor {
 				  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core", { shouldThrow: true });
 			  }
 
-			  await this.sendYotiEventsToTxMA(documentFields, f2fSession, yotiSessionID, evidence);
+			  await this.sendYotiEventsToTxMA(documentFields, VcNameParts, f2fSession, yotiSessionID, evidence);
 
 			  await this.f2fService.updateSessionAuthState(
 				  f2fSession.sessionId,
@@ -224,7 +271,15 @@ export class YotiCallbackProcessor {
 
   }
 
-  async sendYotiEventsToTxMA(documentFields: any, f2fSession: any, yotiSessionID: string, evidence: any): Promise<any> {
+  checkMissingField(field: string, fieldName: string): boolean {
+  	if (!field || field.trim() === "") {
+  		this.logger.info({ message: `Missing ${fieldName} field in documentFields response` });
+  		return true;
+  	}
+  	return false;
+  }
+
+  async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any): Promise<any> {
 	  // Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
 	  let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
@@ -291,6 +346,7 @@ export class YotiCallbackProcessor {
 				  absoluteTimeNow,
 			  ),
 			  extensions: {
+  				previous_govuk_signin_journey_id: f2fSession.clientSessionId,
 				  evidence: [
 					  {
 						  type: evidence[0].type,
@@ -304,7 +360,7 @@ export class YotiCallbackProcessor {
 				  ],
 			  },
 			  restricted: {
-				  name: documentFields.full_name, // TODO, TO be updated with nameParts as part of F2F-1000 ticket.
+				  name: VcNameParts,
 				  birthDate: [{ value: documentFields.date_of_birth }],
 				  [docName]: [documentInfo],
 			  },

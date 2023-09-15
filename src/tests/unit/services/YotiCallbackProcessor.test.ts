@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -15,6 +16,7 @@ import { Constants } from "../../../utils/Constants";
 import { VerifiableCredentialService } from "../../../services/VerifiableCredentialService";
 import { AppError } from "../../../utils/AppError";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
+import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { TXMA_BRP_VC_ISSUED, TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_EEA_VC_ISSUED, TXMA_EU_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
 import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
 
@@ -51,13 +53,57 @@ function getMockSessionItem(): ISessionItem {
 	return sessionInfo;
 }
 
+function getPersonIdentityItem(): PersonIdentityItem {
+	const personIdentityItem: PersonIdentityItem = {
+		"addresses": [
+			{
+				"addressCountry": "United Kingdom",
+				"buildingName": "Sherman",
+				"uprn": 123456789,
+				"streetName": "Wallaby Way",
+				"postalCode": "F1 1SH",
+				"buildingNumber": "32",
+				"addressLocality": "Sidney",
+			},
+		],
+		"sessionId": "RandomF2FSessionID",
+		"emailAddress": "viveak.vadivelkarasan@digital.cabinet-office.gov.uk",
+		"birthDate": [
+			{
+				"value":"1960-02-02",
+			},
+		],
+		"name": [
+			{
+				"nameParts": [
+					{
+						"type": "GivenName",
+						"value": "Frederick",
+					},
+					{
+						"type": "GivenName",
+						"value": "Joseph",
+					},
+					{
+						"type": "FamilyName",
+						"value": "Flintstone",
+					},
+				],
+			},
+		],
+		expiryDate: 1612345678,
+		createdDate: 1612335678,
+	};
+	return personIdentityItem;
+}
+
 const VALID_REQUEST = {
 	"session_id":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 	"topic" : "session_completion",
 };
 
 describe("YotiCallbackProcessor", () => {
-	let f2fSessionItem: ISessionItem, completedYotiSession: YotiCompletedSession, documentFields: any;
+	let f2fSessionItem: ISessionItem, personIdentityItem: PersonIdentityItem, completedYotiSession: YotiCompletedSession, documentFields: any;
 	beforeAll(() => {
 		mockYotiCallbackProcessor = new YotiCallbackProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore
@@ -68,6 +114,7 @@ describe("YotiCallbackProcessor", () => {
 		completedYotiSession = getCompletedYotiSession();
 		documentFields = getDocumentFields();
 		f2fSessionItem = getMockSessionItem();
+		personIdentityItem = getPersonIdentityItem();
 
 	});
 
@@ -596,14 +643,248 @@ describe("YotiCallbackProcessor", () => {
 		jest.clearAllMocks();
 	});
 
-	it("Throw server error if completed Yoti session can not be found", async () => {
-		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(undefined);
+	describe("name checks", () => {
+		it("Should call getNamesFromYoti if DocumentFields contains both given_name and family_name fields", async () => {
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
-		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.SERVER_ERROR,
-			message: "Yoti Session not found",
-		}));
+			// @ts-ignore
+			mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+			await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+			expect(logger.info).toHaveBeenCalledWith("Getting NameParts using Yoti DocumentFields Info");
+		});	
+
+		it("Should call getNamesFromPersonIdentity if DocumentFields does not contain given_name", async () => {
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+			mockYotiService.getMediaContent.mockResolvedValueOnce({ 
+				...documentFields,
+				given_names: undefined,
+				full_name: "FrEdErIcK Joseph Flintstone",
+			});
+			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+			// @ts-ignore
+			mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+		
+			await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+			expect(logger.info).toHaveBeenCalledWith("Getting NameParts using F2F Person Identity Info");
+		});	
+
+		it("Should use name casing from documentFields when using getNamesFromPersonIdentity", async () => {
+			jest.useFakeTimers();
+			jest.setSystemTime(absoluteTimeNow());
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+			mockYotiService.getMediaContent.mockResolvedValueOnce({ 
+				...documentFields,
+				given_names: undefined,
+				full_name: "FrEdErIcK Joseph Flintstone",
+			});
+			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+			// @ts-ignore
+			mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+			await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				"https://vocab.account.gov.uk/v1/credentialJWT": [JSON.stringify({
+					"sub":"testsub",
+					"nbf":absoluteTimeNow(),
+					"iss":"https://XXX-c.env.account.gov.uk",
+					"iat":absoluteTimeNow(),
+					"vc":{
+						"@context":[
+					 Constants.W3_BASE_CONTEXT,
+					 Constants.DI_CONTEXT,
+						],
+						"type": [Constants.VERIFIABLE_CREDENTIAL, Constants.IDENTITY_CHECK_CREDENTIAL],
+					 "credentialSubject":{
+							"name":[
+								 {
+									"nameParts":[
+											 {
+											"value":"FrEdErIcK",
+											"type":"GivenName",
+											 },
+											 {
+											"value":"Joseph",
+											"type":"GivenName",
+											 },
+											 {
+											"value":"Flintstone",
+											"type":"FamilyName",
+											 },
+									],
+								 },
+							],
+							"birthDate":[
+								 {
+									"value":"1988-12-04",
+								 },
+							],
+							"passport":[
+								 {
+									"documentNumber":"RF9082242",
+									"expiryDate":"2024-11-11",
+									"icaoIssuerCode":"GBR",
+								 },
+							],
+					 },
+					 "evidence":[
+							{
+								 "type":"IdentityCheck",
+								"txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+								 "strengthScore":3,
+								 "validityScore":2,
+								 "verificationScore":3,
+								 "checkDetails":[
+									{
+											 "checkMethod":"vri",
+											 "identityCheckPolicy":"published",
+									},
+									{
+											 "checkMethod":"pvr",
+											 "photoVerificationProcessLevel":3,
+									},
+								 ],
+							},
+					 ],
+					},
+		 })],
+			});
+			jest.useRealTimers();
+		});
+
+		it("Should throw an error of name mismatch between F2F and Yoti DocumentFields", async () => {
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+			mockYotiService.getMediaContent.mockResolvedValueOnce({ 
+				...documentFields,
+				given_names: undefined,
+				full_name: "Joseph FrEdErIcK Flintstone",
+			});
+			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+
+			// @ts-ignore
+			mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+			return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "FullName mismatch between F2F & YOTI",
+			}));
+		});
+	});
+
+	describe("yoti session info", () => {
+		it("Throw server error if completed Yoti session can not be found", async () => {
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(undefined);
+
+			return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "Yoti Session not found",
+			}));
+		});
+
+		it("Throws server error if session in Yoti is not completed", async () => {
+			const completedYotiSessionClone = { ...completedYotiSession, state: "ONGOING" };
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+	
+			return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "Yoti Session not complete",
+			}));
+		});
+
+		it("Throws server error if session in Yoti does not contain document fields", async () => {
+			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
+			delete completedYotiSessionClone.resources.id_documents[0].document_fields;
+			completedYotiSessionClone.checks = [
+				{
+					type: "ID_DOCUMENT_TEXT_DATA_CHECK",
+					report: {
+						recommendation: {
+							value: "NOT_AVAILABLE",
+							reason: "EXTRACTION_FAILED",
+						},
+						breakdown: [],
+					},
+				},
+				{
+					type: "ID_DOCUMENT_AUTHENTICITY",
+					state: "DONE",
+					generated_media: [],
+					report: {
+						recommendation: {
+							value: "APPROVE",
+						},
+						breakdown: [
+							{
+								sub_check: "no_sign_of_forgery",
+								result: "PASS",
+								details: [],
+								process: "EXPERT_REVIEW",
+							},
+							{
+								sub_check: "no_sign_of_tampering",
+								result: "PASS",
+								details: [],
+								process: "EXPERT_REVIEW",
+							},
+							{
+								sub_check: "other_security_features",
+								result: "PASS",
+								details: [],
+								process: "EXPERT_REVIEW",
+							},
+							{
+								sub_check: "physical_document_captured",
+								result: "PASS",
+								details: [],
+								process: "EXPERT_REVIEW",
+							},
+						],
+					},
+				},
+			];
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+	
+			await expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "Yoti document_fields not populated",
+			}));
+			expect(logger.error).toHaveBeenCalledWith({ message: "No document_fields found in completed Yoti Session" }, {
+				messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+				ID_DOCUMENT_TEXT_DATA_CHECK: {
+					value: "NOT_AVAILABLE",
+					reason: "EXTRACTION_FAILED",
+				},
+			});
+		});
+
+		it("Throws server error if session in Yoti does not contain media ID", () => {
+			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
+			delete completedYotiSessionClone.resources.id_documents[0].document_fields.media.id;
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+	
+			return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "Yoti document_fields media ID not found",
+			}));
+		});
 	});
 
 	it("Throw server error if F2F Session can not be found", async () => {
@@ -654,20 +935,7 @@ describe("YotiCallbackProcessor", () => {
 		}));
 	});
 
-	it("Throws server error if session in Yoti is not completed", async () => {
-		completedYotiSession.state = "ONGOING";
-		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
-		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
-		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-
-		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.SERVER_ERROR,
-			message: "Yoti Session not complete",
-		}));
-	});
-
 	it("Throws server error if signGeneratedVerifiableCredentialJwt returns empty string", async () => {
-		completedYotiSession.state = "COMPLETED";
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
@@ -681,7 +949,6 @@ describe("YotiCallbackProcessor", () => {
 	});
 
 	it("Returns server error response if signGeneratedVerifiableCredentialJwt throws error", async () => {
-		completedYotiSession.state = "COMPLETED";
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
@@ -695,7 +962,6 @@ describe("YotiCallbackProcessor", () => {
 	});
 
 	it("Throws server error if generateVerifiableCredentialJwt returns empty string", async () => {
-		completedYotiSession.state = "COMPLETED";
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);

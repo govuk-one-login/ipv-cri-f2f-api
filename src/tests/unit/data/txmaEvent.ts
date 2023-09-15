@@ -1,5 +1,6 @@
 const TXMA_EXTENSION = {
 	extensions: {
+		"previous_govuk_signin_journey_id": "sdfssg",
 		evidence: [
 			{
 				"type": "IdentityCheck",
@@ -30,6 +31,7 @@ export const TXMA_CORE_FIELDS = {
 	"event_name": "F2F_YOTI_RESPONSE_RECEIVED",
 	"timestamp": 1,
 	"extensions": {
+		"previous_govuk_signin_journey_id": "sdfssg",
 		"evidence": [
 			{
 				"txn": "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
@@ -37,7 +39,6 @@ export const TXMA_CORE_FIELDS = {
 		],
 	},
 	"user": {
-		"govuk_signin_journey_id": "sdfssg",
 		"ip_address": "127.0.0.1",
 		"persistent_session_id": "sdgsdg",
 		"session_id": "RandomF2FSessionID",
@@ -50,7 +51,13 @@ export const TXMA_VC_ISSUED = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_EXTENSION,
 	restricted: {
-		"name": "ANGELA ZOE UK SPECIMEN",
+		"name": [{
+			"nameParts": [
+				{ "value": "ANGELA", "type": "GivenName" },
+				{ "value": "ZOE", "type": "GivenName" },
+				{ "value": "UK SPECIMEN", "type": "FamilyName" },
+			],
+		}],
 		"birthDate": [
 			{
 				"value": "1988-12-04",
@@ -71,7 +78,12 @@ export const TXMA_DL_VC_ISSUED = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_EXTENSION,
 	restricted: {
-		"name": "LEEROY JENKINS",
+		"name": [{
+			"nameParts": [
+				{ "value": "LEEROY", "type": "GivenName" },
+				{ "value": "JENKINS", "type": "FamilyName" },
+			],
+		}],
 		"birthDate": [
 			{
 				"value": "1988-12-04",
@@ -95,7 +107,13 @@ export const TXMA_EU_DL_VC_ISSUED = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_EXTENSION,
 	restricted: {
-		"name": "Erika - Mustermann",
+		"name": [{
+			"nameParts": [
+				{ "value": "Erika", "type": "GivenName" },
+				{ "value": "-", "type": "GivenName" },
+				{ "value": "Mustermann", "type": "FamilyName" },
+			],
+		}],
 		"birthDate": [
 			{
 				"value": "1988-12-04",
@@ -118,7 +136,13 @@ export const TXMA_EEA_VC_ISSUED = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_EXTENSION,
 	restricted: {
-		"name": "Wiieke Liselotte De Bruijn",
+		"name": [{
+			"nameParts": [
+				{ "value": "Wiieke", "type": "GivenName" },
+				{ "value": "Liselotte", "type": "GivenName" },
+				{ "value": "De Bruijn", "type": "FamilyName" },
+			],
+		}],
 		"birthDate": [
 			{
 				"value": "1988-12-04",
@@ -140,7 +164,13 @@ export const TXMA_BRP_VC_ISSUED = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_EXTENSION,
 	restricted: {
-		"name": "TECH REFRESH ICTHREEMALE",
+		"name": [{
+			"nameParts": [
+				{ "value": "TECH", "type": "GivenName" },
+				{ "value": "REFRESH", "type": "GivenName" },
+				{ "value": "ICTHREEMALE", "type": "FamilyName" },
+			],
+		}],
 		"birthDate": [
 			{
 				"value": "1988-12-04",
@@ -155,5 +185,70 @@ export const TXMA_BRP_VC_ISSUED = {
 				"icaoIssuerCode": "GBR",
 			},
 		],
+	},
+};
+
+const TXMA_YOTI_START_EXTENSION = {
+	extensions: {
+		"evidence": [
+			{
+				"txn": "b83d54ce-1565-42ee-987a-97a1f48f27dg",
+			},
+		],
+		"post_office_details": [
+			{
+				"address": "1 The Street, Funkytown",
+				"location": [
+					{
+						"latitude": 0.34322,
+						"longitude": -42.48372,
+					},
+				],
+				"name": undefined,
+				"post_code": "SW19 4NS",
+			},
+		],
+	},
+};
+
+export const TXMA_PASSPORT_YOTI_START = {
+	...TXMA_CORE_FIELDS,
+	...TXMA_YOTI_START_EXTENSION,
+	restricted: {
+		"passport": [
+			{
+				"documentType": "PASSPORT",
+				"issuingCountry": undefined,
+			},
+		],
+	},
+	"timestamp": 1684933200,
+	"user": {
+		"govuk_signin_journey_id": "sdfssg",
+		"ip_address": "127.0.0.1",
+		"persistent_session_id": "sdgsdg",
+		"session_id": "RandomF2FSessionID",
+		"user_id": "sub",
+	},
+};
+
+export const TXMA_NATIONAL_ID_YOTI_START = {
+	...TXMA_CORE_FIELDS,
+	...TXMA_YOTI_START_EXTENSION,
+	restricted: {
+		"idCard": [
+			{
+				"documentType": "NATIONAL_ID",
+				"issuingCountry": undefined,
+			},
+		],
+	},
+	"timestamp": 1684933200,
+	"user": {
+		"govuk_signin_journey_id": "sdfssg",
+		"ip_address": "127.0.0.1",
+		"persistent_session_id": "sdgsdg",
+		"session_id": "RandomF2FSessionID",
+		"user_id": "sub",
 	},
 };

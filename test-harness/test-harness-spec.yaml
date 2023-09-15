@@ -89,7 +89,7 @@ paths:
   getSessionByAuthCode/{tableName}/{authCode}:
     get:
       operationId: getSessionByAuthCode
-      summary: Get a session by using authorizationCode-index from DynamoDB
+      summary: Get a session by using authCode-updated-index from DynamoDB
       description: |
         Endpoint to get a session from DynamoDB using either authCode as the primary key
       parameters:
@@ -135,7 +135,7 @@ paths:
           application/json: |
             {
               "TableName":"$input.params('tableName')",
-              "IndexName":"authorizationCode-index",
+              "IndexName":"authCode-updated-index",
               "KeyConditionExpression": "authorizationCode = :authorizationCode",
               "ExpressionAttributeValues":{
                   ":authorizationCode":{

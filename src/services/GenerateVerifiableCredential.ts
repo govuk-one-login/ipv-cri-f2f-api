@@ -7,6 +7,7 @@ import { YotiCheckRecommendation, YotiDocumentFields, YotiCompletedSession, Yoti
 import {
 	VerifiedCredentialEvidence,
 	VerifiedCredentialSubject,
+	Name,
 } from "../utils/IVeriCredential";
 import { EU_DL_COUNTRIES } from "../models/EuDrivingLicenceCodes";
 
@@ -76,7 +77,7 @@ export class GenerateVerifiableCredential {
   	} else {
   		switch (documentType) {
   			case "PASSPORT":
-  				return 3;
+  				return documentContainsValidChip ? 4 : 3;
   			case "DRIVING_LICENCE":
   				return 3;
   			case "NATIONAL_ID":
@@ -153,31 +154,35 @@ export class GenerateVerifiableCredential {
   	const handleAuthenticityRejection = () => {
   		const { value, reason } = ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION;
   		if (value === "REJECT") {
+  			let contraIndicator;
+
   			switch (reason) {
   				case "COUNTERFEIT":
-  					addToCI("D14");
+  				case "TAMPERED":
+  				case "MISSING_HOLOGRAM":
+  				case "NO_HOLOGRAM_MOVEMENT":
+  					contraIndicator = "D14";
   					break;
   				case "EXPIRED_DOCUMENT":
-  					addToCI("D16");
+  					contraIndicator = "D16";
   					break;
   				case "FRAUD_LIST_MATCH":
-  					addToCI(["F03"]);
+  					contraIndicator = "F03";
   					break;
   				case "DOC_NUMBER_INVALID":
-  					addToCI("D02");
+  					contraIndicator = "D02";
   					break;
-  				case "TAMPERED":
   				case "DATA_MISMATCH":
   				case "CHIP_DATA_INTEGRITY_FAILED":
   				case "CHIP_SIGNATURE_VERIFICATION_FAILED":
   				case "CHIP_CSCA_VERIFICATION_FAILED":
-  				case "MISSING_HOLOGRAM":
-  				case "NO_HOLOGRAM_MOVEMENT":
-  					addToCI("D14");
   					break;
   				default:
   					break;
   			}
+
+  			this.logger.info({ message: "Handling authenticity rejection", reason, contraIndicator });
+  			if (contraIndicator) addToCI(contraIndicator);
   		}
   	};
 
@@ -189,15 +194,9 @@ export class GenerateVerifiableCredential {
 
   private attachPersonName(
   	credentialSubject: VerifiedCredentialSubject,
-  	givenName: string,
-  	familyName: string,
+  	VcNameParts: Name[],
   ): VerifiedCredentialSubject {
-  	const givenNames = givenName.split(/\s+/);
-  	const nameParts = givenNames.map((name) => ({ value: name, type: "GivenName" }));
-
-  	nameParts.push({ value: familyName, type: "FamilyName" });
-
-  	credentialSubject.name = [{ nameParts }];
+  	credentialSubject.name = VcNameParts;
 
   	return credentialSubject;
   }
@@ -323,6 +322,7 @@ export class GenerateVerifiableCredential {
   	yotiSessionId: string,
   	completedYotiSessionPayload: YotiCompletedSession,
   	documentFields: YotiDocumentFields,
+  	VcNameParts: Name[],
   ): {
   		credentialSubject: VerifiedCredentialSubject;
   		evidence: VerifiedCredentialEvidence;
@@ -332,15 +332,28 @@ export class GenerateVerifiableCredential {
   	const documentType = idDocuments[0].document_type;
   	const yotiCountryCode = idDocuments[0].issuing_country;
 
+		const docInfo = {
+			documentType, 
+			issuingCountry: documentFields.issuing_country ? documentFields.issuing_country : yotiCountryCode, 
+			issueDate: documentFields.date_of_issue, 
+			expiryDate: documentFields.expiration_date
+		}
+		this.logger.info({ message: "Completed Yoti Session Info" }, docInfo );
+
   	const findCheck = (type: string) =>
   		checks.find((checkCompleted: { type: string }) => checkCompleted.type === type);
 
-  	const getCheckObject = (check: any) => ({
-  		object: check,
-  		state: check.state,
-  		recommendation: check.report.recommendation,
-  		breakdown: check.report.breakdown,
-  	});
+  	const getCheckObject = (check: any) => {
+  		const checkObject = {
+  			object: check,
+  			state: check.state,
+  			recommendation: check.report.recommendation,
+  			breakdown: check.report.breakdown,
+  		};
+			
+  		this.logger.info("Checks result:", { Check: checkObject.object, State: checkObject.state, Recommendation: checkObject.recommendation, Breakdown: checkObject.breakdown });
+  		return checkObject;
+  	};
 
   	//IBV_VISUAL_REVIEW_CHECK && DOCUMENT_SCHEME_VALIDITY && PROFILE_DOCUMENT_MATCH Currently not being consumed
   	const MANDATORY_CHECKS = {
@@ -374,9 +387,9 @@ export class GenerateVerifiableCredential {
   	//Attach individuals name information to the VC payload
   	credentialSubject = this.attachPersonName(
   		credentialSubject,
-  		documentFields.given_names,
-  		documentFields.family_name,
+  		VcNameParts,
   	);
+
   	//Attach individuals DOB to the VC payload
   	credentialSubject = this.attachDOB(credentialSubject, documentFields.date_of_birth);
   	//If address info present in Media document attach individuals Address to the VC payload
@@ -407,7 +420,7 @@ export class GenerateVerifiableCredential {
 				subCheck.result === YotiSessionDocument.SUBCHECK_PASS,
   	);
 
-  	this.logger.info({ message: "Result of Manual FaceMatch Check" }, manualFaceMatchCheck);
+  	this.logger.info({ message: "Result of Manual FaceMatch Check", manualFaceMatchCheck });
 
   	const validityScore = this.calculateValidityScore(MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value, documentContainsValidChip);
   	const verificationScore  = this.calculateVerificationProcessLevel(validityScore, MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation.value);
@@ -420,6 +433,11 @@ export class GenerateVerifiableCredential {
   			verificationScore,
   		},
   	];
+
+  	const DocumentAuthenticity = MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation;
+  	if (validityScore === 0 && DocumentAuthenticity.value && DocumentAuthenticity.reason) {
+  		this.logger.info("Validity Score 0", { value: DocumentAuthenticity.value, reason: DocumentAuthenticity.reason });
+  	}
 
   	if (evidence[0].strengthScore === 0 || evidence[0].validityScore === 0 || evidence[0].verificationScore === 0) {
   		const contraIndicators = this.getContraIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);

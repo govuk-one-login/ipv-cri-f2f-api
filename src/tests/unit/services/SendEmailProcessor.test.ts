@@ -23,7 +23,7 @@ let sqsEvent: SQSEvent;
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
 
-		sendEmailProcessorTest = new SendEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY);
+		sendEmailProcessorTest = new SendEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-ignore
 		sendEmailProcessorTest.govNotifyService = mockGovNotifyService;
 		sqsEvent = VALID_SQS_EVENT;

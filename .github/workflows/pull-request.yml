@@ -15,6 +15,7 @@ on:
       - 'f2f-ipv-stub/**'
       - 'infra-l2-outbound-proxy/**'
       - 'yoti-stub/**'
+      - 'gov-notify-stub/**'
       - 'test-harness/**'
 
   # Allows you to run this workflow manually from the Actions tab
@@ -33,6 +34,7 @@ env: # Only adding the variables in that are required for
   DEV_F2F_EXPIRED_ACCESS_TOKEN: ${{ secrets.DEV_F2F_EXPIRED_ACCESS_TOKEN }}
   DEV_F2F_MISSING_SUB_ACCESS_TOKEN: ${{ secrets.DEV_F2F_MISSING_SUB_ACCESS_TOKEN }}
   DEV_F2F_TEST_HARNESS_URL: ${{ secrets.DEV_TEST_HARNESS_API_ENDPOINT }}
+  DEV_F2F_GOV_NOTIFY_STUB_URL: ${{ secrets.DEV_F2F_GOV_NOTIFY_STUB_URL }}
 
 jobs:
   run-code-check:

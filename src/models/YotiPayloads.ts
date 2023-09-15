@@ -170,7 +170,7 @@ export interface YotiCompletedSession {
 					};
 				}>;
 			}>;
-			document_fields: {
+			document_fields?: {
 				media: {
 					id: string;
 					type: string;
@@ -254,6 +254,7 @@ export interface YotiCheckRecommendation {
 }
 
 export interface YotiDocumentFields {
+	full_name: string;
 	given_names: string;
 	family_name: string;
 	date_of_birth: string; 

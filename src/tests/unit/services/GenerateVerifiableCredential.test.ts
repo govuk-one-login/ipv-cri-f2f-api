@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/dot-notation */
+import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { GenerateVerifiableCredential } from "../../../services/GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../../../utils/YotiPayloadEnums";
@@ -12,11 +14,24 @@ import {
 } from "../data/yoti-session";
 
 describe("GenerateVerifiableCredential", () => {
-	let logger: Logger;
+	const logger = mock<Logger>();
 	let generateVerifiableCredential: GenerateVerifiableCredential;
+	const VcNameParts = [
+		{
+			"nameParts": [
+				{
+					"value": "John",
+					"type": "GivenName",
+				},
+				{
+					"value": "Doe",
+					"type": "FamilyName",
+				},
+			],
+		},
+	];
 
 	beforeEach(() => {
-		logger = new Logger();
 		generateVerifiableCredential = GenerateVerifiableCredential.getInstance(logger);
 	});
 
@@ -74,6 +89,7 @@ describe("GenerateVerifiableCredential", () => {
 			{ documentType: "PASSPORT", documentContainsValidChip: false, country: "GBR", score: 3 },
 			{ documentType: "DRIVING_LICENCE", documentContainsValidChip: false, country: "GBR", score: 3 },
 			{ documentType: "PASSPORT", documentContainsValidChip: false, country: "ALB", score: 3 },
+			{ documentType: "PASSPORT", documentContainsValidChip: true, country: "ALB", score: 4 },
 			{ documentType: "DRIVING_LICENCE", documentContainsValidChip: false, country: "ALB", score: 3 },
 			{ documentType: "RESIDENCE_PERMIT", documentContainsValidChip: false, country: "ALB", score: 3 },
 			{ documentType: "RESIDENCE_PERMIT", documentContainsValidChip: true, country: "ALB", score: 4 },
@@ -182,12 +198,12 @@ describe("GenerateVerifiableCredential", () => {
 			{ reason: "FRAUD_LIST_MATCH", contraIndicator: ["F03"] },
 			{ reason: "DOC_NUMBER_INVALID", contraIndicator: ["D02"] },
 			{ reason: "TAMPERED", contraIndicator: ["D14"] },
-			{ reason: "DATA_MISMATCH", contraIndicator: ["D14"] },
+			{ reason: "DATA_MISMATCH", contraIndicator: [] },
 			{ reason: "MISSING_HOLOGRAM", contraIndicator: ["D14"] },
 			{ reason: "NO_HOLOGRAM_MOVEMENT", contraIndicator: ["D14"] },
-			{ reason: "CHIP_DATA_INTEGRITY_FAILED", contraIndicator: ["D14"] },
-			{ reason: "CHIP_SIGNATURE_VERIFICATION_FAILED", contraIndicator: ["D14"] },
-			{ reason: "CHIP_CSCA_VERIFICATION_FAILED", contraIndicator: ["D14"] },
+			{ reason: "CHIP_DATA_INTEGRITY_FAILED", contraIndicator: [] },
+			{ reason: "CHIP_SIGNATURE_VERIFICATION_FAILED", contraIndicator: [] },
+			{ reason: "CHIP_CSCA_VERIFICATION_FAILED", contraIndicator: [] },
 			{ reason: "UNKNOWN_REASON", contraIndicator: [] },
 		])(
 			"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
@@ -206,6 +222,11 @@ describe("GenerateVerifiableCredential", () => {
 				);
 
 				expect(result).toEqual(contraIndicator);
+				expect(logger.info).toHaveBeenCalledWith({
+					message: "Handling authenticity rejection",
+					reason,
+					contraIndicator: contraIndicator[0],
+				});
 			},
 		);
 	});
@@ -213,10 +234,22 @@ describe("GenerateVerifiableCredential", () => {
 	describe("attachPersonName", () => {
 		it("should attach the person name to the credential subject", () => {
 			const credentialSubject = {};
-			const givenName = "John";
-			const familyName = "Doe";
+			const VcNameParts = [
+				{
+					"nameParts": [
+						{
+							"value": "John",
+							"type": "GivenName",
+						},
+						{
+							"value": "Doe",
+							"type": "FamilyName",
+						},
+					],
+				},
+			];
 
-			const result = generateVerifiableCredential["attachPersonName"](credentialSubject, givenName, familyName);
+			const result = generateVerifiableCredential["attachPersonName"](credentialSubject, VcNameParts);
 
 			expect(result).toEqual({
 				name: [
@@ -274,6 +307,7 @@ describe("GenerateVerifiableCredential", () => {
 			const credentialSubject = {};
 			const documentType = "DRIVING_LICENCE";
 			const documentFields = {
+				full_name: "Joe Blog",
 				given_names: "Joe",
 				family_name: "Blog",
 				date_of_birth: "01-01-2010",
@@ -303,6 +337,7 @@ describe("GenerateVerifiableCredential", () => {
 			const credentialSubject = {};
 			const documentType = "PASSPORT";
 			const documentFields = {
+				full_name: "Joe Blog",
 				given_names: "Joe",
 				family_name: "Blog",
 				date_of_birth: "01-01-2010",
@@ -328,6 +363,7 @@ describe("GenerateVerifiableCredential", () => {
 			const credentialSubject = {};
 			const documentType = "INVALID_DOCUMENT";
 			const documentFields = {
+				full_name: "Joe Blog",
 				given_names: "Joe",
 				family_name: "Blog",
 				date_of_birth: "01-01-2010",
@@ -342,6 +378,7 @@ describe("GenerateVerifiableCredential", () => {
 	describe("getVerifiedCredentialInformation", () => {
 		const mockYotiSessionId = "yoti-session-id";
 		const mockDocumentFields = {
+			full_name: "John Doe",
 			given_names: "John",
 			family_name: "Doe",
 			date_of_birth: "1990-01-01",
@@ -379,6 +416,7 @@ describe("GenerateVerifiableCredential", () => {
 					mockYotiSessionId,
 					mockCompletedYotiSessionPayload,
 					mockDocumentFields,
+					VcNameParts,
 				);
 
 				expect(result).toEqual({
@@ -436,6 +474,7 @@ describe("GenerateVerifiableCredential", () => {
 				mockYotiSessionId,
 				mockCompletedYotiSessionPayload,
 				mockDocumentFields,
+				VcNameParts,
 			);
 
 			expect(result).toEqual({
@@ -508,7 +547,7 @@ describe("GenerateVerifiableCredential", () => {
 			};
 
 			expect(() =>
-				generateVerifiableCredential.getVerifiedCredentialInformation(mockYotiSessionId, incompletePayload, mockDocumentFields),
+				generateVerifiableCredential.getVerifiedCredentialInformation(mockYotiSessionId, incompletePayload, mockDocumentFields, VcNameParts),
 			).toThrow("Missing mandatory checks in Yoti completed payload");
 		});
 
@@ -546,7 +585,7 @@ describe("GenerateVerifiableCredential", () => {
 			};
 
 			expect(() =>
-				generateVerifiableCredential.getVerifiedCredentialInformation(mockYotiSessionId, incompletePayload, mockDocumentFields),
+				generateVerifiableCredential.getVerifiedCredentialInformation(mockYotiSessionId, incompletePayload, mockDocumentFields, VcNameParts),
 			).toThrow("Mandatory checks not all completed");
 		});
 	});
