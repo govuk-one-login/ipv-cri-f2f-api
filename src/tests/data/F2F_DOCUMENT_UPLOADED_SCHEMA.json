@@ -1,0 +1,51 @@
+{
+  "type": "object",
+  "properties": {
+      "event_name": {
+          "type": "string"
+      },
+      "user": {
+        "type": "object",
+        "properties": {
+            "user_id": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "user_id"
+        ]
+      },
+      "timestamp": {
+        "type": "integer"
+      },
+      "extensions": {
+        "type": "object",
+        "properties": {
+            "previous_govuk_signin_journey_id": {
+                "type": "string"
+            },
+            "post_office_visit_details": {
+                "type": "object",
+                "properties": {
+                  "post_office_date_of_visit": {
+                      "type": "string"
+                  },
+                  "post_office_time_of_visit": {
+                      "type": "string"
+                  }
+              }
+            }
+        },
+        "required": [
+            "previous_govuk_signin_journey_id",
+            "post_office_visit_details"
+        ]
+      }
+    },
+    "required": [
+      "event_name",
+      "user",
+      "timestamp",
+      "extensions"
+    ]
+ }
