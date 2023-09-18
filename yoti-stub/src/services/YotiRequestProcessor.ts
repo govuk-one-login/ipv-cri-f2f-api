@@ -859,13 +859,6 @@ export class YotiRequestProcessor {
 											MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
 											return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_1034));
 
-										case '1035': // UK Passport Success - No document_fields object in list of resources
-											logger.debug(JSON.stringify(yotiSessionRequest));
-											const MULTIPLE_DOCUMENT_FIELDS_1035 = JSON.parse(JSON.stringify(AI_PASS));
-											delete MULTIPLE_DOCUMENT_FIELDS_1035.resources.id_documents[0].document_fields;
-
-											return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_1034));
-
                     case '0150': // UK Passport Success - Only FullName in DocumentFields
                         logger.debug(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0150 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
