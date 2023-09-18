@@ -110,10 +110,16 @@ export class YotiCallbackProcessor {
 			  yotiUserTrackingId: completedYotiSessionInfo.user_tracking_id,
 		  });
 
-		  this.logger.info({ message: "Completed Yoti Session:" });
+  		const idDocuments = completedYotiSessionInfo.resources.id_documents;
+  		const idDocumentsDocumentFields = [];
 
-  		const idDocumentsDocumentFields = completedYotiSessionInfo.resources.id_documents[0].document_fields;
-  		if (!idDocumentsDocumentFields) {
+  		for (const document of idDocuments) {
+  			if (document.document_fields) {
+  				idDocumentsDocumentFields.push(document.document_fields);
+  			}
+  		}
+
+  		if (idDocumentsDocumentFields.length === 0) {
   			// If there is no document_fields, yoti have told us there will always be ID_DOCUMENT_TEXT_DATA_CHECK
   			const documentTextDataCheck = completedYotiSessionInfo.checks.find((check) => check.type === "ID_DOCUMENT_TEXT_DATA_CHECK");
 
@@ -122,9 +128,14 @@ export class YotiCallbackProcessor {
   				ID_DOCUMENT_TEXT_DATA_CHECK: documentTextDataCheck?.report.recommendation,
 			  });
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields not populated");
+  		} else if (idDocumentsDocumentFields.length > 1) {
+  			this.logger.error({ message: "Multiple document_fields found in completed Yoti Session" }, {
+				  messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
+			  });
+			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Multiple document_fields in response");
   		}
 
-		  const documentFieldsId = idDocumentsDocumentFields.media.id;
+		  const documentFieldsId = idDocumentsDocumentFields[0].media.id;
 		  if (!documentFieldsId) {
 			  this.logger.error({ message: "No media ID found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
