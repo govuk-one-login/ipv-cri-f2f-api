@@ -45,6 +45,8 @@ import {TAMPERED_DOCUMENT_RESPONSE} from "../data/getSessions/tamperedDocumentRe
 import {AI_FAIL_MANUAL_FAIL} from "../data/getSessions/aiFailManualFail";
 import {AI_FAIL_MANUAL_PASS} from "../data/getSessions/aiFailManualPass";
 import {AI_PASS} from "../data/getSessions/aiPass";
+import { DOCUMENT_FIELDS_SECOND } from "../data/getSessions/documentFieldsSecond";
+import { MULTIPLE_DOCUMENT_FIELDS } from "../data/getSessions/multipleDocumentFields";
 import {BRP_AI_FAIL_MANUAL_PASS_NFC} from "../data/getSessions/brpAiFailManualPass";
 import {BRP_MANUAL_PASS_AI_FAIL} from "../data/getSessions/brpManualPass";
 import {EEA_VALID_RESPONSE_NFC} from "../data/getSessions/nfcEeaValidResponse";
@@ -838,6 +840,31 @@ export class YotiRequestProcessor {
                         VALID_RESPONSE_NFC_0132.resources.id_documents[0].document_fields.media.id = sessionId;
                         VALID_RESPONSE_NFC_0132.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0132.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID_SUZIE);
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0132));
+
+										case '1033': // UK Passport Success - document_fields object 2nd in list of resources
+											logger.debug(JSON.stringify(yotiSessionRequest));
+											const DOCUMENT_FIELDS_SECOND_1033 = JSON.parse(JSON.stringify(DOCUMENT_FIELDS_SECOND));
+
+											DOCUMENT_FIELDS_SECOND_1033.session_id = sessionId;
+											DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id = sessionId;
+											DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id = replaceLastUuidChars(DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
+											return new Response(HttpCodesEnum.OK, JSON.stringify(DOCUMENT_FIELDS_SECOND_1033));
+
+										case '1034': // UK Passport Success - Multiple document_fields objects in list of resources
+											logger.debug(JSON.stringify(yotiSessionRequest));
+											const MULTIPLE_DOCUMENT_FIELDS_1034 = JSON.parse(JSON.stringify(MULTIPLE_DOCUMENT_FIELDS));
+
+											MULTIPLE_DOCUMENT_FIELDS_1034.session_id = sessionId;
+											MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id = sessionId;
+											MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
+											return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_1034));
+
+										case '1035': // UK Passport Success - No document_fields object in list of resources
+											logger.debug(JSON.stringify(yotiSessionRequest));
+											const MULTIPLE_DOCUMENT_FIELDS_1035 = JSON.parse(JSON.stringify(AI_PASS));
+											delete MULTIPLE_DOCUMENT_FIELDS_1035.resources.id_documents[0].document_fields;
+
+											return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_1034));
 
                     case '0150': // UK Passport Success - Only FullName in DocumentFields
                         logger.debug(JSON.stringify(yotiSessionRequest));
