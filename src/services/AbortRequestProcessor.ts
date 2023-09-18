@@ -88,6 +88,6 @@ export class AbortRequestProcessor {
   	}
 
   	const redirectUri = `${f2fSessionInfo.redirectUri}?error=access_denied&state=${f2fSessionInfo.state}`;
-  	return new Response(HttpCodesEnum.FOUND_REDIRECT, "Session has been aborted", { Location: redirectUri });
+  	return new Response(301, "Session has been aborted", { Location: redirectUri });
   }
 }
