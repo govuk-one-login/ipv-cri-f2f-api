@@ -1,47 +1,43 @@
-import { Email } from "../models/Email";
-import { EmailResponse } from "../models/EmailResponse";
-import { ValidationHelper } from "../utils/ValidationHelper";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { SendEmailService } from "./SendEmailService";
+import { Constants } from "../utils/Constants";
+import { Email } from "../models/Email";
+import { ReminderEmail } from "../models/ReminderEmail";
+import { EmailResponse } from "../models/EmailResponse";
+import { ValidationHelper } from "../utils/ValidationHelper";
 
 export class SendEmailProcessor {
+  private static instance: SendEmailProcessor;
 
-    private static instance: SendEmailProcessor;
+  private readonly validationHelper: ValidationHelper;
 
-    private readonly logger: Logger;
+  private readonly govNotifyService: SendEmailService;
 
-    private readonly metrics: Metrics;
+  constructor(private readonly logger: Logger, private readonly metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, govnotifyServiceId: string) {
+  	this.validationHelper = new ValidationHelper();
+  	this.govNotifyService = SendEmailService.getInstance(this.logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId);
+  }
 
-    private readonly validationHelper: ValidationHelper;
+  static getInstance(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, govnotifyServiceId: string): SendEmailProcessor {
+  	return this.instance || (this.instance = new SendEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId));
+  }
 
-	private readonly govNotifyService: SendEmailService;
+  async processRequest(eventBody: any): Promise<EmailResponse | undefined> {
+  	const messageType = eventBody.Message.messageType;
 
-	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, govnotifyServiceId: string) {
+  	switch (messageType) {
+  		case Constants.REMINDER_EMAIL:
+  			const reminderEmail = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			await this.validationHelper.validateModel(reminderEmail, this.logger);
+  			return this.govNotifyService.sendReminderEmail(reminderEmail);
 
-    	this.logger = logger;
-    	this.validationHelper = new ValidationHelper();
-    	this.metrics = metrics;
-		this.govNotifyService = SendEmailService.getInstance(this.logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId);
-	}
+  		case Constants.PDF_EMAIL:
+  			const email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			await this.validationHelper.validateModel(email, this.logger);
+  			return this.govNotifyService.sendYotiPdfEmail(email);
+  	}
 
-	static getInstance(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, govnotifyServiceId: string): SendEmailProcessor {
-    	if (!SendEmailProcessor.instance) {
-    		SendEmailProcessor.instance = new SendEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId);
-    	}
-    	return SendEmailProcessor.instance;
-	}
-
-	async processRequest(eventBody: any): Promise<EmailResponse> {
-
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
-
-    	await this.validationHelper.validateModel(email, this.logger);
-
-    	const emailResponse = await this.govNotifyService.sendEmail(email);
-    	this.logger.debug("Response after sending Email message", { emailResponse });
-
-    	return emailResponse;
-	}
+  	return undefined;
+  }
 }
-

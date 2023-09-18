@@ -12,7 +12,9 @@ export class EnvironmentVariables {
 
 	private readonly GOVUKNOTIFY_API = process.env.GOVUKNOTIFY_API;
 
-	private readonly GOVUKNOTIFY_TEMPLATE_ID = process.env.GOVUKNOTIFY_TEMPLATE_ID;
+	private readonly GOVUKNOTIFY_PDF_TEMPLATE_ID = process.env.GOVUKNOTIFY_PDF_TEMPLATE_ID;
+
+	private readonly GOVUKNOTIFY_REMINDER_TEMPLATE_ID = process.env.GOVUKNOTIFY_REMINDER_TEMPLATE_ID;
 
 	private GOVUKNOTIFY_MAX_RETRIES = process.env.GOVUKNOTIFY_MAX_RETRIES;
 
@@ -255,12 +257,20 @@ export class EnvironmentVariables {
 	 * Accessor methods for env variable values
 	 */
 
-	getEmailTemplateId(logger: Logger): any {
-		if (!this.GOVUKNOTIFY_TEMPLATE_ID || this.GOVUKNOTIFY_TEMPLATE_ID.trim().length === 0) {
+	getPdfEmailTemplateId(logger: Logger): any {
+		if (!this.GOVUKNOTIFY_PDF_TEMPLATE_ID || this.GOVUKNOTIFY_PDF_TEMPLATE_ID.trim().length === 0) {
 			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
-		return this.GOVUKNOTIFY_TEMPLATE_ID;
+		return this.GOVUKNOTIFY_PDF_TEMPLATE_ID;
+	}
+
+	getReminderEmailTemplateId(logger: Logger): any {
+		if (!this.GOVUKNOTIFY_REMINDER_TEMPLATE_ID || this.GOVUKNOTIFY_REMINDER_TEMPLATE_ID.trim().length === 0) {
+			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
+		return this.GOVUKNOTIFY_REMINDER_TEMPLATE_ID;
 	}
 
 	maxRetries(): number {

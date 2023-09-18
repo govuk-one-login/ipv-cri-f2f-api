@@ -175,7 +175,7 @@ export class SessionRequestProcessor {
   		state: jwtPayload.state,
   		subject: jwtPayload.sub ? jwtPayload.sub : "",
   		persistentSessionId: jwtPayload.persistent_session_id, //Might not be used
-  		clientIpAddress: clientIpAddress as string,
+  		clientIpAddress,
   		attemptCount: 0,
   		authSessionState: "F2F_SESSION_CREATED",
   		evidence_requested: jwtPayload.evidence_requested,
@@ -204,14 +204,14 @@ export class SessionRequestProcessor {
   	}
 
   	try {
-			const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer() as string, clientIpAddress, absoluteTimeNow);
+  		const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer() as string, clientIpAddress, absoluteTimeNow);
   		await this.f2fService.sendToTXMA({
   			event_name: "F2F_CRI_START",
   			...coreEventFields,
-				user: {
-					...coreEventFields.user,
-					govuk_signin_journey_id: session.clientSessionId
-				}
+  			user: {
+  				...coreEventFields.user,
+  				govuk_signin_journey_id: session.clientSessionId,
+  			},
   		});
   	} catch (error) {
   		this.logger.error("Auth session successfully created. Failed to send CIC_CRI_START event to TXMA", {

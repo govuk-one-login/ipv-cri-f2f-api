@@ -332,13 +332,13 @@ export class GenerateVerifiableCredential {
   	const documentType = idDocuments[0].document_type;
   	const yotiCountryCode = idDocuments[0].issuing_country;
 
-		const docInfo = {
-			documentType, 
-			issuingCountry: documentFields.issuing_country ? documentFields.issuing_country : yotiCountryCode, 
-			issueDate: documentFields.date_of_issue, 
-			expiryDate: documentFields.expiration_date
-		}
-		this.logger.info({ message: "Completed Yoti Session Info" }, docInfo );
+  	const docInfo = {
+  		documentType, 
+  		issuingCountry: documentFields.issuing_country ? documentFields.issuing_country : yotiCountryCode, 
+  		issueDate: documentFields.date_of_issue, 
+  		expiryDate: documentFields.expiration_date,
+  	};
+  	this.logger.info({ message: "Completed Yoti Session Info" }, docInfo );
 
   	const findCheck = (type: string) =>
   		checks.find((checkCompleted: { type: string }) => checkCompleted.type === type);
