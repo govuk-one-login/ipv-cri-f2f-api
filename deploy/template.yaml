@@ -2337,7 +2337,6 @@ Resources:
           POWERTOOLS_SERVICE_NAME: TriggerYotiCallbackStateMachineHandler
           STATE_MACHINE_ARN: !GetAtt YotiCallbackStateMachine.Arn
       Policies:
-        - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
@@ -2393,6 +2392,13 @@ Resources:
           !Ref Environment,
           logretentionindays,
         ]
+
+  TriggerYotiCallbackStateMachinePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TriggerYotiCallbackStateMachine
+      Principal: apigateway.amazonaws.com
 
   YotiCallbackQueue:
     Type: "AWS::SQS::Queue"
