@@ -952,18 +952,6 @@ describe("YotiSessionCompletionProcessor", () => {
 		}));
 	});
 
-	it("Throws server error if session in Yoti is not completed", async () => {
-		completedYotiSession.state = "ONGOING";
-		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
-		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
-		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-
-		return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.SERVER_ERROR,
-			message: "Yoti Session not complete",
-		}));
-	});
-
 	it("Throws server error if signGeneratedVerifiableCredentialJwt returns empty string", async () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);

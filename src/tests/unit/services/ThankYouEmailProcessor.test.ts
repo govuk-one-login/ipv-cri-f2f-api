@@ -15,6 +15,7 @@ const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "F2F" });
+// pragma: allowlist nextline secret
 const YOTI_PRIVATE_KEY = "YOTI_PRIVATE_KEY";
 const sessionId = "RandomF2FSessionID";
 let f2fSessionItem: ISessionItem;

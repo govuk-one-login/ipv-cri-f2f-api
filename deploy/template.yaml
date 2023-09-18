@@ -2323,6 +2323,7 @@ Resources:
 
   TriggerYotiCallbackStateMachine:
     Type: AWS::Serverless::Function
+    DependsOn: TriggerYotiCallbackStateMachineLogGroup
     Properties:
       FunctionName: !Sub "F2F-TriggerYotiCallbackStateMachine-${AWS::StackName}"
       Handler: TriggerYotiCallbackStateMachineHandler.lambdaHandler
@@ -2381,6 +2382,17 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - TriggerYotiCallbackStateMachineHandler.ts
+
+  TriggerYotiCallbackStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-TriggerYotiCallbackStateMachine-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
 
   YotiCallbackQueue:
     Type: "AWS::SQS::Queue"
@@ -2536,16 +2548,11 @@ Resources:
           YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-          IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
-        # - DynamoDBWritePolicy:
-        #     TableName:
-        #       Fn::ImportValue:
-        #         !Sub "${L2DynamoStackName}-session-table-name"
         - DynamoDBReadPolicy:
             TableName:
               Fn::ImportValue:

@@ -126,7 +126,7 @@ export class YotiSessionCompletionProcessor {
 
 			  this.logger.error({ message: "No document_fields found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
-  				ID_DOCUMENT_TEXT_DATA_CHECK: documentTextDataCheck?.report.recommendation,
+  				ID_DOCUMENT_TEXT_DATA_CHECK: documentTextDataCheck?.report?.recommendation,
 			  });
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields not populated");
   		} else if (idDocumentsDocumentFields.length > 1) {

@@ -371,6 +371,6 @@ describe("Callback API", () => {
 			sqsMessage = await getSqsEventList("txma/", sessionId, 6);
 		} while (!sqsMessage);
 
-		await validateTxMAEventData(sqsMessage);
+		await validateTxMAEventData(sqsMessage, yotiMockID);
 	}, 20000);
 });
