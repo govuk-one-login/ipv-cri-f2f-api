@@ -212,12 +212,10 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 		session = Object.fromEntries(
 			Object.entries(originalSession).map(([key, value]) => [key, value.N ?? value.S]),
 		) as unknown as ISessionItem;
-		console.log("transformedData", session);
 	} catch (e: any) {
 		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
 	}
 
-	console.log("getSessionById Response", session);
 	return session;
 }
 
@@ -270,7 +268,6 @@ export async function getSqsEventList(folder: string, prefix: string, txmaEventS
 			return undefined;
 		}
 		keys = listObjectsParsedResponse?.ListBucketResult?.Contents;
-		console.log(listObjectsParsedResponse?.ListBucketResult?.Contents);
 		keyList = [];
 		for (i = 0; i < keys.length; i++) {
 			keyList.push(listObjectsParsedResponse?.ListBucketResult?.Contents.at(i).Key);
