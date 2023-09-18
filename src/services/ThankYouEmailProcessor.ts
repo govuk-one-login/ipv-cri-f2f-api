@@ -86,29 +86,23 @@ export class ThankYouEmailProcessor {
 		  }
 
   		const yotiSessionCreatedAt = yotiSessionInfo.resources.id_documents[0].created_at;
+  		const dateObject = new Date(yotiSessionCreatedAt);
+  		const postOfficeDateOfVisit = dateObject.toLocaleDateString("en-GB");
+  		const postOfficeTimeOfVisit = dateObject.toLocaleTimeString("en-GB").slice(0, -3);
 
-  		console.log("yotiSessionCreatedAt", yotiSessionCreatedAt);
-  		// TODO
-  		const postOfficeDateOfVisit = "";
-  		const postOfficeTimeOfVisit = "";
+  		this.logger.info("Post office visit details", { postOfficeDateOfVisit, postOfficeTimeOfVisit });
 
-  		try {
-  			await this.f2fService.sendToTXMA({
-  				event_name: "F2F_DOCUMENT_UPLOADED",
-  				...buildCoreEventFields(f2fSession, this.environmentVariables.issuer() as string, f2fSession.clientIpAddress, absoluteTimeNow),
-  				extensions: {
-  					previous_govuk_signin_journey_id: f2fSession.clientSessionId,
-  					post_office_visit_details: {
-  						post_office_date_of_visit: postOfficeDateOfVisit,
-  						post_office_time_of_visit: postOfficeTimeOfVisit,
-  					},
+  		await this.f2fService.sendToTXMA({
+  			event_name: "F2F_DOCUMENT_UPLOADED",
+  			...buildCoreEventFields(f2fSession, this.environmentVariables.issuer() as string, f2fSession.clientIpAddress, absoluteTimeNow),
+  			extensions: {
+  				previous_govuk_signin_journey_id: f2fSession.clientSessionId,
+  				post_office_visit_details: {
+  					post_office_date_of_visit: postOfficeDateOfVisit,
+  					post_office_time_of_visit: postOfficeTimeOfVisit,
   				},
-  			});
-  		} catch (error: any) {
-  			this.logger.error("Failed to write TXMA event F2F_DOCUMENT_UPLOADED to SQS queue.", {
-  				messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
-  			});
-  		}
+  			},
+  		});
 
   		return new Response(HttpCodesEnum.OK, "OK");
 
