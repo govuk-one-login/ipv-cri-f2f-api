@@ -4,6 +4,76 @@ export const VALID_RESPONSE_NFC = {
 	"state": "COMPLETED",
 	"resources": {
 			"id_documents": [
+						{
+							"id": "7b4ef053-648f-4c2c-ab0b-490a405a8842",
+							"tasks": [
+									{
+											"type": "ID_DOCUMENT_TEXT_DATA_EXTRACTION",
+											"id": "7e57abe9-0c75-4dda-bb34-18a90dd4c427",
+											"state": "CREATED",
+											"created": "2023-09-16T09:28:42Z",
+											"last_updated": "2023-09-16T09:28:42Z",
+											"generated_checks": [],
+											"generated_media": []
+									}
+							],
+							"source": {
+									"type": "IBV"
+							},
+							"created_at": "2023-09-16T09:28:42Z",
+							"last_updated": "2023-09-16T09:28:42Z",
+							"document_type": "PASSPORT",
+							"issuing_country": "GBR",
+							"pages": [
+									{
+											"frames": [
+													{},
+													{}
+											]
+									},
+									{
+											"frames": [
+													{},
+													{}
+											]
+									}
+							]
+					},
+					{
+							"id": "7b4ef053-648f-4c2c-ab0b-490a405a8824",
+							"tasks": [
+									{
+											"type": "ID_DOCUMENT_TEXT_DATA_EXTRACTION",
+											"id": "7e57abe9-0c75-4dda-bb34-18a90dd4c427",
+											"state": "CREATED",
+											"created": "2023-09-16T09:28:42Z",
+											"last_updated": "2023-09-16T09:28:42Z",
+											"generated_checks": [],
+											"generated_media": []
+									}
+							],
+							"source": {
+									"type": "IBV"
+							},
+							"created_at": "2023-09-16T09:28:42Z",
+							"last_updated": "2023-09-16T09:28:42Z",
+							"document_type": "PASSPORT",
+							"issuing_country": "GBR",
+							"pages": [
+									{
+											"frames": [
+													{},
+													{}
+											]
+									},
+									{
+											"frames": [
+													{},
+													{}
+											]
+									}
+							]
+					},
 					{
 							"id": "b2a71a45-3c5a-4a6c-9246-c05356f6260c",
 							"tasks": [

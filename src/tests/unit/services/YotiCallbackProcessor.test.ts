@@ -873,6 +873,23 @@ describe("YotiCallbackProcessor", () => {
 			});
 		});
 
+		it("Throws server error if session in Yoti contains multiple document_field entries", async () => {
+			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
+			completedYotiSessionClone.resources.id_documents = [completedYotiSession.resources.id_documents[0], completedYotiSession.resources.id_documents[0]];
+		
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+	
+			await expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "Multiple document_fields in response",
+			}));
+			expect(logger.error).toHaveBeenCalledWith({ message: "Multiple document_fields found in completed Yoti Session" }, {
+				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
+			});
+		});
+
 		it("Throws server error if session in Yoti does not contain media ID", () => {
 			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
 			delete completedYotiSessionClone.resources.id_documents[0].document_fields.media.id;

@@ -127,7 +127,7 @@ export class SendEmailService {
 							user: {
 								...coreEventFields.user,
 								email: message.emailAddress,
-								govuk_signin_journey_id: session.clientSessionId
+								govuk_signin_journey_id: session.clientSessionId,
 							},
 						});
 					} catch (error) {
