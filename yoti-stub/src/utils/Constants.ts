@@ -19,6 +19,8 @@ export const UK_PASSPORT_MEDIA_ID_PAUL: string = '0130'
 
 export const UK_PASSPORT_MEDIA_ID_ANTHONY: string = '0131'
 
+export const UK_PASSPORT_MEDIA_ID_SUZIE: string = '0132'
+
 export const UK_PASSPORT_ONLY_FULLNAME_MEDIA_ID: string = '0150'
 
 export const UK_PASSPORT_GIVEN_NAME_MEDIA_ID: string = '0151'
@@ -46,6 +48,7 @@ export const IPV_INTEG_FULL_NAME_HAPPY = "Kenneth Decerqueira"
 export const IPV_INTEG_FULL_NAME_JOYCE = "JOYCE BASU"
 export const IPV_INTEG_FULL_NAME_PAUL = "PAUL HIRONS"
 export const IPV_INTEG_FULL_NAME_ANTHONY = "ANTHONY ACHEAPONG"
+export const IPV_INTEG_FULL_NAME_SUZIE = "SUZIE SHREEVE"
 
 export const IPV_INTEG_FULL_NAME_UNHAPPY = "Linda Duff"
 

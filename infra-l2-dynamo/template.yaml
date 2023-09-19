@@ -72,10 +72,25 @@ Resources:
           AttributeType: "S"
         - AttributeName: "yotiSessionId"
           AttributeType: "S"
+        - AttributeName: "authSessionState"
+          AttributeType: "S"
       KeySchema:
         - AttributeName: "sessionId"
           KeyType: "HASH"
       GlobalSecondaryIndexes:
+        - IndexName: "authCode-updated-index"
+          KeySchema:
+            - AttributeName: "authorizationCode"
+              KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "sessionId"
+              - "redirectUri"
+              - "clientId"
+              - "authSessionState"
+              - "clientSessionId"
+              - "expiryDate"
+            ProjectionType: "INCLUDE"
         - IndexName: "authCode-index"
           KeySchema:
             - AttributeName: "authorizationCode"
@@ -101,6 +116,17 @@ Resources:
               - "clientId"
               - "clientSessionId"
               - "authSessionState"
+            ProjectionType: "INCLUDE"
+        - IndexName: "authSessionState-index"
+          KeySchema:
+            - AttributeName: "authSessionState"
+              KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "sessionId"
+              - "createdDate"
+              - "reminderEmailSent"
+              - "expiryDate"
             ProjectionType: "INCLUDE"
       TimeToLiveSpecification:
         AttributeName: expiryDate

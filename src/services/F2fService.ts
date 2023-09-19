@@ -17,7 +17,7 @@ import {
 	PersonIdentityName,
 	SharedClaimsPersonIdentity,
 } from "../models/PersonIdentityItem";
-import { GovNotifyEvent } from "../utils/GovNotifyEvent";
+import { GovNotifyEvent, ReminderEmailEvent } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { IPVCoreEvent } from "../utils/IPVCoreEvent";
@@ -170,7 +170,7 @@ export class F2fService {
 		}
 	}
 
-	async sendToGovNotify(event: GovNotifyEvent): Promise<void> {
+	async sendToGovNotify(event: GovNotifyEvent | ReminderEmailEvent): Promise<void> {
 		try {
 			const messageBody = JSON.stringify(event);
 			const params = {
@@ -232,6 +232,53 @@ export class F2fService {
 		}
 
 		return sessionItem.Items[0] as ISessionItem;
+	}
+
+	async getSessionsByAuthSessionState(authSessionState: string | undefined): Promise<Array<Record<string, any>>> {
+    const params: QueryCommandInput = {
+        TableName: this.tableName,
+        IndexName: Constants.AUTH_SESSION_STATE_INDEX_NAME,
+        KeyConditionExpression: "authSessionState = :authSessionState",
+        ExpressionAttributeValues: {
+            ":authSessionState": authSessionState,
+        },
+    };
+
+    const sessionItems = await this.dynamo.query(params);
+
+    if (!sessionItems?.Items || sessionItems?.Items.length < 1) {
+        this.logger.error("Error retrieving Sessions by authSessionState", {
+            messageCode: MessageCodes.FAILED_FETCHING_SESSION_BY_AUTH_SESSION_STATE,
+        });
+        throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Sessions by authSessionState");
+    }
+
+    // Filter out any records that have hit TTL
+    const filteredItems = sessionItems.Items.filter(item => {
+        return item.expiryDate > absoluteTimeNow();
+    });
+
+    return filteredItems;
+}
+
+	async updateReminderEmailFlag(sessionId: string, reminderEmailSent: boolean): Promise<void> {
+		const updateStateCommand = new UpdateCommand({
+			TableName: this.tableName,
+			Key: { sessionId },
+			UpdateExpression: "SET reminderEmailSent = :reminderEmailSent",
+			ExpressionAttributeValues: {
+				":reminderEmailSent": reminderEmailSent,
+			},
+		});
+
+		this.logger.info({ message: "Setting reminderEmailSent to be: ", reminderEmailSent });
+		try {
+			await this.dynamo.send(updateStateCommand);
+			this.logger.info({ message: "Updated reminderEmailSent flag in session table" });
+		} catch (error) {
+			this.logger.error({ message: "Got error setting reminderEmailSent flag", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error setting reminderEmailSent flag");
+		}
 	}
 
 	async updateSessionWithAccessTokenDetails(sessionId: string, accessTokenExpiryDate: number): Promise<void> {

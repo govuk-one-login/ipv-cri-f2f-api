@@ -332,15 +332,28 @@ export class GenerateVerifiableCredential {
   	const documentType = idDocuments[0].document_type;
   	const yotiCountryCode = idDocuments[0].issuing_country;
 
+  	const docInfo = {
+  		documentType, 
+  		issuingCountry: documentFields.issuing_country ? documentFields.issuing_country : yotiCountryCode, 
+  		issueDate: documentFields.date_of_issue, 
+  		expiryDate: documentFields.expiration_date,
+  	};
+  	this.logger.info({ message: "Completed Yoti Session Info" }, docInfo );
+
   	const findCheck = (type: string) =>
   		checks.find((checkCompleted: { type: string }) => checkCompleted.type === type);
 
-  	const getCheckObject = (check: any) => ({
-  		object: check,
-  		state: check.state,
-  		recommendation: check.report.recommendation,
-  		breakdown: check.report.breakdown,
-  	});
+  	const getCheckObject = (check: any) => {
+  		const checkObject = {
+  			object: check,
+  			state: check.state,
+  			recommendation: check.report.recommendation,
+  			breakdown: check.report.breakdown,
+  		};
+			
+  		this.logger.info("Checks result:", { Check: checkObject.object, State: checkObject.state, Recommendation: checkObject.recommendation, Breakdown: checkObject.breakdown });
+  		return checkObject;
+  	};
 
   	//IBV_VISUAL_REVIEW_CHECK && DOCUMENT_SCHEME_VALIDITY && PROFILE_DOCUMENT_MATCH Currently not being consumed
   	const MANDATORY_CHECKS = {
@@ -420,6 +433,11 @@ export class GenerateVerifiableCredential {
   			verificationScore,
   		},
   	];
+
+  	const DocumentAuthenticity = MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation;
+  	if (validityScore === 0 && DocumentAuthenticity.value && DocumentAuthenticity.reason) {
+  		this.logger.info("Validity Score 0", { value: DocumentAuthenticity.value, reason: DocumentAuthenticity.reason });
+  	}
 
   	if (evidence[0].strengthScore === 0 || evidence[0].validityScore === 0 || evidence[0].verificationScore === 0) {
   		const contraIndicators = this.getContraIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);

@@ -170,7 +170,7 @@ export interface YotiCompletedSession {
 					};
 				}>;
 			}>;
-			document_fields: {
+			document_fields?: {
 				media: {
 					id: string;
 					type: string;

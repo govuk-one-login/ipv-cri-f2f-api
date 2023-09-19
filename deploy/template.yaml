@@ -95,7 +95,7 @@ Mappings:
 
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
-      YOTIBASEURL: "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk"
+      YOTIBASEURL: "https://yotistub.review-o.build.account.gov.uk"
       YOTISDK: "MockSDK"
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
@@ -103,7 +103,8 @@ Mappings:
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYAPI: "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify"
       POSTOFFICESTUBAPI: "https://f2f-post-office-stub-postofficestub.review-o.dev.account.gov.uk"
-      GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
+      GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
+      GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"}]'
@@ -119,7 +120,8 @@ Mappings:
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYAPI: "https://govnotifystub.review-o.build.account.gov.uk/govnotify"
       POSTOFFICESTUBAPI: "https://postofficestub.review-o.build.account.gov.uk"
-      GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
+      GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
+      GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect"}]'
@@ -134,7 +136,8 @@ Mappings:
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
-      GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
+      GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
+      GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json","clientId":"03A5A659-17AA-453F-B905-95D2804823D1","redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f"}]'
@@ -148,7 +151,7 @@ Mappings:
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
-      GOVUKNOTIFYTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
+      GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback?id=f2f"}]'
@@ -162,7 +165,8 @@ Mappings:
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
-      GOVUKNOTIFYTEMPLATEID: "ccba5634-33e9-4e0d-96c1-57067db941af"
+      GOVUKNOTIFYPDFTEMPLATEID: "ccba5634-33e9-4e0d-96c1-57067db941af"
+      GOVUKNOTIFYREMINDERTEMPLATEID: "0d0d2aab-3c31-46da-8462-1af0f5f456f0"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f"}]'
@@ -1691,7 +1695,8 @@ Resources:
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           GOVUKNOTIFY_API: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI ]
-          GOVUKNOTIFY_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYTEMPLATEID ]
+          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
+          GOVUKNOTIFY_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
           YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
@@ -2032,6 +2037,192 @@ Resources:
       Dimensions:
         - Name: FunctionName
           Value: !Ref UserInfoFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+  ## ReminderEmailHandler
+  ReminderEmailFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: ReminderEmailFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-ReminderEmail-${AWS::StackName}"
+      Handler: ReminderEmailHandler.lambdaHandler
+      CodeUri: ../src/
+      Timeout: 900
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: ReminderEmailHandler
+          GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
+          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
+          KMS_KEY_ARN:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+          ENCRYPTION_KEY_IDS:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-person-identity-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-key-id"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-person-identity-table-key-id"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt [GovNotifySQSQueue, Arn]
+            - Effect: Allow
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:GenerateDataKey"
+              Resource: !GetAtt [GovNotifyEncryptionKey, Arn]
+      Events:
+        ScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 10 ? * MON-FRI *)  # This will run at 10 am on weekdays (Monday to Friday)
+
+
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - ReminderEmailHandler.ts
+
+  ReminderEmailFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-ReminderEmail-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  ReminderEmailFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref ReminderEmailFunctionLogGroup
+
+  ReminderEmailFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ReminderEmailFunction
+      Principal: apigateway.amazonaws.com
+
+  ReminderEmailFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref ReminderEmailFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "ReminderEmailFunction-Fatalerror"
+
+  ReminderEmailFunctionFatalErrorAlarm:
+    DependsOn:
+      - "ReminderEmailFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-ReminderEmailFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: ReminderEmailFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  ReminderEmailConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployConcurrencyAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of ReminderEmail is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-ReminderEmailFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ReminderEmailFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  ReminderEmailThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${ReminderEmailFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-ReminderEmailFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ReminderEmailFunction
       TreatMissingData: notBreaching
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1

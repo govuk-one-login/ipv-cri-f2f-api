@@ -72,6 +72,10 @@ export class AccessTokenRequestProcessor {
 					govuk_signin_journey_id: session?.clientSessionId,
 				});
 			} catch (error) {
+				if (error instanceof AppError) {
+					return new Response(error.statusCode, error.message);
+				}
+
 				this.logger.error("Error while retrieving the session", {
 					messageCode: MessageCodes.SESSION_NOT_FOUND,
 					error,

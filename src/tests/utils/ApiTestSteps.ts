@@ -213,12 +213,10 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 		session = Object.fromEntries(
 			Object.entries(originalSession).map(([key, value]) => [key, value.N ?? value.S]),
 		) as unknown as ISessionItem;
-		console.log("transformedData", session);
 	} catch (e: any) {
 		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
 	}
 
-	console.log("getSessionById Response", session);
 	return session;
 }
 
@@ -271,7 +269,6 @@ export async function getSqsEventList(folder: string, prefix: string, txmaEventS
 			return undefined;
 		}
 		keys = listObjectsParsedResponse?.ListBucketResult?.Contents;
-		console.log(listObjectsParsedResponse?.ListBucketResult?.Contents);
 		keyList = [];
 		for (i = 0; i < keys.length; i++) {
 			keyList.push(listObjectsParsedResponse?.ListBucketResult?.Contents.at(i).Key);
@@ -281,26 +278,44 @@ export async function getSqsEventList(folder: string, prefix: string, txmaEventS
 }
 
 
-export async function validateTxMAEventData(keyList: any): Promise<any> {
+export async function validateTxMAEventData(keyList: any, yotiMockID: any): Promise<any> {
 	let i:any;
+	const yotiMockIdPrefix = yotiMockID.slice(0, 2);
 	for (i = 0; i < keyList.length; i++) {
 		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
 		console.log(JSON.stringify(getObjectResponse.data, null, 2));
 		let valid = true;
-		import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json" )
-			.then((jsonSchema) => {
-				const validate = ajv.compile(jsonSchema);
-				valid = validate(getObjectResponse.data);
-				if (!valid) {
-					console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
-				}
-			})
-			.catch((err) => {
-				console.log(err.message);
-			})
-			.finally(() => {
-				expect(valid).toBe(true);
-			});
+		if (getObjectResponse.data.event_name === "F2F_CRI_VC_ISSUED" || getObjectResponse.data.event_name === "F2F_YOTI_START") {
+			import("../data/" + getObjectResponse.data.event_name + "_" + yotiMockIdPrefix + "_SCHEMA.json" )
+				.then((jsonSchema) => {
+					const validate = ajv.compile(jsonSchema);
+					valid = validate(getObjectResponse.data);
+					if (!valid) {
+						console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+					}
+				})
+				.catch((err) => {
+					console.log(err.message);
+				})
+				.finally(() => {
+					expect(valid).toBe(true);
+				});
+		} else {
+			import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json" )
+				.then((jsonSchema) => {
+					const validate = ajv.compile(jsonSchema);
+					valid = validate(getObjectResponse.data);
+					if (!valid) {
+						console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
+					}
+				})
+				.catch((err) => {
+					console.log(err.message);
+				})
+				.finally(() => {
+					expect(valid).toBe(true);
+				});
+		}
 	}
 }
 
@@ -463,7 +478,7 @@ export async function postGovNotifyRequest(mockDelimitator: any, userData: any):
 	}
 
 	function insertBeforeLastOccurrence(strToSearch: string, strToFind: string, strToInsert: string) {
-		var n = strToSearch.lastIndexOf(strToFind);
+		const n = strToSearch.lastIndexOf(strToFind);
 		if (n < 0) return strToSearch;
 		return strToSearch.substring(0, n) + strToInsert + strToSearch.substring(n);
 	}
