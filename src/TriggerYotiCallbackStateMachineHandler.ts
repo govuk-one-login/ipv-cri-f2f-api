@@ -52,7 +52,7 @@ class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 
 				const params = {
 					input: record.body,
-					name: randomUUID(),
+					name:  `${body.session_id}-${Date.now()}`,
 					stateMachineArn: process.env.STATE_MACHINE_ARN,
 			 };
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import {  INVALID_YOTI_TOPIC_SQS_EVENT, VALID_SESSION_COMPLETION_SQS_EVENT, VALID_THANK_YOU_SQS_EVENT } from "./data/sqs-events";
 import { handlerClass, lambdaHandler, logger } from "../../TriggerYotiCallbackStateMachineHandler";
 import { MessageCodes } from "../../models/enums/MessageCodes";
