@@ -332,7 +332,7 @@ describe("Callback API", () => {
 
 	}, 20000);
 
-	it("F2F CRI Callback Endpoint thank you email - yotiMockId 0000", async () => {
+	it("F2F CRI Callback Endpoint thank you email - yotiMockId 0101", async () => {
 		const yotiMockID = "0101";
 
 		f2fStubPayload.yotiMockID = yotiMockID;
