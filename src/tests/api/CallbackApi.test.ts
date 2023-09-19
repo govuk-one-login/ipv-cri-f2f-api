@@ -52,7 +52,7 @@ describe("Callback API", () => {
 		["0123", dataPassport],
 		["0124", dataPassport],
 		["0125", dataPassport],
-		["1033", dataPassport],
+		["0133", dataPassport],
 		["0200", dataNonUkPassport],
 		["0201", dataNonUkPassport],
 		["0202", dataNonUkPassport],
@@ -151,7 +151,7 @@ describe("Callback API", () => {
 
 		it.each([
 			["0160"],
-			["1034"],
+			["0134"],
 		])("F2F CRI Callback Endpoint Integration UnHappyPath - yotiMockId: '%s'", async (yotiMockId: string) => {
 			f2fStubPayload.yotiMockID = yotiMockId;
 			const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);

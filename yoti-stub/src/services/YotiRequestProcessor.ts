@@ -841,7 +841,7 @@ export class YotiRequestProcessor {
                         VALID_RESPONSE_NFC_0132.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0132.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID_SUZIE);
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0132));
 
-										case '1033': // UK Passport Success - document_fields object 2nd in list of resources
+										case '0133': // UK Passport Success - document_fields object 2nd in list of resources
 											logger.debug(JSON.stringify(yotiSessionRequest));
 											const DOCUMENT_FIELDS_SECOND_1033 = JSON.parse(JSON.stringify(DOCUMENT_FIELDS_SECOND));
 
@@ -850,7 +850,7 @@ export class YotiRequestProcessor {
 											DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id = replaceLastUuidChars(DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
 											return new Response(HttpCodesEnum.OK, JSON.stringify(DOCUMENT_FIELDS_SECOND_1033));
 
-										case '1034': // UK Passport Success - Multiple document_fields objects in list of resources
+										case '0134': // UK Passport Success - Multiple document_fields objects in list of resources
 											logger.debug(JSON.stringify(yotiSessionRequest));
 											const MULTIPLE_DOCUMENT_FIELDS_1034 = JSON.parse(JSON.stringify(MULTIPLE_DOCUMENT_FIELDS));
 
