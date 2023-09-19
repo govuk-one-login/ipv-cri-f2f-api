@@ -95,13 +95,13 @@ Mappings:
 
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
-      YOTIBASEURL: "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify"
+      YOTIBASEURL: "https://yotistub.review-o.build.account.gov.uk"
       YOTISDK: "MockSDK"
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
+      GOVUKNOTIFYAPI: "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
