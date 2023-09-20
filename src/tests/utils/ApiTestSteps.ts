@@ -510,7 +510,6 @@ export function validateCriVcIssuedTxMAEvent(txmaEvent: any, yotiMockId: any): a
 	}
 } 
 
-//F2F-948
 export async function postPOCodeRequest(mockDelimitator: any, userData: any): Promise<any> {
 	const path = "/postoffice/locations/search";
 	try {
