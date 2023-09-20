@@ -394,6 +394,37 @@ Resources:
       RetentionInDays: 30
       LogGroupName: !Sub "/aws/lambda/IPVStubJWKS-${AWS::StackName}"
 
+  IPVAbortFunction:
+    DependsOn:
+      - IPVAbortFunctionLogGroup
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "IPVStubAbort-${AWS::StackName}"
+      Handler: abort.handler
+      CodeUri: src/handlers/
+      Role: !GetAtt IPVStubLambdaRole.Arn
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - abort.ts
+
+  IPVAbortFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt IPVAbortFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  IPVAbortFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 30
+      LogGroupName: !Sub "/aws/lambda/IPVStubAbort-${AWS::StackName}"
+
   #----------------------------
   IPVStubRedirectFunction:
     DependsOn:
