@@ -8,7 +8,7 @@ export const POST_OFFICE_RESPONSE = [
 			"address5": "Surrey",
 			"postcode": "KT12 1LN",
 			"latitude": 51.37709,
-			"longitude": -0.41002
+			"longitude": -0.41002,
 		},
 		"restrictedAccess": false,
 		"branchType": "MAIN",
@@ -17,78 +17,78 @@ export const POST_OFFICE_RESPONSE = [
 			"Monday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:30"
+				"closeTime": "18:30",
 			},
 			"Tuesday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:30"
+				"closeTime": "18:30",
 			},
 			"Wednesday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:30"
+				"closeTime": "18:30",
 			},
 			"Thursday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:30"
+				"closeTime": "18:30",
 			},
 			"Friday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:30"
+				"closeTime": "18:30",
 			},
 			"Saturday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Sunday": {
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"nextSevenDays": {
 			"Monday": {
 				"date": "2023-09-04",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:30"
+				"closeTime": "18:30",
 			},
 			"Tuesday": {
 				"date": "2023-08-29",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:30"
+				"closeTime": "18:30",
 			},
 			"Wednesday": {
 				"date": "2023-08-30",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:30"
+				"closeTime": "18:30",
 			},
 			"Thursday": {
 				"date": "2023-08-31",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:30"
+				"closeTime": "18:30",
 			},
 			"Friday": {
 				"date": "2023-09-01",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:30"
+				"closeTime": "18:30",
 			},
 			"Saturday": {
 				"date": "2023-09-02",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Sunday": {
 				"date": "2023-09-03",
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"products": [
 			"50321",
@@ -119,10 +119,10 @@ export const POST_OFFICE_RESPONSE = [
 			"4992",
 			"5109",
 			"5917",
-			"9881"
+			"9881",
 		],
 		"siteMapURL": "https://www.postoffice.co.uk/branch-finder/0900230/walton-on-thames",
-		"comments": ""
+		"comments": "",
 	},
 	{
 		"locationBusinessId": "114023X",
@@ -133,7 +133,7 @@ export const POST_OFFICE_RESPONSE = [
 			"address5": "Surrey",
 			"postcode": "KT12 2QP",
 			"latitude": 51.38666,
-			"longitude": -0.41977
+			"longitude": -0.41977,
 		},
 		"restrictedAccess": false,
 		"branchType": "MSPO",
@@ -142,78 +142,78 @@ export const POST_OFFICE_RESPONSE = [
 			"Monday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "13:00"
+				"closeTime": "13:00",
 			},
 			"Sunday": {
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"nextSevenDays": {
 			"Monday": {
 				"date": "2023-09-04",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"date": "2023-08-29",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"date": "2023-08-30",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"date": "2023-08-31",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"date": "2023-09-01",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"date": "2023-09-02",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "13:00"
+				"closeTime": "13:00",
 			},
 			"Sunday": {
 				"date": "2023-09-03",
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"products": [
 			"5109",
@@ -244,10 +244,10 @@ export const POST_OFFICE_RESPONSE = [
 			"251",
 			"4992",
 			"5917",
-			"9881"
+			"9881",
 		],
 		"siteMapURL": "https://www.postoffice.co.uk/branch-finder/114023X/church-street",
-		"comments": ""
+		"comments": "",
 	},
 	{
 		"locationBusinessId": "1390252",
@@ -259,7 +259,7 @@ export const POST_OFFICE_RESPONSE = [
 			"address5": "Greater London",
 			"postcode": "TW16 7AJ",
 			"latitude": 51.41978,
-			"longitude": -0.42044
+			"longitude": -0.42044,
 		},
 		"restrictedAccess": false,
 		"branchType": "SPSO",
@@ -268,78 +268,78 @@ export const POST_OFFICE_RESPONSE = [
 			"Monday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Sunday": {
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"nextSevenDays": {
 			"Monday": {
 				"date": "2023-09-04",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"date": "2023-08-29",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"date": "2023-08-30",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"date": "2023-08-31",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"date": "2023-09-01",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"date": "2023-09-02",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Sunday": {
 				"date": "2023-09-03",
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"products": [
 			"50075",
@@ -369,10 +369,10 @@ export const POST_OFFICE_RESPONSE = [
 			"4992",
 			"5109",
 			"5917",
-			"9881"
+			"9881",
 		],
 		"siteMapURL": "https://www.postoffice.co.uk/branch-finder/1390252/sunburyonthames",
-		"comments": ""
+		"comments": "",
 	},
 	{
 		"locationBusinessId": "0540250",
@@ -383,7 +383,7 @@ export const POST_OFFICE_RESPONSE = [
 			"address5": "Greater London",
 			"postcode": "TW11 8HG",
 			"latitude": 51.42743,
-			"longitude": -0.32976
+			"longitude": -0.32976,
 		},
 		"restrictedAccess": false,
 		"branchType": "MAIN",
@@ -392,78 +392,78 @@ export const POST_OFFICE_RESPONSE = [
 			"Monday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "15:00"
+				"closeTime": "15:00",
 			},
 			"Sunday": {
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"nextSevenDays": {
 			"Monday": {
 				"date": "2023-09-04",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"date": "2023-08-29",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"date": "2023-08-30",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"date": "2023-08-31",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"date": "2023-09-01",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"date": "2023-09-02",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "15:00"
+				"closeTime": "15:00",
 			},
 			"Sunday": {
 				"date": "2023-09-03",
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"products": [
 			"48701",
@@ -494,10 +494,10 @@ export const POST_OFFICE_RESPONSE = [
 			"4992",
 			"5109",
 			"5917",
-			"9881"
+			"9881",
 		],
 		"siteMapURL": "https://www.postoffice.co.uk/branch-finder/0540250/teddington",
-		"comments": ""
+		"comments": "",
 	},
 	{
 		"locationBusinessId": "1710230",
@@ -508,7 +508,7 @@ export const POST_OFFICE_RESPONSE = [
 			"address5": "Surrey",
 			"postcode": "KT6 4JU",
 			"latitude": 51.39312,
-			"longitude": -0.3049
+			"longitude": -0.3049,
 		},
 		"restrictedAccess": false,
 		"branchType": "MAIN",
@@ -517,78 +517,78 @@ export const POST_OFFICE_RESPONSE = [
 			"Monday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:00"
+				"closeTime": "18:00",
 			},
 			"Tuesday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:00"
+				"closeTime": "18:00",
 			},
 			"Wednesday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:00"
+				"closeTime": "18:00",
 			},
 			"Thursday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:00"
+				"closeTime": "18:00",
 			},
 			"Friday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:00"
+				"closeTime": "18:00",
 			},
 			"Saturday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "16:00"
+				"closeTime": "16:00",
 			},
 			"Sunday": {
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"nextSevenDays": {
 			"Monday": {
 				"date": "2023-09-04",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:00"
+				"closeTime": "18:00",
 			},
 			"Tuesday": {
 				"date": "2023-08-29",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:00"
+				"closeTime": "18:00",
 			},
 			"Wednesday": {
 				"date": "2023-08-30",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:00"
+				"closeTime": "18:00",
 			},
 			"Thursday": {
 				"date": "2023-08-31",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:00"
+				"closeTime": "18:00",
 			},
 			"Friday": {
 				"date": "2023-09-01",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "18:00"
+				"closeTime": "18:00",
 			},
 			"Saturday": {
 				"date": "2023-09-02",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "16:00"
+				"closeTime": "16:00",
 			},
 			"Sunday": {
 				"date": "2023-09-03",
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"products": [
 			"48701",
@@ -620,10 +620,10 @@ export const POST_OFFICE_RESPONSE = [
 			"4992",
 			"5109",
 			"5917",
-			"9881"
+			"9881",
 		],
 		"siteMapURL": "https://www.postoffice.co.uk/branch-finder/1710230/surbiton",
-		"comments": ""
+		"comments": "",
 	},
 	{
 		"locationBusinessId": "1680234",
@@ -635,7 +635,7 @@ export const POST_OFFICE_RESPONSE = [
 			"address5": "Surrey",
 			"postcode": "KT1 1TP",
 			"latitude": 51.4088,
-			"longitude": -0.3045
+			"longitude": -0.3045,
 		},
 		"restrictedAccess": false,
 		"branchType": "MAIN",
@@ -644,82 +644,82 @@ export const POST_OFFICE_RESPONSE = [
 			"Monday": {
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "19:00"
+				"closeTime": "19:00",
 			},
 			"Tuesday": {
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "19:00"
+				"closeTime": "19:00",
 			},
 			"Wednesday": {
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "19:00"
+				"closeTime": "19:00",
 			},
 			"Thursday": {
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "21:00"
+				"closeTime": "21:00",
 			},
 			"Friday": {
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "19:00"
+				"closeTime": "19:00",
 			},
 			"Saturday": {
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "19:00"
+				"closeTime": "19:00",
 			},
 			"Sunday": {
 				"isOpen": true,
 				"openTime": "10:00",
-				"closeTime": "17:00"
-			}
+				"closeTime": "17:00",
+			},
 		},
 		"nextSevenDays": {
 			"Monday": {
 				"date": "2023-09-04",
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "19:00"
+				"closeTime": "19:00",
 			},
 			"Tuesday": {
 				"date": "2023-08-29",
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "19:00"
+				"closeTime": "19:00",
 			},
 			"Wednesday": {
 				"date": "2023-08-30",
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "19:00"
+				"closeTime": "19:00",
 			},
 			"Thursday": {
 				"date": "2023-08-31",
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "21:00"
+				"closeTime": "21:00",
 			},
 			"Friday": {
 				"date": "2023-09-01",
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "19:00"
+				"closeTime": "19:00",
 			},
 			"Saturday": {
 				"date": "2023-09-02",
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "19:00"
+				"closeTime": "19:00",
 			},
 			"Sunday": {
 				"date": "2023-09-03",
 				"isOpen": true,
 				"openTime": "10:00",
-				"closeTime": "17:00"
-			}
+				"closeTime": "17:00",
+			},
 		},
 		"products": [
 			"50089",
@@ -752,10 +752,10 @@ export const POST_OFFICE_RESPONSE = [
 			"4992",
 			"5109",
 			"5917",
-			"9881"
+			"9881",
 		],
 		"siteMapURL": "https://www.postoffice.co.uk/branch-finder/1680234/kingston-upon-thames",
-		"comments": ""
+		"comments": "",
 	},
 	{
 		"locationBusinessId": "1290231",
@@ -766,7 +766,7 @@ export const POST_OFFICE_RESPONSE = [
 			"address5": "Surrey",
 			"postcode": "KT13 8DX",
 			"latitude": 51.37261,
-			"longitude": -0.46036
+			"longitude": -0.46036,
 		},
 		"restrictedAccess": false,
 		"branchType": "MAIN",
@@ -775,78 +775,78 @@ export const POST_OFFICE_RESPONSE = [
 			"Monday": {
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:00"
+				"closeTime": "17:00",
 			},
 			"Sunday": {
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"nextSevenDays": {
 			"Monday": {
 				"date": "2023-09-04",
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"date": "2023-08-29",
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"date": "2023-08-30",
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"date": "2023-08-31",
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"date": "2023-09-01",
 				"isOpen": true,
 				"openTime": "08:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"date": "2023-09-02",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:00"
+				"closeTime": "17:00",
 			},
 			"Sunday": {
 				"date": "2023-09-03",
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"products": [
 			"34003",
@@ -879,10 +879,10 @@ export const POST_OFFICE_RESPONSE = [
 			"4992",
 			"5109",
 			"5917",
-			"9881"
+			"9881",
 		],
 		"siteMapURL": "https://www.postoffice.co.uk/branch-finder/1290231/weybridge",
-		"comments": ""
+		"comments": "",
 	},
 	{
 		"locationBusinessId": "0640255",
@@ -894,7 +894,7 @@ export const POST_OFFICE_RESPONSE = [
 			"address5": "Greater London",
 			"postcode": "TW2 7LB",
 			"latitude": 51.45159,
-			"longitude": -0.35767
+			"longitude": -0.35767,
 		},
 		"restrictedAccess": false,
 		"branchType": "MAIN",
@@ -903,78 +903,78 @@ export const POST_OFFICE_RESPONSE = [
 			"Monday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "15:30"
+				"closeTime": "15:30",
 			},
 			"Sunday": {
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"nextSevenDays": {
 			"Monday": {
 				"date": "2023-09-04",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"date": "2023-08-29",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"date": "2023-08-30",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"date": "2023-08-31",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"date": "2023-09-01",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"date": "2023-09-02",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "15:30"
+				"closeTime": "15:30",
 			},
 			"Sunday": {
 				"date": "2023-09-03",
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"products": [
 			"49789",
@@ -1005,10 +1005,10 @@ export const POST_OFFICE_RESPONSE = [
 			"31255",
 			"4992",
 			"5917",
-			"9881"
+			"9881",
 		],
 		"siteMapURL": "https://www.postoffice.co.uk/branch-finder/0640255/high-street",
-		"comments": ""
+		"comments": "",
 	},
 	{
 		"locationBusinessId": "1540254",
@@ -1019,7 +1019,7 @@ export const POST_OFFICE_RESPONSE = [
 			"address5": "Greater London",
 			"postcode": "TW1 3SZ",
 			"latitude": 51.44875,
-			"longitude": -0.32958
+			"longitude": -0.32958,
 		},
 		"restrictedAccess": false,
 		"branchType": "MAIN",
@@ -1028,78 +1028,78 @@ export const POST_OFFICE_RESPONSE = [
 			"Monday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"isOpen": true,
 				"openTime": "10:00",
-				"closeTime": "16:00"
+				"closeTime": "16:00",
 			},
 			"Sunday": {
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"nextSevenDays": {
 			"Monday": {
 				"date": "2023-09-04",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"date": "2023-08-29",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"date": "2023-08-30",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"date": "2023-08-31",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"date": "2023-09-01",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"date": "2023-09-02",
 				"isOpen": true,
 				"openTime": "10:00",
-				"closeTime": "16:00"
+				"closeTime": "16:00",
 			},
 			"Sunday": {
 				"date": "2023-09-03",
-				"isOpen": false
-			}
+				"isOpen": false,
+			},
 		},
 		"products": [
 			"251",
@@ -1131,10 +1131,10 @@ export const POST_OFFICE_RESPONSE = [
 			"4992",
 			"5109",
 			"5917",
-			"9881"
+			"9881",
 		],
 		"siteMapURL": "https://www.postoffice.co.uk/branch-finder/1540254/twickenham",
-		"comments": ""
+		"comments": "",
 	},
 	{
 		"locationBusinessId": "0930253",
@@ -1145,7 +1145,7 @@ export const POST_OFFICE_RESPONSE = [
 			"address5": "Greater London",
 			"postcode": "TW14 8BW",
 			"latitude": 51.45345,
-			"longitude": -0.42847
+			"longitude": -0.42847,
 		},
 		"restrictedAccess": false,
 		"branchType": "MAIN",
@@ -1154,82 +1154,82 @@ export const POST_OFFICE_RESPONSE = [
 			"Monday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "13:30"
+				"closeTime": "13:30",
 			},
 			"Sunday": {
 				"isOpen": true,
 				"openTime": "10:00",
-				"closeTime": "12:00"
-			}
+				"closeTime": "12:00",
+			},
 		},
 		"nextSevenDays": {
 			"Monday": {
 				"date": "2023-09-04",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Tuesday": {
 				"date": "2023-08-29",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Wednesday": {
 				"date": "2023-08-30",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Thursday": {
 				"date": "2023-08-31",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Friday": {
 				"date": "2023-09-01",
 				"isOpen": true,
 				"openTime": "08:30",
-				"closeTime": "17:30"
+				"closeTime": "17:30",
 			},
 			"Saturday": {
 				"date": "2023-09-02",
 				"isOpen": true,
 				"openTime": "09:00",
-				"closeTime": "13:30"
+				"closeTime": "13:30",
 			},
 			"Sunday": {
 				"date": "2023-09-03",
 				"isOpen": true,
 				"openTime": "10:00",
-				"closeTime": "12:00"
-			}
+				"closeTime": "12:00",
+			},
 		},
 		"products": [
 			"32424",
@@ -1260,9 +1260,9 @@ export const POST_OFFICE_RESPONSE = [
 			"31255",
 			"4992",
 			"5917",
-			"9881"
+			"9881",
 		],
 		"siteMapURL": "https://www.postoffice.co.uk/branch-finder/0930253/bedfont",
-		"comments": ""
-	}
+		"comments": "",
+	},
 ];

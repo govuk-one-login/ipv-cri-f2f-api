@@ -516,7 +516,7 @@ export async function postPOCodeRequest(mockDelimitator: any, userData: any): Pr
 	try {
 		userData.searchString = userData.searchString + " " + mockDelimitator;
 		console.log("userData in try statement: ", userData);
-		const postRequest = await PO_INSTANCE.post(path,userData);
+		const postRequest = await PO_INSTANCE.post(path, userData);
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);

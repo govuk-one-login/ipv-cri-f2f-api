@@ -15,7 +15,7 @@ describe("PO Endpoint /postoffice/locations/search", () => {
 	it.each(postPOParams)("Post Office Stub - expect '%i' response on POST/postoffice/locations/search", async (poStubDelimitator) => {
 		const response = await postPOCodeRequest(poStubDelimitator, poStubPayloadData);
 	
-		console.log("poStubDelimitator: "+ poStubDelimitator);
+		console.log("poStubDelimitator: " + poStubDelimitator);
 
 		console.log("post response: " + JSON.stringify(response.data));
 	
