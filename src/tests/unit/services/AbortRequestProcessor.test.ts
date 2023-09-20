@@ -82,7 +82,7 @@ describe("AbortRequestProcessor", () => {
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(sessionId, AuthSessionState.F2F_CRI_SESSION_ABORTED);
-		expect(out.statusCode).toBe(HttpCodesEnum.PERMANENT_REDIRECT);
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
 		expect(out.headers).toStrictEqual({ Location:`${f2fSessionItem.redirectUri}?error=access_denied&state=${f2fSessionItem.state}` });
 	});
@@ -109,7 +109,7 @@ describe("AbortRequestProcessor", () => {
   			error: {},
   			messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
 		});
-		expect(out.statusCode).toBe(HttpCodesEnum.PERMANENT_REDIRECT);
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
 	});
 
