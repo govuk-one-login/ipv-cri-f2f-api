@@ -25,16 +25,22 @@
                 "type": "string"
             },
             "post_office_visit_details": {
-                "type": "object",
-                "properties": {
-                  "post_office_date_of_visit": {
-                      "type": "string"
-                  },
-                  "post_office_time_of_visit": {
-                      "type": "string"
+              "type": "array",
+              "items": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "post_office_date_of_visit": {
+                        "type": "string"
+                    },
+                    "post_office_time_of_visit": {
+                        "type": "string"
+                    }
                   }
-              }
+                }
+              ]
             }
+          }
         },
         "required": [
             "previous_govuk_signin_journey_id",

@@ -88,7 +88,7 @@ export class ThankYouEmailProcessor {
   		const yotiSessionCreatedAt = yotiSessionInfo.resources.id_documents[0].created_at;
   		const dateObject = new Date(yotiSessionCreatedAt);
   		const postOfficeDateOfVisit = dateObject.toLocaleDateString("en-GB");
-  		const postOfficeTimeOfVisit = dateObject.toLocaleTimeString("en-GB").slice(0, -3);
+  		const postOfficeTimeOfVisit = dateObject.toLocaleTimeString("en-GB", { hour: "numeric", minute: "numeric", hour12: true });
 
   		this.logger.info("Post office visit details", { postOfficeDateOfVisit, postOfficeTimeOfVisit });
 
@@ -97,10 +97,10 @@ export class ThankYouEmailProcessor {
   			...buildCoreEventFields(f2fSession, this.environmentVariables.issuer() as string, f2fSession.clientIpAddress, absoluteTimeNow),
   			extensions: {
   				previous_govuk_signin_journey_id: f2fSession.clientSessionId,
-  				post_office_visit_details: {
+  				post_office_visit_details: [{
   					post_office_date_of_visit: postOfficeDateOfVisit,
   					post_office_time_of_visit: postOfficeTimeOfVisit,
-  				},
+  				}],
   			},
   		});
 

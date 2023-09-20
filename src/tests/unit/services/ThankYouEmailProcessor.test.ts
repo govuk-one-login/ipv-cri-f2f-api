@@ -296,12 +296,12 @@ describe("ThankYouEmailProcessor", () => {
 			mockYotiService.getCompletedSessionInfo.mockResolvedValue(yotiSessionItem);
 			// Mocking this so that our tests don't fail when daylight savings changes
 			jest.spyOn(Date.prototype, "toLocaleDateString").mockReturnValue("07/09/2023");
-			jest.spyOn(Date.prototype, "toLocaleTimeString").mockReturnValue("15:30:37");
+			jest.spyOn(Date.prototype, "toLocaleTimeString").mockReturnValue("3:30PM");
 
 			await thankYouEmailProcessor.processRequest({ session_id: sessionId, topic: "session_completion" });
 
 			expect(Date.prototype.toLocaleDateString).toHaveBeenCalledWith("en-GB");
-			expect(Date.prototype.toLocaleTimeString).toHaveBeenCalledWith("en-GB");
+			expect(Date.prototype.toLocaleTimeString).toHaveBeenCalledWith("en-GB", { hour: "numeric", minute: "numeric", hour12: true });
 			expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({
 				event_name: "F2F_DOCUMENT_UPLOADED",
 				client_id: "ipv-core-stub",
@@ -315,13 +315,13 @@ describe("ThankYouEmailProcessor", () => {
 				},
   			extensions: {
   				previous_govuk_signin_journey_id: f2fSessionItem.clientSessionId,
-  				post_office_visit_details: {
+  				post_office_visit_details: [{
   					post_office_date_of_visit: "07/09/2023",
-  					post_office_time_of_visit: "15:30",
-  				},
+  					post_office_time_of_visit: "3:30PM",
+  				}],
   			},
 			});
-			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "07/09/2023", postOfficeTimeOfVisit: "15:30" });
+			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "07/09/2023", postOfficeTimeOfVisit: "3:30PM" });
 		});
 	});
 });

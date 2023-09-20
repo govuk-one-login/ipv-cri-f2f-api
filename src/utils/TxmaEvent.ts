@@ -102,7 +102,7 @@ export type PostOfficeDetails = Array<{
 	}>;
 }>;
 
-export type PostOfficeVisitDetails = {
+export type PostOfficeVisitDetails = Array<{
 	"post_office_date_of_visit": string;
 	"post_office_time_of_visit": string;
-};
+}>;
