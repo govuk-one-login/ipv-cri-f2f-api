@@ -28,20 +28,20 @@ export class ReminderEmailProcessor {
   	try {
   		const F2FSessionCreatedRecords = await this.f2fService.getSessionsByAuthSessionState(AuthSessionState.F2F_SESSION_CREATED);
 
-			if (F2FSessionCreatedRecords.length === 0) {
-				this.logger.info(`No users with session state ${AuthSessionState.F2F_SESSION_CREATED}`);
-				return { statusCode: HttpCodesEnum.OK, body: "No F2F_SESSION_CREATED Records" };
-			}
+  		if (F2FSessionCreatedRecords.length === 0) {
+  			this.logger.info(`No users with session state ${AuthSessionState.F2F_SESSION_CREATED}`);
+  			return { statusCode: HttpCodesEnum.OK, body: "No F2F_SESSION_CREATED Records" };
+  		}
  
   		const filteredSessions = F2FSessionCreatedRecords.filter(
   			({ createdDate, reminderEmailSent }) =>
   				createdDate >= Date.now() - 5 * 24 * 60 * 60 * 1000 && !reminderEmailSent,
   		);
 
-			if (filteredSessions.length === 0) {
-				this.logger.info(`No users with session state ${AuthSessionState.F2F_SESSION_CREATED} older than 5 days`);
-				return { statusCode: HttpCodesEnum.OK, body: "No F2F_SESSION_CREATED Sessons older than 5 days" };
-			}
+  		if (filteredSessions.length === 0) {
+  			this.logger.info(`No users with session state ${AuthSessionState.F2F_SESSION_CREATED} older than 5 days`);
+  			return { statusCode: HttpCodesEnum.OK, body: "No F2F_SESSION_CREATED Sessons older than 5 days" };
+  		}
 
   		this.logger.info("Total num. of users to send reminder emails to:", { numOfUsers: filteredSessions.length });
 
@@ -50,21 +50,21 @@ export class ReminderEmailProcessor {
   				try {
   					const envVariables = new EnvironmentVariables(this.logger, ServicesEnum.REMINDER_SERVICE);
   					const personIdentityItem = await this.f2fService.getPersonIdentityById(sessionId, envVariables.personIdentityTableName());
-						if ( personIdentityItem ) {
-							return { sessionId, emailAddress: personIdentityItem.emailAddress }
-						} else {
-							this.logger.warn("No records returned from Person Identity Table")
-							return null;
-						}
+  					if ( personIdentityItem ) {
+  						return { sessionId, emailAddress: personIdentityItem.emailAddress };
+  					} else {
+  						this.logger.warn("No records returned from Person Identity Table");
+  						return null;
+  					}
   				} catch (error) {
   					this.logger.error("Error fetching record from Person Identity Table", { error });
   				}
   			}),
   		);
 
-			if (usersToRemind.length === 0) {
-				return { statusCode: HttpCodesEnum.OK, body: "No PersonIdentity Records" };
-			}
+  		if (usersToRemind.length === 0) {
+  			return { statusCode: HttpCodesEnum.OK, body: "No PersonIdentity Records" };
+  		}
 
   		const sendEmailPromises = usersToRemind
   			.filter((user): user is { sessionId: any; emailAddress: string } => user !== null)
@@ -72,7 +72,7 @@ export class ReminderEmailProcessor {
   				try {
   					await this.f2fService.sendToGovNotify(buildReminderEmailEventFields(emailAddress));
   					await this.f2fService.updateReminderEmailFlag(sessionId, true);
-						this.logger.info("Reminder email sent to user: ", { sessionId })
+  					this.logger.info("Reminder email sent to user: ", { sessionId });
   				} catch (error) {
   					this.logger.error("Failed to send reminder email or update flag", { error });
   				}
