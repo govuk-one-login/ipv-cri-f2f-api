@@ -295,12 +295,12 @@ describe("ThankYouEmailProcessor", () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValue(f2fSessionItem);
 			mockYotiService.getCompletedSessionInfo.mockResolvedValue(yotiSessionItem);
 			// Mocking this so that our tests don't fail when daylight savings changes
-			jest.spyOn(Date.prototype, "toLocaleDateString").mockReturnValue("07/09/2023");
+			jest.spyOn(Date.prototype, "toLocaleDateString").mockReturnValue("7 September 2023");
 			jest.spyOn(Date.prototype, "toLocaleTimeString").mockReturnValue("3:30PM");
 
 			await thankYouEmailProcessor.processRequest({ session_id: sessionId, topic: "session_completion" });
 
-			expect(Date.prototype.toLocaleDateString).toHaveBeenCalledWith("en-GB");
+			expect(Date.prototype.toLocaleDateString).toHaveBeenCalledWith("en-GB", { year: "numeric", month: "long", day: "numeric" });
 			expect(Date.prototype.toLocaleTimeString).toHaveBeenCalledWith("en-GB", { hour: "numeric", minute: "numeric", hour12: true });
 			expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({
 				event_name: "F2F_DOCUMENT_UPLOADED",
@@ -316,12 +316,12 @@ describe("ThankYouEmailProcessor", () => {
   			extensions: {
   				previous_govuk_signin_journey_id: f2fSessionItem.clientSessionId,
   				post_office_visit_details: [{
-  					post_office_date_of_visit: "07/09/2023",
+  					post_office_date_of_visit: "7 September 2023",
   					post_office_time_of_visit: "3:30PM",
   				}],
   			},
 			});
-			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "07/09/2023", postOfficeTimeOfVisit: "3:30PM" });
+			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "7 September 2023", postOfficeTimeOfVisit: "3:30PM" });
 		});
 	});
 });
