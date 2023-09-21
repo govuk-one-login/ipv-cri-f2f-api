@@ -219,15 +219,15 @@ describe("F2f Service", () => {
 	it("should not return any session Items if the expiryDate has passed", async () => {
 		mockDynamoDbClient.query = jest.fn().mockResolvedValue({
 			Items: [
-			{
-				sessionId: "SESSIDTHREE",
-				expiryDate: absoluteTimeNow() - 500,
-			},
-			{
-				sessionId: "SESSIDTHREE",
-				expiryDate: absoluteTimeNow() - 300,
-			}
-		],
+				{
+					sessionId: "SESSIDTHREE",
+					expiryDate: absoluteTimeNow() - 500,
+				},
+				{
+					sessionId: "SESSIDTHREE",
+					expiryDate: absoluteTimeNow() - 300,
+				},
+			],
 		});
 
 		const result = await f2fService.getSessionsByAuthSessionState("F2F_SESSION_STARTED");

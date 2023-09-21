@@ -303,11 +303,11 @@ Resources:
           REDIRECT_URI: !If
           - CreateDevResources
           - !Sub
-            - "https://${AWS::StackName}-${IPVSTUBURL}/redirect"
+            - "https://${AWS::StackName}-${IPVSTUBURL}/redirect?id=f2f"
             - IPVSTUBURL:
                 !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
           - !Sub
-            - "https://${IPVSTUBURL}/redirect"
+            - "https://${IPVSTUBURL}/redirect?id=f2f"
             - IPVSTUBURL:
                 !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
           JWKS_URI: !FindInMap [Configuration, !Ref Environment, JWKSURI]
