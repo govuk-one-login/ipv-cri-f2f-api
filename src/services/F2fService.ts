@@ -235,32 +235,32 @@ export class F2fService {
 	}
 
 	async getSessionsByAuthSessionStates(authSessionStates: string[]): Promise<Array<Record<string, any>>> {
-    const promises = authSessionStates.map(async (authSessionState) => {
-        const params: QueryCommandInput = {
-            TableName: this.tableName,
-            IndexName: Constants.AUTH_SESSION_STATE_INDEX_NAME,
-            KeyConditionExpression: "authSessionState = :authSessionState",
-            ExpressionAttributeValues: {
-                ":authSessionState": authSessionState,
-            },
-        };
+		const promises = authSessionStates.map(async (authSessionState) => {
+			const params: QueryCommandInput = {
+				TableName: this.tableName,
+				IndexName: Constants.AUTH_SESSION_STATE_INDEX_NAME,
+				KeyConditionExpression: "authSessionState = :authSessionState",
+				ExpressionAttributeValues: {
+					":authSessionState": authSessionState,
+				},
+			};
 
-        const sessionItems = await this.dynamo.query(params);
+			const sessionItems = await this.dynamo.query(params);
 
-        return sessionItems?.Items || [];
-    });
+			return sessionItems?.Items || [];
+		});
 
-    const results = await Promise.all(promises);
+		const results = await Promise.all(promises);
     
-    // Merge the results into a single array
-    const mergedResults = results.reduce((acc, items) => acc.concat(items), []);
+		// Merge the results into a single array
+		const mergedResults = results.reduce((acc, items) => acc.concat(items), []);
 
-    // Filter out any records that have hit TTL
-    const filteredItems = mergedResults.filter(item => {
-        return item.expiryDate > absoluteTimeNow();
-    });
+		// Filter out any records that have hit TTL
+		const filteredItems = mergedResults.filter(item => {
+			return item.expiryDate > absoluteTimeNow();
+		});
 
-    return filteredItems;
+		return filteredItems;
 	}
 
 
