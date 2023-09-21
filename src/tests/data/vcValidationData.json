@@ -217,6 +217,13 @@
         "checkMethod": null,
         "ci": null
     },
+    "s0133":{
+        "strengthScore": 3,
+        "validityScore": 2,
+        "verificationScore": 3,
+        "checkMethod": "vri,pvr",
+        "ci": null
+    },
     "s0200":{
         "strengthScore": 4,
         "validityScore": 3,
