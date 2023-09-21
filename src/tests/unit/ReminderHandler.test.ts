@@ -15,7 +15,7 @@ jest.mock("../../services/ReminderEmailProcessor", () => {
 describe("ReminderEmailHandler", () => {
 	it("return success response for ReminderEmail", async () => {
 		ReminderEmailProcessor.getInstance = jest.fn().mockReturnValue(mockedReminderEmailProcessor);
-		mockedReminderEmailProcessor.processRequest.mockResolvedValueOnce(new Response(200, "Success"))
+		mockedReminderEmailProcessor.processRequest.mockResolvedValueOnce(new Response(200, "Success"));
 
 		const result = await lambdaHandler("", CONTEXT);
 
@@ -27,7 +27,7 @@ describe("ReminderEmailHandler", () => {
 
 	it("returns error if ReminderEmailProcessor fails", async () => {
 		ReminderEmailProcessor.getInstance = jest.fn().mockReturnValue(mockedReminderEmailProcessor);
-		mockedReminderEmailProcessor.processRequest.mockRejectedValueOnce(new Response(500, "ERROR"))
+		mockedReminderEmailProcessor.processRequest.mockRejectedValueOnce(new Response(500, "ERROR"));
 
 		const result = await lambdaHandler("", CONTEXT);
 
