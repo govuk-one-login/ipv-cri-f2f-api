@@ -106,7 +106,7 @@ Mappings:
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
-      CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"}]'
+      CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f"}]'
       AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
@@ -122,7 +122,7 @@ Mappings:
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
-      CLIENTS: '[{"jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect"}]'
+      CLIENTS: '[{"jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f"}]'
       AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
