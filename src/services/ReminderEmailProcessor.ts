@@ -26,11 +26,11 @@ export class ReminderEmailProcessor {
 
   async processRequest(): Promise<Response> {
   	try {
-  		const F2FSessionCreatedRecords = await this.f2fService.getSessionsByAuthSessionState(AuthSessionState.F2F_SESSION_CREATED);
+  		const F2FSessionCreatedRecords = await this.f2fService.getSessionsByAuthSessionState(AuthSessionState.F2F_YOTI_SESSION_CREATED);
 
   		if (F2FSessionCreatedRecords.length === 0) {
-  			this.logger.info(`No users with session state ${AuthSessionState.F2F_SESSION_CREATED}`);
-  			return { statusCode: HttpCodesEnum.OK, body: "No F2F_SESSION_CREATED Records" };
+  			this.logger.info(`No users with session state ${AuthSessionState.F2F_YOTI_SESSION_CREATED}`);
+  			return { statusCode: HttpCodesEnum.OK, body: "No F2F_YOTI_SESSION_CREATED Records" };
   		}
  
   		const filteredSessions = F2FSessionCreatedRecords.filter(
@@ -39,8 +39,8 @@ export class ReminderEmailProcessor {
   		);
 
   		if (filteredSessions.length === 0) {
-  			this.logger.info(`No users with session state ${AuthSessionState.F2F_SESSION_CREATED} older than 5 days`);
-  			return { statusCode: HttpCodesEnum.OK, body: "No F2F_SESSION_CREATED Sessons older than 5 days" };
+  			this.logger.info(`No users with session state ${AuthSessionState.F2F_YOTI_SESSION_CREATED} older than 5 days`);
+  			return { statusCode: HttpCodesEnum.OK, body: "No F2F_YOTI_SESSION_CREATED Sessons older than 5 days" };
   		}
 
   		this.logger.info("Total num. of users to send reminder emails to:", { numOfUsers: filteredSessions.length });

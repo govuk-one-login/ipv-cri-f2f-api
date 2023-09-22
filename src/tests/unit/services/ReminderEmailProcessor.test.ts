@@ -19,28 +19,28 @@ describe("ReminderEmailProcessor", () => {
 			createdDate: 1703429155023,
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a4e",
 			reminderEmailSent: true,
-			authSessionState: "F2F_SESSION_CREATED",
+			authSessionState: "F2F_YOTI_SESSION_CREATED",
 		},
 		{
 			createdDate: 1681905531361,
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a48",
-			authSessionState: "F2F_SESSION_CREATED",
+			authSessionState: "F2F_YOTI_SESSION_CREATED",
 		},
 		{
 			createdDate: 1703429155023,
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a4h",
-			authSessionState: "F2F_SESSION_CREATED",
+			authSessionState: "F2F_YOTI_SESSION_CREATED",
 		},
 		{
 			createdDate: 1703429155023,
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a47",
 			reminderEmailSent: false,
-			authSessionState: "F2F_SESSION_CREATED",
+			authSessionState: "F2F_YOTI_SESSION_CREATED",
 		},
 		{
 			createdDate: 1681905531361,
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a43",
-			authSessionState: "F2F_SESSION_CREATED",
+			authSessionState: "F2F_YOTI_SESSION_CREATED",
 		},
 	];
 
@@ -112,7 +112,7 @@ describe("ReminderEmailProcessor", () => {
 
 		expect(result).toEqual({ statusCode: 200, body: "Success" });
 		expect(mockLogger.info).toHaveBeenCalledWith("Total num. of users to send reminder emails to:", { numOfUsers: 2 });
-		expect(mockF2fService.getSessionsByAuthSessionState).toHaveBeenCalledWith("F2F_SESSION_CREATED");
+		expect(mockF2fService.getSessionsByAuthSessionState).toHaveBeenCalledWith("F2F_YOTI_SESSION_CREATED");
 		expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(1, "b2ba545c-18a9-4b7e-8bc1-38a05b214a4h", "PERSONIDENTITYTABLE");
 		expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(2, "b2ba545c-18a9-4b7e-8bc1-38a05b214a47", "PERSONIDENTITYTABLE");
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledWith({
@@ -125,30 +125,30 @@ describe("ReminderEmailProcessor", () => {
 		expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith("b2ba545c-18a9-4b7e-8bc1-38a05b214a47", true);
 	});
 
-	it("should log if no users with authSessionState F2F_SESSION_CREATED", async () => {
+	it("should log if no users with authSessionState F2F_YOTI_SESSION_CREATED", async () => {
     
 		mockF2fService.getSessionsByAuthSessionState.mockResolvedValue([]);
 
 		const result = await reminderEmailProcessor.processRequest();
 
-		expect(result).toEqual({ statusCode: 200, body: "No F2F_SESSION_CREATED Records" });
-		expect(mockLogger.info).toHaveBeenCalledWith("No users with session state F2F_SESSION_CREATED");
+		expect(result).toEqual({ statusCode: 200, body: "No F2F_YOTI_SESSION_CREATED Records" });
+		expect(mockLogger.info).toHaveBeenCalledWith("No users with session state F2F_YOTI_SESSION_CREATED");
 	});
 
-	it("should log if no users with authSessionState F2F_SESSION_CREATED have sessions older than 5 days", async () => {
+	it("should log if no users with authSessionState F2F_YOTI_SESSION_CREATED have sessions older than 5 days", async () => {
     
 		mockF2fService.getSessionsByAuthSessionState.mockResolvedValue([
 			{
 				createdDate: 1681905531361,
 				sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a43",
-				authSessionState: "F2F_SESSION_CREATED",
+				authSessionState: "F2F_YOTI_SESSION_CREATED",
 			},
 		]);
 
 		const result = await reminderEmailProcessor.processRequest();
 
-		expect(result).toEqual({ statusCode: 200, body: "No F2F_SESSION_CREATED Sessons older than 5 days" });
-		expect(mockLogger.info).toHaveBeenCalledWith("No users with session state F2F_SESSION_CREATED older than 5 days");
+		expect(result).toEqual({ statusCode: 200, body: "No F2F_YOTI_SESSION_CREATED Sessons older than 5 days" });
+		expect(mockLogger.info).toHaveBeenCalledWith("No users with session state F2F_YOTI_SESSION_CREATED older than 5 days");
 	});
 
 	it("should handle error during processing", async () => {
