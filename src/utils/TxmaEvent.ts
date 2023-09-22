@@ -57,12 +57,13 @@ export type VerifiedCredentialEvidenceTxMA = Array<{
 		biometricVerificationProcessLevel?: number;
 	}>;
 	ci?: string[];
-	failedCheckDetails?: Array<{
-		photoVerificationProcessLevel?: number;
-		checkMethod: string;
-		identityCheckPolicy?: string;
-		biometricVerificationProcessLevel?: number;
-	}>;
+	ciReasons?: string[];
+	// failedCheckDetails?: Array<{
+	// 	photoVerificationProcessLevel?: number;
+	// 	checkMethod: string;
+	// 	identityCheckPolicy?: string;
+	// 	biometricVerificationProcessLevel?: number;
+	// }>;
 }>;
 
 export interface ExtensionObject {

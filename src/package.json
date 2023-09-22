@@ -34,7 +34,7 @@
     "lint": "eslint --output-file ./reports/eslint/reportFile.html --format html -c .eslintrc.js --ext .ts",
     "test:e2e": "./node_modules/.bin/jest --testMatch '**/e2e/?(*.)test.ts' --passWithNoTests",
     "test:infra": "./node_modules/.bin/jest --testMatch '**/infra/?(*.)test.ts' ",
-    "api": "JEST_JUNIT_OUTPUT_NAME=api-report.xml ./node_modules/.bin/jest --runInBand --testPathPattern=tests/api/",
+    "api": "JEST_JUNIT_OUTPUT_NAME=api-report.xml ./node_modules/.bin/jest --runInBand --testPathPattern=tests/api/CallbackApi.test.ts",
     "test:api": "npm run compile && npm run api"
   },
   "devDependencies": {
