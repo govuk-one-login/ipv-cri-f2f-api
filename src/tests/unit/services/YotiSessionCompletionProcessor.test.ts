@@ -881,7 +881,7 @@ describe("YotiSessionCompletionProcessor", () => {
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 	
-			await expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Multiple document_fields in response",
 			}));
