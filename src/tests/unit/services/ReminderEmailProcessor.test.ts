@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { ReminderEmailProcessor } from "../../../services/ReminderEmailProcessor";
 import { F2fService } from "../../../services/F2fService";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -147,7 +148,7 @@ describe("ReminderEmailProcessor", () => {
 
 		const result = await reminderEmailProcessor.processRequest();
 
-		expect(result).toEqual({ statusCode: 200, body: "No F2F_YOTI_SESSION_CREATED Sessons older than 5 days" });
+		expect(result).toEqual({ statusCode: 200, body: "No F2F_YOTI_SESSION_CREATED Sessions older than 5 days" });
 		expect(mockLogger.info).toHaveBeenCalledWith("No users with session state F2F_YOTI_SESSION_CREATED older than 5 days");
 	});
 

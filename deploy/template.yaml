@@ -2300,12 +2300,33 @@ Resources:
         - alias/GovNotifyEncryptionKey
       TargetKeyId: !Ref GovNotifyEncryptionKey
 
-  YotiCallbackFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: YotiCallbackFunctionLogGroup
+  YotiCallbackStateMachine:
+    Type: AWS::Serverless::StateMachine
     Properties:
-      FunctionName: !Sub "F2F-YotiCallback-${AWS::StackName}"
-      Handler: YotiCallbackHandler.lambdaHandler
+      Name: !Sub "F2F-YotiCallback-stepfunction-${AWS::StackName}"
+      DefinitionUri: ../src/stepFunctions/yotiCallback.asl.json
+      DefinitionSubstitutions:
+        YotiSessionCompletionFunctionArn: !GetAtt YotiCallbackFunction.Arn
+        ThankYouEmailFunctionArn: !GetAtt ThankYouEmailFunction.Arn
+      Policies:
+        - AWSXrayWriteOnlyAccess
+        - LambdaInvokePolicy:
+            FunctionName: !Ref YotiCallbackFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ThankYouEmailFunction
+      Tracing:
+        Enabled: true
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
+
+  TriggerYotiCallbackStateMachine:
+    Type: AWS::Serverless::Function
+    DependsOn: TriggerYotiCallbackStateMachineLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-TriggerYotiCallbackStateMachine-${AWS::StackName}"
+      Handler: TriggerYotiCallbackStateMachineHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
         - ApplyReservedConcurrency
@@ -2313,7 +2334,99 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: YotiCallbackHandler
+          POWERTOOLS_SERVICE_NAME: TriggerYotiCallbackStateMachineHandler
+          STATE_MACHINE_ARN: !GetAtt YotiCallbackStateMachine.Arn
+      Policies:
+        - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "kms:Decrypt"
+              Resource: !GetAtt YotiCallbackEncryptionKey.Arn
+        - Statement:
+            - Sid: KMSPolicy
+              Effect: Allow
+              Action:
+                - kms:Verify
+                - kms:Sign
+              Resource:
+                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+        -  Statement:
+              - Effect: Allow
+                Action:
+                  - "sqs:SendMessage"
+                  - "sqs:ReceiveMessage"
+                Resource: !GetAtt YotiCallbackQueue.Arn
+        -  Statement:
+              - Effect: Allow
+                Action:
+                  - "states:StartExecution"
+                Resource: !GetAtt YotiCallbackStateMachine.Arn
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt YotiCallbackQueue.Arn
+            BatchSize: 1
+            Enabled: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - TriggerYotiCallbackStateMachineHandler.ts
+
+  TriggerYotiCallbackStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-TriggerYotiCallbackStateMachine-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  TriggerYotiCallbackStateMachinePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TriggerYotiCallbackStateMachine
+      Principal: apigateway.amazonaws.com
+
+  YotiCallbackQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      MessageRetentionPeriod: 1209600 # 14 days in seconds
+      VisibilityTimeout: 300
+      KmsMasterKeyId: !Ref YotiCallbackKeyAlias
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - "YotiCallbackQueueDeadLetterQueue"
+            - "Arn"
+        maxReceiveCount: 10
+
+  YotiCallbackFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: YotiCallbackFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-YotiCallback-${AWS::StackName}"
+      Handler: YotiSessionCompletionHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: YotiSessionCompletionHandler
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue:
               !Sub "${L2DynamoStackName}-person-identity-table-name"
@@ -2385,15 +2498,6 @@ Resources:
               - "kms:Decrypt"
               - "kms:GenerateDataKey"
             Resource: !GetAtt IPVCoreQueueEncryptionKey.Arn
-      Events:
-        SQSEvent:
-          Type: SQS
-          Properties:
-            Queue: !GetAtt YotiCallbackQueue.Arn
-            BatchSize: 1
-            Enabled: true
-            FunctionResponseTypes:
-              - ReportBatchItemFailures
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -2401,7 +2505,7 @@ Resources:
         Target: "es2020"
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
-          - YotiCallbackHandler.ts
+          - YotiSessionCompletionHandler.ts
 
   YotiCallbackFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2429,18 +2533,109 @@ Resources:
       FunctionName: !Ref YotiCallbackFunction
       Principal: apigateway.amazonaws.com
 
-  YotiCallbackQueue:
-    Type: "AWS::SQS::Queue"
+  ThankYouEmailFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: ThankYouEmailFunctionLogGroup
     Properties:
-      MessageRetentionPeriod: 1209600 # 14 days in seconds
-      VisibilityTimeout: 300
-      KmsMasterKeyId: !Ref YotiCallbackKeyAlias
-      RedrivePolicy:
-        deadLetterTargetArn:
-          Fn::GetAtt:
-            - "YotiCallbackQueueDeadLetterQueue"
-            - "Arn"
-        maxReceiveCount: 10
+      FunctionName: !Sub "F2F-ThankYouEmail-${AWS::StackName}"
+      Handler: ThankYouEmailHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: ThankYouEmailHandler
+          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
+          KMS_KEY_ARN:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-key-id"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "kms:Decrypt"
+              Resource: !GetAtt YotiCallbackEncryptionKey.Arn
+        - Statement:
+            - Sid: KMSPolicy
+              Effect: Allow
+              Action:
+                - kms:Verify
+                - kms:Sign
+              Resource:
+                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+        - Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt TxMASQSQueue.Arn
+          - Effect: Allow
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+        - Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt IPVCoreSQSQueue.Arn
+          - Effect: Allow
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !GetAtt IPVCoreQueueEncryptionKey.Arn
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - ThankYouEmailHandler.ts
+
+  ThankYouEmailFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-ThankYouEmail-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  ThankYouEmailFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsProdLikeEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref ThankYouEmailFunctionLogGroup
+
+  ThankYouEmailFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ThankYouEmailFunction
+      Principal: apigateway.amazonaws.com
 
   YotiCallbackQueueDeadLetterQueue:
     Type: "AWS::SQS::Queue"

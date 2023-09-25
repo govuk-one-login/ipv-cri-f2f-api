@@ -40,7 +40,7 @@ export class ReminderEmailProcessor {
 
   		if (filteredSessions.length === 0) {
   			this.logger.info(`No users with session state ${AuthSessionState.F2F_YOTI_SESSION_CREATED} older than 5 days`);
-  			return { statusCode: HttpCodesEnum.OK, body: "No F2F_YOTI_SESSION_CREATED Sessons older than 5 days" };
+  			return { statusCode: HttpCodesEnum.OK, body: "No F2F_YOTI_SESSION_CREATED Sessions older than 5 days" };
   		}
 
   		this.logger.info("Total num. of users to send reminder emails to:", { numOfUsers: filteredSessions.length });

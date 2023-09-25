@@ -1,0 +1,31 @@
+{
+  "Comment": "Face to Face CRI - Yoti Callback State Machine",
+  "StartAt": "TopicChoiceState",
+  "States": {
+    "TopicChoiceState": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.topic",
+          "StringEquals": "session_completion",
+          "Next": "SessionCompletion"
+        },
+        {
+          "Variable": "$.topic",
+          "StringEquals": "thank_you_email_requested",
+          "Next": "ThankYouEmailFunction"
+        }
+      ]
+    },
+    "SessionCompletion": {
+      "Type": "Task",
+      "Resource": "${YotiSessionCompletionFunctionArn}",
+      "End": true
+    },
+    "ThankYouEmailFunction": {
+      "Type": "Task",
+      "Resource": "${ThankYouEmailFunctionArn}",
+      "End": true
+    }
+  }
+}

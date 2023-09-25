@@ -112,12 +112,13 @@ export async function userInfoPost(accessToken?: any): Promise<any> {
 	}
 }
 
-export async function callbackPost(sessionId: any): Promise<any> {
+export async function callbackPost(sessionId: string | undefined, topic = "session_completion"): Promise<any> {
 	const path = "/callback";
+	if (!sessionId) throw new Error("no yoti session ID provided");
 	try {
 		const postRequest = await API_INSTANCE.post(path, {
-			"session_id": sessionId,
-			"topic": "session_completion",
+			session_id: sessionId,
+			topic,
 		});
 		return postRequest;
 	} catch (error: any) {

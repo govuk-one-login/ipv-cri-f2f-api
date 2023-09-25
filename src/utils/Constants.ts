@@ -18,6 +18,8 @@ export class Constants {
 
 	static readonly YOTI_CALLBACK_SVC_NAME = "YotiCallbackHandler";
 
+	static readonly TRIGGER_YOTI_STATE_MACHINE_SVC_NAME = "TriggerYotiCallbackStateMachineHandler";
+
 	static readonly F2F_METRICS_NAMESPACE = "F2F-CRI";
 
 	static readonly JWKS_LOGGER_SVC_NAME = "JwksHandler";
