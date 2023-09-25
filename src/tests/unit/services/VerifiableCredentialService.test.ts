@@ -77,6 +77,7 @@ describe("VerifiableCredentialService", () => {
 		"iss": "test-issuer",
 		"nbf": 123456789,
 		"sub": "testsub",
+		"jti": expect.anything(),
 		"vc": {
 			"@context": [Constants.W3_BASE_CONTEXT, Constants.DI_CONTEXT],
 			credentialSubject,
@@ -155,6 +156,7 @@ describe("VerifiableCredentialService", () => {
 				"nbf": 123456789,
 				"iss": "test-issuer",
 				"iat": 123456789,
+				"jti": "fsdfs",
 				"vc": {
 					"@context": [
 						"https://www.w3.org/2018/credentials/v1",
@@ -276,6 +278,7 @@ describe("VerifiableCredentialService", () => {
 				"nbf": 123456789,
 				"iss": "test-issuer",
 				"iat": 123456789,
+				"jti": expect.anything(),
 				"vc": {
 					"@context": [
 						"https://www.w3.org/2018/credentials/v1",

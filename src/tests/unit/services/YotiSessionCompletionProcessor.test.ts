@@ -26,6 +26,10 @@ const mockYotiService = mock<YotiService>();
 
 const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "F2F" });
+jest.mock("crypto", () => ({
+	...jest.requireActual("crypto"),
+	randomUUID: () => "sdfsdf",
+}));
 
 jest.mock("../../../utils/KmsJwtAdapter");
 const passingKmsJwtAdapterFactory = (_signingKeys: string) => new MockKmsJwtAdapterForVc(true);
@@ -157,6 +161,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":"sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -259,6 +264,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":"sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -369,6 +375,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":"sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -473,6 +480,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":"sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -576,6 +584,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":"sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -699,6 +708,7 @@ describe("YotiSessionCompletionProcessor", () => {
 					"nbf":absoluteTimeNow(),
 					"iss":"https://XXX-c.env.account.gov.uk",
 					"iat":absoluteTimeNow(),
+					"jti":"sdfsdf",
 					"vc":{
 						"@context":[
 					 Constants.W3_BASE_CONTEXT,

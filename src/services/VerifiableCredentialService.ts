@@ -10,6 +10,7 @@ import {
 	VerifiedCredentialEvidence,
 	VerifiedCredentialSubject,
 } from "../utils/IVeriCredential";
+import { randomUUID } from "crypto";
 
 export class VerifiableCredentialService {
 
@@ -75,6 +76,7 @@ export class VerifiableCredentialService {
   		nbf: now,
   		iss: this.issuer,
   		iat: now,
+  		jti: randomUUID(),
   		vc: verifiedCredential,
   	};
 
