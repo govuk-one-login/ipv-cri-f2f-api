@@ -301,7 +301,7 @@ describe("ThankYouEmailProcessor", () => {
 			await thankYouEmailProcessor.processRequest({ session_id: sessionId, topic: "session_completion" });
 
 			expect(Date.prototype.toLocaleDateString).toHaveBeenCalledWith("en-GB", { year: "numeric", month: "long", day: "numeric" });
-			expect(Date.prototype.toLocaleTimeString).toHaveBeenCalledWith("en-GB", { hour: "numeric", minute: "numeric", hour12: true });
+			expect(Date.prototype.toLocaleTimeString).toHaveBeenCalledWith("en-GB", { hour: "numeric", minute: "numeric", hourCycle: "h12" });
 			expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({
 				event_name: "F2F_DOCUMENT_UPLOADED",
 				client_id: "ipv-core-stub",

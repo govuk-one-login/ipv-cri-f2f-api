@@ -88,7 +88,7 @@ export class ThankYouEmailProcessor {
   		const yotiSessionCreatedAt = yotiSessionInfo.resources.id_documents[0].created_at;
   		const dateObject = new Date(yotiSessionCreatedAt);
   		const postOfficeDateOfVisit = dateObject.toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" });
-  		const postOfficeTimeOfVisit = dateObject.toLocaleTimeString("en-GB", { hour: "numeric", minute: "numeric", hour12: true });
+  		const postOfficeTimeOfVisit = dateObject.toLocaleTimeString("en-GB", { hour: "numeric", minute: "numeric", hourCycle: "h12" });
 
   		this.logger.info("Post office visit details", { postOfficeDateOfVisit, postOfficeTimeOfVisit });
 
