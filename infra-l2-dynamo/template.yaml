@@ -91,18 +91,6 @@ Resources:
               - "clientSessionId"
               - "expiryDate"
             ProjectionType: "INCLUDE"
-        - IndexName: "authCode-index"
-          KeySchema:
-            - AttributeName: "authorizationCode"
-              KeyType: "HASH"
-          Projection:
-            NonKeyAttributes:
-              - "sessionId"
-              - "redirectUri"
-              - "clientId"
-              - "authSessionState"
-              - "clientSessionId"
-            ProjectionType: "INCLUDE"
         - IndexName: "yotiSessionId-index"
           KeySchema:
             - AttributeName: "yotiSessionId"
