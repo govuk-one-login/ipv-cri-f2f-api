@@ -2400,6 +2400,14 @@ Resources:
       FunctionName: !Ref TriggerYotiCallbackStateMachine
       Principal: apigateway.amazonaws.com
 
+  TriggerYotiCallbackStateMachineFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref TriggerYotiCallbackStateMachineLogGroup
+
   YotiCallbackQueue:
     Type: "AWS::SQS::Queue"
     Properties:
