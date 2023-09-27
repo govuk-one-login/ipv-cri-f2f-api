@@ -19,6 +19,8 @@ import { PostOfficeInfo } from "../models/YotiPayloads";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AllDocumentTypes, DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { DrivingPermit, IdentityCard, Passport, ResidencePermit } from "../utils/IVeriCredential";
+import { ValidationHelper } from "../utils/ValidationHelper";
+import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -34,12 +36,15 @@ export class DocumentSelectionRequestProcessor {
 
   private readonly environmentVariables: EnvironmentVariables;
 
+  private readonly validationHelper: ValidationHelper;
+
   constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
   	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+  	this.validationHelper = new ValidationHelper();
   }
 
   static getInstance(
@@ -97,6 +102,20 @@ export class DocumentSelectionRequestProcessor {
   			messageCode: MessageCodes.SESSION_NOT_FOUND,
   		});
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
+  	}
+
+  	// Reject the request when session store does not contain email, familyName or GivenName fields
+  	if (!this.validationHelper.checkIfValidString([personDetails.emailAddress])) {
+  		this.logger.error("Missing emailAddress in the PERSON IDENTITY table", {
+  			messageCode: MessageCodes.MISSING_PERSON_EMAIL_ADDRESS,
+  		});
+  		return new Response(HttpCodesEnum.BAD_REQUEST, "Missing emailAddress in the PERSON IDENTITY table");
+  	}
+  	if (!personDetails.name || !this.validationHelper.isPersonNameValid(personDetails.name)) {
+  		this.logger.error("Missing person's GivenName or FamilyName in the PERSON IDENTITY table", {
+  			messageCode: MessageCodes.MISSING_PERSON_IDENTITY_NAME,
+  		});
+  		return new Response(HttpCodesEnum.BAD_REQUEST, "Missing person's GivenName or FamilyName in the PERSON IDENTITY table");
   	}
 
   	if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {

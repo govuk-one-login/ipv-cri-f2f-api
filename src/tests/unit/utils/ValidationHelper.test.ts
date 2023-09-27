@@ -1,23 +1,51 @@
 import { JwtPayload } from "../../../utils/IVeriCredential";
 import { ValidationHelper } from "../../../utils/ValidationHelper";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
+let jwtPayload: JwtPayload;
 
-const jwtPayload: JwtPayload = {
-	shared_claims:{
-		address: [
-			{
-				addressCountry: "GB",
-				buildingName: "Sherman",
-				subBuildingName: "Flat 5",
-				uprn: 123456789,
-				streetName: "Wallaby Way",
-				postalCode: "F1 1SH",
-				buildingNumber: "32",
-				addressLocality: "Sidney",
-			},
-		],
-	},
-};
+function getMockJwtPayload(): JwtPayload {
+	const payload: JwtPayload = {
+		shared_claims:{
+			name:[
+				{
+				   nameParts:[
+					  {
+						 value:"John",
+						 type:"GivenName",
+					  },
+					  {
+						 value:"Joseph",
+						 type:"GivenName",
+					  },
+					  {
+						 value:"Testing",
+						 type:"FamilyName",
+					  },
+				   ],
+				},
+			],
+			birthDate:[
+				{
+				   "value":"1960-02-02",
+				},
+			],
+			address: [
+				{
+					addressCountry: "GB",
+					buildingName: "Sherman",
+					subBuildingName: "Flat 5",
+					uprn: 123456789,
+					streetName: "Wallaby Way",
+					postalCode: "F1 1SH",
+					buildingNumber: "32",
+					addressLocality: "Sidney",
+				},
+			],
+			emailAddress:"test.user@digital.cabinet-office.gov.uk",
+		},
+	};
+	return payload;
+}
 
 const validationHelper = new ValidationHelper();
 
@@ -25,10 +53,12 @@ describe("ValidationHelper", () => {
 	
 	beforeAll(() => {
 		jest.clearAllMocks();
+		jwtPayload = getMockJwtPayload();
 	});
 
 	beforeEach(() => {
 		jest.resetAllMocks();
+		jwtPayload = getMockJwtPayload();
 	});
 
 	it("isAddressFormatValid function should return empty errorMessage and errorMessageCode when all fields are present in the address", () => {
@@ -57,6 +87,73 @@ describe("ValidationHelper", () => {
 
 		expect(errorMessage).toBe("Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session");
 		expect(errorMessageCode).toStrictEqual(MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS);
+	});
+
+	it("isSharedClaimDataValid function should return empty errorMsg and errorMsgCode when all fields are present in the sharedClaim payload", () => {
+		const { errorMsg, errorMsgCode } = validationHelper.isSharedClaimDataValid(jwtPayload);
+
+		expect(errorMsg).toBe("");
+		expect(errorMsgCode).toBe("");
+	});
+
+	it("isSharedClaimDataValid function should return the expected errorMsg and errorMsgCode when emailAddress is missing in the sharedClaim paylaod", () => {
+		// delete emailAddress field
+		delete jwtPayload.shared_claims.emailAddress;
+		const { errorMsg, errorMsgCode } = validationHelper.isSharedClaimDataValid(jwtPayload);
+
+		expect(errorMsg).toBe("Missing emailAddress from shared claims data");
+		expect(errorMsgCode).toStrictEqual(MessageCodes.MISSING_PERSON_EMAIL_ADDRESS);
+	});
+
+	it("isSharedClaimDataValid function should return the expected errorMsg and errorMsgCode when name is missing in the sharedClaim paylaod", () => {
+		// delete emailAddress field
+		delete jwtPayload.shared_claims.name;
+		const { errorMsg, errorMsgCode } = validationHelper.isSharedClaimDataValid(jwtPayload);
+
+		expect(errorMsg).toBe("Missing person's GivenName or FamilyName from shared claims data");
+		expect(errorMsgCode).toStrictEqual(MessageCodes.MISSING_PERSON_IDENTITY_NAME);
+	});
+
+	it("isSharedClaimDataValid function should return the expected errorMsg and errorMsgCode when GivenName is empty in the sharedClaim paylaod", () => {
+		jwtPayload.shared_claims.name = [
+			{
+			   nameParts:[
+				  {
+					 value:" ",
+					 type:"GivenName",
+				  },
+				  {
+					 value:"Testing",
+					 type:"FamilyName",
+				  },
+			   ],
+			},
+		];
+		const { errorMsg, errorMsgCode } = validationHelper.isSharedClaimDataValid(jwtPayload);
+
+		expect(errorMsg).toBe("Missing person's GivenName or FamilyName from shared claims data");
+		expect(errorMsgCode).toStrictEqual(MessageCodes.MISSING_PERSON_IDENTITY_NAME);
+	});
+
+	it("isSharedClaimDataValid function should return the expected errorMsg and errorMsgCode when FamilyName is empty in the sharedClaim paylaod", () => {
+		jwtPayload.shared_claims.name = [
+			{
+			   nameParts:[
+				  {
+					 value:"John",
+					 type:"GivenName",
+				  },
+				  {
+					 value:" ",
+					 type:"FamilyName",
+				  },
+			   ],
+			},
+		];
+		const { errorMsg, errorMsgCode } = validationHelper.isSharedClaimDataValid(jwtPayload);
+		
+		expect(errorMsg).toBe("Missing person's GivenName or FamilyName from shared claims data");
+		expect(errorMsgCode).toStrictEqual(MessageCodes.MISSING_PERSON_IDENTITY_NAME);
 	});
 
 });

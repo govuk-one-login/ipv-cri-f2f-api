@@ -135,6 +135,13 @@ export class SessionRequestProcessor {
   		return unauthorizedResponse;
   	}
 
+  	// Validate the address format and user details of the shared_claims received from the jwt.
+  	const { errorMsg, errorMsgCode } = this.validationHelper.isSharedClaimDataValid(jwtPayload);
+  	if (errorMsg.length > 0) {
+  		this.logger.error( { message: errorMsg }, { messageCode : errorMsgCode });
+  		return unauthorizedResponse;
+  	}
+
   	// Validate the address format of the shared_claims received from the jwt.
   	const { errorMessage, errorMessageCode } = this.validationHelper.isAddressFormatValid(jwtPayload);
   	if (errorMessage.length > 0) {

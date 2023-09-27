@@ -7,7 +7,7 @@ import { APIGatewayProxyEvent } from "aws-lambda";
 import { absoluteTimeNow } from "./DateTimeUtils";
 import { Constants } from "./Constants";
 import { JwtPayload } from "./IVeriCredential";
-import { PersonIdentityAddress } from "../models/PersonIdentityItem";
+import { PersonIdentityAddress, PersonIdentityName } from "../models/PersonIdentityItem";
 import { MessageCodes } from "../models/enums/MessageCodes";
 
 export class ValidationHelper {
@@ -102,27 +102,85 @@ export class ValidationHelper {
 		return "";
 	};
 
-	isAddressFormatValid = (jwtPayload: JwtPayload): { errorMessage: string; errorMessageCode: string } => {
-		const personIdentityAddresses: PersonIdentityAddress[] = jwtPayload.shared_claims.address;
-		for (const address of personIdentityAddresses) {
-			if (!this.checkIfValidCountryCode(address.addressCountry)) {
-				return {
-					errorMessage: "Invalid country code: country code is not GB in the postalAddress",
-					errorMessageCode: MessageCodes.INVALID_COUNTRY_CODE,
-				};
-			} else if (!this.checkIfAddressIsValid(address)) {
-				// Validation fails if all the mandatory postalAddress fields- subBuildingName, buildingName, buildingNumber and streetName are missing and is not a valid string or if all the 3 mandatory fields- subBuildingName, buildingName, buildingNumber are missing or not a valid string
-				return {
-					errorMessage: "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session",
-					errorMessageCode: MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS,
-				};
-			}
+	isSharedClaimDataValid(jwtPayload: JwtPayload): { errorMsg: string; errorMsgCode: string } {
+		// Validate user details like givenName, familyName and email
+		if (!this.checkIfValidString([jwtPayload.shared_claims.emailAddress])) {
+			return {
+				errorMsg: "Missing emailAddress from shared claims data",
+				errorMsgCode: MessageCodes.MISSING_PERSON_EMAIL_ADDRESS,
+			};
+		} else if (!jwtPayload.shared_claims.name || !this.isPersonNameValid(jwtPayload.shared_claims.name)) {
+			return {
+				errorMsg: "Missing person's GivenName or FamilyName from shared claims data",
+				errorMsgCode: MessageCodes.MISSING_PERSON_IDENTITY_NAME,
+			};
 		}
 		return {
-			errorMessage: "",
-			errorMessageCode: "",
-		};
-	};
+			errorMsg: "",
+			errorMsgCode: "",
+		};		
+	}
+
+	isPersonNameValid(personName: PersonIdentityName[]) : boolean {		
+		let isValid = true;
+
+		if ( personName.length === 0 ) {
+			isValid = false;
+		} else {
+			for (const name of personName) {
+				const { nameParts } = name;
+				const givenNames: string[] = [];
+				const familyNames: string[] = [];
+				if (nameParts.length === 0 ) {
+					isValid = false;
+				} else {
+					for (const namePart of nameParts) {
+						if (namePart.type === "GivenName" && this.checkIfValidString([namePart.value])) {
+							givenNames.push(namePart.value);
+						}
+						if (namePart.type === "FamilyName" && this.checkIfValidString([namePart.value])) {
+							familyNames.push(namePart.value);
+						}			
+					}
+					if ( givenNames.length === 0 || familyNames.length === 0 ) {
+						isValid = false;
+						break;
+					}
+				}
+			}
+		}
+		return isValid;
+	}
+
+	isAddressFormatValid(jwtPayload: JwtPayload): { errorMessage: string; errorMessageCode: string } {		
+		// Validate user Address fields and Return error if address is missing or missing mandatory fields.
+		if (!jwtPayload.shared_claims.address || jwtPayload.shared_claims.address.length === 0) {			
+			return {
+				errorMessage: "Missing Address from shared claims data",
+				errorMessageCode: MessageCodes.MISSING_POSTAL_ADDRESS,
+			};
+		} else {
+			const personIdentityAddresses: PersonIdentityAddress[] = jwtPayload.shared_claims.address;
+			for (const address of personIdentityAddresses) {
+				if (!this.checkIfValidCountryCode(address.addressCountry)) {
+					return {
+						errorMessage: "Invalid country code: country code is not GB in the postalAddress",
+						errorMessageCode: MessageCodes.INVALID_COUNTRY_CODE,
+					};
+				} else if (!this.checkIfAddressIsValid(address)) {
+					// Validation fails if all the mandatory postalAddress fields- subBuildingName, buildingName, buildingNumber and streetName are missing and is not a valid string or if all the 3 mandatory fields- subBuildingName, buildingName, buildingNumber are missing or not a valid string
+					return {
+						errorMessage: "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session",
+						errorMessageCode: MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS,
+					};
+				}
+			}
+			return {
+				errorMessage: "",
+				errorMessageCode: "",
+			};
+		}
+	}
 
 	/**
 	 * Checks if the countryCode is 'GB'.

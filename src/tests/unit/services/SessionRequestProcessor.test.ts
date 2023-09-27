@@ -203,6 +203,7 @@ describe("SessionRequestProcessor", () => {
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
 		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
 		mockValidationHelper.isJwtValid.mockReturnValue("");
+		mockValidationHelper.isSharedClaimDataValid.mockReturnValue({ errorMsg : "", errorMsgCode : "" });
 		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"Invalid country code in the postalAddress", errorMessageCode: MessageCodes.INVALID_COUNTRY_CODE });
 
 		// Act
@@ -225,6 +226,7 @@ describe("SessionRequestProcessor", () => {
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
 		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
 		mockValidationHelper.isJwtValid.mockReturnValue("");
+		mockValidationHelper.isSharedClaimDataValid.mockReturnValue({ errorMsg : "", errorMsgCode : "" });
 		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session", errorMessageCode: MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS });
 
 		// Act
@@ -240,12 +242,36 @@ describe("SessionRequestProcessor", () => {
 		);
 	});
 
+	it("should return unauthorized when emailAddress is missing in the sharedClaim data", async () => {
+
+		// Arrange
+		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
+		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockValidationHelper.isJwtValid.mockReturnValue("");
+		mockValidationHelper.isSharedClaimDataValid.mockReturnValue({ errorMsg:"Missing emailAddress from shared claims data", errorMsgCode: MessageCodes.MISSING_PERSON_EMAIL_ADDRESS });
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
+
+		// Act
+		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+
+		// Assert
+		expect(response.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
+		expect(logger.error).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				messageCode: MessageCodes.MISSING_PERSON_EMAIL_ADDRESS,
+			}),
+		);
+	});
+
 	it("should report session already exists", async () => {
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
 		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
 		mockValidationHelper.isJwtValid.mockReturnValue("");
+		mockValidationHelper.isSharedClaimDataValid.mockReturnValue({ errorMsg : "", errorMsgCode : "" });
 		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
 		mockF2fService.getSessionById.mockResolvedValue(sessionItemFactory());
 
@@ -273,6 +299,7 @@ describe("SessionRequestProcessor", () => {
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
 		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
 		mockValidationHelper.isJwtValid.mockReturnValue("");
+		mockValidationHelper.isSharedClaimDataValid.mockReturnValue({ errorMsg : "", errorMsgCode : "" });
 		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 		mockF2fService.createAuthSession.mockRejectedValue("error");
@@ -301,6 +328,7 @@ describe("SessionRequestProcessor", () => {
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
 		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
 		mockValidationHelper.isJwtValid.mockReturnValue("");
+		mockValidationHelper.isSharedClaimDataValid.mockReturnValue({ errorMsg : "", errorMsgCode : "" });
 		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 		mockF2fService.createAuthSession.mockResolvedValue();
@@ -322,6 +350,7 @@ describe("SessionRequestProcessor", () => {
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
 		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
 		mockValidationHelper.isJwtValid.mockReturnValue("");
+		mockValidationHelper.isSharedClaimDataValid.mockReturnValue({ errorMsg : "", errorMsgCode : "" });
 		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 		mockF2fService.createAuthSession.mockResolvedValue();
@@ -353,6 +382,7 @@ describe("SessionRequestProcessor", () => {
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
 		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
 		mockValidationHelper.isJwtValid.mockReturnValue("");
+		mockValidationHelper.isSharedClaimDataValid.mockReturnValue({ errorMsg : "", errorMsgCode : "" });
 		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 		mockF2fService.createAuthSession.mockResolvedValue();
