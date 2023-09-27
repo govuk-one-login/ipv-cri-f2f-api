@@ -235,8 +235,11 @@ export class F2fService {
 	}
 
 	async getSessionsByAuthSessionStates(authSessionStates: string[]): Promise<Array<Record<string, any>>> {
-		const promises = authSessionStates.map(async (authSessionState) => {
-			const params: QueryCommandInput = {
+		const uniqueSessionIds = new Set();
+		const filteredItems = [];
+	
+		for (const authSessionState of authSessionStates) {
+			const params = {
 				TableName: this.tableName,
 				IndexName: Constants.AUTH_SESSION_STATE_INDEX_NAME,
 				KeyConditionExpression: "authSessionState = :authSessionState",
@@ -244,22 +247,17 @@ export class F2fService {
 					":authSessionState": authSessionState,
 				},
 			};
-
-			const sessionItems = await this.dynamo.query(params);
-
-			return sessionItems?.Items || [];
-		});
-
-		const results = await Promise.all(promises);
-    
-		// Merge the results into a single array
-		const mergedResults = results.reduce((acc, items) => acc.concat(items), []);
-
-		// Filter out any records that have hit TTL
-		const filteredItems = mergedResults.filter(item => {
-			return item.expiryDate > absoluteTimeNow();
-		});
-
+	
+			const sessionItems = (await this.dynamo.query(params))?.Items || [];
+	
+			for (const item of sessionItems) {
+				if (!uniqueSessionIds.has(item.sessionId) && item.expiryDate > absoluteTimeNow()) {
+					uniqueSessionIds.add(item.sessionId);
+					filteredItems.push(item);
+				}
+			}
+		}
+	
 		return filteredItems;
 	}
 
