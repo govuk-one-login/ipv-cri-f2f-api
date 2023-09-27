@@ -34,10 +34,10 @@ export class ReminderEmailProcessor {
   			return { statusCode: HttpCodesEnum.OK, body: "No Session Records matching state" };
   		}
  
-			const filteredSessions = F2FSessionCreatedRecords.filter(
-				({ createdDate, reminderEmailSent }) =>
-					(createdDate <= absoluteTimeNow() - 5 * 24 * 60 * 60)  && !reminderEmailSent
-			);
+  		const filteredSessions = F2FSessionCreatedRecords.filter(
+  			({ createdDate, reminderEmailSent }) =>
+  				(createdDate <= absoluteTimeNow() - 5 * 24 * 60 * 60) && !reminderEmailSent,
+  		);
 
   		if (filteredSessions.length === 0) {
   			this.logger.info(`No users with session states ${[AuthSessionState.F2F_YOTI_SESSION_CREATED, AuthSessionState.F2F_AUTH_CODE_ISSUED, AuthSessionState.F2F_ACCESS_TOKEN_ISSUED]} older than 5 days`);

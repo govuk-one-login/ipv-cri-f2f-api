@@ -99,14 +99,14 @@ describe("ReminderEmailProcessor", () => {
 	});
 
 	beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(1695808788)); // Sep 27 2023 08:53:12 GMT+0000
-  });
+		jest.useFakeTimers();
+		jest.setSystemTime(new Date(1695808788)); // Sep 27 2023 08:53:12 GMT+0000
+	});
 
-  afterEach(() => {
-    jest.useRealTimers();
-    jest.resetAllMocks();
-  });
+	afterEach(() => {
+		jest.useRealTimers();
+		jest.resetAllMocks();
+	});
 
 	it("should process request successfully", async () => {
     
