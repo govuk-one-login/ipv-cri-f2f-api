@@ -210,10 +210,11 @@ describe("F2f Service", () => {
 		}));
 	});
 
-	it("should throw error when session items are not found by auth session state", async () => {
+	it("should return empty array when session items are not found by auth session state", async () => {
 		mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [] });
 
-		await expect(f2fService.getSessionsByAuthSessionState("F2F_SESSION_CREATED")).rejects.toThrow("Error retrieving Sessions by authSessionState");
+		const result = await f2fService.getSessionsByAuthSessionStates(["F2F_SESSION_STARTED"]);
+		expect(result).toEqual([]);
 	});
 
 	it("should not return any session Items if the expiryDate has passed", async () => {
@@ -230,7 +231,7 @@ describe("F2f Service", () => {
 			],
 		});
 
-		const result = await f2fService.getSessionsByAuthSessionState("F2F_SESSION_STARTED");
+		const result = await f2fService.getSessionsByAuthSessionStates(["F2F_SESSION_STARTED"]);
 		expect(result).toEqual([]);
 	});
 
@@ -250,14 +251,30 @@ describe("F2f Service", () => {
 			}],
 		});
 
-		const result = await f2fService.getSessionsByAuthSessionState("F2F_SESSION_STARTED");
-		expect(result).toEqual([{ sessionId: "SESSID", expiryDate: expect.any(Number) }, { sessionId: "SESSIDTWO", expiryDate: expect.any(Number) }, { sessionId: "SESSIDTHREE", expiryDate: expect.any(Number) }]);
-		expect(mockDynamoDbClient.query).toHaveBeenCalledWith(expect.objectContaining({
-			KeyConditionExpression: "authSessionState = :authSessionState",
-			ExpressionAttributeValues: {
-				":authSessionState": "F2F_SESSION_STARTED",
-			},
-		}));
+		const result = await f2fService.getSessionsByAuthSessionStates(["F2F_YOTI_SESSION_CREATED", "F2F_AUTH_CODE_ISSUED", "F2F_ACCESS_TOKEN_ISSUED"]);
+		expect(result).toEqual([
+			{ "expiryDate": expect.any(Number), "sessionId": "SESSID" },
+			{ "expiryDate": expect.any(Number), "sessionId": "SESSIDTWO" },
+			{ "expiryDate": expect.any(Number), "sessionId": "SESSIDTHREE" },
+		]);
+		expect(mockDynamoDbClient.query).toHaveBeenNthCalledWith(1, {
+			"ExpressionAttributeValues": { ":authSessionState": "F2F_YOTI_SESSION_CREATED" },
+			"IndexName": "authSessionState-index",
+			"KeyConditionExpression": "authSessionState = :authSessionState",
+			"TableName": "SESSIONTABLE",
+		});
+		expect(mockDynamoDbClient.query).toHaveBeenNthCalledWith(2, {
+			"ExpressionAttributeValues": { ":authSessionState": "F2F_AUTH_CODE_ISSUED" },
+			"IndexName": "authSessionState-index",
+			"KeyConditionExpression": "authSessionState = :authSessionState",
+			"TableName": "SESSIONTABLE",
+		});
+		expect(mockDynamoDbClient.query).toHaveBeenNthCalledWith(3, {
+			"ExpressionAttributeValues": { ":authSessionState": "F2F_ACCESS_TOKEN_ISSUED" },
+			"IndexName": "authSessionState-index",
+			"KeyConditionExpression": "authSessionState = :authSessionState",
+			"TableName": "SESSIONTABLE",
+		});
 	});
 
 
