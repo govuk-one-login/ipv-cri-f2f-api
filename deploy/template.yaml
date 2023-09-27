@@ -2104,7 +2104,7 @@ Resources:
         ScheduledEvent:
           Type: Schedule
           Properties:
-            Schedule: cron(0 13 ? * MON-FRI *)  # This will run at 10 am on weekdays (Monday to Friday)
+            Schedule: cron(0 13 ? * MON-FRI *)  # This will run at 1 pm on weekdays (Monday to Friday) - To be changed back to 10am soon
 
 
     Metadata: # Manage esbuild properties
