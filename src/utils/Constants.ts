@@ -79,4 +79,7 @@ export class Constants {
   static readonly VERIFIABLE_CREDENTIAL = "VerifiableCredential";
 
   static readonly IDENTITY_CHECK_CREDENTIAL = "IdentityCheckCredential";
+
+  static readonly URN_UUID_PREFIX = "urn:uuid:";
+  
 }

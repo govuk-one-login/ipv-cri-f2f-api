@@ -161,7 +161,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
-				"jti":"sdfsdf",
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -264,7 +264,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
-				"jti":"sdfsdf",
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -375,7 +375,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
-				"jti":"sdfsdf",
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -480,7 +480,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
-				"jti":"sdfsdf",
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -584,7 +584,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
-				"jti":"sdfsdf",
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -708,7 +708,7 @@ describe("YotiSessionCompletionProcessor", () => {
 					"nbf":absoluteTimeNow(),
 					"iss":"https://XXX-c.env.account.gov.uk",
 					"iat":absoluteTimeNow(),
-					"jti":"sdfsdf",
+					"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 					"vc":{
 						"@context":[
 					 Constants.W3_BASE_CONTEXT,
