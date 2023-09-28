@@ -120,7 +120,7 @@ export class SendEmailService {
 	}
 
 	async sendDynamicReminderEmail(message: DynamicReminderEmail): Promise<EmailResponse> {
-		console.log('message', message);
+		console.log("message", message);
 		this.logger.info("Sending reminder email");
 
 		try {
@@ -128,16 +128,16 @@ export class SendEmailService {
 				personalisation: {
 					"first name": message.firstName,
 					"last name": message.lastName,
-					"chosen photo ID": message.docType
+					"chosen photo ID": message.docType,
 				},
 				reference: message.referenceId,
 			};
 
-			console.log('options', options);
+			console.log("options", options);
 		
-			console.log('key', this.environmentVariables.getDynamicReminderEmailTemplateId(this.logger));
+			console.log("key", this.environmentVariables.getDynamicReminderEmailTemplateId(this.logger));
 			const emailResponse = await this.sendGovNotification(this.environmentVariables.getDynamicReminderEmailTemplateId(this.logger), message, options);
-			console.log('emailResponse', emailResponse);
+			console.log("emailResponse", emailResponse);
 			return emailResponse;
 		} catch (err: any) {
 			this.logger.error("Failed to send Dynamic Reminder Email", { messageCode: MessageCodes.FAILED_TO_SEND_REMINDER_EMAIL });

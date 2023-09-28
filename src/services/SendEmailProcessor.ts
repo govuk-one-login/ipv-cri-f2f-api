@@ -28,7 +28,7 @@ export class SendEmailProcessor {
   	const messageType = eventBody.Message.messageType;
 
   	switch (messageType) {
-			case Constants.REMINDER_EMAIL_DYNAMIC:
+  		case Constants.REMINDER_EMAIL_DYNAMIC:
   			const dynamicReminderEmail = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(dynamicReminderEmail, this.logger);
   			return this.govNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);

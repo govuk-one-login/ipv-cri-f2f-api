@@ -217,7 +217,7 @@ describe("SendEmailProcessor", () => {
 		const emailResponse = await sendEmailServiceTest.sendReminderEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
-		expect(mockGovNotify.sendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837115", "example@test.com", {"reference": expect.any(String)});
+		expect(mockGovNotify.sendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837115", "example@test.com", { "reference": expect.any(String) });
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 
@@ -229,7 +229,7 @@ describe("SendEmailProcessor", () => {
 		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
-		expect(mockGovNotify.sendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", {"personalisation": {"chosen photo ID": "PASSPORT", "first name": "Frederick", "last name": "Flintstone"}, "reference": expect.any(String)});
+		expect(mockGovNotify.sendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { "chosen photo ID": "PASSPORT", "first name": "Frederick", "last name": "Flintstone" }, "reference": expect.any(String) });
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 

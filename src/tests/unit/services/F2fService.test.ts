@@ -441,7 +441,7 @@ describe("F2f Service", () => {
 		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
 		await expect(f2fService.addUsersSelectedDocument("SESSID", "passport", "SESSIONTABLE")).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
-			message: `updateItem - failed: got error updating SESSIONTABLE`,
+			message: "updateItem - failed: got error updating SESSIONTABLE",
 		}));
 	});	
 });

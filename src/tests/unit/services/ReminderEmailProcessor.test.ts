@@ -179,8 +179,8 @@ describe("ReminderEmailProcessor", () => {
 			expect(mockF2fService.getSessionsByAuthSessionStates).toHaveBeenCalledWith(["F2F_YOTI_SESSION_CREATED", "F2F_AUTH_CODE_ISSUED", "F2F_ACCESS_TOKEN_ISSUED"]);
 			expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(1, "b2ba545c-18a9-4b7e-8bc1-38a05b214a48", "PERSONIDENTITYTABLE");
 			expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(2, "b2ba545c-18a9-4b7e-8bc1-38a05b214a47", "PERSONIDENTITYTABLE");
-			expect(mockF2fService.sendToGovNotify).toHaveBeenNthCalledWith(1, {"Message": {"docType": "NATIONAL_ID", "emailAddress": "testReminder@test.com", "firstName": "Frederick", "lastName": "Flintstone", "messageType": "REMINDER_EMAIL_DYNAMIC"}});
-			expect(mockF2fService.sendToGovNotify).toHaveBeenNthCalledWith(2, {"Message": {"docType": "DRIVING_LICENCE", "emailAddress": "testReminder@test.com", "firstName": "Frederick", "lastName": "Flintstone", "messageType": "REMINDER_EMAIL_DYNAMIC"}});
+			expect(mockF2fService.sendToGovNotify).toHaveBeenNthCalledWith(1, { "Message": { "docType": "NATIONAL_ID", "emailAddress": "testReminder@test.com", "firstName": "Frederick", "lastName": "Flintstone", "messageType": "REMINDER_EMAIL_DYNAMIC" } });
+			expect(mockF2fService.sendToGovNotify).toHaveBeenNthCalledWith(2, { "Message": { "docType": "DRIVING_LICENCE", "emailAddress": "testReminder@test.com", "firstName": "Frederick", "lastName": "Flintstone", "messageType": "REMINDER_EMAIL_DYNAMIC" } });
 			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith("b2ba545c-18a9-4b7e-8bc1-38a05b214a48", true);
 			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith("b2ba545c-18a9-4b7e-8bc1-38a05b214a47", true);
 		});
