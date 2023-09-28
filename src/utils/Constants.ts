@@ -63,6 +63,8 @@ export class Constants {
 	static readonly PDF_EMAIL = "PDF_EMAIL";
 
 	static readonly REMINDER_EMAIL = "REMINDER_EMAIL";
+	
+	static readonly REMINDER_EMAIL_DYNAMIC = "REMINDER_EMAIL_DYNAMIC";
 
 	static readonly EMAIL_DISABLED = "EMAIL_DISABLED";
 

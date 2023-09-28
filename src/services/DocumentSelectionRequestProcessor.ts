@@ -168,6 +168,9 @@ export class DocumentSelectionRequestProcessor {
   				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
   		}
 
+			this.logger.info("Updating documentType in Session Table: ", {docType});
+			await this.f2fService.addUsersSelectedDocument(f2fSessionInfo.sessionId, docType, this.environmentVariables.sessionTable());
+
   		try {
   			const coreEventFields = buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow);
   			await this.f2fService.sendToTXMA({
