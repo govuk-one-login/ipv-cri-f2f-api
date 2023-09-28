@@ -45,7 +45,6 @@ export const VALID_DYNAMIC_REMINDER_SQS_EVENT = {
 };
 
 
-
 export const VALID_REMINDER_SQS_EVENT = {
 	"Records": [
 		{

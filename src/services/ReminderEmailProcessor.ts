@@ -30,7 +30,7 @@ export class ReminderEmailProcessor {
   	try {
   		const F2FSessionCreatedRecords = await this.f2fService.getSessionsByAuthSessionStates([AuthSessionState.F2F_YOTI_SESSION_CREATED, AuthSessionState.F2F_AUTH_CODE_ISSUED, AuthSessionState.F2F_ACCESS_TOKEN_ISSUED]);
 
-			// console.log('F2FSessionCreatedRecords', F2FSessionCreatedRecords);
+  		// console.log('F2FSessionCreatedRecords', F2FSessionCreatedRecords);
 
   		if (F2FSessionCreatedRecords.length === 0) {
   			this.logger.info(`No users with session states ${[AuthSessionState.F2F_YOTI_SESSION_CREATED, AuthSessionState.F2F_AUTH_CODE_ISSUED, AuthSessionState.F2F_ACCESS_TOKEN_ISSUED]}`);
@@ -47,7 +47,7 @@ export class ReminderEmailProcessor {
   			return { statusCode: HttpCodesEnum.OK, body: "No Sessions older than 5 days" };
   		}
 
-			// console.log('filteredSessions', filteredSessions);
+  		// console.log('filteredSessions', filteredSessions);
 
   		this.logger.info("Total num. of users to send reminder emails to:", { numOfUsers: filteredSessions.length });
 
@@ -57,8 +57,8 @@ export class ReminderEmailProcessor {
   					const envVariables = new EnvironmentVariables(this.logger, ServicesEnum.REMINDER_SERVICE);
   					const personIdentityItem = await this.f2fService.getPersonIdentityById(sessionId, envVariables.personIdentityTableName());
   					if ( personIdentityItem ) {
-							const nameParts = personIdentityUtils.getNames(personIdentityItem);
-  						return { sessionId, emailAddress: personIdentityItem.emailAddress, firstName: nameParts.givenNames[0], lastName: nameParts.familyNames[0], documentUsed  };
+  						const nameParts = personIdentityUtils.getNames(personIdentityItem);
+  						return { sessionId, emailAddress: personIdentityItem.emailAddress, firstName: nameParts.givenNames[0], lastName: nameParts.familyNames[0], documentUsed };
   					} else {
   						this.logger.warn("No records returned from Person Identity Table");
   						return null;
@@ -74,16 +74,16 @@ export class ReminderEmailProcessor {
   		}
 
   		const sendEmailPromises = usersToRemind
-  			.filter((user): user is { sessionId: any; emailAddress: string, firstName: string, lastName: string, documentUsed: string } => user !== null)
-  			.map(async ({ sessionId, emailAddress, firstName, lastName, documentUsed  }) => {
+  			.filter((user): user is { sessionId: any; emailAddress: string; firstName: string; lastName: string; documentUsed: string } => user !== null)
+  			.map(async ({ sessionId, emailAddress, firstName, lastName, documentUsed }) => {
   				try {
-						if (firstName && lastName && documentUsed) {
-							this.logger.info("Sending Dynamic Reminder Email", { sessionId })
-							await this.f2fService.sendToGovNotify(buildDynamicReminderEmailEventFields(emailAddress, firstName, lastName, documentUsed));
-						} else { 
-							this.logger.info("Sending Static Reminder Email", { sessionId })
-							await this.f2fService.sendToGovNotify(buildReminderEmailEventFields(emailAddress));
-						}
+  					if (firstName && lastName && documentUsed) {
+  						this.logger.info("Sending Dynamic Reminder Email", { sessionId });
+  						await this.f2fService.sendToGovNotify(buildDynamicReminderEmailEventFields(emailAddress, firstName, lastName, documentUsed));
+  					} else { 
+  						this.logger.info("Sending Static Reminder Email", { sessionId });
+  						await this.f2fService.sendToGovNotify(buildReminderEmailEventFields(emailAddress));
+  					}
   					await this.f2fService.updateReminderEmailFlag(sessionId, true);
   					this.logger.info("Reminder email sent to user: ", { sessionId });
   				} catch (error) {

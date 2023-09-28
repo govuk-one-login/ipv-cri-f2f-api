@@ -13,7 +13,7 @@ export class DynamicReminderEmail {
 	constructor(data: Partial<DynamicReminderEmail>) {
 		this.emailAddress = data.emailAddress!;
 		this.firstName = data.firstName!;
-		this.lastName = data.lastName!
+		this.lastName = data.lastName!;
 		this.docType = data.docType!;
 		this.referenceId = randomUUID();
 	}
