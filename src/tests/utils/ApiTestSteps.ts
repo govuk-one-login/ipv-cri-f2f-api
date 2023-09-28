@@ -399,6 +399,7 @@ export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 export function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): void {
 	const [rawHead, rawBody, signature] = jwtToken.split(".");
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
+	expect(decodedBody.jti).toBeTruthy();
 	// Strength Score
 	const expecedStrengthScore = eval("vcData.s" + yotiId + ".strengthScore");
 	if (expecedStrengthScore) {
