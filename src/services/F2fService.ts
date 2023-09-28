@@ -459,13 +459,13 @@ export class F2fService {
 			},
 		});
 
-		this.logger.info({ message: `Updating ${tableName} table TTL`, updateStateCommand });
+		this.logger.info({ message: `Updating selected document in ${tableName}`, updateStateCommand });
 		try {
 			await this.dynamo.send(updateStateCommand);
-			this.logger.info({ message: `Updated ${tableName} TTL in dynamodb` });
+			this.logger.info({ message: `Updated ${tableName} with selected document` });
 		} catch (error) {
-			this.logger.error({ message: `Got error updating ${tableName} ttl`, error });
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName} ttl`);
+			this.logger.error({ message: `Got error updating selected document in ${tableName}`, error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
 		}
 	}
 
