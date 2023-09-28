@@ -16,6 +16,7 @@ import { F2fService } from "./F2fService";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { ReminderEmail } from "../models/ReminderEmail";
+import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { MessageCodes } from "../models/enums/MessageCodes";
 
 
@@ -115,6 +116,27 @@ export class SendEmailService {
 		} catch (err: any) {
 			this.logger.error("Failed to send Reminder Email", { messageCode: MessageCodes.FAILED_TO_SEND_REMINDER_EMAIL });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sendReminderEmail - Failed sending Reminder Email");
+		}
+	}
+
+	async sendDynamicReminderEmail(message: DynamicReminderEmail): Promise<EmailResponse> {
+		this.logger.info("Sending reminder email");
+
+		try {
+			const options = {
+				personalisation: {
+					"first name": message.firstName,
+					"last name": message.lastName,
+					"chosen photo ID": message.docType
+				},
+				reference: message.referenceId,
+			};
+		
+			const emailResponse = await this.sendGovNotification(this.environmentVariables.getDynamicReminderEmailTemplateId(this.logger), message, options);
+			return emailResponse;
+		} catch (err: any) {
+			this.logger.error("Failed to send Dynamic Reminder Email", { messageCode: MessageCodes.FAILED_TO_SEND_REMINDER_EMAIL });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sendReminderEmail - Failed sending Dynamic Reminder Email");
 		}
 	}
 
