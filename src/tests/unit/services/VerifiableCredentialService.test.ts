@@ -282,7 +282,7 @@ describe("VerifiableCredentialService", () => {
 				"nbf": 123456789,
 				"iss": "test-issuer",
 				"iat": 123456789,
-				"jti": expect.anything(),
+				"jti": "sdfsdf",
 				"vc": {
 					"@context": [
 						"https://www.w3.org/2018/credentials/v1",
