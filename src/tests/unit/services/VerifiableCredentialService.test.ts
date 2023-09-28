@@ -13,6 +13,10 @@ import SpotSchema from "../data/spot-schema.json";
 
 const ajv: Ajv = new Ajv({ strict: false, allErrors: true, verbose: true });
 jest.mock("../../../utils/KmsJwtAdapter");
+jest.mock("crypto", () => ({
+	...jest.requireActual("crypto"),
+	randomUUID: () => "sdfsdf",
+}));
 
 describe("VerifiableCredentialService", () => {
 	let verifiableCredentialService: VerifiableCredentialService;
@@ -77,7 +81,7 @@ describe("VerifiableCredentialService", () => {
 		"iss": "test-issuer",
 		"nbf": 123456789,
 		"sub": "testsub",
-		"jti": expect.anything(),
+		"jti": "sdfsdf",
 		"vc": {
 			"@context": [Constants.W3_BASE_CONTEXT, Constants.DI_CONTEXT],
 			credentialSubject,
@@ -156,7 +160,7 @@ describe("VerifiableCredentialService", () => {
 				"nbf": 123456789,
 				"iss": "test-issuer",
 				"iat": 123456789,
-				"jti": "fsdfs",
+				"jti": "sdfsdf",
 				"vc": {
 					"@context": [
 						"https://www.w3.org/2018/credentials/v1",
