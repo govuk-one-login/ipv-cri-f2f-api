@@ -315,6 +315,21 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.updateSessionTtl).toHaveBeenNthCalledWith(2, "RandomF2FSessionID", Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL_SECS!), "PERSONIDENTITYTABLE");
 	});
 
+	it("Should save the selected document type in session table", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
+
+		mockYotiService.fetchSessionInfo.mockResolvedValueOnce(yotiSessionInfo);
+
+		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
+
+		await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
+
+		expect(mockF2fService.addUsersSelectedDocument).toHaveBeenCalledWith("RandomF2FSessionID", "PASSPORT", "SESSIONTABLE");
+	});
+
 	it("Throw server error if Yoti Session already exists", async () => {
 		const f2fSessionItemInvalid: ISessionItem = {
 			...f2fSessionItem,
@@ -582,6 +597,26 @@ describe("DocumentSelectionRequestProcessor", () => {
 		jest.setSystemTime(new Date(fakeTime * 1000));
 
 		mockF2fService.updateSessionTtl.mockRejectedValueOnce("Got error updating SESSIONTABLE ttl");
+
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
+		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
+		expect(out.body).toBe("An error has occurred");
+	});
+
+	it("Return 500 when add users selected document returns an error", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
+
+		mockYotiService.fetchSessionInfo.mockResolvedValueOnce(yotiSessionInfo);
+
+		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
+
+		mockF2fService.addUsersSelectedDocument.mockRejectedValueOnce("Got error updating SESSIONTABLE ttl");
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
 

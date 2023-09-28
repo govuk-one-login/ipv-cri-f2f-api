@@ -168,8 +168,18 @@ export class DocumentSelectionRequestProcessor {
   				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
   		}
 
-			this.logger.info("Updating documentType in Session Table: ", {docType});
-			await this.f2fService.addUsersSelectedDocument(f2fSessionInfo.sessionId, docType, this.environmentVariables.sessionTable());
+			try {
+  			this.logger.info("Updating documentType in Session Table: ", {docType});
+				await this.f2fService.addUsersSelectedDocument(f2fSessionInfo.sessionId, docType, this.environmentVariables.sessionTable());
+  		} catch (error: any) {
+  			this.logger.error("Error occurred during documentSelection orchestration", error.message,
+  				{ messageCode: MessageCodes.FAILED_DOCUMENT_SELECTION_ORCHESTRATION });
+  			if (error instanceof AppError) {
+  				return new Response(HttpCodesEnum.SERVER_ERROR, error.message);
+  			} else {
+  				return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+  			}
+  		}
 
   		try {
   			const coreEventFields = buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow);
