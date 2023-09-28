@@ -3,24 +3,17 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { SQSEvent } from "aws-lambda";
 // @ts-ignore
 import { NotifyClient } from "notifications-node-client";
-import { VALID_SQS_EVENT } from "../data/sqs-events";
-import { SendEmailProcessor } from "../../../services/SendEmailProcessor";
+import { VALID_SQS_EVENT, VALID_REMINDER_SQS_EVENT, VALID_DYNAMIC_REMINDER_SQS_EVENT } from "../data/sqs-events";
 import { SendEmailService } from "../../../services/SendEmailService";
-import { mock, mockFn } from "jest-mock-extended";
+import { mock } from "jest-mock-extended";
 import { EmailResponse } from "../../../models/EmailResponse";
 import { Email } from "../../../models/Email";
-import { AppError } from "../../../utils/AppError";
-import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { YotiService } from "../../../services/YotiService";
 import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
-import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
-import { Response } from "../../../utils/Response";
-import { VALID_AUTHCODE } from "../data/auth-events";
-import { F2fResponse } from "../../../utils/F2fResponse";
-import exp from "constants";
 import { ReminderEmail } from "../../../models/ReminderEmail";
+import { DynamicReminderEmail } from "../../../models/DynamicReminderEmail";
 
 const mockGovNotify = mock<NotifyClient>();
 const mockYotiService = mock<YotiService>();
@@ -31,6 +24,8 @@ const YOTI_PRIVATE_KEY = "sdfsdf";
 const GOVUKNOTIFY_API_KEY = "sdhohofsdf";
 const logger = mock<Logger>();
 let sqsEvent: SQSEvent;
+let reminderEmailEvent: SQSEvent;
+let dynamicEmailEvent: SQSEvent;
 const mockF2fService = mock<F2fService>();
 function getMockSessionItem(): ISessionItem {
 	const session: ISessionItem = {
@@ -71,6 +66,8 @@ describe("SendEmailProcessor", () => {
 		// @ts-ignore
 		sendEmailServiceTest.f2fService = mockF2fService;
 		sqsEvent = VALID_SQS_EVENT;
+		reminderEmailEvent = VALID_REMINDER_SQS_EVENT;
+		dynamicEmailEvent = VALID_DYNAMIC_REMINDER_SQS_EVENT;
 	});
 
 	beforeEach(() => {
@@ -215,11 +212,24 @@ describe("SendEmailProcessor", () => {
 	it("Returns EmailResponse when Reminder email is sent successfully", async () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
-		const eventBody = JSON.parse(sqsEvent.Records[0].body);
+		const eventBody = JSON.parse(reminderEmailEvent.Records[0].body);
 		const email = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
 		const emailResponse = await sendEmailServiceTest.sendReminderEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
+		expect(mockGovNotify.sendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837115", "example@test.com", {"reference": expect.any(String)});
+		expect(emailResponse.emailFailureMessage).toBe("");
+	});
+
+	it("Returns EmailResponse when Dynamic Reminder email is sent successfully", async () => {
+		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
+		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
+		const eventBody = JSON.parse(dynamicEmailEvent.Records[0].body);
+		const email = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
+		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(email);
+
+		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
+		expect(mockGovNotify.sendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", {"personalisation": {"chosen photo ID": "PASSPORT", "first name": "Frederick", "last name": "Flintstone"}, "reference": expect.any(String)});
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 

@@ -115,6 +115,7 @@ Resources:
               - "createdDate"
               - "reminderEmailSent"
               - "expiryDate"
+              - "documentUsed"
             ProjectionType: "INCLUDE"
       TimeToLiveSpecification:
         AttributeName: expiryDate
