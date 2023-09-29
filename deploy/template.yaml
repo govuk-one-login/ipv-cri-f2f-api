@@ -2734,7 +2734,7 @@ Resources:
   ThankYouEmailFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
-      LogGroupName: !Ref ThankYouEmailLogGroup
+      LogGroupName: !Ref ThankYouEmailFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
       MetricTransformations:
         -
@@ -2792,7 +2792,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
-  TokenThrottleAlarm:
+  ThankYouEmailThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
     Properties:
