@@ -150,6 +150,7 @@ Mappings:
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
+      GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback?id=f2f"}]'
@@ -2104,7 +2105,7 @@ Resources:
         ScheduledEvent:
           Type: Schedule
           Properties:
-            Schedule: cron(0 10 ? * MON-FRI *)  # This will run at 10 am on weekdays (Monday to Friday)
+            Schedule: cron(0 13 ? * MON-FRI *)  # This will run at 1 pm on weekdays (Monday to Friday) - To be changed back to 10am soon
 
 
     Metadata: # Manage esbuild properties
