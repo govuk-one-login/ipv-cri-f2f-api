@@ -6,11 +6,11 @@ import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { AppError } from "./utils/AppError";
 import { PostOfficeRequestProcessor } from "./services/PostOfficeRequestProcessor";
-
+import { Constants } from "./utils/Constants";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
-const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.AUTHORIZATIONCODE_LOGGER_SVC_NAME;
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.POST_OFFICE_MOCK_LOGGER_SVC_NAME;
 
 const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
@@ -36,9 +36,7 @@ class MockPostOfficeHandler implements LambdaInterface {
 					payloadParsed = JSON.parse(payload);
 				}
 				if (payloadParsed.searchString && payloadParsed.productFilter) {
-					logger.info("PARSED JSON", { payloadParsed });
-					logger.info("PARSED POSTCODE", payloadParsed.searchString);
-					logger.info("FINISHED PARSING, awaiting return");
+					logger.info("PARSED JSON", { payloadParsed }, "PARSED POSTCODE", payloadParsed.searchString, "FINISHED PARSING, awaiting return");
 					return await PostOfficeRequestProcessor.getInstance(logger, metrics).mockSearchLocations(payloadParsed.searchString);
 				} else {
 					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred - missing payload parameters");
