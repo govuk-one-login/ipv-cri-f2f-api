@@ -183,22 +183,6 @@ export const VALID_DL_RESPONSE = {
                       ]
                   }
               ],
-              "document_fields": {
-                  "media": {
-                      "id": "21e34ea0-dc4e-434d-931a-f73dd6b02393",
-                      "type": "JSON",
-                      "created": "2023-04-12T08:09:32Z",
-                      "last_updated": "2023-04-12T08:09:32Z"
-                  }
-              },
-              "document_id_photo": {
-                  "media": {
-                      "id": "78aa6043-9cbe-4b9b-afc9-aa31c425c708",
-                      "type": "IMAGE",
-                      "created": "2023-04-12T08:09:32Z",
-                      "last_updated": "2023-04-12T08:09:32Z"
-                  }
-              }
           }
       ],
       "supplementary_documents": [],

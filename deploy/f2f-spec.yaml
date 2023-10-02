@@ -911,6 +911,7 @@ components:
             - "task_completion"
             - "check_completion"
             - "session_completion"
+            - "thank_you_email_requested"
           description: indicates notification message type
           example: "session_completion"
         task_id:

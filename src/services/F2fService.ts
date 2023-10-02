@@ -234,30 +234,30 @@ export class F2fService {
 		return sessionItem.Items[0] as ISessionItem;
 	}
 
-	async getSessionsByAuthSessionState(authSessionState: string | undefined): Promise<Array<Record<string, any>>> {
-		const params: QueryCommandInput = {
-			TableName: this.tableName,
-			IndexName: Constants.AUTH_SESSION_STATE_INDEX_NAME,
-			KeyConditionExpression: "authSessionState = :authSessionState",
-			ExpressionAttributeValues: {
-				":authSessionState": authSessionState,
-			},
-		};
-
-		const sessionItems = await this.dynamo.query(params);
-
-		if (!sessionItems?.Items || sessionItems?.Items.length < 1) {
-			this.logger.error("Error retrieving Sessions by authSessionState", {
-				messageCode: MessageCodes.FAILED_FETCHING_SESSION_BY_AUTH_SESSION_STATE,
-			});
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Sessions by authSessionState");
+	async getSessionsByAuthSessionStates(authSessionStates: string[]): Promise<Array<Record<string, any>>> {
+		const uniqueSessionIds = new Set();
+		const filteredItems = [];
+	
+		for (const authSessionState of authSessionStates) {
+			const params = {
+				TableName: this.tableName,
+				IndexName: Constants.AUTH_SESSION_STATE_INDEX_NAME,
+				KeyConditionExpression: "authSessionState = :authSessionState",
+				ExpressionAttributeValues: {
+					":authSessionState": authSessionState,
+				},
+			};
+	
+			const sessionItems = (await this.dynamo.query(params))?.Items || [];
+	
+			for (const item of sessionItems) {
+				if (!uniqueSessionIds.has(item.sessionId) && item.expiryDate > absoluteTimeNow()) {
+					uniqueSessionIds.add(item.sessionId);
+					filteredItems.push(item);
+				}
+			}
 		}
-
-		// Filter out any records that have hit TTL
-		const filteredItems = sessionItems.Items.filter(item => {
-			return item.expiryDate > absoluteTimeNow();
-		});
-
+	
 		return filteredItems;
 	}
 

@@ -228,7 +228,7 @@ export interface YotiCompletedSession {
 		state: string;
 		resources_used: string[];
 		generated_media: any[];
-		report: {
+		report?: {
 			recommendation: {
 				value: string;
 			};

@@ -113,12 +113,13 @@ export async function userInfoPost(accessToken?: any): Promise<any> {
 	}
 }
 
-export async function callbackPost(sessionId: any): Promise<any> {
+export async function callbackPost(sessionId: string | undefined, topic = "session_completion"): Promise<any> {
 	const path = "/callback";
+	if (!sessionId) throw new Error("no yoti session ID provided");
 	try {
 		const postRequest = await API_INSTANCE.post(path, {
-			"session_id": sessionId,
-			"topic": "session_completion",
+			session_id: sessionId,
+			topic,
 		});
 		return postRequest;
 	} catch (error: any) {
@@ -399,6 +400,7 @@ export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 export function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): void {
 	const [rawHead, rawBody, signature] = jwtToken.split(".");
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
+	expect(decodedBody.jti).toBeTruthy();
 	// Strength Score
 	const expecedStrengthScore = eval("vcData.s" + yotiId + ".strengthScore");
 	if (expecedStrengthScore) {

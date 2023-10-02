@@ -55,10 +55,13 @@ export class AbortRequestProcessor {
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION table");
   	}
 
+  	const decodedRedirectUri = decodeURIComponent(f2fSessionInfo.redirectUri);
+  	const hasQuestionMark = decodedRedirectUri.includes("?");
+  	const redirectUri = `${decodedRedirectUri}${hasQuestionMark ? "&" : "?"}error=access_denied&state=${f2fSessionInfo.state}`;
 
   	if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_CRI_SESSION_ABORTED) {
   		this.logger.info("Session has already been aborted");
-  	  return new Response(HttpCodesEnum.OK, "Session has already been aborted");
+  		return new Response(HttpCodesEnum.OK, "Session has already been aborted", { Location: encodeURIComponent(redirectUri) });
   	}
 
   	try {
@@ -87,7 +90,6 @@ export class AbortRequestProcessor {
   		});
   	}
 
-  	const redirectUri = `${f2fSessionInfo.redirectUri}?error=access_denied&state=${f2fSessionInfo.state}`;
-  	return new Response(HttpCodesEnum.PERMANENT_REDIRECT, "Session has been aborted", { Location: redirectUri });
+  	return new Response(HttpCodesEnum.OK, "Session has been aborted", { Location: encodeURIComponent(redirectUri) });
   }
 }

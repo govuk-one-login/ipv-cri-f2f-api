@@ -5,7 +5,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
 import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-import { YotiCallbackProcessor } from "../../../services/YotiCallbackProcessor";
+import { YotiSessionCompletionProcessor } from "../../../services/YotiSessionCompletionProcessor";
 import { YotiService } from "../../../services/YotiService";
 import { YotiCompletedSession } from "../../../models/YotiPayloads";
 import { ISessionItem } from "../../../models/ISessionItem";
@@ -20,12 +20,16 @@ import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { TXMA_BRP_VC_ISSUED, TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_EEA_VC_ISSUED, TXMA_EU_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
 import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
 
-let mockYotiCallbackProcessor: YotiCallbackProcessor;
+let mockCompletedSessionProcessor: YotiSessionCompletionProcessor;
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 
 const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "F2F" });
+jest.mock("crypto", () => ({
+	...jest.requireActual("crypto"),
+	randomUUID: () => "sdfsdf",
+}));
 
 jest.mock("../../../utils/KmsJwtAdapter");
 const passingKmsJwtAdapterFactory = (_signingKeys: string) => new MockKmsJwtAdapterForVc(true);
@@ -102,14 +106,14 @@ const VALID_REQUEST = {
 	"topic" : "session_completion",
 };
 
-describe("YotiCallbackProcessor", () => {
+describe("YotiSessionCompletionProcessor", () => {
 	let f2fSessionItem: ISessionItem, personIdentityItem: PersonIdentityItem, completedYotiSession: YotiCompletedSession, documentFields: any;
 	beforeAll(() => {
-		mockYotiCallbackProcessor = new YotiCallbackProcessor(logger, metrics, "YOTIPRIM");
+		mockCompletedSessionProcessor = new YotiSessionCompletionProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore
-		mockYotiCallbackProcessor.f2fService = mockF2fService;
+		mockCompletedSessionProcessor.f2fService = mockF2fService;
 		// @ts-ignore
-		mockYotiCallbackProcessor.yotiService = mockYotiService;
+		mockCompletedSessionProcessor.yotiService = mockYotiService;
 
 		completedYotiSession = getCompletedYotiSession();
 		documentFields = getDocumentFields();
@@ -121,7 +125,7 @@ describe("YotiCallbackProcessor", () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
 		// @ts-ignore
-		mockYotiCallbackProcessor.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+		mockCompletedSessionProcessor.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 	});
 
 	it("Return successful response with 200 OK when YOTI session created with UK Passport", async () => {
@@ -132,9 +136,9 @@ describe("YotiCallbackProcessor", () => {
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
 		// @ts-ignore
-		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
@@ -157,6 +161,7 @@ describe("YotiCallbackProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -233,9 +238,9 @@ describe("YotiCallbackProcessor", () => {
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
 		// @ts-ignore
-		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
@@ -259,6 +264,7 @@ describe("YotiCallbackProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -343,9 +349,9 @@ describe("YotiCallbackProcessor", () => {
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
 		// @ts-ignore
-		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 		const euDlcoreFields = TXMA_CORE_FIELDS;
 		euDlcoreFields.timestamp = absoluteTimeNow();
 
@@ -369,6 +375,7 @@ describe("YotiCallbackProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -448,9 +455,9 @@ describe("YotiCallbackProcessor", () => {
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
 		// @ts-ignore
-		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 		const eeaDlcoreFields = TXMA_CORE_FIELDS;
 		eeaDlcoreFields.timestamp = absoluteTimeNow();
 		// eslint-disable-next-line @typescript-eslint/unbound-method
@@ -473,6 +480,7 @@ describe("YotiCallbackProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -550,9 +558,9 @@ describe("YotiCallbackProcessor", () => {
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
 		// @ts-ignore
-		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 		const brpCoreFields = TXMA_CORE_FIELDS;
 		brpCoreFields.timestamp = absoluteTimeNow();
 
@@ -576,6 +584,7 @@ describe("YotiCallbackProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -650,9 +659,9 @@ describe("YotiCallbackProcessor", () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
 			// @ts-ignore
-			mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-			await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+			await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 			expect(logger.info).toHaveBeenCalledWith("Getting NameParts using Yoti DocumentFields Info");
 		});	
 
@@ -667,10 +676,10 @@ describe("YotiCallbackProcessor", () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
 			// @ts-ignore
-			mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		
-			await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+			await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 			expect(logger.info).toHaveBeenCalledWith("Getting NameParts using F2F Person Identity Info");
 		});	
 
@@ -687,9 +696,9 @@ describe("YotiCallbackProcessor", () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
 			// @ts-ignore
-			mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-			await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+			await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
 			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 				sub: "testsub",
@@ -699,6 +708,7 @@ describe("YotiCallbackProcessor", () => {
 					"nbf":absoluteTimeNow(),
 					"iss":"https://XXX-c.env.account.gov.uk",
 					"iat":absoluteTimeNow(),
+					"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 					"vc":{
 						"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -773,9 +783,9 @@ describe("YotiCallbackProcessor", () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
 			// @ts-ignore
-			mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-			return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "FullName mismatch between F2F & YOTI",
 			}));
@@ -787,7 +797,7 @@ describe("YotiCallbackProcessor", () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(undefined);
 
-			return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Yoti Session not found",
 			}));
@@ -799,7 +809,7 @@ describe("YotiCallbackProcessor", () => {
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 	
-			return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Yoti Session not complete",
 			}));
@@ -860,7 +870,7 @@ describe("YotiCallbackProcessor", () => {
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 	
-			await expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Yoti document_fields not populated",
 			}));
@@ -873,6 +883,23 @@ describe("YotiCallbackProcessor", () => {
 			});
 		});
 
+		it("Throws server error if session in Yoti contains multiple document_field entries", async () => {
+			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
+			completedYotiSessionClone.resources.id_documents = [completedYotiSession.resources.id_documents[0], completedYotiSession.resources.id_documents[0]];
+		
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+	
+			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "Multiple document_fields in response",
+			}));
+			expect(logger.error).toHaveBeenCalledWith({ message: "Multiple document_fields found in completed Yoti Session" }, {
+				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
+			});
+		});
+
 		it("Throws server error if session in Yoti does not contain media ID", () => {
 			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
 			delete completedYotiSessionClone.resources.id_documents[0].document_fields.media.id;
@@ -880,7 +907,7 @@ describe("YotiCallbackProcessor", () => {
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 	
-			return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Yoti document_fields media ID not found",
 			}));
@@ -892,7 +919,7 @@ describe("YotiCallbackProcessor", () => {
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(undefined);
 
-		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+		return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Missing Info in Session Table",
 		}));
@@ -905,9 +932,9 @@ describe("YotiCallbackProcessor", () => {
 		mockF2fService.sendToTXMA.mockRejectedValue({});
 
 		// @ts-ignore
-		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockYotiCallbackProcessor.processRequest(VALID_REQUEST);
+		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
@@ -925,11 +952,11 @@ describe("YotiCallbackProcessor", () => {
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
 		// @ts-ignore
-		mockYotiCallbackProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		mockF2fService.sendToIPVCore.mockRejectedValueOnce("Failed to send to IPV Core");
 
-		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+		return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Failed to send to IPV Core",
 		}));
@@ -942,7 +969,7 @@ describe("YotiCallbackProcessor", () => {
 
 		jest.spyOn(VerifiableCredentialService.prototype as any, "signGeneratedVerifiableCredentialJwt").mockReturnValue("");
 
-		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+		return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Unable to create signed JWT",
 		}));
@@ -955,7 +982,7 @@ describe("YotiCallbackProcessor", () => {
 
 		jest.spyOn(VerifiableCredentialService.prototype as any, "signGeneratedVerifiableCredentialJwt").mockRejectedValueOnce(new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt"));
 
-		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).resolves.toEqual(expect.objectContaining({
+		return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).resolves.toEqual(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			body: "Failed to sign the verifiableCredential Jwt",
 		}));
@@ -968,7 +995,7 @@ describe("YotiCallbackProcessor", () => {
 
 		jest.spyOn(VerifiableCredentialService.prototype as any, "generateVerifiableCredentialJwt").mockReturnValue("");
 
-		return expect(mockYotiCallbackProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+		return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Unable to create signed JWT",
 		}));

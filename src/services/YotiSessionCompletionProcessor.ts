@@ -19,10 +19,11 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "../utils/IVeriCredential";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
+import { YotiCallbackPayload } from "../type/YotiCallbackPayload";
 
-export class YotiCallbackProcessor {
+export class YotiSessionCompletionProcessor {
 
-  private static instance: YotiCallbackProcessor;
+  private static instance: YotiSessionCompletionProcessor;
 
   private readonly logger: Logger;
 
@@ -59,18 +60,18 @@ export class YotiCallbackProcessor {
   	logger: Logger,
   	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
-  ): YotiCallbackProcessor {
-  	if (!YotiCallbackProcessor.instance) {
-  		YotiCallbackProcessor.instance = new YotiCallbackProcessor(
+  ): YotiSessionCompletionProcessor {
+  	if (!YotiSessionCompletionProcessor.instance) {
+  		YotiSessionCompletionProcessor.instance = new YotiSessionCompletionProcessor(
   			logger,
   			metrics,
   			YOTI_PRIVATE_KEY,
   		);
   	}
-  	return YotiCallbackProcessor.instance;
+  	return YotiSessionCompletionProcessor.instance;
   }
 
-  async processRequest(eventBody: any): Promise<Response> {
+  async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
   	const yotiSessionID = eventBody.session_id;
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
@@ -110,21 +111,32 @@ export class YotiCallbackProcessor {
 			  yotiUserTrackingId: completedYotiSessionInfo.user_tracking_id,
 		  });
 
-		  this.logger.info({ message: "Completed Yoti Session:" });
+  		const idDocuments = completedYotiSessionInfo.resources.id_documents;
+  		const idDocumentsDocumentFields = [];
 
-  		const idDocumentsDocumentFields = completedYotiSessionInfo.resources.id_documents[0].document_fields;
-  		if (!idDocumentsDocumentFields) {
+  		for (const document of idDocuments) {
+  			if (document.document_fields) {
+  				idDocumentsDocumentFields.push(document.document_fields);
+  			}
+  		}
+
+  		if (idDocumentsDocumentFields.length === 0) {
   			// If there is no document_fields, yoti have told us there will always be ID_DOCUMENT_TEXT_DATA_CHECK
   			const documentTextDataCheck = completedYotiSessionInfo.checks.find((check) => check.type === "ID_DOCUMENT_TEXT_DATA_CHECK");
 
 			  this.logger.error({ message: "No document_fields found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
-  				ID_DOCUMENT_TEXT_DATA_CHECK: documentTextDataCheck?.report.recommendation,
+  				ID_DOCUMENT_TEXT_DATA_CHECK: documentTextDataCheck?.report?.recommendation,
 			  });
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields not populated");
+  		} else if (idDocumentsDocumentFields.length > 1) {
+  			this.logger.error({ message: "Multiple document_fields found in completed Yoti Session" }, {
+				  messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
+			  });
+			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Multiple document_fields in response");
   		}
 
-		  const documentFieldsId = idDocumentsDocumentFields.media.id;
+		  const documentFieldsId = idDocumentsDocumentFields[0].media.id;
 		  if (!documentFieldsId) {
 			  this.logger.error({ message: "No media ID found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
