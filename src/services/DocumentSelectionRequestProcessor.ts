@@ -105,17 +105,10 @@ export class DocumentSelectionRequestProcessor {
   	}
 
   	// Reject the request when session store does not contain email, familyName or GivenName fields
-  	if (!this.validationHelper.checkIfValidString([personDetails.emailAddress])) {
-  		this.logger.error("Missing emailAddress in the PERSON IDENTITY table", {
-  			messageCode: MessageCodes.MISSING_PERSON_EMAIL_ADDRESS,
-  		});
-  		return new Response(HttpCodesEnum.BAD_REQUEST, "Missing emailAddress in the PERSON IDENTITY table");
-  	}
-  	if (!personDetails.name || !this.validationHelper.isPersonNameValid(personDetails.name)) {
-  		this.logger.error("Missing person's GivenName or FamilyName in the PERSON IDENTITY table", {
-  			messageCode: MessageCodes.MISSING_PERSON_IDENTITY_NAME,
-  		});
-  		return new Response(HttpCodesEnum.BAD_REQUEST, "Missing person's GivenName or FamilyName in the PERSON IDENTITY table");
+  	const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);
+  	if (data.errorMessage.length > 0) {
+  		this.logger.error( data.errorMessage + " in the PERSON IDENTITY table", { messageCode : data.errorMessageCode });
+  		return new Response(HttpCodesEnum.SERVER_ERROR, data.errorMessage + " in the PERSON IDENTITY table");
   	}
 
   	if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {

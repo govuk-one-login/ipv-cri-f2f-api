@@ -102,22 +102,22 @@ export class ValidationHelper {
 		return "";
 	};
 
-	isSharedClaimDataValid(jwtPayload: JwtPayload): { errorMsg: string; errorMsgCode: string } {
+	isPersonDetailsValid(personEmail: string, personName: PersonIdentityName[]): { errorMessage: string; errorMessageCode: string } {
 		// Validate user details like givenName, familyName and email
-		if (!this.checkIfValidString([jwtPayload.shared_claims.emailAddress])) {
+		if (!this.checkIfValidString([personEmail])) {
 			return {
-				errorMsg: "Missing emailAddress from shared claims data",
-				errorMsgCode: MessageCodes.MISSING_PERSON_EMAIL_ADDRESS,
+				errorMessage: "Missing emailAddress",
+				errorMessageCode: MessageCodes.MISSING_PERSON_EMAIL_ADDRESS,
 			};
-		} else if (!jwtPayload.shared_claims.name || !this.isPersonNameValid(jwtPayload.shared_claims.name)) {
+		} else if (!personName || !this.isPersonNameValid(personName)) {
 			return {
-				errorMsg: "Missing person's GivenName or FamilyName from shared claims data",
-				errorMsgCode: MessageCodes.MISSING_PERSON_IDENTITY_NAME,
+				errorMessage: "Missing person's GivenName or FamilyName",
+				errorMessageCode: MessageCodes.MISSING_PERSON_IDENTITY_NAME,
 			};
 		}
 		return {
-			errorMsg: "",
-			errorMsgCode: "",
+			errorMessage: "",
+			errorMessageCode: "",
 		};		
 	}
 

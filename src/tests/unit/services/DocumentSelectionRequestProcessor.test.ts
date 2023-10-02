@@ -333,7 +333,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		);
 	});
 
-	it("Returns BadRequest if PersonIdentity table is missing emailAddress", async () => {
+	it("Returns server error if PersonIdentity table is missing emailAddress", async () => {
 		const f2fSessionItemInvalid: ISessionItem = {
 			...f2fSessionItem,
 			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
@@ -345,14 +345,14 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
-		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
+		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("Missing emailAddress in the PERSON IDENTITY table");
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing emailAddress in the PERSON IDENTITY table", { "messageCode": MessageCodes.MISSING_PERSON_EMAIL_ADDRESS },
 		);
 	});
 
-	it("Returns BadRequest if PersonIdentity table is missing name", async () => {
+	it("Returns server error if PersonIdentity table is missing name", async () => {
 		const f2fSessionItemInvalid: ISessionItem = {
 			...f2fSessionItem,
 			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
@@ -364,14 +364,14 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
-		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
+		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("Missing person's GivenName or FamilyName in the PERSON IDENTITY table");
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing person's GivenName or FamilyName in the PERSON IDENTITY table", { "messageCode": MessageCodes.MISSING_PERSON_IDENTITY_NAME },
 		);
 	});
 
-	it("Returns BadRequest if GivenName is empty in the PersonIdentity table", async () => {
+	it("Returns server error if GivenName is empty in the PersonIdentity table", async () => {
 		const f2fSessionItemInvalid: ISessionItem = {
 			...f2fSessionItem,
 			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
@@ -396,14 +396,14 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
-		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
+		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("Missing person's GivenName or FamilyName in the PERSON IDENTITY table");
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing person's GivenName or FamilyName in the PERSON IDENTITY table", { "messageCode": MessageCodes.MISSING_PERSON_IDENTITY_NAME },
 		);
 	});
 
-	it("Returns BadRequest if FamilyName is empty in the PersonIdentity table", async () => {
+	it("Returns server error if FamilyName is empty in the PersonIdentity table", async () => {
 		const f2fSessionItemInvalid: ISessionItem = {
 			...f2fSessionItem,
 			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
@@ -428,7 +428,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
-		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
+		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("Missing person's GivenName or FamilyName in the PERSON IDENTITY table");
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing person's GivenName or FamilyName in the PERSON IDENTITY table", { "messageCode": MessageCodes.MISSING_PERSON_IDENTITY_NAME },

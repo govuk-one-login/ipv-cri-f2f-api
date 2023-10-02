@@ -135,10 +135,10 @@ export class SessionRequestProcessor {
   		return unauthorizedResponse;
   	}
 
-  	// Validate the address format and user details of the shared_claims received from the jwt.
-  	const { errorMsg, errorMsgCode } = this.validationHelper.isSharedClaimDataValid(jwtPayload);
-  	if (errorMsg.length > 0) {
-  		this.logger.error( { message: errorMsg }, { messageCode : errorMsgCode });
+  	// Validate the user details of the shared_claims received from the jwt.
+  	const data = this.validationHelper.isPersonDetailsValid(jwtPayload.shared_claims.emailAddress, jwtPayload.shared_claims.name);
+  	if (data.errorMessage.length > 0) {
+  		this.logger.error( { message: data.errorMessage + "  from shared claims data" }, { messageCode : data.errorMessageCode });
   		return unauthorizedResponse;
   	}
 

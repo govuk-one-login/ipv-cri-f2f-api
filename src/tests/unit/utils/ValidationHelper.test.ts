@@ -89,32 +89,32 @@ describe("ValidationHelper", () => {
 		expect(errorMessageCode).toStrictEqual(MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS);
 	});
 
-	it("isSharedClaimDataValid function should return empty errorMsg and errorMsgCode when all fields are present in the sharedClaim payload", () => {
-		const { errorMsg, errorMsgCode } = validationHelper.isSharedClaimDataValid(jwtPayload);
+	it("isSharedClaimDataValid function should return empty errorMessage and errorMessageCode when all fields are present in the sharedClaim payload", () => {
+		const { errorMessage, errorMessageCode } = validationHelper.isPersonDetailsValid(jwtPayload.shared_claims.emailAddress, jwtPayload.shared_claims.name);
 
-		expect(errorMsg).toBe("");
-		expect(errorMsgCode).toBe("");
+		expect(errorMessage).toBe("");
+		expect(errorMessageCode).toBe("");
 	});
 
-	it("isSharedClaimDataValid function should return the expected errorMsg and errorMsgCode when emailAddress is missing in the sharedClaim paylaod", () => {
+	it("isSharedClaimDataValid function should return the expected errorMessage and errorMessageCode when emailAddress is missing in the sharedClaim paylaod", () => {
 		// delete emailAddress field
 		delete jwtPayload.shared_claims.emailAddress;
-		const { errorMsg, errorMsgCode } = validationHelper.isSharedClaimDataValid(jwtPayload);
+		const { errorMessage, errorMessageCode } = validationHelper.isPersonDetailsValid(jwtPayload.shared_claims.emailAddress, jwtPayload.shared_claims.name);
 
-		expect(errorMsg).toBe("Missing emailAddress from shared claims data");
-		expect(errorMsgCode).toStrictEqual(MessageCodes.MISSING_PERSON_EMAIL_ADDRESS);
+		expect(errorMessage).toBe("Missing emailAddress");
+		expect(errorMessageCode).toStrictEqual(MessageCodes.MISSING_PERSON_EMAIL_ADDRESS);
 	});
 
-	it("isSharedClaimDataValid function should return the expected errorMsg and errorMsgCode when name is missing in the sharedClaim paylaod", () => {
+	it("isSharedClaimDataValid function should return the expected errorMessage and errorMessageCode when name is missing in the sharedClaim paylaod", () => {
 		// delete emailAddress field
 		delete jwtPayload.shared_claims.name;
-		const { errorMsg, errorMsgCode } = validationHelper.isSharedClaimDataValid(jwtPayload);
+		const { errorMessage, errorMessageCode } = validationHelper.isPersonDetailsValid(jwtPayload.shared_claims.emailAddress, jwtPayload.shared_claims.name);
 
-		expect(errorMsg).toBe("Missing person's GivenName or FamilyName from shared claims data");
-		expect(errorMsgCode).toStrictEqual(MessageCodes.MISSING_PERSON_IDENTITY_NAME);
+		expect(errorMessage).toBe("Missing person's GivenName or FamilyName");
+		expect(errorMessageCode).toStrictEqual(MessageCodes.MISSING_PERSON_IDENTITY_NAME);
 	});
 
-	it("isSharedClaimDataValid function should return the expected errorMsg and errorMsgCode when GivenName is empty in the sharedClaim paylaod", () => {
+	it("isSharedClaimDataValid function should return the expected errorMessage and errorMessageCode when GivenName is empty in the sharedClaim paylaod", () => {
 		jwtPayload.shared_claims.name = [
 			{
 			   nameParts:[
@@ -129,13 +129,13 @@ describe("ValidationHelper", () => {
 			   ],
 			},
 		];
-		const { errorMsg, errorMsgCode } = validationHelper.isSharedClaimDataValid(jwtPayload);
+		const { errorMessage, errorMessageCode } = validationHelper.isPersonDetailsValid(jwtPayload.shared_claims.emailAddress, jwtPayload.shared_claims.name);
 
-		expect(errorMsg).toBe("Missing person's GivenName or FamilyName from shared claims data");
-		expect(errorMsgCode).toStrictEqual(MessageCodes.MISSING_PERSON_IDENTITY_NAME);
+		expect(errorMessage).toBe("Missing person's GivenName or FamilyName");
+		expect(errorMessageCode).toStrictEqual(MessageCodes.MISSING_PERSON_IDENTITY_NAME);
 	});
 
-	it("isSharedClaimDataValid function should return the expected errorMsg and errorMsgCode when FamilyName is empty in the sharedClaim paylaod", () => {
+	it("isSharedClaimDataValid function should return the expected errorMessage and errorMessageCode when FamilyName is empty in the sharedClaim paylaod", () => {
 		jwtPayload.shared_claims.name = [
 			{
 			   nameParts:[
@@ -150,10 +150,10 @@ describe("ValidationHelper", () => {
 			   ],
 			},
 		];
-		const { errorMsg, errorMsgCode } = validationHelper.isSharedClaimDataValid(jwtPayload);
+		const { errorMessage, errorMessageCode } = validationHelper.isPersonDetailsValid(jwtPayload.shared_claims.emailAddress, jwtPayload.shared_claims.name);
 		
-		expect(errorMsg).toBe("Missing person's GivenName or FamilyName from shared claims data");
-		expect(errorMsgCode).toStrictEqual(MessageCodes.MISSING_PERSON_IDENTITY_NAME);
+		expect(errorMessage).toBe("Missing person's GivenName or FamilyName");
+		expect(errorMessageCode).toStrictEqual(MessageCodes.MISSING_PERSON_IDENTITY_NAME);
 	});
 
 });
