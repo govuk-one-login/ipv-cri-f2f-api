@@ -2444,7 +2444,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  TriggerYotiTokenConcurrency80Alarm:
+  TriggerYotiConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployConcurrencyAlarms"
     Properties:
@@ -2469,7 +2469,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
-  TriggerYotiTokenThrottleAlarm:
+  TriggerYotiThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
     Properties:
