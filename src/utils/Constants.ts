@@ -83,5 +83,15 @@ export class Constants {
   static readonly IDENTITY_CHECK_CREDENTIAL = "IdentityCheckCredential";
 
   static readonly URN_UUID_PREFIX = "urn:uuid:";
+
+	static readonly FIRST_NAME = "first name";
+
+	static readonly GOV_NOTIFY_OPTIONS = {
+		FIRST_NAME: "first name",
+		LAST_NAME: "last name",
+		LINK_TO_FILE: "link_to_file",
+		CHOSEN_PHOTO_ID: "chosen photo ID"
+
+	};
   
 }

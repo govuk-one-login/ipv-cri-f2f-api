@@ -18,9 +18,7 @@ import { PersonIdentityItem } from "../models/PersonIdentityItem";
 import { PostOfficeInfo } from "../models/YotiPayloads";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AllDocumentTypes, DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
-import { DrivingPermit, IdentityCard, Passport, ResidencePermit } from "../utils/IVeriCredential";
 import { ValidationHelper } from "../utils/ValidationHelper";
-import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -169,7 +167,7 @@ export class DocumentSelectionRequestProcessor {
   		}
 
   		try {
-  			this.logger.info("Updating documentType in Session Table: ", { docType });
+  			this.logger.info("Updating selected document in Session Table: ", { docType });
   			await this.f2fService.addUsersSelectedDocument(f2fSessionInfo.sessionId, docType, this.environmentVariables.sessionTable());
   		} catch (error: any) {
   			this.logger.error("Error occurred during documentSelection orchestration", error.message,

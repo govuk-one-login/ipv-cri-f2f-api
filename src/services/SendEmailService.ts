@@ -18,6 +18,7 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { ReminderEmail } from "../models/ReminderEmail";
 import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { MessageCodes } from "../models/enums/MessageCodes";
+import { Constants } from "../utils/Constants";
 
 
 /**
@@ -81,11 +82,13 @@ export class SendEmailService {
 				this.logger.debug("sendEmail", SendEmailService.name);
 				this.logger.info("Sending Yoti PDF email");
 
+				const { GOV_NOTIFY_OPTIONS } = Constants;
+
 				const options = {
 					personalisation: {
-						"first name": message.firstName,
-						"last name": message.lastName,
-						"link_to_file": { "file": encoded, "confirm_email_before_download": true, "retention_period": "2 weeks" },
+						[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
+						[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
+						[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: { "file": encoded, "confirm_email_before_download": true, "retention_period": "2 weeks" },
 					},
 					reference: message.referenceId,
 				};
@@ -120,14 +123,16 @@ export class SendEmailService {
 	}
 
 	async sendDynamicReminderEmail(message: DynamicReminderEmail): Promise<EmailResponse> {
-		this.logger.info("Sending reminder email");
+		this.logger.info("Sending dynamic reminder email");
+
+		const { GOV_NOTIFY_OPTIONS } = Constants;
 
 		try {
 			const options = {
 				personalisation: {
-					"first name": message.firstName,
-					"last name": message.lastName,
-					"chosen photo ID": message.docType,
+					[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
+					[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
+					[GOV_NOTIFY_OPTIONS.CHOSEN_PHOTO_ID]: message.docType,
 				},
 				reference: message.referenceId,
 			};
