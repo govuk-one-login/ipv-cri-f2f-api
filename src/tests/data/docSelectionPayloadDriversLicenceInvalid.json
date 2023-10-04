@@ -1,11 +1,11 @@
 {
   "document_selection":{
-     "document_selected":"ukPhotocardDl",
+     "document_selected":null,
      "date_of_expiry":"1970-01-01",
-     "country_code": "GBR"
+     "country_code": 999
   },
   "post_office_selection":{
-     "address":"1 The Street, Funkytown",
+     "address": 1234,
      "location":{
         "latitude":0.34322,
         "longitude":-42.48372

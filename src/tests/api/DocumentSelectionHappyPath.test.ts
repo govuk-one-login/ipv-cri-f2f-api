@@ -2,7 +2,7 @@ import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import dataDriversLicense from "../data/docSelectionPayloadDriversLicenceValid.json";
 import dataBrp from "../data/docSelectionPayloadBrpValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
-import { postDocumentSelection, startStubServiceAndReturnSessionId, authorizationGet, tokenPost, userInfoPost, stubStartPostNoSharedClaims, sessionPost, getSessionById } from "../utils/ApiTestSteps";
+import { postDocumentSelection, startStubServiceAndReturnSessionId, authorizationGet, tokenPost, userInfoPost, sessionPost, getSessionById } from "../utils/ApiTestSteps";
 import { constants } from "../utils/ApiConstants";
 
 describe("E2E Happy Path /documentSelection Endpoint", () => {

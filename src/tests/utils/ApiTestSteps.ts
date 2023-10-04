@@ -43,18 +43,6 @@ export async function stubStartPost(stubPayload: any): Promise<any> {
 	}
 }
 
-export async function stubStartPostNoSharedClaims(requestBody: any): Promise<any> {
-	const path = constants.DEV_IPV_F2F_STUB_URL;
-	try {
-		const postRequest = await axios.post(`${path}`, requestBody);
-		expect(postRequest.status).toBe(201);
-		return postRequest;
-	} catch (error: any) {
-		console.log(`Error response from ${path} endpoint: ${error}`);
-		return error.response;
-	}
-}
-
 export async function sessionPost(clientId?: string, request?: string): Promise<any> {
 	const path = "/session";
 	try {
