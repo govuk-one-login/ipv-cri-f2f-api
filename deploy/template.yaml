@@ -2408,7 +2408,7 @@ Resources:
       FilterPattern: ""
       LogGroupName: !Ref TriggerYotiCallbackStateMachineLogGroup
 
-  TriggerYotiCallbackStateMachineFatalErrorMetricFilter:
+  TriggerYotiCallbackSMFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref TriggerYotiCallbackStateMachineLogGroup
@@ -2417,7 +2417,7 @@ Resources:
         -
           MetricValue: "1"
           MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
-          MetricName: "YotiCallbackFunction-Fatalerror"
+          MetricName: "TriggerYotiCallbackFunction-Fatalerror"
 
   TriggerYotiCallbackStateMachineFatalErrorAlarm:
     DependsOn:
@@ -2433,7 +2433,7 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: [ ]
-      MetricName: YotiCallbackFunction-Fatalerror
+      MetricName: TriggerYotiCallbackFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
       Dimensions: [ ]
@@ -2455,7 +2455,7 @@ Resources:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of Yoticallback is used. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-concurrency"
+      AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
       Dimensions:
