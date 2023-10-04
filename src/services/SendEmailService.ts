@@ -132,7 +132,7 @@ export class SendEmailService {
 				personalisation: {
 					[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
 					[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
-					[GOV_NOTIFY_OPTIONS.CHOSEN_PHOTO_ID]: message.docType,
+					[GOV_NOTIFY_OPTIONS.CHOSEN_PHOTO_ID]: message.documentUsed,
 				},
 				reference: message.referenceId,
 			};

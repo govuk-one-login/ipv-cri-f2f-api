@@ -459,12 +459,12 @@ export class F2fService {
 			},
 		});
 
-		this.logger.info({ message: `Updating selected document in ${tableName}`, updateStateCommand });
+		this.logger.info({ message: `Updating documentUsed in ${tableName}`, updateStateCommand });
 		try {
 			await this.dynamo.send(updateStateCommand);
-			this.logger.info({ message: `Updated ${tableName} with selected document` });
+			this.logger.info({ message: `Updated ${tableName} with documentUsed` });
 		} catch (error) {
-			this.logger.error({ message: `Got error updating selected document in ${tableName}`, error });
+			this.logger.error({ message: `Got error updating documentUsed in ${tableName}`, error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
 		}
 	}

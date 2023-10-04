@@ -315,7 +315,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.updateSessionTtl).toHaveBeenNthCalledWith(2, "RandomF2FSessionID", Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL_SECS!), "PERSONIDENTITYTABLE");
 	});
 
-	it("Should save the selected document type in session table", async () => {
+	it("Should save the documentUsed type in session table", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
@@ -606,7 +606,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.body).toBe("An error has occurred");
 	});
 
-	it("Return 500 when add users selected document returns an error", async () => {
+	it("Return 500 when add users documentUsed returns an error", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 

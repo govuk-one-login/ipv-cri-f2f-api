@@ -14,7 +14,7 @@ export class DynamicReminderEmail {
 		this.emailAddress = data.emailAddress!;
 		this.firstName = data.firstName!;
 		this.lastName = data.lastName!;
-		this.docType = data.docType!;
+		this.documentUsed = data.documentUsed!;
 		this.referenceId = randomUUID();
 	}
 
@@ -42,7 +42,7 @@ export class DynamicReminderEmail {
 
 	@IsString()
 	@IsNotEmpty()
-	docType!: string;
+	documentUsed!: string;
 
 
 	@IsString()

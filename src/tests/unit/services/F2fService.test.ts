@@ -419,7 +419,7 @@ describe("F2f Service", () => {
 		}));
 	});	
 
-	it("should update session table with selected document", async () => {
+	it("should update session table with documentUsed", async () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
 		await f2fService.addUsersSelectedDocument("SESSID", "passport", "SESSIONTABLE");
 		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
@@ -437,7 +437,7 @@ describe("F2f Service", () => {
 	});
 	
 
-	it("should throw 500 if fails to update selected document", async () => {
+	it("should throw 500 if fails to update documentUsed", async () => {
 		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
 		await expect(f2fService.addUsersSelectedDocument("SESSID", "passport", "SESSIONTABLE")).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,

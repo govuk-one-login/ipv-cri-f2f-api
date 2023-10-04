@@ -23,7 +23,7 @@ export interface ReminderEmailEventDynamic {
 	"Message": {
 		"firstName": string;
 		"lastName": string;
-		"docType": string;
+		"documentUsed": string;
 		"emailAddress": string;
 		"messageType": string;
 	};
@@ -55,14 +55,14 @@ export const buildReminderEmailEventFields = (emailAddress: string): ReminderEma
 	};
 };
 
-export const buildDynamicReminderEmailEventFields = (emailAddress: string, firstName: string, lastName: string, docType: string): ReminderEmailEventDynamic => {
+export const buildDynamicReminderEmailEventFields = (emailAddress: string, firstName: string, lastName: string, documentUsed: string): ReminderEmailEventDynamic => {
 
 	return {
 		Message : {
 			emailAddress,
 			firstName,
 			lastName,
-			docType,
+			documentUsed,
 			messageType: Constants.REMINDER_EMAIL_DYNAMIC,
 		},
 	};

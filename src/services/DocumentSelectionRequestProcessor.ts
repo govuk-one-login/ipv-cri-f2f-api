@@ -167,7 +167,7 @@ export class DocumentSelectionRequestProcessor {
   		}
 
   		try {
-  			this.logger.info("Updating selected document in Session Table: ", { docType });
+  			this.logger.info("Updating documentUsed in Session Table: ", { documentUsed: docType });
   			await this.f2fService.addUsersSelectedDocument(f2fSessionInfo.sessionId, docType, this.environmentVariables.sessionTable());
   		} catch (error: any) {
   			this.logger.error("Error occurred during documentSelection orchestration", error.message,

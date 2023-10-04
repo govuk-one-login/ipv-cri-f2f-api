@@ -102,7 +102,7 @@ describe("SendEmailProcessor", () => {
 			"firstName",
 			"lastName",
 			"emailAddress",
-			"docType",
+			"documentUsed",
 		])("Throws error when event body message is missing required attributes", async (attribute) => {
 			const eventBody = JSON.parse(dynamicEmailEvent.Records[0].body);
 			const eventBodyMessage = eventBody.Message;
