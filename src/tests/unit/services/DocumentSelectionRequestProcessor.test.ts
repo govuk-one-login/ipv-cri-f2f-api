@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/dot-notation */
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -187,6 +188,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	beforeEach(() => {
 		jest.clearAllMocks();
+		personIdentityItem = getPersonIdentityItem();
 	});
 
 	it("Return successful response with 200 OK when YOTI session created", async () => {
@@ -328,6 +330,108 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.body).toBe("Yoti session already exists for this authorization session or Session is in the wrong state");
 		expect(logger.warn).toHaveBeenCalledWith(
 			"Yoti session already exists for this authorization session or Session is in the wrong state: F2F_YOTI_SESSION_CREATED", { "messageCode": "STATE_MISMATCH" },
+		);
+	});
+
+	it("Returns server error if PersonIdentity table is missing emailAddress", async () => {
+		const f2fSessionItemInvalid: ISessionItem = {
+			...f2fSessionItem,
+			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
+			yotiSessionId: "RandomYOTISessionID",
+		};
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
+		personIdentityItem.emailAddress = " ";
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+
+		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
+		expect(out.body).toBe("Missing emailAddress in the PERSON IDENTITY table");
+		expect(logger.error).toHaveBeenCalledWith(
+			"Missing emailAddress in the PERSON IDENTITY table", { "messageCode": MessageCodes.MISSING_PERSON_EMAIL_ADDRESS },
+		);
+	});
+
+	it("Returns server error if PersonIdentity table is missing name", async () => {
+		const f2fSessionItemInvalid: ISessionItem = {
+			...f2fSessionItem,
+			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
+			yotiSessionId: "RandomYOTISessionID",
+		};
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
+		personIdentityItem.name = [];
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+
+		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
+		expect(out.body).toBe("Missing person's GivenName or FamilyName in the PERSON IDENTITY table");
+		expect(logger.error).toHaveBeenCalledWith(
+			"Missing person's GivenName or FamilyName in the PERSON IDENTITY table", { "messageCode": MessageCodes.MISSING_PERSON_IDENTITY_NAME },
+		);
+	});
+
+	it("Returns server error if GivenName is empty in the PersonIdentity table", async () => {
+		const f2fSessionItemInvalid: ISessionItem = {
+			...f2fSessionItem,
+			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
+			yotiSessionId: "RandomYOTISessionID",
+		};
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
+		personIdentityItem.name = [
+			{
+				nameParts: [
+					{
+						type: "GivenName",
+						value: " ",
+					},
+					{
+						type: "FamilyName",
+						value: "Flintstone",
+					},
+				],
+			},
+		];
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+
+		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
+		expect(out.body).toBe("Missing person's GivenName or FamilyName in the PERSON IDENTITY table");
+		expect(logger.error).toHaveBeenCalledWith(
+			"Missing person's GivenName or FamilyName in the PERSON IDENTITY table", { "messageCode": MessageCodes.MISSING_PERSON_IDENTITY_NAME },
+		);
+	});
+
+	it("Returns server error if FamilyName is empty in the PersonIdentity table", async () => {
+		const f2fSessionItemInvalid: ISessionItem = {
+			...f2fSessionItem,
+			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
+			yotiSessionId: "RandomYOTISessionID",
+		};
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
+		personIdentityItem.name = [
+			{
+				nameParts: [
+					{
+						type: "GivenName",
+						value: "Frederick",
+					},
+					{
+						type: "FamilyName",
+						value: " ",
+					},
+				],
+			},
+		];
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+
+		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
+		expect(out.body).toBe("Missing person's GivenName or FamilyName in the PERSON IDENTITY table");
+		expect(logger.error).toHaveBeenCalledWith(
+			"Missing person's GivenName or FamilyName in the PERSON IDENTITY table", { "messageCode": MessageCodes.MISSING_PERSON_IDENTITY_NAME },
 		);
 	});
 
