@@ -259,19 +259,19 @@ describe("F2f Service", () => {
 		]);
 		expect(mockDynamoDbClient.query).toHaveBeenNthCalledWith(1, {
 			"ExpressionAttributeValues": { ":authSessionState": "F2F_YOTI_SESSION_CREATED" },
-			"IndexName": "authSessionState-index",
+			"IndexName": "authSessionState-updated-index",
 			"KeyConditionExpression": "authSessionState = :authSessionState",
 			"TableName": "SESSIONTABLE",
 		});
 		expect(mockDynamoDbClient.query).toHaveBeenNthCalledWith(2, {
 			"ExpressionAttributeValues": { ":authSessionState": "F2F_AUTH_CODE_ISSUED" },
-			"IndexName": "authSessionState-index",
+			"IndexName": "authSessionState-updated-index",
 			"KeyConditionExpression": "authSessionState = :authSessionState",
 			"TableName": "SESSIONTABLE",
 		});
 		expect(mockDynamoDbClient.query).toHaveBeenNthCalledWith(3, {
 			"ExpressionAttributeValues": { ":authSessionState": "F2F_ACCESS_TOKEN_ISSUED" },
-			"IndexName": "authSessionState-index",
+			"IndexName": "authSessionState-updated-index",
 			"KeyConditionExpression": "authSessionState = :authSessionState",
 			"TableName": "SESSIONTABLE",
 		});
