@@ -347,7 +347,6 @@ export class YotiSessionCompletionProcessor {
 			  this.logger.error({ message: `Unable to find document type ${documentFields.document_type}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
 	  }
-	  console.log("Before TxMA send", rejectionReasons)
 	  try {
   		// this event
 		  await this.f2fService.sendToTXMA({

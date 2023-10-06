@@ -123,7 +123,7 @@ export class GenerateVerifiableCredential {
   private getContraIndicator(
   	ID_DOCUMENT_FACE_MATCH_RECOMMENDATION: YotiCheckRecommendation,
   	ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION: YotiCheckRecommendation,
-  ): { contraIndicators: string[]; rejectionReasons: [{ci: string, reason: string}] } {
+  ): { contraIndicators: string[]; rejectionReasons: [{ ci: string; reason: string }] } {
   	const contraIndicators: string[] = [];
   	const rejectionReasons: any = [];
 
@@ -145,13 +145,12 @@ export class GenerateVerifiableCredential {
   				case "PHOTO_OF_PHOTO":
   				case "DIFFERENT_PERSON":
   					addToCI("V01");
-  					rejectionReasons.push({ci: "V01", reason});
+  					rejectionReasons.push({ ci: "V01", reason });
   					break;
   				default:
   					break;
   			}
   		}
-		console.log("No issue generating RR in handleFaceMatchRejection", rejectionReasons)
   	};
 
   	const handleAuthenticityRejection = () => {
@@ -187,10 +186,9 @@ export class GenerateVerifiableCredential {
   			this.logger.info({ message: "Handling authenticity rejection", reason, contraIndicator });
   			if (contraIndicator) {
   				addToCI(contraIndicator);
-  				if (reason) rejectionReasons.push({ci: contraIndicator, reason});
+  				if (reason) rejectionReasons.push({ ci: contraIndicator, reason });
   			}
   		}
-		  console.log("No issue generating RR in handleAuthenticityRejection", rejectionReasons)
   	};
 
   	// these are the two recjection reason checkers I think?
@@ -334,7 +332,7 @@ export class GenerateVerifiableCredential {
   ): {
   		credentialSubject: VerifiedCredentialSubject;
   		evidence: VerifiedCredentialEvidence;
-  		rejectionReasons: [{ci: string, reason: string}];
+  		rejectionReasons: [{ ci: string; reason: string }];
   	} {
   	const { id_documents: idDocuments } = completedYotiSessionPayload.resources;
   	const { checks } = completedYotiSessionPayload;
