@@ -368,7 +368,7 @@ export class YotiSessionCompletionProcessor {
 						  validityScore: evidence[0].validityScore,
 						  verificationScore: evidence[0].verificationScore,
 						  ci: evidence[0].ci,
-  						  ciReasons: rejectionReasons,
+  						ciReasons: rejectionReasons,
 						  checkDetails: evidence[0].checkDetails,
 					  },
 				  ],
