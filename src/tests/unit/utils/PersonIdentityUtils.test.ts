@@ -251,17 +251,18 @@ describe("PersonIdentityUtils", () => {
 
 	describe("GetNamesFromPersonIdentity", () => {	
 		it.each([
-			["return VcNameParts if F2F Name data matches Yoti Name data", documentFields, false, { "nameParts":[{ "value":"FREDERICK", "type":"GivenName" }, { "value":"JOSEPH", "type":"GivenName" }, { "value":"FLINTSTONE", "type":"FamilyName" }] }],
-			["return VcNameParts with the name case as is from Yoti DocumentFields", { ...documentFields, full_name: "FrEdErIcK JoSePh fLiNtStOnE" }, false, { "nameParts":[{ "value":"FrEdErIcK", "type":"GivenName" }, { "value":"JoSePh", "type":"GivenName" }, { "value":"fLiNtStOnE", "type":"FamilyName" }] }],
-			["should throw an error if familyName in F2F does not match the familyName in DocumentFields", { ...documentFields, full_name: "FREDERICK JOSEPH FLINT" }, true, null],
-			["should throw an error if givenName in F2F does not match the givenName in DocumentFields", { ...documentFields, full_name: "JOSEPH FREDERICK FLINTSTONE" }, true, null],
-			["should throw an error if order of names in F2F not same as in Yoti DocumentFields", { ...documentFields, full_name: "FRED JOSEPH FLINTSTONE" }, true, null],
+			["return VcNameParts if F2F Name data matches Yoti Name data", true, documentFields, false, { "nameParts":[{ "value":"FREDERICK", "type":"GivenName" }, { "value":"JOSEPH", "type":"GivenName" }, { "value":"FLINTSTONE", "type":"FamilyName" }] }],
+			["return VcNameParts with the name case as is from Yoti DocumentFields", true, { ...documentFields, full_name: "FrEdErIcK JoSePh fLiNtStOnE" }, false, { "nameParts":[{ "value":"FrEdErIcK", "type":"GivenName" }, { "value":"JoSePh", "type":"GivenName" }, { "value":"fLiNtStOnE", "type":"FamilyName" }] }],
+			["should throw an error if familyName in F2F does not match the familyName in DocumentFields", false, { ...documentFields, full_name: "FREDERICK JOSEPH FLINT" }, true, null],
+			["should throw an error if givenName in F2F does not match the givenName in DocumentFields", false, { ...documentFields, full_name: "JOSEPH FREDERICK FLINTSTONE" }, true, null],
+			["should throw an error if order of names in F2F not same as in Yoti DocumentFields", false, { ...documentFields, full_name: "FRED JOSEPH FLINTSTONE" }, true, null],
 		])(
 			"%s",
-			(_description, testData, shouldThrow, expectedVcNameParts) => {
+			(_description, doesFullNameMatch, testData, shouldThrow, expectedVcNameParts) => {
 				if (shouldThrow) {
 					expect(() =>
 						personIdentityUtils.getNamesFromPersonIdentity(
+							doesFullNameMatch,
 							personDetails,
 							testData,
 							logger,
@@ -276,6 +277,7 @@ describe("PersonIdentityUtils", () => {
 				} else {
 					if (expectedVcNameParts !== null) {
 						const VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(
+							doesFullNameMatch,
 							personDetails,
 							testData,
 							logger,

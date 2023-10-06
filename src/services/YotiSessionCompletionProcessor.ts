@@ -212,8 +212,7 @@ export class YotiSessionCompletionProcessor {
   				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Name Info in DocumentFields");
   			}
 
-  			if (missingGivenName || missingFamilyName) {
-  				const personDetails = await this.f2fService.getPersonIdentityById(f2fSession.sessionId, this.environmentVariables.personIdentityTableName());
+  			const personDetails = await this.f2fService.getPersonIdentityById(f2fSession.sessionId, this.environmentVariables.personIdentityTableName());
 
   				if (!personDetails) {
   					this.logger.warn("Missing details in PERSON IDENTITY tables", {
@@ -221,9 +220,21 @@ export class YotiSessionCompletionProcessor {
   					});
   					throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in PERSON IDENTITY tables");
   				}
+				
+  			const { givenNames, familyNames } = personIdentityUtils.getNames(personDetails);
+  			const f2fGivenNames = givenNames.join(" ");
+  			const f2fFamilyName = familyNames.join(" ");
+		
+  			// Check if the fullName in f2f matches the fullName in DocumentFields
+  			const doesFullNameMatch = `${f2fGivenNames.toLowerCase()} ${f2fFamilyName.toLowerCase()}` === full_name.toLowerCase();
+  			if (!doesFullNameMatch) {
+  				this.logger.info("FullName mismatch between F2F & Yoti");
+  			}
 
+
+  			if (missingGivenName || missingFamilyName) {
   				this.logger.info("Getting NameParts using F2F Person Identity Info");
-  				VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(personDetails, documentFields, this.logger);
+  				VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(doesFullNameMatch, personDetails, documentFields, this.logger);
   			} else {
   				this.logger.info("Getting NameParts using Yoti DocumentFields Info");
   				VcNameParts = personIdentityUtils.getNamesFromYoti(given_names, family_name);

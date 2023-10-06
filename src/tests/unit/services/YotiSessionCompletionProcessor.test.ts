@@ -134,6 +134,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
@@ -236,6 +237,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(ukDLYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
@@ -347,6 +349,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(euDLYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
@@ -453,6 +456,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(eeaYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
@@ -556,6 +560,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(brpYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
@@ -657,6 +662,7 @@ describe("YotiSessionCompletionProcessor", () => {
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 			// @ts-ignore
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
@@ -929,6 +935,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 		mockF2fService.sendToTXMA.mockRejectedValue({});
 
 		// @ts-ignore
@@ -950,6 +957,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
@@ -966,6 +974,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		jest.spyOn(VerifiableCredentialService.prototype as any, "signGeneratedVerifiableCredentialJwt").mockReturnValue("");
 
@@ -979,6 +988,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		jest.spyOn(VerifiableCredentialService.prototype as any, "signGeneratedVerifiableCredentialJwt").mockRejectedValueOnce(new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt"));
 
@@ -992,6 +1002,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
 		jest.spyOn(VerifiableCredentialService.prototype as any, "generateVerifiableCredentialJwt").mockReturnValue("");
 
