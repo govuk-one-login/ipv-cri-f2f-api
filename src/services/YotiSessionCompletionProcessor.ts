@@ -291,7 +291,7 @@ export class YotiSessionCompletionProcessor {
   	return false;
   }
 
-  async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any, rejectionReasons: string[]): Promise<any> {
+  async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any, rejectionReasons: [{ci: string, reason: string}]): Promise<any> {
 	  // Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
 	  let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
@@ -347,7 +347,7 @@ export class YotiSessionCompletionProcessor {
 			  this.logger.error({ message: `Unable to find document type ${documentFields.document_type}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
 	  }
-
+	  console.log("Before TxMA send", rejectionReasons)
 	  try {
   		// this event
 		  await this.f2fService.sendToTXMA({
@@ -368,7 +368,7 @@ export class YotiSessionCompletionProcessor {
 						  validityScore: evidence[0].validityScore,
 						  verificationScore: evidence[0].verificationScore,
 						  ci: evidence[0].ci,
-  						ciReasons: rejectionReasons,
+  						  ciReasons: rejectionReasons,
 						  checkDetails: evidence[0].checkDetails,
 					  },
 				  ],
@@ -379,6 +379,7 @@ export class YotiSessionCompletionProcessor {
 				  [docName]: [documentInfo],
 			  },
 		  });
+
 	  } catch (error) {
 		  this.logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", {
 			  error,

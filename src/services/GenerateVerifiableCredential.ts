@@ -123,9 +123,9 @@ export class GenerateVerifiableCredential {
   private getContraIndicator(
   	ID_DOCUMENT_FACE_MATCH_RECOMMENDATION: YotiCheckRecommendation,
   	ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION: YotiCheckRecommendation,
-  ): { contraIndicators: string[]; rejectionReasons: string[] } {
+  ): { contraIndicators: string[]; rejectionReasons: [{ci: string, reason: string}] } {
   	const contraIndicators: string[] = [];
-  	const rejectionReasons: string[] = [];
+  	const rejectionReasons: any = [];
 
   	const addToCI = (code: string | string[]) => {
   		if (Array.isArray(code)) {
@@ -145,12 +145,13 @@ export class GenerateVerifiableCredential {
   				case "PHOTO_OF_PHOTO":
   				case "DIFFERENT_PERSON":
   					addToCI("V01");
-  					rejectionReasons.push(reason);
+  					rejectionReasons.push({ci: "V01", reason});
   					break;
   				default:
   					break;
   			}
   		}
+		console.log("No issue generating RR in handleFaceMatchRejection", rejectionReasons)
   	};
 
   	const handleAuthenticityRejection = () => {
@@ -186,9 +187,10 @@ export class GenerateVerifiableCredential {
   			this.logger.info({ message: "Handling authenticity rejection", reason, contraIndicator });
   			if (contraIndicator) {
   				addToCI(contraIndicator);
-  				if (reason) rejectionReasons.push(reason);
+  				if (reason) rejectionReasons.push({ci: contraIndicator, reason});
   			}
   		}
+		  console.log("No issue generating RR in handleAuthenticityRejection", rejectionReasons)
   	};
 
   	// these are the two recjection reason checkers I think?
@@ -332,7 +334,7 @@ export class GenerateVerifiableCredential {
   ): {
   		credentialSubject: VerifiedCredentialSubject;
   		evidence: VerifiedCredentialEvidence;
-  		rejectionReasons: string[];
+  		rejectionReasons: [{ci: string, reason: string}];
   	} {
   	const { id_documents: idDocuments } = completedYotiSessionPayload.resources;
   	const { checks } = completedYotiSessionPayload;
@@ -446,10 +448,9 @@ export class GenerateVerifiableCredential {
   		this.logger.info("Validity Score 0", { value: DocumentAuthenticity.value, reason: DocumentAuthenticity.reason });
   	}
 
-  	let rejectionReasons: string[] = [];
+  	let rejectionReasons: any = [];
 
   	if (evidence[0].strengthScore === 0 || evidence[0].validityScore === 0 || evidence[0].verificationScore === 0) {
-  		// these TWO things
   		const { contraIndicators, rejectionReasons: collectedRejectionReasons } = this.getContraIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);
   		rejectionReasons = collectedRejectionReasons;
   		if (contraIndicators.length >= 1) {

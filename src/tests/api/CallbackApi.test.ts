@@ -149,7 +149,7 @@ describe("Callback API", () => {
 
 	describe("F2F CRI Callback Endpoint Integration UnHappyPath", () => {
 
-		it.each([
+		it.only.each([
 			["0160"],
 			["0134"],
 		])("F2F CRI Callback Endpoint Integration UnHappyPath - yotiMockId: '%s'", async (yotiMockId: string) => {

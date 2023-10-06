@@ -57,7 +57,7 @@ export type VerifiedCredentialEvidenceTxMA = Array<{
 		biometricVerificationProcessLevel?: number;
 	}>;
 	ci?: string[];
-	ciReasons?: string[];
+	ciReasons?: [{ci: string, reason: string}];
 	// failedCheckDetails?: Array<{
 	// 	photoVerificationProcessLevel?: number;
 	// 	checkMethod: string;
