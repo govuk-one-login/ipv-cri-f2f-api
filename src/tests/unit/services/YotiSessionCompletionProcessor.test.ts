@@ -1000,4 +1000,58 @@ describe("YotiSessionCompletionProcessor", () => {
 			message: "Unable to create signed JWT",
 		}));
 	});
+	
+	describe("isTaskDone function", () => {
+		it('should return true if a task with the specified type and state "DONE" exists', () => {
+			const data = {
+				tasks: [
+					{ type: "TASK1", state: "IN_PROGRESS" },
+					{ type: "TASK2", state: "DONE" },
+					{ type: "TASK3", state: "PENDING" },
+				],
+			};
+	
+			const taskTypeToCheck = "TASK2";
+			const result = mockCompletedSessionProcessor.isTaskDone(data, taskTypeToCheck);
+	
+			expect(result).toBe(true);
+		});
+	
+		it('should return false if no task with the specified type and state "DONE" exists', () => {
+			const data = {
+				tasks: [
+					{ type: "TASK1", state: "IN_PROGRESS" },
+					{ type: "TASK2", state: "PENDING" },
+					{ type: "TASK3", state: "PENDING" },
+				],
+			};
+	
+			const taskTypeToCheck = "TASK2";
+			const result = mockCompletedSessionProcessor.isTaskDone(data, taskTypeToCheck);
+	
+			expect(result).toBe(false);
+		});
+	
+		it("should return false if tasks array is empty", () => {
+			const data = {
+				tasks: [],
+			};
+	
+			const taskTypeToCheck = "TASK2";
+			const result = mockCompletedSessionProcessor.isTaskDone(data, taskTypeToCheck);
+	
+			expect(result).toBe(false);
+		});
+	
+		it("should return false if tasks property is missing", () => {
+			const data = {
+				// No "tasks" property
+			};
+	
+			const taskTypeToCheck = "TASK2";
+			const result = mockCompletedSessionProcessor.isTaskDone(data, taskTypeToCheck);
+	
+			expect(result).toBe(false);
+		});
+	});
 });

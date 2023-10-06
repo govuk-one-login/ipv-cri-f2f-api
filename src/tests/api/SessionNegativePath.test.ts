@@ -13,7 +13,7 @@ describe("E2E Negative Path /session Endpoint", () => {
 		const stubResponse = await stubStartPost(f2fStubPayload);
 		const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		expect(sessionResponse.status).toBe(401);
-		expect(sessionResponse.data).toEqual("Unauthorized");
+		expect(sessionResponse.data).toBe("Unauthorized");
 	});
 
 	it("E2E Happy Path Journey - No Family Name Field", async () => {
@@ -21,7 +21,7 @@ describe("E2E Negative Path /session Endpoint", () => {
 		const stubResponse = await stubStartPost(f2fStubPayload);
 		const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		expect(sessionResponse.status).toBe(401);
-		expect(sessionResponse.data).toEqual("Unauthorized");
+		expect(sessionResponse.data).toBe("Unauthorized");
 	});
 
 	it("E2E Happy Path Journey - No Email Address", async () => {
@@ -29,6 +29,6 @@ describe("E2E Negative Path /session Endpoint", () => {
 		const stubResponse = await stubStartPost(f2fStubPayload);
 		const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		expect(sessionResponse.status).toBe(401);
-		expect(sessionResponse.data).toEqual("Unauthorized");
+		expect(sessionResponse.data).toBe("Unauthorized");
 	});
 });
