@@ -56,7 +56,6 @@ export class YotiSessionCompletionProcessor {
   	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger);
   }
 
-	// Check if the task with the specified type has a state "DONE"
 	isTaskDone(data: any, taskType: string): boolean {
 		if (data.tasks && Array.isArray(data.tasks)) {
 			for (const task of data.tasks) {
