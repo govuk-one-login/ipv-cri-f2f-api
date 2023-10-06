@@ -5023,10 +5023,55 @@ Resources:
                     "view": "timeSeries",
                     "stacked": false
                   }
+                },
+                {
+                  "height": 6,
+                  "width": 12,
+                  "y": 12,
+                  "x": 12,
+                  "type": "metric",
+                  "properties": {
+                    "title": "TriggerYoti Throttles - ${AWS::StackName}",
+                    "annotations": {
+                      "alarms": ["${TriggerYotiThrottleAlarm.Arn}"]
+                    },
+                    "view": "timeSeries",
+                    "stacked": false
+                  }
+                },
+                {
+                  "height": 6,
+                  "width": 12,
+                  "y": 12,
+                  "x": 12,
+                  "type": "metric",
+                  "properties": {
+                    "title": "ReminderEmail Throttles - ${AWS::StackName}",
+                    "annotations": {
+                      "alarms": ["${ReminderEmailThrottleAlarm.Arn}"]
+                    },
+                    "view": "timeSeries",
+                    "stacked": false
+                  }
+                },
+                {
+                  "height": 6,
+                  "width": 12,
+                  "y": 12,
+                  "x": 12,
+                  "type": "metric",
+                  "properties": {
+                    "title": "ThankYouEmail Throttles - ${AWS::StackName}",
+                    "annotations": {
+                      "alarms": ["${ThankYouEmailThrottleAlarm.Arn}"]
+                    },
+                    "view": "timeSeries",
+                    "stacked": false
+                  }
                 }
               ]
             }
-
+  
   CriticalAlarmDashboard:
     Type: AWS::CloudWatch::Dashboard
     Condition: DeployAlarms
