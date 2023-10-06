@@ -56,16 +56,16 @@ export class YotiSessionCompletionProcessor {
   	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger);
   }
 
-	isTaskDone(data: any, taskType: string): boolean {
-		if (data.tasks && Array.isArray(data.tasks)) {
-			for (const task of data.tasks) {
-				if (task.type === taskType && task.state === YotiSessionDocument.DONE_STATE) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+  isTaskDone(data: any, taskType: string): boolean {
+  	if (data.tasks && Array.isArray(data.tasks)) {
+  		for (const task of data.tasks) {
+  			if (task.type === taskType && task.state === YotiSessionDocument.DONE_STATE) {
+  				return true;
+  			}
+  		}
+  	}
+  	return false;
+  }
 
   static getInstance(
   	logger: Logger,
@@ -127,8 +127,8 @@ export class YotiSessionCompletionProcessor {
 
   		for (const document of idDocuments) {
   			if (document.document_fields) {
-					const taskTypeToCheck = ID_DOCUMENT_TEXT_DATA_EXTRACTION;
-					const isDone = this.isTaskDone(document, taskTypeToCheck);
+  				const taskTypeToCheck = ID_DOCUMENT_TEXT_DATA_EXTRACTION;
+  				const isDone = this.isTaskDone(document, taskTypeToCheck);
   				if (isDone) idDocumentsDocumentFields.push(document.document_fields);
   			}
   		}

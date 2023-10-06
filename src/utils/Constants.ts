@@ -90,7 +90,7 @@ export class Constants {
 		FIRST_NAME: "first name",
 		LAST_NAME: "last name",
 		LINK_TO_FILE: "link_to_file",
-		CHOSEN_PHOTO_ID: "chosen photo ID"
+		CHOSEN_PHOTO_ID: "chosen photo ID",
 
 	};
   
