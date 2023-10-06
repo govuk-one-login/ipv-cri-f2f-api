@@ -115,6 +115,17 @@ Resources:
               - "createdDate"
               - "reminderEmailSent"
               - "expiryDate"
+            ProjectionType: "INCLUDE"
+        - IndexName: "authSessionState-updated-index"
+          KeySchema:
+            - AttributeName: "authSessionState"
+              KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "sessionId"
+              - "createdDate"
+              - "reminderEmailSent"
+              - "expiryDate"
               - "documentUsed"
             ProjectionType: "INCLUDE"
       TimeToLiveSpecification:
