@@ -191,7 +191,6 @@ export class GenerateVerifiableCredential {
   		}
   	};
 
-  	// these are the two recjection reason checkers I think?
   	handleFaceMatchRejection();
   	handleAuthenticityRejection();
 

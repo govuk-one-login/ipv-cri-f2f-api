@@ -291,7 +291,7 @@ export class YotiSessionCompletionProcessor {
   	return false;
   }
 
-  async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any, rejectionReasons: [{ci: string, reason: string}]): Promise<any> {
+  async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any, rejectionReasons: [{ ci: string; reason: string }]): Promise<any> {
 	  // Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
 	  let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
@@ -348,7 +348,6 @@ export class YotiSessionCompletionProcessor {
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
 	  }
 	  try {
-  		// this event
 		  await this.f2fService.sendToTXMA({
 			  event_name: "F2F_CRI_VC_ISSUED",
 			  ...buildCoreEventFields(
