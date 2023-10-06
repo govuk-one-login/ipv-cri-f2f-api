@@ -14,7 +14,7 @@ import { VerifiableCredentialService } from "./VerifiableCredentialService";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
-import { YotiSessionDocument } from "../utils/YotiPayloadEnums";
+import { YotiSessionDocument, ID_DOCUMENT_TEXT_DATA_EXTRACTION } from "../utils/YotiPayloadEnums";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "../utils/IVeriCredential";
@@ -55,6 +55,18 @@ export class YotiSessionCompletionProcessor {
   	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.logger);
   	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger);
   }
+
+	// Check if the task with the specified type has a state "DONE"
+	isTaskDone(data: any, taskType: string): boolean {
+		if (data.tasks && Array.isArray(data.tasks)) {
+			for (const task of data.tasks) {
+				if (task.type === taskType && task.state === YotiSessionDocument.DONE_STATE) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
   static getInstance(
   	logger: Logger,
@@ -116,7 +128,9 @@ export class YotiSessionCompletionProcessor {
 
   		for (const document of idDocuments) {
   			if (document.document_fields) {
-  				idDocumentsDocumentFields.push(document.document_fields);
+					const taskTypeToCheck = ID_DOCUMENT_TEXT_DATA_EXTRACTION;
+					const isDone = this.isTaskDone(document, taskTypeToCheck);
+  				if (isDone) idDocumentsDocumentFields.push(document.document_fields);
   			}
   		}
 
