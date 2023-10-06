@@ -8,8 +8,9 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
-import { buildReminderEmailEventFields } from "../utils/GovNotifyEvent";
+import { buildDynamicReminderEmailEventFields, buildReminderEmailEventFields } from "../utils/GovNotifyEvent";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
+import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
 export class ReminderEmailProcessor {
   private static instance: ReminderEmailProcessor;
@@ -47,12 +48,13 @@ export class ReminderEmailProcessor {
   		this.logger.info("Total num. of users to send reminder emails to:", { numOfUsers: filteredSessions.length });
 
   		const usersToRemind = await Promise.all(
-  			filteredSessions.map(async ({ sessionId }) => {
+  			filteredSessions.map(async ({ sessionId, documentUsed }) => {
   				try {
   					const envVariables = new EnvironmentVariables(this.logger, ServicesEnum.REMINDER_SERVICE);
   					const personIdentityItem = await this.f2fService.getPersonIdentityById(sessionId, envVariables.personIdentityTableName());
   					if ( personIdentityItem ) {
-  						return { sessionId, emailAddress: personIdentityItem.emailAddress };
+  						const nameParts = personIdentityUtils.getNames(personIdentityItem);
+  						return { sessionId, emailAddress: personIdentityItem.emailAddress, firstName: nameParts.givenNames[0], lastName: nameParts.familyNames[0], documentUsed };
   					} else {
   						this.logger.warn("No records returned from Person Identity Table");
   						return null;
@@ -68,10 +70,16 @@ export class ReminderEmailProcessor {
   		}
 
   		const sendEmailPromises = usersToRemind
-  			.filter((user): user is { sessionId: any; emailAddress: string } => user !== null)
-  			.map(async ({ sessionId, emailAddress }) => {
+  			.filter((user): user is { sessionId: any; emailAddress: string; firstName: string; lastName: string; documentUsed: string } => user !== null)
+  			.map(async ({ sessionId, emailAddress, firstName, lastName, documentUsed }) => {
   				try {
-  					await this.f2fService.sendToGovNotify(buildReminderEmailEventFields(emailAddress));
+  					if (firstName && lastName && documentUsed) {
+  						this.logger.info("Sending Dynamic Reminder Email", { sessionId });
+  						await this.f2fService.sendToGovNotify(buildDynamicReminderEmailEventFields(emailAddress, firstName, lastName, documentUsed));
+  					} else { 
+  						this.logger.info("Sending Static Reminder Email", { sessionId });
+  						await this.f2fService.sendToGovNotify(buildReminderEmailEventFields(emailAddress));
+  					}
   					await this.f2fService.updateReminderEmailFlag(sessionId, true);
   					this.logger.info("Reminder email sent to user: ", { sessionId });
   				} catch (error) {

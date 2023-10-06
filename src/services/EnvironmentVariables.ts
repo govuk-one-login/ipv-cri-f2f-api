@@ -16,6 +16,8 @@ export class EnvironmentVariables {
 
 	private readonly GOVUKNOTIFY_REMINDER_TEMPLATE_ID = process.env.GOVUKNOTIFY_REMINDER_TEMPLATE_ID;
 
+	private readonly GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID = process.env.GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID;
+
 	private GOVUKNOTIFY_MAX_RETRIES = process.env.GOVUKNOTIFY_MAX_RETRIES;
 
 	private GOVUKNOTIFY_BACKOFF_PERIOD_MS = process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS;
@@ -290,6 +292,14 @@ export class EnvironmentVariables {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		return this.GOVUKNOTIFY_REMINDER_TEMPLATE_ID;
+	}
+
+	getDynamicReminderEmailTemplateId(logger: Logger): any {
+		if (!this.GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID || this.GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID.trim().length === 0) {
+			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
+		return this.GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID;
 	}
 
 	maxRetries(): number {
