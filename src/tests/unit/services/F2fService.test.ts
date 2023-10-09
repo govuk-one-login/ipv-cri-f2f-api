@@ -259,19 +259,19 @@ describe("F2f Service", () => {
 		]);
 		expect(mockDynamoDbClient.query).toHaveBeenNthCalledWith(1, {
 			"ExpressionAttributeValues": { ":authSessionState": "F2F_YOTI_SESSION_CREATED" },
-			"IndexName": "authSessionState-index",
+			"IndexName": "authSessionState-updated-index",
 			"KeyConditionExpression": "authSessionState = :authSessionState",
 			"TableName": "SESSIONTABLE",
 		});
 		expect(mockDynamoDbClient.query).toHaveBeenNthCalledWith(2, {
 			"ExpressionAttributeValues": { ":authSessionState": "F2F_AUTH_CODE_ISSUED" },
-			"IndexName": "authSessionState-index",
+			"IndexName": "authSessionState-updated-index",
 			"KeyConditionExpression": "authSessionState = :authSessionState",
 			"TableName": "SESSIONTABLE",
 		});
 		expect(mockDynamoDbClient.query).toHaveBeenNthCalledWith(3, {
 			"ExpressionAttributeValues": { ":authSessionState": "F2F_ACCESS_TOKEN_ISSUED" },
-			"IndexName": "authSessionState-index",
+			"IndexName": "authSessionState-updated-index",
 			"KeyConditionExpression": "authSessionState = :authSessionState",
 			"TableName": "SESSIONTABLE",
 		});
@@ -416,6 +416,32 @@ describe("F2f Service", () => {
 		await expect(f2fService.updateSessionTtl(FAILURE_VALUE, 123456, tableName)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: `updateItem - failed: got error updating ${tableName} ttl`,
+		}));
+	});	
+
+	it("should update session table with documentUsed", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		await f2fService.addUsersSelectedDocument("SESSID", "passport", "SESSIONTABLE");
+		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
+			input: {
+				ExpressionAttributeValues: {
+					":documentUsed": "passport",
+				},
+				Key: {
+					sessionId,
+				},
+				TableName: tableName,
+				UpdateExpression: "SET documentUsed = :documentUsed",
+			},
+		}));
+	});
+	
+
+	it("should throw 500 if fails to update documentUsed", async () => {
+		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+		await expect(f2fService.addUsersSelectedDocument("SESSID", "passport", "SESSIONTABLE")).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+			message: "updateItem - failed: got error updating SESSIONTABLE",
 		}));
 	});	
 });

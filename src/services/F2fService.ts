@@ -449,4 +449,24 @@ export class F2fService {
 		}
 	}
 
+	async addUsersSelectedDocument(sessionId: string, documentUsed: string, tableName: string = this.tableName): Promise<void> {
+		const updateStateCommand = new UpdateCommand({
+			TableName: tableName,
+			Key: { sessionId },
+			UpdateExpression: "SET documentUsed = :documentUsed",
+			ExpressionAttributeValues: {
+				":documentUsed": documentUsed,
+			},
+		});
+
+		this.logger.info({ message: `Updating documentUsed in ${tableName}`, updateStateCommand });
+		try {
+			await this.dynamo.send(updateStateCommand);
+			this.logger.info({ message: `Updated ${tableName} with documentUsed` });
+		} catch (error) {
+			this.logger.error({ message: `Got error updating documentUsed in ${tableName}`, error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
+		}
+	}
+
 }
