@@ -99,8 +99,17 @@ export class DocumentSelectionRequestProcessor {
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
   	}
 
-  	if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
-
+  	if (f2fSessionInfo.yotiSessionId) {
+		this.logger.warn('Yoti session already exists for this authorization session', {
+			messageCode: MessageCodes.YOTI_SESSION_ALREADY_EXISTS,
+		});
+		return new Response(HttpCodesEnum.UNAUTHORIZED, "Yoti session already exists for this authorization session");
+	}
+	else if (f2fSessionInfo.authSessionState !== AuthSessionState.F2F_SESSION_CREATED) {
+		this.logger.info("Duplicate request, returning status 200, sessionId: ", sessionId);
+		return new Response(HttpCodesEnum.OK, "Request already processed");
+	}
+	else {
   		try {
   			yotiSessionId = await this.createSessionGenerateInstructions(personDetails, f2fSessionInfo, postOfficeSelection, selectedDocument, countryCode);
 			  if (yotiSessionId) {
@@ -200,12 +209,6 @@ export class DocumentSelectionRequestProcessor {
 
 
   		return new Response(HttpCodesEnum.OK, "Instructions PDF Generated");
-
-  	} else {
-  		this.logger.warn(`Yoti session already exists for this authorization session or Session is in the wrong state: ${f2fSessionInfo.authSessionState}`, {
-  			messageCode: MessageCodes.STATE_MISMATCH,
-  		});
-  		return new Response(HttpCodesEnum.UNAUTHORIZED, "Yoti session already exists for this authorization session or Session is in the wrong state");
   	}
   }
 

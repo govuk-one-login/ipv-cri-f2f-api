@@ -221,7 +221,7 @@ export class SessionRequestProcessor {
   		});
   	}
 
-  	this.logger.info("Session created successfully. Returning 200OK");
+  	this.logger.info("Session created successfully. Returning 200 OK");
 
   	return {
   		statusCode: HttpCodesEnum.OK,
