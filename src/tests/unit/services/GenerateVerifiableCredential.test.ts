@@ -171,8 +171,6 @@ describe("GenerateVerifiableCredential", () => {
 			{ reason: "PHOTO_OF_MASK", contraIndicator: ["V01"] },
 			{ reason: "PHOTO_OF_PHOTO", contraIndicator: ["V01"] },
 			{ reason: "DIFFERENT_PERSON", contraIndicator: ["V01"] },
-			// Confirming expected outcome
-			// { reason: "UNKNOWN_REASON", contraIndicator: [] },
 		])(
 			"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
 			({ reason, contraIndicator }) => {
@@ -229,7 +227,6 @@ describe("GenerateVerifiableCredential", () => {
 			// { reason: "CHIP_DATA_INTEGRITY_FAILED", contraIndicator: [] },
 			// { reason: "CHIP_SIGNATURE_VERIFICATION_FAILED", contraIndicator: [] },
 			// { reason: "CHIP_CSCA_VERIFICATION_FAILED", contraIndicator: [] },
-			// { reason: "UNKNOWN_REASON", contraIndicator: [] },
 		])(
 			"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
 			({ reason, contraIndicator }) => {
