@@ -4,6 +4,7 @@ import { SendEmailService } from "./SendEmailService";
 import { Constants } from "../utils/Constants";
 import { Email } from "../models/Email";
 import { ReminderEmail } from "../models/ReminderEmail";
+import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { EmailResponse } from "../models/EmailResponse";
 import { ValidationHelper } from "../utils/ValidationHelper";
 
@@ -27,6 +28,11 @@ export class SendEmailProcessor {
   	const messageType = eventBody.Message.messageType;
 
   	switch (messageType) {
+  		case Constants.REMINDER_EMAIL_DYNAMIC:
+  			const dynamicReminderEmail = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			await this.validationHelper.validateModel(dynamicReminderEmail, this.logger);
+  			return this.govNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);
+				
   		case Constants.REMINDER_EMAIL:
   			const reminderEmail = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(reminderEmail, this.logger);

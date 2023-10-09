@@ -18,9 +18,7 @@ import { PersonIdentityItem } from "../models/PersonIdentityItem";
 import { PostOfficeInfo } from "../models/YotiPayloads";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AllDocumentTypes, DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
-import { DrivingPermit, IdentityCard, Passport, ResidencePermit } from "../utils/IVeriCredential";
 import { ValidationHelper } from "../utils/ValidationHelper";
-import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -166,6 +164,19 @@ export class DocumentSelectionRequestProcessor {
   			default:
   				this.logger.error({ message: `Unable to find document type ${selectedDocument}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
   				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
+  		}
+
+  		try {
+  			this.logger.info("Updating documentUsed in Session Table: ", { documentUsed: docType });
+  			await this.f2fService.addUsersSelectedDocument(f2fSessionInfo.sessionId, docType, this.environmentVariables.sessionTable());
+  		} catch (error: any) {
+  			this.logger.error("Error occurred during documentSelection orchestration", error.message,
+  				{ messageCode: MessageCodes.FAILED_DOCUMENT_SELECTION_ORCHESTRATION });
+  			if (error instanceof AppError) {
+  				return new Response(HttpCodesEnum.SERVER_ERROR, error.message);
+  			} else {
+  				return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+  			}
   		}
 
   		try {

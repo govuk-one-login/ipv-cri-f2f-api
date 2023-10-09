@@ -50,7 +50,7 @@ export class Constants {
 
 	static readonly YOTI_SESSION_ID_INDEX_NAME = "yotiSessionId-index";
 
-	static readonly AUTH_SESSION_STATE_INDEX_NAME = "authSessionState-index";
+	static readonly AUTH_SESSION_STATE_INDEX_NAME = "authSessionState-updated-index";
 
 	static readonly TOKEN_EXPIRY_SECONDS = 3600;
 
@@ -63,6 +63,8 @@ export class Constants {
 	static readonly PDF_EMAIL = "PDF_EMAIL";
 
 	static readonly REMINDER_EMAIL = "REMINDER_EMAIL";
+	
+	static readonly REMINDER_EMAIL_DYNAMIC = "REMINDER_EMAIL_DYNAMIC";
 
 	static readonly EMAIL_DISABLED = "EMAIL_DISABLED";
 
@@ -81,5 +83,15 @@ export class Constants {
   static readonly IDENTITY_CHECK_CREDENTIAL = "IdentityCheckCredential";
 
   static readonly URN_UUID_PREFIX = "urn:uuid:";
+
+	static readonly FIRST_NAME = "first name";
+
+	static readonly GOV_NOTIFY_OPTIONS = {
+		FIRST_NAME: "first name",
+		LAST_NAME: "last name",
+		LINK_TO_FILE: "link_to_file",
+		CHOSEN_PHOTO_ID: "chosen photo ID",
+
+	};
   
 }
