@@ -26,6 +26,10 @@ const mockYotiService = mock<YotiService>();
 
 const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "F2F" });
+jest.mock("crypto", () => ({
+	...jest.requireActual("crypto"),
+	randomUUID: () => "sdfsdf",
+}));
 
 jest.mock("../../../utils/KmsJwtAdapter");
 const passingKmsJwtAdapterFactory = (_signingKeys: string) => new MockKmsJwtAdapterForVc(true);
@@ -157,6 +161,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -259,6 +264,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -369,6 +375,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -473,6 +480,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -576,6 +584,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				"nbf":absoluteTimeNow(),
 				"iss":"https://XXX-c.env.account.gov.uk",
 				"iat":absoluteTimeNow(),
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 				"vc":{
 					"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -699,6 +708,7 @@ describe("YotiSessionCompletionProcessor", () => {
 					"nbf":absoluteTimeNow(),
 					"iss":"https://XXX-c.env.account.gov.uk",
 					"iat":absoluteTimeNow(),
+					"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
 					"vc":{
 						"@context":[
 					 Constants.W3_BASE_CONTEXT,
@@ -989,5 +999,59 @@ describe("YotiSessionCompletionProcessor", () => {
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Unable to create signed JWT",
 		}));
+	});
+	
+	describe("isTaskDone function", () => {
+		it('should return true if a task with the specified type and state "DONE" exists', () => {
+			const data = {
+				tasks: [
+					{ type: "TASK1", state: "IN_PROGRESS" },
+					{ type: "TASK2", state: "DONE" },
+					{ type: "TASK3", state: "PENDING" },
+				],
+			};
+	
+			const taskTypeToCheck = "TASK2";
+			const result = mockCompletedSessionProcessor.isTaskDone(data, taskTypeToCheck);
+	
+			expect(result).toBe(true);
+		});
+	
+		it('should return false if no task with the specified type and state "DONE" exists', () => {
+			const data = {
+				tasks: [
+					{ type: "TASK1", state: "IN_PROGRESS" },
+					{ type: "TASK2", state: "PENDING" },
+					{ type: "TASK3", state: "PENDING" },
+				],
+			};
+	
+			const taskTypeToCheck = "TASK2";
+			const result = mockCompletedSessionProcessor.isTaskDone(data, taskTypeToCheck);
+	
+			expect(result).toBe(false);
+		});
+	
+		it("should return false if tasks array is empty", () => {
+			const data = {
+				tasks: [],
+			};
+	
+			const taskTypeToCheck = "TASK2";
+			const result = mockCompletedSessionProcessor.isTaskDone(data, taskTypeToCheck);
+	
+			expect(result).toBe(false);
+		});
+	
+		it("should return false if tasks property is missing", () => {
+			const data = {
+				// No "tasks" property
+			};
+	
+			const taskTypeToCheck = "TASK2";
+			const result = mockCompletedSessionProcessor.isTaskDone(data, taskTypeToCheck);
+	
+			expect(result).toBe(false);
+		});
 	});
 });

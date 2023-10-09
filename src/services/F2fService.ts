@@ -234,32 +234,33 @@ export class F2fService {
 		return sessionItem.Items[0] as ISessionItem;
 	}
 
-	async getSessionsByAuthSessionState(authSessionState: string | undefined): Promise<Array<Record<string, any>>> {
-		const params: QueryCommandInput = {
-			TableName: this.tableName,
-			IndexName: Constants.AUTH_SESSION_STATE_INDEX_NAME,
-			KeyConditionExpression: "authSessionState = :authSessionState",
-			ExpressionAttributeValues: {
-				":authSessionState": authSessionState,
-			},
-		};
-
-		const sessionItems = await this.dynamo.query(params);
-
-		if (!sessionItems?.Items || sessionItems?.Items.length < 1) {
-			this.logger.error("Error retrieving Sessions by authSessionState", {
-				messageCode: MessageCodes.FAILED_FETCHING_SESSION_BY_AUTH_SESSION_STATE,
-			});
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Sessions by authSessionState");
+	async getSessionsByAuthSessionStates(authSessionStates: string[]): Promise<Array<Record<string, any>>> {
+		const uniqueSessionIds = new Set();
+		const filteredItems = [];
+	
+		for (const authSessionState of authSessionStates) {
+			const params = {
+				TableName: this.tableName,
+				IndexName: Constants.AUTH_SESSION_STATE_INDEX_NAME,
+				KeyConditionExpression: "authSessionState = :authSessionState",
+				ExpressionAttributeValues: {
+					":authSessionState": authSessionState,
+				},
+			};
+	
+			const sessionItems = (await this.dynamo.query(params))?.Items || [];
+	
+			for (const item of sessionItems) {
+				if (!uniqueSessionIds.has(item.sessionId) && item.expiryDate > absoluteTimeNow()) {
+					uniqueSessionIds.add(item.sessionId);
+					filteredItems.push(item);
+				}
+			}
 		}
-
-		// Filter out any records that have hit TTL
-		const filteredItems = sessionItems.Items.filter(item => {
-			return item.expiryDate > absoluteTimeNow();
-		});
-
+	
 		return filteredItems;
 	}
+
 
 	async updateReminderEmailFlag(sessionId: string, reminderEmailSent: boolean): Promise<void> {
 		const updateStateCommand = new UpdateCommand({
@@ -445,6 +446,26 @@ export class F2fService {
 		} catch (error) {
 			this.logger.error({ message: `Got error updating ${tableName} ttl`, error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName} ttl`);
+		}
+	}
+
+	async addUsersSelectedDocument(sessionId: string, documentUsed: string, tableName: string = this.tableName): Promise<void> {
+		const updateStateCommand = new UpdateCommand({
+			TableName: tableName,
+			Key: { sessionId },
+			UpdateExpression: "SET documentUsed = :documentUsed",
+			ExpressionAttributeValues: {
+				":documentUsed": documentUsed,
+			},
+		});
+
+		this.logger.info({ message: `Updating documentUsed in ${tableName}`, updateStateCommand });
+		try {
+			await this.dynamo.send(updateStateCommand);
+			this.logger.info({ message: `Updated ${tableName} with documentUsed` });
+		} catch (error) {
+			this.logger.error({ message: `Got error updating documentUsed in ${tableName}`, error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
 		}
 	}
 
