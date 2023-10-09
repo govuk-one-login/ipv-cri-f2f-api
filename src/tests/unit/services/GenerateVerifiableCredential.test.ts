@@ -195,6 +195,29 @@ describe("GenerateVerifiableCredential", () => {
 		);
 
 		it.each([
+			{ reason: "UNKNOWN_REASON", contraIndicator: [] }
+		])(
+			"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
+			({ reason, contraIndicator }) => {
+				const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
+					value: "REJECT",
+					reason,
+				};
+				const ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION = {
+					value: "APPROVE",
+				};
+
+				const result = generateVerifiableCredential["getContraIndicator"](
+					ID_DOCUMENT_FACE_MATCH_RECOMMENDATION,
+					ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION,
+				);
+
+				expect(result.contraIndicators).toEqual(contraIndicator);
+				expect(result.rejectionReasons).toEqual([]);
+			},
+		);
+
+		it.each([
 			{ reason: "COUNTERFEIT", contraIndicator: ["D14"] },
 			{ reason: "EXPIRED_DOCUMENT", contraIndicator: ["D16"] },
 			{ reason: "FRAUD_LIST_MATCH", contraIndicator: ["F03"] },
@@ -233,6 +256,34 @@ describe("GenerateVerifiableCredential", () => {
 			},
 		);
 	});
+
+	it.each([
+		{ reason: "UNKNOWN_REASON", contraIndicator: [] },
+	])(
+		"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
+		({ reason, contraIndicator }) => {
+			const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
+				value: "APPROVE",
+			};
+			const ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION = {
+				value: "REJECT",
+				reason,
+			};
+
+			const result = generateVerifiableCredential["getContraIndicator"](
+				ID_DOCUMENT_FACE_MATCH_RECOMMENDATION,
+				ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION,
+			);
+
+			expect(result.contraIndicators).toEqual(contraIndicator);
+			expect(result.rejectionReasons).toEqual([]);
+			expect(logger.info).toHaveBeenCalledWith({
+				message: "Handling authenticity rejection",
+				reason,
+				contraIndicator: contraIndicator[0],
+			});
+		},
+	);
 
 	describe("attachPersonName", () => {
 		it("should attach the person name to the credential subject", () => {
