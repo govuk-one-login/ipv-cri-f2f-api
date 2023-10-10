@@ -277,7 +277,155 @@ Globals:
         #  SQS_AUDIT_EVENT_PREFIX: CIC-F2F # The prefix to add to TxMA event messages
     AutoPublishAlias: live
 
+
 Resources:
+
+  # Log metric filter and alarm for S3 bucket policy changes
+  S3BucketActivityEventMetricFilter:
+    Type: 'AWS::Logs::MetricFilter'
+    Properties:
+      LogGroupName: !Ref SessionFunctionLogGroup
+      FilterPattern: '{ ($.eventSource = s3.amazonaws.com) && (($.eventName = PutBucketAcl) || ($.eventName = PutBucketPolicy) || ($.eventName = PutBucketCors) || ($.eventName = PutBucketLifecycle) || ($.eventName = PutBucketReplication) || ($.eventName = DeleteBucketPolicy) || ($.eventName = DeleteBucketCors) || ($.eventName = DeleteBucketLifecycle) || ($.eventName = DeleteBucketReplication)) }'
+      MetricTransformations:
+        - MetricValue: '1'
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: S3BucketActivityEventChanges
+
+  S3BucketActivityEventErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-S3Bucket-changes"
+      AlarmDescription: A CloudWatch Alarm that triggers when changes are made to S3 Bucket.
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: S3BucketActivityEventChanges
+      Namespace: AWS/S3
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  # Log metric filter and alarm for changes to network gateways
+  InternetGatewayEventMetricFilter:
+    Type: 'AWS::Logs::MetricFilter'
+    Properties: 
+      LogGroupName: !Ref SessionFunctionLogGroup
+      FilterPattern: '{ ($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway) }'
+      MetricTransformations:
+        - MetricValue: '1'
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: IGatewayActivityEvent
+
+  InternetGatewayActivityEventErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties: 
+      AlarmName: !Sub "${AWS::StackName}-IGW-changes"
+      AlarmDescription: Triggers CloudWatch Alarm when changes are made to an Internet Gateway in a VPC.
+      MetricName: IGatewayActivityEvent
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: '1'
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      TreatMissingData: notBreaching
+  # Log metric filter and alarm for route table changes
+  RouteTableChangesMetricFilter:
+    Type: 'AWS::Logs::MetricFilter'
+    Properties:
+      LogGroupName: !Ref SessionFunctionLogGroup
+      FilterPattern: '{ ($.eventName = AssociateRouteTable) || ($.eventName = CreateRoute) || ($.eventName = CreateRouteTable) || ($.eventName = DeleteRoute) || ($.eventName = DeleteRouteTable) || ($.eventName = ReplaceRoute) || ($.eventName = ReplaceRouteTableAssociation) || ($.eventName = DisassociateRouteTable) }'
+      MetricTransformations:
+        - MetricValue: '1'
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: VPCRouteTableEvent
+  RouteTableChangesEventErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-vpc-route-changes"
+      AlarmDescription: A CloudWatch Alarm that triggers when changes are made to a VPC's Route Table.
+      MetricName: VpcRouteTableEvent
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: '1'
+      Threshold: '1'
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      TreatMissingData: notBreaching
+  # Log metric filter and alarm when changes are made to VPC.
+  VpcChangesEventMetricFilter:
+    Type: 'AWS::Logs::MetricFilter'
+    Properties:
+      LogGroupName: !Ref SessionFunctionLogGroup
+      FilterPattern: '{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }'
+      MetricTransformations:
+        - MetricValue: '1'
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: VpcEventChanges
+  VpcChangesEventAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-vpc-changes"
+      AlarmDescription: A CloudWatch Alarm that triggers when changes are made to a VPC.
+      MetricName: VpcEventChanges
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: '1'
+      Threshold: '1'
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      TreatMissingData: notBreaching
+  # Log metric and alarm when changes are made to AWS Organisations.
+  OrganisationChangesEventMetricFilter:
+    Type: 'AWS::Logs::MetricFilter'
+    Properties:
+      LogGroupName: !Ref SessionFunctionLogGroup
+      FilterPattern: '{ ($.eventSource = organizations.amazonaws.com) && (($.eventName = AcceptHandshake) || ($.eventName = AttachPolicy) || ($.eventName = CreateAccount) || ($.eventName = CreateOrganizationalUnit) || ($.eventName = CreatePolicy) || ($.eventName = DeclineHandshake) || ($.eventName = DeleteOrganization) || ($.eventName = DeleteOrganizationalUnit) || ($.eventName = DeletePolicy) || ($.eventName = DetachPolicy) || ($.eventName = DisablePolicyType) || ($.eventName = EnablePolicyType) || ($.eventName = InviteAccountToOrganization) || ($.eventName = LeaveOrganization) || ($.eventName = MoveAccount) || ($.eventName = RemoveAccountFromOrganization) || ($.eventName = UpdatePolicy) || ($.eventName = UpdateOrganizationalUnit)) }'
+      MetricTransformations:
+        - MetricValue: '1'
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: OrganisationsEventChange
+  OrganisationChangesEventAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-organisations-changes"
+      AlarmDescription: A CloudWatch Alarm that triggers when changes are made to AWS Organisations.
+      MetricName: OrganisationsEventChange
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: '1'
+      Threshold: '1'
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      TreatMissingData: notBreaching
+        
+
   LambdaEgressSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
