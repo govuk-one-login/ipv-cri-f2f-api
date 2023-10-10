@@ -192,7 +192,7 @@ describe("GenerateVerifiableCredential", () => {
 			},
 		);
 
-		it("should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
+		it("should return the contra indicator array [] for authenticity rejection reason UNKNOWN_REASON",
 			() => {
 
 			const reason = "UNKNOWN_REASON"
@@ -251,7 +251,7 @@ describe("GenerateVerifiableCredential", () => {
 		);
 	});
 
-		it("should return the contra indicator array $contraIndicator for authenticity rejection reason $reason", () => {
+		it("should return the contra indicator array [] for authenticity rejection reason UNKNOWN_REASON", () => {
 			
 		const reason = "UNKNOWN_REASON"
 		const contraIndicator = [undefined]
