@@ -28,7 +28,7 @@ import { constants } from "../utils/ApiConstants";
 describe("Callback API", () => {
 	jest.setTimeout(60000);
 
-	it.only.each([
+	it.each([
 		["0000", dataUkDrivingLicence],
 		["0001", dataUkDrivingLicence],
 		["0101", dataPassport],

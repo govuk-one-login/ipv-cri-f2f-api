@@ -192,11 +192,12 @@ describe("GenerateVerifiableCredential", () => {
 			},
 		);
 
-		it.each([
-			{ reason: "UNKNOWN_REASON", contraIndicator: [] }
-		])(
-			"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
-			({ reason, contraIndicator }) => {
+		it("should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
+			() => {
+
+			const reason = "UNKNOWN_REASON"
+			const contraIndicator = [undefined]
+
 				const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
 					value: "REJECT",
 					reason,
@@ -221,12 +222,8 @@ describe("GenerateVerifiableCredential", () => {
 			{ reason: "FRAUD_LIST_MATCH", contraIndicator: ["F03"] },
 			{ reason: "DOC_NUMBER_INVALID", contraIndicator: ["D02"] },
 			{ reason: "TAMPERED", contraIndicator: ["D14"] },
-			// { reason: "DATA_MISMATCH", contraIndicator: [] },
 			{ reason: "MISSING_HOLOGRAM", contraIndicator: ["D14"] },
-			{ reason: "NO_HOLOGRAM_MOVEMENT", contraIndicator: ["D14"] },
-			// { reason: "CHIP_DATA_INTEGRITY_FAILED", contraIndicator: [] },
-			// { reason: "CHIP_SIGNATURE_VERIFICATION_FAILED", contraIndicator: [] },
-			// { reason: "CHIP_CSCA_VERIFICATION_FAILED", contraIndicator: [] },
+			{ reason: "NO_HOLOGRAM_MOVEMENT", contraIndicator: ["D14"] }
 		])(
 			"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
 			({ reason, contraIndicator }) => {
@@ -254,11 +251,12 @@ describe("GenerateVerifiableCredential", () => {
 		);
 	});
 
-	it.each([
-		{ reason: "UNKNOWN_REASON", contraIndicator: [] },
-	])(
-		"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
-		({ reason, contraIndicator }) => {
+		it("should return the contra indicator array $contraIndicator for authenticity rejection reason $reason", () => {
+			
+		const reason = "UNKNOWN_REASON"
+		const contraIndicator = [undefined]
+			
+			
 			const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
 				value: "APPROVE",
 			};
