@@ -171,7 +171,6 @@ describe("GenerateVerifiableCredential", () => {
 			{ reason: "PHOTO_OF_MASK", contraIndicator: ["V01"] },
 			{ reason: "PHOTO_OF_PHOTO", contraIndicator: ["V01"] },
 			{ reason: "DIFFERENT_PERSON", contraIndicator: ["V01"] },
-			{ reason: "UNKNOWN_REASON", contraIndicator: [] },
 		])(
 			"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
 			({ reason, contraIndicator }) => {
@@ -188,7 +187,32 @@ describe("GenerateVerifiableCredential", () => {
 					ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION,
 				);
 
-				expect(result).toEqual(contraIndicator);
+				expect(result.contraIndicators).toEqual(contraIndicator);
+				expect(result.rejectionReasons).toEqual([{ ci: contraIndicator[0], reason }]);
+			},
+		);
+
+		it("should return the contra indicator array [] for authenticity rejection reason UNKNOWN_REASON",
+			() => {
+
+			const reason = "UNKNOWN_REASON"
+			const contraIndicator = [undefined]
+
+				const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
+					value: "REJECT",
+					reason,
+				};
+				const ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION = {
+					value: "APPROVE",
+				};
+
+				const result = generateVerifiableCredential["getContraIndicator"](
+					ID_DOCUMENT_FACE_MATCH_RECOMMENDATION,
+					ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION,
+				);
+
+				expect(result.contraIndicators).toEqual(contraIndicator);
+				expect(result.rejectionReasons).toEqual([]);
 			},
 		);
 
@@ -198,13 +222,8 @@ describe("GenerateVerifiableCredential", () => {
 			{ reason: "FRAUD_LIST_MATCH", contraIndicator: ["F03"] },
 			{ reason: "DOC_NUMBER_INVALID", contraIndicator: ["D02"] },
 			{ reason: "TAMPERED", contraIndicator: ["D14"] },
-			{ reason: "DATA_MISMATCH", contraIndicator: [] },
 			{ reason: "MISSING_HOLOGRAM", contraIndicator: ["D14"] },
-			{ reason: "NO_HOLOGRAM_MOVEMENT", contraIndicator: ["D14"] },
-			{ reason: "CHIP_DATA_INTEGRITY_FAILED", contraIndicator: [] },
-			{ reason: "CHIP_SIGNATURE_VERIFICATION_FAILED", contraIndicator: [] },
-			{ reason: "CHIP_CSCA_VERIFICATION_FAILED", contraIndicator: [] },
-			{ reason: "UNKNOWN_REASON", contraIndicator: [] },
+			{ reason: "NO_HOLOGRAM_MOVEMENT", contraIndicator: ["D14"] }
 		])(
 			"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
 			({ reason, contraIndicator }) => {
@@ -221,7 +240,8 @@ describe("GenerateVerifiableCredential", () => {
 					ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION,
 				);
 
-				expect(result).toEqual(contraIndicator);
+				expect(result.contraIndicators).toEqual(contraIndicator);
+				expect(result.rejectionReasons).toEqual([{ ci: contraIndicator[0], reason }]);
 				expect(logger.info).toHaveBeenCalledWith({
 					message: "Handling authenticity rejection",
 					reason,
@@ -230,6 +250,35 @@ describe("GenerateVerifiableCredential", () => {
 			},
 		);
 	});
+
+		it("should return the contra indicator array [] for authenticity rejection reason UNKNOWN_REASON", () => {
+			
+		const reason = "UNKNOWN_REASON"
+		const contraIndicator = [undefined]
+			
+			
+			const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
+				value: "APPROVE",
+			};
+			const ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION = {
+				value: "REJECT",
+				reason,
+			};
+
+			const result = generateVerifiableCredential["getContraIndicator"](
+				ID_DOCUMENT_FACE_MATCH_RECOMMENDATION,
+				ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION,
+			);
+
+			expect(result.contraIndicators).toEqual(contraIndicator);
+			expect(result.rejectionReasons).toEqual([]);
+			expect(logger.info).toHaveBeenCalledWith({
+				message: "Handling authenticity rejection",
+				reason,
+				contraIndicator: contraIndicator[0],
+			});
+		},
+	);
 
 	describe("attachPersonName", () => {
 		it("should attach the person name to the credential subject", () => {
@@ -410,7 +459,7 @@ describe("GenerateVerifiableCredential", () => {
 				} },
 		])(
 			"should return the verified credential information with failedCheckDetails where $scoreName is 0",
-			({ scoreCalculator, scoreName, expectedScores }) => {
+			({ scoreCalculator, expectedScores }) => {
 				jest.spyOn(GenerateVerifiableCredential.prototype as any, scoreCalculator).mockReturnValueOnce(0);
 				const result = generateVerifiableCredential.getVerifiedCredentialInformation(
 					mockYotiSessionId,
@@ -465,6 +514,7 @@ describe("GenerateVerifiableCredential", () => {
 							...expectedScores,
 						},
 					],
+					rejectionReasons: [],
 				});
 			},
 		);
@@ -525,6 +575,7 @@ describe("GenerateVerifiableCredential", () => {
 						verificationScore: 3,
 					},
 				],
+				rejectionReasons: [],
 			});
 		});
 
