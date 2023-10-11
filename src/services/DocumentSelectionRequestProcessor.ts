@@ -116,7 +116,7 @@ export class DocumentSelectionRequestProcessor {
 		return new Response(HttpCodesEnum.UNAUTHORIZED, "Yoti session already exists for this authorization session");
 	}
 	else if (f2fSessionInfo.authSessionState !== AuthSessionState.F2F_SESSION_CREATED) {
-		this.logger.info("Duplicate request, returning status 200, sessionId: ", sessionId);
+		this.logger.warn("Duplicate request, returning status 200, sessionId: ", sessionId);
 		return new Response(HttpCodesEnum.OK, "Request already processed");
 	} else {
   		try {

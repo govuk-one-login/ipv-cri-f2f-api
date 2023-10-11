@@ -344,7 +344,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 		expect(out.body).toBe("Yoti session already exists for this authorization session");
 		expect(logger.warn).toHaveBeenCalledWith(
-			"Yoti session already exists for this authorization session or Session is in the wrong state: F2F_YOTI_SESSION_CREATED", { "messageCode": "STATE_MISMATCH" },
+			"Yoti session already exists for this authorization session", { "messageCode": "YOTI_SESSION_ALREADY_EXISTS" },
 		);
 	});
 
@@ -361,7 +361,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Request already processed");
 		expect(logger.warn).toHaveBeenCalledWith(
-			"Yoti session already exists for this authorization session or Session is in the wrong state: F2F_YOTI_SESSION_CREATED", { "messageCode": "STATE_MISMATCH" },
+			"Duplicate request, returning status 200, sessionId: ", "1234"
 		);
 	});
 
