@@ -123,14 +123,15 @@ export class GenerateVerifiableCredential {
   private getContraIndicator(
   	ID_DOCUMENT_FACE_MATCH_RECOMMENDATION: YotiCheckRecommendation,
   	ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION: YotiCheckRecommendation,
-  ): string[] {
-  	const ci: string[] = [];
+  ): { contraIndicators: string[]; rejectionReasons: [{ ci: string; reason: string }] } {
+  	const contraIndicators: string[] = [];
+  	const rejectionReasons: any = [];
 
   	const addToCI = (code: string | string[]) => {
   		if (Array.isArray(code)) {
-  			ci.push(...code);
+  			contraIndicators.push(...code);
   		} else {
-  			ci.push(code);
+  			contraIndicators.push(code);
   		}
   	};
 
@@ -144,6 +145,7 @@ export class GenerateVerifiableCredential {
   				case "PHOTO_OF_PHOTO":
   				case "DIFFERENT_PERSON":
   					addToCI("V01");
+  					rejectionReasons.push({ ci: "V01", reason });
   					break;
   				default:
   					break;
@@ -182,14 +184,17 @@ export class GenerateVerifiableCredential {
   			}
 
   			this.logger.info({ message: "Handling authenticity rejection", reason, contraIndicator });
-  			if (contraIndicator) addToCI(contraIndicator);
+  			if (contraIndicator) {
+  				addToCI(contraIndicator);
+  				if (reason) rejectionReasons.push({ ci: contraIndicator, reason });
+  			}
   		}
   	};
 
   	handleFaceMatchRejection();
   	handleAuthenticityRejection();
 
-  	return ci;
+  	return { contraIndicators, rejectionReasons };
   }
 
   private attachPersonName(
@@ -326,6 +331,7 @@ export class GenerateVerifiableCredential {
   ): {
   		credentialSubject: VerifiedCredentialSubject;
   		evidence: VerifiedCredentialEvidence;
+  		rejectionReasons: [{ ci: string; reason: string }];
   	} {
   	const { id_documents: idDocuments } = completedYotiSessionPayload.resources;
   	const { checks } = completedYotiSessionPayload;
@@ -439,8 +445,11 @@ export class GenerateVerifiableCredential {
   		this.logger.info("Validity Score 0", { value: DocumentAuthenticity.value, reason: DocumentAuthenticity.reason });
   	}
 
+  	let rejectionReasons: any = [];
+
   	if (evidence[0].strengthScore === 0 || evidence[0].validityScore === 0 || evidence[0].verificationScore === 0) {
-  		const contraIndicators = this.getContraIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);
+  		const { contraIndicators, rejectionReasons: collectedRejectionReasons } = this.getContraIndicator(MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation, MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation);
+  		rejectionReasons = collectedRejectionReasons;
   		if (contraIndicators.length >= 1) {
   			evidence[0].ci = contraIndicators;
   		}
@@ -474,6 +483,7 @@ export class GenerateVerifiableCredential {
   	return {
   		credentialSubject,
   		evidence,
+  		rejectionReasons,
   	};
   }
 }
