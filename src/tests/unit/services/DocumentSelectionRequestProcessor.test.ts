@@ -342,7 +342,24 @@ describe("DocumentSelectionRequestProcessor", () => {
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
-		expect(out.body).toBe("Yoti session already exists for this authorization session or Session is in the wrong state");
+		expect(out.body).toBe("Yoti session already exists for this authorization session");
+		expect(logger.warn).toHaveBeenCalledWith(
+			"Yoti session already exists for this authorization session or Session is in the wrong state: F2F_YOTI_SESSION_CREATED", { "messageCode": "STATE_MISMATCH" },
+		);
+	});
+
+	it("Return 200 if duplicate request (AuthSessionState is not in F2F_SESSION_CREATED)", async () => {
+		const f2fSessionItemDuplicateRequest: ISessionItem = {
+			...f2fSessionItem,
+			authSessionState: AuthSessionState.F2F_YOTI_SESSION_COMPLETE,
+		};
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemDuplicateRequest);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+		expect(out.body).toBe("Request already processed");
 		expect(logger.warn).toHaveBeenCalledWith(
 			"Yoti session already exists for this authorization session or Session is in the wrong state: F2F_YOTI_SESSION_CREATED", { "messageCode": "STATE_MISMATCH" },
 		);
