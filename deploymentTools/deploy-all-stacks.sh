@@ -20,12 +20,12 @@ read -p "Enter GovNotifyStackName: " GovNotifyStackName
 prompt_for_deployment() {
     local stack_name="$1"
 		echo ""
-    read -p "Do you wish to deploy $stack_name?(y/n): " deploy_choice
+    read -p "🤔 Do you wish to deploy $stack_name?(y/n): " deploy_choice
     if [[ "$deploy_choice" == "y" || "$deploy_choice" == "Y" ]]; then
         stacksToDeploy+=("$stack_name")
-				echo "Marked $stack_name for deployment"
+				echo "Marked $stack_name for deployment ✅"
     else
-        echo "Skipping deployment for $stack_name"
+        echo "Skipping deployment for $stack_name ⏭️"
     fi
 }
 
@@ -39,43 +39,43 @@ prompt_for_deployment "$YotiStubStackName"
 prompt_for_deployment "$GovNotifyStackName"
 
 echo ""
-echo "Deploying the following stacks: ${stacksToDeploy[*]}!"
+echo "🛠️ Deploying the following stacks: ${stacksToDeploy[*]}! 🛠️"
 
 # Loop through the selected stack names and deploy them
 for stack_name in "${stacksToDeploy[@]}"; do
     case "$stack_name" in
         "$L2KMSStackName")
-            cd infra-l2-kms
+            cd ../infra-l2-kms
             sam build ; sam deploy --config-env dev --resolve-s3 --stack-name "$L2KMSStackName"
             cd "$original_dir"
             ;;
         "$L2DynamoStackName")
-            cd infra-l2-dynamo
+            cd ../infra-l2-dynamo
             sam build ; sam deploy --config-env dev --resolve-s3 --stack-name "$L2DynamoStackName"
             cd "$original_dir"
             ;;
         "$IPVStackName")
-            cd f2f-ipv-stub
+            cd ../f2f-ipv-stub
             sam build ; sam deploy --stack-name "$IPVStackName" --resolve-s3 --capabilities CAPABILITY_IAM
             cd "$original_dir"
             ;;
         "$DevStackName")
-            cd deploy
+            cd ../deploy
             sam build ; sam deploy --config-env dev --resolve-s3 --stack-name "$DevStackName" --parameter-overrides "CodeSigningConfigArn=\"none\" Environment=\"dev\" PermissionsBoundary=\"none\" SecretPrefix=\"none\" VpcStackName=\"vpc-cri\" L2DynamoStackName=\"$L2DynamoStackName\" L2KMSStackName=\"$L2KMSStackName\"" --capabilities CAPABILITY_IAM
             cd "$original_dir"
             ;;
         "$TestHarnessStackName")
-            cd test-harness
+            cd ../test-harness
             sam build ; sam deploy --config-env dev --resolve-s3 --stack-name "$TestHarnessStackName" --parameter-overrides "CodeSigningConfigArn=\"none\" Environment=\"dev\" PermissionsBoundary=\"none\" SecretPrefix=\"none\" VpcStackName=\"vpc-cri\" BackendStack=\"$DevStackName\"" --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
             cd "$original_dir"
             ;;
 				"$YotiStubStackName")
-            cd yoti-stub
+            cd ../yoti-stub
             sam build; sam deploy --config-env dev --resolve-s3 --stack-name "$YotiStubStackName" --parameter-overrides "CodeSigningConfigArn=\"none\" Environment=\"dev\" PermissionsBoundary=\"none\" SecretPrefix=\"none\" VpcStackName=\"vpc-cri\" L2DynamoStackName=\"$L2DynamoStackName\" L2KMSStackName=\"$L2KMSStackName\"" --capabilities CAPABILITY_IAM
             cd "$original_dir"
             ;;
         "$GovNotifyStackName")
-            cd gov-notify-stub
+            cd ../gov-notify-stub
             sam build; sam deploy --config-env dev --resolve-s3 --stack-name "$GovNotifyStackName" --parameter-overrides "CodeSigningConfigArn=\"none\" Environment=\"dev\" PermissionsBoundary=\"none\" SecretPrefix=\"none\" VpcStackName=\"vpc-cri\" L2DynamoStackName=\"$L2DynamoStackName\" L2KMSStackName=\"$L2KMSStackName\"" --capabilities CAPABILITY_IAM
             cd "$original_dir"
             ;;
@@ -83,4 +83,6 @@ for stack_name in "${stacksToDeploy[@]}"; do
 done
 
 echo ""
-echo "Following Stacks Deployed Successfully: ${stacksToDeploy[*]}!"
+echo "🎉 Following Stacks Deployed Successfully: ${stacksToDeploy[*]}! 🎉"
+echo ""
+echo "🙏 Please remember to run delete-all-stacks if you no longer need theses 🙏"
