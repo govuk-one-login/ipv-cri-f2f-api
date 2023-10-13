@@ -1,0 +1,9 @@
+{
+  "L2KMSStackName": "testparallelviveakkms",
+  "L2DynamoStackName": "testparallelviveakdynamo",
+  "IPVStackName": "testparallelviveakipv",
+  "DevStackName": "testparallelviveakharness",
+  "TestHarnessStackName": "testparallelviveakharness",
+  "YotiStubStackName": "testparallelviveakyoti",
+  "GovNotifyStackName": "testparallelviveaknotify"
+}
