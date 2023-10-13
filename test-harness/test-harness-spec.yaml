@@ -14,14 +14,23 @@ tags:
   - name: Testing - API to enable automation
     description: Endpoint implemented to enable testing
 
-# x-amazon-apigateway-policy:
-#   Version: "2012-10-17"
-#   Statement:
-#     - Effect: "Allow"
-#       Principal:
-#         AWS: "${AWS::AccountId}"
-#       Action: "execute-api:Invoke"
-#       Resource: "execute-api:/*"
+x-amazon-apigateway-policy:
+  Version: "2012-10-17"
+  Statement:
+  - Effect: "Deny"
+    Principal:
+      AWS:  "*"
+    Action: "execute-api:Invoke"
+    Resource: "execute-api:/*"
+    Condition:
+      StringNotEquals:
+        "aws:PrincipalAccount":
+          - "${AWS::AccountId}"
+  - Effect: "Allow"
+    Principal:
+      AWS:  "*"
+    Action: "execute-api:Invoke"
+    Resource: "execute-api:/*"
 
 paths:
   getRecordBySessionId/{tableName}/{sessionId}:
@@ -58,6 +67,8 @@ paths:
           description: Unauthorized
         "500":
           description: Internal Server Error
+      security:
+        - sigv4Reference: []
       x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: POST
@@ -118,6 +129,8 @@ paths:
           description: Unauthorized
         "500":
           description: Internal Server Error
+      security:
+        - sigv4Reference: []
       x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: POST
@@ -172,6 +185,8 @@ paths:
           description: Unauthorized
         "500":
           description: Internal Server Error
+      security:
+        - sigv4Reference: []
       x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: POST
@@ -221,6 +236,8 @@ paths:
           description: Unauthorized
         "500":
           description: Internal Server Error
+      security:
+        - sigv4Reference: []
       x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: GET
@@ -276,6 +293,8 @@ paths:
           description: Unauthorized
         "500":
           description: Internal Server Error
+      security:
+        - sigv4Reference: []
       x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: GET
@@ -294,10 +313,21 @@ paths:
             statusCode: "200"
         type: aws
 
-# components:
-#   securitySchemes:
-#     SigV4Reference:
-#       type: apiKey
-#       name: Authorization
-#       in: header
-#       x-amazon-apigateway-authtype: awsSigv4
+components:
+  securitySchemes:
+    sigv4Reference:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: awsSigv4
+
+x-amazon-apigateway-request-validators:
+    both:
+      validateRequestBody: true
+      validateRequestParameters: true
+    requestBodyOnly:
+      validateRequestBody: true
+      validateRequestParameters: false
+    requestParamsOnly:
+      validateRequestBody: false
+      validateRequestParameters: true
