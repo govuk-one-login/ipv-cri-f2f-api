@@ -24,7 +24,7 @@ fi
 prompt_for_deployment() {
     local stack_name="$1"
     echo ""
-    read -p "🤔 Do you wish to deploy $stack_name?(y/n): " deploy_choice
+    read -p "🤔 Do you wish to deploy $stack_name? (y/n): " deploy_choice
     if [[ "$deploy_choice" == "y" || "$deploy_choice" == "Y" ]]; then
         stacksToDeploy+=("$stack_name")
         echo "Marked $stack_name for deployment ✅"
@@ -69,18 +69,19 @@ if [[ " ${stacksToDeploy[@]} " =~ " $L2KMSStackName " && " ${stacksToDeploy[@]} 
     run_deployment_in_parallel "$L2DynamoStackName" "../infra-l2-dynamo" "$deploy_command" &
 fi
 
-# Deploy IPVStackName and DevStackName sequentially
-if [[ " ${stacksToDeploy[@]} " =~ " $IPVStackName " ]]; then
+# Wait for Layer 2 deployments to finish
+wait
+
+# Deploy IPVStackName and DevStackName in parallel
+if [[ " ${stacksToDeploy[@]} " =~ " $IPVStackName " && " ${stacksToDeploy[@]} " =~ " $DevStackName " ]]; then
     deploy_command="sam deploy --stack-name $IPVStackName --resolve-s3 --capabilities CAPABILITY_IAM"
-    run_deployment_in_parallel "$IPVStackName" "../f2f-ipv-stub" "$deploy_command"
-fi
-
-if [[ " ${stacksToDeploy[@]} " =~ " $DevStackName " ]]; then
+    run_deployment_in_parallel "$IPVStackName" "../f2f-ipv-stub" "$deploy_command" &
+    
     deploy_command="sam deploy --config-env dev --resolve-s3 --stack-name $DevStackName --parameter-overrides \"CodeSigningConfigArn=none Environment=dev PermissionsBoundary=none SecretPrefix=none VpcStackName=vpc-cri L2DynamoStackName=$L2DynamoStackName L2KMSStackName=$L2KMSStackName\" --capabilities CAPABILITY_IAM"
-    run_deployment_in_parallel "$DevStackName" "../deploy" "$deploy_command"
+    run_deployment_in_parallel "$DevStackName" "../deploy" "$deploy_command" &
 fi
 
-# Wait for all deployments to finish
+# Wait for Layer 3 deployments to finish
 wait
 
 # Loop through the selected stack names and create deployment commands for the rest
@@ -119,6 +120,4 @@ done
 wait
 
 echo ""
-echo "🎉 Following Stacks Deployed Successfully: ${stacksToDeploy[*]}! 🎉"
-echo ""
-echo "🙏 Please remember to run delete-all-stacks if you no longer need these 🙏"
+echo "🎉 Following Stacks Deployed Successfully: ${stacksToDeploy[*]}!
