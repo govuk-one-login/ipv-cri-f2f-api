@@ -206,7 +206,7 @@ Resources:
         postLocationSearch:
           Type: Api
           Properties:
-            Path: /postoffice/locations/search
+            Path: /v1/locations/search
             Method: post
             RestApiId: !Ref MockPostOfficeRestApi
     Metadata: # Manage esbuild properties
