@@ -515,6 +515,19 @@ export function validateCriVcIssuedTxMAEvent(txmaEvent: any, yotiMockId: any): a
 	}
 } 
 
+export async function postPOCodeRequest(mockDelimitator: any, userData: any): Promise<any> {
+	const path = "/postoffice/locations/search";
+	try {
+		userData.searchString = userData.searchString + " " + mockDelimitator;
+		console.log("userData in try statement: ", userData);
+		const postRequest = await PO_INSTANCE.post(path, userData);
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+}
+
 function validateCriVcIssuedFailedChecks(txmaEvent: any, yotiMockId: any, vcData: any):void {
 	// Contra Indicators
 	const expectedContraIndicatiors = eval("vcData.s" + yotiMockId + ".ci");
