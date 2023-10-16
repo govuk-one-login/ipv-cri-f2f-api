@@ -43,6 +43,11 @@ export interface RestrictedObject {
 	"idCard"?: IdentityCard;
 }
 
+export type CiReason = {
+	ci: string;
+	reason: string;
+};
+
 export type VerifiedCredentialEvidenceTxMA = Array<{
 	type?: string;
 	txn: string;
@@ -57,6 +62,7 @@ export type VerifiedCredentialEvidenceTxMA = Array<{
 		biometricVerificationProcessLevel?: number;
 	}>;
 	ci?: string[];
+	ciReasons?: [CiReason];
 	failedCheckDetails?: Array<{
 		photoVerificationProcessLevel?: number;
 		checkMethod: string;

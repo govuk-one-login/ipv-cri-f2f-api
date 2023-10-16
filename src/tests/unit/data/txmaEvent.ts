@@ -20,6 +20,7 @@ const TXMA_EXTENSION = {
 					},
 				],
 				"ci": undefined,
+				"ciReasons": [],
 			},
 		],
 	},

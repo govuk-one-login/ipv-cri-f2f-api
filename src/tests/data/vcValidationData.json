@@ -73,7 +73,7 @@
         "strengthScore": null,
         "validityScore": null,
         "verificationScore": 0,
-        "failedCheck": "01",
+        "failedCheck": "FACE_NOT_GENUINE",
         "checkMethod": null,
         "ci": "V01"
     },
@@ -81,7 +81,7 @@
         "strengthScore": null,
         "validityScore": null,
         "verificationScore": 0,
-        "failedCheck": "01",
+        "failedCheck": "LARGE_AGE_GAP",
         "checkMethod": null,
         "ci": "V01"
     },
@@ -89,7 +89,7 @@
         "strengthScore": null,
         "validityScore": null,
         "verificationScore": 0,
-        "failedCheck": "01",
+        "failedCheck": "PHOTO_OF_MASK",
         "checkMethod": null,
         "ci": "V01"
     },
@@ -97,7 +97,7 @@
         "strengthScore": null,
         "validityScore": null,
         "verificationScore": 0,
-        "failedCheck": "01",
+        "failedCheck": "PHOTO_OF_PHOTO",
         "checkMethod": null,
         "ci": "V01"
     },
@@ -105,7 +105,7 @@
         "strengthScore": null,
         "validityScore": null,
         "verificationScore": 0,
-        "failedCheck": "01",
+        "failedCheck": "DIFFERENT_PERSON",
         "checkMethod": null,
         "ci": "V01"
     },
@@ -113,7 +113,7 @@
         "strengthScore": null,
         "validityScore": null,
         "verificationScore": 0,
-        "failedCheck": "01",
+        "failedCheck": "COUNTERFEIT",
         "checkMethod": null,
         "ci": "D14"
     },
@@ -121,7 +121,7 @@
         "strengthScore": null,
         "validityScore": null,
         "verificationScore": 0,
-        "failedCheck": "01",
+        "failedCheck": "EXPIRED_DOCUMENT",
         "checkMethod": null,
         "ci": "D16"
     },
@@ -130,7 +130,7 @@
         "validityScore": null,
         "verificationScore": 0,
         "checkMethod": null,
-        "failedCheck": "01",
+        "failedCheck": "FRAUD_LIST_MATCH",
         "ci": "F03"
     },
     "s0116":{
@@ -152,6 +152,7 @@
         "validityScore": null,
         "verificationScore": 0,
         "checkMethod": null,
+        "failedCheck": "TAMPERED",
         "ci": "D14"
     },
     "s0119":{
@@ -159,6 +160,7 @@
         "validityScore": null,
         "verificationScore": 0,
         "checkMethod": null,
+        "failedCheck": "MISSING_HOLOGRAM",
         "ci": "D14"
     },
     "s0120":{
@@ -166,6 +168,7 @@
         "validityScore": null,
         "verificationScore": 0,
         "checkMethod": null,
+        "failedCheck": "NO_HOLOGRAM_MOVEMENT",
         "ci": "D14"
     },
     "s0121":{
@@ -180,6 +183,7 @@
         "validityScore": null,
         "verificationScore": 0,
         "checkMethod": null,
+        "failedCheck": "DOC_NUMBER_INVALID",
         "ci": "D02"
     },
     "s0123":{
@@ -257,6 +261,7 @@
         "validityScore": null,
         "verificationScore": 0,
         "checkMethod": null,
+        "failedCheck": "FACE_NOT_GENUINE",
         "ci": "V01"
     },
     "s0300":{

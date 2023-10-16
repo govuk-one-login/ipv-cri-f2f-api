@@ -2417,6 +2417,92 @@ Resources:
       FilterPattern: ""
       LogGroupName: !Ref TriggerYotiCallbackStateMachineLogGroup
 
+  TriggerYotiCallbackSMFatalErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref TriggerYotiCallbackStateMachineLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "TriggerYotiCallbackFunction-Fatalerror"
+
+  TriggerYotiCallbackStateMachineFatalErrorAlarm:
+    DependsOn:
+      - "YotiCallbackFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackStateMachineFatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: TriggerYotiCallbackFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  TriggerYotiConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployConcurrencyAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of Yoticallback is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref TokenFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  TriggerYotiThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${TriggerYotiCallbackStateMachine} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackStateMachine-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: TriggerYotiCallbackStateMachine
+          Value: !Ref TriggerYotiCallbackStateMachine
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
   YotiCallbackQueue:
     Type: "AWS::SQS::Queue"
     Properties:
@@ -2653,6 +2739,92 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ThankYouEmailFunction
       Principal: apigateway.amazonaws.com
+
+  ThankYouEmailFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref ThankYouEmailFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "ThankYouEmail-Fatalerror"
+
+  ThankYouEmailFatalErrorAlarm:
+    DependsOn:
+      - "ThankYouEmailFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-ThankYouEmail-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: ThankYouEmail-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  ThankYouEmailConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployConcurrencyAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of ThankYouEmail concurrency is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-ThankYouEmailFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ThankYouEmailFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  ThankYouEmailThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${ThankYouEmailFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-ThankYouEmailFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ThankYouEmailFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
 
   YotiCallbackQueueDeadLetterQueue:
     Type: "AWS::SQS::Queue"
@@ -4671,6 +4843,48 @@ Resources:
                     "view": "timeSeries",
                     "stacked": false
                   }
+                },
+                { "height": 6,
+                  "width": 12,
+                  "y": 18,
+                  "x": 12,
+                  "type": "metric",
+                  "properties": {
+                    "title": "TriggerYotiCallbackStateMachine 80% Concurrency - ${AWS::StackName}",
+                    "annotations": {
+                      "alarms": ["${TriggerYotiConcurrency80Alarm.Arn}"]
+                    },
+                    "view": "timeSeries",
+                    "stacked": false
+                  }
+                },
+                { "height": 6,
+                  "width": 12,
+                  "y": 18,
+                  "x": 12,
+                  "type": "metric",
+                  "properties": {
+                    "title": "ThankYouEmail 80% Concurrency - ${AWS::StackName}",
+                    "annotations": {
+                      "alarms": ["${ThankYouEmailConcurrency80Alarm.Arn}"]
+                    },
+                    "view": "timeSeries",
+                    "stacked": false
+                  }
+                },
+                { "height": 6,
+                  "width": 12,
+                  "y": 18,
+                  "x": 12,
+                  "type": "metric",
+                  "properties": {
+                    "title": "ReminderEmail 80% Concurrency - ${AWS::StackName}",
+                    "annotations": {
+                      "alarms": ["${ReminderEmailConcurrency80Alarm.Arn}"]
+                    },
+                    "view": "timeSeries",
+                    "stacked": false
+                  }
                 }
               ]
             }
@@ -4818,10 +5032,55 @@ Resources:
                     "view": "timeSeries",
                     "stacked": false
                   }
+                },
+                {
+                  "height": 6,
+                  "width": 12,
+                  "y": 12,
+                  "x": 12,
+                  "type": "metric",
+                  "properties": {
+                    "title": "TriggerYoti Throttles - ${AWS::StackName}",
+                    "annotations": {
+                      "alarms": ["${TriggerYotiThrottleAlarm.Arn}"]
+                    },
+                    "view": "timeSeries",
+                    "stacked": false
+                  }
+                },
+                {
+                  "height": 6,
+                  "width": 12,
+                  "y": 12,
+                  "x": 12,
+                  "type": "metric",
+                  "properties": {
+                    "title": "ReminderEmail Throttles - ${AWS::StackName}",
+                    "annotations": {
+                      "alarms": ["${ReminderEmailThrottleAlarm.Arn}"]
+                    },
+                    "view": "timeSeries",
+                    "stacked": false
+                  }
+                },
+                {
+                  "height": 6,
+                  "width": 12,
+                  "y": 12,
+                  "x": 12,
+                  "type": "metric",
+                  "properties": {
+                    "title": "ThankYouEmail Throttles - ${AWS::StackName}",
+                    "annotations": {
+                      "alarms": ["${ThankYouEmailThrottleAlarm.Arn}"]
+                    },
+                    "view": "timeSeries",
+                    "stacked": false
+                  }
                 }
               ]
             }
-
+  
   CriticalAlarmDashboard:
     Type: AWS::CloudWatch::Dashboard
     Condition: DeployAlarms
