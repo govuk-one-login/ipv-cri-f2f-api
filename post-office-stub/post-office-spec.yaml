@@ -9,7 +9,7 @@ tags:
     description: Endpoints accessible by the public domain
 
 paths:
-  /postoffice/v1/locations/search:
+  /v1/locations/search:
     post:
       tags:
         - Backend Endpoint for Post Office API
