@@ -319,7 +319,7 @@ export async function validateTxMAEventData(keyList: any, yotiMockID: any): Prom
 	}
 }
 
-export async function validateTxMAEvent(txmaEvent: any, keyList: any, yotiMockId: any, failedCheck: Boolean, vcData: any): Promise<any> {
+export async function validateTxMAEvent(txmaEvent: string, keyList: any, yotiMockId: string, failedCheck: boolean, vcData: any): Promise<any> {
 	let i:any;
 	for (i = 0; i < keyList.length; i++) {
 		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
@@ -327,7 +327,7 @@ export async function validateTxMAEvent(txmaEvent: any, keyList: any, yotiMockId
 		if (getObjectResponse.data.event_name === txmaEvent) {
 			console.log(JSON.stringify(getObjectResponse.data, null, 2));
 			validateCriVcIssuedTxMAEvent(getObjectResponse.data, yotiMockId);
-			if (failedCheck = true){
+			if (failedCheck){
 				validateCriVcIssuedFailedChecks(getObjectResponse.data, yotiMockId, vcData);
 			}
 		}
@@ -514,7 +514,7 @@ export function validateCriVcIssuedTxMAEvent(txmaEvent: any, yotiMockId: any): a
 	}
 } 
 
-function validateCriVcIssuedFailedChecks(txmaEvent: any, yotiMockId: any, vcData: any) {
+function validateCriVcIssuedFailedChecks(txmaEvent: any, yotiMockId: any, vcData: any):void {
 	// Contra Indicators
 	const expectedContraIndicatiors = eval("vcData.s" + yotiMockId + ".ci");
 	if (expectedContraIndicatiors) {

@@ -108,7 +108,7 @@ describe("Callback API", () => {
 		validateJwtToken(jwtToken, vcResponseData, yotiMockId);
 
 	}, 20000);
-
+     
 	it("F2F CRI Callback Endpoint Integration HappyPath - yotiMockId: '%s'", async () => {
 		f2fStubPayload.yotiMockID = "0000";
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
