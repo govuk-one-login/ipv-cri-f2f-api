@@ -120,4 +120,6 @@ done
 wait
 
 echo ""
-echo "🎉 Following Stacks Deployed Successfully: ${stacksToDeploy[*]}!
+echo "🎉 Following Stacks Deployed Successfully: ${stacksToDeploy[*]}! 🎉"
+echo ""
+echo "🙏 Please remember to run delete-all-stacks if you no longer need these 🙏"
