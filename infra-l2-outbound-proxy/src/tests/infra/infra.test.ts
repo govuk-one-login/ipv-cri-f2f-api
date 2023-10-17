@@ -10,8 +10,8 @@ it("Should contain only one Api Gateway V2 resource definition", () => {
 describe("Outbound Proxy Api Gateway Integration URLs", () => {
   test.each`
     ENVIRONMENT      | POSTOFFICEURL                                                                  | YOTIURL                               | PRETTYPROXYURL
-    ${"dev"}         | ${"https://f2f-post-office-stub-postofficestub.review-o.dev.account.gov.uk"}   | ${"https://api.yoti.com/idverify/v1"} | ${"proxy.review-o.dev.account.gov.uk"}
-    ${"build"}       | ${"https://f2f-post-office-stub-postofficestub.review-o.build.account.gov.uk"} | ${"https://api.yoti.com/idverify/v1"} | ${"proxy.review-o.build.account.gov.uk"}
+    ${"dev"}         | ${"https://locations.pol-platform.co.uk"}   | ${"https://api.yoti.com/idverify/v1"} | ${"proxy.review-o.dev.account.gov.uk"}
+    ${"build"}       | ${"https://locations.pol-platform.co.uk"} | ${"https://api.yoti.com/idverify/v1"} | ${"proxy.review-o.build.account.gov.uk"}
     ${"staging"}     | ${"https://locations.pol-platform.co.uk"}                                      | ${"https://api.yoti.com/idverify/v1"} | ${"proxy.review-o.staging.account.gov.uk"}
     ${"integration"} | ${"https://locations.pol-platform.co.uk"}                                      | ${"https://api.yoti.com/idverify/v1"} | ${"proxy.review-o.integration.account.gov.uk"}
     ${"production"}  | ${"https://locations.pol-platform.co.uk"}                                      | ${"https://api.yoti.com/idverify/v1"} | ${"proxy.review-o.account.gov.uk"}

@@ -15,11 +15,11 @@ Conditions:
 Mappings:
   EnvironmentVariables:
     dev:
-      POSTOFFICEURL: "https://f2f-post-office-stub-postofficestub.review-o.dev.account.gov.uk"
+      POSTOFFICEURL: "https://locations.pol-platform.co.uk"
       YOTIURL: "https://api.yoti.com/idverify/v1"
       PRETTYPROXYURL: "proxy.review-o.dev.account.gov.uk"
     build:
-      POSTOFFICEURL: "https://f2f-post-office-stub-postofficestub.review-o.build.account.gov.uk"
+      POSTOFFICEURL: "https://locations.pol-platform.co.uk"
       YOTIURL: "https://api.yoti.com/idverify/v1"
       PRETTYPROXYURL: "proxy.review-o.build.account.gov.uk"
     staging:

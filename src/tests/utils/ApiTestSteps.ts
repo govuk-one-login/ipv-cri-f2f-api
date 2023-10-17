@@ -516,7 +516,7 @@ export function validateCriVcIssuedTxMAEvent(txmaEvent: any, yotiMockId: any): a
 } 
 
 export async function postPOCodeRequest(mockDelimitator: any, userData: any): Promise<any> {
-	const path = "/postoffice/locations/search";
+	const path = "/v1/locations/search";
 	try {
 		userData.searchString = userData.searchString + " " + mockDelimitator;
 		console.log("userData in try statement: ", userData);
