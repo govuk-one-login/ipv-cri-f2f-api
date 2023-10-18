@@ -195,8 +195,8 @@ describe("GenerateVerifiableCredential", () => {
 		it("should return the contra indicator array [] for authenticity rejection reason UNKNOWN_REASON",
 			() => {
 
-			const reason = "UNKNOWN_REASON"
-			const contraIndicator = [undefined]
+				const reason = "UNKNOWN_REASON";
+				const contraIndicator = [undefined];
 
 				const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
 					value: "REJECT",
@@ -223,7 +223,7 @@ describe("GenerateVerifiableCredential", () => {
 			{ reason: "DOC_NUMBER_INVALID", contraIndicator: ["D02"] },
 			{ reason: "TAMPERED", contraIndicator: ["D14"] },
 			{ reason: "MISSING_HOLOGRAM", contraIndicator: ["D14"] },
-			{ reason: "NO_HOLOGRAM_MOVEMENT", contraIndicator: ["D14"] }
+			{ reason: "NO_HOLOGRAM_MOVEMENT", contraIndicator: ["D14"] },
 		])(
 			"should return the contra indicator array $contraIndicator for authenticity rejection reason $reason",
 			({ reason, contraIndicator }) => {
@@ -251,33 +251,33 @@ describe("GenerateVerifiableCredential", () => {
 		);
 	});
 
-		it("should return the contra indicator array [] for authenticity rejection reason UNKNOWN_REASON", () => {
+	it("should return the contra indicator array [] for authenticity rejection reason UNKNOWN_REASON", () => {
 			
-		const reason = "UNKNOWN_REASON"
-		const contraIndicator = [undefined]
+		const reason = "UNKNOWN_REASON";
+		const contraIndicator = [undefined];
 			
 			
-			const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
-				value: "APPROVE",
-			};
-			const ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION = {
-				value: "REJECT",
-				reason,
-			};
+		const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
+			value: "APPROVE",
+		};
+		const ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION = {
+			value: "REJECT",
+			reason,
+		};
 
-			const result = generateVerifiableCredential["getContraIndicator"](
-				ID_DOCUMENT_FACE_MATCH_RECOMMENDATION,
-				ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION,
-			);
+		const result = generateVerifiableCredential["getContraIndicator"](
+			ID_DOCUMENT_FACE_MATCH_RECOMMENDATION,
+			ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION,
+		);
 
-			expect(result.contraIndicators).toEqual(contraIndicator);
-			expect(result.rejectionReasons).toEqual([]);
-			expect(logger.info).toHaveBeenCalledWith({
-				message: "Handling authenticity rejection",
-				reason,
-				contraIndicator: contraIndicator[0],
-			});
-		},
+		expect(result.contraIndicators).toEqual(contraIndicator);
+		expect(result.rejectionReasons).toEqual([]);
+		expect(logger.info).toHaveBeenCalledWith({
+			message: "Handling authenticity rejection",
+			reason,
+			contraIndicator: contraIndicator[0],
+		});
+	},
 	);
 
 	describe("attachPersonName", () => {

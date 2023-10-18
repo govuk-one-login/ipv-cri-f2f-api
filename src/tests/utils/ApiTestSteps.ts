@@ -328,7 +328,7 @@ export async function validateTxMAEvent(txmaEvent: string, keyList: any, yotiMoc
 		if (getObjectResponse.data.event_name === txmaEvent) {
 			console.log(JSON.stringify(getObjectResponse.data, null, 2));
 			validateCriVcIssuedTxMAEvent(getObjectResponse.data, yotiMockId);
-			if (failedCheck){
+			if (failedCheck) {
 				validateCriVcIssuedFailedChecks(getObjectResponse.data, yotiMockId, vcData);
 			}
 		}
