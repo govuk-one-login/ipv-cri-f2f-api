@@ -546,3 +546,23 @@ function validateCriVcIssuedFailedChecks(txmaEvent: any, yotiMockId: any, vcData
 
 	}
 }
+
+export async function initiateUserInfo(docSelectionData:any, sessionId: string): Promise<void> {
+	expect(sessionId).toBeTruthy();
+
+	const documentSelectionResponse = await postDocumentSelection(docSelectionData, sessionId);
+	expect(documentSelectionResponse.status).toBe(200);
+	expect(documentSelectionResponse.data).toBe("Instructions PDF Generated");
+
+
+	const authResponse = await authorizationGet(sessionId);
+	expect(authResponse.status).toBe(200);
+
+	const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
+	expect(tokenResponse.status).toBe(200);
+
+	const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
+	expect(userInfoResponse.status).toBe(202);
+
+} 
+
