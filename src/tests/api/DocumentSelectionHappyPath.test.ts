@@ -2,7 +2,7 @@ import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import dataDriversLicense from "../data/docSelectionPayloadDriversLicenceValid.json";
 import dataBrp from "../data/docSelectionPayloadBrpValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
-import { prepareForCallback, postDocumentSelection, startStubServiceAndReturnSessionId, getSessionById } from "../utils/ApiTestSteps";
+import { initiateUserInfo, postDocumentSelection, startStubServiceAndReturnSessionId, getSessionById } from "../utils/ApiTestSteps";
 import { constants } from "../utils/ApiConstants";
 
 describe("E2E Happy Path /documentSelection Endpoint", () => {
@@ -15,15 +15,15 @@ describe("E2E Happy Path /documentSelection Endpoint", () => {
 	});
 
 	it("E2E Happy Path Journey - Passport", async () => {
-		await prepareForCallback(dataPassport, sessionId);
+		await initiateUserInfo(dataPassport, sessionId);
 	});
 
 	it("E2E Happy Path Journey - Drivers Licence", async () => {
-		await prepareForCallback(dataDriversLicense, sessionId);
+		await initiateUserInfo(dataDriversLicense, sessionId);
 	});
 
 	it("E2E Happy Path Journey - Biometric Residence Permit", async () => {
-		await prepareForCallback(dataBrp, sessionId);
+		await initiateUserInfo(dataBrp, sessionId);
 	});
 
 	// Test Suspended - additional engineering work is required to facilitate the validation of BE systems, designs and US to follow	

@@ -10,7 +10,7 @@ import {
 	startStubServiceAndReturnSessionId,
 	validateJwtToken,
 	getDequeuedSqsMessage,
-	prepareForCallback,
+	initiateUserInfo,
 	getSessionById,
 	callbackPost,
 	validateJwtTokenNamePart,
@@ -69,7 +69,7 @@ describe("Callback API", () => {
 
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
 
-		await prepareForCallback(docSelectionData, sessionResponse.data.session_id);
+		await initiateUserInfo(docSelectionData, sessionResponse.data.session_id);
 
 		const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId: any = session?.yotiSessionId;
@@ -92,7 +92,7 @@ describe("Callback API", () => {
 
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
 
-		await prepareForCallback(dataUkDrivingLicence, sessionResponse.data.session_id);
+		await initiateUserInfo(dataUkDrivingLicence, sessionResponse.data.session_id);
 
 		const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId: any = session?.yotiSessionId;
@@ -120,7 +120,7 @@ describe("Callback API", () => {
 
 			const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
 
-			await prepareForCallback(dataNonUkPassport, sessionResponse.data.session_id);
+			await initiateUserInfo(dataNonUkPassport, sessionResponse.data.session_id);
 
 			const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
 			const yotiSessionId: any = session?.yotiSessionId;
@@ -156,7 +156,7 @@ describe("Callback API", () => {
 		
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
 
-		await prepareForCallback(docSelectionData, sessionResponse.data.session_id);
+		await initiateUserInfo(docSelectionData, sessionResponse.data.session_id);
 
 		const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId: any = session?.yotiSessionId;
@@ -185,7 +185,7 @@ describe("Callback API", () => {
 		
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
 
-		await prepareForCallback(docSelectionData, sessionResponse.data.session_id);
+		await initiateUserInfo(docSelectionData, sessionResponse.data.session_id);
 
 		const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId: any = session?.yotiSessionId;
@@ -214,7 +214,7 @@ describe("Callback API", () => {
 		
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
 
-		await prepareForCallback(docSelectionData, sessionResponse.data.session_id);
+		await initiateUserInfo(docSelectionData, sessionResponse.data.session_id);
 
 		const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId: any = session?.yotiSessionId;
@@ -238,7 +238,7 @@ describe("Callback API", () => {
 
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
 
-		await prepareForCallback(dataPassport, sessionResponse.data.session_id);
+		await initiateUserInfo(dataPassport, sessionResponse.data.session_id);
 
 	
 		const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);

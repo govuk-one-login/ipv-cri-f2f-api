@@ -547,7 +547,7 @@ function validateCriVcIssuedFailedChecks(txmaEvent: any, yotiMockId: any, vcData
 	}
 }
 
-export async function prepareForCallback(docSelectionData:any, sessionId: string): Promise<void> {
+export async function initiateUserInfo(docSelectionData:any, sessionId: string): Promise<void> {
 	expect(sessionId).toBeTruthy();
 
 	const documentSelectionResponse = await postDocumentSelection(docSelectionData, sessionId);
