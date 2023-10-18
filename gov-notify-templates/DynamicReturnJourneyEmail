@@ -1,0 +1,23 @@
+Subject:
+
+Sign in to view the result of your identity check
+
+Message:
+
+Dear ((first name)) ((last name)),
+
+You recently took your ((chosen_photo_ID)), which expires on ((id_expiry_date)), to the Post Office at ((time)) on ((date)). 
+
+The Post Office branch shown on your customer letter is ((branch_name_and_address)).
+
+To view the result of your identity check, you need to sign in to your GOV.UK One Login: ((return_journey_URL))
+
+Then you'll be sent to the service you need to use. 
+
+After you continue, you'll be able to view the result of your identity check. 
+
+If you need help, contact us: https://signin.account.gov.uk/contact-us
+
+Regards,
+
+GOV.UK One Login team
