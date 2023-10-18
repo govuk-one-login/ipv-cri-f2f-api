@@ -1,0 +1,9 @@
+{
+  "L2KMSStackName": "f2f-cri-kms",
+  "L2DynamoStackName": "f2f-cri-ddb",
+  "IPVStackName": "f2f-ipv-stub",
+  "DevStackName": "f2f-cri-api",
+  "TestHarnessStackName": "f2f-test-harness",
+  "YotiStubStackName": "f2f-yoti-stub",
+  "GovNotifyStackName": "f2f-govNotify-stub"
+}
