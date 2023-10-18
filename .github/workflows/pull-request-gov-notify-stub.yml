@@ -58,12 +58,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-
-#      - name: Run lint
-#        run: npm run lint
-#
-#      - name: Run Tests
-#        run: npm run test
   sam-validate:
     name: SAM Validate
     runs-on: ubuntu-latest
@@ -83,7 +77,7 @@ jobs:
           use-installer: true
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: ${{ secrets.GH_GOV_NOTIFY_STUB_VALIDATE_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
