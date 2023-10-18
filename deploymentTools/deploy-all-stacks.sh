@@ -56,7 +56,13 @@ run_deployment_in_parallel() {
     echo ""
 
     cd "$dir"
-    sam build ; eval "$deploy_command"  # Execute the 'sam deploy' command passed as a parameter
+    sam build
+    if eval "$deploy_command"; then
+        echo "$stack_name deployment succeeded ✅"
+    else
+        echo "❌ $stack_name deployment failed"
+        exit 1  # Terminate the script with an error code
+    fi
     cd "$original_dir"
 }
 
@@ -120,4 +126,4 @@ done
 wait
 
 echo ""
-echo "🎉 Following Stacks Deployed Successfully: ${stacksToDeploy[*]}!
+echo "🎉 Following Stacks Deployed Successfully: ${stacksToDeploy[*]}!"
