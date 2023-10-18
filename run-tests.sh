@@ -19,7 +19,8 @@ export DEV_F2F_YOTI_STUB_URL=$(remove_quotes "$CFN_F2FYotiStubURL")
 export DEV_F2F_TEST_HARNESS_URL=$(remove_quotes "$CFN_F2FTestHarnessURL")
 # shellcheck disable=SC2154
 export GOVUKNOTIFYAPI=$(remove_quotes "$CFN_F2FGovNotifyURL")
-
+# shellcheck disable=SC2154
+export DEV_F2F_PO_STUB_URL=$(remove_quotes "$CFN_F2FPostOfficeStubURL")
 
 cd /src; npm run test:api
 cp -rf results $TEST_REPORT_ABSOLUTE_DIR

@@ -102,6 +102,7 @@ Mappings:
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYAPI: "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify"
+      POSTOFFICESTUBAPI: "https://f2f-post-office-stub-postofficestub.review-o.dev.account.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
@@ -119,6 +120,7 @@ Mappings:
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYAPI: "https://govnotifystub.review-o.build.account.gov.uk/govnotify"
+      POSTOFFICESTUBAPI: "https://postofficestub.review-o.build.account.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
@@ -5656,3 +5658,7 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Gov Notify API"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI]
+  F2FPostOfficeStubURL:
+    Condition: IsNotProdLikeEnvironment
+    Description: "F2F Post Office Stub API"
+    Value: !FindInMap [EnvironmentVariables, !Ref Environment, POSTOFFICESTUBAPI]

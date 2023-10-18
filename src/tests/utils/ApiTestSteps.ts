@@ -11,6 +11,7 @@ import { XMLParser } from "fast-xml-parser";
 
 const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
 const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
+const PO_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_PO_STUB_URL });
 const HARNESS_API_INSTANCE : AxiosInstance = axios.create({ baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
 const awsSigv4Interceptor = aws4Interceptor({
 	options: {
@@ -514,6 +515,19 @@ export function validateCriVcIssuedTxMAEvent(txmaEvent: any, yotiMockId: any): a
 	}
 } 
 
+export async function postPOCodeRequest(mockDelimitator: any, userData: any): Promise<any> {
+	const path = "/v1/locations/search";
+	try {
+		userData.searchString = userData.searchString + " " + mockDelimitator;
+		console.log("userData in try statement: ", userData);
+		const postRequest = await PO_INSTANCE.post(path, userData);
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+}
+
 function validateCriVcIssuedFailedChecks(txmaEvent: any, yotiMockId: any, vcData: any):void {
 	// Contra Indicators
 	const expectedContraIndicatiors = eval("vcData.s" + yotiMockId + ".ci");
@@ -532,4 +546,23 @@ function validateCriVcIssuedFailedChecks(txmaEvent: any, yotiMockId: any, vcData
 
 	}
 }
+
+export async function initiateUserInfo(docSelectionData:any, sessionId: string): Promise<void> {
+	expect(sessionId).toBeTruthy();
+
+	const documentSelectionResponse = await postDocumentSelection(docSelectionData, sessionId);
+	expect(documentSelectionResponse.status).toBe(200);
+	expect(documentSelectionResponse.data).toBe("Instructions PDF Generated");
+
+
+	const authResponse = await authorizationGet(sessionId);
+	expect(authResponse.status).toBe(200);
+
+	const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
+	expect(tokenResponse.status).toBe(200);
+
+	const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
+	expect(userInfoResponse.status).toBe(202);
+
+} 
 

@@ -261,7 +261,6 @@ export class F2fService {
 		return filteredItems;
 	}
 
-
 	async updateReminderEmailFlag(sessionId: string, reminderEmailSent: boolean): Promise<void> {
 		const updateStateCommand = new UpdateCommand({
 			TableName: this.tableName,
