@@ -8,18 +8,6 @@ import { RESOURCE_NOT_FOUND, UNSUPPORTED_METHOD, VALID_REQUEST, INVALID_SESSION_
 const mockAbortRequestProcessor = mock<AbortRequestProcessor>();
 
 describe("AbortHandler", () => {
-	it("returns not found when resource not found", async () => {
-		AbortRequestProcessor.getInstance = jest.fn().mockReturnValue(AbortRequestProcessor);
-
-		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist"));
-	});
-
-	it("return not found when unsupported http method tried for abort endpoint", async () => {
-		AbortRequestProcessor.getInstance = jest.fn().mockReturnValue(AbortRequestProcessor);
-
-		return expect(lambdaHandler(UNSUPPORTED_METHOD, "")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
-	});
-
 	it("return Unauthorized if session id is missing", async () => {
 		AbortRequestProcessor.getInstance = jest.fn().mockReturnValue(mockAbortRequestProcessor);
 

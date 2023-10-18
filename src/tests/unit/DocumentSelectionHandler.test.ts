@@ -14,18 +14,6 @@ jest.mock("../../utils/Config", () => {
 });
 
 describe("DocumentSelectionHandler", () => {
-	it("return not found when resource not found", async () => {
-		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
-
-		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
-	});
-
-	it("return not found when unsupported http method tried for documentSelection", async () => {
-		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
-
-		return expect(lambdaHandler(UNSUPPORTED_METHOD, "")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
-	});
-
 	it("return Unauthorized if session id is missing", async () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 

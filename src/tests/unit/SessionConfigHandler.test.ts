@@ -19,7 +19,6 @@ describe("SessionConfigHandler", () => {
 		jest.clearAllMocks();
 	});
 
-
 	it("should return BAD_REQUEST when sessionId header is missing", async () => {
 		const response = await lambdaHandler(event, {});
 		expect(response.statusCode).toBe(400);

@@ -7,9 +7,7 @@ import { ResourcesEnum } from "./models/enums/ResourcesEnum";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import {AppError} from "./utils/AppError";
-import {YotiSessionItem} from "./models/YotiSessionItem";
 import {YotiRequestProcessor} from "./services/YotiRequestProcessor";
-import {YotiSessionRequest} from "./models/YotiSessionRequest";
 
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;

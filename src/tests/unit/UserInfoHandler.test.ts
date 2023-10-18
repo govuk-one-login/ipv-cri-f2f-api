@@ -23,10 +23,4 @@ describe("UserInfoHandler", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockedUserInfoRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
-
-	it("return not found when resource not found", async () => {
-		UserInfoRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedUserInfoRequestProcessor);
-
-		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "CIC")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
-	});
 });

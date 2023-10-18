@@ -30,30 +30,21 @@ class Session implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
-		switch (event.resource) {
-			case ResourcesEnum.SESSION:
-				try {
-					logger.info("Starting SessionRequestProcessor",
-						{
-							resource: ResourcesEnum.SESSION,
-						});
-					return await SessionRequestProcessor.getInstance(logger, metrics).processRequest(event);
-				} catch (error: any) {
-					logger.error("An error has occurred.", {
-						messageCode: MessageCodes.SERVER_ERROR,
-						error,
-					});
-					if (error instanceof AppError) {
-						return new Response(error.statusCode, "Server Error");
-					}
-					return new Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
-				}
-			default:
-				logger.error("Requested resource does not exist", {
-					messageCode: MessageCodes.RESOURCE_NOT_FOUND,
-					resource: event.resource,
+		try {
+			logger.info("Starting SessionRequestProcessor",
+				{
+					resource: ResourcesEnum.SESSION,
 				});
-				return new Response(HttpCodesEnum.NOT_FOUND, "");
+			return await SessionRequestProcessor.getInstance(logger, metrics).processRequest(event);
+		} catch (error: any) {
+			logger.error("An error has occurred.", {
+				messageCode: MessageCodes.SERVER_ERROR,
+				error,
+			});
+			if (error instanceof AppError) {
+				return new Response(error.statusCode, "Server Error");
+			}
+			return new Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
 		}
 
 	}
