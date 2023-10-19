@@ -68,10 +68,10 @@ run_deployment_in_parallel() {
 
 # Deploy L2KMSStackName and L2DynamoStackName in parallel
 if [[ " ${stacksToDeploy[@]} " =~ " $L2KMSStackName " && " ${stacksToDeploy[@]} " =~ " $L2DynamoStackName " ]]; then
-    deploy_command="sam deploy --config-env dev --resolve-s3 --stack-name $L2KMSStackName"
+    deploy_command="sam build && sam deploy --config-env dev --resolve-s3 --stack-name $L2KMSStackName"
     run_deployment_in_parallel "$L2KMSStackName" "../infra-l2-kms" "$deploy_command" &
     
-    deploy_command="sam deploy --config-env dev --resolve-s3 --stack-name $L2DynamoStackName"
+    deploy_command="sam build && sam deploy --config-env dev --resolve-s3 --stack-name $L2DynamoStackName"
     run_deployment_in_parallel "$L2DynamoStackName" "../infra-l2-dynamo" "$deploy_command" &
 fi
 
@@ -80,10 +80,10 @@ wait
 
 # Deploy IPVStackName and DevStackName in parallel
 if [[ " ${stacksToDeploy[@]} " =~ " $IPVStackName " && " ${stacksToDeploy[@]} " =~ " $DevStackName " ]]; then
-    deploy_command="sam deploy --stack-name $IPVStackName --resolve-s3 --capabilities CAPABILITY_IAM"
+    deploy_command="sam build && sam deploy --stack-name $IPVStackName --resolve-s3 --capabilities CAPABILITY_IAM"
     run_deployment_in_parallel "$IPVStackName" "../f2f-ipv-stub" "$deploy_command" &
     
-    deploy_command="sam deploy --config-env dev --resolve-s3 --stack-name $DevStackName --parameter-overrides \"CodeSigningConfigArn=none Environment=dev PermissionsBoundary=none SecretPrefix=none VpcStackName=vpc-cri L2DynamoStackName=$L2DynamoStackName L2KMSStackName=$L2KMSStackName\" --capabilities CAPABILITY_IAM"
+    deploy_command="sam build && sam deploy --config-env dev --resolve-s3 --stack-name $DevStackName --parameter-overrides \"CodeSigningConfigArn=none Environment=dev PermissionsBoundary=none SecretPrefix=none VpcStackName=vpc-cri L2DynamoStackName=$L2DynamoStackName L2KMSStackName=$L2KMSStackName\" --capabilities CAPABILITY_IAM"
     run_deployment_in_parallel "$DevStackName" "../deploy" "$deploy_command" &
 fi
 
@@ -104,15 +104,15 @@ for stack_name in "${stacksToDeploy[@]}"; do
             case "$stack_name" in
                 "$TestHarnessStackName")
                     dir="../test-harness"
-                    deploy_command="sam deploy --config-env dev --resolve-s3 --stack-name $TestHarnessStackName --parameter-overrides \"CodeSigningConfigArn=none Environment=dev PermissionsBoundary=none SecretPrefix=none VpcStackName=vpc-cri BackendStack=$DevStackName\" --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+                    deploy_command="sam build && sam deploy --config-env dev --resolve-s3 --stack-name $TestHarnessStackName --parameter-overrides \"CodeSigningConfigArn=none Environment=dev PermissionsBoundary=none SecretPrefix=none VpcStackName=vpc-cri BackendStack=$DevStackName\" --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM"
                     ;;
                 "$YotiStubStackName")
                     dir="../yoti-stub"
-                    deploy_command="sam deploy --config-env dev --resolve-s3 --stack-name $YotiStubStackName --parameter-overrides \"CodeSigningConfigArn=none Environment=dev PermissionsBoundary=none SecretPrefix=none VpcStackName=vpc-cri L2DynamoStackName=$L2DynamoStackName L2KMSStackName=$L2KMSStackName\" --capabilities CAPABILITY_IAM"
+                    deploy_command="sam build && sam deploy --config-env dev --resolve-s3 --stack-name $YotiStubStackName --parameter-overrides \"CodeSigningConfigArn=none Environment=dev PermissionsBoundary=none SecretPrefix=none VpcStackName=vpc-cri L2DynamoStackName=$L2DynamoStackName L2KMSStackName=$L2KMSStackName\" --capabilities CAPABILITY_IAM"
                     ;;
                 "$GovNotifyStackName")
                     dir="../gov-notify-stub"
-                    deploy_command="sam deploy --config-env dev --resolve-s3 --stack-name $GovNotifyStackName --parameter-overrides \"CodeSigningConfigArn=none Environment=dev PermissionsBoundary=none SecretPrefix=none VpcStackName=vpc-cri L2DynamoStackName=$L2DynamoStackName L2KMSStackName=$L2KMSStackName\" --capabilities CAPABILITY_IAM"
+                    deploy_command="sam build && sam deploy --config-env dev --resolve-s3 --stack-name $GovNotifyStackName --parameter-overrides \"CodeSigningConfigArn=none Environment=dev PermissionsBoundary=none SecretPrefix=none VpcStackName=vpc-cri L2DynamoStackName=$L2DynamoStackName L2KMSStackName=$L2KMSStackName\" --capabilities CAPABILITY_IAM"
                     ;;
             esac
             
