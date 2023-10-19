@@ -58,8 +58,11 @@ export class SessionRequestProcessor {
 
   async processRequest(event: APIGatewayProxyEvent): Promise<Response> {
   	const deserialisedRequestBody = JSON.parse(event.body as string);
+		this.logger.info('deserialisedRequestBody', {deserialisedRequestBody});
   	const requestBodyClientId = deserialisedRequestBody.client_id;
+		this.logger.info('requestBodyClientId', {requestBodyClientId});
   	const clientIpAddress = event.requestContext.identity?.sourceIp;
+		this.logger.info('clientIpAddress', {clientIpAddress});
 
 
   	let configClient;
@@ -73,6 +76,7 @@ export class SessionRequestProcessor {
   		});
   		return new Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
   	}
+		this.logger.info('configClient', {configClient});
 
   	if (!configClient) {
   		this.logger.error("Unrecognised client in request", {
@@ -83,7 +87,7 @@ export class SessionRequestProcessor {
 
   	let urlEncodedJwt: string;
   	try {
-  		urlEncodedJwt = await this.kmsDecryptor.decrypt(deserialisedRequestBody.request);
+  		urlEncodedJwt = await this.kmsDecryptor.decrypt(deserialisedRequestBody.request, this.logger);
   	} catch (error) {
   		this.logger.error("Failed to decrypt supplied JWE request", {
   			error,
@@ -91,6 +95,8 @@ export class SessionRequestProcessor {
   		});
   		return unauthorizedResponse;
   	}
+
+		this.logger.info('urlEncodedJwt', {urlEncodedJwt});
 
   	let parsedJwt: Jwt;
   	try {
@@ -102,6 +108,8 @@ export class SessionRequestProcessor {
   		});
   		return unauthorizedResponse;
   	}
+
+		this.logger.info('parsedJwt', {parsedJwt});
 
   	const jwtPayload: JwtPayload = parsedJwt.payload;
   	try {
@@ -126,6 +134,8 @@ export class SessionRequestProcessor {
   		});
   		return unauthorizedResponse;
   	}
+
+		this.logger.info('jwtPayload', {jwtPayload});
 
   	const JwtErrors = this.validationHelper.isJwtValid(jwtPayload, requestBodyClientId, configClient.redirectUri);
   	if (JwtErrors.length > 0) {
@@ -187,6 +197,8 @@ export class SessionRequestProcessor {
   		authSessionState: "F2F_SESSION_CREATED",
   		evidence_requested: jwtPayload.evidence_requested,
   	};
+
+		this.logger.info('session', {session});
 
   	try {
   		await this.f2fService.createAuthSession(session);

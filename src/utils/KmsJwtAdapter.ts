@@ -93,11 +93,13 @@ export class KmsJwtAdapter {
 		return result;
 	}
 
-	async decrypt(serializedJwe: string): Promise<string> {
+	async decrypt(serializedJwe: string, logger: any): Promise<string> {
 		const jweComponents = serializedJwe.split(".");
 		if (jweComponents.length !== 5) {
 			throw new JsonWebTokenError("Error decrypting JWE: Missing component");
 		}
+
+		logger.info('jweComponents', {jweComponents});
 
 		const [
 			protectedHeader,
@@ -115,11 +117,17 @@ export class KmsJwtAdapter {
 				KeyId: process.env.ENCRYPTION_KEY_IDS,
 			};
 
+			logger.info('inputs', {inputs});
+
 			const output: DecryptCommandOutput = await this.kms.send(
 				new DecryptCommand(inputs),
 			);
 
+			logger.info('output', {output});
+
 			const plaintext = output.Plaintext ?? null;
+
+			logger.info('plaintext', {plaintext});
 
 			if (plaintext === null) {
 				throw new Error("No Plaintext received when calling KMS to decrypt the Encryption Key");
@@ -145,6 +153,8 @@ export class KmsJwtAdapter {
 			);
 
 			payload = new Uint8Array(decryptedBuffer);
+
+			logger.info('payload', {payload});
 		} catch (err) {
 			throw new JsonWebTokenError("Error decrypting JWE: Unable to decrypt payload via Crypto", err);
 		}
