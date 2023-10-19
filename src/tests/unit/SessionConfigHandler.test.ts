@@ -1,38 +1,62 @@
+import { APIGatewayProxyEvent } from "aws-lambda";
+import { Constants } from "../../utils/Constants";
 import { lambdaHandler } from "../../SessionConfigHandler";
 import { mock } from "jest-mock-extended";
-import { RESOURCE_NOT_FOUND, UNSUPPORTED_SESSION_CONFIG, VALID_SESSION_CONFIG } from "./data/session-config-events";
 
-import { Response } from "../../utils/Response";
-import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
+import { AppError } from "../../utils/AppError";
 import { SessionConfigRequestProcessor } from "../../services/SessionConfigRequestProcessor";
+import { VALID_SESSION_CONFIG } from "./data/session-config-events";
 
-const mockedSessionConfigRequestProcessor = mock<SessionConfigRequestProcessor>();
-
-jest.mock("../../services/SessionConfigRequestProcessor", () => {
-	return {
-		SessionConfigRequestProcessor: jest.fn(() => mockedSessionConfigRequestProcessor),
-	};
-});
+const mockSessionConfigRequestProcessor = mock<SessionConfigRequestProcessor>();
 
 describe("SessionConfigHandler", () => {
-	it("return success response for AuthorizationCode", async () => {
-		SessionConfigRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedSessionConfigRequestProcessor);
+	let event = {
+		requestContext: { requestId: "sampleRequestId" },
+		headers: {},
+	} as APIGatewayProxyEvent;
 
-		await lambdaHandler(VALID_SESSION_CONFIG, "SESSION_CONFIG");
-
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockedSessionConfigRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
+	afterEach(() => {
+		jest.clearAllMocks();
 	});
 
-	it("return not found when unsupported http method tried for sessionConfiguration", async () => {
-		SessionConfigRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedSessionConfigRequestProcessor);
 
-		return expect(lambdaHandler(UNSUPPORTED_SESSION_CONFIG, "F2F")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
+	it("should return BAD_REQUEST when sessionId header is missing", async () => {
+		const response = await lambdaHandler(event, {});
+		expect(response.statusCode).toBe(400);
+		expect(response.body).toBe("Missing header: x-govuk-signin-session-id is required");
 	});
 
-	it("return not found when resource not found", async () => {
-		SessionConfigRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedSessionConfigRequestProcessor);
+	it("should return BAD_REQUEST when sessionId is not a valid UUID", async () => {
+		event.headers = {
+			[Constants.X_SESSION_ID]: "invalid-session-id",
+		};
+		const response = await lambdaHandler(event, {});
+		expect(response.statusCode).toBe(400);
+		expect(response.body).toBe("Session id is not a valid uuid");
+	});
 
-		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "SESSION_CONFIG")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
+	it("should call processRequest when sessionId is valid", async () => {
+		SessionConfigRequestProcessor.getInstance = jest.fn().mockReturnValue(mockSessionConfigRequestProcessor);
+		await lambdaHandler(VALID_SESSION_CONFIG, {});
+		expect(mockSessionConfigRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
+	});
+
+	it("should return custom AppError when thrown from the processor", async () => {
+		const customError = new AppError(500, "Random Error");
+		mockSessionConfigRequestProcessor.processRequest.mockRejectedValueOnce(customError);
+		SessionConfigRequestProcessor.getInstance = jest.fn().mockReturnValue(mockSessionConfigRequestProcessor);
+
+		const response = await lambdaHandler(VALID_SESSION_CONFIG, {});
+		expect(response.statusCode).toBe(500);
+		expect(response.body).toBe("Random Error");
+	});
+
+	it("should return SERVER_ERROR when any unexpected error occurs", async () => {
+		mockSessionConfigRequestProcessor.processRequest.mockRejectedValueOnce(new Error("Unexpected error"));
+		SessionConfigRequestProcessor.getInstance = jest.fn().mockReturnValue(mockSessionConfigRequestProcessor);
+
+		const response = await lambdaHandler(VALID_SESSION_CONFIG, {});
+		expect(response.statusCode).toBe(500);
+		expect(response.body).toBe("SessionConfigProcessor encoundered an error.");
 	});
 });

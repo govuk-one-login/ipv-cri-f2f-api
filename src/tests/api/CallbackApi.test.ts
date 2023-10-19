@@ -16,7 +16,7 @@ import {
 	validateJwtTokenNamePart,
 	getSqsEventList,
 	validateTxMAEvent,
-	validateTxMAEventData
+	validateTxMAEventData,
 } from "../utils/ApiTestSteps";
 import "dotenv/config";
 import { constants } from "../utils/ApiConstants";
