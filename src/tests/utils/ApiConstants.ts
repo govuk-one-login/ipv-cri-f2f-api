@@ -8,5 +8,5 @@ export const constants = {
 	DEV_F2F_TEST_HARNESS_URL: process.env.DEV_F2F_TEST_HARNESS_URL,
 	DEV_F2F_SESSION_TABLE_NAME: "session-f2f-cri-ddb",
 	GOVUKNOTIFYAPI: process.env.GOVUKNOTIFYAPI,
-	DEV_F2F_PO_STUB_URL: process.env.DEV_F2F_PO_STUB_URL,
+	DEV_F2F_PO_STUB_URL: QA_CHANGES,
 };
