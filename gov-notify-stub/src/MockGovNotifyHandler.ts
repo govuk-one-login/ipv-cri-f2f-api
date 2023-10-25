@@ -26,7 +26,6 @@ class MockGovNotifyHandler implements LambdaInterface {
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
 		try {
 			logger.info("Event received: GOVNotify SendEmail", { event });
-			logger.info("ABOUT TO PARSE JSON");
 			const payload = event.body;
 			let payloadParsed;
 
@@ -40,16 +39,16 @@ class MockGovNotifyHandler implements LambdaInterface {
 
 				logger.info("PARSED JSON", { payloadParsed });
 				logger.info("PARSED EMAIL", payloadParsed.email_address);
-				logger.info("FINISHED PARSING, awaiting return");
+				logger.info("Starting GovNotifyRequestProcessor");
 				return await GovNotifyRequestProcessor.getInstance(logger, metrics).mockSendEmail(payloadParsed.email_address);
 			}
 
-		} catch (err: any) {
-			logger.error({ message: "An error has occurred.", err });
-			if (err instanceof AppError) {
-				return new Response(err.statusCode, err.message);
-			}
-			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+		} catch (err) {
+			const errorMessage = "GovNotifyRequestProcessor encoundered an error.";
+			logger.error({ message: errorMessage, err });
+			return err instanceof AppError
+				? new Response(err.statusCode, err.message)
+				: new Response(HttpCodesEnum.SERVER_ERROR, errorMessage);
 		}
 	}
 

@@ -43,7 +43,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 							}
 
 							logger.info("PARSED JSON", {payloadParsed})
-							logger.info("FINISHED PARSING, awaiting return")
+							logger.info("Creating Mock YOTI Sessions");
 							return await YotiRequestProcessor.getInstance(logger, metrics).createSession(event, payloadParsed);
 						}
 
@@ -65,7 +65,8 @@ class MockYotiSessionHandler implements LambdaInterface {
 						if ( event && event.pathParameters) {
 							const sessionId = event.pathParameters?.sessionId;
 								 if(sessionId){
-									 return await YotiRequestProcessor.getInstance(logger, metrics).getSession(sessionId);
+									logger.info("Getting Mock YOTI Sessions");
+									return await YotiRequestProcessor.getInstance(logger, metrics).getSession(sessionId);
 								 }
 						}
 					} catch (err: any) {
@@ -87,6 +88,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 								 // Extract attributes from queryStringParameters and add them to the data object
 								 const sessionId = event.pathParameters?.sessionId;
 								 if(sessionId){
+									logger.info("Getting Mock YOTI Session Config");
 									 return await YotiRequestProcessor.getInstance(logger, metrics).getSessionConfiguration(sessionId);
 								 }
 							 }
@@ -123,8 +125,8 @@ class MockYotiSessionHandler implements LambdaInterface {
 							 // Extract attributes from queryStringParameters and add them to the data object
 							 const sessionId = event.pathParameters?.sessionId;
 							 if(sessionId){
-
-								 return await YotiRequestProcessor.getInstance(logger, metrics).updateSessionInstructions(sessionId);
+								logger.info("Updating Mock YOTI Session Instructions");
+								return await YotiRequestProcessor.getInstance(logger, metrics).updateSessionInstructions(sessionId);
 							 }
 						 }
 
@@ -147,8 +149,8 @@ class MockYotiSessionHandler implements LambdaInterface {
 						 // Extract attributes from queryStringParameters and add them to the data object
 						 const sessionId = event.pathParameters?.sessionId;
 						 if(sessionId){
-
-							 return YotiRequestProcessor.getInstance(logger, metrics).fetchInstructionsPdf(sessionId);
+							logger.info("Fetching Mock YOTI Session PDF");
+							return YotiRequestProcessor.getInstance(logger, metrics).fetchInstructionsPdf(sessionId);
 						 }
 					 }
 
@@ -171,8 +173,8 @@ class MockYotiSessionHandler implements LambdaInterface {
 						 // Extract attributes from queryStringParameters and add them to the data object
 						 const mediaId = event.pathParameters?.mediaId;
 						 if(mediaId){
-
-							 return YotiRequestProcessor.getInstance(logger, metrics).getMediaContent(mediaId);
+							logger.info("Fetching Mock YOTI Session Media Content");
+							return YotiRequestProcessor.getInstance(logger, metrics).getMediaContent(mediaId);
 						 }
 					 }
 

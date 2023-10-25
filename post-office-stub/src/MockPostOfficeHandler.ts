@@ -25,7 +25,6 @@ class MockPostOfficeHandler implements LambdaInterface {
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
 		try {
 			logger.info("Event received: PostOffice SearchLocation", { event });
-			logger.info("ABOUT TO PARSE JSON");
 			const payload = event.body;
 			let payloadParsed;
 
@@ -37,6 +36,7 @@ class MockPostOfficeHandler implements LambdaInterface {
 				}
 				if (payloadParsed.searchString && payloadParsed.productFilter) {
 					logger.info("PARSED JSON", { payloadParsed }, "PARSED POSTCODE", payloadParsed.searchString, "FINISHED PARSING, awaiting return");
+					logger.info("Starting PostOfficeRequestProcessor");
 					return await PostOfficeRequestProcessor.getInstance(logger, metrics).mockSearchLocations(payloadParsed.searchString);
 				} else {
 					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred - missing payload parameters");

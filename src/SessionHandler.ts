@@ -3,7 +3,6 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Response } from "./utils/Response";
 import { SessionRequestProcessor } from "./services/SessionRequestProcessor";
-import { ResourcesEnum } from "./models/enums/ResourcesEnum";
 import { AppError } from "./utils/AppError";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
@@ -31,10 +30,7 @@ class Session implements LambdaInterface {
 		logger.addContext(context);
 
 		try {
-			logger.info("Starting SessionRequestProcessor",
-				{
-					resource: ResourcesEnum.SESSION,
-				});
+			logger.info("Starting SessionRequestProcessor");
 			return await SessionRequestProcessor.getInstance(logger, metrics).processRequest(event);
 		} catch (error: any) {
 			logger.error("An error has occurred.", {

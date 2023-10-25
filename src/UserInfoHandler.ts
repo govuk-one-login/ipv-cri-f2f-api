@@ -29,6 +29,7 @@ class UserInfo implements LambdaInterface {
 
 		try {
 			logger.info("Received userInfo request:", { requestId: event.requestContext.requestId });
+			logger.info("Starting UserInfoRequestProcessor");
 			return await UserInfoRequestProcessor.getInstance(logger, metrics).processRequest(event);
 		} catch (err) {
 			logger.error({ message: "An error has occurred. ", err }, { messageCode: MessageCodes.SERVER_ERROR });

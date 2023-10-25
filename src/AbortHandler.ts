@@ -55,10 +55,7 @@ export class AbortHandler implements LambdaInterface {
 				return unauthorizedResponse;
 			}
 
-			logger.info("Starting AbortRequestProcessor",
-				{
-					resource: event.resource,
-				});
+			logger.info("Starting AbortRequestProcessor");
 			return await AbortRequestProcessor.getInstance(logger, metrics).processRequest(sessionId);
 		} catch (error) {
 			logger.error({ message: "An error has occurred. ",

@@ -29,12 +29,12 @@ class AuthorizationCodeHandler implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
-		let sessionId;
+		let sessionId: string;
 		try {
 			logger.info("Received authorization request", { requestId: event.requestContext.requestId });
 
 			if (event.headers) {
-				sessionId = event.headers[Constants.SESSION_ID];
+				sessionId = event.headers[Constants.SESSION_ID] as string;
 				if (sessionId) {
 					logger.appendKeys({ sessionId });
 
@@ -50,6 +50,7 @@ class AuthorizationCodeHandler implements LambdaInterface {
 				logger.error("Empty headers", { messageCode: MessageCodes.MISSING_HEADER });
 				return new Response(HttpCodesEnum.BAD_REQUEST, "Empty headers");
 			}
+			logger.info("Starting AuthorizationRequestProcessor");
 			return await AuthorizationRequestProcessor.getInstance(logger, metrics).processRequest(event, sessionId);
 		} catch (err: any) {
 			logger.error({ message: "An error has occurred.", err });
