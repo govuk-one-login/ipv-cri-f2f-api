@@ -91,7 +91,8 @@ export class Constants {
 		LAST_NAME: "last name",
 		LINK_TO_FILE: "link_to_file",
 		CHOSEN_PHOTO_ID: "chosen photo ID",
-
 	};
+
+	static readonly TXMA_FIELDS_TO_SHOW = ["event_name", "documentType"];
   
 }

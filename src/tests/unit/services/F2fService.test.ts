@@ -10,6 +10,7 @@ import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { personIdentityInputRecord, personIdentityOutputRecord } from "../data/personIdentity-records";
 import { AppError } from "../../../utils/AppError";
+import { Constants } from "../../../utils/Constants";
 
 const logger = mock<Logger>();
 
@@ -444,4 +445,82 @@ describe("F2f Service", () => {
 			message: "updateItem - failed: got error updating SESSIONTABLE",
 		}));
 	});	
+
+	describe("obfuscateJSONValues", () => {
+		it("should obfuscate all fields except those in txmaFieldsToShow", async () => {
+			const inputObject = {
+				field1: "sensitive1",
+				field2: "sensitive2",
+				field3: "non-sensitive",
+				nested: {
+					field4: "sensitive3",
+					field5: "non-sensitive",
+				},
+			};
+	
+			const txmaFieldsToShow = ["field3", "field5"];
+	
+			const obfuscatedObject = await f2fService.obfuscateJSONValues(inputObject, txmaFieldsToShow);
+	
+			// Check that sensitive fields are obfuscated and non-sensitive fields are not
+			expect(obfuscatedObject.field1).toBe("***");
+			expect(obfuscatedObject.field2).toBe("***");
+			expect(obfuscatedObject.field3).toBe("non-sensitive");
+			expect(obfuscatedObject.nested.field4).toBe("***");
+			expect(obfuscatedObject.nested.field5).toBe("non-sensitive");
+		});
+	
+		it("should handle arrays correctly", async () => {
+			const inputObject = {
+				field1: "sensitive1",
+				arrayField: [
+					{
+						field2: "sensitive2",
+						field3: "non-sensitive",
+					},
+					{
+						field2: "sensitive3",
+						field3: "non-sensitive",
+					},
+				],
+			};
+	
+			const txmaFieldsToShow = ["field3"];
+	
+			const obfuscatedObject = await f2fService.obfuscateJSONValues(inputObject, txmaFieldsToShow);
+	
+			// Check that sensitive fields are obfuscated and non-sensitive fields are not
+			expect(obfuscatedObject.field1).toBe("***");
+			expect(obfuscatedObject.arrayField[0].field2).toBe("***");
+			expect(obfuscatedObject.arrayField[0].field3).toBe("non-sensitive");
+			expect(obfuscatedObject.arrayField[1].field2).toBe("***");
+			expect(obfuscatedObject.arrayField[1].field3).toBe("non-sensitive");
+		});
+	
+		it("should obfuscate values of different types", async () => {
+			const inputObject = {
+				stringField: "sensitive-string",
+				numberField: 42,
+				booleanField: true,
+			};
+	
+			const txmaFieldsToShow: string[] | undefined = [];
+	
+			const obfuscatedObject = await f2fService.obfuscateJSONValues(inputObject, txmaFieldsToShow);
+	
+			// Check that all fields are obfuscated
+			expect(obfuscatedObject.stringField).toBe("***");
+			expect(obfuscatedObject.numberField).toBe("***");
+			expect(obfuscatedObject.booleanField).toBe("***");
+		});
+	
+		it('should return "***" for non-object input', async () => {
+			const input = "string-input";
+	
+			const obfuscatedValue = await f2fService.obfuscateJSONValues(input);
+	
+			// Check that non-object input is obfuscated as '***'
+			expect(obfuscatedValue).toBe("***");
+		});
+	});
 });
