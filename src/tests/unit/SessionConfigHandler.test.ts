@@ -10,7 +10,7 @@ import { VALID_SESSION_CONFIG } from "./data/session-config-events";
 const mockSessionConfigRequestProcessor = mock<SessionConfigRequestProcessor>();
 
 describe("SessionConfigHandler", () => {
-	let event = {
+	const event = {
 		requestContext: { requestId: "sampleRequestId" },
 		headers: {},
 	} as APIGatewayProxyEvent;
