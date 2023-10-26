@@ -6,7 +6,7 @@ import { initiateUserInfo, postDocumentSelection, startStubServiceAndReturnSessi
 import { constants } from "../utils/ApiConstants";
 
 describe("E2E Happy Path /documentSelection Endpoint", () => {
-	let sessionId: any;
+	let sessionId: string;
 	beforeEach(async () => {
 		f2fStubPayload.yotiMockID = "0000";
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);

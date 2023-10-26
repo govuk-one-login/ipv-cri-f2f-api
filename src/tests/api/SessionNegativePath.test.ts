@@ -2,7 +2,7 @@ import { stubStartPost, sessionPost } from "../utils/ApiTestSteps";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 
 describe("E2E Negative Path /session Endpoint", () => {
-	let sessionId: any;
+	let sessionId: string;
 	beforeEach(async () => {
 		f2fStubPayload.yotiMockID = "0000";
 	});

@@ -1,9 +1,8 @@
 import { lambdaHandler } from "../../DocumentSelectionHandler";
 import { mock } from "jest-mock-extended";
-import { RESOURCE_NOT_FOUND, UNSUPPORTED_METHOD, VALID_REQUEST, INVALID_SESSION_ID, MISSING_SESSION_ID } from "./data/documentSelection-events";
+import { VALID_REQUEST, INVALID_SESSION_ID, MISSING_SESSION_ID } from "./data/documentSelection-events";
 
-import { Response, SECURITY_HEADERS } from "../../utils/Response";
-import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
+import { SECURITY_HEADERS } from "../../utils/Response";
 import { DocumentSelectionRequestProcessor } from "../../services/DocumentSelectionRequestProcessor";
 
 const mockDocumentSelectionRequestProcessor = mock<DocumentSelectionRequestProcessor>();

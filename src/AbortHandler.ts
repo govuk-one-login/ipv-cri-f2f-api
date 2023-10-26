@@ -28,9 +28,9 @@ export class AbortHandler implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 		try {
-			let sessionId;
+			let sessionId: string;
 			if (event.headers) {
-				sessionId = event.headers[Constants.X_SESSION_ID];
+				sessionId = event.headers[Constants.X_SESSION_ID] as string;
 				logger.appendKeys({ sessionId });
 				if (sessionId) {
 					if (!Constants.REGEX_UUID.test(sessionId)) {
@@ -58,7 +58,7 @@ export class AbortHandler implements LambdaInterface {
 			logger.info("Starting AbortRequestProcessor");
 			return await AbortRequestProcessor.getInstance(logger, metrics).processRequest(sessionId);
 		} catch (error) {
-			logger.error({ message: "An error has occurred. ",
+			logger.error({ message: "AbortRequestProcessor encoundered an error.",
 				error,
 				messageCode: MessageCodes.SERVER_ERROR,
 			});

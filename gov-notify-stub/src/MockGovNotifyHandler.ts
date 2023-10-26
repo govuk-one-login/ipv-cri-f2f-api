@@ -44,7 +44,7 @@ class MockGovNotifyHandler implements LambdaInterface {
 			}
 
 		} catch (err) {
-			const errorMessage = "GovNotifyRequestProcessor encoundered an error.";
+			const errorMessage = "GovNotifyRequestProcessor encountered an error.";
 			logger.error({ message: errorMessage, err });
 			return err instanceof AppError
 				? new Response(err.statusCode, err.message)

@@ -1,9 +1,8 @@
 import { mock } from "jest-mock-extended";
 import { lambdaHandler } from "../../AbortHandler";
 import { AbortRequestProcessor } from "../../services/AbortRequestProcessor";
-import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
-import { Response, SECURITY_HEADERS } from "../../utils/Response";
-import { RESOURCE_NOT_FOUND, UNSUPPORTED_METHOD, VALID_REQUEST, INVALID_SESSION_ID, MISSING_SESSION_ID } from "./data/abort-events";
+import { SECURITY_HEADERS } from "../../utils/Response";
+import { VALID_REQUEST, INVALID_SESSION_ID, MISSING_SESSION_ID } from "./data/abort-events";
 
 const mockAbortRequestProcessor = mock<AbortRequestProcessor>();
 

@@ -36,9 +36,9 @@ export class DocumentSelection implements LambdaInterface {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		try {
-			let sessionId;
+			let sessionId: string;
 			if (event.headers) {
-				sessionId = event.headers[Constants.X_SESSION_ID];
+				sessionId = event.headers[Constants.X_SESSION_ID] as string;
 				logger.appendKeys({ sessionId });
 				if (sessionId) {
 					if (!Constants.REGEX_UUID.test(sessionId)) {

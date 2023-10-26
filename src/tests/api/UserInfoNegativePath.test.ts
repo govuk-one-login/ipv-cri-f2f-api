@@ -4,7 +4,7 @@ import f2fStubPayload from "../data/exampleStubPayload.json";
 import { constants } from "../utils/ApiConstants";
 
 describe("Negative Path /userInfo Endpoint", () => {
-	let sessionId: any;
+	let sessionId: string;
 	beforeEach(async () => {
 		f2fStubPayload.yotiMockID = "0000";
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
