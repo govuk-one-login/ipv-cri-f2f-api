@@ -4,7 +4,7 @@ import abortPayload from "../data/abortPayload.json";
 import { startStubServiceAndReturnSessionId, postAbortSession } from "../utils/ApiTestSteps";
 
 describe("E2E Happy Path /abort enpoint", () => {
-	let sessionId: any;
+	let sessionId: string;
 	beforeEach(async () => {
 		f2fStubPayload.yotiMockID = "0000";
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);

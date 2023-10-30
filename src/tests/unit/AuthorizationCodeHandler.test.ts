@@ -23,16 +23,4 @@ describe("AuthorizationCodeHandler", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockedAuthorizationRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
-
-	it("return not found when unsupported http method tried for authorization", async () => {
-		AuthorizationRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedAuthorizationRequestProcessor);
-
-		return expect(lambdaHandler(UNSUPPORTED_AUTHCODE, "F2F")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
-	});
-
-	it("return not found when resource not found", async () => {
-		AuthorizationRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedAuthorizationRequestProcessor);
-
-		return expect(lambdaHandler(RESOURCE_NOT_FOUND, "AUTH_CODE")).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
-	});
 });

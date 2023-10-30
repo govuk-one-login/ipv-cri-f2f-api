@@ -3,7 +3,6 @@ import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Constants } from "./utils/Constants";
-import { ResourcesEnum } from "./models/enums/ResourcesEnum";
 import { Response, unauthorizedResponse } from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "./services/DocumentSelectionRequestProcessor";
@@ -36,75 +35,56 @@ export class DocumentSelection implements LambdaInterface {
 			logger.error("Environment variable SSM_PATH is not configured");
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
-
-		switch (event.resource) {
-			case ResourcesEnum.DOCUMENTSELECTION:
-				if (event.httpMethod === "POST") {
-					try {
-						let sessionId;
-						if (event.headers) {
-							sessionId = event.headers[Constants.X_SESSION_ID];
-							logger.appendKeys({ sessionId });
-							if (sessionId) {
-								if (!Constants.REGEX_UUID.test(sessionId)) {
-									logger.error("Session id must be a valid uuid",
-										{
-											messageCode: MessageCodes.INVALID_SESSION_ID,
-										});
-									return unauthorizedResponse;
-								}
-							} else {
-								logger.error("Missing header: session-id is required",
-									{
-										messageCode: MessageCodes.MISSING_SESSION_ID,
-									});
-								return unauthorizedResponse;
-							}
-						} else {
-							logger.error("Empty headers",
-								{
-									messageCode: MessageCodes.EMPTY_HEADERS,
-								});
-							return unauthorizedResponse;
-						}
-
-						if (!YOTI_PRIVATE_KEY) {
-							logger.info({ message: "Fetching key from SSM" });
-							try {
-								YOTI_PRIVATE_KEY = await getParameter(this.YOTI_KEY_SSM_PATH);
-							} catch (error) {
-								logger.error(`failed to get param from ssm at ${this.YOTI_KEY_SSM_PATH}`, {
-									messageCode: MessageCodes.MISSING_CONFIGURATION,
-									error,
-								});
-								return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
-							}
-						}
-						logger.info("Starting DocumentSelectionRequestProcessor",
+		try {
+			let sessionId: string;
+			if (event.headers) {
+				sessionId = event.headers[Constants.X_SESSION_ID] as string;
+				logger.appendKeys({ sessionId });
+				if (sessionId) {
+					if (!Constants.REGEX_UUID.test(sessionId)) {
+						logger.error("Session id must be a valid uuid",
 							{
-								resource: event.resource,
+								messageCode: MessageCodes.INVALID_SESSION_ID,
 							});
-						return await DocumentSelectionRequestProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event, sessionId);
-					} catch (error) {
-						logger.error({ message: "An error has occurred. ",
-							error,
-							messageCode: MessageCodes.SERVER_ERROR,
-						});
-						if (error instanceof AppError) {
-							return new Response(error.statusCode, error.message);
-						}
-						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+						return unauthorizedResponse;
 					}
+				} else {
+					logger.error("Missing header: session-id is required",
+						{
+							messageCode: MessageCodes.MISSING_SESSION_ID,
+						});
+					return unauthorizedResponse;
 				}
-				return new Response(HttpCodesEnum.NOT_FOUND, "");
+			} else {
+				logger.error("Empty headers",
+					{
+						messageCode: MessageCodes.EMPTY_HEADERS,
+					});
+				return unauthorizedResponse;
+			}
 
-			default:
-				logger.error("Requested resource does not exist", {
-					messageCode: MessageCodes.RESOURCE_NOT_FOUND,
-					resource: event.resource,
-				});
-				return new Response(HttpCodesEnum.NOT_FOUND, "");
-
+			if (!YOTI_PRIVATE_KEY) {
+				logger.info({ message: "Fetching key from SSM" });
+				try {
+					YOTI_PRIVATE_KEY = await getParameter(this.YOTI_KEY_SSM_PATH);
+				} catch (error) {
+					logger.error(`failed to get param from ssm at ${this.YOTI_KEY_SSM_PATH}`, {
+						messageCode: MessageCodes.MISSING_CONFIGURATION,
+						error,
+					});
+					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+				}
+			}
+			return await DocumentSelectionRequestProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event, sessionId);
+		} catch (error) {
+			logger.error({ message: "An error has occurred. ",
+				error,
+				messageCode: MessageCodes.SERVER_ERROR,
+			});
+			if (error instanceof AppError) {
+				return new Response(error.statusCode, error.message);
+			}
+			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 		}
 	}
 }

@@ -47,6 +47,7 @@ class SessionConfigHandler implements LambdaInterface {
 				return new Response(HttpCodesEnum.BAD_REQUEST, errorMessage);
 			}
 	
+			logger.info("Starting SessionConfigRequestProcessor");
 			return await SessionConfigRequestProcessor.getInstance(logger, metrics).processRequest(event, sessionId);
 		} catch (err) {
 			const errorMessage = "SessionConfigProcessor encoundered an error.";

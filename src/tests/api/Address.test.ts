@@ -4,7 +4,7 @@ import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../ut
 import { constants } from "../utils/ApiConstants";
 
 describe("Address fields tests", () => {
-	let sessionId: any;
+	let sessionId: string;
 	beforeEach(async () => {
 		f2fStubPayload.yotiMockID = "0000";
 		f2fStubPayload.shared_claims.address[0].uprn = "123456789";

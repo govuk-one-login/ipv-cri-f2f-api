@@ -2,7 +2,6 @@ import { APIGatewayProxyEvent } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { ResourcesEnum } from "./models/enums/ResourcesEnum";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { Constants } from "./utils/Constants";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
@@ -28,60 +27,45 @@ export class AbortHandler implements LambdaInterface {
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
-		switch (event.resource) {
-			case ResourcesEnum.ABORT:
-				if (event.httpMethod === "POST") {
-					try {
-						let sessionId;
-						if (event.headers) {
-							sessionId = event.headers[Constants.X_SESSION_ID];
-							logger.appendKeys({ sessionId });
-							if (sessionId) {
-								if (!Constants.REGEX_UUID.test(sessionId)) {
-									logger.error("Session id must be a valid uuid",
-										{
-											messageCode: MessageCodes.INVALID_SESSION_ID,
-										});
-									return unauthorizedResponse;
-								}
-							} else {
-								logger.error("Missing header: session-id is required",
-									{
-										messageCode: MessageCodes.MISSING_SESSION_ID,
-									});
-								return unauthorizedResponse;
-							}
-						} else {
-							logger.error("Empty headers",
-								{
-									messageCode: MessageCodes.EMPTY_HEADERS,
-								});
-							return unauthorizedResponse;
-						}
-
-						logger.info("Starting AbortRequestProcessor",
+		try {
+			let sessionId: string;
+			if (event.headers) {
+				sessionId = event.headers[Constants.X_SESSION_ID] as string;
+				logger.appendKeys({ sessionId });
+				if (sessionId) {
+					if (!Constants.REGEX_UUID.test(sessionId)) {
+						logger.error("Session id must be a valid uuid",
 							{
-								resource: event.resource,
+								messageCode: MessageCodes.INVALID_SESSION_ID,
 							});
-						return await AbortRequestProcessor.getInstance(logger, metrics).processRequest(sessionId);
-					} catch (error) {
-						logger.error({ message: "An error has occurred. ",
-							error,
-							messageCode: MessageCodes.SERVER_ERROR,
-						});
-						if (error instanceof AppError) {
-							return new Response(error.statusCode, error.message);
-						}
-						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+						return unauthorizedResponse;
 					}
+				} else {
+					logger.error("Missing header: session-id is required",
+						{
+							messageCode: MessageCodes.MISSING_SESSION_ID,
+						});
+					return unauthorizedResponse;
 				}
-				return new Response(HttpCodesEnum.NOT_FOUND, "");
-			default:
-				logger.error("Requested resource does not exist", {
-					messageCode: MessageCodes.RESOURCE_NOT_FOUND,
-					resource: event.resource,
-				});
-				return new Response(HttpCodesEnum.NOT_FOUND, "Requested resource does not exist");
+			} else {
+				logger.error("Empty headers",
+					{
+						messageCode: MessageCodes.EMPTY_HEADERS,
+					});
+				return unauthorizedResponse;
+			}
+
+			logger.info("Starting AbortRequestProcessor");
+			return await AbortRequestProcessor.getInstance(logger, metrics).processRequest(sessionId);
+		} catch (error) {
+			logger.error({ message: "AbortRequestProcessor encoundered an error.",
+				error,
+				messageCode: MessageCodes.SERVER_ERROR,
+			});
+			if (error instanceof AppError) {
+				return new Response(error.statusCode, error.message);
+			}
+			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 		}
 	}
 }
