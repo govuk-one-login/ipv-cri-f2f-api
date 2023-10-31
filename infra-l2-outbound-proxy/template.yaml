@@ -19,7 +19,7 @@ Mappings:
       YOTIURL: "https://api.yoti.com/idverify/v1"
       PRETTYPROXYURL: "proxy.review-o.dev.account.gov.uk"
     build:
-      POSTOFFICEURL: "https://f2f-post-office-stub-postofficestub.review-o.build.account.gov.uk"
+      POSTOFFICEURL: "https://postofficestub.review-o.build.account.gov.uk"
       YOTIURL: "https://api.yoti.com/idverify/v1"
       PRETTYPROXYURL: "proxy.review-o.build.account.gov.uk"
     staging:
