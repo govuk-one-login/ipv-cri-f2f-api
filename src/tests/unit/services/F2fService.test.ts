@@ -455,6 +455,8 @@ describe("F2f Service", () => {
 				nested: {
 					field4: "sensitive3",
 					field5: "non-sensitive",
+					field6: null,
+					field7: undefined,
 				},
 			};
 	
@@ -468,6 +470,8 @@ describe("F2f Service", () => {
 			expect(obfuscatedObject.field3).toBe("non-sensitive");
 			expect(obfuscatedObject.nested.field4).toBe("***");
 			expect(obfuscatedObject.nested.field5).toBe("non-sensitive");
+			expect(obfuscatedObject.nested.field6).toBe(null);
+			expect(obfuscatedObject.nested.field7).toBe(undefined);
 		});
 	
 		it("should handle arrays correctly", async () => {

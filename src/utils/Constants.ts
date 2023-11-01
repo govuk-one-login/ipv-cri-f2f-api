@@ -93,6 +93,6 @@ export class Constants {
 		CHOSEN_PHOTO_ID: "chosen photo ID",
 	};
 
-	static readonly TXMA_FIELDS_TO_SHOW = ["event_name", "documentType"];
+	static readonly TXMA_FIELDS_TO_SHOW = ["event_name", "documentType", "session_id", "govuk_signin_journey_id"];
   
 }

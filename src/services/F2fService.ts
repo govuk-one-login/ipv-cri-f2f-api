@@ -170,7 +170,7 @@ export class F2fService {
 				return obfuscatedObject;
 			}
 		} else {
-			return "***";
+			return input === null || input === undefined ? input : '***';
 		}
 	}
 	
