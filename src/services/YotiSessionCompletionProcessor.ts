@@ -242,7 +242,7 @@ export class YotiSessionCompletionProcessor {
 			  let signedJWT;
 			  let unsignedJWT;
 			  try {
-				  unsignedJWT = await this.verifiableCredentialService.generateVerifiableCredentialJwt(f2fSession, credentialSubject, evidence, absoluteTimeNow);
+				  unsignedJWT = this.verifiableCredentialService.generateVerifiableCredentialJwt(f2fSession, credentialSubject, evidence, absoluteTimeNow);
 				  if (unsignedJWT) {
 					  signedJWT = await this.verifiableCredentialService.signGeneratedVerifiableCredentialJwt(unsignedJWT);
 				  }

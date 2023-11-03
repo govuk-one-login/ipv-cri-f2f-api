@@ -26,20 +26,23 @@ export class SendEmailProcessor {
 
   async processRequest(eventBody: any): Promise<EmailResponse | undefined> {
   	const messageType = eventBody.Message.messageType;
+  	let dynamicReminderEmail: DynamicReminderEmail;
+  	let reminderEmail: ReminderEmail;
+  	let email: Email;
 
   	switch (messageType) {
   		case Constants.REMINDER_EMAIL_DYNAMIC:
-  			const dynamicReminderEmail = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			dynamicReminderEmail = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(dynamicReminderEmail, this.logger);
   			return this.govNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);
 				
   		case Constants.REMINDER_EMAIL:
-  			const reminderEmail = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			reminderEmail = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(reminderEmail, this.logger);
   			return this.govNotifyService.sendReminderEmail(reminderEmail);
 
   		case Constants.PDF_EMAIL:
-  			const email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(email, this.logger);
   			return this.govNotifyService.sendYotiPdfEmail(email);
   	}

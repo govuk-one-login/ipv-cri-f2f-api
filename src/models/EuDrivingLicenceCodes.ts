@@ -1,3 +1,9 @@
+export interface EuDrivingLicenseCountry { 
+	country: string;
+	alpha3code: string;
+	alpha2code: string;
+} 
+
 export const EU_DL_COUNTRIES = [
 	{ country: "Austria", alpha3code: "AUT", alpha2code: "AT" },
 	{ country: "Belgium", alpha3code: "BEL", alpha2code: "BE" },
