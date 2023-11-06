@@ -35,4 +35,4 @@ class Session implements LambdaInterface {
 }
 
 const lambdaHandler = new Session().handler.bind(new Session());
-export { lambdaHandler }
+export { lambdaHandler };
