@@ -1,28 +1,38 @@
-import axios, { AxiosInstance } from "axios";
-import Ajv from "ajv";
-import { aws4Interceptor } from "aws4-axios";
-import { constants } from "../utils/ApiConstants";
-import { sqsClient } from "../../utils/SqsClient";
-import { ISessionItem } from "../../models/ISessionItem";
 import { ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
-import { jwtUtils } from "../../utils/JwtUtils";
-const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOVUKNOTIFYAPI });
+import { fromNodeProviderChain } from "@aws-sdk/credential-providers"; 
+import Ajv from "ajv";
+import axios, { AxiosInstance } from "axios";
+import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
+import { ISessionItem } from "../../models/ISessionItem";
+import { constants } from "../utils/ApiConstants";
+import { jwtUtils } from "../../utils/JwtUtils";
+import { sqsClient } from "../../utils/SqsClient";
 
-const API_INSTANCE = axios.create({ baseURL:constants.DEV_CRI_F2F_API_URL });
-const YOTI_INSTANCE = axios.create({ baseURL:constants.DEV_F2F_YOTI_STUB_URL });
+const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOVUKNOTIFYAPI });
+const API_INSTANCE = axios.create({ baseURL: constants.DEV_CRI_F2F_API_URL });
+const YOTI_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_YOTI_STUB_URL });
 const HARNESS_API_INSTANCE : AxiosInstance = axios.create({ baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
+const PO_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_PO_STUB_URL });
+
+const customCredentialsProvider = {
+	getCredentials: fromNodeProviderChain({
+		timeout: 1000,
+		maxRetries: 0,
+	}),
+};
 const awsSigv4Interceptor = aws4Interceptor({
 	options: {
 		region: "eu-west-2",
 		service: "execute-api",
 	},
+	credentials: customCredentialsProvider,
 });
+
 HARNESS_API_INSTANCE.interceptors.request.use(awsSigv4Interceptor);
 
 const xmlParser = new XMLParser();
 const ajv = new Ajv({ strictTuples: false });
-
 
 export async function startStubServiceAndReturnSessionId(stubPayload: any): Promise<any> {
 	const stubResponse = await stubStartPost(stubPayload);
@@ -254,29 +264,30 @@ export async function getSessionByAuthCode(sessionId: string, tableName: string)
  * @param prefix
  * @returns {any} - returns either the body of the SQS message or undefined if no such message found
  */
-export async function getSqsEventList(folder: string, prefix: string, txmaEventSize:number): Promise<any> {
-	let keys: any[];
-	let keyList: any[];
-	let i:any;
+export async function getSqsEventList(folder: string, prefix: string, txmaEventSize: number): Promise<any> {
+	let contents: any[];
+	let keyList: string[];
+
 	do {
+		await new Promise(res => setTimeout(res, 3000));
+
 		const listObjectsResponse = await HARNESS_API_INSTANCE.get("/bucket/", {
 			params: {
 				prefix: folder + prefix,
 			},
 		});
 		const listObjectsParsedResponse = xmlParser.parse(listObjectsResponse.data);
-		if (!listObjectsParsedResponse?.ListBucketResult?.Contents) {
+		contents = listObjectsParsedResponse?.ListBucketResult?.Contents;
+
+		if (!contents || !contents.length) {
 			return undefined;
 		}
-		keys = listObjectsParsedResponse?.ListBucketResult?.Contents;
-		keyList = [];
-		for (i = 0; i < keys.length; i++) {
-			keyList.push(listObjectsParsedResponse?.ListBucketResult?.Contents.at(i).Key);
-		}
-	} while (keys.length < txmaEventSize );
+		
+		keyList = contents.map(({ Key }) => Key);
+	} while (contents.length < txmaEventSize);
+
 	return keyList;
 }
-
 
 export async function validateTxMAEventData(keyList: any, yotiMockID: any): Promise<any> {
 	let i:any;
@@ -319,7 +330,7 @@ export async function validateTxMAEventData(keyList: any, yotiMockID: any): Prom
 	}
 }
 
-export async function validateTxMAEvent(txmaEvent: any, keyList: any, yotiMockId: any): Promise<any> {
+export async function validateTxMAEvent(txmaEvent: string, keyList: any, yotiMockId: string, failedCheck: boolean, vcData: any): Promise<any> {
 	let i:any;
 	for (i = 0; i < keyList.length; i++) {
 		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
@@ -327,6 +338,9 @@ export async function validateTxMAEvent(txmaEvent: any, keyList: any, yotiMockId
 		if (getObjectResponse.data.event_name === txmaEvent) {
 			console.log(JSON.stringify(getObjectResponse.data, null, 2));
 			validateCriVcIssuedTxMAEvent(getObjectResponse.data, yotiMockId);
+			if (failedCheck) {
+				validateCriVcIssuedFailedChecks(getObjectResponse.data, yotiMockId, vcData);
+			}
 		}
 	}
 }
@@ -510,3 +524,55 @@ export function validateCriVcIssuedTxMAEvent(txmaEvent: any, yotiMockId: any): a
 			console.warn("Yoti Mock Id provided does not match expected list");
 	}
 } 
+
+export async function postPOCodeRequest(mockDelimitator: any, userData: any): Promise<any> {
+	const path = "/v1/locations/search";
+	try {
+		userData.searchString = userData.searchString + " " + mockDelimitator;
+		console.log("userData in try statement: ", userData);
+		const postRequest = await PO_INSTANCE.post(path, userData);
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+}
+
+function validateCriVcIssuedFailedChecks(txmaEvent: any, yotiMockId: any, vcData: any):void {
+	// Contra Indicators
+	const expectedContraIndicatiors = eval("vcData.s" + yotiMockId + ".ci");
+	if (expectedContraIndicatiors) {
+		const actualContraIndicatiors = txmaEvent.extensions.evidence[0].ci[0];
+		expect(expectedContraIndicatiors).toEqual(actualContraIndicatiors);
+	}
+
+	// Contra Indicators Failed Check
+	const expectedFailedCheck = eval("vcData.s" + yotiMockId + ".failedCheck");
+	if (expectedFailedCheck) {
+		const actualFailedCheckReason = txmaEvent.extensions.evidence[0].ciReasons[0].reason;
+		const actualFailedCheckCi = txmaEvent.extensions.evidence[0].ciReasons[0].ci;
+		expect(expectedContraIndicatiors).toEqual(actualFailedCheckCi);
+		expect(expectedFailedCheck).toEqual(actualFailedCheckReason);
+
+	}
+}
+
+export async function initiateUserInfo(docSelectionData:any, sessionId: string): Promise<void> {
+	expect(sessionId).toBeTruthy();
+
+	const documentSelectionResponse = await postDocumentSelection(docSelectionData, sessionId);
+	expect(documentSelectionResponse.status).toBe(200);
+	expect(documentSelectionResponse.data).toBe("Instructions PDF Generated");
+
+
+	const authResponse = await authorizationGet(sessionId);
+	expect(authResponse.status).toBe(200);
+
+	const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
+	expect(tokenResponse.status).toBe(200);
+
+	const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
+	expect(userInfoResponse.status).toBe(202);
+
+} 
+

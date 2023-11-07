@@ -230,7 +230,7 @@ export class YotiSessionCompletionProcessor {
   			}
 
 
-			  const { credentialSubject, evidence } = this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields, VcNameParts);
+			  const { credentialSubject, evidence, rejectionReasons } = this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields, VcNameParts);
 
 			  if (!credentialSubject || !evidence) {
 				  this.logger.error({ message: "Missing Credential Subject or Evidence payload" }, {
@@ -276,7 +276,7 @@ export class YotiSessionCompletionProcessor {
 				  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core", { shouldThrow: true });
 			  }
 
-			  await this.sendYotiEventsToTxMA(documentFields, VcNameParts, f2fSession, yotiSessionID, evidence);
+			  await this.sendYotiEventsToTxMA(documentFields, VcNameParts, f2fSession, yotiSessionID, evidence, rejectionReasons);
 
 			  await this.f2fService.updateSessionAuthState(
 				  f2fSession.sessionId,
@@ -304,7 +304,7 @@ export class YotiSessionCompletionProcessor {
   	return false;
   }
 
-  async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any): Promise<any> {
+  async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any, rejectionReasons: [{ ci: string; reason: string }]): Promise<any> {
 	  // Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
 	  let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
@@ -360,7 +360,6 @@ export class YotiSessionCompletionProcessor {
 			  this.logger.error({ message: `Unable to find document type ${documentFields.document_type}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
 	  }
-
 	  try {
 		  await this.f2fService.sendToTXMA({
 			  event_name: "F2F_CRI_VC_ISSUED",
@@ -380,6 +379,7 @@ export class YotiSessionCompletionProcessor {
 						  validityScore: evidence[0].validityScore,
 						  verificationScore: evidence[0].verificationScore,
 						  ci: evidence[0].ci,
+  						  ciReasons: rejectionReasons,
 						  checkDetails: evidence[0].checkDetails,
 					  },
 				  ],
@@ -390,6 +390,7 @@ export class YotiSessionCompletionProcessor {
 				  [docName]: [documentInfo],
 			  },
 		  });
+
 	  } catch (error) {
 		  this.logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", {
 			  error,

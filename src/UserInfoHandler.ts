@@ -2,8 +2,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Response } from "./utils/Response";
-import { ResourcesEnum } from "./models/enums/ResourcesEnum";
-import { AppError } from "./utils/AppError";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { UserInfoRequestProcessor } from "./services/UserInfoRequestProcessor";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
@@ -29,27 +27,13 @@ class UserInfo implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
-		switch (event.resource) {
-			case ResourcesEnum.USERINFO:
-				if (event.httpMethod === "POST") {
-					try {
-						logger.info("Received userInfo request:", { requestId: event.requestContext.requestId });
-						return await UserInfoRequestProcessor.getInstance(logger, metrics).processRequest(event);
-					} catch (err) {
-						logger.error({ message: "An error has occurred. ", err }, { messageCode: MessageCodes.SERVER_ERROR });
-						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
-					}
-				}
-				logger.warn("Method not implemented", { messageCode: MessageCodes.METHOD_NOT_IMPLEMENTED });
-				return new Response(HttpCodesEnum.NOT_FOUND, "");
-
-			default:
-				logger.error("Requested resource does not exist", {
-					resource: event.resource,
-					messageCode: MessageCodes.RESOURCE_NOT_FOUND,
-				});
-				return new Response(HttpCodesEnum.NOT_FOUND, "");
-
+		try {
+			logger.info("Received userInfo request:", { requestId: event.requestContext.requestId });
+			logger.info("Starting UserInfoRequestProcessor");
+			return await UserInfoRequestProcessor.getInstance(logger, metrics).processRequest(event);
+		} catch (err) {
+			logger.error({ message: "An error has occurred. ", err }, { messageCode: MessageCodes.SERVER_ERROR });
+			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 		}
 	}
 }

@@ -152,6 +152,29 @@ export class F2fService {
 		}
 	}
 
+	async obfuscateJSONValues(input: any, txmaFieldsToShow: string[] = []): Promise<any> {
+		if (typeof input === "object" && input !== null) {
+			if (Array.isArray(input)) {
+				return Promise.all(input.map((element) => this.obfuscateJSONValues(element, txmaFieldsToShow)));
+			} else {
+				const obfuscatedObject: any = {};
+				for (const key in input) {
+					if (input.hasOwnProperty(key)) {
+						if (txmaFieldsToShow.includes(key)) {
+							obfuscatedObject[key] = input[key];
+						} else {
+							obfuscatedObject[key] = await this.obfuscateJSONValues(input[key], txmaFieldsToShow);
+						}
+					}
+				}
+				return obfuscatedObject;
+			}
+		} else {
+			return input === null || input === undefined ? input : '***';
+		}
+	}
+	
+
 	async sendToTXMA(event: TxmaEvent): Promise<void> {
 		try {
 			const messageBody = JSON.stringify(event);
@@ -164,6 +187,10 @@ export class F2fService {
 
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to TxMA");
+
+			this.obfuscateJSONValues(event, Constants.TXMA_FIELDS_TO_SHOW).then((obfuscatedObject) => {
+				this.logger.info({ message: "Obfuscated TxMA Event", txmaEvent: JSON.stringify(obfuscatedObject, null, 2) });
+			});
 		} catch (error) {
 			this.logger.error({ message: "Error when sending message to TXMA Queue", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to txma queue - failed ");
@@ -260,7 +287,6 @@ export class F2fService {
 	
 		return filteredItems;
 	}
-
 
 	async updateReminderEmailFlag(sessionId: string, reminderEmailSent: boolean): Promise<void> {
 		const updateStateCommand = new UpdateCommand({

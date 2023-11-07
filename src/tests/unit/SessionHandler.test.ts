@@ -23,10 +23,4 @@ describe("SessionHandler", () => {
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockedSessionRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
-
-	it("return not found when resource not found", async () => {
-		SessionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedSessionRequestProcessor);
-
-		return expect(lambdaHandler(RESOURCE_NOT_FOUND, CONTEXT)).resolves.toEqual(new Response(HttpCodesEnum.NOT_FOUND, ""));
-	});
 });

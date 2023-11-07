@@ -6,21 +6,17 @@ import dataBrp from "../data/docSelectionPayloadBrpValid.json";
 import dataEeaIdCard from "../data/docSelectionPayloadEeaIdCardValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import vcResponseData from "../data/vcValidationData.json";
-import integrationHappyPayload from "../data/integrationHappyPathPayload.json";
 import {
-	postDocumentSelection,
 	startStubServiceAndReturnSessionId,
-	getSessionById,
-	callbackPost,
-	authorizationGet,
-	tokenPost,
-	userInfoPost,
 	validateJwtToken,
 	getDequeuedSqsMessage,
-	validateTxMAEventData,
+	initiateUserInfo,
+	getSessionById,
+	callbackPost,
 	validateJwtTokenNamePart,
 	getSqsEventList,
 	validateTxMAEvent,
+	validateTxMAEventData,
 } from "../utils/ApiTestSteps";
 import "dotenv/config";
 import { constants } from "../utils/ApiConstants";
@@ -70,39 +66,21 @@ describe("Callback API", () => {
 		["0503", dataEeaIdCard],
 	])("F2F CRI Callback Endpoint - yotiMockId: '%s'", async (yotiMockId: string, docSelectionData:any) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
+
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
-		const sessionId = sessionResponse.data.session_id;
-		const sub = sessionResponse.data.sub;
 
-		// Document Selection
-		const response = await postDocumentSelection(docSelectionData, sessionId);
-		expect(response.status).toBe(200);
+		await initiateUserInfo(docSelectionData, sessionResponse.data.session_id);
 
-		// Authorization
-		const authResponse = await authorizationGet(sessionId);
-		expect(authResponse.status).toBe(200);
-
-		// // Post Token
-		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
-		expect(tokenResponse.status).toBe(200);
-
-		// Post User Info
-		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
-		expect(userInfoResponse.status).toBe(202);
-
-		// Get Yoti Session Id
-		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId: any = session?.yotiSessionId;
 		console.log(yotiSessionId);
-
-		// Yoti Callback
-		const callbackResponse = await callbackPost(yotiSessionId);
-		expect(callbackResponse.status).toBe(202);
+	
+		await callbackPost(yotiSessionId);
 
 		// Retrieve Verifiable Credential from dequeued SQS queue
 		let sqsMessage;
 		do {
-			sqsMessage = await getDequeuedSqsMessage(sub);
+			sqsMessage = await getDequeuedSqsMessage(sessionResponse.data.sub);
 		} while (!sqsMessage);
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		validateJwtToken(jwtToken, vcResponseData, yotiMockId);
@@ -111,36 +89,21 @@ describe("Callback API", () => {
 
 	it("F2F CRI Callback Endpoint Integration HappyPath - yotiMockId: '%s'", async () => {
 		f2fStubPayload.yotiMockID = "0000";
+
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
-		const sessionId = sessionResponse.data.session_id;
-		const sub = sessionResponse.data.sub;
 
-		// Document Selection
-		const response = await postDocumentSelection(dataPassport, sessionId);
-		expect(response.status).toBe(200);
-		// Authorization
-		const authResponse = await authorizationGet(sessionId);
-		expect(authResponse.status).toBe(200);
-		// // Post Token
-		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
-		expect(tokenResponse.status).toBe(200);
-		// Post User Info
-		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
-		expect(userInfoResponse.status).toBe(202);
+		await initiateUserInfo(dataUkDrivingLicence, sessionResponse.data.session_id);
 
-		// Get Yoti Session Id
-		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId: any = session?.yotiSessionId;
 		console.log(yotiSessionId);
-
-		// Yoti Callback
-		const callbackResponse = await callbackPost(yotiSessionId);
-		expect(callbackResponse.status).toBe(202);
+	
+		await callbackPost(yotiSessionId);
 
 		// Retrieve Verifiable Credential from dequeued SQS queue
 		let sqsMessage;
 		do {
-			sqsMessage = await getDequeuedSqsMessage(sub);
+			sqsMessage = await getDequeuedSqsMessage(sessionResponse.data.sub);
 		} while (!sqsMessage);
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 
@@ -154,40 +117,22 @@ describe("Callback API", () => {
 			["0134"],
 		])("F2F CRI Callback Endpoint Integration UnHappyPath - yotiMockId: '%s'", async (yotiMockId: string) => {
 			f2fStubPayload.yotiMockID = yotiMockId;
+
 			const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
-			const sessionId = sessionResponse.data.session_id;
-			const sub = sessionResponse.data.sub;
-	
-			// Document Selection
-			const response = await postDocumentSelection(dataNonUkPassport, sessionId);
-			expect(response.status).toBe(200);
-			
-			// Authorization
-			const authResponse = await authorizationGet(sessionId);
-			expect(authResponse.status).toBe(200);
-	
-			// Post Token
-			const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri);
-			expect(tokenResponse.status).toBe(200);
-	
-			// Post User Info
-			const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
-			expect(userInfoResponse.status).toBe(202);
-	
-			// Get Yoti Session Id
-			const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
-			const yotiSessionId = session?.yotiSessionId;
+
+			await initiateUserInfo(dataNonUkPassport, sessionResponse.data.session_id);
+
+			const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
+			const yotiSessionId: any = session?.yotiSessionId;
 			console.log(yotiSessionId);
-	
-			// Yoti Callback
-			const callbackResponse = await callbackPost(yotiSessionId);
-			expect(callbackResponse.status).toBe(202);
+		
+			await callbackPost(yotiSessionId);
 	
 			// Retrieve Verifiable Credential from dequeued SQS queue
 			let sqsMessage;
 			let i = 0;
 			do {
-				sqsMessage = await getDequeuedSqsMessage(sub);
+				sqsMessage = await getDequeuedSqsMessage(sessionResponse.data.sub);
 				i++;
 			} while (i < 5);
 	
@@ -208,37 +153,21 @@ describe("Callback API", () => {
 		f2fStubPayload.shared_claims.name[0].nameParts[0].value = givenName1;
 		f2fStubPayload.shared_claims.name[0].nameParts[1].value = givenName2 + " " + givenName3;
 		f2fStubPayload.shared_claims.name[0].nameParts[2].value = familyName;
-
+		
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
-		const sessionId = sessionResponse.data.session_id;
-		const sub = sessionResponse.data.sub;
 
-		// Document Selection
-		const response = await postDocumentSelection(docSelectionData, sessionId);
-		expect(response.status).toBe(200);
-		// Authorization
-		const authResponse = await authorizationGet(sessionId);
-		expect(authResponse.status).toBe(200);
-		// // Post Token
-		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
-		expect(tokenResponse.status).toBe(200);
-		// Post User Info
-		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
-		expect(userInfoResponse.status).toBe(202);
+		await initiateUserInfo(docSelectionData, sessionResponse.data.session_id);
 
-		// Get Yoti Session Id
-		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId: any = session?.yotiSessionId;
 		console.log(yotiSessionId);
-
-		// Yoti Callback
-		const callbackResponse = await callbackPost(yotiSessionId);
-		console.log(callbackResponse.data);
+	
+		await callbackPost(yotiSessionId);
 
 		// Retrieve Verifiable Credential from dequeued SQS queue
 		let sqsMessage;
 		do {
-			sqsMessage = await getDequeuedSqsMessage(sub);
+			sqsMessage = await getDequeuedSqsMessage(sessionResponse.data.sub);
 		} while (!sqsMessage);
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		validateJwtTokenNamePart(jwtToken, givenName1, givenName2, givenName3, familyName + yotiMockId);
@@ -253,36 +182,21 @@ describe("Callback API", () => {
 		["0500", dataEeaIdCard],
 	])("F2F CRI Callback Endpoint TxMA Validation", async (yotiMockId: string, docSelectionData:any) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
+		
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
-		const sessionId = sessionResponse.data.session_id;
-		const sub = sessionResponse.data.sub;
 
-		// Document Selection
-		const response = await postDocumentSelection(docSelectionData, sessionId);
-		expect(response.status).toBe(200);
-		// Authorization
-		const authResponse = await authorizationGet(sessionId);
-		expect(authResponse.status).toBe(200);
-		// // Post Token
-		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
-		expect(tokenResponse.status).toBe(200);
-		// Post User Info
-		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
-		expect(userInfoResponse.status).toBe(202);
+		await initiateUserInfo(docSelectionData, sessionResponse.data.session_id);
 
-		// Get Yoti Session Id
-		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId: any = session?.yotiSessionId;
 		console.log(yotiSessionId);
-
-		// Yoti Callback
-		const callbackResponse = await callbackPost(yotiSessionId);
-		expect(callbackResponse.status).toBe(202);
+	
+		await callbackPost(yotiSessionId);
 
 		// Retrieve Verifiable Credential from dequeued SQS queue
 		let sqsMessage;
 		do {
-			sqsMessage = await getSqsEventList("txma/", sessionId, 7);
+			sqsMessage = await getSqsEventList("txma/", sessionResponse.data.session_id, 7);
 		} while (!sqsMessage);
 		await validateTxMAEventData(sqsMessage, yotiMockId);
 
@@ -297,38 +211,23 @@ describe("Callback API", () => {
 		["0500", dataEeaIdCard],
 	])("F2F CRI Callback Endpoint TxMA Validation - yotiMockId: '%s'", async (yotiMockId: string, docSelectionData:any) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
+		
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
-		const sessionId = sessionResponse.data.session_id;
-		const sub = sessionResponse.data.sub;
 
-		// Document Selection
-		const response = await postDocumentSelection(docSelectionData, sessionId);
-		expect(response.status).toBe(200);
-		// Authorization
-		const authResponse = await authorizationGet(sessionId);
-		expect(authResponse.status).toBe(200);
-		// // Post Token
-		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
-		expect(tokenResponse.status).toBe(200);
-		// Post User Info
-		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
-		expect(userInfoResponse.status).toBe(202);
+		await initiateUserInfo(docSelectionData, sessionResponse.data.session_id);
 
-		// Get Yoti Session Id
-		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId: any = session?.yotiSessionId;
 		console.log(yotiSessionId);
-
-		// Yoti Callback
-		const callbackResponse = await callbackPost(yotiSessionId);
-		expect(callbackResponse.status).toBe(202);
+	
+		await callbackPost(yotiSessionId);
 
 		// Retrieve Verifiable Credential from dequeued SQS queue
 		let sqsMessage;
 		do {
-			sqsMessage = await getSqsEventList("txma/", sessionId, 7);
+			sqsMessage = await getSqsEventList("txma/", sessionResponse.data.session_id, 7);
 		} while (!sqsMessage);
-		await validateTxMAEvent("F2F_CRI_VC_ISSUED", sqsMessage, yotiMockId);
+		await validateTxMAEvent("F2F_CRI_VC_ISSUED", sqsMessage, yotiMockId, false, vcResponseData);
 
 	}, 20000);
 
@@ -336,39 +235,21 @@ describe("Callback API", () => {
 		const yotiMockID = "0101";
 
 		f2fStubPayload.yotiMockID = yotiMockID;
+
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
-		const sessionId = sessionResponse.data.session_id;
-		const sub = sessionResponse.data.sub;
 
-		// Document Selection
-		const response = await postDocumentSelection(dataPassport, sessionId);
-		expect(response.status).toBe(200);
+		await initiateUserInfo(dataPassport, sessionResponse.data.session_id);
 
-		// Authorization
-		const authResponse = await authorizationGet(sessionId);
-		expect(authResponse.status).toBe(200);
-
-		// // Post Token
-		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
-		expect(tokenResponse.status).toBe(200);
-
-		// Post User Info
-		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
-		expect(userInfoResponse.status).toBe(202);
-
-		// Get Yoti Session Id
-		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+	
+		const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId: any = session?.yotiSessionId;
-		console.log(yotiSessionId);
-
-		// Yoti Callback
-		const callbackResponse = await callbackPost(yotiSessionId, "thank_you_email_requested");
-		expect(callbackResponse.status).toBe(202);
+	
+		await callbackPost(yotiSessionId);
 
 		// Retrieve Verifiable Credential from dequeued SQS queue
 		let sqsMessage;
 		do {
-			sqsMessage = await getSqsEventList("txma/", sessionId, 6);
+			sqsMessage = await getSqsEventList("txma/", sessionResponse.data.session_id, 6);
 		} while (!sqsMessage);
 
 		await validateTxMAEventData(sqsMessage, yotiMockID);
