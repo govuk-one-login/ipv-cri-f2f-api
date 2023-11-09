@@ -225,7 +225,8 @@ export const AI_FAIL_MANUAL_FAIL = {
 									{
 											"sub_check": "manual_face_match",
 											"result": "FAIL",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									}
 							]
 					},

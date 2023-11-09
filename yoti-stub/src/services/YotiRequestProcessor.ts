@@ -285,7 +285,8 @@ export class YotiRequestProcessor {
                                                 {
                                                     sub_check: "manual_face_match",
                                                     result: "PASS",
-                                                    details: []
+                                                    details: [],
+                                                    process: "EXPERT_REVIEW"
                                                 }
                                             ]
                                         }
@@ -1102,12 +1103,14 @@ export class YotiRequestProcessor {
                                                             "name": "confidence_score",
                                                             "value": "0.02"
                                                         }
-                                                    ]
+                                                    ],
+                                                    "process": "AUTOMATED"
                                                 },
                                                 {
                                                     sub_check: "manual_face_match",
                                                     result: "PASS",
-                                                    details: []
+                                                    details: [],
+                                                    process: "EXPERT_REVIEW"
                                                 }
                                             ]
                                         }
