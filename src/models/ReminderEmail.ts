@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsEmail } from "class-validator";
+import { IsString, IsNotEmpty, IsEmail } from "class-validator";
 import { randomUUID } from "crypto";
 
 import { AppError } from "../utils/AppError";

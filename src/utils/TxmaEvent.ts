@@ -1,7 +1,6 @@
-import { ResidencePermit, IdentityCard, DrivingPermit, Passport, VerifiedCredentialEvidence, VerifiedCredentialSubject } from "./IVeriCredential";
+import { ResidencePermit, IdentityCard, DrivingPermit, Passport, VerifiedCredentialSubject } from "./IVeriCredential";
 import { ISessionItem } from "../models/ISessionItem";
 import { absoluteTimeNow } from "./DateTimeUtils";
-import { PostOfficeInfo } from "../models/YotiPayloads";
 
 export type TxmaEventName =
 	"F2F_CRI_START"
@@ -84,7 +83,12 @@ export interface TxmaEvent extends BaseTxmaEvent {
 	"extensions"?: ExtensionObject;
 }
 
-export const buildCoreEventFields = (session: ISessionItem, issuer: string, sourceIp?: string | undefined, getNow: () => number = absoluteTimeNow): BaseTxmaEvent => {
+export const buildCoreEventFields = (
+	session: ISessionItem,
+	issuer: string,
+	sourceIp?: string | undefined,
+	getNow: () => number = absoluteTimeNow,
+): BaseTxmaEvent => {
 	return {
 		user: {
 			user_id: session.subject,

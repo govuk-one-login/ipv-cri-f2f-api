@@ -55,7 +55,12 @@ export const buildReminderEmailEventFields = (emailAddress: string): ReminderEma
 	};
 };
 
-export const buildDynamicReminderEmailEventFields = (emailAddress: string, firstName: string, lastName: string, documentUsed: string): ReminderEmailEventDynamic => {
+export const buildDynamicReminderEmailEventFields = (
+	emailAddress: string,
+	firstName: string,
+	lastName: string,
+	documentUsed: string,
+): ReminderEmailEventDynamic => {
 
 	return {
 		Message : {

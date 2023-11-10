@@ -447,7 +447,6 @@ export function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): v
 	// Contra Indicators
 	const expectedContraIndicatiors = eval("vcData.s" + yotiId + ".ci");
 	if (expectedContraIndicatiors) {
-		expectedContraIndicatiors.split(",").length;
 		const actualContraIndicatiors = [];
 		for (let i = 0; i < expectedContraIndicatiors.split(",").length; i++) {
 			actualContraIndicatiors.push(decodedBody.vc.evidence[0].ci[i]);
@@ -492,7 +491,7 @@ export async function postGovNotifyRequest(mockDelimitator: any, userData: any):
 		return error.response;
 	}
 
-	function insertBeforeLastOccurrence(strToSearch: string, strToFind: string, strToInsert: string) {
+	function insertBeforeLastOccurrence(strToSearch: string, strToFind: string, strToInsert: string): string {
 		const n = strToSearch.lastIndexOf(strToFind);
 		if (n < 0) return strToSearch;
 		return strToSearch.substring(0, n) + strToInsert + strToSearch.substring(n);

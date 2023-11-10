@@ -61,7 +61,7 @@ export class SessionConfigRequestProcessor {
 				evidence_requested: session.evidence_requested,
 			};
 
-			if (session.evidence_requested?.strengthScore && session.evidence_requested?.strengthScore == 4) {
+			if (session.evidence_requested?.strengthScore && session.evidence_requested?.strengthScore === 4) {
 				this.logger.info("Requested Strength score is 4");
 			} else if (session.evidence_requested?.strengthScore && session.evidence_requested?.strengthScore < 4) {
 				this.logger.info("Requested Strength score is less than 4");

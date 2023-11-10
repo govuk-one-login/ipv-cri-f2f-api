@@ -1,11 +1,10 @@
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../utils/ApiTestSteps";
-import { constants } from "../utils/ApiConstants";
 
 describe("Address fields tests", () => {
 	let sessionId: string;
-	beforeEach(async () => {
+	beforeEach(() => {
 		f2fStubPayload.yotiMockID = "0000";
 		f2fStubPayload.shared_claims.address[0].uprn = "123456789";
 		f2fStubPayload.shared_claims.address[0].addressLocality = "Sidney";

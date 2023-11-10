@@ -283,20 +283,6 @@ describe("GenerateVerifiableCredential", () => {
 	describe("attachPersonName", () => {
 		it("should attach the person name to the credential subject", () => {
 			const credentialSubject = {};
-			const VcNameParts = [
-				{
-					"nameParts": [
-						{
-							"value": "John",
-							"type": "GivenName",
-						},
-						{
-							"value": "Doe",
-							"type": "FamilyName",
-						},
-					],
-				},
-			];
 
 			const result = generateVerifiableCredential["attachPersonName"](credentialSubject, VcNameParts);
 

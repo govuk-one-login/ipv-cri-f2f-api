@@ -134,7 +134,7 @@ describe("VerifiableCredentialService", () => {
 			const signedJwt = "signed-jwt";
 			const signMock = jest.spyOn(kmsJwtAdapter, "sign").mockResolvedValue(signedJwt);
 
-			const jwt = await verifiableCredentialService.generateVerifiableCredentialJwt(
+			const jwt = verifiableCredentialService.generateVerifiableCredentialJwt(
 				sessionItem,
 				credentialSubject,
 				evidence,
@@ -149,10 +149,7 @@ describe("VerifiableCredentialService", () => {
 		});
 
 		it("should throw an AppError if signing the JWT fails", async () => {
-			const getNow = jest.fn().mockReturnValue(123456789);
-
 			const error = new Error("Failed to sign JWT");
-
 
 			const signMock = jest.spyOn(kmsJwtAdapter, "sign").mockRejectedValue(error);
 			await expect(verifiableCredentialService.signGeneratedVerifiableCredentialJwt({
@@ -264,15 +261,14 @@ describe("VerifiableCredentialService", () => {
 			expect(verifiableCredential.evidence).toBe(evidence);
 		});
 
-		it("generated unsigned VC should conform to SPOT schema", async () => {
+		it("generated unsigned VC should conform to SPOT schema", () => {
 			const getNow = jest.fn().mockReturnValue(123456789);
-			const result = await verifiableCredentialService.generateVerifiableCredentialJwt(
+			const result = verifiableCredentialService.generateVerifiableCredentialJwt(
 				sessionItem,
 				credentialSubject,
 				evidence,
 				getNow,
 			);
-
 
 			const validate: ValidateFunction = ajv.compile(SpotSchema);
 			const isValid = validate(result);
@@ -343,5 +339,4 @@ describe("VerifiableCredentialService", () => {
 			});
 		});
 	});
-
 });

@@ -159,7 +159,7 @@ export class F2fService {
 			} else {
 				const obfuscatedObject: any = {};
 				for (const key in input) {
-					if (input.hasOwnProperty(key)) {
+					if (Object.prototype.hasOwnProperty.call(input, key)) {
 						if (txmaFieldsToShow.includes(key)) {
 							obfuscatedObject[key] = input[key];
 						} else {
@@ -170,10 +170,9 @@ export class F2fService {
 				return obfuscatedObject;
 			}
 		} else {
-			return input === null || input === undefined ? input : '***';
+			return input === null || input === undefined ? input : "***";
 		}
 	}
-	
 
 	async sendToTXMA(event: TxmaEvent): Promise<void> {
 		try {
@@ -188,9 +187,8 @@ export class F2fService {
 			await sqsClient.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to TxMA");
 
-			this.obfuscateJSONValues(event, Constants.TXMA_FIELDS_TO_SHOW).then((obfuscatedObject) => {
-				this.logger.info({ message: "Obfuscated TxMA Event", txmaEvent: JSON.stringify(obfuscatedObject, null, 2) });
-			});
+			const obfuscatedObject = await this.obfuscateJSONValues(event, Constants.TXMA_FIELDS_TO_SHOW);
+			this.logger.info({ message: "Obfuscated TxMA Event", txmaEvent: JSON.stringify(obfuscatedObject, null, 2) });
 		} catch (error) {
 			this.logger.error({ message: "Error when sending message to TXMA Queue", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to txma queue - failed ");
