@@ -11,7 +11,10 @@ describe("EnvironmentVariables", () => {
 	describe("maxRetries", () => {
 		it("should return the value of GOVUKNOTIFY_MAX_RETRIES as a number", () => {
 			process.env.GOVUKNOTIFY_MAX_RETRIES = "3";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.maxRetries();
 
@@ -22,7 +25,10 @@ describe("EnvironmentVariables", () => {
 	describe("backoffPeriod", () => {
 		it("should return the value of GOVUKNOTIFY_BACKOFF_PERIOD_MS as a number", () => {
 			process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS = "20000";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.backoffPeriod();
 
@@ -33,7 +39,10 @@ describe("EnvironmentVariables", () => {
 	describe("yotiSdk", () => {
 		it("should return the value of YOTI_SDK", () => {
 			process.env.YOTISDK = "YOTI_SDK_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.yotiSdk();
 
@@ -44,7 +53,10 @@ describe("EnvironmentVariables", () => {
 	describe("issuer", () => {
 		it("should return the value of ISSUER", () => {
 			process.env.ISSUER = "ISSUER_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.issuer();
 
@@ -55,7 +67,10 @@ describe("EnvironmentVariables", () => {
 	describe("sessionTable", () => {
 		it("should return the value of SESSION_TABLE", () => {
 			process.env.SESSION_TABLE = "SESSION_TABLE_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.sessionTable();
 
@@ -66,8 +81,12 @@ describe("EnvironmentVariables", () => {
 	describe("govNotifyApiKeySsmPath", () => {
 		it("should return the value of GOVUKNOTIFY_API_KEY_SSM_PATH", () => {
 			// pragma: allowlist nextline secret
-			process.env.GOVUKNOTIFY_API_KEY_SSM_PATH = "GOVUKNOTIFY_API_KEY_SSM_PATH_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			process.env.GOVUKNOTIFY_API_KEY_SSM_PATH =
+        "GOVUKNOTIFY_API_KEY_SSM_PATH_VALUE";
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.govNotifyApiKeySsmPath();
 
@@ -78,7 +97,10 @@ describe("EnvironmentVariables", () => {
 	describe("yotiKeySsmPath", () => {
 		it("should return the value of YOTI_KEY_SSM_PATH", () => {
 			process.env.YOTI_KEY_SSM_PATH = "YOTI_KEY_SSM_PATH_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.yotiKeySsmPath();
 
@@ -89,7 +111,10 @@ describe("EnvironmentVariables", () => {
 	describe("yotiBaseUrl", () => {
 		it("should return the value of YOTIBASEURL", () => {
 			process.env.YOTIBASEURL = "YOTIBASEURL_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.yotiBaseUrl();
 
@@ -100,7 +125,10 @@ describe("EnvironmentVariables", () => {
 	describe("kmsKeyArn", () => {
 		it("should return the value of KMS_KEY_ARN", () => {
 			process.env.KMS_KEY_ARN = "KMS_KEY_ARN_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.kmsKeyArn();
 
@@ -111,7 +139,10 @@ describe("EnvironmentVariables", () => {
 	describe("encryptionKeyIds", () => {
 		it("should return the value of ENCRYPTION_KEY_IDS", () => {
 			process.env.ENCRYPTION_KEY_IDS = "ENCRYPTION_KEY_IDS_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.encryptionKeyIds();
 
@@ -122,7 +153,10 @@ describe("EnvironmentVariables", () => {
 	describe("clientConfig", () => {
 		it("should return the value of CLIENT_CONFIG", () => {
 			process.env.CLIENT_CONFIG = "CLIENT_CONFIG_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.clientConfig();
 
@@ -133,7 +167,10 @@ describe("EnvironmentVariables", () => {
 	describe("authSessionTtlInSecs", () => {
 		it("should return the value of AUTH_SESSION_TTL_IN_SECS", () => {
 			process.env.AUTH_SESSION_TTL_SECS = "950400";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.authSessionTtlInSecs();
 
@@ -144,7 +181,10 @@ describe("EnvironmentVariables", () => {
 	describe("signingKeyIds", () => {
 		it("should return the value of SIGNING_KEY_IDS", () => {
 			process.env.SIGNING_KEY_IDS = "SIGNING_KEY_IDS_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.signingKeyIds();
 
@@ -155,7 +195,10 @@ describe("EnvironmentVariables", () => {
 	describe("jwksBucketName", () => {
 		it("should return the value of JWKS_BUCKET_NAME", () => {
 			process.env.JWKS_BUCKET_NAME = "JWKS_BUCKET_NAME_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.jwksBucketName();
 
@@ -166,7 +209,10 @@ describe("EnvironmentVariables", () => {
 	describe("yotiCallbackUrl", () => {
 		it("should return the value of YOTICALLBACKURL", () => {
 			process.env.YOTICALLBACKURL = "YOTICALLBACKURL_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.yotiCallbackUrl();
 
@@ -176,8 +222,12 @@ describe("EnvironmentVariables", () => {
 
 	describe("personIdentityTableName", () => {
 		it("should return the value of PERSON_IDENTITY_TABLE_NAME", () => {
-			process.env.PERSON_IDENTITY_TABLE_NAME = "PERSON_IDENTITY_TABLE_NAME_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			process.env.PERSON_IDENTITY_TABLE_NAME =
+        "PERSON_IDENTITY_TABLE_NAME_VALUE";
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.personIdentityTableName();
 
@@ -188,7 +238,10 @@ describe("EnvironmentVariables", () => {
 	describe("resourcesTtlInSeconds", () => {
 		it("should return the value of RESOURCES_TTL_SECS", () => {
 			process.env.RESOURCES_TTL_SECS = "1209600";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.resourcesTtlInSeconds();
 
@@ -199,7 +252,10 @@ describe("EnvironmentVariables", () => {
 	describe("clientSessionTokenTtlInDays", () => {
 		it("should return the value of YOTI_SESSION_TTL_DAYS", () => {
 			process.env.YOTI_SESSION_TTL_DAYS = "10";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.clientSessionTokenTtlInDays();
 
@@ -210,7 +266,10 @@ describe("EnvironmentVariables", () => {
 	describe("yotiInstructionsPdfMaxRetries", () => {
 		it("should return the value of YOTI_INSTRUCTIONS_PDF_MAX_RETRIES as a number", () => {
 			process.env.YOTI_INSTRUCTIONS_PDF_MAX_RETRIES = "3";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.yotiInstructionsPdfMaxRetries();
 
@@ -221,7 +280,10 @@ describe("EnvironmentVariables", () => {
 	describe("yotiInstructionsPdfBackoffPeriod", () => {
 		it("should return the value of YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS as a number", () => {
 			process.env.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS = "5000";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+			const envVars = new EnvironmentVariables(
+				logger,
+				ServicesEnum.GOV_NOTIFY_SERVICE,
+			);
 
 			const result = envVars.yotiInstructionsPdfBackoffPeriod();
 

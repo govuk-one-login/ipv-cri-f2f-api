@@ -9,9 +9,15 @@ import { Response, unauthorizedResponse } from "./utils/Response";
 import { AppError } from "./utils/AppError";
 import { AbortRequestProcessor } from "./services/AbortRequestProcessor";
 
-const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
-const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
-const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.ABORT_LOGGER_SVC_NAME;
+const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE
+	? process.env.POWERTOOLS_METRICS_NAMESPACE
+	: Constants.F2F_METRICS_NAMESPACE;
+const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL
+	? process.env.POWERTOOLS_LOG_LEVEL
+	: "DEBUG";
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME
+	? process.env.POWERTOOLS_SERVICE_NAME
+	: Constants.ABORT_LOGGER_SVC_NAME;
 const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
 	serviceName: POWERTOOLS_SERVICE_NAME,
@@ -20,10 +26,11 @@ const logger = new Logger({
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 
 export class AbortHandler implements LambdaInterface {
-	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-
+	@metrics.logMetrics({
+		throwOnEmptyMetrics: false,
+		captureColdStartMetric: true,
+	})
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
-
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
@@ -34,31 +41,32 @@ export class AbortHandler implements LambdaInterface {
 				logger.appendKeys({ sessionId });
 				if (sessionId) {
 					if (!Constants.REGEX_UUID.test(sessionId)) {
-						logger.error("Session id must be a valid uuid",
-							{
-								messageCode: MessageCodes.INVALID_SESSION_ID,
-							});
+						logger.error("Session id must be a valid uuid", {
+							messageCode: MessageCodes.INVALID_SESSION_ID,
+						});
 						return unauthorizedResponse;
 					}
 				} else {
-					logger.error("Missing header: session-id is required",
-						{
-							messageCode: MessageCodes.MISSING_SESSION_ID,
-						});
+					logger.error("Missing header: session-id is required", {
+						messageCode: MessageCodes.MISSING_SESSION_ID,
+					});
 					return unauthorizedResponse;
 				}
 			} else {
-				logger.error("Empty headers",
-					{
-						messageCode: MessageCodes.EMPTY_HEADERS,
-					});
+				logger.error("Empty headers", {
+					messageCode: MessageCodes.EMPTY_HEADERS,
+				});
 				return unauthorizedResponse;
 			}
 
 			logger.info("Starting AbortRequestProcessor");
-			return await AbortRequestProcessor.getInstance(logger, metrics).processRequest(sessionId);
+			return await AbortRequestProcessor.getInstance(
+				logger,
+				metrics,
+			).processRequest(sessionId);
 		} catch (error) {
-			logger.error({ message: "AbortRequestProcessor encoundered an error.",
+			logger.error({
+				message: "AbortRequestProcessor encoundered an error.",
 				error,
 				messageCode: MessageCodes.SERVER_ERROR,
 			});

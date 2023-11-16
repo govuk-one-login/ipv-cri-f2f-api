@@ -16,11 +16,15 @@ jest.mock("../../services/UserInfoRequestProcessor", () => {
 
 describe("UserInfoHandler", () => {
 	it("return success response for userInfo", async () => {
-		UserInfoRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedUserInfoRequestProcessor);
+		UserInfoRequestProcessor.getInstance = jest
+			.fn()
+			.mockReturnValue(mockedUserInfoRequestProcessor);
 
 		await lambdaHandler(VALID_USERINFO, "CIC");
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockedUserInfoRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
+		expect(mockedUserInfoRequestProcessor.processRequest).toHaveBeenCalledTimes(
+			1,
+		);
 	});
 });

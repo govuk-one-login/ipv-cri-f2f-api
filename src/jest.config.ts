@@ -3,32 +3,30 @@
  * https://jestjs.io/docs/configuration
  */
 
-const dotenv = require('dotenv');
+const dotenv = require("dotenv");
 dotenv.config();
 
 export default {
   transform: {
-    '^.+\\.ts?$': 'ts-jest'
+    "^.+\\.ts?$": "ts-jest",
   },
   testTimeout: 10000,
   clearMocks: true,
   collectCoverage: true,
-  coverageDirectory: 'coverage',
-  coverageProvider: 'v8',
-  coveragePathIgnorePatterns: ['config.ts', 'node_modules/'],
-  testMatch: ['**/tests/**/*.test.ts'],
-  setupFiles: [
-    './jest.setup.ts'
-  ],
+  coverageDirectory: "coverage",
+  coverageProvider: "v8",
+  coveragePathIgnorePatterns: ["config.ts", "node_modules/"],
+  testMatch: ["**/tests/**/*.test.ts"],
+  setupFiles: ["./jest.setup.ts"],
   collectCoverageFrom: [
-    './**/*.ts',
-    '!./**/tests/**/*.ts',
-    '!./tests/**/*.ts',
-    '!./jest.config.ts'
+    "./**/*.ts",
+    "!./**/tests/**/*.ts",
+    "!./tests/**/*.ts",
+    "!./jest.config.ts",
   ],
-  testEnvironment: 'node',
+  testEnvironment: "node",
   reporters: [
-    'default',
-    ['jest-junit', { outputDirectory: 'results', outputName: 'report.xml' }]
-  ]
-}
+    "default",
+    ["jest-junit", { outputDirectory: "results", outputName: "report.xml" }],
+  ],
+};

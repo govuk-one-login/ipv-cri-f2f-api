@@ -42,7 +42,10 @@ function getMockSessionItem(): ISessionItem {
 
 describe("AuthorizationRequestProcessor", () => {
 	beforeAll(() => {
-		authorizationRequestProcessorTest = new AuthorizationRequestProcessor(logger, metrics);
+		authorizationRequestProcessorTest = new AuthorizationRequestProcessor(
+			logger,
+			metrics,
+		);
 		// @ts-ignore
 		authorizationRequestProcessorTest.f2fService = mockF2fService;
 	});
@@ -55,17 +58,23 @@ describe("AuthorizationRequestProcessor", () => {
 		const sess = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
-		const out: Response = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
+		const out: Response =
+      await authorizationRequestProcessorTest.processRequest(
+      	VALID_AUTHCODE,
+      	"1234",
+      );
 
-		const f2fResp = new F2fResponse(JSON.parse(out.body ));
+		const f2fResp = new F2fResponse(JSON.parse(out.body));
 
-		expect(out.body).toEqual(JSON.stringify({
-			authorizationCode: {
-				value: `${f2fResp.authorizationCode.value}`,
-			},
-			redirect_uri: "http://localhost:8085/callback",
-			state: "Y@atr",
-		}));
+		expect(out.body).toEqual(
+			JSON.stringify({
+				authorizationCode: {
+					value: `${f2fResp.authorizationCode.value}`,
+				},
+				redirect_uri: "http://localhost:8085/callback",
+				state: "Y@atr",
+			}),
+		);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.setAuthorizationCode).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
@@ -91,7 +100,7 @@ describe("AuthorizationRequestProcessor", () => {
 			component_id: "https://XXX-c.env.account.gov.uk",
 			timestamp: absoluteTimeNow(),
 			extensions: {
-				"previous_govuk_signin_journey_id": "sdfssg",
+				previous_govuk_signin_journey_id: "sdfssg",
 				evidence: [
 					{
 						txn: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
@@ -113,7 +122,11 @@ describe("AuthorizationRequestProcessor", () => {
 		sess.expiryDate = 1675458564;
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
-		const out: Response = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
+		const out: Response =
+      await authorizationRequestProcessorTest.processRequest(
+      	VALID_AUTHCODE,
+      	"1234",
+      );
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
@@ -124,7 +137,11 @@ describe("AuthorizationRequestProcessor", () => {
 	it("Return 401 when session with that session id not found in the DB", async () => {
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 
-		const out: Response = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
+		const out: Response =
+      await authorizationRequestProcessorTest.processRequest(
+      	VALID_AUTHCODE,
+      	"1234",
+      );
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
@@ -137,23 +154,32 @@ describe("AuthorizationRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 		mockF2fService.sendToTXMA.mockRejectedValue({});
 
-		const out: Response = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
+		const out: Response =
+      await authorizationRequestProcessorTest.processRequest(
+      	VALID_AUTHCODE,
+      	"1234",
+      );
 
-		const f2fResp = new F2fResponse(JSON.parse(out.body ));
+		const f2fResp = new F2fResponse(JSON.parse(out.body));
 
-		expect(out.body).toEqual(JSON.stringify({
-			authorizationCode: {
-				value: `${f2fResp.authorizationCode.value}`,
-			},
-			redirect_uri: "http://localhost:8085/callback",
-			state: "Y@atr",
-		}));
+		expect(out.body).toEqual(
+			JSON.stringify({
+				authorizationCode: {
+					value: `${f2fResp.authorizationCode.value}`,
+				},
+				redirect_uri: "http://localhost:8085/callback",
+				state: "Y@atr",
+			}),
+		);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.setAuthorizationCode).toHaveBeenCalledTimes(1);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_CRI_AUTH_CODE_ISSUED to SQS queue.", { "messageCode": "ERROR_WRITING_TXMA" });
+		expect(logger.error).toHaveBeenCalledWith(
+			"Failed to write TXMA event F2F_CRI_AUTH_CODE_ISSUED to SQS queue.",
+			{ messageCode: "ERROR_WRITING_TXMA" },
+		);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 });

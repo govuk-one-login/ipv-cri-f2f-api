@@ -26,67 +26,65 @@ describe("VerifiableCredentialService", () => {
 	const kmsJwtAdapter = new KmsJwtAdapter("kid");
 
 	const credentialSubject = {
-		"birthDate": [
+		birthDate: [
 			{
-				"value": "1990-01-01",
+				value: "1990-01-01",
 			},
 		],
-		"name": [
+		name: [
 			{
-				"nameParts": [
+				nameParts: [
 					{
-						"type": "GivenName",
-						"value": "John",
+						type: "GivenName",
+						value: "John",
 					},
 					{
-						"type": "FamilyName",
-						"value": "Doe",
+						type: "FamilyName",
+						value: "Doe",
 					},
 				],
 			},
 		],
-		"passport": [
+		passport: [
 			{
-				"documentNumber": "1234",
-				"expiryDate": "01-01-2010",
-				"icaoIssuerCode": "123456",
+				documentNumber: "1234",
+				expiryDate: "01-01-2010",
+				icaoIssuerCode: "123456",
 			},
 		],
-
 	};
 
 	const evidence = [
 		{
-			"txn": "yoti-session-id",
-			"checkDetails": [
+			txn: "yoti-session-id",
+			checkDetails: [
 				{
-					"checkMethod": "vri",
-					"identityCheckPolicy": "published",
-
+					checkMethod: "vri",
+					identityCheckPolicy: "published",
 				},
 				{
-					"biometricVerificationProcessLevel": 3,
-					"checkMethod": "pvr",
+					biometricVerificationProcessLevel: 3,
+					checkMethod: "pvr",
 				},
 			],
-			"strengthScore": 3,
-			"type": "IdentityCheck",
-			"validityScore": 2,
-			"verificationScore": 3,
+			strengthScore: 3,
+			type: "IdentityCheck",
+			validityScore: 2,
+			verificationScore: 3,
 		},
 	];
 
 	const payloadToSign = {
-		"iat": 123456789,
-		"iss": "test-issuer",
-		"nbf": 123456789,
-		"sub": "testsub",
-		"jti": Constants.URN_UUID_PREFIX + "sdfsdf",
-		"vc": {
+		iat: 123456789,
+		iss: "test-issuer",
+		nbf: 123456789,
+		sub: "testsub",
+		jti: Constants.URN_UUID_PREFIX + "sdfsdf",
+		vc: {
 			"@context": [Constants.W3_BASE_CONTEXT, Constants.DI_CONTEXT],
 			credentialSubject,
 			evidence,
-			"type": [
+			type: [
 				Constants.VERIFIABLE_CREDENTIAL,
 				Constants.IDENTITY_CHECK_CREDENTIAL,
 			],
@@ -132,7 +130,9 @@ describe("VerifiableCredentialService", () => {
 			const getNow = jest.fn().mockReturnValue(123456789);
 
 			const signedJwt = "signed-jwt";
-			const signMock = jest.spyOn(kmsJwtAdapter, "sign").mockResolvedValue(signedJwt);
+			const signMock = jest
+				.spyOn(kmsJwtAdapter, "sign")
+				.mockResolvedValue(signedJwt);
 
 			const jwt = verifiableCredentialService.generateVerifiableCredentialJwt(
 				sessionItem,
@@ -141,7 +141,10 @@ describe("VerifiableCredentialService", () => {
 				getNow,
 			);
 
-			const result = await verifiableCredentialService.signGeneratedVerifiableCredentialJwt(jwt);
+			const result =
+        await verifiableCredentialService.signGeneratedVerifiableCredentialJwt(
+        	jwt,
+        );
 
 			expect(getNow).toHaveBeenCalled();
 			expect(signMock).toHaveBeenCalledWith(payloadToSign);
@@ -151,72 +154,74 @@ describe("VerifiableCredentialService", () => {
 		it("should throw an AppError if signing the JWT fails", async () => {
 			const error = new Error("Failed to sign JWT");
 
-			const signMock = jest.spyOn(kmsJwtAdapter, "sign").mockRejectedValue(error);
-			await expect(verifiableCredentialService.signGeneratedVerifiableCredentialJwt({
-				"sub": "testsub",
-				"nbf": 123456789,
-				"iss": "test-issuer",
-				"iat": 123456789,
-				"jti": Constants.URN_UUID_PREFIX + "sdfsdf",
-				"vc": {
-					"@context": [
-						"https://www.w3.org/2018/credentials/v1",
-						"https://vocab.account.gov.uk/contexts/identity-v1.jsonld",
-					],
-					"type": [
-						"VerifiableCredential",
-						"IdentityCheckCredential",
-					],
-					"credentialSubject": {
-						"birthDate": [
-							{
-								"value": "1990-01-01",
-							},
+			const signMock = jest
+				.spyOn(kmsJwtAdapter, "sign")
+				.mockRejectedValue(error);
+			await expect(
+				verifiableCredentialService.signGeneratedVerifiableCredentialJwt({
+					sub: "testsub",
+					nbf: 123456789,
+					iss: "test-issuer",
+					iat: 123456789,
+					jti: Constants.URN_UUID_PREFIX + "sdfsdf",
+					vc: {
+						"@context": [
+							"https://www.w3.org/2018/credentials/v1",
+							"https://vocab.account.gov.uk/contexts/identity-v1.jsonld",
 						],
-						"name": [
+						type: ["VerifiableCredential", "IdentityCheckCredential"],
+						credentialSubject: {
+							birthDate: [
+								{
+									value: "1990-01-01",
+								},
+							],
+							name: [
+								{
+									nameParts: [
+										{
+											type: "GivenName",
+											value: "John",
+										},
+										{
+											type: "FamilyName",
+											value: "Doe",
+										},
+									],
+								},
+							],
+							passport: [
+								{
+									documentNumber: "1234",
+									expiryDate: "01-01-2010",
+									icaoIssuerCode: "123456",
+								},
+							],
+						},
+						evidence: [
 							{
-								"nameParts": [
+								txn: "yoti-session-id",
+								checkDetails: [
 									{
-										"type": "GivenName",
-										"value": "John",
+										checkMethod: "vri",
+										identityCheckPolicy: "published",
 									},
 									{
-										"type": "FamilyName",
-										"value": "Doe",
+										biometricVerificationProcessLevel: 3,
+										checkMethod: "pvr",
 									},
 								],
-							},
-						],
-						"passport": [
-							{
-								"documentNumber": "1234",
-								"expiryDate": "01-01-2010",
-								"icaoIssuerCode": "123456",
+								strengthScore: 3,
+								type: "IdentityCheck",
+								validityScore: 2,
+								verificationScore: 3,
 							},
 						],
 					},
-					"evidence": [
-						{
-							"txn": "yoti-session-id",
-							"checkDetails": [
-								{
-									"checkMethod": "vri",
-									"identityCheckPolicy": "published",
-								},
-								{
-									"biometricVerificationProcessLevel": 3,
-									"checkMethod": "pvr",
-								},
-							],
-							"strengthScore": 3,
-							"type": "IdentityCheck",
-							"validityScore": 2,
-							"verificationScore": 3,
-						},
-					],
-				},
-			}))
-				.rejects.toThrow(new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt"));
+				}),
+			).rejects.toThrow(
+				new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt"),
+			);
 
 			expect(signMock).toHaveBeenCalledWith(payloadToSign);
 		});
@@ -244,10 +249,9 @@ describe("VerifiableCredentialService", () => {
 			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
 		};
 		it("should build a verifiable credential with the provided subject and evidence", () => {
-			const verifiableCredential = verifiableCredentialService["buildVerifiableCredential"](
-				credentialSubject,
-				evidence,
-			);
+			const verifiableCredential = verifiableCredentialService[
+				"buildVerifiableCredential"
+			](credentialSubject, evidence);
 
 			expect(verifiableCredential["@context"]).toEqual([
 				Constants.W3_BASE_CONTEXT,
@@ -263,76 +267,74 @@ describe("VerifiableCredentialService", () => {
 
 		it("generated unsigned VC should conform to SPOT schema", () => {
 			const getNow = jest.fn().mockReturnValue(123456789);
-			const result = verifiableCredentialService.generateVerifiableCredentialJwt(
-				sessionItem,
-				credentialSubject,
-				evidence,
-				getNow,
-			);
+			const result =
+        verifiableCredentialService.generateVerifiableCredentialJwt(
+        	sessionItem,
+        	credentialSubject,
+        	evidence,
+        	getNow,
+        );
 
 			const validate: ValidateFunction = ajv.compile(SpotSchema);
 			const isValid = validate(result);
 			expect(isValid).toBe(true);
 			expect(result).toEqual({
-				"sub": "testsub",
-				"nbf": 123456789,
-				"iss": "test-issuer",
-				"iat": 123456789,
-				"jti": Constants.URN_UUID_PREFIX + "sdfsdf",
-				"vc": {
+				sub: "testsub",
+				nbf: 123456789,
+				iss: "test-issuer",
+				iat: 123456789,
+				jti: Constants.URN_UUID_PREFIX + "sdfsdf",
+				vc: {
 					"@context": [
 						"https://www.w3.org/2018/credentials/v1",
 						"https://vocab.account.gov.uk/contexts/identity-v1.jsonld",
 					],
-					"type": [
-						"VerifiableCredential",
-						"IdentityCheckCredential",
-					],
-					"credentialSubject": {
-						"birthDate": [
+					type: ["VerifiableCredential", "IdentityCheckCredential"],
+					credentialSubject: {
+						birthDate: [
 							{
-								"value": "1990-01-01",
+								value: "1990-01-01",
 							},
 						],
-						"name": [
+						name: [
 							{
-								"nameParts": [
+								nameParts: [
 									{
-										"type": "GivenName",
-										"value": "John",
+										type: "GivenName",
+										value: "John",
 									},
 									{
-										"type": "FamilyName",
-										"value": "Doe",
+										type: "FamilyName",
+										value: "Doe",
 									},
 								],
 							},
 						],
-						"passport": [
+						passport: [
 							{
-								"documentNumber": "1234",
-								"expiryDate": "01-01-2010",
-								"icaoIssuerCode": "123456",
+								documentNumber: "1234",
+								expiryDate: "01-01-2010",
+								icaoIssuerCode: "123456",
 							},
 						],
 					},
-					"evidence": [
+					evidence: [
 						{
-							"txn": "yoti-session-id",
-							"checkDetails": [
+							txn: "yoti-session-id",
+							checkDetails: [
 								{
-									"checkMethod": "vri",
-									"identityCheckPolicy": "published",
+									checkMethod: "vri",
+									identityCheckPolicy: "published",
 								},
 								{
-									"biometricVerificationProcessLevel": 3,
-									"checkMethod": "pvr",
+									biometricVerificationProcessLevel: 3,
+									checkMethod: "pvr",
 								},
 							],
-							"strengthScore": 3,
-							"type": "IdentityCheck",
-							"validityScore": 2,
-							"verificationScore": 3,
+							strengthScore: 3,
+							type: "IdentityCheck",
+							validityScore: 2,
+							verificationScore: 3,
 						},
 					],
 				},

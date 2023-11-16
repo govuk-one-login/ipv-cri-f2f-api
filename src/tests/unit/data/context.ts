@@ -9,13 +9,10 @@ export const CONTEXT: Context = {
 	logGroupName: "",
 	logStreamName: "",
 	memoryLimitInMB: "",
-	done(error?: Error, result?: any): void {
-	},
-	fail(error: Error | string): void {
-	},
+	done(error?: Error, result?: any): void {},
+	fail(error: Error | string): void {},
 	getRemainingTimeInMillis(): number {
 		return 0;
 	},
-	succeed(messageOrObject: any, object?: any): void {
-	},
+	succeed(messageOrObject: any, object?: any): void {},
 };

@@ -8,7 +8,7 @@ import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 
 describe("ReminderEmailProcessor", () => {
 	let personIdentityItem: PersonIdentityItem;
-	
+
 	let reminderEmailProcessor: ReminderEmailProcessor;
 	const mockF2fService = mock<F2fService>();
 	const mockLogger = mock<Logger>();
@@ -80,38 +80,38 @@ describe("ReminderEmailProcessor", () => {
 	];
 
 	const getPersonIdentityItem = (): PersonIdentityItem => ({
-		"addresses": [
+		addresses: [
 			{
-				"addressCountry": "GB",
-				"buildingName": "Sherman",
-				"uprn": 123456789,
-				"streetName": "Wallaby Way",
-				"postalCode": "F1 1SH",
-				"buildingNumber": "32",
-				"addressLocality": "Sidney",
+				addressCountry: "GB",
+				buildingName: "Sherman",
+				uprn: 123456789,
+				streetName: "Wallaby Way",
+				postalCode: "F1 1SH",
+				buildingNumber: "32",
+				addressLocality: "Sidney",
 			},
 		],
-		"sessionId": "RandomF2FSessionID",
-		"emailAddress": "testReminder@test.com",
-		"birthDate": [
+		sessionId: "RandomF2FSessionID",
+		emailAddress: "testReminder@test.com",
+		birthDate: [
 			{
-				"value":"1960-02-02",
+				value: "1960-02-02",
 			},
 		],
-		"name": [
+		name: [
 			{
-				"nameParts": [
+				nameParts: [
 					{
-						"type": "GivenName",
-						"value": "Frederick",
+						type: "GivenName",
+						value: "Frederick",
 					},
 					{
-						"type": "GivenName",
-						"value": "Joseph",
+						type: "GivenName",
+						value: "Joseph",
 					},
 					{
-						"type": "FamilyName",
-						"value": "Flintstone",
+						type: "FamilyName",
+						value: "Flintstone",
 					},
 				],
 			},
@@ -119,10 +119,12 @@ describe("ReminderEmailProcessor", () => {
 		expiryDate: 1612345678,
 		createdDate: 1612335678,
 	});
-	
 
 	beforeAll(() => {
-		reminderEmailProcessor = new ReminderEmailProcessor(mockLogger, mockMetrics);
+		reminderEmailProcessor = new ReminderEmailProcessor(
+			mockLogger,
+			mockMetrics,
+		);
 		// @ts-ignore
 		reminderEmailProcessor.f2fService = mockF2fService;
 
@@ -141,59 +143,130 @@ describe("ReminderEmailProcessor", () => {
 
 	describe("Should process request successfully", () => {
 		beforeEach(() => {
-			mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(F2FSessionsWithYotiSession);
-			mockF2fService.getPersonIdentityById.mockResolvedValue(personIdentityItem);
+			mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(
+				F2FSessionsWithYotiSession,
+			);
+			mockF2fService.getPersonIdentityById.mockResolvedValue(
+				personIdentityItem,
+			);
 			mockF2fService.sendToGovNotify.mockResolvedValue();
 			mockF2fService.updateReminderEmailFlag.mockResolvedValue();
 		});
-	
+
 		it("when documentUsed not present", async () => {
 			const result = await reminderEmailProcessor.processRequest();
-	
+
 			expect(result).toEqual({ statusCode: 200, body: "Success" });
-			expect(mockLogger.info).toHaveBeenCalledWith("Total num. of users to send reminder emails to:", { numOfUsers: 2 });
-			expect(mockF2fService.getSessionsByAuthSessionStates).toHaveBeenCalledWith(["F2F_YOTI_SESSION_CREATED", "F2F_AUTH_CODE_ISSUED", "F2F_ACCESS_TOKEN_ISSUED"]);
-			expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(1, "b2ba545c-18a9-4b7e-8bc1-38a05b214a48", "PERSONIDENTITYTABLE");
-			expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(2, "b2ba545c-18a9-4b7e-8bc1-38a05b214a47", "PERSONIDENTITYTABLE");
+			expect(mockLogger.info).toHaveBeenCalledWith(
+				"Total num. of users to send reminder emails to:",
+				{ numOfUsers: 2 },
+			);
+			expect(
+				mockF2fService.getSessionsByAuthSessionStates,
+			).toHaveBeenCalledWith([
+				"F2F_YOTI_SESSION_CREATED",
+				"F2F_AUTH_CODE_ISSUED",
+				"F2F_ACCESS_TOKEN_ISSUED",
+			]);
+			expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(
+				1,
+				"b2ba545c-18a9-4b7e-8bc1-38a05b214a48",
+				"PERSONIDENTITYTABLE",
+			);
+			expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(
+				2,
+				"b2ba545c-18a9-4b7e-8bc1-38a05b214a47",
+				"PERSONIDENTITYTABLE",
+			);
 			expect(mockF2fService.sendToGovNotify).toHaveBeenCalledWith({
 				Message: {
 					emailAddress: "testReminder@test.com",
 					messageType: "REMINDER_EMAIL",
 				},
 			});
-			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith("b2ba545c-18a9-4b7e-8bc1-38a05b214a48", true);
-			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith("b2ba545c-18a9-4b7e-8bc1-38a05b214a47", true);
+			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith(
+				"b2ba545c-18a9-4b7e-8bc1-38a05b214a48",
+				true,
+			);
+			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith(
+				"b2ba545c-18a9-4b7e-8bc1-38a05b214a47",
+				true,
+			);
 		});
-	
+
 		it("when documentUsed present", async () => {
-			mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(F2FSessionsWithYotiSessionWithDocumentInfo);
-	
+			mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(
+				F2FSessionsWithYotiSessionWithDocumentInfo,
+			);
+
 			const result = await reminderEmailProcessor.processRequest();
-	
+
 			expect(result).toEqual({ statusCode: 200, body: "Success" });
-			expect(mockLogger.info).toHaveBeenCalledWith("Total num. of users to send reminder emails to:", { numOfUsers: 2 });
-			expect(mockF2fService.getSessionsByAuthSessionStates).toHaveBeenCalledWith(["F2F_YOTI_SESSION_CREATED", "F2F_AUTH_CODE_ISSUED", "F2F_ACCESS_TOKEN_ISSUED"]);
-			expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(1, "b2ba545c-18a9-4b7e-8bc1-38a05b214a48", "PERSONIDENTITYTABLE");
-			expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(2, "b2ba545c-18a9-4b7e-8bc1-38a05b214a47", "PERSONIDENTITYTABLE");
-			expect(mockF2fService.sendToGovNotify).toHaveBeenNthCalledWith(1, { "Message": { "documentUsed": "NATIONAL_ID", "emailAddress": "testReminder@test.com", "firstName": "Frederick", "lastName": "Flintstone", "messageType": "REMINDER_EMAIL_DYNAMIC" } });
-			expect(mockF2fService.sendToGovNotify).toHaveBeenNthCalledWith(2, { "Message": { "documentUsed": "DRIVING_LICENCE", "emailAddress": "testReminder@test.com", "firstName": "Frederick", "lastName": "Flintstone", "messageType": "REMINDER_EMAIL_DYNAMIC" } });
-			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith("b2ba545c-18a9-4b7e-8bc1-38a05b214a48", true);
-			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith("b2ba545c-18a9-4b7e-8bc1-38a05b214a47", true);
+			expect(mockLogger.info).toHaveBeenCalledWith(
+				"Total num. of users to send reminder emails to:",
+				{ numOfUsers: 2 },
+			);
+			expect(
+				mockF2fService.getSessionsByAuthSessionStates,
+			).toHaveBeenCalledWith([
+				"F2F_YOTI_SESSION_CREATED",
+				"F2F_AUTH_CODE_ISSUED",
+				"F2F_ACCESS_TOKEN_ISSUED",
+			]);
+			expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(
+				1,
+				"b2ba545c-18a9-4b7e-8bc1-38a05b214a48",
+				"PERSONIDENTITYTABLE",
+			);
+			expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(
+				2,
+				"b2ba545c-18a9-4b7e-8bc1-38a05b214a47",
+				"PERSONIDENTITYTABLE",
+			);
+			expect(mockF2fService.sendToGovNotify).toHaveBeenNthCalledWith(1, {
+				Message: {
+					documentUsed: "NATIONAL_ID",
+					emailAddress: "testReminder@test.com",
+					firstName: "Frederick",
+					lastName: "Flintstone",
+					messageType: "REMINDER_EMAIL_DYNAMIC",
+				},
+			});
+			expect(mockF2fService.sendToGovNotify).toHaveBeenNthCalledWith(2, {
+				Message: {
+					documentUsed: "DRIVING_LICENCE",
+					emailAddress: "testReminder@test.com",
+					firstName: "Frederick",
+					lastName: "Flintstone",
+					messageType: "REMINDER_EMAIL_DYNAMIC",
+				},
+			});
+			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith(
+				"b2ba545c-18a9-4b7e-8bc1-38a05b214a48",
+				true,
+			);
+			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith(
+				"b2ba545c-18a9-4b7e-8bc1-38a05b214a47",
+				true,
+			);
 		});
 	});
 
 	it("should log if no users with authSessionState F2F_YOTI_SESSION_CREATED", async () => {
-    
 		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue([]);
 
 		const result = await reminderEmailProcessor.processRequest();
 
-		expect(result).toEqual({ statusCode: 200, body: "No Session Records matching state" });
-		expect(mockLogger.info).toHaveBeenCalledWith("No users with session states F2F_YOTI_SESSION_CREATED,F2F_AUTH_CODE_ISSUED,F2F_ACCESS_TOKEN_ISSUED");
+		expect(result).toEqual({
+			statusCode: 200,
+			body: "No Session Records matching state",
+		});
+		expect(mockLogger.info).toHaveBeenCalledWith(
+			"No users with session states F2F_YOTI_SESSION_CREATED,F2F_AUTH_CODE_ISSUED,F2F_ACCESS_TOKEN_ISSUED",
+		);
 	});
 
 	it("should log if no users with authSessionState F2F_YOTI_SESSION_CREATED have sessions older than 5 days", async () => {
-    
 		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue([
 			{
 				createdDate: 1681905531361,
@@ -204,12 +277,19 @@ describe("ReminderEmailProcessor", () => {
 
 		const result = await reminderEmailProcessor.processRequest();
 
-		expect(result).toEqual({ statusCode: 200, body: "No Sessions older than 5 days" });
-		expect(mockLogger.info).toHaveBeenCalledWith("No users with session states F2F_YOTI_SESSION_CREATED,F2F_AUTH_CODE_ISSUED,F2F_ACCESS_TOKEN_ISSUED older than 5 days");
+		expect(result).toEqual({
+			statusCode: 200,
+			body: "No Sessions older than 5 days",
+		});
+		expect(mockLogger.info).toHaveBeenCalledWith(
+			"No users with session states F2F_YOTI_SESSION_CREATED,F2F_AUTH_CODE_ISSUED,F2F_ACCESS_TOKEN_ISSUED older than 5 days",
+		);
 	});
 
 	it("should handle error during processing", async () => {
-		mockF2fService.getSessionsByAuthSessionStates.mockRejectedValue(new Error("Error"));
+		mockF2fService.getSessionsByAuthSessionStates.mockRejectedValue(
+			new Error("Error"),
+		);
 
 		const result = await reminderEmailProcessor.processRequest();
 
@@ -217,50 +297,78 @@ describe("ReminderEmailProcessor", () => {
 	});
 
 	it("should log an error if error fetching from Person Identity Table", async () => {
-		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(F2FSessionsWithYotiSession);
+		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(
+			F2FSessionsWithYotiSession,
+		);
 		mockF2fService.getPersonIdentityById.mockRejectedValueOnce("Error");
 
 		await reminderEmailProcessor.processRequest();
 
-		expect(mockLogger.error).toHaveBeenCalledWith("Error fetching record from Person Identity Table", { "error": "Error" });
+		expect(mockLogger.error).toHaveBeenCalledWith(
+			"Error fetching record from Person Identity Table",
+			{ error: "Error" },
+		);
 	});
 
 	it("should warn if no records are returned from person Identity Table", async () => {
-    
-		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(F2FSessionsWithYotiSession);
+		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(
+			F2FSessionsWithYotiSession,
+		);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(undefined);
 
 		await reminderEmailProcessor.processRequest();
 
-		expect(mockLogger.warn).toHaveBeenNthCalledWith(1, "No records returned from Person Identity Table");
+		expect(mockLogger.warn).toHaveBeenNthCalledWith(
+			1,
+			"No records returned from Person Identity Table",
+		);
 	});
 
 	it("should log an error if not able to send to GovNotify", async () => {
-		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(F2FSessionsWithYotiSession);
+		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(
+			F2FSessionsWithYotiSession,
+		);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(personIdentityItem);
-		mockF2fService.sendToGovNotify.mockRejectedValueOnce("Unable to send to GovNotify");
+		mockF2fService.sendToGovNotify.mockRejectedValueOnce(
+			"Unable to send to GovNotify",
+		);
 
 		await reminderEmailProcessor.processRequest();
 
-		expect(mockLogger.error).toHaveBeenCalledWith("Failed to send reminder email or update flag", { "error": "Unable to send to GovNotify" });
+		expect(mockLogger.error).toHaveBeenCalledWith(
+			"Failed to send reminder email or update flag",
+			{ error: "Unable to send to GovNotify" },
+		);
 	});
 
 	it("should log an error if not able to set the reminded flag", async () => {
-		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(F2FSessionsWithYotiSession);
+		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(
+			F2FSessionsWithYotiSession,
+		);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(personIdentityItem);
 		mockF2fService.sendToGovNotify.mockResolvedValue();
-		mockF2fService.updateReminderEmailFlag.mockRejectedValueOnce("Unable to set reminded flag");
+		mockF2fService.updateReminderEmailFlag.mockRejectedValueOnce(
+			"Unable to set reminded flag",
+		);
 
 		await reminderEmailProcessor.processRequest();
 
-		expect(mockLogger.error).toHaveBeenCalledWith("Failed to send reminder email or update flag", { "error": "Unable to set reminded flag" });
+		expect(mockLogger.error).toHaveBeenCalledWith(
+			"Failed to send reminder email or update flag",
+			{ error: "Unable to set reminded flag" },
+		);
 	});
 
 	it("should throw an error if not able to access session table", async () => {
-		mockF2fService.getSessionsByAuthSessionStates.mockRejectedValueOnce("Permission Denied");
+		mockF2fService.getSessionsByAuthSessionStates.mockRejectedValueOnce(
+			"Permission Denied",
+		);
 
 		await reminderEmailProcessor.processRequest();
 
-		expect(mockLogger.error).toHaveBeenCalledWith("Unexpected error accessing session table", { "error": "Permission Denied", "messageCode": "FAILED_FETHCING_SESSIONS" });
+		expect(mockLogger.error).toHaveBeenCalledWith(
+			"Unexpected error accessing session table",
+			{ error: "Permission Denied", messageCode: "FAILED_FETHCING_SESSIONS" },
+		);
 	});
 });

@@ -1,17 +1,17 @@
 export const VALID_REQUEST = {
 	httpMethod: "POST",
 	body: JSON.stringify({
-		"document_selection":{
-			"document_selected":"ukPassport",
-			"date_of_expiry":"1970-01-01",
+		document_selection: {
+			document_selected: "ukPassport",
+			date_of_expiry: "1970-01-01",
 		},
-		"post_office_selection":{
-			"address":"1 The Street, Funkytown",
-			"location":{
-				"latitude":0.34322,
-				"longitude":-42.48372,
+		post_office_selection: {
+			address: "1 The Street, Funkytown",
+			location: {
+				latitude: 0.34322,
+				longitude: -42.48372,
 			},
-			"post_code":"SW19 4NS",
+			post_code: "SW19 4NS",
 		},
 	}),
 	headers: {
@@ -89,17 +89,17 @@ export const MISSING_SESSION_ID = {
 export const VALID_NON_UK_PASSPORT_REQUEST = {
 	httpMethod: "POST",
 	body: JSON.stringify({
-		"document_selection":{
-			"document_selected":"nonUkPassport",
-			"date_of_expiry":"1970-01-01",
+		document_selection: {
+			document_selected: "nonUkPassport",
+			date_of_expiry: "1970-01-01",
 		},
-		"post_office_selection":{
-			"address":"1 The Street, Funkytown",
-			"location":{
-				"latitude":0.34322,
-				"longitude":-42.48372,
+		post_office_selection: {
+			address: "1 The Street, Funkytown",
+			location: {
+				latitude: 0.34322,
+				longitude: -42.48372,
 			},
-			"post_code":"SW19 4NS",
+			post_code: "SW19 4NS",
 		},
 	}),
 	headers: {
@@ -155,17 +155,17 @@ export const VALID_NON_UK_PASSPORT_REQUEST = {
 export const VALID_EEA_ID_CARD_REQUEST = {
 	httpMethod: "POST",
 	body: JSON.stringify({
-		"document_selection":{
-			"document_selected":"eeaIdentityCard",
-			"date_of_expiry":"1970-01-01",
+		document_selection: {
+			document_selected: "eeaIdentityCard",
+			date_of_expiry: "1970-01-01",
 		},
-		"post_office_selection":{
-			"address":"1 The Street, Funkytown",
-			"location":{
-				"latitude":0.34322,
-				"longitude":-42.48372,
+		post_office_selection: {
+			address: "1 The Street, Funkytown",
+			location: {
+				latitude: 0.34322,
+				longitude: -42.48372,
 			},
-			"post_code":"SW19 4NS",
+			post_code: "SW19 4NS",
 		},
 	}),
 	headers: {
@@ -217,4 +217,3 @@ export const VALID_EEA_ID_CARD_REQUEST = {
 	resource: "/documentSelection",
 	stageVariables: {},
 };
-

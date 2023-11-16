@@ -64,7 +64,10 @@ export const mockFaceMatchCheck = {
 	type: "ID_DOCUMENT_FACE_MATCH",
 	id: "62d20daa-1c6f-4558-8381-2d9c7f8a73d5",
 	state: "DONE",
-	resources_used: ["b2a71a45-3c5a-4a6c-9246-c05356f6260c", "4b6eb8a9-882f-4ae4-a10f-26b57ff5a328"],
+	resources_used: [
+		"b2a71a45-3c5a-4a6c-9246-c05356f6260c",
+		"4b6eb8a9-882f-4ae4-a10f-26b57ff5a328",
+	],
 	generated_media: [],
 	report: {
 		recommendation: {
@@ -108,7 +111,10 @@ export const profileMatchCheck = {
 	type: "PROFILE_DOCUMENT_MATCH",
 	id: "124211f6-f41c-435e-b6aa-33ba9153cbab",
 	state: "DONE",
-	resources_used: ["b2a71a45-3c5a-4a6c-9246-c05356f6260c", "a2c78800-fc3c-4104-808c-70de5285b916"],
+	resources_used: [
+		"b2a71a45-3c5a-4a6c-9246-c05356f6260c",
+		"a2c78800-fc3c-4104-808c-70de5285b916",
+	],
 	generated_media: [],
 	report: {
 		recommendation: {
@@ -261,6 +267,12 @@ export const mockCompletedYotiSessionPayload = {
 			},
 		],
 	},
-	checks: [authenticityCheck, mockFaceMatchCheck, visualReviewCheck, validityCheck, profileMatchCheck],
+	checks: [
+		authenticityCheck,
+		mockFaceMatchCheck,
+		visualReviewCheck,
+		validityCheck,
+		profileMatchCheck,
+	],
 	user_tracking_id: "some_id2",
 };

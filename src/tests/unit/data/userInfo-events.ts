@@ -1,5 +1,5 @@
 export const VALID_USERINFO = {
-	body:"",
+	body: "",
 	httpMethod: "POST",
 	headers: { Authorization: "Bearer AbCdEf123456" },
 	isBase64Encoded: false,
@@ -8,7 +8,7 @@ export const VALID_USERINFO = {
 	pathParameters: {},
 	queryStringParameters: {},
 	path: "/userinfo",
-	requestContext:{
+	requestContext: {
 		accountId: "",
 		apiId: "",
 		authorizer: {},
@@ -49,7 +49,7 @@ export const VALID_USERINFO = {
 };
 
 export const MISSING_AUTH_HEADER_USERINFO = {
-	body:"",
+	body: "",
 	httpMethod: "POST",
 	headers: {},
 	isBase64Encoded: false,
@@ -58,7 +58,7 @@ export const MISSING_AUTH_HEADER_USERINFO = {
 	pathParameters: {},
 	queryStringParameters: {},
 	path: "/userInfo",
-	requestContext:{
+	requestContext: {
 		accountId: "",
 		apiId: "",
 		authorizer: {},
@@ -98,7 +98,7 @@ export const MISSING_AUTH_HEADER_USERINFO = {
 	stageVariables: {},
 };
 export const RESOURCE_NOT_FOUND = {
-	body:"",
+	body: "",
 	httpMethod: "POST",
 	headers: { Authorization: "Bearer AbCdEf123456" },
 	isBase64Encoded: false,
@@ -107,7 +107,7 @@ export const RESOURCE_NOT_FOUND = {
 	pathParameters: {},
 	queryStringParameters: {},
 	path: "/invalid",
-	requestContext:{
+	requestContext: {
 		accountId: "",
 		apiId: "",
 		authorizer: {},

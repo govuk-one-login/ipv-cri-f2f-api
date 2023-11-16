@@ -3,7 +3,11 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { SQSEvent } from "aws-lambda";
 // @ts-ignore
 import { NotifyClient } from "notifications-node-client";
-import { VALID_SQS_EVENT, VALID_REMINDER_SQS_EVENT, VALID_DYNAMIC_REMINDER_SQS_EVENT } from "../data/sqs-events";
+import {
+	VALID_SQS_EVENT,
+	VALID_REMINDER_SQS_EVENT,
+	VALID_DYNAMIC_REMINDER_SQS_EVENT,
+} from "../data/sqs-events";
 import { SendEmailService } from "../../../services/SendEmailService";
 import { mock } from "jest-mock-extended";
 import { EmailResponse } from "../../../models/EmailResponse";
@@ -58,7 +62,12 @@ jest.mock("../../../utils/DateTimeUtils", () => ({
 
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
-		sendEmailServiceTest = SendEmailService.getInstance(logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
+		sendEmailServiceTest = SendEmailService.getInstance(
+			logger,
+			YOTI_PRIVATE_KEY,
+			GOVUKNOTIFY_API_KEY,
+			"serviceId",
+		);
 		// @ts-ignore
 		sendEmailServiceTest.govNotify = mockGovNotify;
 		// @ts-ignore
@@ -76,7 +85,11 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("Returns EmailResponse when YOTI PDF email is sent successfully", async () => {
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
+		const mockEmailResponse = new EmailResponse(
+			new Date().toISOString(),
+			"",
+			201,
+		);
 		const session = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
@@ -100,85 +113,92 @@ describe("SendEmailProcessor", () => {
 				],
 			},
 			user: {
-			  email: email.emailAddress,
-			  govuk_signin_journey_id: session.clientSessionId,
-			  ip_address: session.clientIpAddress,
-			  persistent_session_id: session.persistentSessionId,
-			  session_id: session.sessionId,
-			  user_id: session.subject,
+				email: email.emailAddress,
+				govuk_signin_journey_id: session.clientSessionId,
+				ip_address: session.clientIpAddress,
+				persistent_session_id: session.persistentSessionId,
+				session_id: session.sessionId,
+				user_id: session.subject,
 			},
 		});
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 
 	it("SendEmailService fails and doesnt retry when GovNotify throws an error", async () => {
-		mockGovNotify.sendEmail.mockRejectedValue( {
-			"response": {
-				"data": {
-					"errors": [
+		mockGovNotify.sendEmail.mockRejectedValue({
+			response: {
+				data: {
+					errors: [
 						{
-							"error": "BadRequestError",
-							"message": "Can't send to this recipient using a team-only API key",
+							error: "BadRequestError",
+							message: "Can't send to this recipient using a team-only API key",
 						},
 					],
-					"status_code": 400,
+					status_code: 400,
 				},
-
 			},
 		});
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
 		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
-		await expect(sendEmailServiceTest.sendYotiPdfEmail(email)).rejects.toThrow();
+		await expect(
+			sendEmailServiceTest.sendYotiPdfEmail(email),
+		).rejects.toThrow();
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
 	});
 
 	it("SendEmailService retries when GovNotify throws a 500 error", async () => {
-		mockGovNotify.sendEmail.mockRejectedValue( {
-			"response": {
-				"data": {
-					"errors": [
+		mockGovNotify.sendEmail.mockRejectedValue({
+			response: {
+				data: {
+					errors: [
 						{
-							"error": "Exception",
-							"message": "Internal server error",
+							error: "Exception",
+							message: "Internal server error",
 						},
 					],
-					"status_code": 500,
+					status_code: 500,
 				},
-
 			},
 		});
 
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
 		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
-		await expect(sendEmailServiceTest.sendYotiPdfEmail(email)).rejects.toThrow();
+		await expect(
+			sendEmailServiceTest.sendYotiPdfEmail(email),
+		).rejects.toThrow();
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(4);
 	});
 
 	it("SendEmailService retries when GovNotify throws a 429 error", async () => {
-		mockGovNotify.sendEmail.mockRejectedValue( {
-			"response": {
-				"data": {
-					"errors": [
+		mockGovNotify.sendEmail.mockRejectedValue({
+			response: {
+				data: {
+					errors: [
 						{
-							"error": "TooManyRequestsError",
-							"message": "Exceeded send limits (LIMIT NUMBER) for today",
+							error: "TooManyRequestsError",
+							message: "Exceeded send limits (LIMIT NUMBER) for today",
 						},
 					],
-					"status_code": 429,
+					status_code: 429,
 				},
-
 			},
 		});
 
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
 		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
-		await expect(sendEmailServiceTest.sendYotiPdfEmail(email)).rejects.toThrow();
+		await expect(
+			sendEmailServiceTest.sendYotiPdfEmail(email),
+		).rejects.toThrow();
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(4);
 	});
 
 	it("Write to txMA fails when session id not found in the DB", async () => {
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
+		const mockEmailResponse = new EmailResponse(
+			new Date().toISOString(),
+			"",
+			201,
+		);
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
@@ -187,7 +207,10 @@ describe("SendEmailProcessor", () => {
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(0);
-		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue, session not found for sessionId: ", "eb26c8e0-397b-4f5e-b7a5-62cd0c6e510b");
+		expect(logger.error).toHaveBeenCalledWith(
+			"Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue, session not found for sessionId: ",
+			"eb26c8e0-397b-4f5e-b7a5-62cd0c6e510b",
+		);
 		expect(emailResponse?.emailFailureMessage).toBe("");
 	});
 
@@ -196,7 +219,11 @@ describe("SendEmailProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.sendToTXMA.mockRejectedValue({});
 
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
+		const mockEmailResponse = new EmailResponse(
+			new Date().toISOString(),
+			"",
+			201,
+		);
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
@@ -205,32 +232,64 @@ describe("SendEmailProcessor", () => {
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
-		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.");
+		expect(logger.error).toHaveBeenCalledWith(
+			"Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.",
+		);
 		expect(emailResponse?.emailFailureMessage).toBe("");
 	});
 
 	it("Returns EmailResponse when Reminder email is sent successfully", async () => {
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
+		const mockEmailResponse = new EmailResponse(
+			new Date().toISOString(),
+			"",
+			201,
+		);
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
 		const eventBody = JSON.parse(reminderEmailEvent.Records[0].body);
-		const email = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
+		const email = ReminderEmail.parseRequest(
+			JSON.stringify(eventBody.Message),
+			logger,
+		);
 		const emailResponse = await sendEmailServiceTest.sendReminderEmail(email);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
-		expect(mockGovNotify.sendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837115", "example@test.com", { "reference": expect.any(String) });
+		expect(mockGovNotify.sendEmail).toHaveBeenCalledWith(
+			"1490de9b-d986-4404-b260-ece7f1837115",
+			"example@test.com",
+			{ reference: expect.any(String) },
+		);
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 
 	it("Returns EmailResponse when Dynamic Reminder email is sent successfully", async () => {
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
+		const mockEmailResponse = new EmailResponse(
+			new Date().toISOString(),
+			"",
+			201,
+		);
 		mockGovNotify.sendEmail.mockResolvedValue(mockEmailResponse);
 		const eventBody = JSON.parse(dynamicEmailEvent.Records[0].body);
-		const email = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
-		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(email);
+		const email = DynamicReminderEmail.parseRequest(
+			JSON.stringify(eventBody.Message),
+			logger,
+		);
+		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(
+			email,
+		);
 
 		expect(mockGovNotify.sendEmail).toHaveBeenCalledTimes(1);
-		expect(mockGovNotify.sendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { "chosen photo ID": "PASSPORT", "first name": "Frederick", "last name": "Flintstone" }, "reference": expect.any(String) });
+		expect(mockGovNotify.sendEmail).toHaveBeenCalledWith(
+			"1490de9b-d986-4404-b260-ece7f1837116",
+			"bhavana.hemanth@digital.cabinet-office.gov.uk",
+			{
+				personalisation: {
+					"chosen photo ID": "PASSPORT",
+					"first name": "Frederick",
+					"last name": "Flintstone",
+				},
+				reference: expect.any(String),
+			},
+		);
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
-
 });

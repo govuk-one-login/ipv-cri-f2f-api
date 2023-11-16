@@ -1,9 +1,11 @@
 import { randomUUID } from "crypto";
 
 const AUTHORIZATION_CODE = randomUUID();
-const ENCODED_REDIRECT_URI = encodeURIComponent("http://localhost:8085/callback");
+const ENCODED_REDIRECT_URI = encodeURIComponent(
+	"http://localhost:8085/callback",
+);
 export const VALID_ACCESSTOKEN = {
-	body:`code=${AUTHORIZATION_CODE}&grant_type=authorization_code&redirect_uri=${ENCODED_REDIRECT_URI}`,
+	body: `code=${AUTHORIZATION_CODE}&grant_type=authorization_code&redirect_uri=${ENCODED_REDIRECT_URI}`,
 	httpMethod: "POST",
 	headers: {},
 	isBase64Encoded: false,
@@ -12,7 +14,7 @@ export const VALID_ACCESSTOKEN = {
 	pathParameters: {},
 	queryStringParameters: {},
 	path: "/token",
-	requestContext:{
+	requestContext: {
 		accountId: "",
 		apiId: "",
 		authorizer: {},
@@ -53,7 +55,7 @@ export const VALID_ACCESSTOKEN = {
 };
 
 export const MISSING_BODY_ACCESSTOKEN = {
-	body:"",
+	body: "",
 	httpMethod: "POST",
 	headers: {},
 	isBase64Encoded: false,
@@ -62,7 +64,7 @@ export const MISSING_BODY_ACCESSTOKEN = {
 	pathParameters: {},
 	queryStringParameters: {},
 	path: "/token",
-	requestContext:{
+	requestContext: {
 		accountId: "",
 		apiId: "",
 		authorizer: {},
@@ -102,7 +104,7 @@ export const MISSING_BODY_ACCESSTOKEN = {
 	stageVariables: {},
 };
 export const RESOURCE_NOT_FOUND = {
-	body:"",
+	body: "",
 	httpMethod: "POST",
 	headers: {},
 	isBase64Encoded: false,
@@ -111,7 +113,7 @@ export const RESOURCE_NOT_FOUND = {
 	pathParameters: {},
 	queryStringParameters: {},
 	path: "/invalid",
-	requestContext:{
+	requestContext: {
 		accountId: "",
 		apiId: "",
 		authorizer: {},

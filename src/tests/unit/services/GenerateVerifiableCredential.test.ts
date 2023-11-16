@@ -18,21 +18,22 @@ describe("GenerateVerifiableCredential", () => {
 	let generateVerifiableCredential: GenerateVerifiableCredential;
 	const VcNameParts = [
 		{
-			"nameParts": [
+			nameParts: [
 				{
-					"value": "John",
-					"type": "GivenName",
+					value: "John",
+					type: "GivenName",
 				},
 				{
-					"value": "Doe",
-					"type": "FamilyName",
+					value: "Doe",
+					type: "FamilyName",
 				},
 			],
 		},
 	];
 
 	beforeEach(() => {
-		generateVerifiableCredential = GenerateVerifiableCredential.getInstance(logger);
+		generateVerifiableCredential =
+      GenerateVerifiableCredential.getInstance(logger);
 	});
 
 	afterEach(() => {
@@ -49,7 +50,9 @@ describe("GenerateVerifiableCredential", () => {
 				},
 			];
 
-			const result = generateVerifiableCredential["doesDocumentContainValidChip"](documentType, documentAuthenticityCheckBreakdown);
+			const result = generateVerifiableCredential[
+				"doesDocumentContainValidChip"
+			](documentType, documentAuthenticityCheckBreakdown);
 
 			expect(result).toBe(true);
 		});
@@ -63,7 +66,9 @@ describe("GenerateVerifiableCredential", () => {
 				},
 			];
 
-			const result = generateVerifiableCredential["doesDocumentContainValidChip"](documentType, documentAuthenticityCheckBreakdown);
+			const result = generateVerifiableCredential[
+				"doesDocumentContainValidChip"
+			](documentType, documentAuthenticityCheckBreakdown);
 
 			expect(result).toBe(false);
 		});
@@ -77,7 +82,9 @@ describe("GenerateVerifiableCredential", () => {
 				},
 			];
 
-			const result = generateVerifiableCredential["doesDocumentContainValidChip"](documentType, documentAuthenticityCheckBreakdown);
+			const result = generateVerifiableCredential[
+				"doesDocumentContainValidChip"
+			](documentType, documentAuthenticityCheckBreakdown);
 
 			expect(result).toBe(false);
 		});
@@ -85,46 +92,125 @@ describe("GenerateVerifiableCredential", () => {
 
 	describe("calculateStrengthScore", () => {
 		it.each([
-			{ documentType: "PASSPORT", documentContainsValidChip: true, country: "GBR", score: 4 },
-			{ documentType: "PASSPORT", documentContainsValidChip: false, country: "GBR", score: 3 },
-			{ documentType: "DRIVING_LICENCE", documentContainsValidChip: false, country: "GBR", score: 3 },
-			{ documentType: "PASSPORT", documentContainsValidChip: false, country: "ALB", score: 3 },
-			{ documentType: "PASSPORT", documentContainsValidChip: true, country: "ALB", score: 4 },
-			{ documentType: "DRIVING_LICENCE", documentContainsValidChip: false, country: "ALB", score: 3 },
-			{ documentType: "RESIDENCE_PERMIT", documentContainsValidChip: false, country: "ALB", score: 3 },
-			{ documentType: "RESIDENCE_PERMIT", documentContainsValidChip: true, country: "ALB", score: 4 },
-			{ documentType: "NATIONAL_ID", documentContainsValidChip: true, country: "ALB", score: 4 },
-			{ documentType: "NATIONAL_ID", documentContainsValidChip: false, country: "ALB", score: 3 },
+			{
+				documentType: "PASSPORT",
+				documentContainsValidChip: true,
+				country: "GBR",
+				score: 4,
+			},
+			{
+				documentType: "PASSPORT",
+				documentContainsValidChip: false,
+				country: "GBR",
+				score: 3,
+			},
+			{
+				documentType: "DRIVING_LICENCE",
+				documentContainsValidChip: false,
+				country: "GBR",
+				score: 3,
+			},
+			{
+				documentType: "PASSPORT",
+				documentContainsValidChip: false,
+				country: "ALB",
+				score: 3,
+			},
+			{
+				documentType: "PASSPORT",
+				documentContainsValidChip: true,
+				country: "ALB",
+				score: 4,
+			},
+			{
+				documentType: "DRIVING_LICENCE",
+				documentContainsValidChip: false,
+				country: "ALB",
+				score: 3,
+			},
+			{
+				documentType: "RESIDENCE_PERMIT",
+				documentContainsValidChip: false,
+				country: "ALB",
+				score: 3,
+			},
+			{
+				documentType: "RESIDENCE_PERMIT",
+				documentContainsValidChip: true,
+				country: "ALB",
+				score: 4,
+			},
+			{
+				documentType: "NATIONAL_ID",
+				documentContainsValidChip: true,
+				country: "ALB",
+				score: 4,
+			},
+			{
+				documentType: "NATIONAL_ID",
+				documentContainsValidChip: false,
+				country: "ALB",
+				score: 3,
+			},
 		])(
 			"should return the correct strength score for $documentType where documentContainsValidChip is $documentContainsValidChip and country is $country",
 			({ documentType, documentContainsValidChip, country, score }) => {
-				const result = generateVerifiableCredential["calculateStrengthScore"](documentType, country, documentContainsValidChip);
+				const result = generateVerifiableCredential["calculateStrengthScore"](
+					documentType,
+					country,
+					documentContainsValidChip,
+				);
 				expect(result).toEqual(score);
 			},
 		);
 
 		it.each([
-			{ country: "GBR", errorMessage: "Invalid documentType provided for issuingCountry" },
+			{
+				country: "GBR",
+				errorMessage: "Invalid documentType provided for issuingCountry",
+			},
 			{ country: "ALB", errorMessage: "Invalid documentType provided" },
-		])("should throw an error for an invalid document type where country is $country", ({ country, errorMessage }) => {
-			const documentType = "INVALID_DOCUMENT";
-			const documentContainsValidChip = true;
+		])(
+			"should throw an error for an invalid document type where country is $country",
+			({ country, errorMessage }) => {
+				const documentType = "INVALID_DOCUMENT";
+				const documentContainsValidChip = true;
 
-			expect(() => generateVerifiableCredential["calculateStrengthScore"](documentType, country, documentContainsValidChip)).toThrow(
-				"Invalid documentType provided",
-			);
-		});
+				expect(() =>
+					generateVerifiableCredential["calculateStrengthScore"](
+						documentType,
+						country,
+						documentContainsValidChip,
+					),
+				).toThrow("Invalid documentType provided");
+			},
+		);
 	});
 
 	describe("calculateValidityScore", () => {
 		it.each([
-			{ authenticityRecommendation: "APPROVE", documentContainsValidChip: true, score: 3 },
-			{ authenticityRecommendation: "APPROVE", documentContainsValidChip: false, score: 2 },
-			{ authenticityRecommendation: "REJECT", documentContainsValidChip: true, score: 0 },
+			{
+				authenticityRecommendation: "APPROVE",
+				documentContainsValidChip: true,
+				score: 3,
+			},
+			{
+				authenticityRecommendation: "APPROVE",
+				documentContainsValidChip: false,
+				score: 2,
+			},
+			{
+				authenticityRecommendation: "REJECT",
+				documentContainsValidChip: true,
+				score: 0,
+			},
 		])(
 			"should return the correct validity score when authenticityRecommendation is $authenticityRecommendation and documentContainsValidChip is $documentContainsValidChip",
 			({ authenticityRecommendation, documentContainsValidChip, score }) => {
-				const result = generateVerifiableCredential["calculateValidityScore"](authenticityRecommendation, documentContainsValidChip);
+				const result = generateVerifiableCredential["calculateValidityScore"](
+					authenticityRecommendation,
+					documentContainsValidChip,
+				);
 				expect(result).toEqual(score);
 			},
 		);
@@ -134,7 +220,9 @@ describe("GenerateVerifiableCredential", () => {
 		it("should return 0 for faceMatchCheck === 'APPROVE' and validityScore is 0", () => {
 			const faceMatchCheck = YotiSessionDocument.APPROVE;
 
-			const result = generateVerifiableCredential["calculateVerificationProcessLevel"](0, faceMatchCheck);
+			const result = generateVerifiableCredential[
+				"calculateVerificationProcessLevel"
+			](0, faceMatchCheck);
 
 			expect(result).toBe(0);
 		});
@@ -142,7 +230,9 @@ describe("GenerateVerifiableCredential", () => {
 		it("should return 0 for faceMatchCheck !== 'APPROVE' and validityScore is 0", () => {
 			const faceMatchCheck = YotiSessionDocument.REJECT;
 
-			const result = generateVerifiableCredential["calculateVerificationProcessLevel"](0, faceMatchCheck);
+			const result = generateVerifiableCredential[
+				"calculateVerificationProcessLevel"
+			](0, faceMatchCheck);
 
 			expect(result).toBe(0);
 		});
@@ -150,7 +240,9 @@ describe("GenerateVerifiableCredential", () => {
 		it("should return 3 for faceMatchCheck === 'APPROVE' and validity score is 3", () => {
 			const faceMatchCheck = YotiSessionDocument.APPROVE;
 
-			const result = generateVerifiableCredential["calculateVerificationProcessLevel"](3, faceMatchCheck);
+			const result = generateVerifiableCredential[
+				"calculateVerificationProcessLevel"
+			](3, faceMatchCheck);
 
 			expect(result).toBe(3);
 		});
@@ -158,7 +250,9 @@ describe("GenerateVerifiableCredential", () => {
 		it("should return 0 for faceMatchCheck !== 'APPROVE' and validityScore is 3", () => {
 			const faceMatchCheck = YotiSessionDocument.REJECT;
 
-			const result = generateVerifiableCredential["calculateVerificationProcessLevel"](3, faceMatchCheck);
+			const result = generateVerifiableCredential[
+				"calculateVerificationProcessLevel"
+			](3, faceMatchCheck);
 
 			expect(result).toBe(0);
 		});
@@ -188,33 +282,32 @@ describe("GenerateVerifiableCredential", () => {
 				);
 
 				expect(result.contraIndicators).toEqual(contraIndicator);
-				expect(result.rejectionReasons).toEqual([{ ci: contraIndicator[0], reason }]);
+				expect(result.rejectionReasons).toEqual([
+					{ ci: contraIndicator[0], reason },
+				]);
 			},
 		);
 
-		it("should return the contra indicator array [] for authenticity rejection reason UNKNOWN_REASON",
-			() => {
+		it("should return the contra indicator array [] for authenticity rejection reason UNKNOWN_REASON", () => {
+			const reason = "UNKNOWN_REASON";
+			const contraIndicator = [undefined];
 
-				const reason = "UNKNOWN_REASON";
-				const contraIndicator = [undefined];
+			const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
+				value: "REJECT",
+				reason,
+			};
+			const ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION = {
+				value: "APPROVE",
+			};
 
-				const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
-					value: "REJECT",
-					reason,
-				};
-				const ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION = {
-					value: "APPROVE",
-				};
+			const result = generateVerifiableCredential["getContraIndicator"](
+				ID_DOCUMENT_FACE_MATCH_RECOMMENDATION,
+				ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION,
+			);
 
-				const result = generateVerifiableCredential["getContraIndicator"](
-					ID_DOCUMENT_FACE_MATCH_RECOMMENDATION,
-					ID_DOCUMENT_AUTHENTICITY_RECOMMENDATION,
-				);
-
-				expect(result.contraIndicators).toEqual(contraIndicator);
-				expect(result.rejectionReasons).toEqual([]);
-			},
-		);
+			expect(result.contraIndicators).toEqual(contraIndicator);
+			expect(result.rejectionReasons).toEqual([]);
+		});
 
 		it.each([
 			{ reason: "COUNTERFEIT", contraIndicator: ["D14"] },
@@ -241,7 +334,9 @@ describe("GenerateVerifiableCredential", () => {
 				);
 
 				expect(result.contraIndicators).toEqual(contraIndicator);
-				expect(result.rejectionReasons).toEqual([{ ci: contraIndicator[0], reason }]);
+				expect(result.rejectionReasons).toEqual([
+					{ ci: contraIndicator[0], reason },
+				]);
 				expect(logger.info).toHaveBeenCalledWith({
 					message: "Handling authenticity rejection",
 					reason,
@@ -252,11 +347,9 @@ describe("GenerateVerifiableCredential", () => {
 	});
 
 	it("should return the contra indicator array [] for authenticity rejection reason UNKNOWN_REASON", () => {
-			
 		const reason = "UNKNOWN_REASON";
 		const contraIndicator = [undefined];
-			
-			
+
 		const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
 			value: "APPROVE",
 		};
@@ -277,14 +370,16 @@ describe("GenerateVerifiableCredential", () => {
 			reason,
 			contraIndicator: contraIndicator[0],
 		});
-	},
-	);
+	});
 
 	describe("attachPersonName", () => {
 		it("should attach the person name to the credential subject", () => {
 			const credentialSubject = {};
 
-			const result = generateVerifiableCredential["attachPersonName"](credentialSubject, VcNameParts);
+			const result = generateVerifiableCredential["attachPersonName"](
+				credentialSubject,
+				VcNameParts,
+			);
 
 			expect(result).toEqual({
 				name: [
@@ -304,7 +399,10 @@ describe("GenerateVerifiableCredential", () => {
 			const credentialSubject = {};
 			const dateOfBirth = "1990-01-01";
 
-			const result = generateVerifiableCredential["attachDOB"](credentialSubject, dateOfBirth);
+			const result = generateVerifiableCredential["attachDOB"](
+				credentialSubject,
+				dateOfBirth,
+			);
 
 			expect(result).toEqual({ birthDate: [{ value: "1990-01-01" }] });
 		});
@@ -321,7 +419,10 @@ describe("GenerateVerifiableCredential", () => {
 				country: "Country",
 			};
 
-			const result = generateVerifiableCredential["attachAddressInfo"](credentialSubject, postalAddress);
+			const result = generateVerifiableCredential["attachAddressInfo"](
+				credentialSubject,
+				postalAddress,
+			);
 
 			expect(result).toEqual({
 				address: [
@@ -353,7 +454,12 @@ describe("GenerateVerifiableCredential", () => {
 				formatted_address: "Address",
 			};
 
-			const result = generateVerifiableCredential["attachEvidencePayload"](credentialSubject, documentType, "GBR", documentFields);
+			const result = generateVerifiableCredential["attachEvidencePayload"](
+				credentialSubject,
+				documentType,
+				"GBR",
+				documentFields,
+			);
 
 			expect(result).toEqual({
 				drivingPermit: [
@@ -381,7 +487,12 @@ describe("GenerateVerifiableCredential", () => {
 				issuing_country: "GBR",
 			};
 
-			const result = generateVerifiableCredential["attachEvidencePayload"](credentialSubject, documentType, "GBR", documentFields);
+			const result = generateVerifiableCredential["attachEvidencePayload"](
+				credentialSubject,
+				documentType,
+				"GBR",
+				documentFields,
+			);
 
 			expect(result).toEqual({
 				passport: [
@@ -404,9 +515,14 @@ describe("GenerateVerifiableCredential", () => {
 				date_of_birth: "01-01-2010",
 			};
 
-			expect(() => generateVerifiableCredential["attachEvidencePayload"](credentialSubject, documentType, "GBR", documentFields)).toThrow(
-				"Invalid documentType provided",
-			);
+			expect(() =>
+				generateVerifiableCredential["attachEvidencePayload"](
+					credentialSubject,
+					documentType,
+					"GBR",
+					documentFields,
+				),
+			).toThrow("Invalid documentType provided");
 		});
 	});
 
@@ -420,7 +536,8 @@ describe("GenerateVerifiableCredential", () => {
 		};
 
 		it.each([
-			{ scoreCalculator: "calculateStrengthScore",
+			{
+				scoreCalculator: "calculateStrengthScore",
 				scoreName: "strengthScore",
 				expectedScores: {
 					strengthScore: 0,
@@ -428,7 +545,8 @@ describe("GenerateVerifiableCredential", () => {
 					verificationScore: 3,
 				},
 			},
-			{ scoreCalculator: "calculateValidityScore",
+			{
+				scoreCalculator: "calculateValidityScore",
 				scoreName: "validityScore",
 				expectedScores: {
 					strengthScore: 4,
@@ -436,23 +554,28 @@ describe("GenerateVerifiableCredential", () => {
 					verificationScore: 0,
 				},
 			},
-			{ scoreCalculator: "calculateVerificationProcessLevel",
+			{
+				scoreCalculator: "calculateVerificationProcessLevel",
 				scoreName: "verificationScore",
 				expectedScores: {
 					strengthScore: 4,
 					validityScore: 3,
 					verificationScore: 0,
-				} },
+				},
+			},
 		])(
 			"should return the verified credential information with failedCheckDetails where $scoreName is 0",
 			({ scoreCalculator, expectedScores }) => {
-				jest.spyOn(GenerateVerifiableCredential.prototype as any, scoreCalculator).mockReturnValueOnce(0);
-				const result = generateVerifiableCredential.getVerifiedCredentialInformation(
-					mockYotiSessionId,
-					mockCompletedYotiSessionPayload,
-					mockDocumentFields,
-					VcNameParts,
-				);
+				jest
+					.spyOn(GenerateVerifiableCredential.prototype as any, scoreCalculator)
+					.mockReturnValueOnce(0);
+				const result =
+          generateVerifiableCredential.getVerifiedCredentialInformation(
+          	mockYotiSessionId,
+          	mockCompletedYotiSessionPayload,
+          	mockDocumentFields,
+          	VcNameParts,
+          );
 
 				expect(result).toEqual({
 					credentialSubject: {
@@ -506,12 +629,13 @@ describe("GenerateVerifiableCredential", () => {
 		);
 
 		it("should return the verified credential information with all completed checks where scores are above 0", () => {
-			const result = generateVerifiableCredential.getVerifiedCredentialInformation(
-				mockYotiSessionId,
-				mockCompletedYotiSessionPayload,
-				mockDocumentFields,
-				VcNameParts,
-			);
+			const result =
+        generateVerifiableCredential.getVerifiedCredentialInformation(
+        	mockYotiSessionId,
+        	mockCompletedYotiSessionPayload,
+        	mockDocumentFields,
+        	VcNameParts,
+        );
 
 			expect(result).toEqual({
 				credentialSubject: {
@@ -566,64 +690,150 @@ describe("GenerateVerifiableCredential", () => {
 		});
 
 		it.each([
-			{ missingCheck: "IBV_VISUAL_REVIEW_CHECK", checks: [authenticityCheck, mockFaceMatchCheck, validityCheck, profileMatchCheck] },
-			{ missingCheck: "PROFILE_DOCUMENT_MATCH", checks: [authenticityCheck, mockFaceMatchCheck, visualReviewCheck, validityCheck] },
-			{ missingCheck: "DOCUMENT_SCHEME_VALIDITY_CHECK", checks: [authenticityCheck, mockFaceMatchCheck, visualReviewCheck, profileMatchCheck] },
-			{ missingCheck: "ID_DOCUMENT_AUTHENTICITY", checks: [mockFaceMatchCheck, visualReviewCheck, validityCheck, profileMatchCheck] },
-			{ missingCheck: "ID_DOCUMENT_FACE_MATCH", checks: [authenticityCheck, visualReviewCheck, validityCheck, profileMatchCheck] },
-		])("should throw an error when $missingCheck check is missing", ({ checks }) => {
-			const incompletePayload: any = {
-				resources: {
-					id_documents: [
-						{
-							document_type: "PASSPORT",
-						},
-					],
-				},
-				checks,
-			};
+			{
+				missingCheck: "IBV_VISUAL_REVIEW_CHECK",
+				checks: [
+					authenticityCheck,
+					mockFaceMatchCheck,
+					validityCheck,
+					profileMatchCheck,
+				],
+			},
+			{
+				missingCheck: "PROFILE_DOCUMENT_MATCH",
+				checks: [
+					authenticityCheck,
+					mockFaceMatchCheck,
+					visualReviewCheck,
+					validityCheck,
+				],
+			},
+			{
+				missingCheck: "DOCUMENT_SCHEME_VALIDITY_CHECK",
+				checks: [
+					authenticityCheck,
+					mockFaceMatchCheck,
+					visualReviewCheck,
+					profileMatchCheck,
+				],
+			},
+			{
+				missingCheck: "ID_DOCUMENT_AUTHENTICITY",
+				checks: [
+					mockFaceMatchCheck,
+					visualReviewCheck,
+					validityCheck,
+					profileMatchCheck,
+				],
+			},
+			{
+				missingCheck: "ID_DOCUMENT_FACE_MATCH",
+				checks: [
+					authenticityCheck,
+					visualReviewCheck,
+					validityCheck,
+					profileMatchCheck,
+				],
+			},
+		])(
+			"should throw an error when $missingCheck check is missing",
+			({ checks }) => {
+				const incompletePayload: any = {
+					resources: {
+						id_documents: [
+							{
+								document_type: "PASSPORT",
+							},
+						],
+					},
+					checks,
+				};
 
-			expect(() =>
-				generateVerifiableCredential.getVerifiedCredentialInformation(mockYotiSessionId, incompletePayload, mockDocumentFields, VcNameParts),
-			).toThrow("Missing mandatory checks in Yoti completed payload");
-		});
+				expect(() =>
+					generateVerifiableCredential.getVerifiedCredentialInformation(
+						mockYotiSessionId,
+						incompletePayload,
+						mockDocumentFields,
+						VcNameParts,
+					),
+				).toThrow("Missing mandatory checks in Yoti completed payload");
+			},
+		);
 
 		it.each([
 			{
 				missingCheck: "IBV_VISUAL_REVIEW_CHECK",
-				checks: [authenticityCheck, mockFaceMatchCheck, { ...visualReviewCheck, state: "PENDING " }, validityCheck, profileMatchCheck],
+				checks: [
+					authenticityCheck,
+					mockFaceMatchCheck,
+					{ ...visualReviewCheck, state: "PENDING " },
+					validityCheck,
+					profileMatchCheck,
+				],
 			},
 			{
 				missingCheck: "PROFILE_DOCUMENT_MATCH",
-				checks: [authenticityCheck, mockFaceMatchCheck, visualReviewCheck, validityCheck, { ...profileMatchCheck, state: "PENDING" }],
+				checks: [
+					authenticityCheck,
+					mockFaceMatchCheck,
+					visualReviewCheck,
+					validityCheck,
+					{ ...profileMatchCheck, state: "PENDING" },
+				],
 			},
 			{
 				missingCheck: "DOCUMENT_SCHEME_VALIDITY_CHECK",
-				checks: [authenticityCheck, mockFaceMatchCheck, visualReviewCheck, { ...validityCheck, state: "PENDING" }, profileMatchCheck],
+				checks: [
+					authenticityCheck,
+					mockFaceMatchCheck,
+					visualReviewCheck,
+					{ ...validityCheck, state: "PENDING" },
+					profileMatchCheck,
+				],
 			},
 			{
 				missingCheck: "ID_DOCUMENT_AUTHENTICITY",
-				checks: [{ ...authenticityCheck, state: "PENDING" }, mockFaceMatchCheck, visualReviewCheck, validityCheck, profileMatchCheck],
+				checks: [
+					{ ...authenticityCheck, state: "PENDING" },
+					mockFaceMatchCheck,
+					visualReviewCheck,
+					validityCheck,
+					profileMatchCheck,
+				],
 			},
 			{
 				missingCheck: "ID_DOCUMENT_FACE_MATCH",
-				checks: [authenticityCheck, { ...mockFaceMatchCheck, state: "PENDING" }, visualReviewCheck, validityCheck, profileMatchCheck],
+				checks: [
+					authenticityCheck,
+					{ ...mockFaceMatchCheck, state: "PENDING" },
+					visualReviewCheck,
+					validityCheck,
+					profileMatchCheck,
+				],
 			},
-		])("should throw an error when $missingCheck check is not complete", ({ checks }) => {
-			const incompletePayload: any = {
-				resources: {
-					id_documents: [
-						{
-							document_type: "PASSPORT",
-						},
-					],
-				},
-				checks,
-			};
+		])(
+			"should throw an error when $missingCheck check is not complete",
+			({ checks }) => {
+				const incompletePayload: any = {
+					resources: {
+						id_documents: [
+							{
+								document_type: "PASSPORT",
+							},
+						],
+					},
+					checks,
+				};
 
-			expect(() =>
-				generateVerifiableCredential.getVerifiedCredentialInformation(mockYotiSessionId, incompletePayload, mockDocumentFields, VcNameParts),
-			).toThrow("Mandatory checks not all completed");
-		});
+				expect(() =>
+					generateVerifiableCredential.getVerifiedCredentialInformation(
+						mockYotiSessionId,
+						incompletePayload,
+						mockDocumentFields,
+						VcNameParts,
+					),
+				).toThrow("Mandatory checks not all completed");
+			},
+		);
 	});
 });

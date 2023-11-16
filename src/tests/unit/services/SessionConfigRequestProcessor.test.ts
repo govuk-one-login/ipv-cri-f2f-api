@@ -40,7 +40,10 @@ function getMockSessionItem(): ISessionItem {
 
 describe("SessionConfigRequestProcessor", () => {
 	beforeAll(() => {
-		sessionConfigRequestProcessorTest = new SessionConfigRequestProcessor(logger, metrics);
+		sessionConfigRequestProcessorTest = new SessionConfigRequestProcessor(
+			logger,
+			metrics,
+		);
 		// @ts-ignore
 		sessionConfigRequestProcessorTest.f2fService = mockF2fService;
 	});
@@ -53,7 +56,11 @@ describe("SessionConfigRequestProcessor", () => {
 		const sess = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
-		const out: Response = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
+		const out: Response =
+      await sessionConfigRequestProcessorTest.processRequest(
+      	VALID_SESSION_CONFIG,
+      	"1234",
+      );
 
 		expect(out.body).toEqual(JSON.stringify({}));
 
@@ -65,9 +72,15 @@ describe("SessionConfigRequestProcessor", () => {
 		sess.evidence_requested = { strengthScore: 4 };
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
-		const out: Response = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
+		const out: Response =
+      await sessionConfigRequestProcessorTest.processRequest(
+      	VALID_SESSION_CONFIG,
+      	"1234",
+      );
 
-		expect(out.body).toEqual(JSON.stringify({ evidence_requested: { strengthScore: 4 } }));
+		expect(out.body).toEqual(
+			JSON.stringify({ evidence_requested: { strengthScore: 4 } }),
+		);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
@@ -77,9 +90,15 @@ describe("SessionConfigRequestProcessor", () => {
 		sess.evidence_requested = { strengthScore: 3 };
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
-		const out: Response = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
+		const out: Response =
+      await sessionConfigRequestProcessorTest.processRequest(
+      	VALID_SESSION_CONFIG,
+      	"1234",
+      );
 
-		expect(out.body).toEqual(JSON.stringify({ evidence_requested: { strengthScore: 3 } }));
+		expect(out.body).toEqual(
+			JSON.stringify({ evidence_requested: { strengthScore: 3 } }),
+		);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
@@ -89,7 +108,11 @@ describe("SessionConfigRequestProcessor", () => {
 		sess.expiryDate = 1675458564;
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
-		const out: Response = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
+		const out: Response =
+      await sessionConfigRequestProcessorTest.processRequest(
+      	VALID_SESSION_CONFIG,
+      	"1234",
+      );
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
@@ -100,12 +123,15 @@ describe("SessionConfigRequestProcessor", () => {
 	it("Return 401 when session with that session id not found in the DB", async () => {
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 
-		const out: Response = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
+		const out: Response =
+      await sessionConfigRequestProcessorTest.processRequest(
+      	VALID_SESSION_CONFIG,
+      	"1234",
+      );
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 		expect(out.body).toBe("No session found with the session id: 1234");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 	});
-
 });

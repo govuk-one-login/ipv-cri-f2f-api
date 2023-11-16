@@ -42,7 +42,7 @@ function getMockSessionItem(): ISessionItem {
 describe("AbortRequestProcessor", () => {
 	beforeAll(() => {
 		abortRequestProcessor = new AbortRequestProcessor(logger, metrics);
-    		// @ts-ignore
+		// @ts-ignore
 		abortRequestProcessor.f2fService = mockF2fService;
 		f2fSessionItem = getMockSessionItem();
 	});
@@ -54,25 +54,37 @@ describe("AbortRequestProcessor", () => {
 	it("throws error if session cannot be found", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(undefined);
 
-		await expect(abortRequestProcessor.processRequest(sessionId)).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.BAD_REQUEST,
-			message: "Missing details in SESSION table",
-		}));
+		await expect(
+			abortRequestProcessor.processRequest(sessionId),
+		).rejects.toThrow(
+			expect.objectContaining({
+				statusCode: HttpCodesEnum.BAD_REQUEST,
+				message: "Missing details in SESSION table",
+			}),
+		);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(logger.warn).toHaveBeenCalledWith("Missing details in SESSION TABLE", {
-			messageCode: MessageCodes.SESSION_NOT_FOUND,
-		});
+		expect(logger.warn).toHaveBeenCalledWith(
+			"Missing details in SESSION TABLE",
+			{
+				messageCode: MessageCodes.SESSION_NOT_FOUND,
+			},
+		);
 	});
 
 	it("returns successful response if session has already been aborted", async () => {
-		mockF2fService.getSessionById.mockResolvedValueOnce({ ...f2fSessionItem, authSessionState: AuthSessionState.F2F_CRI_SESSION_ABORTED });
+		mockF2fService.getSessionById.mockResolvedValueOnce({
+			...f2fSessionItem,
+			authSessionState: AuthSessionState.F2F_CRI_SESSION_ABORTED,
+		});
 
 		const out: Response = await abortRequestProcessor.processRequest(sessionId);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has already been aborted");
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(logger.info).toHaveBeenCalledWith("Session has already been aborted");
+		expect(logger.info).toHaveBeenCalledWith(
+			"Session has already been aborted",
+		);
 	});
 
 	it("updates auth session state and returns successful response if session has not been aborted", async () => {
@@ -81,10 +93,17 @@ describe("AbortRequestProcessor", () => {
 		const out: Response = await abortRequestProcessor.processRequest(sessionId);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(sessionId, AuthSessionState.F2F_CRI_SESSION_ABORTED);
+		expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(
+			sessionId,
+			AuthSessionState.F2F_CRI_SESSION_ABORTED,
+		);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
-		expect(out.headers).toStrictEqual({ Location: encodeURIComponent(`${f2fSessionItem.redirectUri}?error=access_denied&state=${f2fSessionItem.state}`) });
+		expect(out.headers).toStrictEqual({
+			Location: encodeURIComponent(
+				`${f2fSessionItem.redirectUri}?error=access_denied&state=${f2fSessionItem.state}`,
+			),
+		});
 	});
 
 	it("Returns successful response if session has not been aborted and redirectUri contains f2f id", async () => {
@@ -95,10 +114,17 @@ describe("AbortRequestProcessor", () => {
 		const out: Response = await abortRequestProcessor.processRequest(sessionId);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(sessionId, AuthSessionState.F2F_CRI_SESSION_ABORTED);
+		expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(
+			sessionId,
+			AuthSessionState.F2F_CRI_SESSION_ABORTED,
+		);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
-		expect(out.headers).toStrictEqual({ Location: encodeURIComponent(`${f2fSessionItem.redirectUri}&error=access_denied&state=${f2fSessionItem.state}`) });
+		expect(out.headers).toStrictEqual({
+			Location: encodeURIComponent(
+				`${f2fSessionItem.redirectUri}&error=access_denied&state=${f2fSessionItem.state}`,
+			),
+		});
 	});
 
 	it("sends TxMA event after auth session state has been updated", async () => {
@@ -107,9 +133,11 @@ describe("AbortRequestProcessor", () => {
 		await abortRequestProcessor.processRequest(sessionId);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(expect.objectContaining({
-			event_name: "F2F_CRI_SESSION_ABORTED",
-		}));
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(
+			expect.objectContaining({
+				event_name: "F2F_CRI_SESSION_ABORTED",
+			}),
+		);
 	});
 
 	it("logs error if sending TxMA event fails, but successful response is still returned", async () => {
@@ -119,17 +147,22 @@ describe("AbortRequestProcessor", () => {
 		const out: Response = await abortRequestProcessor.processRequest(sessionId);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(logger.error).toHaveBeenCalledWith("Auth session successfully aborted. Failed to send F2F_CRI_SESSION_ABORTED event to TXMA", {
-  			error: {},
-  			messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
-		});
+		expect(logger.error).toHaveBeenCalledWith(
+			"Auth session successfully aborted. Failed to send F2F_CRI_SESSION_ABORTED event to TXMA",
+			{
+				error: {},
+				messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
+			},
+		);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
 	});
 
 	it("returns failed response if auth session state cannot be updated", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.updateSessionAuthState.mockRejectedValueOnce("Error updating auth session state");
+		mockF2fService.updateSessionAuthState.mockRejectedValueOnce(
+			"Error updating auth session state",
+		);
 
 		const out: Response = await abortRequestProcessor.processRequest(sessionId);
 

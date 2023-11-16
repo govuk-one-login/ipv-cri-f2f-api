@@ -54,9 +54,7 @@
                       "format": "date"
                     }
                   },
-                  "required": [
-                    "value"
-                  ],
+                  "required": ["value"],
                   "type": "object"
                 }
               ],
@@ -77,10 +75,7 @@
                               "$ref": "#/definitions/nonEmptyString"
                             }
                           },
-                          "required": [
-                            "value",
-                            "type"
-                          ],
+                          "required": ["value", "type"],
                           "type": "object"
                         },
                         {
@@ -92,10 +87,7 @@
                               "$ref": "#/definitions/nonEmptyString"
                             }
                           },
-                          "required": [
-                            "value",
-                            "type"
-                          ],
+                          "required": ["value", "type"],
                           "type": "object"
                         },
                         {
@@ -107,10 +99,7 @@
                               "$ref": "#/definitions/nonEmptyString"
                             }
                           },
-                          "required": [
-                            "value",
-                            "type"
-                          ],
+                          "required": ["value", "type"],
                           "type": "object"
                         },
                         {
@@ -122,10 +111,7 @@
                               "$ref": "#/definitions/nonEmptyString"
                             }
                           },
-                          "required": [
-                            "value",
-                            "type"
-                          ],
+                          "required": ["value", "type"],
                           "type": "object"
                         }
                       ],
@@ -136,9 +122,7 @@
                       "format": "date"
                     }
                   },
-                  "required": [
-                    "nameParts"
-                  ],
+                  "required": ["nameParts"],
                   "type": "object"
                 },
                 {
@@ -154,10 +138,7 @@
                               "$ref": "#/definitions/nonEmptyString"
                             }
                           },
-                          "required": [
-                            "value",
-                            "type"
-                          ],
+                          "required": ["value", "type"],
                           "type": "object"
                         },
                         {
@@ -169,10 +150,7 @@
                               "$ref": "#/definitions/nonEmptyString"
                             }
                           },
-                          "required": [
-                            "value",
-                            "type"
-                          ],
+                          "required": ["value", "type"],
                           "type": "object"
                         },
                         {
@@ -184,10 +162,7 @@
                               "$ref": "#/definitions/nonEmptyString"
                             }
                           },
-                          "required": [
-                            "value",
-                            "type"
-                          ],
+                          "required": ["value", "type"],
                           "type": "object"
                         },
                         {
@@ -199,10 +174,7 @@
                               "$ref": "#/definitions/nonEmptyString"
                             }
                           },
-                          "required": [
-                            "value",
-                            "type"
-                          ],
+                          "required": ["value", "type"],
                           "type": "object"
                         }
                       ],
@@ -213,19 +185,14 @@
                       "format": "date"
                     }
                   },
-                  "required": [
-                    "nameParts"
-                  ],
+                  "required": ["nameParts"],
                   "type": "object"
                 }
               ],
               "type": "array"
             }
           },
-          "required": [
-            "name",
-            "birthDate"
-          ],
+          "required": ["name", "birthDate"],
           "type": "object"
         },
         "evidence": {
@@ -240,10 +207,7 @@
                   "items": {
                     "type": "string"
                   },
-                  "type": [
-                    "array",
-                    "null"
-                  ]
+                  "type": ["array", "null"]
                 },
                 "identityFraudScore": {
                   "minimum": 0,
@@ -268,10 +232,7 @@
                   "type": "integer"
                 }
               },
-              "required": [
-                "type",
-                "txn"
-              ],
+              "required": ["type", "txn"],
               "type": "object"
             }
           ],
@@ -289,11 +250,7 @@
           "type": "array"
         }
       },
-      "required": [
-        "type",
-        "credentialSubject",
-        "evidence"
-      ],
+      "required": ["type", "credentialSubject", "evidence"],
       "type": "object"
     },
     "vot": {
@@ -305,11 +262,6 @@
       "format": "uri"
     }
   },
-  "required": [
-    "sub",
-    "iss",
-    "nbf",
-    "vc"
-  ],
+  "required": ["sub", "iss", "nbf", "vc"],
   "type": "object"
 }

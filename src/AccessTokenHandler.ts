@@ -9,9 +9,15 @@ import { AccessTokenRequestProcessor } from "./services/AccessTokenRequestProces
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { AppError } from "./utils/AppError";
 
-const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
-const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
-const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.ACCESSTOKEN_LOGGER_SVC_NAME;
+const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE
+	? process.env.POWERTOOLS_METRICS_NAMESPACE
+	: Constants.F2F_METRICS_NAMESPACE;
+const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL
+	? process.env.POWERTOOLS_LOG_LEVEL
+	: "DEBUG";
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME
+	? process.env.POWERTOOLS_SERVICE_NAME
+	: Constants.ACCESSTOKEN_LOGGER_SVC_NAME;
 const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
 	serviceName: POWERTOOLS_SERVICE_NAME,
@@ -20,20 +26,27 @@ const logger = new Logger({
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 
 export class AccessToken implements LambdaInterface {
-
-	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
+	@metrics.logMetrics({
+		throwOnEmptyMetrics: false,
+		captureColdStartMetric: true,
+	})
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
-
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
 		try {
-			logger.info("Received token request", { requestId: event.requestContext.requestId });
+			logger.info("Received token request", {
+				requestId: event.requestContext.requestId,
+			});
 			logger.info("Starting AccessTokenRequestProcessor");
-			return await AccessTokenRequestProcessor.getInstance(logger, metrics).processRequest(event);
+			return await AccessTokenRequestProcessor.getInstance(
+				logger,
+				metrics,
+			).processRequest(event);
 		} catch (error) {
-			logger.error({ message: "AccessTokenRequestProcessor encountered an error.",
+			logger.error({
+				message: "AccessTokenRequestProcessor encountered an error.",
 				error,
 				messageCode: MessageCodes.SERVER_ERROR,
 			});

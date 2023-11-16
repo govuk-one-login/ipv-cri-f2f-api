@@ -1,7 +1,9 @@
 export const RESOURCE_NOT_FOUND = {
 	httpMethod: "POST",
 	body: '{"full_name": "TestUser","date_of_birth": "1970-01-01", "document_selected": "UK Passport", "date_of_expiry": "2027-01-01"}',
-	headers: { "x-govuk-signin-session-id": "732075c8-08e6-4b25-ad5b-d6cb865a18e5" },
+	headers: {
+		"x-govuk-signin-session-id": "732075c8-08e6-4b25-ad5b-d6cb865a18e5",
+	},
 	isBase64Encoded: false,
 	multiValueHeaders: {},
 	multiValueQueryStringParameters: {},
@@ -51,7 +53,9 @@ export const RESOURCE_NOT_FOUND = {
 export const VALID_SESSION_CONFIG = {
 	httpMethod: "GET",
 	body: "",
-	headers: { "x-govuk-signin-session-id": "732075c8-08e6-4b25-ad5b-d6cb865a18e5" },
+	headers: {
+		"x-govuk-signin-session-id": "732075c8-08e6-4b25-ad5b-d6cb865a18e5",
+	},
 	isBase64Encoded: false,
 	multiValueHeaders: {},
 	multiValueQueryStringParameters: {},
@@ -101,7 +105,9 @@ export const VALID_SESSION_CONFIG = {
 export const UNSUPPORTED_SESSION_CONFIG = {
 	httpMethod: "POST",
 	body: "",
-	headers: { "x-govuk-signin-session-id": "732075c8-08e6-4b25-ad5b-d6cb865a18e5" },
+	headers: {
+		"x-govuk-signin-session-id": "732075c8-08e6-4b25-ad5b-d6cb865a18e5",
+	},
 	isBase64Encoded: false,
 	multiValueHeaders: {},
 	multiValueQueryStringParameters: {},

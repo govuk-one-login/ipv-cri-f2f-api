@@ -49,7 +49,7 @@ export const VALID_SESSION = {
 };
 
 export const RESOURCE_NOT_FOUND = {
-	body:"",
+	body: "",
 	httpMethod: "POST",
 	headers: { Authorization: "Bearer AbCdEf123456" },
 	isBase64Encoded: false,
@@ -58,7 +58,7 @@ export const RESOURCE_NOT_FOUND = {
 	pathParameters: {},
 	queryStringParameters: {},
 	path: "/invalid",
-	requestContext:{
+	requestContext: {
 		accountId: "",
 		apiId: "",
 		authorizer: {},

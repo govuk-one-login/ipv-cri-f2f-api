@@ -9,8 +9,12 @@ import * as AWS from "@aws-sdk/client-kms";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 
-const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
-const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.JWKS_LOGGER_SVC_NAME;
+const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL
+	? process.env.POWERTOOLS_LOG_LEVEL
+	: "DEBUG";
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME
+	? process.env.POWERTOOLS_SERVICE_NAME
+	: Constants.JWKS_LOGGER_SVC_NAME;
 const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
 	serviceName: POWERTOOLS_SERVICE_NAME,
@@ -24,29 +28,31 @@ const s3Client = new S3Client({
 		socketTimeout: 29000,
 	}),
 });
-const environmentVariables: EnvironmentVariables = new EnvironmentVariables(logger, ServicesEnum.JWKS_SERVICE);
+const environmentVariables: EnvironmentVariables = new EnvironmentVariables(
+	logger,
+	ServicesEnum.JWKS_SERVICE,
+);
 
 const kmsClient = new AWS.KMS({
 	region: process.env.REGION,
 });
 
 class JwksHandler implements LambdaInterface {
-
 	async handler(): Promise<string> {
 		const body: JWKSBody = { keys: [] };
 		const kmsKeyIds = [
 			...environmentVariables.signingKeyIds().split(","),
 			...environmentVariables.encryptionKeyIds().split(","),
 		];
-		logger.info({ message:"Building wellknown JWK endpoint with keys" + kmsKeyIds });
+		logger.info({
+			message: "Building wellknown JWK endpoint with keys" + kmsKeyIds,
+		});
 
-		const jwks = await Promise.all(
-			kmsKeyIds.map(async id => getAsJwk(id)),
-		);
-		jwks.forEach(jwk => {
+		const jwks = await Promise.all(kmsKeyIds.map(async (id) => getAsJwk(id)));
+		jwks.forEach((jwk) => {
 			if (jwk != null) {
 				body.keys.push(jwk);
-			} else logger.warn({ message:"Environment contains missing keys" });
+			} else logger.warn({ message: "Environment contains missing keys" });
 		});
 
 		const uploadParams = {
@@ -63,7 +69,6 @@ class JwksHandler implements LambdaInterface {
 			throw new Error("Error writing keys to S3 bucket");
 		}
 		return JSON.stringify(body);
-
 	}
 }
 const getAsJwk = async (keyId: string): Promise<Jwk | null> => {
@@ -71,15 +76,15 @@ const getAsJwk = async (keyId: string): Promise<Jwk | null> => {
 	try {
 		kmsKey = await kmsClient.getPublicKey({ KeyId: keyId });
 	} catch (error) {
-		logger.warn({ message:"Failed to fetch key from KMS" }, { error });
+		logger.warn({ message: "Failed to fetch key from KMS" }, { error });
 	}
 
 	const map = getKeySpecMap(kmsKey?.KeySpec);
 	if (
 		kmsKey != null &&
-        map != null &&
-        kmsKey.KeyId != null &&
-        kmsKey.PublicKey != null
+    map != null &&
+    kmsKey.KeyId != null &&
+    kmsKey.PublicKey != null
 	) {
 		const use = kmsKey.KeyUsage === "ENCRYPT_DECRYPT" ? "enc" : "sig";
 		const publicKey = crypto
@@ -96,7 +101,10 @@ const getAsJwk = async (keyId: string): Promise<Jwk | null> => {
 			alg: map.algorithm,
 		} as unknown as Jwk;
 	}
-	logger.error({ message: "Failed to build JWK from key" + keyId }, JSON.stringify(map));
+	logger.error(
+		{ message: "Failed to build JWK from key" + keyId },
+		JSON.stringify(map),
+	);
 	return null;
 };
 
@@ -114,7 +122,7 @@ const getKeySpecMap = (
 			algorithm: "RS256" as Algorithm,
 		},
 	];
-	return conversions.find(x => x.keySpec === spec);
+	return conversions.find((x) => x.keySpec === spec);
 };
 const handlerClass = new JwksHandler();
 export const lambdaHandler = handlerClass.handler.bind(handlerClass);

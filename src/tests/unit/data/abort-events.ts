@@ -1,6 +1,6 @@
 export const VALID_REQUEST = {
 	httpMethod: "POST",
-	body: JSON.stringify({ "reason": "session_expired" }),
+	body: JSON.stringify({ reason: "session_expired" }),
 	headers: {
 		// pragma: allowlist secret
 		"x-govuk-signin-session-id": "e4c0b0d8-a4a4-4c3b-91e2-44e743fcdbf9",

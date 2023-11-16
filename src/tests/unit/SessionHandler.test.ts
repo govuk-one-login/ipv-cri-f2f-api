@@ -16,11 +16,15 @@ jest.mock("../../services/SessionRequestProcessor", () => {
 
 describe("SessionHandler", () => {
 	it("return success response for session", async () => {
-		SessionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedSessionRequestProcessor);
+		SessionRequestProcessor.getInstance = jest
+			.fn()
+			.mockReturnValue(mockedSessionRequestProcessor);
 
 		await lambdaHandler(VALID_SESSION, CONTEXT);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockedSessionRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
+		expect(mockedSessionRequestProcessor.processRequest).toHaveBeenCalledTimes(
+			1,
+		);
 	});
 });

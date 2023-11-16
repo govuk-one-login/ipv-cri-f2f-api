@@ -21,7 +21,9 @@ jest.mock("../../utils/Config", () => {
 
 describe("ThankYouEmailHandler", () => {
 	it("return success response when ThankYouEmailProcessor is successful", async () => {
-		ThankYouEmailProcessor.getInstance = jest.fn().mockReturnValue(mockedThankYouEmailHandler);
+		ThankYouEmailProcessor.getInstance = jest
+			.fn()
+			.mockReturnValue(mockedThankYouEmailHandler);
 		await lambdaHandler(VALID_THANK_YOU_EMAIL_EVENT, "F2F");
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
@@ -32,9 +34,13 @@ describe("ThankYouEmailHandler", () => {
 		ThankYouEmailProcessor.getInstance = jest.fn().mockImplementation(() => {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send VC");
 		});
-		await expect(lambdaHandler(VALID_THANK_YOU_EMAIL_EVENT, "F2F")).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.SERVER_ERROR,
-			message: "Failed to process thank_you_email_requested event",
-		}));
+		await expect(
+			lambdaHandler(VALID_THANK_YOU_EMAIL_EVENT, "F2F"),
+		).rejects.toThrow(
+			expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "Failed to process thank_you_email_requested event",
+			}),
+		);
 	});
 });

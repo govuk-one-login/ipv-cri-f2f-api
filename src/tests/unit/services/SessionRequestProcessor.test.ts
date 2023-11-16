@@ -3,7 +3,10 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
-import { VALID_SESSION, SESSION_WITH_INVALID_CLIENT } from "../data/session-events";
+import {
+	VALID_SESSION,
+	SESSION_WITH_INVALID_CLIENT,
+} from "../data/session-events";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { KmsJwtAdapter } from "../../../utils/KmsJwtAdapter";
 import { JWTPayload } from "jose";
@@ -22,35 +25,35 @@ const logger = mock<Logger>();
 const metrics = mock<Metrics>();
 const mockValidationHelper = mock<ValidationHelper>();
 
-const decodedJwtFactory = ():Jwt => {
+const decodedJwtFactory = (): Jwt => {
 	return {
 		header: {
 			alg: "mock",
 		},
 		payload: {
 			govuk_signin_journey_id: "abcdef",
-			shared_claims:{
-				name:[
+			shared_claims: {
+				name: [
 					{
-					   nameParts:[
-						  {
-							 value:"John",
-							 type:"GivenName",
-						  },
-						  {
-							 value:"Joseph",
-							 type:"GivenName",
-						  },
-						  {
-							 value:"Testing",
-							 type:"FamilyName",
-						  },
-					   ],
+						nameParts: [
+							{
+								value: "John",
+								type: "GivenName",
+							},
+							{
+								value: "Joseph",
+								type: "GivenName",
+							},
+							{
+								value: "Testing",
+								type: "FamilyName",
+							},
+						],
 					},
 				],
-				birthDate:[
+				birthDate: [
 					{
-					   "value":"1960-02-02",
+						value: "1960-02-02",
 					},
 				],
 				address: [
@@ -65,14 +68,14 @@ const decodedJwtFactory = ():Jwt => {
 						addressLocality: "Sidney",
 					},
 				],
-				emailAddress:"test.user@digital.cabinet-office.gov.uk",
+				emailAddress: "test.user@digital.cabinet-office.gov.uk",
 			},
 		},
 		signature: "signature",
 	};
 };
 
-const decryptedJwtPayloadFactory = ():JWTPayload => {
+const decryptedJwtPayloadFactory = (): JWTPayload => {
 	return {
 		iss: "mock",
 		sub: "mock",
@@ -80,11 +83,11 @@ const decryptedJwtPayloadFactory = ():JWTPayload => {
 		jti: "mock",
 		nbf: 1234,
 		exp: 5678,
-		iat: 1234,		
+		iat: 1234,
 	};
 };
 
-const sessionItemFactory = ():ISessionItem => {
+const sessionItemFactory = (): ISessionItem => {
 	return {
 		attemptCount: 0,
 		authSessionState: "",
@@ -113,11 +116,12 @@ describe("SessionRequestProcessor", () => {
 	});
 
 	it("should report unrecognised client", async () => {
-
 		// Arrange
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(SESSION_WITH_INVALID_CLIENT);
+		const response = await sessionRequestProcessor.processRequest(
+			SESSION_WITH_INVALID_CLIENT,
+		);
 
 		// Assert
 		expect(response.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
@@ -131,12 +135,13 @@ describe("SessionRequestProcessor", () => {
 	});
 
 	it("should report a JWE decryption failure", async () => {
-
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockRejectedValue("error");
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		const response = await sessionRequestProcessor.processRequest(
+			VALID_SESSION,
+		);
 
 		// Assert
 		expect(response.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
@@ -150,7 +155,6 @@ describe("SessionRequestProcessor", () => {
 	});
 
 	it("should report a failure to decode JWT", async () => {
-
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockImplementation(() => {
@@ -158,7 +162,9 @@ describe("SessionRequestProcessor", () => {
 		});
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		const response = await sessionRequestProcessor.processRequest(
+			VALID_SESSION,
+		);
 
 		// Assert
 		expect(response.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
@@ -172,14 +178,15 @@ describe("SessionRequestProcessor", () => {
 	});
 
 	it("should report a JWT verification failure", async () => {
-
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
 		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(null);
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		const response = await sessionRequestProcessor.processRequest(
+			VALID_SESSION,
+		);
 
 		// Assert
 		expect(response.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
@@ -193,14 +200,15 @@ describe("SessionRequestProcessor", () => {
 	});
 
 	it("should report an unexpected error verifying JWT", async () => {
-
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
 		mockKmsJwtAdapter.verifyWithJwks.mockRejectedValue({});
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		const response = await sessionRequestProcessor.processRequest(
+			VALID_SESSION,
+		);
 
 		// Assert
 		expect(response.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
@@ -214,15 +222,18 @@ describe("SessionRequestProcessor", () => {
 	});
 
 	it("should report a JWT validation failure", async () => {
-
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
-		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(
+			decryptedJwtPayloadFactory(),
+		);
 		mockValidationHelper.isJwtValid.mockReturnValue("errors");
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		const response = await sessionRequestProcessor.processRequest(
+			VALID_SESSION,
+		);
 
 		// Assert
 		expect(response.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
@@ -235,17 +246,26 @@ describe("SessionRequestProcessor", () => {
 	});
 
 	it("should report invalid address countryCode failure", async () => {
-
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
-		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(
+			decryptedJwtPayloadFactory(),
+		);
 		mockValidationHelper.isJwtValid.mockReturnValue("");
-		mockValidationHelper.isPersonDetailsValid.mockReturnValue({ errorMessage : "", errorMessageCode : "" });
-		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"Invalid country code in the postalAddress", errorMessageCode: MessageCodes.INVALID_COUNTRY_CODE });
+		mockValidationHelper.isPersonDetailsValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({
+			errorMessage: "Invalid country code in the postalAddress",
+			errorMessageCode: MessageCodes.INVALID_COUNTRY_CODE,
+		});
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		const response = await sessionRequestProcessor.processRequest(
+			VALID_SESSION,
+		);
 
 		// Assert
 		expect(response.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
@@ -258,17 +278,28 @@ describe("SessionRequestProcessor", () => {
 	});
 
 	it("should report invalid address format failure", async () => {
-
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
-		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(
+			decryptedJwtPayloadFactory(),
+		);
 		mockValidationHelper.isJwtValid.mockReturnValue("");
-		mockValidationHelper.isPersonDetailsValid.mockReturnValue({ errorMessage : "", errorMessageCode : "" });
-		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session", errorMessageCode: MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS });
+		mockValidationHelper.isPersonDetailsValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({
+			errorMessage:
+        "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session",
+			errorMessageCode:
+        MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS,
+		});
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		const response = await sessionRequestProcessor.processRequest(
+			VALID_SESSION,
+		);
 
 		// Assert
 		expect(response.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
@@ -281,17 +312,26 @@ describe("SessionRequestProcessor", () => {
 	});
 
 	it("should return unauthorized when emailAddress is missing in the sharedClaim data", async () => {
-
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
-		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(
+			decryptedJwtPayloadFactory(),
+		);
 		mockValidationHelper.isJwtValid.mockReturnValue("");
-		mockValidationHelper.isPersonDetailsValid.mockReturnValue({ errorMessage:"Missing emailAddress from shared claims data", errorMessageCode: MessageCodes.MISSING_PERSON_EMAIL_ADDRESS });
-		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
+		mockValidationHelper.isPersonDetailsValid.mockReturnValue({
+			errorMessage: "Missing emailAddress from shared claims data",
+			errorMessageCode: MessageCodes.MISSING_PERSON_EMAIL_ADDRESS,
+		});
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		const response = await sessionRequestProcessor.processRequest(
+			VALID_SESSION,
+		);
 
 		// Assert
 		expect(response.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
@@ -307,14 +347,24 @@ describe("SessionRequestProcessor", () => {
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
-		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(
+			decryptedJwtPayloadFactory(),
+		);
 		mockValidationHelper.isJwtValid.mockReturnValue("");
-		mockValidationHelper.isPersonDetailsValid.mockReturnValue({ errorMessage : "", errorMessageCode : "" });
-		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
+		mockValidationHelper.isPersonDetailsValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
 		mockF2fService.getSessionById.mockResolvedValue(sessionItemFactory());
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		const response = await sessionRequestProcessor.processRequest(
+			VALID_SESSION,
+		);
 
 		// Assert
 		expect(logger.error).toHaveBeenCalledTimes(1);
@@ -335,15 +385,25 @@ describe("SessionRequestProcessor", () => {
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
-		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(
+			decryptedJwtPayloadFactory(),
+		);
 		mockValidationHelper.isJwtValid.mockReturnValue("");
-		mockValidationHelper.isPersonDetailsValid.mockReturnValue({ errorMessage : "", errorMessageCode : "" });
-		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
+		mockValidationHelper.isPersonDetailsValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 		mockF2fService.createAuthSession.mockRejectedValue("error");
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		const response = await sessionRequestProcessor.processRequest(
+			VALID_SESSION,
+		);
 
 		// Assert
 		expect(logger.error).toHaveBeenCalledTimes(1);
@@ -364,15 +424,25 @@ describe("SessionRequestProcessor", () => {
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
-		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(
+			decryptedJwtPayloadFactory(),
+		);
 		mockValidationHelper.isJwtValid.mockReturnValue("");
-		mockValidationHelper.isPersonDetailsValid.mockReturnValue({ errorMessage : "", errorMessageCode : "" });
-		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
+		mockValidationHelper.isPersonDetailsValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 		mockF2fService.createAuthSession.mockResolvedValue();
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		const response = await sessionRequestProcessor.processRequest(
+			VALID_SESSION,
+		);
 
 		// Assert
 		expect(response.statusCode).toBe(HttpCodesEnum.OK);
@@ -386,16 +456,26 @@ describe("SessionRequestProcessor", () => {
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
-		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(
+			decryptedJwtPayloadFactory(),
+		);
 		mockValidationHelper.isJwtValid.mockReturnValue("");
-		mockValidationHelper.isPersonDetailsValid.mockReturnValue({ errorMessage : "", errorMessageCode : "" });
-		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
+		mockValidationHelper.isPersonDetailsValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 		mockF2fService.createAuthSession.mockResolvedValue();
 		mockF2fService.sendToTXMA.mockRejectedValue("failed");
 
 		// Act
-		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		const response = await sessionRequestProcessor.processRequest(
+			VALID_SESSION,
+		);
 
 		// Assert
 		expect(response.statusCode).toBe(HttpCodesEnum.OK);
@@ -418,10 +498,18 @@ describe("SessionRequestProcessor", () => {
 		// Arrange
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
-		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(
+			decryptedJwtPayloadFactory(),
+		);
 		mockValidationHelper.isJwtValid.mockReturnValue("");
-		mockValidationHelper.isPersonDetailsValid.mockReturnValue({ errorMessage : "", errorMessageCode : "" });
-		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
+		mockValidationHelper.isPersonDetailsValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({
+			errorMessage: "",
+			errorMessageCode: "",
+		});
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 		mockF2fService.createAuthSession.mockResolvedValue();
 		mockF2fService.savePersonIdentity.mockRejectedValue("error");
@@ -441,7 +529,8 @@ describe("SessionRequestProcessor", () => {
 		);
 		// the next assertion checks that the value has no more than 10 digits, i.e. is in secs not ms
 		// this will break in the year 2286!
-		const actualExpiryDate = mockF2fService.createAuthSession.mock.calls[0][0].expiryDate;
+		const actualExpiryDate =
+      mockF2fService.createAuthSession.mock.calls[0][0].expiryDate;
 		expect(actualExpiryDate).toBeLessThan(10000000000);
 		jest.useRealTimers();
 	});

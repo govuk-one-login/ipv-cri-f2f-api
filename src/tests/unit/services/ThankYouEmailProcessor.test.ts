@@ -160,9 +160,7 @@ function getMockYotiSessionItem(): YotiCompletedSession {
 				type: "ID_DOCUMENT_AUTHENTICITY",
 				id: "e29b5645-7cd1-4f42-94d7-0a2c43283f4c",
 				state: "PENDING",
-				resources_used: [
-					"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
-				],
+				resources_used: ["c2a33e99-1c55-4e21-b7d2-411a5f987ae2"],
 				generated_media: [],
 				created: "2023-09-07T14:32:13Z",
 				last_updated: "2023-09-07T14:32:13Z",
@@ -183,16 +181,14 @@ function getMockYotiSessionItem(): YotiCompletedSession {
 				type: "IBV_VISUAL_REVIEW_CHECK",
 				id: "f1191e59-eb6c-4dca-9b15-88cff7187b2a",
 				state: "DONE",
-				resources_used: [
-					"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
-				],
+				resources_used: ["c2a33e99-1c55-4e21-b7d2-411a5f987ae2"],
 				generated_media: [],
 				report: {
 					recommendation: {
 						value: "APPROVE",
 					},
 					breakdown: [],
-				}, 
+				},
 				created: "2023-09-07T14:32:13Z",
 				last_updated: "2023-09-07T14:32:13Z",
 			},
@@ -200,9 +196,7 @@ function getMockYotiSessionItem(): YotiCompletedSession {
 				type: "DOCUMENT_SCHEME_VALIDITY_CHECK",
 				id: "f03051b1-532d-4388-95a3-9d07bb807429",
 				state: "DONE",
-				resources_used: [
-					"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
-				],
+				resources_used: ["c2a33e99-1c55-4e21-b7d2-411a5f987ae2"],
 				generated_media: [],
 				report: {
 					recommendation: {
@@ -239,7 +233,11 @@ function getMockYotiSessionItem(): YotiCompletedSession {
 
 describe("ThankYouEmailProcessor", () => {
 	beforeAll(() => {
-		thankYouEmailProcessor = new ThankYouEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY);
+		thankYouEmailProcessor = new ThankYouEmailProcessor(
+			logger,
+			metrics,
+			YOTI_PRIVATE_KEY,
+		);
 		// @ts-ignore
 		thankYouEmailProcessor.f2fService = mockF2fService;
 		// @ts-ignore
@@ -254,24 +252,41 @@ describe("ThankYouEmailProcessor", () => {
 		jest.clearAllMocks();
 	});
 
-	describe("#processRequest", () =>{
+	describe("#processRequest", () => {
 		it("throws error if not yoti session ID has been provided", async () => {
-			await expect(thankYouEmailProcessor.processRequest({ session_id: "", topic: "session_completion" })).rejects.toThrow(expect.objectContaining({
-				statusCode: HttpCodesEnum.SERVER_ERROR,
-				message: "Event does not include yoti session_id",
-			}));
-			expect(logger.error).toHaveBeenCalledWith("Event does not include yoti session_id", {
-				messageCode: MessageCodes.MISSING_SESSION_ID,
-			});
+			await expect(
+				thankYouEmailProcessor.processRequest({
+					session_id: "",
+					topic: "session_completion",
+				}),
+			).rejects.toThrow(
+				expect.objectContaining({
+					statusCode: HttpCodesEnum.SERVER_ERROR,
+					message: "Event does not include yoti session_id",
+				}),
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				"Event does not include yoti session_id",
+				{
+					messageCode: MessageCodes.MISSING_SESSION_ID,
+				},
+			);
 		});
 
 		it("throws error if F2F session can't be found", async () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(undefined);
 
-			await expect(thankYouEmailProcessor.processRequest({ session_id: sessionId, topic: "session_completion" })).rejects.toThrow(expect.objectContaining({
-				statusCode: HttpCodesEnum.SERVER_ERROR,
-				message: "Missing info in session table",
-			}));
+			await expect(
+				thankYouEmailProcessor.processRequest({
+					session_id: sessionId,
+					topic: "session_completion",
+				}),
+			).rejects.toThrow(
+				expect.objectContaining({
+					statusCode: HttpCodesEnum.SERVER_ERROR,
+					message: "Missing info in session table",
+				}),
+			);
 			expect(logger.error).toHaveBeenCalledWith("Session not found", {
 				messageCode: MessageCodes.SESSION_NOT_FOUND,
 			});
@@ -281,27 +296,54 @@ describe("ThankYouEmailProcessor", () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValue(f2fSessionItem);
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(undefined);
 
-			await expect(thankYouEmailProcessor.processRequest({ session_id: sessionId, topic: "session_completion" })).rejects.toThrow(expect.objectContaining({
-				statusCode: HttpCodesEnum.SERVER_ERROR,
-				message: "Yoti Session not found",
-			}));
-			expect(logger.error).toHaveBeenCalledWith({ message: "No Yoti Session found with ID" }, {
-				yotiSessionID: sessionId,
-				messageCode: MessageCodes.VENDOR_SESSION_NOT_FOUND,
-			});
+			await expect(
+				thankYouEmailProcessor.processRequest({
+					session_id: sessionId,
+					topic: "session_completion",
+				}),
+			).rejects.toThrow(
+				expect.objectContaining({
+					statusCode: HttpCodesEnum.SERVER_ERROR,
+					message: "Yoti Session not found",
+				}),
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ message: "No Yoti Session found with ID" },
+				{
+					yotiSessionID: sessionId,
+					messageCode: MessageCodes.VENDOR_SESSION_NOT_FOUND,
+				},
+			);
 		});
 
 		it("sends correctly formatted message to TxMA if all checks pass", async () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValue(f2fSessionItem);
-			mockYotiService.getCompletedSessionInfo.mockResolvedValue(yotiSessionItem);
+			mockYotiService.getCompletedSessionInfo.mockResolvedValue(
+				yotiSessionItem,
+			);
 			// Mocking this so that our tests don't fail when daylight savings changes
-			jest.spyOn(Date.prototype, "toLocaleDateString").mockReturnValue("7 September 2023");
-			jest.spyOn(Date.prototype, "toLocaleTimeString").mockReturnValue("3:30PM");
+			jest
+				.spyOn(Date.prototype, "toLocaleDateString")
+				.mockReturnValue("7 September 2023");
+			jest
+				.spyOn(Date.prototype, "toLocaleTimeString")
+				.mockReturnValue("3:30PM");
 
-			await thankYouEmailProcessor.processRequest({ session_id: sessionId, topic: "session_completion" });
+			await thankYouEmailProcessor.processRequest({
+				session_id: sessionId,
+				topic: "session_completion",
+			});
 
-			expect(Date.prototype.toLocaleDateString).toHaveBeenCalledWith("en-GB", { year: "numeric", month: "long", day: "numeric" });
-			expect(Date.prototype.toLocaleTimeString).toHaveBeenCalledWith("en-GB", { hour: "numeric", minute: "numeric", hourCycle: "h12" });
+			expect(Date.prototype.toLocaleDateString).toHaveBeenCalledWith("en-GB", {
+				year: "numeric",
+				month: "long",
+				day: "numeric",
+			});
+			expect(Date.prototype.toLocaleTimeString).toHaveBeenCalledWith("en-GB", {
+				hour: "numeric",
+				minute: "numeric",
+				hourCycle: "h12",
+			});
 			expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({
 				event_name: "F2F_DOCUMENT_UPLOADED",
 				client_id: "ipv-core-stub",
@@ -313,15 +355,20 @@ describe("ThankYouEmailProcessor", () => {
 					session_id: "RandomF2FSessionID",
 					user_id: "sub",
 				},
-  			extensions: {
-  				previous_govuk_signin_journey_id: f2fSessionItem.clientSessionId,
-  				post_office_visit_details: [{
-  					post_office_date_of_visit: "7 September 2023",
-  					post_office_time_of_visit: "3:30PM",
-  				}],
-  			},
+				extensions: {
+					previous_govuk_signin_journey_id: f2fSessionItem.clientSessionId,
+					post_office_visit_details: [
+						{
+							post_office_date_of_visit: "7 September 2023",
+							post_office_time_of_visit: "3:30PM",
+						},
+					],
+				},
 			});
-			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "7 September 2023", postOfficeTimeOfVisit: "3:30PM" });
+			expect(logger.info).toHaveBeenCalledWith("Post office visit details", {
+				postOfficeDateOfVisit: "7 September 2023",
+				postOfficeTimeOfVisit: "3:30PM",
+			});
 		});
 	});
 });

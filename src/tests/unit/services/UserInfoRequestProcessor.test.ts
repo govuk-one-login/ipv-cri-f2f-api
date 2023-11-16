@@ -2,7 +2,10 @@ import { UserInfoRequestProcessor } from "../../../services/UserInfoRequestProce
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { MISSING_AUTH_HEADER_USERINFO, VALID_USERINFO } from "../data/userInfo-events";
+import {
+	MISSING_AUTH_HEADER_USERINFO,
+	VALID_USERINFO,
+} from "../data/userInfo-events";
 import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { ISessionItem } from "../../../models/ISessionItem";
@@ -47,7 +50,10 @@ function getMockSessionItem(): ISessionItem {
 describe("UserInfoRequestProcessor", () => {
 	beforeAll(() => {
 		mockSession = getMockSessionItem();
-		userInforequestProcessorTest = new UserInfoRequestProcessor(logger, metrics);
+		userInforequestProcessorTest = new UserInfoRequestProcessor(
+			logger,
+			metrics,
+		);
 		// @ts-ignore
 		userInforequestProcessorTest.f2fService = mockF2fService;
 	});
@@ -62,14 +68,18 @@ describe("UserInfoRequestProcessor", () => {
 	it("Return successful response with 200 OK when session is found for an accessToken", async () => {
 		mockF2fService.getSessionById.mockResolvedValue(mockSession);
 
-		const out: Response = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
+		const out: Response = await userInforequestProcessorTest.processRequest(
+			VALID_USERINFO,
+		);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 
-		expect(out.body).toEqual(JSON.stringify({
-			sub: "sub",
-			"https://vocab.account.gov.uk/v1/credentialStatus": "pending",
-		}));
+		expect(out.body).toEqual(
+			JSON.stringify({
+				sub: "sub",
+				"https://vocab.account.gov.uk/v1/credentialStatus": "pending",
+			}),
+		);
 		expect(out.statusCode).toBe(HttpCodesEnum.ACCEPTED);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.appendKeys).toHaveBeenCalledWith({
@@ -82,51 +92,70 @@ describe("UserInfoRequestProcessor", () => {
 	});
 
 	it("Return 401 when Authorization header is missing in the request", async () => {
-		const out: Response = await userInforequestProcessorTest.processRequest(MISSING_AUTH_HEADER_USERINFO);
+		const out: Response = await userInforequestProcessorTest.processRequest(
+			MISSING_AUTH_HEADER_USERINFO,
+		);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		// @ts-ignore
-		expect(out.body).toBe("Failed to Validate - Authentication header: Missing header: Authorization header value is missing or invalid auth_scheme");
+		expect(out.body).toBe(
+			"Failed to Validate - Authentication header: Missing header: Authorization header value is missing or invalid auth_scheme",
+		);
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});
 
 	it("Return 401 when access_token JWT validation fails", async () => {
 		// @ts-ignore
 		userInforequestProcessorTest.kmsJwtAdapter = failingKmsJwtAdapterFactory();
-		const out: Response = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
+		const out: Response = await userInforequestProcessorTest.processRequest(
+			VALID_USERINFO,
+		);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		// @ts-ignore
-		expect(out.body).toBe("Failed to Validate - Authentication header: Verification of JWT failed");
+		expect(out.body).toBe(
+			"Failed to Validate - Authentication header: Verification of JWT failed",
+		);
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});
 
 	it("Return 401 when sub is missing from JWT access_token", async () => {
 		// @ts-ignore
 		userInforequestProcessorTest.kmsJwtAdapter.mockJwt.payload.sub = null;
-		const out: Response = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
+		const out: Response = await userInforequestProcessorTest.processRequest(
+			VALID_USERINFO,
+		);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		// @ts-ignore
-		expect(out.body).toBe("Failed to Validate - Authentication header: sub missing");
+		expect(out.body).toBe(
+			"Failed to Validate - Authentication header: sub missing",
+		);
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});
 
 	it("Return 401 when we receive expired JWT access_token", async () => {
 		// @ts-ignore
-		userInforequestProcessorTest.kmsJwtAdapter.mockJwt.payload.exp = absoluteTimeNow() - 500;
-		const out: Response = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
+		userInforequestProcessorTest.kmsJwtAdapter.mockJwt.payload.exp =
+      absoluteTimeNow() - 500;
+		const out: Response = await userInforequestProcessorTest.processRequest(
+			VALID_USERINFO,
+		);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		// @ts-ignore
-		expect(out.body).toBe("Failed to Validate - Authentication header: Verification of exp failed");
+		expect(out.body).toBe(
+			"Failed to Validate - Authentication header: Verification of exp failed",
+		);
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});
 
 	it("Return 401 when session (based upon sub) was not found in the DB", async () => {
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 
-		const out: Response = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
+		const out: Response = await userInforequestProcessorTest.processRequest(
+			VALID_USERINFO,
+		);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
@@ -134,23 +163,31 @@ describe("UserInfoRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith(
-			"No session found with the sessionId: sessionId", { messageCode: MessageCodes.SESSION_NOT_FOUND },
+			"No session found with the sessionId: sessionId",
+			{ messageCode: MessageCodes.SESSION_NOT_FOUND },
 		);
 	});
 
 	it("Return 401 when AuthSessionState is not F2F_ACCESS_TOKEN_ISSUED", async () => {
 		mockF2fService.getSessionById.mockResolvedValue(mockSession);
 		mockSession.authSessionState = "F2F_AUTH_CODE_ISSUED";
-		const out: Response = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
+		const out: Response = await userInforequestProcessorTest.processRequest(
+			VALID_USERINFO,
+		);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
-		expect(out.body).toContain("AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED, actual state- F2F_AUTH_CODE_ISSUED");
+		expect(out.body).toContain(
+			"AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED, actual state- F2F_AUTH_CODE_ISSUED",
+		);
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith(
-			{ message: "AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED, actual state- F2F_AUTH_CODE_ISSUED" }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
+			{
+				message:
+          "AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED, actual state- F2F_AUTH_CODE_ISSUED",
+			},
+			{ messageCode: MessageCodes.INCORRECT_SESSION_STATE },
 		);
 	});
-
 });
