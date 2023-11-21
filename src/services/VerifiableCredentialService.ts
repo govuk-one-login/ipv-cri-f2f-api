@@ -62,12 +62,12 @@ export class VerifiableCredentialService {
   	}
   }
 
-  async generateVerifiableCredentialJwt(
+  generateVerifiableCredentialJwt(
   	sessionItem: ISessionItem | undefined,
   	credentialSubject: VerifiedCredentialSubject,
   	evidence: VerifiedCredentialEvidence,
   	getNow: () => number,
-  ): Promise<CredentialJwt> {
+  ): CredentialJwt {
   	const now = getNow();
   	const subject = sessionItem?.subject as string;
   	const verifiedCredential: VerifiedCredential = this.buildVerifiableCredential(credentialSubject, evidence);

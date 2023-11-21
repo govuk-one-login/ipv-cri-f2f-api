@@ -37,6 +37,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 	});
 
 
+	// eslint-disable-next-line @typescript-eslint/tslint/config
 	it.skip("Negative Path Journey - Expired Authorization Header", async () => {
 		const response = await postDocumentSelection(dataPassport, sessionId);
 		// Authorization
@@ -49,6 +50,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 		expect(userInfoResponse.data).toBe("Failed to Validate - Authentication header: Verification of exp failed"); 
 	});
 
+	// eslint-disable-next-line @typescript-eslint/tslint/config
 	it.skip("Negative Path Journey - Missing Sub Authorization Header", async () => {
 		const response = await postDocumentSelection(dataPassport, sessionId);
 		// Authorization

@@ -5,7 +5,6 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
-import { AppError } from "../../../utils/AppError";
 
 describe("ReminderEmailProcessor", () => {
 	let personIdentityItem: PersonIdentityItem;
@@ -80,49 +79,46 @@ describe("ReminderEmailProcessor", () => {
 		},
 	];
 
-	function getPersonIdentityItem(): PersonIdentityItem {
-		const personIdentityItem: PersonIdentityItem = {
-			"addresses": [
-				{
-					"addressCountry": "GB",
-					"buildingName": "Sherman",
-					"uprn": 123456789,
-					"streetName": "Wallaby Way",
-					"postalCode": "F1 1SH",
-					"buildingNumber": "32",
-					"addressLocality": "Sidney",
-				},
-			],
-			"sessionId": "RandomF2FSessionID",
-			"emailAddress": "testReminder@test.com",
-			"birthDate": [
-				{
-					"value":"1960-02-02",
-				},
-			],
-			"name": [
-				{
-					"nameParts": [
-						{
-							"type": "GivenName",
-							"value": "Frederick",
-						},
-						{
-							"type": "GivenName",
-							"value": "Joseph",
-						},
-						{
-							"type": "FamilyName",
-							"value": "Flintstone",
-						},
-					],
-				},
-			],
-			expiryDate: 1612345678,
-			createdDate: 1612335678,
-		};
-		return personIdentityItem;
-	}
+	const getPersonIdentityItem = (): PersonIdentityItem => ({
+		"addresses": [
+			{
+				"addressCountry": "GB",
+				"buildingName": "Sherman",
+				"uprn": 123456789,
+				"streetName": "Wallaby Way",
+				"postalCode": "F1 1SH",
+				"buildingNumber": "32",
+				"addressLocality": "Sidney",
+			},
+		],
+		"sessionId": "RandomF2FSessionID",
+		"emailAddress": "testReminder@test.com",
+		"birthDate": [
+			{
+				"value":"1960-02-02",
+			},
+		],
+		"name": [
+			{
+				"nameParts": [
+					{
+						"type": "GivenName",
+						"value": "Frederick",
+					},
+					{
+						"type": "GivenName",
+						"value": "Joseph",
+					},
+					{
+						"type": "FamilyName",
+						"value": "Flintstone",
+					},
+				],
+			},
+		],
+		expiryDate: 1612345678,
+		createdDate: 1612335678,
+	});
 	
 
 	beforeAll(() => {

@@ -19,7 +19,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 
 class Session implements LambdaInterface {
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: any, context: any) {
+	async handler(event: any, context: any): Promise<Response> {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 

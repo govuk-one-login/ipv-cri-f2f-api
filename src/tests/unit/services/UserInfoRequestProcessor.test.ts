@@ -14,8 +14,8 @@ import { MessageCodes } from "../../../models/enums/MessageCodes";
 let userInforequestProcessorTest: UserInfoRequestProcessor;
 const mockF2fService = mock<F2fService>();
 let mockSession: ISessionItem;
-const passingKmsJwtAdapterFactory = (_signingKeys: string) => new MockKmsJwtAdapter(true);
-const failingKmsJwtAdapterFactory = (_signingKeys: string) => new MockKmsJwtAdapter(false);
+const passingKmsJwtAdapterFactory = () => new MockKmsJwtAdapter(true);
+const failingKmsJwtAdapterFactory = () => new MockKmsJwtAdapter(false);
 const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "CIC" });
 

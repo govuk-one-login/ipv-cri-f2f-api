@@ -112,10 +112,20 @@ export class DocumentSelectionRequestProcessor {
   	if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
 
   		try {
-  			yotiSessionId = await this.createSessionGenerateInstructions(personDetails, f2fSessionInfo, postOfficeSelection, selectedDocument, countryCode);
+  			yotiSessionId = await this.createSessionGenerateInstructions(
+  				personDetails,
+  				f2fSessionInfo,
+  				postOfficeSelection,
+  				selectedDocument,
+  				countryCode,
+  			);
 			  if (yotiSessionId) {
 				  await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
-				  await this.f2fService.updateSessionWithYotiIdAndStatus(f2fSessionInfo.sessionId, yotiSessionId, AuthSessionState.F2F_YOTI_SESSION_CREATED);
+				  await this.f2fService.updateSessionWithYotiIdAndStatus(
+  					f2fSessionInfo.sessionId,
+  					yotiSessionId,
+  					AuthSessionState.F2F_YOTI_SESSION_CREATED,
+  				);
 				  const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
 				  await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
 				  await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
@@ -180,7 +190,12 @@ export class DocumentSelectionRequestProcessor {
   		}
 
   		try {
-  			const coreEventFields = buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer(), f2fSessionInfo.clientIpAddress, absoluteTimeNow);
+  			const coreEventFields = buildCoreEventFields(
+  				f2fSessionInfo,
+  				this.environmentVariables.issuer(),
+  				f2fSessionInfo.clientIpAddress,
+  				absoluteTimeNow,
+  			);
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_YOTI_START",
   				...coreEventFields,
@@ -232,7 +247,13 @@ export class DocumentSelectionRequestProcessor {
   	}
   }
 
-  async createSessionGenerateInstructions(personDetails: PersonIdentityItem, f2fSessionInfo: ISessionItem, postOfficeSelection: PostOfficeInfo, selectedDocument: string, countryCode: string): Promise<string> {
+  async createSessionGenerateInstructions(
+  	personDetails: PersonIdentityItem,
+  	f2fSessionInfo: ISessionItem,
+  	postOfficeSelection: PostOfficeInfo,
+  	selectedDocument: string,
+  	countryCode: string,
+  ): Promise<string> {
   	this.logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
 
   	const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());

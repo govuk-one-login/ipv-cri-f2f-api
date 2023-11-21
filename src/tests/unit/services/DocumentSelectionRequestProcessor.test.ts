@@ -18,7 +18,6 @@ import { YotiSessionInfo } from "../../../models/YotiPayloads";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
-import { AppError } from "../../../utils/AppError";
 import { TXMA_NATIONAL_ID_YOTI_START, TXMA_PASSPORT_YOTI_START } from "../data/txmaEvent";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 
@@ -181,7 +180,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 		// @ts-ignore
 		mockDocumentSelectionRequestProcessor.yotiService = mockYotiService;
 
-		personIdentityItem = getPersonIdentityItem();
 		yotiSessionInfo = getYotiSessionInfo();
 		f2fSessionItem = getMockSessionItem();
 	});
@@ -284,15 +282,13 @@ describe("DocumentSelectionRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(undefined);
 
-		try {
-			await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
-		} catch (error) {
-			expect(error).toEqual(new AppError( HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables"));
-			expect(logger.warn).toHaveBeenNthCalledWith(1,
-				"Missing details in SESSION or PERSON IDENTITY tables", { "messageCode": "SESSION_NOT_FOUND" },
-			);
-		}
-
+		await expect(mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234")).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.BAD_REQUEST,
+			message: "Missing details in SESSION or PERSON IDENTITY tables",
+		}));
+		expect(logger.warn).toHaveBeenNthCalledWith(1,
+			"Missing details in SESSION or PERSON IDENTITY tables", { "messageCode": "SESSION_NOT_FOUND" },
+		);
 	});
 
 	it("Should update the TTL on both Session & Person Identity Tables", async () => {
@@ -344,7 +340,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 		expect(out.body).toBe("Yoti session already exists for this authorization session or Session is in the wrong state");
 		expect(logger.warn).toHaveBeenCalledWith(
-			"Yoti session already exists for this authorization session or Session is in the wrong state: F2F_YOTI_SESSION_CREATED", { "messageCode": "STATE_MISMATCH" },
+			"Yoti session already exists for this authorization session or Session is in the wrong state: F2F_YOTI_SESSION_CREATED", { messageCode: "STATE_MISMATCH" },
 		);
 	});
 

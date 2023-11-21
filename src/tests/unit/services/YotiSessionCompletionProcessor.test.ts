@@ -32,7 +32,7 @@ jest.mock("crypto", () => ({
 }));
 
 jest.mock("../../../utils/KmsJwtAdapter");
-const passingKmsJwtAdapterFactory = (_signingKeys: string) => new MockKmsJwtAdapterForVc(true);
+const passingKmsJwtAdapterFactory = () => new MockKmsJwtAdapterForVc(true);
 
 function getMockSessionItem(): ISessionItem {
 	const sessionInfo: ISessionItem = {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/dot-notation */
 import axios from "axios";
 import { YotiService } from "../../../services/YotiService";
@@ -5,7 +6,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-import { anyString, mock } from "jest-mock-extended";
+import { mock } from "jest-mock-extended";
 
 jest.mock("@aws-lambda-powertools/logger");
 jest.mock("axios");
@@ -256,21 +257,6 @@ describe("YotiService", () => {
 			jest.useFakeTimers();
 			const fakeTime = 1684933200.123;
 			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
-
-			const sessionId = await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL);
-
-			expect(generateYotiRequestMock).toHaveBeenCalled();
-			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", createSessionPayload, {});
-			expect(sessionId).toBe("session123");
-		});
-
-		it("should create a Yoti session and return the session ID", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
-				url: "https://example.com/api/sessions",
-				config: {},
-			});
-
-			axiosMock.post.mockResolvedValue({ data: { session_id: "session123" } });
 
 			const sessionId = await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL);
 

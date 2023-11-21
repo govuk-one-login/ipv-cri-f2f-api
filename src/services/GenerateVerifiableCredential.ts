@@ -4,12 +4,12 @@ import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { YOTI_CHECKS, YotiSessionDocument, DOCUMENT_TYPES_WITH_CHIPS } from "../utils/YotiPayloadEnums";
 import { YotiCheckRecommendation, YotiDocumentFields, YotiCompletedSession, YotiDocumentFieldsAddressInfo } from "../models/YotiPayloads";
+import { EuDrivingLicenseCountry, EU_DL_COUNTRIES } from "../models/EuDrivingLicenceCodes";
 import {
 	VerifiedCredentialEvidence,
 	VerifiedCredentialSubject,
 	Name,
 } from "../utils/IVeriCredential";
-import { EU_DL_COUNTRIES } from "../models/EuDrivingLicenceCodes";
 
 export class GenerateVerifiableCredential {
   readonly logger: Logger;
@@ -239,6 +239,8 @@ export class GenerateVerifiableCredential {
   	issuingCountry: string,
   	documentFields: YotiDocumentFields,
   ): VerifiedCredentialSubject {
+  	let countryDetails: EuDrivingLicenseCountry | undefined;
+
 	  if (issuingCountry === "GBR") {
   		switch (documentType) {
   			case "PASSPORT":
@@ -288,7 +290,7 @@ export class GenerateVerifiableCredential {
   				];
   				break;
   			case "DRIVING_LICENCE":
-  				const countryDetails = EU_DL_COUNTRIES.find(country => country.alpha3code === documentFields.issuing_country);
+  				countryDetails = EU_DL_COUNTRIES.find(country => country.alpha3code === documentFields.issuing_country);
   				if (!countryDetails) {
   					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unable to fetch the alpha2code for the EU country", {
   						documentFields });
@@ -463,7 +465,12 @@ export class GenerateVerifiableCredential {
   			},
   		];
 
-  		manualFaceMatchCheck ? evidence[0].failedCheckDetails[1].photoVerificationProcessLevel = 3 : evidence[0].failedCheckDetails[1].biometricVerificationProcessLevel = 3;
+  		if (manualFaceMatchCheck) {
+  			evidence[0].failedCheckDetails[1].photoVerificationProcessLevel = 3;
+  		} else {
+  			evidence[0].failedCheckDetails[1].biometricVerificationProcessLevel = 3;
+  		}
+
   	} else {
   		evidence[0].checkDetails = [
   			{
@@ -475,7 +482,11 @@ export class GenerateVerifiableCredential {
   			},
   		];
 
-  		manualFaceMatchCheck ? evidence[0].checkDetails[1].photoVerificationProcessLevel = 3 : evidence[0].checkDetails[1].biometricVerificationProcessLevel = 3;
+  		if (manualFaceMatchCheck) {
+  			evidence[0].checkDetails[1].photoVerificationProcessLevel = 3;
+  		} else {
+  			evidence[0].checkDetails[1].biometricVerificationProcessLevel = 3;
+  		}
   	}
 
   	this.logger.info({ message: "Calculated Scores for VC" });

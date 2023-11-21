@@ -322,7 +322,7 @@ export function getCompletedYotiSession(): YotiCompletedSession {
 	return completedYotiSession;
 }
 
-export function getDocumentFields() {
+export function getDocumentFields(): any {
 	const documentFields = {
 		"full_name": "ANGELA ZOE UK SPECIMEN",
 		"date_of_birth": "1988-12-04",
@@ -346,7 +346,7 @@ export function getDocumentFields() {
 	return documentFields;
 }
 
-export function getDrivingPermitFields() {
+export function getDrivingPermitFields(): any {
 	const documentFields = {
 		"full_name": "LEEROY JENKINS",
 		"date_of_birth": "1988-12-04",
@@ -376,7 +376,7 @@ export function getDrivingPermitFields() {
 	return documentFields;
 }
 
-export function getEuDrivingPermitFields() {
+export function getEuDrivingPermitFields(): any {
 	const documentFields = {
 		"full_name": "Erika - Mustermann",
 		"date_of_birth": "1988-12-04",
@@ -393,7 +393,7 @@ export function getEuDrivingPermitFields() {
 	return documentFields;
 }
 
-export function getEeaIdCardFields() {
+export function getEeaIdCardFields(): any {
 	const documentFields = {
 		"full_name": "Wiieke Liselotte De Bruijn",
 		"date_of_birth": "1988-12-04",
@@ -408,7 +408,7 @@ export function getEeaIdCardFields() {
 	return documentFields;
 }
 
-export function getBrpFields() {
+export function getBrpFields(): any {
 	const documentFields = {
 		"full_name": "TECH REFRESH ICTHREEMALE",
 		"date_of_birth": "1988-12-04",
