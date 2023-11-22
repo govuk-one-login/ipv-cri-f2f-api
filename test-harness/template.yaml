@@ -334,6 +334,7 @@ Resources:
   TestHarnessRestApi:
     Type: AWS::Serverless::Api
     Properties:
+      AlwaysDeploy: true
       StageName: !Ref Environment
       OpenApiVersion: 3.0.1
       AccessLogSetting:
