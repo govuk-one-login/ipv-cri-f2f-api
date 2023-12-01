@@ -3350,8 +3350,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3371,8 +3371,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3412,8 +3412,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3433,8 +3433,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3474,8 +3474,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3495,8 +3495,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3536,8 +3536,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3557,8 +3557,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3598,8 +3598,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3619,8 +3619,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3660,8 +3660,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3681,8 +3681,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3720,8 +3720,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /authorization
                 - Name: Stage
@@ -3741,8 +3741,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 5XXError
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /authorization
                 - Name: Stage
@@ -3782,8 +3782,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /authorization
                 - Name: Stage
@@ -3803,8 +3803,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 5XXError
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /authorization
                 - Name: Stage
@@ -3846,8 +3846,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3867,8 +3867,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3908,8 +3908,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3929,8 +3929,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3970,8 +3970,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3991,8 +3991,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -4032,8 +4032,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -4053,8 +4053,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "cic-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -4092,8 +4092,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /callback
                 - Name: Stage
@@ -4113,8 +4113,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 5XXError
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /callback
                 - Name: Stage
@@ -4154,8 +4154,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /callback
                 - Name: Stage
@@ -4175,8 +4175,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 5XXError
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /callback
                 - Name: Stage
@@ -4218,8 +4218,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -4239,8 +4239,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -4278,8 +4278,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /userinfo
                 - Name: Stage
@@ -4299,8 +4299,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 4XXError
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /userinfo
                 - Name: Stage
@@ -4340,8 +4340,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /token
                 - Name: Stage
@@ -4361,8 +4361,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 4XXError
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /token
                 - Name: Stage
@@ -4405,8 +4405,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /authorization
                 - Name: Stage
@@ -4426,8 +4426,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 4XXError
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /authorization
                 - Name: Stage
@@ -4467,8 +4467,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /session
                 - Name: Stage
@@ -4488,8 +4488,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 4XXError
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /session
                 - Name: Stage
@@ -4532,8 +4532,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /callback
                 - Name: Stage
@@ -4553,8 +4553,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 4XXError
               Dimensions:
-                - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                - Name: ApiId
+                  Value: !Sub "${F2FRestApi}"
                 - Name: Resource
                   Value: /callback
                 - Name: Stage
