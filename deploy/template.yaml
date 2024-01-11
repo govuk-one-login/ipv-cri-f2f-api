@@ -518,7 +518,20 @@ Resources:
       StageName: !Ref Environment
       OpenApiVersion: 3.0.1
       AccessLogSetting:
-        Format: "$context.requestId $context.httpMethod $context.path"
+        Format: >-
+          {
+          "requestId":"$context.requestId",
+          "ip": "$context.identity.sourceIp",
+          "requestTime":"$context.requestTime",
+          "httpMethod":"$context.httpMethod",
+          "path": "$context.path",
+          "routeKey":"$context.routeKey",
+          "status":"$context.status",
+          "protocol":"$context.protocol",
+          "responseLength":"$context.responseLength",
+          "responseLatency":"$context.responseLatency",
+          "integrationLatency":"$context.integrationLatency"
+          }
         DestinationArn: !GetAtt F2FAPIGatewayAccessLogGroup.Arn
       EndpointConfiguration:
         Type: REGIONAL
@@ -3275,7 +3288,7 @@ Resources:
               MetricName: Count
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
             Period: 60
             Stat: Sum
         - Id: errorPercentage
@@ -3290,7 +3303,7 @@ Resources:
               MetricName: 5XXError
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
             Period: 60
             Stat: Sum
 
@@ -3325,7 +3338,7 @@ Resources:
               MetricName: Count
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
             Period: 60
             Stat: Sum
         - Id: errorPercentage
@@ -3340,7 +3353,7 @@ Resources:
               MetricName: 5XXError
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
             Period: 60
             Stat: Sum
 
@@ -3376,8 +3389,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3397,8 +3410,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3438,8 +3451,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3459,8 +3472,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3500,8 +3513,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3521,8 +3534,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3562,8 +3575,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3583,8 +3596,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3624,8 +3637,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3645,8 +3658,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3686,8 +3699,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3707,8 +3720,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3746,8 +3759,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /authorization
                 - Name: Stage
@@ -3767,8 +3780,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 5XXError
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /authorization
                 - Name: Stage
@@ -3808,8 +3821,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /authorization
                 - Name: Stage
@@ -3829,8 +3842,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 5XXError
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /authorization
                 - Name: Stage
@@ -3872,8 +3885,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3893,8 +3906,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3934,8 +3947,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3955,8 +3968,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -3996,8 +4009,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -4017,8 +4030,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -4058,8 +4071,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -4079,8 +4092,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -4118,8 +4131,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /callback
                 - Name: Stage
@@ -4139,8 +4152,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 5XXError
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /callback
                 - Name: Stage
@@ -4180,8 +4193,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /callback
                 - Name: Stage
@@ -4201,8 +4214,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 5XXError
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /callback
                 - Name: Stage
@@ -4244,8 +4257,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -4265,8 +4278,8 @@ Resources:
               Dimensions:
                 - Name: Method
                   Value: POST
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -4304,8 +4317,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /userinfo
                 - Name: Stage
@@ -4325,8 +4338,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 4XXError
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /userinfo
                 - Name: Stage
@@ -4366,8 +4379,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /token
                 - Name: Stage
@@ -4387,8 +4400,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 4XXError
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /token
                 - Name: Stage
@@ -4431,8 +4444,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /authorization
                 - Name: Stage
@@ -4452,8 +4465,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 4XXError
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /authorization
                 - Name: Stage
@@ -4493,8 +4506,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /session
                 - Name: Stage
@@ -4514,8 +4527,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 4XXError
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /session
                 - Name: Stage
@@ -4558,8 +4571,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: Count
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /callback
                 - Name: Stage
@@ -4579,8 +4592,8 @@ Resources:
               Namespace: AWS/ApiGateway
               MetricName: 4XXError
               Dimensions:
-                - Name: ApiId
-                  Value: !Sub "${F2FRestApi}"
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /callback
                 - Name: Stage
@@ -4621,7 +4634,7 @@ Resources:
               MetricName: Count
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
             Period: 60
             Stat: Sum
         - Id: maxLatency
@@ -4632,7 +4645,7 @@ Resources:
               MetricName: Latency
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub "f2f-cri-${AWS::StackName}"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
             Period: 60
             Stat: Maximum
 
