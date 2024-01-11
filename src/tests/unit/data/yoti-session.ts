@@ -13,55 +13,55 @@ export const authenticityCheck = {
 				sub_check: "chip_csca_trusted",
 				result: "PASS",
 				details: [],
-				process: "AUTOMATED"
+				process: "AUTOMATED",
 			},
 			{
 				sub_check: "chip_data_integrity",
 				result: "PASS",
 				details: [],
-				process: "AUTOMATED"
+				process: "AUTOMATED",
 			},
 			{
 				sub_check: "chip_digital_signature_verification",
 				result: "PASS",
 				details: [],
-				process: "AUTOMATED"
+				process: "AUTOMATED",
 			},
 			{
 				sub_check: "chip_parse",
 				result: "PASS",
 				details: [],
-				process: "AUTOMATED"
+				process: "AUTOMATED",
 			},
 			{
 				sub_check: "chip_sod_parse",
 				result: "PASS",
 				details: [],
-				process: "AUTOMATED"
+				process: "AUTOMATED",
 			},
 			{
 				sub_check: "document_in_date",
 				result: "PASS",
 				details: [],
-				process: "AUTOMATED"
+				process: "AUTOMATED",
 			},
 			{
 				sub_check: "fraud_list_check",
 				result: "PASS",
 				details: [],
-				process: "AUTOMATED"
+				process: "AUTOMATED",
 			},
 			{
 				sub_check: "mrz_validation",
 				result: "PASS",
 				details: [],
-				process: "AUTOMATED"
+				process: "AUTOMATED",
 			},
 			{
 				sub_check: "ocr_mrz_comparison",
 				result: "PASS",
 				details: [],
-				process: "AUTOMATED"
+				process: "AUTOMATED",
 			},
 		],
 	},
@@ -89,7 +89,7 @@ export const mockFaceMatchCheck = {
 						value: "0.95",
 					},
 				],
-				process: "AUTOMATED"
+				process: "AUTOMATED",
 			},
 		],
 	},
