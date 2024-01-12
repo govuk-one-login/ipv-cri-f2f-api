@@ -2023,31 +2023,6 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
-  GovNotifyThrottleAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
-      OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
-      InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${GovNotifyFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-throttles"
-      MetricName: Throttles
-      Namespace: AWS/Lambda
-      Statistic: Sum
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref GovNotifyFunction
-      TreatMissingData: notBreaching
-      Period: 60 # This is the minimum value for the AWS Namespace
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-
   ## UserInfo
   UserInfoFunction:
     Type: AWS::Serverless::Function
