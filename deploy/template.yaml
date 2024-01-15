@@ -5140,21 +5140,6 @@ Resources:
                 {
                   "height": 6,
                   "width": 12,
-                  "y": 12,
-                  "x": 12,
-                  "type": "metric",
-                  "properties": {
-                    "title": "GovNotify Throttles - ${AWS::StackName}",
-                    "annotations": {
-                      "alarms": ["${GovNotifyThrottleAlarm.Arn}"]
-                    },
-                    "view": "timeSeries",
-                    "stacked": false
-                  }
-                },
-                {
-                  "height": 6,
-                  "width": 12,
                   "y": 18,
                   "x": 0,
                   "type": "metric",
