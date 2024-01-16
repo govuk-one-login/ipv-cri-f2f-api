@@ -797,10 +797,16 @@ describe("YotiSessionCompletionProcessor", () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(undefined);
 
-			return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Yoti Session not found",
 			}));
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				error: "Yoti Session not found",
+    			error_description: "VC generation failed",
+			});
 		});
 
 		it("Throws server error if session in Yoti is not completed", async () => {
@@ -809,10 +815,16 @@ describe("YotiSessionCompletionProcessor", () => {
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 	
-			return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Yoti Session not complete",
 			}));
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				error: "Yoti Session not complete",
+    			error_description: "VC generation failed",
+			});
 		});
 
 		it("Throws server error if session in Yoti does not contain document fields", async () => {
@@ -881,6 +893,12 @@ describe("YotiSessionCompletionProcessor", () => {
 					reason: "EXTRACTION_FAILED",
 				},
 			});
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				error: "Yoti document_fields not populated",
+    			error_description: "VC generation failed",
+			});
 		});
 
 		it("Throws server error if session in Yoti contains multiple document_field entries", async () => {
@@ -898,19 +916,31 @@ describe("YotiSessionCompletionProcessor", () => {
 			expect(logger.error).toHaveBeenCalledWith({ message: "Multiple document_fields found in completed Yoti Session" }, {
 				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
 			});
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				error: "Multiple document_fields in response",
+    			error_description: "VC generation failed",
+			});
 		});
 
-		it("Throws server error if session in Yoti does not contain media ID", () => {
+		it("Throws server error if session in Yoti does not contain media ID", async () => {
 			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
 			delete completedYotiSessionClone.resources.id_documents[0].document_fields.media.id;
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 	
-			return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Yoti document_fields media ID not found",
 			}));
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				error: "Yoti document_fields media ID not found",
+    			error_description: "VC generation failed",
+			});
 		});
 	});
 
@@ -919,10 +949,29 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(undefined);
 
-		return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+		await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Missing Info in Session Table",
 		}));
+	});
+
+	it("Should throw an error when session is in wrong AuthSessionState", async () => {
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		const f2fModifiedAuthSessionItem = getMockSessionItem();
+		f2fModifiedAuthSessionItem.authSessionState = "F2F_YOTI_SESSION_CREATED";
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fModifiedAuthSessionItem);
+
+		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+			sub: "testsub",
+			state: "Y@atr",
+			error: "AuthSession is in wrong Auth state",
+			error_description: "VC generation failed",
+		});
+		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
+		expect(out.body).toBe("AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED or F2F_AUTH_CODE_ISSUED, actual state- F2F_YOTI_SESSION_CREATED");		
 	});
 
 	it("Return 200 when write to txMA fails", async () => {
@@ -959,7 +1008,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Failed to send to IPV Core",
-		}));
+		}));		
 	});
 
 	it("Throws server error if signGeneratedVerifiableCredentialJwt returns empty string", async () => {
@@ -969,10 +1018,16 @@ describe("YotiSessionCompletionProcessor", () => {
 
 		jest.spyOn(VerifiableCredentialService.prototype as any, "signGeneratedVerifiableCredentialJwt").mockReturnValue("");
 
-		return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+		await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Unable to create signed JWT",
 		}));
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+			sub: "testsub",
+			state: "Y@atr",
+			error: "Unable to create signed JWT",
+			error_description: "VC generation failed",
+		});
 	});
 
 	it("Returns server error response if signGeneratedVerifiableCredentialJwt throws error", async () => {
@@ -982,10 +1037,16 @@ describe("YotiSessionCompletionProcessor", () => {
 
 		jest.spyOn(VerifiableCredentialService.prototype as any, "signGeneratedVerifiableCredentialJwt").mockRejectedValueOnce(new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt"));
 
-		return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).resolves.toEqual(expect.objectContaining({
+		await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).resolves.toEqual(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			body: "Failed to sign the verifiableCredential Jwt",
 		}));
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+			sub: "testsub",
+			state: "Y@atr",
+			error: "Failed to sign the verifiableCredential Jwt",
+			error_description: "VC generation failed",
+		});
 	});
 
 	it("Throws server error if generateVerifiableCredentialJwt returns empty string", async () => {
@@ -995,10 +1056,16 @@ describe("YotiSessionCompletionProcessor", () => {
 
 		jest.spyOn(VerifiableCredentialService.prototype as any, "generateVerifiableCredentialJwt").mockReturnValue("");
 
-		return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+		await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Unable to create signed JWT",
 		}));
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+			sub: "testsub",
+			state: "Y@atr",
+			error: "Unable to create signed JWT",
+			error_description: "VC generation failed",
+		});
 	});
 	
 	describe("isTaskDone function", () => {
