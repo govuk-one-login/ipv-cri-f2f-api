@@ -413,18 +413,21 @@ export class YotiSessionCompletionProcessor {
   }
 
   async sendErrorMessageToIPVCore(f2fSession: ISessionItem, errorMessage: string) : Promise<any> {
+  	this.logger.error(`VC generation failed : ${errorMessage}`, {		
+  		messageCode: MessageCodes.ERROR_GENERATING_VC,
+  	});
   	try {
   		await this.f2fService.sendToIPVCore({
   			sub: f2fSession.subject,
   			state: f2fSession.state,
-  			error: errorMessage,
-  			error_description: "VC generation failed",
+  			error: "access_denied",
+  			error_description: `VC generation failed : ${errorMessage}`,
   		});
   	} catch (error) {
   		this.logger.error({ message: "Failed to send VC to IPV Core Queue" }, {
   			error,
   			messageCode: MessageCodes.FAILED_SENDING_VC,
-  		});
+  		});		
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core", { shouldThrow: true });
   	}
   }
