@@ -27,8 +27,6 @@ class AuthorizationCodeHandler implements LambdaInterface {
 
 	// @metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: APIGatewayProxyEvent, context: any, dbClient = createDynamoDbClient(), sqsClient = realSqsClient): Promise<Response> {
-	// handler(event: APIGatewayProxyEvent, context: any): Response | void {
-
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 

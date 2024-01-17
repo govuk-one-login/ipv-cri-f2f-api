@@ -105,7 +105,6 @@ export class AuthorizationRequestProcessor {
 					this.logger.error("Failed to write TXMA event F2F_CRI_END to SQS queue.", { error, messageCode: MessageCodes.FAILED_TO_WRITE_TXMA });
 				}
 
-				console.log("🍉", JSON.stringify(f2fResp));
 				return new Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));
 			} else {
 				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_YOTI_SESSION_CREATED}`, {

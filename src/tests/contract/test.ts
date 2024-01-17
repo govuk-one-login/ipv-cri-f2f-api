@@ -60,8 +60,9 @@ export const VALID_AUTH = {
 const runTest = async () => {
 	try {
 		const authResponse = await axios.post("http://localhost:3000/authorize", VALID_AUTH);
+		console.log("================================");
 		console.log("status", authResponse.status);
-		console.log("🍐", authResponse.data);
+		console.log("data", authResponse.data);
 	} catch (e) {
 		console.log("error", e);
 	}
