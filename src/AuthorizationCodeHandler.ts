@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -22,8 +23,9 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 
 class AuthorizationCodeHandler implements LambdaInterface {
 
-	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
+	// @metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
+	// async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
+	handler(event: APIGatewayProxyEvent, context: any): Response | void {
 
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
@@ -51,7 +53,10 @@ class AuthorizationCodeHandler implements LambdaInterface {
 				return new Response(HttpCodesEnum.BAD_REQUEST, "Empty headers");
 			}
 			logger.info("Starting AuthorizationRequestProcessor");
-			return await AuthorizationRequestProcessor.getInstance(logger, metrics).processRequest(event, sessionId);
+			// return await AuthorizationRequestProcessor.getInstance(logger, metrics).processRequest(event, sessionId);
+
+			return new Response(HttpCodesEnum.OK, "Finished 👍");
+
 		} catch (err: any) {
 			logger.error({ message: "An error has occurred.", err });
 			if (err instanceof AppError) {
