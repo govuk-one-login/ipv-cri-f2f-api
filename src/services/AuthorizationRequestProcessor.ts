@@ -7,7 +7,6 @@ import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
-import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
@@ -25,16 +24,16 @@ export class AuthorizationRequestProcessor {
 
 	private readonly environmentVariables: EnvironmentVariables;
 
-	constructor(logger: Logger, metrics: Metrics) {
+	constructor(logger: Logger, metrics: Metrics, dbClient: any, sqsClient: any) {
 		this.logger = logger;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
 		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, dbClient, sqsClient);
 	}
 
-	static getInstance(logger: Logger, metrics: Metrics): AuthorizationRequestProcessor {
+	static getInstance(logger: Logger, metrics: Metrics, dbClient: any, sqsClient: any): AuthorizationRequestProcessor {
 		if (!AuthorizationRequestProcessor.instance) {
-			AuthorizationRequestProcessor.instance = new AuthorizationRequestProcessor(logger, metrics);
+			AuthorizationRequestProcessor.instance = new AuthorizationRequestProcessor(logger, metrics, dbClient, sqsClient);
 		}
 		return AuthorizationRequestProcessor.instance;
 	}
@@ -106,6 +105,7 @@ export class AuthorizationRequestProcessor {
 					this.logger.error("Failed to write TXMA event F2F_CRI_END to SQS queue.", { error, messageCode: MessageCodes.FAILED_TO_WRITE_TXMA });
 				}
 
+				console.log("🍉", JSON.stringify(f2fResp));
 				return new Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));
 			} else {
 				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_YOTI_SESSION_CREATED}`, {

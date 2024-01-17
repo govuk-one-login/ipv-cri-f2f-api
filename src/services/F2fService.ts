@@ -8,7 +8,6 @@ import { getAuthorizationCodeExpirationEpoch, absoluteTimeNow } from "../utils/D
 import { Constants } from "../utils/Constants";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { SendMessageCommand } from "@aws-sdk/client-sqs";
-import { sqsClient } from "../utils/SqsClient";
 import { TxmaEvent } from "../utils/TxmaEvent";
 import {
 	PersonIdentityAddress,
@@ -27,22 +26,25 @@ export class F2fService {
 
 	private readonly dynamo: DynamoDBDocument;
 
+	private readonly sqs: any;
+
 	readonly logger: Logger;
 
 	private readonly environmentVariables: EnvironmentVariables;
 
 	private static instance: F2fService;
 
-	constructor(tableName: any, logger: Logger, dynamoDbClient: DynamoDBDocument) {
+	constructor(tableName: any, logger: Logger, dynamoDbClient: DynamoDBDocument, sqsClient: any) {
 		this.tableName = tableName;
 		this.dynamo = dynamoDbClient;
+		this.sqs = sqsClient;
 		this.logger = logger;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.NA);
 	}
 
-	static getInstance(tableName: string, logger: Logger, dynamoDbClient: DynamoDBDocument): F2fService {
+	static getInstance(tableName: string, logger: Logger, dynamoDbClient: DynamoDBDocument, sqsClient: any): F2fService {
 		if (!F2fService.instance) {
-			F2fService.instance = new F2fService(tableName, logger, dynamoDbClient);
+			F2fService.instance = new F2fService(tableName, logger, dynamoDbClient, sqsClient);
 		}
 		return F2fService.instance;
 	}
@@ -184,7 +186,7 @@ export class F2fService {
 
 			this.logger.info({ message: "Sending message to TxMA", eventName: event.event_name });
 
-			await sqsClient.send(new SendMessageCommand(params));
+			await this.sqs.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to TxMA");
 
 			const obfuscatedObject = await this.obfuscateJSONValues(event, Constants.TXMA_FIELDS_TO_SHOW);
@@ -203,7 +205,7 @@ export class F2fService {
 				QueueUrl: this.environmentVariables.getGovNotifyQueueURL(this.logger),
 			};
 
-			await sqsClient.send(new SendMessageCommand(params));
+			await this.sqs.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to Gov Notify");
 		} catch (error) {
 			this.logger.error({ message: "Error when sending message to GovNotify Queue", error });
@@ -222,7 +224,7 @@ export class F2fService {
 
 			this.logger.info({ message: "Sending message to IPV Core Queue", queueUrl });
 
-			await sqsClient.send(new SendMessageCommand(params));
+			await this.sqs.send(new SendMessageCommand(params));
 			this.logger.info("Sent message to IPV Core");
 		} catch (error) {
 			this.logger.error({ message: "Error when sending message to IPV Core Queue", error });
