@@ -51,6 +51,12 @@ export const VALID_AUTH = {
 	stageVariables: {},
 };
 
+// Note this will be replaced with pact syntax
+// new Verifier({
+// 	providerBaseUrl: 'http://localhost:8081', // <- location of your running provider
+// 	pactUrls: [ path.resolve(process.cwd(), "./pacts/SomeConsumer-SomeProvider.json") ],
+// })
+
 const runTest = async () => {
 	try {
 		const authResponse = await axios.post("http://localhost:3000/authorize", VALID_AUTH);

@@ -1,10 +1,10 @@
+/* eslint-disable max-lines-per-function */
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { randomUUID } from "crypto";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { ValidationHelper } from "../utils/ValidationHelper";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
@@ -21,8 +21,6 @@ export class AuthorizationRequestProcessor {
 
 	private readonly metrics: Metrics;
 
-	private readonly validationHelper: ValidationHelper;
-
 	private readonly f2fService: F2fService;
 
 	private readonly environmentVariables: EnvironmentVariables;
@@ -30,7 +28,6 @@ export class AuthorizationRequestProcessor {
 	constructor(logger: Logger, metrics: Metrics) {
 		this.logger = logger;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
-		this.validationHelper = new ValidationHelper();
 		this.metrics = metrics;
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 	}

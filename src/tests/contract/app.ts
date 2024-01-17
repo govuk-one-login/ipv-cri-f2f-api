@@ -1,5 +1,5 @@
 import express from "express";
-import { authRouter } from "./RunLambda";
+import { authRouter } from "./AuthorizeRoutes";
 
 const app = express();
 app.use(express.json());
