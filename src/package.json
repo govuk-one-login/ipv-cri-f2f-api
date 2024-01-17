@@ -37,7 +37,9 @@
     "test:e2e": "./node_modules/.bin/jest --testMatch '**/e2e/?(*.)test.ts' --passWithNoTests",
     "test:infra": "./node_modules/.bin/jest --testMatch '**/infra/?(*.)test.ts' ",
     "api": "JEST_JUNIT_OUTPUT_NAME=api-report.xml ./node_modules/.bin/jest --runInBand --testPathPattern=tests/api/",
-    "test:api": "npm run compile && npm run api"
+    "test:api": "npm run compile && npm run api",
+    "start:contract": "cd tests/contract; node --loader ts-node/esm ./app.ts",
+    "test:contract": "cd tests/contract; node --loader ts-node/esm ./test.ts"
   },
   "devDependencies": {
     "@aws-cdk/assertions": "^1.172.0",
