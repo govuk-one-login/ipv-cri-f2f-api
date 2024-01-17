@@ -7,6 +7,7 @@ export const dbClient = {
       {
       	sessionId: "b0668808-67ce-8jc7-a2fc-132b81612111",
       	clientId: "ipv-core-stub",
+      	// pragma: allowlist secret
       	accessToken: "AbCdEf123456",
       	clientSessionId: "sdfssg",
       	authorizationCode: "",
