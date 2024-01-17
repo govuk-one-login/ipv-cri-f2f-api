@@ -239,7 +239,7 @@ export interface YotiCompletedSession {
 					name: string;
 					value: string;
 				}>;
-				process: string;
+				process?: string;
 			}>;
 		};
 		created: string;
