@@ -424,11 +424,10 @@ export class YotiSessionCompletionProcessor {
   			error_description: `VC generation failed : ${errorMessage}`,
   		});
   	} catch (error) {
-  		this.logger.error({ message: "Failed to send VC to IPV Core Queue" }, {
+  		this.logger.error({ message: "Failed to send error message to IPV Core Queue" }, {
   			error,
   			messageCode: MessageCodes.FAILED_SENDING_VC,
   		});		
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send to IPV Core", { shouldThrow: true });
   	}
   }
 }
