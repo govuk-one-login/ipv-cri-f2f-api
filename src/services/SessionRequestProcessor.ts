@@ -21,6 +21,9 @@ interface ClientConfig {
 	jwksEndpoint: string;
 	clientId: string;
 	redirectUri: string;
+	YOTIBASEURL: string;
+	YOTISDK: string;
+	GOVUKNOTIFYAPI: string;
 }
 
 export class SessionRequestProcessor {

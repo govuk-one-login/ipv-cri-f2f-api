@@ -20,6 +20,15 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 import { AllDocumentTypes, DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { ValidationHelper } from "../utils/ValidationHelper";
 
+interface ClientConfig {
+	jwksEndpoint: string;
+	clientId: string;
+	redirectUri: string;
+	YOTIBASEURL: string;
+	YOTISDK: string;
+	GOVUKNOTIFYAPI: string;
+}
+
 export class DocumentSelectionRequestProcessor {
 
   private static instance: DocumentSelectionRequestProcessor;
@@ -28,7 +37,9 @@ export class DocumentSelectionRequestProcessor {
 
   private readonly metrics: Metrics;
 
-  private readonly yotiService: YotiService;
+  // private readonly yotiService: YotiService;
+
+	private yotiService: YotiService | null = null;
 
   private readonly f2fService: F2fService;
 
@@ -36,11 +47,11 @@ export class DocumentSelectionRequestProcessor {
 
   private readonly validationHelper: ValidationHelper;
 
-  constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
+  constructor(logger: Logger, metrics: Metrics) {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
-  	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
+  	// this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   	this.validationHelper = new ValidationHelper();
   }
@@ -48,16 +59,15 @@ export class DocumentSelectionRequestProcessor {
   static getInstance(
   	logger: Logger,
   	metrics: Metrics,
-  	YOTI_PRIVATE_KEY: string,
   ): DocumentSelectionRequestProcessor {
   	if (!DocumentSelectionRequestProcessor.instance) {
   		DocumentSelectionRequestProcessor.instance =
-        new DocumentSelectionRequestProcessor(logger, metrics, YOTI_PRIVATE_KEY);
+        new DocumentSelectionRequestProcessor(logger, metrics);
   	}
   	return DocumentSelectionRequestProcessor.instance;
   }
 
-  async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
+  async processRequest(event: APIGatewayProxyEvent, sessionId: string, YOTI_PRIVATE_KEY: string): Promise<Response> {
 
   	let postOfficeSelection: PostOfficeInfo;
   	let selectedDocument;
@@ -101,6 +111,12 @@ export class DocumentSelectionRequestProcessor {
   		});
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
   	}
+
+		const config = JSON.parse(this.environmentVariables.clientConfig()) as ClientConfig[];
+  	const configClient = config.find(c => c.clientId === f2fSessionInfo.clientId);
+		if (configClient?.YOTISDK && configClient.YOTIBASEURL) {
+			this.yotiService = YotiService.getInstance(this.logger, configClient.YOTISDK, this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, configClient.YOTIBASEURL);
+		}
 
   	// Reject the request when session store does not contain email, familyName or GivenName fields
   	const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);

@@ -16,11 +16,13 @@ export const v3KmsClient = new KMSClient({
   maxAttempts: 2,
 });
 
+let overrides: any;
+
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const config = getConfig();
-  const overrides = event.body !== null ? JSON.parse(event.body) : null;
+  overrides = event.body !== null ? JSON.parse(event.body) : null;
   if (overrides?.target != null) {
     config.jwksUri = overrides.target;
   }
@@ -73,7 +75,7 @@ export const handler = async (
         : crypto.randomBytes(16).toString("hex"),
     aud: config.oauthUri,
     iss: "https://ipv.core.account.gov.uk",
-    client_id: config.clientId,
+    client_id: overrides?.clientId != null ? overrides.clientId : process.env.CLIENT_ID,
     state: crypto.randomBytes(16).toString("hex"),
     iat,
     nbf: iat - 1,
@@ -106,8 +108,8 @@ export const handler = async (
     body: JSON.stringify({
       request,
       responseType: "code",
-      clientId: config.clientId,
-      AuthorizeLocation: `${process.env.OAUTH_FRONT_BASE_URI}/oauth2/authorize?request=${request}&response_type=code&client_id=${config.clientId}`,
+      clientId: overrides?.clientId != null ? overrides.clientId : process.env.CLIENT_ID,
+      AuthorizeLocation: `${process.env.OAUTH_FRONT_BASE_URI}/oauth2/authorize?request=${request}&response_type=code&client_id=${overrides?.clientId != null ? overrides.clientId : process.env.CLIENT_ID}`,
       sub: payload.sub,
       state: payload.state,
     }),
@@ -134,7 +136,7 @@ export function getConfig(): {
   return {
     redirectUri: process.env.REDIRECT_URI,
     jwksUri: process.env.JWKS_URI,
-    clientId: process.env.CLIENT_ID,
+    clientId: overrides?.clientId != null ? overrides.clientId : process.env.CLIENT_ID,
     signingKey: process.env.SIGNING_KEY,
     oauthUri: process.env.OAUTH_FRONT_BASE_URI,
   };

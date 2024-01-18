@@ -8,6 +8,8 @@ import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { EmailResponse } from "../models/EmailResponse";
 import { ValidationHelper } from "../utils/ValidationHelper";
 
+
+
 export class SendEmailProcessor {
   private static instance: SendEmailProcessor;
 
@@ -24,7 +26,7 @@ export class SendEmailProcessor {
   	return this.instance || (this.instance = new SendEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId));
   }
 
-  async processRequest(eventBody: any): Promise<EmailResponse | undefined> {
+  async processRequest(eventBody: any, YOTI_PRIVATE_KEY: string): Promise<EmailResponse | undefined> {
   	const messageType = eventBody.Message.messageType;
   	let dynamicReminderEmail: DynamicReminderEmail;
   	let reminderEmail: ReminderEmail;
@@ -44,7 +46,7 @@ export class SendEmailProcessor {
   		case Constants.PDF_EMAIL:
   			email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(email, this.logger);
-  			return this.govNotifyService.sendYotiPdfEmail(email);
+  			return this.govNotifyService.sendYotiPdfEmail(email, YOTI_PRIVATE_KEY);
   	}
 
   	return undefined;

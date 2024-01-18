@@ -71,7 +71,7 @@ class GovNotifyHandler implements LambdaInterface {
 					logger.error("failed to extract govnotifyServiceId from the GOVUKNOTIFY_API_KEY", { error });
 					return failEntireBatch;
 				}
-				await SendEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(body);
+				await SendEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(body, YOTI_PRIVATE_KEY);
 				logger.debug("Finished processing record from SQS");
 				return passEntireBatch;
 

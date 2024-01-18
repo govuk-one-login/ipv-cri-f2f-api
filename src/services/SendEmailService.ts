@@ -20,6 +20,14 @@ import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { Constants } from "../utils/Constants";
 
+interface ClientConfig {
+	jwksEndpoint: string;
+	clientId: string;
+	redirectUri: string;
+	YOTIBASEURL: string;
+	YOTISDK: string;
+	GOVUKNOTIFYAPI: string;
+}
 
 /**
  * Class to send emails using gov notify service
@@ -74,10 +82,10 @@ export class SendEmailService {
 	 * @returns EmailResponse
 	 * @throws AppError
 	 */
-	async sendYotiPdfEmail(message: Email): Promise<EmailResponse> {
+	async sendYotiPdfEmail(message: Email, YOTI_PRIVATE_KEY: string): Promise<EmailResponse | undefined> {
 		// Fetch the instructions pdf from Yoti
 		try {
-			const encoded = await this.fetchInstructionsPdf(message);
+			const encoded = await this.fetchInstructionsPdf(message, YOTI_PRIVATE_KEY);
 			if (encoded) {
 				this.logger.debug("sendEmail", SendEmailService.name);
 				this.logger.info("Sending Yoti PDF email");
@@ -93,7 +101,15 @@ export class SendEmailService {
 					reference: message.referenceId,
 				};
 
-				const emailResponse = await this.sendGovNotification(this.environmentVariables.getPdfEmailTemplateId(this.logger), message, options);
+				let emailResponse;
+
+				const session = await this.f2fService.getSessionById(message.sessionId);
+				const config = JSON.parse(this.environmentVariables.clientConfig()) as ClientConfig[];
+				const configClient = config.find(c => c.clientId === session?.clientId);
+				if (configClient?.YOTISDK && configClient.YOTIBASEURL && configClient.GOVUKNOTIFYAPI) {
+					emailResponse = await this.sendGovNotification(this.environmentVariables.getPdfEmailTemplateId(this.logger), message, options);
+				}
+
 				await this.sendF2FYotiEmailedEvent(message);
 				return emailResponse;
 			} else {
@@ -215,12 +231,18 @@ export class SendEmailService {
 	}
 
 
-	async fetchInstructionsPdf(message: Email): Promise<string> {
+	async fetchInstructionsPdf(message: Email, YOTI_PRIVATE_KEY: string): Promise<string> {
 		let yotiInstructionsPdfRetryCount = 0;
 		//retry for maxRetry count configured value if fails
 		while (yotiInstructionsPdfRetryCount <= this.environmentVariables.yotiInstructionsPdfMaxRetries()) {
 			this.logger.debug("Fetching the Instructions Pdf from yoti for sessionId: ", message.yotiSessionId);
 			try {
+				const session = await this.f2fService.getSessionById(message.sessionId);
+				const config = JSON.parse(this.environmentVariables.clientConfig()) as ClientConfig[];
+				const configClient = config.find(c => c.clientId === session?.clientId);
+				if (configClient?.YOTISDK && configClient.YOTIBASEURL && configClient.GOVUKNOTIFYAPI) {
+					this.yotiService = YotiService.getInstance(this.logger, configClient.YOTISDK, this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, configClient.YOTIBASEURL);
+				}
 				const instructionsPdf = await this.yotiService.fetchInstructionsPdf(message.yotiSessionId);
 				if (instructionsPdf) {
 					const encoded = Buffer.from(instructionsPdf, "binary").toString("base64");
