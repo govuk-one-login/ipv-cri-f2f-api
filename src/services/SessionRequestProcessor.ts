@@ -21,6 +21,8 @@ interface ClientConfig {
 	jwksEndpoint: string;
 	clientId: string;
 	redirectUri: string;
+	YOTIBASEURL: string;
+	YOTISDK: string;
 }
 
 export class SessionRequestProcessor {

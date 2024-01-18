@@ -16,11 +16,13 @@ export const v3KmsClient = new KMSClient({
   maxAttempts: 2,
 });
 
+let overrides: any;
+
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const config = getConfig();
-  const overrides = event.body !== null ? JSON.parse(event.body) : null;
+  overrides = event.body !== null ? JSON.parse(event.body) : null;
   if (overrides?.target != null) {
     config.jwksUri = overrides.target;
   }
@@ -134,7 +136,7 @@ export function getConfig(): {
   return {
     redirectUri: process.env.REDIRECT_URI,
     jwksUri: process.env.JWKS_URI,
-    clientId: process.env.CLIENT_ID,
+    clientId: overrides?.clientId != null ? overrides.clientId : process.env.CLIENT_ID,
     signingKey: process.env.SIGNING_KEY,
     oauthUri: process.env.OAUTH_FRONT_BASE_URI,
   };
