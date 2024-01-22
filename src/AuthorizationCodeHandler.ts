@@ -9,8 +9,6 @@ import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
 import { AuthorizationRequestProcessor } from "./services/AuthorizationRequestProcessor";
 import { MessageCodes } from "./models/enums/MessageCodes";
-import { createDynamoDbClient } from "./utils/DynamoDBFactory";
-import { sqsClient as realSqsClient } from "./utils/SqsClient";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -52,7 +50,10 @@ class AuthorizationCodeHandler implements LambdaInterface {
 				return new Response(HttpCodesEnum.BAD_REQUEST, "Empty headers");
 			}
 			logger.info("Starting AuthorizationRequestProcessor");
-			return await AuthorizationRequestProcessor.getInstance(logger, metrics, dbClient, sqsClient).processRequest(event, sessionId);
+			return await AuthorizationRequestProcessor.getInstance(logger, metrics).processRequest(event, sessionId);
+
+			// return new Response(HttpCodesEnum.OK, "Finished 👍");
+
 		} catch (err: any) {
 			logger.error({ message: "An error has occurred.", err });
 			if (err instanceof AppError) {

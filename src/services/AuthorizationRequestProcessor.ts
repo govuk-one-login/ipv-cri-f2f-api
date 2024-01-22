@@ -7,6 +7,7 @@ import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
+import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
@@ -24,16 +25,16 @@ export class AuthorizationRequestProcessor {
 
 	private readonly environmentVariables: EnvironmentVariables;
 
-	constructor(logger: Logger, metrics: Metrics, dbClient: any, sqsClient: any) {
+	constructor(logger: Logger, metrics: Metrics) {
 		this.logger = logger;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
 		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, dbClient, sqsClient);
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 	}
 
-	static getInstance(logger: Logger, metrics: Metrics, dbClient: any, sqsClient: any): AuthorizationRequestProcessor {
+	static getInstance(logger: Logger, metrics: Metrics): AuthorizationRequestProcessor {
 		if (!AuthorizationRequestProcessor.instance) {
-			AuthorizationRequestProcessor.instance = new AuthorizationRequestProcessor(logger, metrics, dbClient, sqsClient);
+			AuthorizationRequestProcessor.instance = new AuthorizationRequestProcessor(logger, metrics);
 		}
 		return AuthorizationRequestProcessor.instance;
 	}
