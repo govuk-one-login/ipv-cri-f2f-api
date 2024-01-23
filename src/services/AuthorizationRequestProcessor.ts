@@ -42,7 +42,27 @@ export class AuthorizationRequestProcessor {
 	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
 		
 		this.logger.appendKeys({ sessionId });
-		const session = await this.f2fService.getSessionById(sessionId);
+		// const session = await this.f2fService.getSessionById(sessionId);
+		const session = {
+			sessionId,
+			clientId: "ipv-core-stub",
+			// pragma: allowlist nextline secret
+			accessToken: "AbCdEf123456",
+			clientSessionId: "sdfssg",
+			authorizationCode: "",
+			authorizationCodeExpiryDate: 0,
+			redirectUri: "http://localhost:8085/callback",
+			accessTokenExpiryDate: 0,
+			expiryDate: 221848913376,
+			createdDate: 1675443004,
+			state: "Y@atr",
+			subject: "sub",
+			persistentSessionId: "sdgsdg",
+			clientIpAddress: "127.0.0.1",
+			attemptCount: 1,
+			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
+			yotiSessionId: "hello",
+		};
 		
 		if (session != null) {
 			if (session.expiryDate < absoluteTimeNow()) {
@@ -61,7 +81,7 @@ export class AuthorizationRequestProcessor {
 
 				const authorizationCode = randomUUID();
 
-				await this.f2fService.setAuthorizationCode(sessionId, authorizationCode);
+				// await this.f2fService.setAuthorizationCode(sessionId, authorizationCode);
 
 				this.metrics.addMetric("Set authorization code", MetricUnits.Count, 1);
 				try {

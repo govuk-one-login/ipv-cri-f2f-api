@@ -259,32 +259,32 @@ export class F2fService {
 		return sessionItem.Items[0] as ISessionItem;
 	}
 
-	async getSessionsByAuthSessionStates(authSessionStates: string[]): Promise<Array<Record<string, any>>> {
-		const uniqueSessionIds = new Set();
-		const filteredItems = [];
+	// async getSessionsByAuthSessionStates(authSessionStates: string[]): Promise<Array<Record<string, any>>> {
+		// const uniqueSessionIds = new Set();
+		// const filteredItems = [];
 	
-		for (const authSessionState of authSessionStates) {
-			const params = {
-				TableName: this.tableName,
-				IndexName: Constants.AUTH_SESSION_STATE_INDEX_NAME,
-				KeyConditionExpression: "authSessionState = :authSessionState",
-				ExpressionAttributeValues: {
-					":authSessionState": authSessionState,
-				},
-			};
+		// for (const authSessionState of authSessionStates) {
+		// 	const params = {
+		// 		TableName: this.tableName,
+		// 		IndexName: Constants.AUTH_SESSION_STATE_INDEX_NAME,
+		// 		KeyConditionExpression: "authSessionState = :authSessionState",
+		// 		ExpressionAttributeValues: {
+		// 			":authSessionState": authSessionState,
+		// 		},
+		// 	};
 	
-			const sessionItems = (await this.dynamo.query(params))?.Items || [];
+		// 	const sessionItems = (await this.dynamo.query(params))?.Items || [];
 	
-			for (const item of sessionItems) {
-				if (!uniqueSessionIds.has(item.sessionId) && item.expiryDate > absoluteTimeNow()) {
-					uniqueSessionIds.add(item.sessionId);
-					filteredItems.push(item);
-				}
-			}
-		}
+		// 	for (const item of sessionItems) {
+		// 		if (!uniqueSessionIds.has(item.sessionId) && item.expiryDate > absoluteTimeNow()) {
+		// 			uniqueSessionIds.add(item.sessionId);
+		// 			// filteredItems.push(item);
+		// 		}
+		// 	}
+		// }
 	
-		return filteredItems;
-	}
+		// return filteredItems;
+	// }
 
 	async updateReminderEmailFlag(sessionId: string, reminderEmailSent: boolean): Promise<void> {
 		const updateStateCommand = new UpdateCommand({

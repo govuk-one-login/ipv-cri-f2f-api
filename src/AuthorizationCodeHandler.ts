@@ -24,7 +24,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 class AuthorizationCodeHandler implements LambdaInterface {
 
 	// @metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: APIGatewayProxyEvent, context: any, dbClient = createDynamoDbClient(), sqsClient = realSqsClient): Promise<Response> {
+	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
@@ -51,9 +51,6 @@ class AuthorizationCodeHandler implements LambdaInterface {
 			}
 			logger.info("Starting AuthorizationRequestProcessor");
 			return await AuthorizationRequestProcessor.getInstance(logger, metrics).processRequest(event, sessionId);
-
-			// return new Response(HttpCodesEnum.OK, "Finished 👍");
-
 		} catch (err: any) {
 			logger.error({ message: "An error has occurred.", err });
 			if (err instanceof AppError) {
