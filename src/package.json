@@ -41,10 +41,13 @@
     "api": "JEST_JUNIT_OUTPUT_NAME=api-report.xml ./node_modules/.bin/jest --runInBand --testPathPattern=tests/api/",
     "test:api": "npm run compile && npm run api",
 		"start:dynamodblocal": "cd tests/contract; ./setup-dynamodb-local.sh",
-    "start:contract": "wait-on tcp:127.0.0.1:8000; cd tests/contract; ts-node ./app.ts",
-    "test:contract": "wait-on tcp:127.0.0.1:3000; cd tests/contract; ts-node ./test.ts",
-    "test:contract:ci": "npm-run-all -p -r start:contract test:contract"
+		"start:contract": "npm-run-all -s start:dynamodblocal wait-start:contract",
+		"wait-start:contract": "wait-on tcp:127.0.0.1:8000 && cd tests/contract && ts-node ./app.ts",
+		"test:contract": "wait-on tcp:127.0.0.1:3000; cd tests/contract; ts-node ./test.ts",
+		"test:contract:ci": "npm-run-all -p -r start:contract test:contract"
   },
+
+	
   "devDependencies": {
     "@aws-cdk/assertions": "^1.172.0",
     "@aws-cdk/yaml-cfn": "^1.172.0",
