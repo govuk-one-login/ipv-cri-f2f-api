@@ -48,6 +48,7 @@ export class F2fService {
 	}
 
 	async getSessionById(sessionId: string, tableName: string = this.tableName): Promise<ISessionItem | undefined> {
+		console.log("TableName", tableName);
 		this.logger.debug("Table name " + tableName);
 		const getSessionCommand = new GetCommand({
 			TableName: this.tableName,
