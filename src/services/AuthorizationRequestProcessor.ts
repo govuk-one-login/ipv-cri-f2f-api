@@ -40,7 +40,7 @@ export class AuthorizationRequestProcessor {
 	}
 
 	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
-		
+
 		this.logger.appendKeys({ sessionId });
 		// const session = await this.f2fService.getSessionById(sessionId);
 		const session = {
