@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -22,10 +23,8 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 
 class AuthorizationCodeHandler implements LambdaInterface {
 
-	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
+	// @metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
-
-		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
