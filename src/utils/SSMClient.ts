@@ -9,13 +9,13 @@ const createSsmClient = () => {
 		ssmClient = mockSsmCient as unknown as SSMClient;
 	} else {
         
-        AWSXRay.setContextMissingStrategy("LOG_ERROR");
+		AWSXRay.setContextMissingStrategy("LOG_ERROR");
 
-        const ssmClientRaw = new SSMClient({ region: process.env.REGION });
+		const ssmClientRaw = new SSMClient({ region: process.env.REGION });
 
-        ssmClient = process.env.XRAY_ENABLED === "true" ? AWSXRay.captureAWSv3Client(ssmClientRaw as any) : ssmClientRaw;
-    }
-    return ssmClient;
-}
+		ssmClient = process.env.XRAY_ENABLED === "true" ? AWSXRay.captureAWSv3Client(ssmClientRaw as any) : ssmClientRaw;
+	}
+	return ssmClient;
+};
 
 export { createSsmClient, GetParameterCommand };
