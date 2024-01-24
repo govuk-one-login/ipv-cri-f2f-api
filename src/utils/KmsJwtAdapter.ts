@@ -7,13 +7,12 @@ import { DecryptCommand, DecryptCommandInput, DecryptCommandOutput } from "@aws-
 import crypto from "crypto";
 import { importJWK, JWTPayload, jwtVerify } from "jose";
 import axios from "axios";
+import { createKmsClient } from "./KMSClient";
 
 export class KmsJwtAdapter {
 	readonly kid: string;
 
-	private kms = new AWS.KMS({
-		region: process.env.REGION,
-	});
+	private kms = createKmsClient();
 
 	/**
 	 * An implemention the JWS standard using KMS to sign Jwts

@@ -7,7 +7,7 @@ import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
 import { constants } from "../utils/ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
-import { sqsClient } from "../../utils/SqsClient";
+import { createSqsClient } from "../../utils/SqsClient";
 
 const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOVUKNOTIFYAPI });
 const API_INSTANCE = axios.create({ baseURL: constants.DEV_CRI_F2F_API_URL });
@@ -377,7 +377,7 @@ export async function getDequeuedSqsMessage(prefix: string): Promise<any> {
 export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 	const queueURL = constants.DEV_F2F_IPV_CORE_QUEUE_URL;
 
-	const receiveMessage = () => sqsClient.send(
+	const receiveMessage = () => createSqsClient().send(
 		new ReceiveMessageCommand({
 			AttributeNames: ["SentTimestamp"],
 			MaxNumberOfMessages: 10,
@@ -392,11 +392,11 @@ export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
 
 	try {
 		const { Messages } = await receiveMessage();
-		for (const m of Messages) {
-			const parsedResponse = JSON.parse(m.Body);
+		for (const m of Messages!) {
+			const parsedResponse = JSON.parse(m.Body!);
 			const array = Object.values(parsedResponse);
 			jwtToken = array[2];
-			await sqsClient.send(
+			await createSqsClient().send(
 				new DeleteMessageCommand({
 					QueueUrl: queueURL,
 					ReceiptHandle: m.ReceiptHandle,
