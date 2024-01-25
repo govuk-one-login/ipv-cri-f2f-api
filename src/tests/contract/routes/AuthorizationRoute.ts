@@ -1,6 +1,6 @@
 import express from "express";
 import asyncify from "express-asyncify";
-import { lambdaHandler } from "../../AuthorizationCodeHandler";
+import { lambdaHandler } from "../../../AuthorizationCodeHandler";
 
 process.env.SESSION_TABLE = "session-table";
 process.env.TXMA_QUEUE_URL = "txma-queue";
