@@ -175,52 +175,62 @@ export const DOCUMENT_FIELDS_SECOND = {
 									{
 											"sub_check": "document_in_date",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "fraud_list_check",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "hologram",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "hologram_movement",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "mrz_validation",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "no_sign_of_forgery",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "no_sign_of_tampering",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "ocr_mrz_comparison",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "other_security_features",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "physical_document_captured",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "yoti_fraud_list_check",
@@ -230,7 +240,8 @@ export const DOCUMENT_FIELDS_SECOND = {
 															"name": "provider_org",
 															"value": "Yoti Ltd"
 													}
-											]
+											],
+											"process": "AUTOMATED"
 									}
 							]
 					},
@@ -259,12 +270,14 @@ export const DOCUMENT_FIELDS_SECOND = {
 															"name": "confidence_score",
 															"value": "0.20"
 													}
-											]
+											],
+											"process": "AUTOMATED"
 									},
 									{
 										"sub_check": "manual_face_match",
 										"result": "PASS",
-										"details": []
+										"details": [],
+										"process": "EXPERT_REVIEW"
 								}
 							]
 					},

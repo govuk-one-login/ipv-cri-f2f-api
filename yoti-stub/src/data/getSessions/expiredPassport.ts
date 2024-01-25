@@ -140,52 +140,62 @@ export const EXPIRED_PASSPORT_RESPONSE = {
 									{
 											"sub_check": "document_in_date",
 											"result": "FAIL",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "fraud_list_check",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "hologram",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "hologram_movement",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "mrz_validation",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "no_sign_of_forgery",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "no_sign_of_tampering",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "ocr_mrz_comparison",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "other_security_features",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "physical_document_captured",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									}
 							]
 					},
@@ -214,12 +224,14 @@ export const EXPIRED_PASSPORT_RESPONSE = {
 															"name": "confidence_score",
 															"value": "0.99"
 													}
-											]
+											],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "manual_face_match",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									}
 							]
 					},
