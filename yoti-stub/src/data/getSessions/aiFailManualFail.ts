@@ -140,47 +140,56 @@ export const AI_FAIL_MANUAL_FAIL = {
 									{
 											"sub_check": "chip_csca_trusted",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									},
 									{
 											"sub_check": "chip_data_integrity",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									},
 									{
 											"sub_check": "chip_digital_signature_verification",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									},
 									{
 											"sub_check": "chip_parse",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									},
 									{
 											"sub_check": "chip_sod_parse",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									},
 									{
 											"sub_check": "document_in_date",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									},
 									{
 											"sub_check": "fraud_list_check",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									},
 									{
 											"sub_check": "mrz_validation",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									},
 									{
 											"sub_check": "ocr_mrz_comparison",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									}
 							]
 					},
@@ -210,12 +219,14 @@ export const AI_FAIL_MANUAL_FAIL = {
 															"name": "confidence_score",
 															"value": "0.20"
 													}
-											]
+											],
+											"process": "EXPERT_REVIEW"
 									},
 									{
 											"sub_check": "manual_face_match",
 											"result": "FAIL",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									}
 							]
 					},

@@ -633,6 +633,9 @@ components:
           items:
             type: object
             additionalProperties: true
+        process:
+          type: string
+          nullable: true
       required:
         - sub_check
         - result
