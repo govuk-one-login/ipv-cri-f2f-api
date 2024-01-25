@@ -1,0 +1,99 @@
+{
+    "sessionId": {
+      "S": "732075c8-08e6-4b25-ad5b-d6cb865a18e5"
+    },
+    "addresses": {
+      "L": [
+        {
+          "M": {
+            "addressCountry": {
+              "S": "GB"
+            },
+            "addressLocality": {
+              "S": "London"
+            },
+            "buildingName": {
+              "S": "London"
+            },
+            "buildingNumber": {
+              "S": "32"
+            },
+            "postalCode": {
+              "S": "SW19"
+            },
+            "streetName": {
+              "S": "Demo"
+            },
+            "subBuildingName": {
+              "S": "Flat 20"
+            },
+            "uprn": {
+              "S": "123456789"
+            }
+          }
+        }
+      ]
+    },
+    "birthDate": {
+      "L": [
+        {
+          "M": {
+            "value": {
+              "S": "1960-02-02"
+            }
+          }
+        }
+      ]
+    },
+    "createdDate": {
+      "N": "1706116789"
+    },
+    "emailAddress": {
+      "S": "test@domain.com"
+    },
+    "expiryDate": {
+      "N": "1707067189"
+    },
+    "name": {
+      "L": [
+        {
+          "M": {
+            "nameParts": {
+              "L": [
+                {
+                  "M": {
+                    "type": {
+                      "S": "GivenName"
+                    },
+                    "value": {
+                      "S": "Contract"
+                    }
+                  }
+                },
+                {
+                  "M": {
+                    "type": {
+                      "S": "GivenName"
+                    },
+                    "value": {
+                      "S": "Testing"
+                    }
+                  }
+                },
+                {
+                  "M": {
+                    "type": {
+                      "S": "FamilyName"
+                    },
+                    "value": {
+                      "S": "UserTest0111"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }

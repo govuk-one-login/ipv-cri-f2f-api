@@ -1,0 +1,14 @@
+{
+    "sessionId": {"S": "732075c8-08e6-4b25-ad5b-d6cb865a18e5"},
+    "attemptCount": {"N": "0"},
+    "authSessionState": {"S": "F2F_YOTI_SESSION_CREATED"},
+    "clientId": {"S": "5C584572"},
+    "clientSessionId": {"S": "ab8a26249a268c7d678b713c51d70fe5"},
+    "createdDate": {"N": "1686070173439"},
+    "expiryDate": {"N": "1687020573439"},
+    "redirectUri": {"S": "https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"},
+    "reminderEmailSent": {"BOOL": true},
+    "state": {"S": "236a9875d6baf2c3fcc651feadda3340"},
+    "subject": {"S": "8bce6c9f-6840-448c-a2f6-212ecc77e2f7"},
+    "yotiSessionId": {"S": "7af57b1e-740e-4ee2-8721-602a56440029"}
+}
