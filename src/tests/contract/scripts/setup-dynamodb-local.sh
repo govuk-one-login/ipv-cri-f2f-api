@@ -34,9 +34,8 @@ aws dynamodb create-table \
 
 # Insert the session-items to session-table
 echo "Inserting a record into the session-table..."
-aws dynamodb put-item \
-    --table-name session-table \
-    --item file://data/session-items.json \
+aws dynamodb batch-write-item \
+    --request-items file://data/session-items.json \
     --return-consumed-capacity TOTAL \
     --endpoint-url http://localhost:8000 
 
