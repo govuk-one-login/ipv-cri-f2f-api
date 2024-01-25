@@ -1,4 +1,3 @@
-//import { ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers"; 
 import Ajv from "ajv";
 import axios, { AxiosInstance } from "axios";
@@ -7,7 +6,6 @@ import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
 import { constants } from "../utils/ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
-//import { createSqsClient } from "../../utils/SqsClient";
 
 const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOVUKNOTIFYAPI });
 const API_INSTANCE = axios.create({ baseURL: constants.DEV_CRI_F2F_API_URL });
@@ -373,42 +371,6 @@ export async function getDequeuedSqsMessage(prefix: string): Promise<any> {
 	const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + key, {});
 	return getObjectResponse.data;
 }
-
-// export async function receiveJwtTokenFromSqsMessage(): Promise<any> {
-// 	const queueURL = constants.DEV_F2F_IPV_CORE_QUEUE_URL;
-
-// 	const receiveMessage = () => createSqsClient().send(
-// 		new ReceiveMessageCommand({
-// 			AttributeNames: ["SentTimestamp"],
-// 			MaxNumberOfMessages: 10,
-// 			MessageAttributeNames: ["All"],
-// 			QueueUrl: queueURL,
-// 			VisibilityTimeout: 40,
-// 			WaitTimeSeconds: 20,
-// 		}),
-// 	);
-
-// 	let jwtToken;
-
-// 	try {
-// 		const { Messages } = await receiveMessage();
-// 		for (const m of Messages) {
-// 			const parsedResponse = JSON.parse(m.Body);
-// 			const array = Object.values(parsedResponse);
-// 			jwtToken = array[2];
-// 			await createSqsClient().send(
-// 				new DeleteMessageCommand({
-// 					QueueUrl: queueURL,
-// 					ReceiptHandle: m.ReceiptHandle,
-// 				}),
-// 			);
-// 		}
-// 	} catch (e: any) {
-// 		console.error({ message: "got error receiving messages: ", e });
-// 	}
-
-// 	return jwtToken;
-// }
 
 export function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): void {
 	const [rawHead, rawBody, signature] = jwtToken.split(".");
