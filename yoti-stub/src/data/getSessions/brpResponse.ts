@@ -159,47 +159,56 @@ export const VALID_BRP_RESPONSE = {
                   {
                       "sub_check": "document_in_date",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "AUTOMATED"
                   },
                   {
                       "sub_check": "fraud_list_check",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "AUTOMATED"
                   },
                   {
                       "sub_check": "hologram",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "AUTOMATED"
                   },
                   {
                       "sub_check": "hologram_movement",
                       "result": "FAIL",
-                      "details": []
+                      "details": [],
+                      "process": "AUTOMATED"
                   },
                   {
                       "sub_check": "mrz_validation",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "AUTOMATED"
                   },
                   {
                       "sub_check": "no_sign_of_forgery",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "AUTOMATED"
                   },
                   {
                       "sub_check": "no_sign_of_tampering",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "AUTOMATED"
                   },
                   {
                       "sub_check": "other_security_features",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "AUTOMATED"
                   },
                   {
                       "sub_check": "physical_document_captured",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "AUTOMATED"
                   }
               ]
           },
@@ -228,7 +237,8 @@ export const VALID_BRP_RESPONSE = {
                               "name": "confidence_score",
                               "value": "1.00"
                           }
-                      ]
+                      ],
+                      "process": "AUTOMATED"
                   }
               ]
           },
