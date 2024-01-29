@@ -9,7 +9,7 @@ import { jwtUtils } from "../../utils/JwtUtils";
 
 const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOV_NOTIFY_API });
 const API_INSTANCE = axios.create({ baseURL: constants.DEV_CRI_F2F_API_URL });
-const YOTI_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_YOTI_STUB_URL });
+// const YOTI_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_YOTI_STUB_URL });
 const HARNESS_API_INSTANCE : AxiosInstance = axios.create({ baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
 const PO_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_PO_STUB_URL });
 
@@ -159,45 +159,45 @@ export async function postYotiSession(trackingId: any, userData: any): Promise<a
 	}
 }
 
-export async function getYotiSessionsConfiguration(sessionId: any): Promise<any> {
-	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/configuration";
-	console.log(path);
-	try {
-		const postRequest = await YOTI_INSTANCE.get(path);
-		return postRequest;
+// export async function getYotiSessionsConfiguration(sessionId: any): Promise<any> {
+// 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/configuration";
+// 	console.log(path);
+// 	try {
+// 		const postRequest = await YOTI_INSTANCE.get(path);
+// 		return postRequest;
 
-	} catch (error: any) {
-		console.log(`Error response from endpoint: ${error}`);
-		return error.response;
-	}
-}
+// 	} catch (error: any) {
+// 		console.log(`Error response from endpoint: ${error}`);
+// 		return error.response;
+// 	}
+// }
 
-export async function putYotiSessionsInstructions(sessionId: any): Promise<any> {
-	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions";
-	console.log(path);
-	try {
-		const postRequest = await YOTI_INSTANCE.put(path);
-		return postRequest;
+// export async function putYotiSessionsInstructions(sessionId: any): Promise<any> {
+// 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions";
+// 	console.log(path);
+// 	try {
+// 		const postRequest = await YOTI_INSTANCE.put(path);
+// 		return postRequest;
 
-	} catch (error: any) {
-		console.log(`Error response from endpoint: ${error}`);
-		return error.response;
-	}
-}
+// 	} catch (error: any) {
+// 		console.log(`Error response from endpoint: ${error}`);
+// 		return error.response;
+// 	}
+// }
 
 
-export async function getYotiSessionsInstructions(sessionId: any): Promise<any> {
-	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions/pdf";
-	console.log(path);
-	try {
-		const postRequest = await YOTI_INSTANCE.get(path);
-		return postRequest;
+// export async function getYotiSessionsInstructions(sessionId: any): Promise<any> {
+// 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions/pdf";
+// 	console.log(path);
+// 	try {
+// 		const postRequest = await YOTI_INSTANCE.get(path);
+// 		return postRequest;
 
-	} catch (error: any) {
-		console.log(`Error response from endpoint: ${error}`);
-		return error.response;
-	}
-}
+// 	} catch (error: any) {
+// 		console.log(`Error response from endpoint: ${error}`);
+// 		return error.response;
+// 	}
+// }
 
 export function generateRandomAlphanumeric(substringStart: number, substringEnd: number): string {
 	const result = Math.random().toString(36).substring(substringStart, substringEnd);

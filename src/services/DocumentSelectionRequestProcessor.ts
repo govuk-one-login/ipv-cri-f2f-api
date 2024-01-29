@@ -19,6 +19,7 @@ import { PostOfficeInfo } from "../models/YotiPayloads";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AllDocumentTypes, DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { ValidationHelper } from "../utils/ValidationHelper";
+import { createYotiService } from "../utils/YotiClient";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -28,7 +29,7 @@ export class DocumentSelectionRequestProcessor {
 
   private readonly metrics: Metrics;
 
-  private readonly yotiService: YotiService;
+	private yotiService: YotiService | undefined;
 
   private readonly f2fService: F2fService;
 
@@ -36,11 +37,10 @@ export class DocumentSelectionRequestProcessor {
 
   private readonly validationHelper: ValidationHelper;
 
-  constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
+  constructor(logger: Logger, metrics: Metrics) {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
-  	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   	this.validationHelper = new ValidationHelper();
   }
@@ -48,16 +48,15 @@ export class DocumentSelectionRequestProcessor {
   static getInstance(
   	logger: Logger,
   	metrics: Metrics,
-  	YOTI_PRIVATE_KEY: string,
   ): DocumentSelectionRequestProcessor {
   	if (!DocumentSelectionRequestProcessor.instance) {
   		DocumentSelectionRequestProcessor.instance =
-        new DocumentSelectionRequestProcessor(logger, metrics, YOTI_PRIVATE_KEY);
+        new DocumentSelectionRequestProcessor(logger, metrics);
   	}
   	return DocumentSelectionRequestProcessor.instance;
   }
 
-  async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
+  async processRequest(event: APIGatewayProxyEvent, sessionId: string, YOTI_PRIVATE_KEY: string): Promise<Response> {
 
   	let postOfficeSelection: PostOfficeInfo;
   	let selectedDocument;
@@ -102,6 +101,8 @@ export class DocumentSelectionRequestProcessor {
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
   	}
 
+		this.yotiService = createYotiService(f2fSessionInfo.clientId, YOTI_PRIVATE_KEY, this.environmentVariables, this.logger);
+
   	// Reject the request when session store does not contain email, familyName or GivenName fields
   	const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);
   	if (data.errorMessage.length > 0) {
@@ -113,6 +114,7 @@ export class DocumentSelectionRequestProcessor {
 
   		try {
   			yotiSessionId = await this.createSessionGenerateInstructions(
+					this.yotiService,
   				personDetails,
   				f2fSessionInfo,
   				postOfficeSelection,
@@ -249,6 +251,7 @@ export class DocumentSelectionRequestProcessor {
   }
 
   async createSessionGenerateInstructions(
+		yotiService: YotiService,
   	personDetails: PersonIdentityItem,
   	f2fSessionInfo: ISessionItem,
   	postOfficeSelection: PostOfficeInfo,
@@ -257,7 +260,7 @@ export class DocumentSelectionRequestProcessor {
   ): Promise<string> {
   	this.logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
 
-  	const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
+  	const yotiSessionId = await yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
 
   	if (!yotiSessionId) {
 		  this.logger.error("An error occurred when creating Yoti Session", { messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });
@@ -265,7 +268,7 @@ export class DocumentSelectionRequestProcessor {
   	}
 
   	this.logger.info("Fetching Session Info");
-  	const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId);
+  	const yotiSessionInfo = await yotiService.fetchSessionInfo(yotiSessionId);
 
   	if (!yotiSessionInfo) {
 		  this.logger.error("An error occurred when fetching Yoti Session", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
@@ -303,7 +306,7 @@ export class DocumentSelectionRequestProcessor {
   	}
 
   	this.logger.info({ message: "Generating Instructions PDF" }, { yotiSessionID: yotiSessionId });
-  	const generateInstructionsResponse = await this.yotiService.generateInstructions(
+  	const generateInstructionsResponse = await yotiService.generateInstructions(
   		yotiSessionId,
   		personDetails,
   		requirements,

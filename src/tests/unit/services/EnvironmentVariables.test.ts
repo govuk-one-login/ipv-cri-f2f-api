@@ -30,12 +30,12 @@ describe("EnvironmentVariables", () => {
 		});
 	});
 
-	describe("yotiSdk", () => {
+	describe("YOTISDK", () => {
 		it("should return the value of YOTI_SDK", () => {
 			process.env.YOTISDK = "YOTI_SDK_VALUE";
 			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
 
-			const result = envVars.yotiSdk();
+			const result = envVars.YOTISDK();
 
 			expect(result).toBe("YOTI_SDK_VALUE");
 		});
@@ -86,12 +86,12 @@ describe("EnvironmentVariables", () => {
 		});
 	});
 
-	describe("yotiBaseUrl", () => {
+	describe("YOTIBASEURL", () => {
 		it("should return the value of YOTIBASEURL", () => {
 			process.env.YOTIBASEURL = "YOTIBASEURL_VALUE";
 			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
 
-			const result = envVars.yotiBaseUrl();
+			const result = envVars.YOTIBASEURL();
 
 			expect(result).toBe("YOTIBASEURL_VALUE");
 		});

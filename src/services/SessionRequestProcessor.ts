@@ -21,6 +21,8 @@ interface ClientConfig {
 	jwksEndpoint: string;
 	clientId: string;
 	redirectUri: string;
+	YOTIBASEURL: string;
+	YOTISDK: string;
 }
 
 export class SessionRequestProcessor {
@@ -64,7 +66,7 @@ export class SessionRequestProcessor {
 
   	let configClient;
   	try {
-  		const config = JSON.parse(this.environmentVariables.clientConfig()) as ClientConfig[];
+  		const config = this.environmentVariables.clientConfig();
   		configClient = config.find(c => c.clientId === requestBodyClientId);
   	} catch (error) {
   		this.logger.error("Invalid or missing client configuration table", {
