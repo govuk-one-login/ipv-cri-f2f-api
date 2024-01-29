@@ -141,32 +141,38 @@ export const TAMPERED_DOCUMENT_RESPONSE = {
 									{
 											"sub_check": "document_in_date",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "fraud_list_check",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "hologram",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "hologram_movement",
 											"result": "FAIL",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "mrz_validation",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "no_sign_of_forgery",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "no_sign_of_tampering",
@@ -180,22 +186,26 @@ export const TAMPERED_DOCUMENT_RESPONSE = {
 															"name": "data_integrity",
 															"value": "FAIL"
 													}
-											]
+											],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "ocr_mrz_comparison",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "other_security_features",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "physical_document_captured",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									}
 							]
 					},
@@ -219,12 +229,14 @@ export const TAMPERED_DOCUMENT_RESPONSE = {
 									{
 											"sub_check": "ai_face_match",
 											"result": "FAIL",
-											"details": []
+											"details": [],
+											"process": "AUTOMATED"
 									},
 									{
 											"sub_check": "manual_face_match",
 											"result": "PASS",
-											"details": []
+											"details": [],
+											"process": "EXPERT_REVIEW"
 									}
 							]
 					},
