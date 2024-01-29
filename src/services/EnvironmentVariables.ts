@@ -22,10 +22,6 @@ export class EnvironmentVariables {
 
 	private GOVUKNOTIFY_BACKOFF_PERIOD_MS = process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS;
 
-	private readonly YOTI_SDK = process.env.YOTISDK;
-
-	private readonly YOTIBASEURL = process.env.YOTIBASEURL;
-
 	private readonly ISSUER = process.env.ISSUER;
 
 	private readonly SESSION_TABLE = process.env.SESSION_TABLE;
@@ -95,12 +91,6 @@ export class EnvironmentVariables {
 					|| +this.GOVUKNOTIFY_MAX_RETRIES.trim() >= 100) {
 					this.GOVUKNOTIFY_MAX_RETRIES = "3";
 					logger.warn("GOVUKNOTIFY_MAX_RETRIES env var is not set. Setting to default - 3");
-				}
-
-				if (!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0
-					|| !this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
-					logger.error("Environment variable YOTI_SDK or YOTIBASEURL is not configured");
-					throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 				}
 
 				if (!this.YOTI_SESSION_TTL_DAYS
@@ -189,12 +179,10 @@ export class EnvironmentVariables {
 			case ServicesEnum.DOCUMENT_SELECTION_SERVICE: {
 				if (!this.PERSON_IDENTITY_TABLE_NAME || this.PERSON_IDENTITY_TABLE_NAME.trim().length === 0 ||
 					!this.YOTICALLBACKURL || this.YOTICALLBACKURL.trim().length === 0 ||
-					!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 ||
 					!this.ISSUER || this.ISSUER.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
-					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
-					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
-					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
+					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0) {
+					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTICALLBACKURL or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
 				}
 				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS < 10) {
@@ -209,12 +197,10 @@ export class EnvironmentVariables {
 			}
 			case ServicesEnum.CALLBACK_SERVICE: {
 				if (!this.PERSON_IDENTITY_TABLE_NAME || this.PERSON_IDENTITY_TABLE_NAME.trim().length === 0 ||
-					!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 ||
 					!this.ISSUER || this.ISSUER.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
-					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
-					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
-					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
+					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0) {
+					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTICALLBACKURL or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Callback Service incorrectly configured");
 				}
 				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS < 10) {
@@ -228,12 +214,10 @@ export class EnvironmentVariables {
 				break;
 			}
 			case ServicesEnum.THANK_YOU_EMAIL_SERVICE: {
-				if (!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 ||
-					!this.ISSUER || this.ISSUER.trim().length === 0 ||
+				if (!this.ISSUER || this.ISSUER.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
-					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
-					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
-					logger.error("Environment variable YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
+					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0) {
+					logger.error("Environment variable YOTICALLBACKURL or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Thank you email Service incorrectly configured");
 				}
 				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS < 10) {
@@ -310,10 +294,6 @@ export class EnvironmentVariables {
 		return +this.GOVUKNOTIFY_BACKOFF_PERIOD_MS!;
 	}
 
-	yotiSdk(): any {
-		return this.YOTI_SDK;
-	}
-
 	issuer(): any {
 		return this.ISSUER;
 	}
@@ -328,10 +308,6 @@ export class EnvironmentVariables {
 
 	yotiKeySsmPath(): any {
 		return this.YOTI_KEY_SSM_PATH;
-	}
-
-	yotiBaseUrl(): any {
-		return this.YOTIBASEURL;
 	}
 
 	getGovNotifyQueueURL(logger: Logger): string {

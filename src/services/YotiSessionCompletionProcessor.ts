@@ -21,6 +21,8 @@ import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "..
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 import { YotiCallbackPayload } from "../type/YotiCallbackPayload";
 import { ISessionItem } from "../models/ISessionItem";
+import { createYotiService } from "../utils/YotiClient";
+
 
 export class YotiSessionCompletionProcessor {
 
@@ -30,7 +32,7 @@ export class YotiSessionCompletionProcessor {
 
   private readonly metrics: Metrics;
 
-  private readonly yotiService: YotiService;
+	private yotiService: YotiService | undefined;
 
   private readonly f2fService: F2fService;
 
@@ -45,12 +47,10 @@ export class YotiSessionCompletionProcessor {
   constructor(
   	logger: Logger,
   	metrics: Metrics,
-  	YOTI_PRIVATE_KEY: string,
   ) {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
-  	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
   	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.logger);
@@ -71,19 +71,17 @@ export class YotiSessionCompletionProcessor {
   static getInstance(
   	logger: Logger,
   	metrics: Metrics,
-  	YOTI_PRIVATE_KEY: string,
   ): YotiSessionCompletionProcessor {
   	if (!YotiSessionCompletionProcessor.instance) {
   		YotiSessionCompletionProcessor.instance = new YotiSessionCompletionProcessor(
   			logger,
   			metrics,
-  			YOTI_PRIVATE_KEY,
   		);
   	}
   	return YotiSessionCompletionProcessor.instance;
   }
 
-  async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
+  async processRequest(eventBody: YotiCallbackPayload, YOTI_PRIVATE_KEY: string): Promise<Response> {
   	const yotiSessionID = eventBody.session_id;
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
@@ -101,6 +99,8 @@ export class YotiSessionCompletionProcessor {
 			  sessionId: f2fSession.sessionId,
 			  govuk_signin_journey_id: f2fSession.clientSessionId,
 		  });
+
+			this.yotiService = createYotiService(f2fSession.clientId, YOTI_PRIVATE_KEY, this.environmentVariables, this.logger);
 
 		  this.logger.info({ message: "Fetching status for Yoti SessionID" });
 		  const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID);
