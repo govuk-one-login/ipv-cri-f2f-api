@@ -270,7 +270,6 @@ export class YotiService {
 
 			return HttpCodesEnum.OK;
 		} catch (error: any) {
-			// How to test for yotiErrorDetail?
 			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, yotiErrorDetail: error.errors?.[0]?.message });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF");
 		}
