@@ -251,13 +251,7 @@ export class YotiService {
 			documents: requirements,
 			branch: {
 				type: UK_POST_OFFICE.type,
-				name: PostOfficeSelection.name ? PostOfficeSelection.name : UK_POST_OFFICE.name,
-				address: PostOfficeSelection.address,
-				post_code: PostOfficeSelection.post_code,
-				location: {
-					latitude: PostOfficeSelection.location.latitude,
-					longitude: PostOfficeSelection.location.longitude,
-				},
+				fad_code: PostOfficeSelection.fad_code
 			},
 		};
 
@@ -276,7 +270,8 @@ export class YotiService {
 
 			return HttpCodesEnum.OK;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code });
+			// How to test for yotiErrorDetail?
+			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, yotiErrorDetail: error.errors?.[0]?.message });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF");
 		}
 	}

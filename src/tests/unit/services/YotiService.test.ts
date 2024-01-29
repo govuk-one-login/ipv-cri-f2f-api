@@ -161,14 +161,8 @@ const generateInstructionsPayload = {
 	],
 	branch: {
 		type: "UK_POST_OFFICE",
-		name: "UK Post Office Branch",
-		address: "1 The Street, Funkytown",
-		post_code: "SW19 4NS",
-		location: {
-			latitude: 0.34322,
-			longitude: -42.48372,
-		},
-	},
+		fad_code: "004010X"
+	}
 };
 
 describe("YotiService", () => {
@@ -523,15 +517,10 @@ describe("YotiService", () => {
 				longitude: -42.48372,
 			},
 			post_code: "SW19 4NS",
+			fad_code: "004010X"
 		};
 
-		const PostOfficeSelectionWithName = {
-			...PostOfficeSelection,
-			name: "The Funkytown Post office",
-		};
-
-
-		it("should generate instructions using hardcoded PO name and return OK status code", async () => {
+		it("should generate instructions and return OK status code", async () => {
 			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123/instructions",
 				config: {},
@@ -545,33 +534,6 @@ describe("YotiService", () => {
 			expect(axios.put).toHaveBeenCalledWith(
 				"https://example.com/api/sessions/session123/instructions",
 				generateInstructionsPayload,
-				{},
-			);
-			expect(statusCode).toBe(HttpCodesEnum.OK);
-		});
-
-		it("should include the received PO name from FE in the Yoti putInstructions call", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
-				url: "https://example.com/api/sessions/session123/instructions",
-				config: {},
-			});
-
-			axiosMock.put.mockResolvedValueOnce({});
-
-			const statusCode = await yotiService.generateInstructions(sessionID, personDetails, requirements, PostOfficeSelectionWithName);
-
-			const generateInstructionsPayloadWithName = {
-				...generateInstructionsPayload,
-				branch: {
-					...generateInstructionsPayload.branch,
-					name: "The Funkytown Post office",
-				},
-			};
-	
-			expect(generateYotiRequestMock).toHaveBeenCalled();
-			expect(axios.put).toHaveBeenCalledWith(
-				"https://example.com/api/sessions/session123/instructions",
-				generateInstructionsPayloadWithName,
 				{},
 			);
 			expect(statusCode).toBe(HttpCodesEnum.OK);
