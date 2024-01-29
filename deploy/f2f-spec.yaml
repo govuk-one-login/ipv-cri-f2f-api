@@ -1069,6 +1069,10 @@ components:
               description: Post code of post office
               example: "N1 2AA"
               pattern: ^[A-Za-z]{1,2}\d[A-Za-z\d]?\ ?\d[a-zA-Z]{2}$|^[Gg][Ii][Rr]\s?0[Aa]{2}$|^[Bb][Ff][Pp][Oo]\ ?\d{1,4}$
+            fad_code:
+              type: string
+              description: Fad code of post office
+              example: "004010X"
     JWKSFile:
       type: object
       required:
