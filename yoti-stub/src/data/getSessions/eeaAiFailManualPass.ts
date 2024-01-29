@@ -168,77 +168,92 @@ export const EEA_AI_FAIL_MANUAL_PASS = {
                   {
                     "sub_check": "chip_csca_trusted",
                     "result": "PASS",
-                    "details": []
+                    "details": [],
+                    "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "chip_data_integrity",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "chip_digital_signature_verification",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "chip_parse",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "chip_sod_parse",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "document_in_date",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "fraud_list_check",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "hologram",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "hologram_movement",
                       "result": "FAIL",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "mrz_validation",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "no_sign_of_forgery",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "no_sign_of_tampering",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "ocr_mrz_comparison",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "other_security_features",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   },
                   {
                       "sub_check": "physical_document_captured",
                       "result": "PASS",
-                      "details": []
+                      "details": [],
+                      "process": "EXPERT_REVIEW"
                   }
               ]
           },
@@ -267,12 +282,14 @@ export const EEA_AI_FAIL_MANUAL_PASS = {
                               "name": "confidence_score",
                               "value": "0.02"
                           }
-                      ]
+                      ],
+                      "process": "AUTOMATED"
                   },
                   {
                     "sub_check": "manual_face_match",
                     "result": "PASS",
-                    "details": []
+                    "details": [],
+                    "process": "EXPERT_REVIEW"
                   }
               ]
           },

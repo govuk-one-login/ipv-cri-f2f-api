@@ -2036,31 +2036,6 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
-  GovNotifyThrottleAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
-      OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
-      InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${GovNotifyFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-throttles"
-      MetricName: Throttles
-      Namespace: AWS/Lambda
-      Statistic: Sum
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref GovNotifyFunction
-      TreatMissingData: notBreaching
-      Period: 60 # This is the minimum value for the AWS Namespace
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-
   ## UserInfo
   UserInfoFunction:
     Type: AWS::Serverless::Function
@@ -5170,21 +5145,6 @@ Resources:
                     "title": "json web keys Throttles - ${AWS::StackName}",
                     "annotations": {
                       "alarms": ["${JsonWebKeysThrottleAlarm.Arn}"]
-                    },
-                    "view": "timeSeries",
-                    "stacked": false
-                  }
-                },
-                {
-                  "height": 6,
-                  "width": 12,
-                  "y": 12,
-                  "x": 12,
-                  "type": "metric",
-                  "properties": {
-                    "title": "GovNotify Throttles - ${AWS::StackName}",
-                    "annotations": {
-                      "alarms": ["${GovNotifyThrottleAlarm.Arn}"]
                     },
                     "view": "timeSeries",
                     "stacked": false

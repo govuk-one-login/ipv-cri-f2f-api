@@ -20,6 +20,7 @@ import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "../utils/IVeriCredential";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 import { YotiCallbackPayload } from "../type/YotiCallbackPayload";
+import { ISessionItem } from "../models/ISessionItem";
 
 export class YotiSessionCompletionProcessor {
 
@@ -108,6 +109,7 @@ export class YotiSessionCompletionProcessor {
 			  this.logger.error({ message: "No YOTI Session found with ID:" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_NOT_FOUND,
 			  });
+			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti Session not found");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not found");
 		  }
 
@@ -115,6 +117,7 @@ export class YotiSessionCompletionProcessor {
 			  this.logger.error({ message: "Session in Yoti does not have status COMPLETED" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_STATE_MISMATCH,
 			  });
+			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti Session not complete");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not complete", { shouldThrow: true });
 		  }
 
@@ -141,11 +144,13 @@ export class YotiSessionCompletionProcessor {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
   				ID_DOCUMENT_TEXT_DATA_CHECK: documentTextDataCheck?.report?.recommendation,
 			  });
+			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document_fields not populated");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields not populated");
   		} else if (idDocumentsDocumentFields.length > 1) {
   			this.logger.error({ message: "Multiple document_fields found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
 			  });
+			  await this.sendErrorMessageToIPVCore(f2fSession, "Multiple document_fields in response");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Multiple document_fields in response");
   		}
 
@@ -154,6 +159,7 @@ export class YotiSessionCompletionProcessor {
 			  this.logger.error({ message: "No media ID found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 			  });
+			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document_fields media ID not found");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields media ID not found");
 		  }
 
@@ -163,6 +169,7 @@ export class YotiSessionCompletionProcessor {
 				  documentFieldsId,
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 			  });
+			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document fields info not found");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
 		  }
 
@@ -209,6 +216,7 @@ export class YotiSessionCompletionProcessor {
   				this.logger.error({ message: "Missing Name Info in DocumentFields" }, {
   					messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
   				});
+  				await this.sendErrorMessageToIPVCore(f2fSession, "Missing Name Info in DocumentFields");
   				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Name Info in DocumentFields");
   			}
 
@@ -219,6 +227,7 @@ export class YotiSessionCompletionProcessor {
   					this.logger.warn("Missing details in PERSON IDENTITY tables", {
   						messageCode: MessageCodes.PERSON_NOT_FOUND,
   					});
+  					await this.sendErrorMessageToIPVCore(f2fSession, "Missing details in PERSON IDENTITY tables");
   					throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in PERSON IDENTITY tables");
   				}
 
@@ -236,6 +245,7 @@ export class YotiSessionCompletionProcessor {
 				  this.logger.error({ message: "Missing Credential Subject or Evidence payload" }, {
 					  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 				  });
+				  await this.sendErrorMessageToIPVCore(f2fSession, "Missing Credential Subject or Evidence payload");
 				  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Credential Subject or Evidence payload");
 			  }
 
@@ -252,14 +262,16 @@ export class YotiSessionCompletionProcessor {
 						  error,
 						  messageCode: MessageCodes.FAILED_SIGNING_JWT,
 					  });
+					  await this.sendErrorMessageToIPVCore(f2fSession, "Failed to sign the verifiableCredential Jwt");
 					  return new Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the verifiableCredential Jwt");
 				  }
 			  }
 
 			  if (!signedJWT) {
-				  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unable to create signed JWT", {
-					  messageCode: MessageCodes.FAILED_SIGNING_JWT,
-				  });
+  				await this.sendErrorMessageToIPVCore(f2fSession, "Unable to create signed JWT");
+  				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unable to create signed JWT", {
+  					messageCode: MessageCodes.FAILED_SIGNING_JWT,
+  				});				  
 			  }
 
 			  try {
@@ -286,6 +298,7 @@ export class YotiSessionCompletionProcessor {
 			  return new Response(HttpCodesEnum.OK, "OK");
 		  } else {
 			  this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
+			  await this.sendErrorMessageToIPVCore(f2fSession, "AuthSession is in wrong Auth state"); 
 			  return new Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED} or ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${f2fSession.authSessionState}`);
 		  }
 	  } else {
@@ -398,4 +411,24 @@ export class YotiSessionCompletionProcessor {
 		  });
 	  }
   }
+
+  async sendErrorMessageToIPVCore(f2fSession: ISessionItem, errorMessage: string) : Promise<any> {
+  	this.logger.error(`VC generation failed : ${errorMessage}`, {		
+  		messageCode: MessageCodes.ERROR_GENERATING_VC,
+  	});
+  	try {
+  		await this.f2fService.sendToIPVCore({
+  			sub: f2fSession.subject,
+  			state: f2fSession.state,
+  			error: "access_denied",
+  			error_description: `VC generation failed : ${errorMessage}`,
+  		});
+  	} catch (error) {
+  		this.logger.error({ message: "Failed to send error message to IPV Core Queue" }, {
+  			error,
+  			messageCode: MessageCodes.FAILED_SENDING_VC,
+  		});		
+  	}
+  }
 }
+
