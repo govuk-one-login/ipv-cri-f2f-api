@@ -6,6 +6,7 @@ process.env.SESSION_TABLE = "session-table";
 process.env.TXMA_QUEUE_URL = "txma-queue";
 process.env.ISSUER = "issuer";
 process.env.USE_MOCKED = "true";
+process.env.KMS_KEY_ARN = "kid";
 
 export const accessTokenRouter = asyncify(express.Router());
 

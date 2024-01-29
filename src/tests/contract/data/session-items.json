@@ -22,19 +22,16 @@
             "PutRequest": {
                 "Item": {
                     "sessionId": {
-                      "S": "2f40e373-6cbd-40cf-86a6-5ff75404235b"
-                    },
-                    "accessTokenExpiryDate": {
-                      "N": "1699359016"
+                      "S": "74655ce3-a679-4c09-a3b0-1d0dc2eff373"
                     },
                     "attemptCount": {
                       "N": "0"
                     },
-                    "authorizationCodeExpiryDate": {
-                      "N": "1688112506526"
+                    "authorizationCode": {
+                      "S": "0328ba66-a1b5-4314-acf8-f4673f1f05a2"
                     },
-                    "authrizationCode": {
-                      "S": "5d871274-28ce-4c40-a8be-f5ed409a0302"
+                    "authorizationCodeExpiryDate": {
+                      "N": "1706200661919"
                     },
                     "authSessionState": {
                       "S": "F2F_AUTH_CODE_ISSUED"
@@ -43,13 +40,13 @@
                       "S": "5C584572"
                     },
                     "clientSessionId": {
-                      "S": "dec81183321f52130801ea131741dc45"
+                      "S": "ab8a26249a268c7d678b713c51d70fe5"
                     },
                     "createdDate": {
-                      "N": "1693485535"
+                      "N": "1686070173439"
                     },
                     "expiryDate": {
-                      "N": "1687015142900"
+                      "N": "1687020573439"
                     },
                     "redirectUri": {
                       "S": "https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"
@@ -58,10 +55,13 @@
                       "BOOL": true
                     },
                     "state": {
-                      "S": "91354779585d68bf53ad7212bb8518a6"
+                      "S": "236a9875d6baf2c3fcc651feadda3340"
                     },
                     "subject": {
-                      "S": "5eba8106-bda4-4277-8ac7-e60676f68ac3"
+                      "S": "8bce6c9f-6840-448c-a2f6-212ecc77e2f7"
+                    },
+                    "yotiSessionId": {
+                      "S": "7af57b1e-740e-4ee2-8721-602a56440029"
                     }
                   }
             }

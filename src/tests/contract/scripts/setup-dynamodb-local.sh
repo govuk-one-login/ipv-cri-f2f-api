@@ -26,8 +26,24 @@ echo "Creating the DynamoDB session-table..."
 aws dynamodb create-table \
     --table-name session-table \
     --attribute-definitions AttributeName=sessionId,AttributeType=S \
+                            AttributeName=authorizationCode,AttributeType=S \
     --key-schema AttributeName=sessionId,KeyType=HASH \
     --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
+    --global-secondary-indexes \
+        "[
+            {
+                \"IndexName\": \"authCode-updated-index\",
+                \"KeySchema\": [{\"AttributeName\":\"authorizationCode\",\"KeyType\":\"HASH\"}],
+                \"Projection\":{
+                    \"ProjectionType\":\"INCLUDE\",
+                    \"NonKeyAttributes\":[\"sessionId\", \"redirectUri\", \"clientId\", \"authSessionState\", \"clientSessionId\", \"expiryDate\"]
+                },
+                \"ProvisionedThroughput\": {
+                    \"ReadCapacityUnits\": 10,
+                    \"WriteCapacityUnits\": 5
+                }
+            }
+        ]" \
     --endpoint-url http://localhost:8000
 
 # Step 3: Add the Record to the Table
