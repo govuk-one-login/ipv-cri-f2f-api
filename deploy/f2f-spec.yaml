@@ -1038,6 +1038,7 @@ components:
           required:
             - address
             - post_code
+            - fad_code
           properties:
             name:
               type: string
