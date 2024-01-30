@@ -125,7 +125,8 @@ class MockYotiSessionHandler implements LambdaInterface {
 							 // Extract attributes from queryStringParameters and add them to the data object
 							 const sessionId = event.pathParameters?.sessionId;
 							 const fadCode = payloadParsed.branch.fadCode;
-							 if(sessionId){
+							 logger.info("fadCode2", {fadCode});
+							 if(sessionId && fadCode){
 								logger.info("Updating Mock YOTI Session Instructions");
 								return await YotiRequestProcessor.getInstance(logger, metrics).updateSessionInstructions(sessionId, fadCode);
 							 }
