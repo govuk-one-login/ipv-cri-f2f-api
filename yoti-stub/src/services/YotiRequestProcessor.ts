@@ -61,6 +61,9 @@ import {PUT_INSTRUCTIONS_401} from "../data/putInstructions/putInstructions401";
 import {PUT_INSTRUCTIONS_404} from "../data/putInstructions/putInstructions404";
 import {PUT_INSTRUCTIONS_409} from "../data/putInstructions/putInstructions409";
 import {PUT_INSTRUCTIONS_500} from "../data/putInstructions/putInstructions500";
+import {FAD_CODE_INCORRECT_FORMAT} from "../data/putInstructions/fadCodeIncorrectFormat";
+import {FAD_CODE_INVALID} from "../data/putInstructions/fadCodeInvalid";
+import {FAD_CODE_NOT_INCLUDED} from "../data/putInstructions/fadCodeNotIncluded";
 import {POST_SESSIONS_400} from "../data/postSessions/postSessions400";
 import {POST_SESSIONS_401} from "../data/postSessions/postSessions401";
 import {POST_SESSIONS_403} from "../data/postSessions/postSessions403";
@@ -1262,13 +1265,27 @@ export class YotiRequestProcessor {
      * PUT /sessions/{id}/instructions
      * @param sessionId
      */
-    async updateSessionInstructions(sessionId: string): Promise<Response> {
+    async updateSessionInstructions(sessionId: string, fadCode: string): Promise<Response> {
         const lastUuidChars = sessionId.slice(-4);
         const firstTwoChars = lastUuidChars.slice(0, 2);
         this.logger.info({message: "last 4 ID chars", lastUuidChars});
 
+        const validFadCodeFormat = /^[a-zA-Z0-9]{7}$/;
+        const lastFadCodeChars = fadCode.slice(-4);
+
         this.logger.info("getSessionConfiguration", SUPPORTED_DOCUMENTS);
 
+        if (!fadCode) {
+            this.logger.info("Fad Code not included", JSON.stringify(FAD_CODE_NOT_INCLUDED));
+            return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(FAD_CODE_NOT_INCLUDED));
+        } else if (validFadCodeFormat.test(fadCode)) {
+            this.logger.info("Fad Code format incorrect", JSON.stringify(FAD_CODE_INCORRECT_FORMAT));
+            return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(FAD_CODE_INCORRECT_FORMAT));
+        } else if (lastFadCodeChars === 'XXXX') {
+            this.logger.info("Fad Code invalid", JSON.stringify(FAD_CODE_INVALID));
+            return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(FAD_CODE_INVALID));
+        }
+        
         if (SUPPORTED_DOCUMENTS.includes(firstTwoChars)) {
             this.logger.info("Put Instructions Response", JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
             return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
