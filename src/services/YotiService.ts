@@ -251,7 +251,7 @@ export class YotiService {
 			documents: requirements,
 			branch: {
 				type: UK_POST_OFFICE.type,
-				fad_code: PostOfficeSelection.fad_code
+				fad_code: PostOfficeSelection.fad_code,
 			},
 		};
 

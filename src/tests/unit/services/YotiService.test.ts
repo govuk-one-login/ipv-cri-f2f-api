@@ -161,8 +161,8 @@ const generateInstructionsPayload = {
 	],
 	branch: {
 		type: "UK_POST_OFFICE",
-		fad_code: "004010X"
-	}
+		fad_code: "004010X",
+	},
 };
 
 describe("YotiService", () => {
@@ -517,7 +517,7 @@ describe("YotiService", () => {
 				longitude: -42.48372,
 			},
 			post_code: "SW19 4NS",
-			fad_code: "004010X"
+			fad_code: "004010X",
 		};
 
 		it("should generate instructions and return OK status code", async () => {
