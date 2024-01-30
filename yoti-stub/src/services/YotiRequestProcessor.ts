@@ -1269,6 +1269,8 @@ export class YotiRequestProcessor {
         const lastUuidChars = sessionId.slice(-4);
         const firstTwoChars = lastUuidChars.slice(0, 2);
         this.logger.info({message: "last 4 ID chars", lastUuidChars});
+        this.logger.info({message: "fadCode!!!", fadCode});
+
 
         const validFadCodeFormat = /^[a-zA-Z0-9]{7}$/;
         const lastFadCodeChars = fadCode.slice(-4);
