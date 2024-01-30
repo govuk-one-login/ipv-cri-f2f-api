@@ -35,7 +35,7 @@ export class UserInfoRequestProcessor {
 		this.validationHelper = new ValidationHelper();
 		this.metrics = metrics;
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
-		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
+		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn(), this.logger);
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics): UserInfoRequestProcessor {

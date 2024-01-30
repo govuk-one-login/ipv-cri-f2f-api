@@ -1,13 +1,14 @@
 import * as AWS from "@aws-sdk/client-kms";
 import AWSXRay from "aws-xray-sdk-core";
 import { mockKmsCient } from "../tests/contract/mocks/kmsClient";
+import { Logger } from "@aws-lambda-powertools/logger";
 
-const createKmsClient = () => {    
+const createKmsClient = (logger: Logger) => {    
 
 	let kmsClient: AWS.KMS;	
 
 	if (process.env.USE_MOCKED) {
-		console.log("USING MOCKED");
+		logger.info("KMSClient: USING MOCKED");
 		kmsClient = mockKmsCient as unknown as AWS.KMS;
 	} else {
 

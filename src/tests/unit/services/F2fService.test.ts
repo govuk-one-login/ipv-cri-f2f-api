@@ -16,7 +16,7 @@ let f2fService: F2fService;
 const tableName = "SESSIONTABLE";
 const sessionId = "SESSID";
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
-const mockSqsClient = createSqsClient();
+const mockSqsClient = createSqsClient(logger);
 const SESSION_RECORD = require("../data/db_record.json");
 
 const FAILURE_VALUE = "throw_me";

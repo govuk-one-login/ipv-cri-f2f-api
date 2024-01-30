@@ -184,7 +184,7 @@ export class F2fService {
 
 			this.logger.info({ message: "Sending message to TxMA", eventName: event.event_name });
 
-			await createSqsClient().send(new SendMessageCommand(params));
+			await createSqsClient(this.logger).send(new SendMessageCommand(params));
 			this.logger.info("Sent message to TxMA");
 
 			const obfuscatedObject = await this.obfuscateJSONValues(event, Constants.TXMA_FIELDS_TO_SHOW);
@@ -203,7 +203,7 @@ export class F2fService {
 				QueueUrl: this.environmentVariables.getGovNotifyQueueURL(this.logger),
 			};
 
-			await createSqsClient().send(new SendMessageCommand(params));
+			await createSqsClient(this.logger).send(new SendMessageCommand(params));
 			this.logger.info("Sent message to Gov Notify");
 		} catch (error) {
 			this.logger.error({ message: "Error when sending message to GovNotify Queue", error });
@@ -222,7 +222,7 @@ export class F2fService {
 
 			this.logger.info({ message: "Sending message to IPV Core Queue", queueUrl });
 
-			await createSqsClient().send(new SendMessageCommand(params));
+			await createSqsClient(this.logger).send(new SendMessageCommand(params));
 			this.logger.info("Sent message to IPV Core");
 		} catch (error) {
 			this.logger.error({ message: "Error when sending message to IPV Core Queue", error });

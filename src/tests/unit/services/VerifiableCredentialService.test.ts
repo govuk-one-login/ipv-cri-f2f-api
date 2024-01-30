@@ -23,7 +23,7 @@ describe("VerifiableCredentialService", () => {
 	const tableName = "test-table";
 	const issuer = "test-issuer";
 	const logger = mock<Logger>();
-	const kmsJwtAdapter = new KmsJwtAdapter("kid");
+	const kmsJwtAdapter = new KmsJwtAdapter("kid", logger);
 
 	const credentialSubject = {
 		"birthDate": [

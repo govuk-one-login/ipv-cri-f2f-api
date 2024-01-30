@@ -42,7 +42,7 @@ class YotiSessionCompletionHandler implements LambdaInterface {
 			if (!YOTI_PRIVATE_KEY) {
 				logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
 				try {
-					YOTI_PRIVATE_KEY = await getParameter(this.environmentVariables.yotiKeySsmPath());
+					YOTI_PRIVATE_KEY = await getParameter(this.environmentVariables.yotiKeySsmPath(), logger);
 				} catch (error) {
 					logger.error(`failed to get param from ssm at ${this.environmentVariables.yotiKeySsmPath()}`, {
 						messageCode: MessageCodes.MISSING_CONFIGURATION,

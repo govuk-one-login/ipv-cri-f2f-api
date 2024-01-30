@@ -1,11 +1,12 @@
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import AWSXRay from "aws-xray-sdk-core";
 import { mockSsmCient } from "../tests/contract/mocks/ssmClient";
+import { Logger } from "@aws-lambda-powertools/logger";
 
-const createSsmClient = () => {
+const createSsmClient = (logger: Logger) => {
 	let ssmClient: SSMClient;
 	if (process.env.USE_MOCKED) {
-		console.log("USING MOCKED");
+		logger.info("SSMClient: USING MOCKED");
 		ssmClient = mockSsmCient as unknown as SSMClient;
 	} else {
         

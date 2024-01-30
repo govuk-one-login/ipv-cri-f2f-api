@@ -66,7 +66,7 @@ export class DocumentSelection implements LambdaInterface {
 			if (!YOTI_PRIVATE_KEY) {
 				logger.info({ message: "Fetching key from SSM" });
 				try {
-					YOTI_PRIVATE_KEY = await getParameter(this.YOTI_KEY_SSM_PATH);
+					YOTI_PRIVATE_KEY = await getParameter(this.YOTI_KEY_SSM_PATH, logger);
 				} catch (error) {
 					logger.error(`failed to get param from ssm at ${this.YOTI_KEY_SSM_PATH}`, {
 						messageCode: MessageCodes.MISSING_CONFIGURATION,
