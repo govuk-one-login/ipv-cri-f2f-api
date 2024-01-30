@@ -1269,8 +1269,6 @@ export class YotiRequestProcessor {
         const lastUuidChars = sessionId.slice(-4);
         const firstTwoChars = lastUuidChars.slice(0, 2);
         this.logger.info({message: "last 4 ID chars", lastUuidChars});
-        this.logger.info({message: "fadCode!!!", fadCode});
-
 
         const validFadCodeFormat = /^[a-zA-Z0-9]{7}$/;
         const lastFadCodeChars = fadCode.slice(-4);
@@ -1280,7 +1278,7 @@ export class YotiRequestProcessor {
         if (!fadCode) {
             this.logger.info("Fad Code not included", JSON.stringify(FAD_CODE_NOT_INCLUDED));
             return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(FAD_CODE_NOT_INCLUDED));
-        } else if (validFadCodeFormat.test(fadCode)) {
+        } else if (!validFadCodeFormat.test(fadCode)) {
             this.logger.info("Fad Code format incorrect", JSON.stringify(FAD_CODE_INCORRECT_FORMAT));
             return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(FAD_CODE_INCORRECT_FORMAT));
         } else if (lastFadCodeChars === 'XXXX') {
