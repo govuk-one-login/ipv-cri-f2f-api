@@ -17,3 +17,4 @@ process.env.PERSON_IDENTITY_TABLE_NAME = "PERSONIDENTITYTABLE"
 process.env.YOTICALLBACKURL = "www.test.com/callback";
 process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS = "10";
 process.env.GOVUKNOTIFY_API = "https://test-govnotify-stub";
+process.env.USE_MOCKED = "true";
