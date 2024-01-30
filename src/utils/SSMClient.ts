@@ -3,7 +3,12 @@ import AWSXRay from "aws-xray-sdk-core";
 import { mockSsmCient } from "../tests/contract/mocks/ssmClient";
 import { Logger } from "@aws-lambda-powertools/logger";
 
-const createSsmClient = (logger: Logger) => {
+const logger = new Logger({
+	logLevel: "INFO",
+	serviceName: "SSMClient",
+});
+
+const createSsmClient = () => {
 	let ssmClient: SSMClient;
 	if (process.env.USE_MOCKED) {
 		logger.info("SSMClient: USING MOCKED");

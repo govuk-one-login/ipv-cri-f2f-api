@@ -4,7 +4,12 @@ import AWSXRay from "aws-xray-sdk-core";
 import { mockSqsCient } from "../tests/contract/mocks/sqsClient";
 import { Logger } from "@aws-lambda-powertools/logger";
 
-const createSqsClient = (logger: Logger) => {
+const logger = new Logger({
+	logLevel: "INFO",
+	serviceName: "SqsClient",
+});
+
+const createSqsClient = () => {
 	let sqsClient: SQSClient;
 	if (process.env.USE_MOCKED) {
 		logger.info("SqsClient: USING MOCKED");

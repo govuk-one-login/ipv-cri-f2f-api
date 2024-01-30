@@ -3,7 +3,12 @@ import AWSXRay from "aws-xray-sdk-core";
 import { mockKmsCient } from "../tests/contract/mocks/kmsClient";
 import { Logger } from "@aws-lambda-powertools/logger";
 
-const createKmsClient = (logger: Logger) => {    
+const logger = new Logger({
+	logLevel: "INFO",
+	serviceName: "KMSClient",
+});
+
+const createKmsClient = () => {    
 
 	let kmsClient: AWS.KMS;	
 

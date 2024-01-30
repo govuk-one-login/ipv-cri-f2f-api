@@ -43,7 +43,7 @@ class GovNotifyHandler implements LambdaInterface {
 				if (!YOTI_PRIVATE_KEY) {
 					logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
 					try {
-						YOTI_PRIVATE_KEY = await getParameter(this.environmentVariables.yotiKeySsmPath(), logger);
+						YOTI_PRIVATE_KEY = await getParameter(this.environmentVariables.yotiKeySsmPath());
 					} catch (error) {
 						logger.error(`failed to get param from ssm at ${this.environmentVariables.yotiKeySsmPath()}`, {
 							messageCode: MessageCodes.MISSING_CONFIGURATION,
@@ -55,7 +55,7 @@ class GovNotifyHandler implements LambdaInterface {
 				if (!GOVUKNOTIFY_API_KEY) {
 					logger.info({ message: "Fetching GOVUKNOTIFY_API_KEY from SSM" });
 					try {
-						GOVUKNOTIFY_API_KEY = await getParameter(this.environmentVariables.govNotifyApiKeySsmPath(), logger);
+						GOVUKNOTIFY_API_KEY = await getParameter(this.environmentVariables.govNotifyApiKeySsmPath());
 					} catch (error) {
 						logger.error(`failed to get param from ssm at ${this.environmentVariables.govNotifyApiKeySsmPath()}`, {
 							messageCode: MessageCodes.MISSING_CONFIGURATION,

@@ -7,13 +7,10 @@ import crypto from "crypto";
 import { importJWK, JWTPayload, jwtVerify } from "jose";
 import axios from "axios";
 import { createKmsClient } from "./KMSClient";
-import { Logger } from "@aws-lambda-powertools/logger";
 import * as AWS from "@aws-sdk/client-kms";
 
 export class KmsJwtAdapter {
-	readonly kid: string;
-
-	readonly logger: Logger;	
+	readonly kid: string;	
 
 	private kms: AWS.KMS;
 
@@ -24,10 +21,9 @@ export class KmsJwtAdapter {
 	 */
 	ALG = "ECDSA_SHA_256";
 
-	constructor(kid: string, logger: Logger) {
-		this.logger = logger;
+	constructor(kid: string) {
 		this.kid = kid;
-		this.kms = createKmsClient(this.logger);
+		this.kms = createKmsClient();
 	}
 
 	async sign(jwtPayload: JwtPayload): Promise<string> {

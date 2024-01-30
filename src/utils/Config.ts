@@ -1,8 +1,7 @@
-import { Logger } from "@aws-lambda-powertools/logger";
 import { createSsmClient, GetParameterCommand } from "./SSMClient";
 
-export async function getParameter(path: string, logger: Logger): Promise<string> {
-	const client = createSsmClient(logger);
+export async function getParameter(path: string): Promise<string> {
+	const client = createSsmClient();
 	const command = new GetParameterCommand({ Name: path });
 	const response = await client.send(command);
 
