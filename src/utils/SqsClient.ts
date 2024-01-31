@@ -2,11 +2,17 @@ import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 import AWSXRay from "aws-xray-sdk-core";
 import { mockSqsCient } from "../tests/contract/mocks/sqsClient";
+import { Logger } from "@aws-lambda-powertools/logger";
+
+const logger = new Logger({
+	logLevel: "INFO",
+	serviceName: "SqsClient",
+});
 
 const createSqsClient = () => {
 	let sqsClient: SQSClient;
 	if (process.env.USE_MOCKED) {
-		console.log("USING MOCKED");
+		logger.info("SqsClient: USING MOCKED");
 		sqsClient = mockSqsCient as unknown as SQSClient;
 	} else {
 
