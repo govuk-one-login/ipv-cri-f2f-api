@@ -5,19 +5,18 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { randomUUID } from "crypto";
 import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-import { sqsClient } from "../../../utils/SqsClient";
+import { createSqsClient } from "../../../utils/SqsClient";
 import { TxmaEvent } from "../../../utils/TxmaEvent";
 import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { personIdentityInputRecord, personIdentityOutputRecord } from "../data/personIdentity-records";
-import { AppError } from "../../../utils/AppError";
 
 const logger = mock<Logger>();
 let f2fService: F2fService;
 const tableName = "SESSIONTABLE";
 const sessionId = "SESSID";
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
-const mockSqsClient = jest.mocked(sqsClient);
+const mockSqsClient = createSqsClient();
 const SESSION_RECORD = require("../data/db_record.json");
 
 const FAILURE_VALUE = "throw_me";

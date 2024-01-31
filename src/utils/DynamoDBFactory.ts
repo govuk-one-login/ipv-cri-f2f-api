@@ -8,19 +8,17 @@ AWSXRay.setContextMissingStrategy("LOG_ERROR");
 const awsRegion = process.env.AWS_REGION;
 export const createDynamoDbClient = () => {
 	const marshallOptions = {
-		// Whether to automatically convert empty strings, blobs, and sets to `null`.
 		convertEmptyValues: false,
-		// Whether to remove undefined values while marshalling.
 		removeUndefinedValues: true,
-		// Whether to convert typeof object to map attribute.
 		convertClassInstanceToMap: true,
 	};
 	const unmarshallOptions = {
-		// Whether to return numbers as a string instead of converting them to native JavaScript numbers.
 		wrapNumbers: false,
 	};
 	const translateConfig = { marshallOptions, unmarshallOptions };
-	const dbClient = new DynamoDBClient({ region: awsRegion, credentials: fromEnv() });
+	const useMocks = process.env.USE_MOCKED === "true";
+	const endpoint = useMocks ? "http://localhost:8000" : undefined;
+	const dbClient = new DynamoDBClient({ region: awsRegion, credentials: fromEnv(), endpoint });
 	const dbClientRaw = DynamoDBDocument.from(dbClient, translateConfig);
 	return process.env.XRAY_ENABLED === "true" ? AWSXRay.captureAWSv3Client(dbClientRaw as any) : dbClientRaw;
 };
