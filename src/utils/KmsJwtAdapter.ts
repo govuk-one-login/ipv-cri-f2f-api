@@ -1,18 +1,18 @@
 import format from "ecdsa-sig-formatter";
 import { Buffer } from "buffer";
 import { Jwt, JwtHeader, JwtPayload, JsonWebTokenError, Jwk } from "./IVeriCredential";
-import * as AWS from "@aws-sdk/client-kms";
 import { jwtUtils } from "./JwtUtils";
 import { DecryptCommand, DecryptCommandInput, DecryptCommandOutput } from "@aws-sdk/client-kms";
 import crypto from "crypto";
 import { importJWK, JWTPayload, jwtVerify } from "jose";
 import axios from "axios";
 import { createKmsClient } from "./KMSClient";
+import * as AWS from "@aws-sdk/client-kms";
 
 export class KmsJwtAdapter {
-	readonly kid: string;
+	readonly kid: string;	
 
-	private kms = createKmsClient();
+	private kms: AWS.KMS;
 
 	/**
 	 * An implemention the JWS standard using KMS to sign Jwts
@@ -23,6 +23,7 @@ export class KmsJwtAdapter {
 
 	constructor(kid: string) {
 		this.kid = kid;
+		this.kms = createKmsClient();
 	}
 
 	async sign(jwtPayload: JwtPayload): Promise<string> {
