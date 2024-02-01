@@ -295,6 +295,7 @@ Globals:
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
         POWERTOOLS_LOG_LEVEL: DEBUG # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
+        RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
         SESSION_TABLE:
           Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
         SECRET_PREFIX: !If [
@@ -1351,7 +1352,6 @@ Resources:
           YOTIBASEURL: !FindInMap [EnvironmentVariables, !Ref Environment, YOTIBASEURL]
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
           YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
-          RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -1896,7 +1896,6 @@ Resources:
           YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
           YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
-          RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -2703,6 +2702,7 @@ Resources:
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
+          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
