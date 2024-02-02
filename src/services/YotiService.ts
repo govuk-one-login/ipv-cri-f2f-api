@@ -270,7 +270,7 @@ export class YotiService {
 
 			return HttpCodesEnum.OK;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, yotiErrorDetail: error.errors?.[0]?.message });
+			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error, yotiErrorCode: error.code, yotiError: error.errors });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF");
 		}
 	}
