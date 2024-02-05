@@ -224,7 +224,7 @@ export class DocumentSelectionRequestProcessor {
 						  ],
   				},
   				restricted: {
-					name: personDetails.name,
+  					name: personDetails.name,
   					[docName]: [
   						{
   							documentType: docType,
