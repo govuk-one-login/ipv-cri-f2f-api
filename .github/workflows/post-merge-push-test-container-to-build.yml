@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.BUILD_CRI_F2F_GH_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
