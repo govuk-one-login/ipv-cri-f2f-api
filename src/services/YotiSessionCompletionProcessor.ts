@@ -46,11 +46,11 @@ export class YotiSessionCompletionProcessor {
 
 	private YOTI_PRIVATE_KEY: string;
 
-  constructor(
+	constructor(
   	logger: Logger,
   	metrics: Metrics,
-		YOTI_PRIVATE_KEY: string
-  ) {
+		YOTI_PRIVATE_KEY: string,
+	) {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
@@ -59,9 +59,9 @@ export class YotiSessionCompletionProcessor {
   	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.logger);
   	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger);
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
-  }
+	}
 
-  isTaskDone(data: any, taskType: string): boolean {
+	isTaskDone(data: any, taskType: string): boolean {
   	if (data.tasks && Array.isArray(data.tasks)) {
   		for (const task of data.tasks) {
   			if (task.type === taskType && task.state === YotiSessionDocument.DONE_STATE) {
@@ -70,24 +70,24 @@ export class YotiSessionCompletionProcessor {
   		}
   	}
   	return false;
-  }
+	}
 
-  static getInstance(
+	static getInstance(
   	logger: Logger,
   	metrics: Metrics,
 		YOTI_PRIVATE_KEY: string,
-  ): YotiSessionCompletionProcessor {
+	): YotiSessionCompletionProcessor {
   	if (!YotiSessionCompletionProcessor.instance) {
   		YotiSessionCompletionProcessor.instance = new YotiSessionCompletionProcessor(
   			logger,
   			metrics,
-				YOTI_PRIVATE_KEY
+				YOTI_PRIVATE_KEY,
   		);
   	}
   	return YotiSessionCompletionProcessor.instance;
-  }
+	}
 
-  async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
+	async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
   	const yotiSessionID = eventBody.session_id;
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
@@ -313,17 +313,17 @@ export class YotiSessionCompletionProcessor {
 		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "");
 	  }
 
-  }
+	}
 
-  checkMissingField(field: string, fieldName: string): boolean {
+	checkMissingField(field: string, fieldName: string): boolean {
   	if (!field || field.trim() === "") {
   		this.logger.info({ message: `Missing ${fieldName} field in documentFields response` });
   		return true;
   	}
   	return false;
-  }
+	}
 
-  async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any, rejectionReasons: [{ ci: string; reason: string }]): Promise<any> {
+	async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any, rejectionReasons: [{ ci: string; reason: string }]): Promise<any> {
 	  // Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
 	  let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
@@ -416,9 +416,9 @@ export class YotiSessionCompletionProcessor {
 			  messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
 		  });
 	  }
-  }
+	}
 
-  async sendErrorMessageToIPVCore(f2fSession: ISessionItem, errorMessage: string) : Promise<any> {
+	async sendErrorMessageToIPVCore(f2fSession: ISessionItem, errorMessage: string) : Promise<any> {
   	this.logger.error(`VC generation failed : ${errorMessage}`, {		
   		messageCode: MessageCodes.ERROR_GENERATING_VC,
   	});
@@ -435,6 +435,6 @@ export class YotiSessionCompletionProcessor {
   			messageCode: MessageCodes.FAILED_SENDING_VC,
   		});		
   	}
-  }
+	}
 }
 

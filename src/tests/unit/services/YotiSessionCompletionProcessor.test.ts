@@ -23,6 +23,11 @@ import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPer
 let mockCompletedSessionProcessor: YotiSessionCompletionProcessor;
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
+jest.mock("../../../utils/YotiClient", () => {
+	return {
+		createYotiService: jest.fn(() => mockYotiService),
+	};
+});
 
 const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "F2F" });
@@ -112,8 +117,6 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockCompletedSessionProcessor = new YotiSessionCompletionProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore
 		mockCompletedSessionProcessor.f2fService = mockF2fService;
-		// @ts-ignore
-		mockCompletedSessionProcessor.yotiService = mockYotiService;
 
 		completedYotiSession = getCompletedYotiSession();
 		documentFields = getDocumentFields();

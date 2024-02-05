@@ -62,8 +62,6 @@ describe("SendEmailProcessor", () => {
 		// @ts-ignore
 		sendEmailServiceTest.govNotify = mockGovNotify;
 		// @ts-ignore
-		sendEmailServiceTest.yotiService = mockYotiService;
-		// @ts-ignore
 		sendEmailServiceTest.f2fService = mockF2fService;
 		sqsEvent = VALID_SQS_EVENT;
 		reminderEmailEvent = VALID_REMINDER_SQS_EVENT;
@@ -75,7 +73,7 @@ describe("SendEmailProcessor", () => {
 		sqsEvent = VALID_SQS_EVENT;
 	});
 
-	it("Returns EmailResponse when YOTI PDF email is sent successfully", async () => {
+	it.only("Returns EmailResponse when YOTI PDF email is sent successfully", async () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
 		const session = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(session);

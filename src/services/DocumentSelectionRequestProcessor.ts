@@ -39,28 +39,28 @@ export class DocumentSelectionRequestProcessor {
 
 	private YOTI_PRIVATE_KEY: string;
 
-  constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
+	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   	this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
-  }
+	}
 
-  static getInstance(
+	static getInstance(
   	logger: Logger,
   	metrics: Metrics,
 		YOTI_PRIVATE_KEY: string,
-  ): DocumentSelectionRequestProcessor {
+	): DocumentSelectionRequestProcessor {
   	if (!DocumentSelectionRequestProcessor.instance) {
   		DocumentSelectionRequestProcessor.instance =
         new DocumentSelectionRequestProcessor(logger, metrics, YOTI_PRIVATE_KEY);
   	}
   	return DocumentSelectionRequestProcessor.instance;
-  }
+	}
 
-  async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
+	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
 
   	let postOfficeSelection: PostOfficeInfo;
   	let selectedDocument;
@@ -252,16 +252,16 @@ export class DocumentSelectionRequestProcessor {
   		});
   		return new Response(HttpCodesEnum.UNAUTHORIZED, "Yoti session already exists for this authorization session or Session is in the wrong state");
   	}
-  }
+	}
 
-  async createSessionGenerateInstructions(
+	async createSessionGenerateInstructions(
 		yotiService: YotiService,
   	personDetails: PersonIdentityItem,
   	f2fSessionInfo: ISessionItem,
   	postOfficeSelection: PostOfficeInfo,
   	selectedDocument: string,
   	countryCode: string,
-  ): Promise<string> {
+	): Promise<string> {
   	this.logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
 
   	const yotiSessionId = await yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
@@ -323,9 +323,9 @@ export class DocumentSelectionRequestProcessor {
   	}
 
   	return yotiSessionId;
-  }
+	}
 
-  async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
+	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
   	this.logger.info({ message: "Posting message to Gov Notify" });
   	try {
   		await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
@@ -336,5 +336,5 @@ export class DocumentSelectionRequestProcessor {
   		});
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when sending message to GovNotify handler");
   	}
-  }
+	}
 }

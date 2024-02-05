@@ -15,6 +15,11 @@ const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "F2F" });
+jest.mock("../../../utils/YotiClient", () => {
+	return {
+		createYotiService: jest.fn(() => mockYotiService),
+	};
+});
 // pragma: allowlist nextline secret
 const YOTI_PRIVATE_KEY = "YOTI_PRIVATE_KEY";
 const sessionId = "RandomF2FSessionID";
@@ -242,8 +247,6 @@ describe("ThankYouEmailProcessor", () => {
 		thankYouEmailProcessor = new ThankYouEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY);
 		// @ts-ignore
 		thankYouEmailProcessor.f2fService = mockF2fService;
-		// @ts-ignore
-		thankYouEmailProcessor.yotiService = mockYotiService;
 		f2fSessionItem = getMockSessionItem();
 		yotiSessionItem = getMockYotiSessionItem();
 		jest.useFakeTimers();

@@ -24,6 +24,12 @@ import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 let mockDocumentSelectionRequestProcessor: DocumentSelectionRequestProcessor;
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
+jest.mock("../../../utils/YotiClient", () => {
+	return {
+		createYotiService: jest.fn(() => mockYotiService),
+	};
+});
+
 
 const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "F2F" });
@@ -177,8 +183,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore
 		mockDocumentSelectionRequestProcessor.f2fService = mockF2fService;
-		// @ts-ignore
-		mockDocumentSelectionRequestProcessor.yotiService = mockYotiService;
 
 		yotiSessionInfo = getYotiSessionInfo();
 		f2fSessionItem = getMockSessionItem();

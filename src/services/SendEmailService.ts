@@ -19,7 +19,6 @@ import { ReminderEmail } from "../models/ReminderEmail";
 import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { Constants } from "../utils/Constants";
-import { createYotiService } from "../utils/YotiClient";
 
 
 /**
@@ -37,9 +36,7 @@ export class SendEmailService {
 
     private readonly logger: Logger;
 
-		private yotiService: YotiService | undefined;
-
-		private YOTI_PRIVATE_KEY: string | undefined;
+	private yotiService: YotiService;
 
 	private readonly f2fService: F2fService;
 
@@ -53,9 +50,9 @@ export class SendEmailService {
     	this.logger = logger;
     	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
     	this.govNotify = new NotifyClient(this.environmentVariables.govukNotifyApiUrl(), govnotifyServiceId, GOVUKNOTIFY_API_KEY);
+		this.yotiService = YotiService.getInstance(this.logger, "", this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, "");
     	this.govNotifyErrorMapper = new GovNotifyErrorMapper();
-			this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
-			this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 	}
 
 	static getInstance(logger: Logger, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, govnotifyServiceId: string): SendEmailService {
@@ -223,27 +220,6 @@ export class SendEmailService {
 		//retry for maxRetry count configured value if fails
 		while (yotiInstructionsPdfRetryCount <= this.environmentVariables.yotiInstructionsPdfMaxRetries()) {
 			this.logger.debug("Fetching the Instructions Pdf from yoti for sessionId: ", message.yotiSessionId);
-
-			const f2fSession = await this.f2fService.getSessionByYotiId(message.yotiSessionId);
-
-			if (!f2fSession) {
-				this.logger.error("Session not found", {
-					messageCode: MessageCodes.SESSION_NOT_FOUND,
-				});
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing info in session table");
-			}
-
-			this.logger.appendKeys({
-				sessionId: f2fSession.sessionId,
-				govuk_signin_journey_id: f2fSession.clientSessionId,
-			});
-
-			if (!this.YOTI_PRIVATE_KEY) {
-				throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing YOTI Config");
-			}
-
-			this.yotiService = createYotiService(f2fSession.clientId, this.YOTI_PRIVATE_KEY, this.environmentVariables, this.logger);
-			
 			try {
 				const instructionsPdf = await this.yotiService.fetchInstructionsPdf(message.yotiSessionId);
 				if (instructionsPdf) {

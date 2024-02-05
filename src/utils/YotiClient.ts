@@ -18,6 +18,7 @@ export const createYotiService = (sessionClientId: string, YOTI_PRIVATE_KEY: str
 	const config = JSON.parse(environmentVariables.clientConfig()) as ClientConfig[];
 	const configClient = config.find(c => c.clientId === sessionClientId);
 
+	console.log("configClient", configClient);
 	if (configClient?.YOTISDK && configClient.YOTIBASEURL) {
 		logger.info({ message: "Creating Yoti Service" });
 		yotiService = YotiService.getInstance(logger, configClient?.YOTISDK, environmentVariables.resourcesTtlInSeconds(), environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, configClient.YOTIBASEURL);

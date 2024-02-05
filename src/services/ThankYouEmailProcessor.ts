@@ -31,34 +31,34 @@ export class ThankYouEmailProcessor {
 
 	private YOTI_PRIVATE_KEY: string;
 
-  constructor(
+	constructor(
   	logger: Logger,
   	metrics: Metrics,
 		YOTI_PRIVATE_KEY: string,
-  ) {
+	) {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.THANK_YOU_EMAIL_SERVICE);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
-  }
+	}
 
-  static getInstance(
+	static getInstance(
   	logger: Logger,
   	metrics: Metrics,
 		YOTI_PRIVATE_KEY: string,
-  ): ThankYouEmailProcessor {
+	): ThankYouEmailProcessor {
   	if (!ThankYouEmailProcessor.instance) {
   		ThankYouEmailProcessor.instance = new ThankYouEmailProcessor(
   			logger,
   			metrics,
-				YOTI_PRIVATE_KEY
+				YOTI_PRIVATE_KEY,
   		);
   	}
   	return ThankYouEmailProcessor.instance;
-  }
+	}
 
-  async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
+	async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
   	const yotiSessionID = eventBody.session_id;
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
@@ -115,5 +115,5 @@ export class ThankYouEmailProcessor {
   		this.logger.error("Event does not include yoti session_id", { messageCode: MessageCodes.MISSING_SESSION_ID });
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Event does not include yoti session_id");
   	}
-  }
+	}
 }
