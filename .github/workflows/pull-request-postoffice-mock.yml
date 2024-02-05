@@ -32,7 +32,7 @@ jobs:
         working-directory: post-office-stub/src/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -68,7 +68,7 @@ jobs:
         working-directory: post-office-stub
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
