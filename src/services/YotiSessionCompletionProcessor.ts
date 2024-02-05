@@ -44,9 +44,12 @@ export class YotiSessionCompletionProcessor {
 
   private readonly generateVerifiableCredential: GenerateVerifiableCredential;
 
+	private YOTI_PRIVATE_KEY: string;
+
   constructor(
   	logger: Logger,
   	metrics: Metrics,
+		YOTI_PRIVATE_KEY: string
   ) {
   	this.logger = logger;
   	this.metrics = metrics;
@@ -55,6 +58,7 @@ export class YotiSessionCompletionProcessor {
   	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
   	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.logger);
   	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger);
+		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
   }
 
   isTaskDone(data: any, taskType: string): boolean {
@@ -71,17 +75,19 @@ export class YotiSessionCompletionProcessor {
   static getInstance(
   	logger: Logger,
   	metrics: Metrics,
+		YOTI_PRIVATE_KEY: string,
   ): YotiSessionCompletionProcessor {
   	if (!YotiSessionCompletionProcessor.instance) {
   		YotiSessionCompletionProcessor.instance = new YotiSessionCompletionProcessor(
   			logger,
   			metrics,
+				YOTI_PRIVATE_KEY
   		);
   	}
   	return YotiSessionCompletionProcessor.instance;
   }
 
-  async processRequest(eventBody: YotiCallbackPayload, YOTI_PRIVATE_KEY: string): Promise<Response> {
+  async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
   	const yotiSessionID = eventBody.session_id;
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
@@ -100,7 +106,7 @@ export class YotiSessionCompletionProcessor {
 			  govuk_signin_journey_id: f2fSession.clientSessionId,
 		  });
 
-			this.yotiService = createYotiService(f2fSession.clientId, YOTI_PRIVATE_KEY, this.environmentVariables, this.logger);
+			this.yotiService = createYotiService(f2fSession.clientId, this.YOTI_PRIVATE_KEY, this.environmentVariables, this.logger);
 
 		  this.logger.info({ message: "Fetching status for Yoti SessionID" });
 		  const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID);

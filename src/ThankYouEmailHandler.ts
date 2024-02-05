@@ -51,7 +51,7 @@ class ThankYouEmailHandler implements LambdaInterface {
 				}
 			}
 
-			await ThankYouEmailProcessor.getInstance(logger, metrics).processRequest(event, YOTI_PRIVATE_KEY);
+			await ThankYouEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event);
 			logger.debug("Finished processing record from SQS");
 
 		} catch (error: any) {

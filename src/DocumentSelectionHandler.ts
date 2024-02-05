@@ -75,7 +75,7 @@ export class DocumentSelection implements LambdaInterface {
 					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
 			}
-			return await DocumentSelectionRequestProcessor.getInstance(logger, metrics).processRequest(event, sessionId, YOTI_PRIVATE_KEY);
+			return await DocumentSelectionRequestProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event, sessionId);
 		} catch (error) {
 			logger.error({ message: "An error has occurred. ",
 				error,

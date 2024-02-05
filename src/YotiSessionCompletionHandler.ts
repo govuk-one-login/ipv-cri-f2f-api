@@ -51,7 +51,7 @@ class YotiSessionCompletionHandler implements LambdaInterface {
 					return new AppError(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
 			}
-			await YotiSessionCompletionProcessor.getInstance(logger, metrics).processRequest(event, YOTI_PRIVATE_KEY);
+			await YotiSessionCompletionProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event);
 			logger.debug("Finished processing record from SQS");
 
 		} catch (error: any) {

@@ -29,30 +29,36 @@ export class ThankYouEmailProcessor {
 
   private readonly environmentVariables: EnvironmentVariables;
 
+	private YOTI_PRIVATE_KEY: string;
+
   constructor(
   	logger: Logger,
   	metrics: Metrics,
+		YOTI_PRIVATE_KEY: string,
   ) {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.THANK_YOU_EMAIL_SERVICE);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
   }
 
   static getInstance(
   	logger: Logger,
   	metrics: Metrics,
+		YOTI_PRIVATE_KEY: string,
   ): ThankYouEmailProcessor {
   	if (!ThankYouEmailProcessor.instance) {
   		ThankYouEmailProcessor.instance = new ThankYouEmailProcessor(
   			logger,
   			metrics,
+				YOTI_PRIVATE_KEY
   		);
   	}
   	return ThankYouEmailProcessor.instance;
   }
 
-  async processRequest(eventBody: YotiCallbackPayload, YOTI_PRIVATE_KEY: string): Promise<Response> {
+  async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
   	const yotiSessionID = eventBody.session_id;
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
@@ -71,7 +77,7 @@ export class ThankYouEmailProcessor {
 			  govuk_signin_journey_id: f2fSession.clientSessionId,
 		  });
 
-			this.yotiService = createYotiService(f2fSession.clientId, YOTI_PRIVATE_KEY, this.environmentVariables, this.logger);
+			this.yotiService = createYotiService(f2fSession.clientId, this.YOTI_PRIVATE_KEY, this.environmentVariables, this.logger);
 			
 			this.logger.info({ message: "Fetching yoti session" });
 		  const yotiSessionInfo: YotiCompletedSession | undefined = await this.yotiService.getCompletedSessionInfo(yotiSessionID);

@@ -37,26 +37,30 @@ export class DocumentSelectionRequestProcessor {
 
   private readonly validationHelper: ValidationHelper;
 
-  constructor(logger: Logger, metrics: Metrics) {
+	private YOTI_PRIVATE_KEY: string;
+
+  constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   	this.validationHelper = new ValidationHelper();
+		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
   }
 
   static getInstance(
   	logger: Logger,
   	metrics: Metrics,
+		YOTI_PRIVATE_KEY: string,
   ): DocumentSelectionRequestProcessor {
   	if (!DocumentSelectionRequestProcessor.instance) {
   		DocumentSelectionRequestProcessor.instance =
-        new DocumentSelectionRequestProcessor(logger, metrics);
+        new DocumentSelectionRequestProcessor(logger, metrics, YOTI_PRIVATE_KEY);
   	}
   	return DocumentSelectionRequestProcessor.instance;
   }
 
-  async processRequest(event: APIGatewayProxyEvent, sessionId: string, YOTI_PRIVATE_KEY: string): Promise<Response> {
+  async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
 
   	let postOfficeSelection: PostOfficeInfo;
   	let selectedDocument;
@@ -101,7 +105,7 @@ export class DocumentSelectionRequestProcessor {
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
   	}
 
-		this.yotiService = createYotiService(f2fSessionInfo.clientId, YOTI_PRIVATE_KEY, this.environmentVariables, this.logger);
+		this.yotiService = createYotiService(f2fSessionInfo.clientId, this.YOTI_PRIVATE_KEY, this.environmentVariables, this.logger);
 
   	// Reject the request when session store does not contain email, familyName or GivenName fields
   	const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);

@@ -66,7 +66,7 @@ export class SessionRequestProcessor {
 
   	let configClient;
   	try {
-  		const config = this.environmentVariables.clientConfig();
+  		const config = JSON.parse(this.environmentVariables.clientConfig()) as ClientConfig[];
   		configClient = config.find(c => c.clientId === requestBodyClientId);
   	} catch (error) {
   		this.logger.error("Invalid or missing client configuration table", {

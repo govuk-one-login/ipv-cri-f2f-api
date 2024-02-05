@@ -30,17 +30,6 @@ describe("EnvironmentVariables", () => {
 		});
 	});
 
-	describe("YOTISDK", () => {
-		it("should return the value of YOTI_SDK", () => {
-			process.env.YOTISDK = "YOTI_SDK_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
-
-			const result = envVars.YOTISDK();
-
-			expect(result).toBe("YOTI_SDK_VALUE");
-		});
-	});
-
 	describe("issuer", () => {
 		it("should return the value of ISSUER", () => {
 			process.env.ISSUER = "ISSUER_VALUE";
@@ -83,17 +72,6 @@ describe("EnvironmentVariables", () => {
 			const result = envVars.yotiKeySsmPath();
 
 			expect(result).toBe("YOTI_KEY_SSM_PATH_VALUE");
-		});
-	});
-
-	describe("YOTIBASEURL", () => {
-		it("should return the value of YOTIBASEURL", () => {
-			process.env.YOTIBASEURL = "YOTIBASEURL_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
-
-			const result = envVars.YOTIBASEURL();
-
-			expect(result).toBe("YOTIBASEURL_VALUE");
 		});
 	});
 

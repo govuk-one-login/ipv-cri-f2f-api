@@ -145,19 +145,19 @@ export async function sessionConfigurationGet(sessionId: any):Promise<any> {
 		return error.response;
 	}
 }
-export async function postYotiSession(trackingId: any, userData: any): Promise<any> {
-	const path = "/sessions";
-	try {
-		// update fullName to contain trackingId - this determines the behaviour of the Yoti mock
-		userData.resources.applicant_profile.full_name = "Fred" + trackingId;
+// export async function postYotiSession(trackingId: any, userData: any): Promise<any> {
+// 	const path = "/sessions";
+// 	try {
+// 		// update fullName to contain trackingId - this determines the behaviour of the Yoti mock
+// 		userData.resources.applicant_profile.full_name = "Fred" + trackingId;
 
-		const postRequest = await YOTI_INSTANCE.post(path, userData);
-		return postRequest;
-	} catch (error: any) {
-		console.log(`Error response from ${path} endpoint: ${error}`);
-		return error.response;
-	}
-}
+// 		const postRequest = await YOTI_INSTANCE.post(path, userData);
+// 		return postRequest;
+// 	} catch (error: any) {
+// 		console.log(`Error response from ${path} endpoint: ${error}`);
+// 		return error.response;
+// 	}
+// }
 
 // export async function getYotiSessionsConfiguration(sessionId: any): Promise<any> {
 // 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/configuration";
