@@ -111,6 +111,7 @@ Mappings:
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      YOTISTUBURL: "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk"
       CLIENTS:
         '[
           {
@@ -143,6 +144,7 @@ Mappings:
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      YOTISTUBURL: "https://yotistub.review-o.build.account.gov.uk"
       CLIENTS:
         '[
           {
@@ -5778,6 +5780,10 @@ Outputs:
     Description: "F2F IPV Stub"
     Value:
       Fn::ImportValue: !Sub '${IPVStubStackName}-IPVStubExecuteUrl'
+  F2FYotiStubURL:
+    Condition: IsNotProdLikeEnvironment
+    Description: "F2F Yoti Stub"
+    Value: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISTUBURL]
   TxMASQSQueue:
     Description: "Arn of the TxMASQSQueue"
     Value: !GetAtt TxMASQSQueue.Arn

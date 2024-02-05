@@ -73,7 +73,7 @@ describe("SendEmailProcessor", () => {
 		sqsEvent = VALID_SQS_EVENT;
 	});
 
-	it.only("Returns EmailResponse when YOTI PDF email is sent successfully", async () => {
+	it("Returns EmailResponse when YOTI PDF email is sent successfully", async () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
 		const session = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(session);
