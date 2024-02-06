@@ -24,7 +24,7 @@ jobs:
         working-directory: infra-l2-dynamo
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
