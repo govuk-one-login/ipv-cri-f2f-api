@@ -110,11 +110,10 @@ describe("Callback API", () => {
 		validateJwtToken(jwtToken, vcResponseData, "0000");
 	}, 20000);
 
-	describe("F2F CRI Callback Endpoint Integration UnHappyPath", () => {
+	describe("F2F CRI Callback Endpoint UnHappyPath - No Verifiable Credential", () => {
 
 		it.each([
 			["0160"],
-			["0134"],
 		])("F2F CRI Callback Endpoint Integration UnHappyPath - yotiMockId: '%s'", async (yotiMockId: string) => {
 			f2fStubPayload.yotiMockID = yotiMockId;
 
@@ -137,6 +136,35 @@ describe("Callback API", () => {
 			} while (i < 5);
 	
 			expect(sqsMessage).toBeUndefined();
+		}, 20000);
+	});
+
+	describe("F2F CRI Callback Endpoint UnHappyPath - No Verifiable Credential", () => {
+
+		it.each([
+			["0134","VC generation failed : Multiple document_fields in response"],
+		])("F2F CRI Callback Endpoint Integration UnHappyPath - yotiMockId: '%s'", async (yotiMockId: string, vcError: string) => {
+			f2fStubPayload.yotiMockID = yotiMockId;
+
+			const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
+
+			await initiateUserInfo(dataNonUkPassport, sessionResponse.data.session_id);
+
+			const session = await getSessionById(sessionResponse.data.session_id, constants.DEV_F2F_SESSION_TABLE_NAME);
+			const yotiSessionId: any = session?.yotiSessionId;
+			console.log(yotiSessionId);
+		
+			await callbackPost(yotiSessionId);
+	
+			// Retrieve Verifiable Credential from dequeued SQS queue
+			let sqsMessage;
+			let i = 0;
+			do {
+				sqsMessage = await getDequeuedSqsMessage(sessionResponse.data.sub);
+				i++;
+			} while (i < 5);
+	
+			expect(sqsMessage.error_description).toBe(vcError);
 		}, 20000);
 	});
 	
