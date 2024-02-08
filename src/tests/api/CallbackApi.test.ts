@@ -88,7 +88,7 @@ describe("Callback API", () => {
 
 	}, 20000);
 
-	it.skip("F2F CRI Callback Endpoint Integration HappyPath - yotiMockId: '%s'", async () => {
+	it("F2F CRI Callback Endpoint Integration HappyPath - yotiMockId: '%s'", async () => {
 		f2fStubPayload.yotiMockID = "0000";
 
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
@@ -115,7 +115,7 @@ describe("Callback API", () => {
 
 		it.each([
 			["0160"],
-		])("F2F CRI Callback Endpoint Integration UnHappyPath - yotiMockId: '%s'", async (yotiMockId: string) => {
+		])("yotiMockId: '%s'", async (yotiMockId: string) => {
 			f2fStubPayload.yotiMockID = yotiMockId;
 
 			const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
@@ -138,17 +138,16 @@ describe("Callback API", () => {
 			} while (i < 10);
 
 
-			console.log("Subject for yotiMockId " + yotiMockId + "=" + sessionResponse.data.sub)
-			console.log("sqsMessage for yotiMockId " + yotiMockId + "=" + JSON.stringify(sqsMessage))
+			console.log("Subject for yotiMockId " + yotiMockId + "=" + sessionResponse.data.sub);
+			console.log("sqsMessage for yotiMockId " + yotiMockId + "=" + JSON.stringify(sqsMessage));
 			expect(sqsMessage).toBeUndefined();
 		}, 20000);
 	});
 
-	describe("F2F CRI Callback Endpoint UnHappyPath - No Verifiable Credential", () => {
-
+	describe("F2F CRI Callback Endpoint UnHappyPath - Verifiable Credential Error", () => {
 		it.each([
-			["0134","VC generation failed : Multiple document_fields in response"],
-		])("F2F CRI Callback Endpoint Integration UnHappyPath - yotiMockId: '%s'", async (yotiMockId: string, vcError: string) => {
+			["0134", "VC generation failed : Multiple document_fields in response"],
+		])("yotiMockId: '%s'", async (yotiMockId: string, vcError: string) => {
 			f2fStubPayload.yotiMockID = yotiMockId;
 
 			const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
@@ -170,8 +169,8 @@ describe("Callback API", () => {
 				i++;
 			} while (i < 10);
 
-			console.log("Subject for yotiMockId " + yotiMockId + "=" + sessionResponse.data.sub)
-			console.log("sqsMessage for yotiMockId " + yotiMockId + "=" + JSON.stringify(sqsMessage))
+			console.log("Subject for yotiMockId " + yotiMockId + "=" + sessionResponse.data.sub);
+			console.log("sqsMessage for yotiMockId " + yotiMockId + "=" + JSON.stringify(sqsMessage));
 	
 			expect(sqsMessage.error_description).toBe(vcError);
 		}, 20000);
@@ -268,7 +267,7 @@ describe("Callback API", () => {
 
 	}, 20000);
 
-	it.skip("F2F CRI Callback Endpoint thank you email - yotiMockId 0101", async () => {
+	it("F2F CRI Callback Endpoint thank you email - yotiMockId 0101", async () => {
 		const yotiMockID = "0101";
 
 		f2fStubPayload.yotiMockID = yotiMockID;
