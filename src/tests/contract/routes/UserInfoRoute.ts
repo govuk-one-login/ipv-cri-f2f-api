@@ -26,11 +26,10 @@ export const userInfoRouter = asyncify(express.Router());
 userInfoRouter.post("/", async (req, res) => {
 	const event: APIGatewayProxyEvent = eventRequest;
 	event.headers = convertIncomingHeadersToAPIGatewayHeaders(req.headers);
-	event.httpMethod = "POST";
-	event.path = "/userinfo";
+	event.httpMethod = req.method;
 	
 	const response = await lambdaHandler(event, {});
-	
+
 	console.log("UserInfo response: " + JSON.stringify(response));
 	res.status(response.statusCode);
 	res.setHeader("Content-Type", "application/json");
