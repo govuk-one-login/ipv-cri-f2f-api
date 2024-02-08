@@ -6,6 +6,7 @@ import dataBrp from "../data/docSelectionPayloadBrpValid.json";
 import dataEeaIdCard from "../data/docSelectionPayloadEeaIdCardValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import vcResponseData from "../data/vcValidationData.json";
+import { sleep } from "../../../src/utils/Sleep";
 import {
 	startStubServiceAndReturnSessionId,
 	validateJwtToken,
@@ -132,6 +133,7 @@ describe("Callback API", () => {
 			let i = 0;
 			do {
 				sqsMessage = await getDequeuedSqsMessage(sessionResponse.data.sub);
+				await sleep(1000);
 				i++;
 			} while (i < 5);
 	
