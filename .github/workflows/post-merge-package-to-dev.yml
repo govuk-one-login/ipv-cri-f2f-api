@@ -3,7 +3,7 @@ on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches:
-      - main
+      - KIWI-QA-fail-vc-updates
     paths-ignore:
       - 'infra-l2-dynamo/**'
       - 'infra-l2-kms/**'
