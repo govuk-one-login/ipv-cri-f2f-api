@@ -1,4 +1,10 @@
+import { Logger } from "@aws-lambda-powertools/logger";
 import axios, { AxiosRequestConfig } from "axios";
+
+const logger = new Logger({
+	logLevel: "INFO",
+	serviceName: "UserInfoTest",
+});
 
 const runTest = async () => {
 	const config: AxiosRequestConfig = {
@@ -10,11 +16,10 @@ const runTest = async () => {
 	};
 	try {
 		const userInfoResponse = await axios(config);
-		console.log("================================");
-		console.log("status", userInfoResponse.status);
-		console.log("data", userInfoResponse.data);
-	} catch (e) {
-		console.log("error", e);
+		logger.info("UserInfo Status", userInfoResponse.status.toString());
+		logger.info("UserInfo response:", userInfoResponse.data);
+	} catch (error) {
+		logger.error("Error occured while running the UserInfoTest", { error });
 	}
 };
 

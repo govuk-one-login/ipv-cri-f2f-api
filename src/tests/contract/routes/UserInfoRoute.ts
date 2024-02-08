@@ -2,14 +2,19 @@ import express from "express";
 import asyncify from "express-asyncify";
 import { lambdaHandler } from "../../../UserInfoHandler";
 import { APIGatewayProxyEvent, APIGatewayProxyEventHeaders } from "aws-lambda";
+import { IncomingHttpHeaders } from "http";
+import { eventRequest } from "../model/ApiGatewayEvents";
+import { Logger } from "@aws-lambda-powertools/logger";
 
 process.env.SESSION_TABLE = "session-table";
 process.env.TXMA_QUEUE_URL = "txma-queue";
 process.env.USE_MOCKED = "true";
 process.env.KMS_KEY_ARN = "kid";
 
-import { IncomingHttpHeaders } from "http";
-import { eventRequest } from "../model/ApiGatewayEvents";
+const logger = new Logger({
+	logLevel: "INFO",
+	serviceName: "UserInfoRoute",
+});
 
 function convertIncomingHeadersToAPIGatewayHeaders(incomingHeaders: IncomingHttpHeaders): APIGatewayProxyEventHeaders {
 	const apiGatewayHeaders: APIGatewayProxyEventHeaders = {};
@@ -30,7 +35,7 @@ userInfoRouter.post("/", async (req, res) => {
 	
 	const response = await lambdaHandler(event, {});
 
-	console.log("UserInfo response: " + JSON.stringify(response));
+	logger.info("UserInfo response: ", { response });
 	res.status(response.statusCode);
 	res.setHeader("Content-Type", "application/json");
 	res.send(response.body);
