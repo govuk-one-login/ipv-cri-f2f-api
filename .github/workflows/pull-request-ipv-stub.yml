@@ -32,7 +32,7 @@ jobs:
         working-directory: f2f-ipv-stub
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -51,7 +51,7 @@ jobs:
         run: echo "mirror-dir=${GITHUB_WORKSPACE}/npm-packages-offline-cache" >> $GITHUB_OUTPUT
 
       - name: Cache npm offline-mirror
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.offline-mirror-path.outputs.mirror-dir }}
           key: offline-mirror-oauth
@@ -73,7 +73,7 @@ jobs:
         working-directory: f2f-ipv-stub
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -83,13 +83,13 @@ jobs:
           use-installer: true
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.GH_IPV_STUB_VALIDATE_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Cache SAM builds
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ./di-ipv-cri-f2f-api/.aws-sam/cache

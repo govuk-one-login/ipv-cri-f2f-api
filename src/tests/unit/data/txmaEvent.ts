@@ -212,10 +212,18 @@ const TXMA_YOTI_START_EXTENSION = {
 	},
 };
 
+
 export const TXMA_PASSPORT_YOTI_START = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_YOTI_START_EXTENSION,
 	restricted: {
+		"name": [{
+			"nameParts": [
+				{ "value": "Frederick", "type": "GivenName" },
+				{ "value": "Joseph", "type": "GivenName" },
+				{ "value": "Flintstone", "type": "FamilyName" },
+			],
+		}],
 		"passport": [
 			{
 				"documentType": "PASSPORT",
@@ -237,6 +245,13 @@ export const TXMA_NATIONAL_ID_YOTI_START = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_YOTI_START_EXTENSION,
 	restricted: {
+		"name": [{
+			"nameParts": [
+				{ "value": "Frederick", "type": "GivenName" },
+				{ "value": "Joseph", "type": "GivenName" },
+				{ "value": "Flintstone", "type": "FamilyName" },
+			],
+		}],
 		"idCard": [
 			{
 				"documentType": "NATIONAL_ID",
