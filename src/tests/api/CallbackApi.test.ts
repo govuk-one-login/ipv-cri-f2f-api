@@ -110,12 +110,11 @@ describe("Callback API", () => {
 		validateJwtToken(jwtToken, vcResponseData, "0000");
 	}, 20000);
 
-	describe("F2F CRI Callback Endpoint Integration UnHappyPath", () => {
-
+	describe("F2F CRI Callback Endpoint UnHappyPath - Verifiable Credential Error", () => {
 		it.each([
-			["0160"],
-			["0134"],
-		])("F2F CRI Callback Endpoint Integration UnHappyPath - yotiMockId: '%s'", async (yotiMockId: string) => {
+			["0134", "VC generation failed : Multiple document_fields in response"],
+			["0160", "VC generation failed : Yoti document_fields not populated"],
+		])("yotiMockId: '%s'", async (yotiMockId: string, vcError: string) => {
 			f2fStubPayload.yotiMockID = yotiMockId;
 
 			const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
@@ -136,7 +135,7 @@ describe("Callback API", () => {
 				i++;
 			} while (i < 5);
 	
-			expect(sqsMessage).toBeUndefined();
+			expect(sqsMessage.error_description).toBe(vcError);
 		}, 20000);
 	});
 	
