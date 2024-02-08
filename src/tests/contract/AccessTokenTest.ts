@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const AUTHORIZATION_CODE = "0328ba66-a1b5-4314-acf8-f4673f1f05a2";
-const ENCODED_REDIRECT_URI = encodeURIComponent("https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect");
+const ENCODED_REDIRECT_URI = encodeURIComponent("https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f");
 export const VALID_ACCESSTOKEN = {
 	body:`code=${AUTHORIZATION_CODE}&grant_type=authorization_code&redirect_uri=${ENCODED_REDIRECT_URI}`,
 	httpMethod: "POST",

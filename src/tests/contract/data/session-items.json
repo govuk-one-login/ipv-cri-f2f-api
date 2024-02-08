@@ -49,7 +49,7 @@
                       "N": "1687020573439"
                     },
                     "redirectUri": {
-                      "S": "https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"
+                      "S": "https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f"
                     },
                     "reminderEmailSent": {
                       "BOOL": true
@@ -103,7 +103,7 @@
                     "S": "236a9875d6baf2c3fcc651feadda3340"
                   },
                   "subject": {
-                    "S": "8bce6c9f-6840-448c-a2f6-212ecc77e2f7"
+                    "S": "dummyTestUser"
                   },
                   "yotiSessionId": {
                     "S": "7af57b1e-740e-4ee2-8721-602a56440029"
