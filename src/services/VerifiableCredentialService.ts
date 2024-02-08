@@ -11,7 +11,6 @@ import {
 	VerifiedCredentialSubject,
 } from "../utils/IVeriCredential";
 import { randomUUID } from "crypto";
-
 export class VerifiableCredentialService {
 
   readonly tableName: string;
@@ -67,6 +66,7 @@ export class VerifiableCredentialService {
   	credentialSubject: VerifiedCredentialSubject,
   	evidence: VerifiedCredentialEvidence,
   	getNow: () => number,
+	kid: string
   ): CredentialJwt {
   	const now = getNow();
   	const subject = sessionItem?.subject as string;
@@ -77,7 +77,10 @@ export class VerifiableCredentialService {
   		iss: this.issuer,
   		iat: now,
   		jti: Constants.URN_UUID_PREFIX + randomUUID(),
-  		vc: verifiedCredential,
+		typ: "JWT",
+		kid: kid,
+		alg: "",
+  		vc: verifiedCredential
   	};
 
   	this.logger.info({ message: "Generated Verified Credential jwt" });
