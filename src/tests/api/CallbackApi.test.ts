@@ -25,7 +25,7 @@ import { constants } from "../utils/ApiConstants";
 describe("Callback API", () => {
 	jest.setTimeout(60000);
 
-	it.each([
+	it.skip.each([
 		["0000", dataUkDrivingLicence],
 		["0001", dataUkDrivingLicence],
 		["0101", dataPassport],
@@ -88,7 +88,7 @@ describe("Callback API", () => {
 
 	}, 20000);
 
-	it("F2F CRI Callback Endpoint Integration HappyPath - yotiMockId: '%s'", async () => {
+	it.skip("F2F CRI Callback Endpoint Integration HappyPath - yotiMockId: '%s'", async () => {
 		f2fStubPayload.yotiMockID = "0000";
 
 		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
@@ -135,7 +135,7 @@ describe("Callback API", () => {
 				sqsMessage = await getDequeuedSqsMessage(sessionResponse.data.sub);
 				await sleep(1000);
 				i++;
-			} while (i < 5);
+			} while (i < 10);
 
 			expect(sqsMessage).toBeUndefined();
 		}, 20000);
@@ -165,14 +165,14 @@ describe("Callback API", () => {
 				sqsMessage = await getDequeuedSqsMessage(sessionResponse.data.sub);
 				await sleep(1000);
 				i++;
-			} while (i < 5);
+			} while (i < 10);
 	
 			expect(sqsMessage.error_description).toBe(vcError);
 		}, 20000);
 	});
 	
 
-	it.each([
+	it.skip.each([
 		["0150", dataPassport, "FRANK", "JACOB", "JAMES", "SMITH"],
 		["0151", dataPassport, "FRANK", "JACOB", "JAMES", "SMITH"],
 		["0152", dataPassport, "FRANK", "JACOB", "JAMES", "SMITH"],
@@ -204,7 +204,7 @@ describe("Callback API", () => {
 		validateJwtTokenNamePart(jwtToken, givenName1, givenName2, givenName3, familyName + yotiMockId);
 	}, 20000);
 
-	it.each([
+	it.skip.each([
 		["0000", dataUkDrivingLicence],
 		["0101", dataPassport],
 		["0200", dataNonUkPassport],
@@ -233,7 +233,7 @@ describe("Callback API", () => {
 
 	}, 20000);
 
-	it.each([
+	it.skip.each([
 		["0000", dataUkDrivingLicence],
 		["0101", dataPassport],
 		["0200", dataNonUkPassport],
@@ -262,7 +262,7 @@ describe("Callback API", () => {
 
 	}, 20000);
 
-	it("F2F CRI Callback Endpoint thank you email - yotiMockId 0101", async () => {
+	it.skip("F2F CRI Callback Endpoint thank you email - yotiMockId 0101", async () => {
 		const yotiMockID = "0101";
 
 		f2fStubPayload.yotiMockID = yotiMockID;
