@@ -1,143 +1,192 @@
 {
     "type": "object",
     "properties": {
-        "event_name": {
+      "event_name": {
+        "type": "string"
+      },
+      "user": {
+        "type": "object",
+        "properties": {
+          "user_id": {
             "type": "string"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "govuk_signin_journey_id": {
+            "type": "string"
+          }
         },
-        "user": {
-            "type": "object",
-            "properties": {
-                "user_id": {
+        "required": [
+          "user_id",
+          "session_id",
+          "govuk_signin_journey_id"
+        ]
+      },
+      "client_id": {
+        "type": "string"
+      },
+      "timestamp": {
+        "type": "integer"
+      },
+      "component_id": {
+        "type": "string"
+      },
+      "extensions": {
+        "type": "object",
+        "properties": {
+          "evidence": {
+            "type": "array",
+            "items": [
+              {
+                "type": "object",
+                "properties": {
+                  "txn": {
                     "type": "string"
+                  }
                 },
-                "session_id": {
-                    "type": "string"
-                },
-                "ip_address": {
-                    "type": "string"
-                },
-                "govuk_signin_journey_id": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "user_id",
-                "session_id",
-                "ip_address",
-                "govuk_signin_journey_id"
+                "required": [
+                  "txn"
+                ]
+              }
             ]
-        },
-        "client_id": {
-            "type": "string"
-        },
-        "timestamp": {
-            "type": "integer"
-        },
-        "component_id": {
-            "type": "string"
-        },
-        "extensions": {
-            "type": "object",
-            "properties": {
-                "evidence": {
+          },
+          "post_office_details": {
+            "type": "array",
+            "items": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "address": {
+                    "type": "string"
+                  },
+                  "location": {
                     "type": "array",
                     "items": [
-                        {
-                            "type": "object",
-                            "properties": {
-                                "txn": {
-                                    "type": "string"
-                                }
-                            },
-                            "required": [
-                                "txn"
-                            ]
-                        }
+                      {
+                        "type": "object",
+                        "properties": {
+                          "latitude": {
+                            "type": "number"
+                          },
+                          "longitude": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "latitude",
+                          "longitude"
+                        ]
+                      }
                     ]
+                  },
+                  "post_code": {
+                    "type": "string"
+                  }
                 },
-                "post_office_details": {
-                    "type": "array",
-                    "items": [
-                        {
-                            "type": "object",
-                            "properties": {
-                                "address": {
-                                    "type": "string"
-                                },
-                                "post_code": {
-                                    "type": "string"
-                                },
-                                "location": {
-                                    "type": "array",
-                                    "items": [
-                                        {
-                                            "type": "object",
-                                            "properties": {
-                                                "latitude": {
-                                                    "type": "number"
-                                                },
-                                                "longitude": {
-                                                    "type": "number"
-                                                }
-                                            },
-                                            "required": [
-                                                "latitude",
-                                                "longitude"
-                                            ]
-                                        }
-                                    ]
-                                }
-                            },
-                            "required": [
-                                "address",
-                                "post_code",
-                                "location"
-                            ]
-                        }
-                    ]
-                }
-            },
-            "required": [
-                "evidence",
-                "post_office_details"
+                "required": [
+                  "name",
+                  "address",
+                  "location",
+                  "post_code"
+                ]
+              }
             ]
+          }
         },
-        "restricted": {
-            "type": "object",
-            "properties": {
-                "residencePermit": {
+        "required": [
+          "evidence",
+          "post_office_details"
+        ]
+      },
+      "restricted": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "array",
+            "items": [
+              {
+                "type": "object",
+                "properties": {
+                  "nameParts": {
                     "type": "array",
                     "items": [
-                        {
-                            "type": "object",
-                            "properties": {
-                                "documentType": {
-                                    "type": "string"
-                                },
-                                "issuingCountry": {
-                                    "type": "string"
-                                }
-                            },
-                            "required": [
-                                "documentType",
-                                "issuingCountry"
-                            ]
-                        }
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "value"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "value"
+                        ]
+                      }
                     ]
-                }
-            },
-            "required": [
-                "residencePermit"
+                  }
+                },
+                "required": [
+                  "nameParts"
+                ]
+              }
             ]
-        }
+          },
+          "residencePermit": {
+            "type": "array",
+            "items": [
+              {
+                "type": "object",
+                "properties": {
+                  "documentType": {
+                    "type": "string"
+                  },
+                  "issuingCountry": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "documentType",
+                  "issuingCountry"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "residencePermit"
+        ]
+      }
     },
     "required": [
-        "event_name",
-        "user",
-        "client_id",
-        "timestamp",
-        "component_id",
-        "extensions",
-        "restricted"
+      "event_name",
+      "user",
+      "client_id",
+      "timestamp",
+      "component_id",
+      "extensions",
+      "restricted"
     ]
-}
+  }
