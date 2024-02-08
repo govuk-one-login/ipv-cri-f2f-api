@@ -169,7 +169,7 @@ describe("Callback API", () => {
 				await sleep(1000);
 				i++;
 			} while (i < 10);
-			
+
 			console.log("Subject for yotiMockId " + yotiMockId + "=" + sessionResponse.data.sub)
 			console.log("sqsMessage for yotiMockId " + yotiMockId + "=" + JSON.stringify(sqsMessage))
 	
