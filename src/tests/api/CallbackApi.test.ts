@@ -137,6 +137,9 @@ describe("Callback API", () => {
 				i++;
 			} while (i < 10);
 
+
+			console.log("Subject for yotiMockId " + yotiMockId + "=" + sessionResponse.data.sub)
+			console.log("sqsMessage for yotiMockId " + yotiMockId + "=" + JSON.stringify(sqsMessage))
 			expect(sqsMessage).toBeUndefined();
 		}, 20000);
 	});
@@ -166,6 +169,9 @@ describe("Callback API", () => {
 				await sleep(1000);
 				i++;
 			} while (i < 10);
+			
+			console.log("Subject for yotiMockId " + yotiMockId + "=" + sessionResponse.data.sub)
+			console.log("sqsMessage for yotiMockId " + yotiMockId + "=" + JSON.stringify(sqsMessage))
 	
 			expect(sqsMessage.error_description).toBe(vcError);
 		}, 20000);
