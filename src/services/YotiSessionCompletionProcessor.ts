@@ -251,9 +251,8 @@ export class YotiSessionCompletionProcessor {
 
 			  let signedJWT;
 			  let unsignedJWT;
-			  let kmsKeyID = this.environmentVariables.kmsKeyArn().split("/").pop()
 			  try {
-				  unsignedJWT = this.verifiableCredentialService.generateVerifiableCredentialJwt(f2fSession, credentialSubject, evidence, absoluteTimeNow, kmsKeyID);
+				  unsignedJWT = this.verifiableCredentialService.generateVerifiableCredentialJwt(f2fSession, credentialSubject, evidence, absoluteTimeNow);
 				  if (unsignedJWT) {
 					  signedJWT = await this.verifiableCredentialService.signGeneratedVerifiableCredentialJwt(unsignedJWT);
 				  }

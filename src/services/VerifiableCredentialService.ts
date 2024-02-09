@@ -67,7 +67,6 @@ export class VerifiableCredentialService {
   	credentialSubject: VerifiedCredentialSubject,
   	evidence: VerifiedCredentialEvidence,
   	getNow: () => number,
-	kmsKeyID: string
   ): CredentialJwt {
   	const now = getNow();
   	const subject = sessionItem?.subject as string;
@@ -78,9 +77,6 @@ export class VerifiableCredentialService {
   		iss: this.issuer,
   		iat: now,
   		jti: Constants.URN_UUID_PREFIX + randomUUID(),
-		typ: "JWT",
-		kid: kmsKeyID,
-		alg: "ES256",
   		vc: verifiedCredential,
   	};
 

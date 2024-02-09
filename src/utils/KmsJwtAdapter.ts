@@ -30,7 +30,7 @@ export class KmsJwtAdapter {
 		const jwtHeader: JwtHeader = { alg: "ES256", typ: "JWT" };
 		const kid = this.kid.split("/").pop();
 		if (kid != null) {
-			jwtHeader.kid = kid;
+			jwtHeader.kid = (`did:web:review-o.account.gov.uk#${jwtUtils.getHashedKid(kid)}`);
 		}
 		const tokenComponents = {
 			header: jwtUtils.base64Encode(JSON.stringify(jwtHeader)),

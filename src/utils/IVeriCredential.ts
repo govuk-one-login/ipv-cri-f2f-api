@@ -23,9 +23,6 @@ export interface CredentialJwt {
 	aud?: string;
 	exp?: number;
 	jti?: string;
-	typ: string;
-	kid: string;
-	alg: string;
 	vc: VerifiedCredential;
 }
 export interface JwtHeader {
