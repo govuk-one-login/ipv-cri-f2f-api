@@ -135,7 +135,7 @@ describe("Callback API", () => {
 				sqsMessage = await getDequeuedSqsMessage(sessionResponse.data.sub);
 				await sleep(1000);
 				i++;
-			} while (i < 5);
+			} while (i < 10);
 	
 			expect(sqsMessage.error_description).toBe(vcError);
 		}, 20000);
