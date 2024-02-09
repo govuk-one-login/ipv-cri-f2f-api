@@ -31,7 +31,7 @@ export const jwtUtils = {
 	},
 
 	// hash string then present output as UTF-8 encoded hexadecimal string
-	getHashedKid (keyId: string): string {
+	getHashedKid(keyId: string): string {
 		const kidBytes = Buffer.from(keyId, "utf8");
 		const hash = crypto.createHash("sha256").update(kidBytes).digest();
 		return Buffer.from(hash).toString("hex");
