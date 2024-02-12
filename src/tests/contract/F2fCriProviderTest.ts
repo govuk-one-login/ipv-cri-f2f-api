@@ -19,8 +19,6 @@ describe("Pact Verification", () => {
 			// // we are starting it locally and defined the port above
 			providerBaseUrl: "http://localhost:3000",
 			//pactBrokerUrl: "https://ysi5tc076m.execute-api.eu-west-2.amazonaws.com",
-			//pactBrokerUsername: "SbdY9a65mUwN",
-			//pactBrokerPassword: "P8Hkz71HN53M",
 			// consumerVersionSelectors: [
 			// 	{ mainBranch: true },
 			// 	{ deployedOrReleased: true },
