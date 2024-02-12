@@ -57,13 +57,7 @@ export function translateHttpRequestToApiGatewayProxyEvent(path: string, body: a
 	const event: APIGatewayProxyEvent = eventRequest;
 	switch (path) {
 		case Constants.TOKEN_ENDPOINT:
-			// console.log("----typeof body: " + typeof body);
-			// if (typeof body === "string") {
-			// 	event.body = body;
-			// } else {
-	        //     event.body = convertAccessTokenRequestBodyToString(body); 
-			// }	
-			event.body = body;		
+			event.body = convertAccessTokenRequestBodyToString(body); 				
 			break;
 		case Constants.USERINFO_ENDPOINT:
 			event.headers = convertIncomingHeadersToAPIGatewayHeaders(headers);			
@@ -83,7 +77,6 @@ export function convertAccessTokenRequestBodyToString(body: { [key: string]: str
 }
 
 export function convertJsonStringToUrlEncodedString(jsonString: string): string {
-	console.log("----jsonString: " + jsonString);
 	const jsonObject = JSON.parse(jsonString);
 	const urlEncodedString = Object.keys(jsonObject).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(jsonObject[key])}`).join("&");
 	return urlEncodedString;

@@ -34,13 +34,14 @@ describe("Pact Verification", () => {
 	// eslint-disable-next-line jest/expect-expect
 	it("should validate the expectations of Authorization API", async () => {
 		logger.debug("PactBroker opts: ", { opts });
-		try {
-			const output = await new Verifier(opts)
-				.verifyProvider();
-			logger.info("Pact Verification Complete!");
-			logger.info("Output: ", output);
-		} catch (error) {
-			logger.error("Pact verification failed :(", { error });
-		}
+		return new Verifier(opts)
+			.verifyProvider()
+			.then((output) => {
+				logger.info("Pact Verification Complete!");
+				logger.info("Output: ", output);
+			})
+			.catch((error) => {
+				logger.error("Pact verification failed :(", { error });
+			});
 	});
 });
