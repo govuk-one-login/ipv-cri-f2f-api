@@ -1,5 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import axios, { AxiosRequestConfig } from "axios";
+import { Constants } from "./utils/Constants";
+import { HttpVerbsEnum } from "../../utils/HttpVerbsEnum";
 
 const logger = new Logger({
 	logLevel: "INFO",
@@ -11,8 +13,8 @@ const ENCODED_REDIRECT_URI = encodeURIComponent("https://identity.staging.accoun
 
 const runTest = async () => {
 	const config: AxiosRequestConfig = {
-		url : "http://localhost:3000/token",
-		method: "POST",
+		url : `${Constants.LOCAL_HOST}:${Constants.LOCAL_APP_PORT}${Constants.TOKEN_ENDPOINT}`,
+		method: HttpVerbsEnum.POST,
 		data: `code=${AUTHORIZATION_CODE}&grant_type=authorization_code&redirect_uri=${ENCODED_REDIRECT_URI}`,		
 	};
 	try {

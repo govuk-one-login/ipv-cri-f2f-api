@@ -13,14 +13,13 @@ process.env.KMS_KEY_ARN = "kid";
 
 export const accessTokenRouter = asyncify(express.Router());
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises, max-lines-per-function
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 accessTokenRouter.post("/", async (req, res) => {		
 	const event : APIGatewayProxyEvent = translateHttpRequestToApiGatewayProxyEvent(Constants.TOKEN_ENDPOINT, req.body, req.headers);
 	
 	const tokenResponse = await lambdaHandler(event, {});
 	res.status(tokenResponse.statusCode);
-	res.setHeader("Content-Type", "application/json");
+	res.setHeader(Constants.HTTP_CONTENT_TYPE_HEADER, Constants.JSON_CONTENT_TYPE);
 	res.send(tokenResponse.body);	
 });
-
 

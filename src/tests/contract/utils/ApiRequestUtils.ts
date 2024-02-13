@@ -57,7 +57,7 @@ export function translateHttpRequestToApiGatewayProxyEvent(path: string, body: a
 	const event: APIGatewayProxyEvent = eventRequest;
 	switch (path) {
 		case Constants.TOKEN_ENDPOINT:
-			event.body = convertAccessTokenRequestBodyToString(body); 				
+			event.body = convertAccessTokenRequestBodyToString(body);		
 			break;
 		case Constants.USERINFO_ENDPOINT:
 			event.headers = convertIncomingHeadersToAPIGatewayHeaders(headers);			

@@ -18,6 +18,7 @@ userInfoRouter.post("/", async (req, res) => {
 		
 	const userInfoResponse = await lambdaHandler(event, {});
 	res.status(userInfoResponse.statusCode);
-	res.setHeader("Content-Type", "application/json");
+	res.setHeader(Constants.HTTP_CONTENT_TYPE_HEADER, Constants.JSON_CONTENT_TYPE);
 	res.send(userInfoResponse.body);
 });
+
