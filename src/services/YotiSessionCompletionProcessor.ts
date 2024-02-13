@@ -22,6 +22,9 @@ import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 import { YotiCallbackPayload } from "../type/YotiCallbackPayload";
 import { ISessionItem } from "../models/ISessionItem";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
+import { getClientConfig } from "../utils/ClientConfig";
+import { ValidationHelper } from "../utils/ValidationHelper";
+import { Constants } from "../utils/Constants";
 
 export class YotiSessionCompletionProcessor {
 
@@ -31,7 +34,7 @@ export class YotiSessionCompletionProcessor {
 
   private readonly metrics: Metrics;
 
-  private readonly yotiService: YotiService;
+  private yotiService!: YotiService;
 
   private readonly f2fService: F2fService;
 
@@ -43,22 +46,27 @@ export class YotiSessionCompletionProcessor {
 
   private readonly generateVerifiableCredential: GenerateVerifiableCredential;
 
-  constructor(
+	private readonly YOTI_PRIVATE_KEY: string;
+
+	private readonly validationHelper: ValidationHelper;
+
+	constructor(
   	logger: Logger,
   	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
-  ) {
+	) {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
-  	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
   	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.logger, this.environmentVariables.dnsSuffix());
   	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger);
-  }
+		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
+		this.validationHelper = new ValidationHelper();
+	}
 
-  isTaskDone(data: any, taskType: string): boolean {
+	isTaskDone(data: any, taskType: string): boolean {
   	if (data.tasks && Array.isArray(data.tasks)) {
   		for (const task of data.tasks) {
   			if (task.type === taskType && task.state === YotiSessionDocument.DONE_STATE) {
@@ -67,13 +75,13 @@ export class YotiSessionCompletionProcessor {
   		}
   	}
   	return false;
-  }
+	}
 
-  static getInstance(
+	static getInstance(
   	logger: Logger,
   	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
-  ): YotiSessionCompletionProcessor {
+	): YotiSessionCompletionProcessor {
   	if (!YotiSessionCompletionProcessor.instance) {
   		YotiSessionCompletionProcessor.instance = new YotiSessionCompletionProcessor(
   			logger,
@@ -82,9 +90,11 @@ export class YotiSessionCompletionProcessor {
   		);
   	}
   	return YotiSessionCompletionProcessor.instance;
-  }
+	}
 
-  async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
+	async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
+		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		
   	const yotiSessionID = eventBody.session_id;
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
@@ -102,6 +112,19 @@ export class YotiSessionCompletionProcessor {
 			  sessionId: f2fSession.sessionId,
 			  govuk_signin_journey_id: f2fSession.clientSessionId,
 		  });
+
+			//Initialise Yoti Service base on session client_id
+			const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId, this.logger);
+
+			if (!clientConfig) {
+				this.logger.error("Unrecognised client in request", {
+					messageCode: MessageCodes.UNRECOGNISED_CLIENT,
+				});
+				return new Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+			}
+
+			this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
+
 
 		  this.logger.info({ message: "Fetching status for Yoti SessionID" });
 		  const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries());
@@ -308,17 +331,17 @@ export class YotiSessionCompletionProcessor {
 		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "");
 	  }
 
-  }
+	}
 
-  checkMissingField(field: string, fieldName: string): boolean {
+	checkMissingField(field: string, fieldName: string): boolean {
   	if (!field || field.trim() === "") {
   		this.logger.info({ message: `Missing ${fieldName} field in documentFields response` });
   		return true;
   	}
   	return false;
-  }
+	}
 
-  async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any, rejectionReasons: [{ ci: string; reason: string }]): Promise<any> {
+	async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any, rejectionReasons: [{ ci: string; reason: string }]): Promise<any> {
 	  // Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
 	  let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
@@ -410,9 +433,9 @@ export class YotiSessionCompletionProcessor {
 			  messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
 		  });
 	  }
-  }
+	}
 
-  async sendErrorMessageToIPVCore(f2fSession: ISessionItem, errorMessage: string) : Promise<any> {
+	async sendErrorMessageToIPVCore(f2fSession: ISessionItem, errorMessage: string) : Promise<any> {
   	this.logger.error(`VC generation failed : ${errorMessage}`, {		
   		messageCode: MessageCodes.ERROR_GENERATING_VC,
   	});
@@ -429,6 +452,6 @@ export class YotiSessionCompletionProcessor {
   			messageCode: MessageCodes.FAILED_SENDING_VC,
   		});		
   	}
-  }
+	}
 }
 

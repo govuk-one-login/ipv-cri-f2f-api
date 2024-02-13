@@ -10,7 +10,7 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
  */
 export class EnvironmentVariables {
 
-	private readonly GOVUKNOTIFY_API = process.env.GOVUKNOTIFY_API;
+	private readonly REMINDER_EMAIL_GOVUKNOTIFY_API = process.env.REMINDER_EMAIL_GOVUKNOTIFY_API;
 
 	private readonly GOVUKNOTIFY_PDF_TEMPLATE_ID = process.env.GOVUKNOTIFY_PDF_TEMPLATE_ID;
 
@@ -23,8 +23,6 @@ export class EnvironmentVariables {
 	private GOVUKNOTIFY_BACKOFF_PERIOD_MS = process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS;
 
 	private readonly YOTI_SDK = process.env.YOTISDK;
-
-	private readonly YOTIBASEURL = process.env.YOTIBASEURL;
 
 	private readonly ISSUER = process.env.ISSUER;
 
@@ -82,8 +80,7 @@ export class EnvironmentVariables {
 					!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
-					!this.GOVUKNOTIFY_API_KEY_SSM_PATH || this.GOVUKNOTIFY_API_KEY_SSM_PATH.trim().length === 0 ||
-					!this.GOVUKNOTIFY_API || this.GOVUKNOTIFY_API.trim().length === 0) {
+					!this.GOVUKNOTIFY_API_KEY_SSM_PATH || this.GOVUKNOTIFY_API_KEY_SSM_PATH.trim().length === 0) {
 					logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 				}
@@ -103,9 +100,8 @@ export class EnvironmentVariables {
 					logger.warn("GOVUKNOTIFY_MAX_RETRIES env var is not set. Setting to default - 3");
 				}
 
-				if (!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0
-					|| !this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
-					logger.error("Environment variable YOTI_SDK or YOTIBASEURL is not configured");
+				if (!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0) {
+					logger.error("Environment variable YOTI_SDK is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 				}
 
@@ -198,8 +194,7 @@ export class EnvironmentVariables {
 					!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 ||
 					!this.ISSUER || this.ISSUER.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
-					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
-					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
+					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0) {
 					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "DocumentSelection Service incorrectly configured");
 				}
@@ -218,11 +213,8 @@ export class EnvironmentVariables {
 					!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 ||
 					!this.ISSUER || this.ISSUER.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
-					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
-					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0 ||
-					!this.KMS_KEY_ARN || this.KMS_KEY_ARN.trim().length === 0 ||
-					!this.DNSSUFFIX || this.DNSSUFFIX.trim().length === 0) {
-					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or KMS_KEY_ARN or ISSUER or DNSSUFFIX is not configured");
+					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0) {
+					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Callback Service incorrectly configured");
 				}
 				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS < 10) {
@@ -252,8 +244,7 @@ export class EnvironmentVariables {
 				if (!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 ||
 					!this.ISSUER || this.ISSUER.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
-					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
-					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
+					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0) {
 					logger.error("Environment variable YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Thank you email Service incorrectly configured");
 				}
@@ -364,10 +355,6 @@ export class EnvironmentVariables {
 		return this.YOTI_KEY_SSM_PATH;
 	}
 
-	yotiBaseUrl(): any {
-		return this.YOTIBASEURL;
-	}
-
 	getGovNotifyQueueURL(logger: Logger): string {
 		if (!this.GOV_NOTIFY_QUEUE_URL || this.GOV_NOTIFY_QUEUE_URL.trim().length === 0) {
 			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
@@ -444,8 +431,8 @@ export class EnvironmentVariables {
 		return +this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS!;
 	}
 
-	govukNotifyApiUrl(): any {
-		return this.GOVUKNOTIFY_API;
+	reminderEmailsGovNotifyUrl(): any {
+		return this.REMINDER_EMAIL_GOVUKNOTIFY_API;
 	}
 
 }

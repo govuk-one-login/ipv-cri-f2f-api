@@ -3,3 +3,7 @@ samconfig.toml
 node_modules/
 results/
 coverage/
+dist/
+reports/
+build/
+.DS_Store

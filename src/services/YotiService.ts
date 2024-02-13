@@ -12,6 +12,7 @@ import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { ValidationHelper } from "../utils/ValidationHelper";
 import { sleep } from "../utils/Sleep";
+import { Constants } from "../utils/Constants";
 
 export class YotiService {
 	readonly logger: Logger;
@@ -40,18 +41,19 @@ export class YotiService {
     	this.validationHelper = new ValidationHelper();
 	}
 
-	static getInstance(
-    	logger: Logger,
-    	CLIENT_SDK_ID: string,
-    	RESOURCES_TTL_SECS: number,
-    	YOTI_SESSION_TTL_DAYS: number,
-    	PEM_KEY: string,
-    	YOTI_BASE_URL: string,
-	): YotiService {
-    	if (!YotiService.instance) {
-    		YotiService.instance = new YotiService(logger, CLIENT_SDK_ID, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS, PEM_KEY, YOTI_BASE_URL);
-    	}
-    	return YotiService.instance;
+	static getInstance(logger: Logger, PEM_KEY: string, YOTI_BASE_URL: string): YotiService {
+		if (!YotiService.instance) {
+			const { YOTISDK, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS } = process.env;
+			YotiService.instance = new YotiService(
+				logger,
+				YOTISDK!,
+				Number(RESOURCES_TTL_SECS),
+				Number(YOTI_SESSION_TTL_DAYS),
+				PEM_KEY,
+				YOTI_BASE_URL,
+			);
+		}
+		return YotiService.instance;
 	}
 
 	private getRSASignatureForMessage(message: string): string {

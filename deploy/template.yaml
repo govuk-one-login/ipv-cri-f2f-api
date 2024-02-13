@@ -101,7 +101,7 @@ Mappings:
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
       YOTIBASEURL: "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk"
-      YOTISDK: "MockSDK"
+      YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
@@ -113,8 +113,24 @@ Mappings:
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
-      CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f"}]'
-      AUTHSESSIONTTLSECS: 86400 # 1 day in seconds
+      CLIENTS:
+        '[
+          {
+              "jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
+              "clientId":"5C584572",
+              "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
+              "YotiBaseUrl": "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk",
+              "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify"
+          },
+          {
+              "jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
+              "clientId":"SandboxJourneyFlow",
+              "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
+              "YotiBaseUrl": "https://f2f-cri-outbound-proxy-proxy.review-o.dev.account.gov.uk/yoti",
+              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+          }
+        ]'
+      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
     build:
@@ -131,12 +147,27 @@ Mappings:
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
-      CLIENTS: '[{"jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f"}]'
-      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
+      CLIENTS:
+        '[
+          {
+              "jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json",
+              "clientId":"BD7B2A5D",
+              "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
+              "YotiBaseUrl": "https://yotistub.review-o.build.account.gov.uk",
+              "GovNotifyApi": "https://govnotifystub.review-o.build.account.gov.uk/govnotify"
+          },
+          {
+              "jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json",
+              "clientId":"SandboxJourneyFlow",
+              "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
+              "YotiBaseUrl": "https://proxy.review-o.build.account.gov.uk/yoti",
+              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+          }
+        ]'
+      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
     staging:
-      YOTIBASEURL: "https://yotistub.review-o.staging.account.gov.uk"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
       ISSUER: 'https://review-o.staging.account.gov.uk'
       DNSSUFFIX: review-o.staging.account.gov.uk
@@ -148,11 +179,19 @@ Mappings:
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
-      CLIENTS: '[{"jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json","clientId":"03A5A659-17AA-453F-B905-95D2804823D1","redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f"}]'
-      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
+      CLIENTS:
+        '[
+          {
+              "jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json",
+              "clientId":"03A5A659-17AA-453F-B905-95D2804823D1",
+              "redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f",
+              "YotiBaseUrl": "https://yotistub.review-o.staging.account.gov.uk",
+              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+          }
+        ]'
+      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
-      YOTIBASEURL: "https://proxy.review-o.integration.account.gov.uk/yoti"
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
       ISSUER: 'https://review-o.integration.account.gov.uk'
       DNSSUFFIX: review-o.integration.account.gov.uk
@@ -164,11 +203,19 @@ Mappings:
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
-      CLIENTS: '[{"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback?id=f2f"}]'
-      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
+      CLIENTS:
+        '[
+          {
+              "jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json",
+              "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F",
+              "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback?id=f2f",
+              "YotiBaseUrl": "https://proxy.review-o.integration.account.gov.uk/yoti",
+              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+          }
+        ]'
+      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
-      YOTIBASEURL: "https://proxy.review-o.account.gov.uk/yoti"
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
       ISSUER: 'https://review-o.account.gov.uk'
       DNSSUFFIX: review-o.account.gov.uk
@@ -180,8 +227,17 @@ Mappings:
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0d3b9cb6-2c54-4316-865a-933f0f0dfb53"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
-      CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f"}]'
-      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
+      CLIENTS:
+        '[
+          {
+              "jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json",
+              "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342",
+              "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f",
+              "YotiBaseUrl": "https://proxy.review-o.account.gov.uk/yoti",
+              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+          }
+        ]'
+      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
@@ -299,6 +355,8 @@ Globals:
         RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
         SESSION_TABLE:
           Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+        CLIENT_CONFIG:
+            !FindInMap [ EnvironmentVariables, !Ref Environment, CLIENTS ]
         SECRET_PREFIX: !If [
           UseSecretPrefix,
           !Ref SecretPrefix,
@@ -706,8 +764,6 @@ Resources:
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          CLIENT_CONFIG:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, CLIENTS ]
           ENCRYPTION_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
       Policies:
@@ -1444,7 +1500,6 @@ Resources:
           GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
-          YOTIBASEURL: !FindInMap [EnvironmentVariables, !Ref Environment, YOTIBASEURL]
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
           YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
       Policies:
@@ -1985,13 +2040,12 @@ Resources:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          GOVUKNOTIFY_API: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI ]
+          REMINDER_EMAIL_GOVUKNOTIFY_API: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI ]
           GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
           GOVUKNOTIFY_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]
           GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
-          YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
           YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
       Policies:

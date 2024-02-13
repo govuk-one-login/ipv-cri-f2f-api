@@ -13,6 +13,7 @@ import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { personIdentityInputRecord, personIdentityOutputRecord } from "../data/personIdentity-records";
 import { createSqsClient } from "../../../utils/SqsClient";
 import { SendMessageCommand } from "@aws-sdk/client-sqs";
+import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 
 const logger = mock<Logger>();
 let f2fService: F2fService;
@@ -29,7 +30,7 @@ jest.mock("@aws-sdk/client-sqs", () => ({
 const FAILURE_VALUE = "throw_me";
 
 const getTXMAEventPayload = (): TxmaEvent => ({
-	event_name: "F2F_YOTI_PDF_EMAILED",
+	event_name: TxmaEventNames.F2F_YOTI_PDF_EMAILED,
 	user: {
 		user_id: "sessionCliendId",
 		persistent_session_id: "sessionPersistentSessionId",

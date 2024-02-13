@@ -11,6 +11,7 @@ import { F2fService } from "../../../services/F2fService";
 import { YotiService } from "../../../services/YotiService";
 import { ThankYouEmailProcessor } from "../../../services/ThankYouEmailProcessor";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
+import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
@@ -243,8 +244,9 @@ describe("ThankYouEmailProcessor", () => {
 		thankYouEmailProcessor = new ThankYouEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY);
 		// @ts-ignore
 		thankYouEmailProcessor.f2fService = mockF2fService;
-		// @ts-ignore
-		thankYouEmailProcessor.yotiService = mockYotiService;
+		
+		YotiService.getInstance = jest.fn(() => mockYotiService);
+		
 		f2fSessionItem = getMockSessionItem();
 		yotiSessionItem = getMockYotiSessionItem();
 		jest.useFakeTimers();
@@ -304,7 +306,7 @@ describe("ThankYouEmailProcessor", () => {
 			expect(Date.prototype.toLocaleDateString).toHaveBeenCalledWith("en-GB", { year: "numeric", month: "long", day: "numeric" });
 			expect(Date.prototype.toLocaleTimeString).toHaveBeenCalledWith("en-GB", { hour: "numeric", minute: "numeric", hourCycle: "h12" });
 			expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({
-				event_name: "F2F_DOCUMENT_UPLOADED",
+				event_name: TxmaEventNames.F2F_DOCUMENT_UPLOADED,
 				component_id: "https://XXX-c.env.account.gov.uk",
 				timestamp: 1585695600,
 				event_timestamp_ms: 1585695600000,
