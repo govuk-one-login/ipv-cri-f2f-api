@@ -24,7 +24,7 @@ jobs:
         working-directory: gov-notify-stub
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
@@ -32,7 +32,7 @@ jobs:
           use-installer: true
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.DEV_GOV_NOTIFY_STUB_GH_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
