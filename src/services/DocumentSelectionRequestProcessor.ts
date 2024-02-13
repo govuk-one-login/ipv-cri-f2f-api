@@ -19,6 +19,7 @@ import { PostOfficeInfo } from "../models/YotiPayloads";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AllDocumentTypes, DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { ValidationHelper } from "../utils/ValidationHelper";
+import { getClientConfig } from "../utils/ClientConfig";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -28,7 +29,7 @@ export class DocumentSelectionRequestProcessor {
 
   private readonly metrics: Metrics;
 
-  private readonly yotiService: YotiService;
+  private yotiService!: YotiService;
 
   private readonly f2fService: F2fService;
 
@@ -36,28 +37,30 @@ export class DocumentSelectionRequestProcessor {
 
   private readonly validationHelper: ValidationHelper;
 
-  constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
+	private readonly YOTI_PRIVATE_KEY: string;
+
+	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
-  	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   	this.validationHelper = new ValidationHelper();
-  }
+		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
+	}
 
-  static getInstance(
+	static getInstance(
   	logger: Logger,
   	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
-  ): DocumentSelectionRequestProcessor {
+	): DocumentSelectionRequestProcessor {
   	if (!DocumentSelectionRequestProcessor.instance) {
   		DocumentSelectionRequestProcessor.instance =
         new DocumentSelectionRequestProcessor(logger, metrics, YOTI_PRIVATE_KEY);
   	}
   	return DocumentSelectionRequestProcessor.instance;
-  }
+	}
 
-  async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
+	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
 
   	let postOfficeSelection: PostOfficeInfo;
   	let selectedDocument;
@@ -101,6 +104,19 @@ export class DocumentSelectionRequestProcessor {
   		});
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
   	}
+
+		//Initialise Yoti Service base on SessionClietID
+		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSessionInfo.clientId, this.logger);
+
+		if (!clientConfig) {
+  		this.logger.error("Unrecognised client in request", {
+  			messageCode: MessageCodes.UNRECOGNISED_CLIENT,
+  		});
+  		return new Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+  	}
+		
+		this.logger.warn("BASE_URL", clientConfig.YotiBaseUrl);
+		this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
 
   	// Reject the request when session store does not contain email, familyName or GivenName fields
   	const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);
@@ -245,15 +261,15 @@ export class DocumentSelectionRequestProcessor {
   		});
   		return new Response(HttpCodesEnum.UNAUTHORIZED, "Yoti session already exists for this authorization session or Session is in the wrong state");
   	}
-  }
+	}
 
-  async createSessionGenerateInstructions(
+	async createSessionGenerateInstructions(
   	personDetails: PersonIdentityItem,
   	f2fSessionInfo: ISessionItem,
   	postOfficeSelection: PostOfficeInfo,
   	selectedDocument: string,
   	countryCode: string,
-  ): Promise<string> {
+	): Promise<string> {
   	this.logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
 
   	const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
@@ -301,7 +317,7 @@ export class DocumentSelectionRequestProcessor {
   		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Empty required resources in Yoti");
   	}
 
-  	this.logger.info({ message: "Generating Instructions PDF" }, { yotiSessionID: yotiSessionId });
+  	this.logger.info({ message: "Generating Instructions PDF" });
   	const generateInstructionsResponse = await this.yotiService.generateInstructions(
   		yotiSessionId,
   		personDetails,
@@ -315,9 +331,9 @@ export class DocumentSelectionRequestProcessor {
   	}
 
   	return yotiSessionId;
-  }
+	}
 
-  async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
+	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
   	this.logger.info({ message: "Posting message to Gov Notify" });
   	try {
   		await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
@@ -328,5 +344,5 @@ export class DocumentSelectionRequestProcessor {
   		});
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when sending message to GovNotify handler");
   	}
-  }
+	}
 }

@@ -12,6 +12,7 @@ import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { Response } from "../utils/Response";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { YotiService } from "./YotiService";
+import { getClientConfig } from "../utils/ClientConfig";
 
 export class ThankYouEmailProcessor {
 
@@ -23,27 +24,29 @@ export class ThankYouEmailProcessor {
 
   private readonly f2fService: F2fService;
 
-  private readonly yotiService: YotiService;
+	private yotiService!: YotiService;
 
   private readonly environmentVariables: EnvironmentVariables;
 
-  constructor(
+	private readonly YOTI_PRIVATE_KEY: string;
+
+	constructor(
   	logger: Logger,
   	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
-  ) {
+	) {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.THANK_YOU_EMAIL_SERVICE);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
-  	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
-  }
+		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
+	}
 
-  static getInstance(
+	static getInstance(
   	logger: Logger,
   	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
-  ): ThankYouEmailProcessor {
+	): ThankYouEmailProcessor {
   	if (!ThankYouEmailProcessor.instance) {
   		ThankYouEmailProcessor.instance = new ThankYouEmailProcessor(
   			logger,
@@ -52,9 +55,9 @@ export class ThankYouEmailProcessor {
   		);
   	}
   	return ThankYouEmailProcessor.instance;
-  }
+	}
 
-  async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
+	async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
   	const yotiSessionID = eventBody.session_id;
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
@@ -72,6 +75,18 @@ export class ThankYouEmailProcessor {
 			  sessionId: f2fSession.sessionId,
 			  govuk_signin_journey_id: f2fSession.clientSessionId,
 		  });
+
+			//Initialise Yoti Service base on SessionClietID
+			const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId, this.logger);
+
+			if (!clientConfig) {
+				this.logger.error("Unrecognised client in request", {
+					messageCode: MessageCodes.UNRECOGNISED_CLIENT,
+				});
+				return new Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+			}
+
+			this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
 
   		this.logger.info({ message: "Fetching yoti session" });
 		  const yotiSessionInfo: YotiCompletedSession | undefined = await this.yotiService.getCompletedSessionInfo(yotiSessionID);
@@ -109,5 +124,5 @@ export class ThankYouEmailProcessor {
   		this.logger.error("Event does not include yoti session_id", { messageCode: MessageCodes.MISSING_SESSION_ID });
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Event does not include yoti session_id");
   	}
-  }
+	}
 }
