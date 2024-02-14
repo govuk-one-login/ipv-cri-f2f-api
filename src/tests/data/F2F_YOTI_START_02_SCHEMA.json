@@ -105,6 +105,69 @@
         "restricted": {
             "type": "object",
             "properties": {
+                "name": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "nameParts": {
+                                    "type": "array",
+                                    "items": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "type": {
+                                                    "type": "string"
+                                                },
+                                                "value": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "type",
+                                                "value"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "type": {
+                                                    "type": "string"
+                                                },
+                                                "value": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "type",
+                                                "value"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "type": {
+                                                    "type": "string"
+                                                },
+                                                "value": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "type",
+                                                "value"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "nameParts"
+                            ]
+                        }
+                    ]
+                },
                 "passport": {
                     "type": "array",
                     "items": [
@@ -127,6 +190,7 @@
                 }
             },
             "required": [
+                "name",
                 "passport"
             ]
         }
