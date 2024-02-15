@@ -3,7 +3,7 @@ import { Verifier, VerifierOptions } from "@pact-foundation/pact";
 import path from "path";
 
 const logger = new Logger({
-	logLevel: "DEBUG",
+	logLevel: "INFO",
 	serviceName: "F2fCriProviderTest",
 });
 

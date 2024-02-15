@@ -55,23 +55,5 @@ aws dynamodb batch-write-item \
     --return-consumed-capacity TOTAL \
     --endpoint-url http://localhost:8000 
 
-# Create the person-identity Table
-echo "Creating the DynamoDB person-identity-table..."
-aws dynamodb create-table \
-    --table-name person-identity-table \
-    --attribute-definitions AttributeName=sessionId,AttributeType=S \
-    --key-schema AttributeName=sessionId,KeyType=HASH \
-    --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
-    --endpoint-url http://localhost:8000
-
-# Step 3: Add the Record to the Table
-
-# Insert the person-identity-items to person-identity-table
-echo "Inserting a record into the person-identity-table..."
-aws dynamodb put-item \
-    --table-name person-identity-table \
-    --item file://data/person-identity-items.json \
-    --return-consumed-capacity TOTAL \
-    --endpoint-url http://localhost:8000 
 
 echo "DynamoDB Local setup complete."

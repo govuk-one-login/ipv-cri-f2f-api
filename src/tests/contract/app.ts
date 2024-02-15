@@ -7,7 +7,7 @@ import { Constants } from "./utils/Constants";
 
 const logger = new Logger({
 	logLevel: "INFO",
-	serviceName: "ContractTestApp",
+	serviceName: "F2fCriProvider",
 });
 
 const app = express();
