@@ -11,7 +11,6 @@ import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
 import { YotiService } from "./YotiService";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
-import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { F2fService } from "./F2fService";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
@@ -148,7 +147,7 @@ export class SendEmailService {
 	async sendF2FYotiEmailedEvent(message: Email): Promise<void> {
 		const session = await this.f2fService.getSessionById(message.sessionId);
 		if (session != null) {
-			const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow);
+			const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress);
 			try {
 				await this.f2fService.sendToTXMA({
 					event_name: "F2F_YOTI_PDF_EMAILED",

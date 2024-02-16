@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable max-lines-per-function */
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -9,7 +11,6 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { AuthorizationRequestProcessor } from "../../../services/AuthorizationRequestProcessor";
 import { VALID_AUTHCODE } from "../data/auth-events";
-import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 
 let authorizationRequestProcessorTest: AuthorizationRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -49,6 +50,12 @@ describe("AuthorizationRequestProcessor", () => {
 
 	beforeEach(() => {
 		jest.clearAllMocks();
+		jest.useFakeTimers();
+		jest.setSystemTime(new Date(1585695600000));
+	});
+
+	afterEach(() => {
+		jest.useRealTimers();
 	});
 
 	it("Return successful response with 200 OK when auth code", async () => {
@@ -66,16 +73,14 @@ describe("AuthorizationRequestProcessor", () => {
 			redirect_uri: "http://localhost:8085/callback",
 			state: "Y@atr",
 		}));
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.setAuthorizationCode).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {
 			event_name: "F2F_CRI_AUTH_CODE_ISSUED",
 			client_id: "ipv-core-stub",
 			component_id: "https://XXX-c.env.account.gov.uk",
-			timestamp: absoluteTimeNow(),
+			timestamp: 1585695600,
+			event_timestamp_ms: 1585695600000,
 			user: {
 				govuk_signin_journey_id: "sdfssg",
 				ip_address: "127.0.0.1",
@@ -84,12 +89,12 @@ describe("AuthorizationRequestProcessor", () => {
 				user_id: "sub",
 			},
 		});
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {
 			event_name: "F2F_CRI_END",
 			client_id: "ipv-core-stub",
 			component_id: "https://XXX-c.env.account.gov.uk",
-			timestamp: absoluteTimeNow(),
+			timestamp: 1585695600,
+			event_timestamp_ms: 1585695600000,
 			extensions: {
 				"previous_govuk_signin_journey_id": "sdfssg",
 				evidence: [
@@ -110,12 +115,11 @@ describe("AuthorizationRequestProcessor", () => {
 
 	it("Return 401 when session is expired", async () => {
 		const sess = getMockSessionItem();
-		sess.expiryDate = 1675458564;
+		sess.expiryDate = 1485695600;
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
 		const out: Response = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 		expect(out.body).toBe("Session with session id: 1234 has expired");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
@@ -126,7 +130,6 @@ describe("AuthorizationRequestProcessor", () => {
 
 		const out: Response = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 		expect(out.body).toBe("No session found with the session id: 1234");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
@@ -148,11 +151,8 @@ describe("AuthorizationRequestProcessor", () => {
 			redirect_uri: "http://localhost:8085/callback",
 			state: "Y@atr",
 		}));
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.setAuthorizationCode).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_CRI_AUTH_CODE_ISSUED to SQS queue.", { "messageCode": "ERROR_WRITING_TXMA" });
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
