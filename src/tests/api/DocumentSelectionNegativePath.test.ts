@@ -1,6 +1,7 @@
 import dataDriversLicenseInvalid from "../data/docSelectionPayloadDriversLicenceInvalid.json";
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import dataPassportMissingFad from "../data/dataPassportMissingFad.json";
+import dataPassportBlankFad from "../data/dataPassportBlankFad.json";
 import dataPassportIncorrectFad from "../data/dataPassportIncorrectFad.json";
 import dataPassportInvalidFadFormat from "../data/dataPassportInvalidFadFormat.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../utils/ApiTestSteps";
@@ -28,8 +29,8 @@ describe("E2E Negative Path /documentSelection Endpoint", () => {
 		expect(response.data).toBe("Unauthorized");
 	});
 
-	it("E2E Negative Path Journey - Missing fad_code", async () => {
-		const response = await postDocumentSelection(dataPassportMissingFad, sessionId);
+	it("E2E Negative Path Journey - Blank fad_code", async () => {
+		const response = await postDocumentSelection(dataPassportBlankFad, sessionId);
 		expect(response.status).toBe(500);
 		expect(response.data).toBe("Error generating Yoti instructions PDF");
 	});
@@ -44,5 +45,11 @@ describe("E2E Negative Path /documentSelection Endpoint", () => {
 		const response = await postDocumentSelection(dataPassportInvalidFadFormat, sessionId);
 		expect(response.status).toBe(500);
 		expect(response.data).toBe("Error generating Yoti instructions PDF");
+	});
+
+	it("E2E Negative Path Journey - Missing fad_code", async () => {
+		const response = await postDocumentSelection(dataPassportMissingFad, sessionId);
+		expect(response.status).toBe(400);
+		expect(response.data).toStrictEqual({"message": "Invalid request body"});
 	});
 });
