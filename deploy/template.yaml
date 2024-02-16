@@ -105,7 +105,7 @@ Mappings:
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
+      TXMAMESSAGERETENTIONPERIODDAYS: 1209600 # Default: 14 days
       GOVUKNOTIFYAPI: "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify"
       POSTOFFICESTUBAPI: "https://f2f-post-office-stub-postofficestub.review-o.dev.account.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
@@ -123,7 +123,7 @@ Mappings:
       ISSUER: 'https://review-o.build.account.gov.uk'
       DNSSUFFIX: review-o.build.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
+      TXMAMESSAGERETENTIONPERIODDAYS: 1209600 # Default: 14 days
       GOVUKNOTIFYAPI: "https://govnotifystub.review-o.build.account.gov.uk/govnotify"
       POSTOFFICESTUBAPI: "https://postofficestub.review-o.build.account.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
@@ -141,7 +141,7 @@ Mappings:
       ISSUER: 'https://review-o.staging.account.gov.uk'
       DNSSUFFIX: review-o.staging.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
+      TXMAMESSAGERETENTIONPERIODDAYS: 1209600 # Default: 14 days
       GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
@@ -157,7 +157,7 @@ Mappings:
       ISSUER: 'https://review-o.integration.account.gov.uk'
       DNSSUFFIX: review-o.integration.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
+      TXMAMESSAGERETENTIONPERIODDAYS: 1209600 # Default: 14 days
       GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
@@ -173,7 +173,7 @@ Mappings:
       ISSUER: 'https://review-o.account.gov.uk'
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
-      TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
+      TXMAMESSAGERETENTIONPERIODDAYS: 1209600 # Default: 14 days
       GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "ccba5634-33e9-4e0d-96c1-57067db941af"
       GOVUKNOTIFYREMINDERTEMPLATEID: "0d0d2aab-3c31-46da-8462-1af0f5f456f0"
@@ -1641,7 +1641,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       MessageRetentionPeriod: !FindInMap [EnvironmentVariables, !Ref Environment, TXMAMESSAGERETENTIONPERIODDAYS]
-      VisibilityTimeout: 60
+      VisibilityTimeout: 70
       KmsMasterKeyId: !Ref TxMAKeyAlias
       RedrivePolicy:
         deadLetterTargetArn:
