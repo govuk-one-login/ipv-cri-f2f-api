@@ -50,6 +50,6 @@ describe("E2E Negative Path /documentSelection Endpoint", () => {
 	it("E2E Negative Path Journey - Missing fad_code", async () => {
 		const response = await postDocumentSelection(dataPassportMissingFad, sessionId);
 		expect(response.status).toBe(400);
-		expect(response.data).toStrictEqual({"message": "Invalid request body"});
+		expect(response.data).toStrictEqual({ "message": "Invalid request body" });
 	});
 });
