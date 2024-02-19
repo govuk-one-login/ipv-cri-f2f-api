@@ -34,7 +34,7 @@ export class AccessTokenRequestProcessor {
 	constructor(logger: Logger, metrics: Metrics) {
 		this.logger = logger;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
-		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
+		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn(), this.environmentVariables.dnsSuffix());
 		this.accessTokenRequestValidationHelper = new AccessTokenRequestValidationHelper();
 		this.metrics = metrics;
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());

@@ -40,6 +40,8 @@ export class EnvironmentVariables {
 
 	private readonly KMS_KEY_ARN = process.env.KMS_KEY_ARN;
 
+	private readonly DNSSUFFIX = process.env.DNSSUFFIX;
+
 	private readonly CLIENT_CONFIG = process.env.CLIENT_CONFIG;
 
 	private readonly ENCRYPTION_KEY_IDS = process.env.ENCRYPTION_KEY_IDS;
@@ -213,7 +215,8 @@ export class EnvironmentVariables {
 					!this.ISSUER || this.ISSUER.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
 					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
-					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0) {
+					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0 ||
+					!this.DNSSUFFIX || this.DNSSUFFIX.trim().length === 0){
 					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Callback Service incorrectly configured");
 				}
@@ -354,6 +357,10 @@ export class EnvironmentVariables {
 		return this.KMS_KEY_ARN;
 	}
 
+	dnsSuffix(): any {
+		return this.DNSSUFFIX
+	}
+	
 	encryptionKeyIds(): any {
 		return this.ENCRYPTION_KEY_IDS;
 	}
