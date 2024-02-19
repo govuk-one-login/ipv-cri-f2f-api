@@ -1,7 +1,6 @@
-import { APIGatewayProxyEvent, APIGatewayProxyEventHeaders } from "aws-lambda";
+import { APIGatewayProxyEventHeaders } from "aws-lambda";
 import { randomUUID } from "crypto";
 import { IncomingHttpHeaders } from "http";
-import { Constants } from "./Constants";
 
 export const eventRequest = {
 	body: "",
@@ -53,30 +52,10 @@ export const eventRequest = {
 	resource: "",
 };
 
-export function translateHttpRequestToApiGatewayProxyEvent(path: string, body: any, headers: IncomingHttpHeaders): APIGatewayProxyEvent {
-	const event: APIGatewayProxyEvent = eventRequest;
-	switch (path) {
-		case Constants.TOKEN_ENDPOINT:
-			event.body = convertAccessTokenRequestBodyToString(body);		
-			break;
-		case Constants.USERINFO_ENDPOINT:
-			event.headers = convertIncomingHeadersToAPIGatewayHeaders(headers);			
-			break;
-		default:
-			throw new Error("Unknown http request path");
-	}
-	
-	return event;
-}
-
-export function convertAccessTokenRequestBodyToString(body: { [key: string]: string }): string {
+export function convertUrlEncodedRequestBodyToString(body: { [key: string]: string }): string {
 	const params = new URLSearchParams(body);
 	const formDataString = params.toString();
 	const jsonString = decodeURIComponent(formDataString);
-	return convertJsonStringToUrlEncodedString(jsonString);	
-}
-
-export function convertJsonStringToUrlEncodedString(jsonString: string): string {
 	const jsonObject = JSON.parse(jsonString);
 	const urlEncodedString = Object.keys(jsonObject).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(jsonObject[key])}`).join("&");
 	return urlEncodedString;
@@ -90,3 +69,4 @@ export function convertIncomingHeadersToAPIGatewayHeaders(incomingHeaders: Incom
 	}
 	return apiGatewayHeaders;
 }
+

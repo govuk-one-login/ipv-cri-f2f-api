@@ -27,21 +27,24 @@ describe("Pact Verification", () => {
 			publishVerificationResult: false,
 			providerVersion: "1.0.1",
 			// You can set the log level here, useful for debugging
-			logLevel: "debug",
+			logLevel: "info",
 		};
 	});  
   
-	// eslint-disable-next-line jest/expect-expect
 	it("should validate the expectations of Authorization API", async () => {
 		logger.debug("PactBroker opts: ", { opts });
-		return new Verifier(opts)
+		let result;
+		await new Verifier(opts)
 			.verifyProvider()
 			.then((output) => {
 				logger.info("Pact Verification Complete!");
 				logger.info("Output: ", output);
+				result = Number(output.match(/\d+/));				
 			})
 			.catch((error) => {
 				logger.error("Pact verification failed :(", { error });
+				result = 1;
 			});
+		expect(result).toBe(0);		
 	});
 });

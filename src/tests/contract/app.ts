@@ -6,7 +6,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Constants } from "./utils/Constants";
 
 const logger = new Logger({
-	logLevel: "INFO",
+	logLevel: "DEBUG",
 	serviceName: "F2fCriProvider",
 });
 
@@ -19,7 +19,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const port = Constants.LOCAL_APP_PORT;
 
 app.listen(port, () => {
-	logger.info(`Contract testing app listening on port ${port}`);
+	logger.debug(`Contract testing app listening on port ${port}`);
 });
 
 app.use(Constants.TOKEN_ENDPOINT, accessTokenRouter);

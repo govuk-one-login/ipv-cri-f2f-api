@@ -2,7 +2,7 @@ import express from "express";
 import asyncify from "express-asyncify";
 import { lambdaHandler } from "../../../AccessTokenHandler";
 import { APIGatewayProxyEvent } from "aws-lambda";
-import { translateHttpRequestToApiGatewayProxyEvent } from "../utils/ApiRequestUtils";
+import { convertUrlEncodedRequestBodyToString, eventRequest } from "../utils/ApiRequestUtils";
 import { Constants } from "../utils/Constants";
 
 process.env.SESSION_TABLE = "session-table";
@@ -15,7 +15,8 @@ export const accessTokenRouter = asyncify(express.Router());
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 accessTokenRouter.post("/", async (req, res) => {		
-	const event : APIGatewayProxyEvent = translateHttpRequestToApiGatewayProxyEvent(Constants.TOKEN_ENDPOINT, req.body, req.headers);
+	const event: APIGatewayProxyEvent = eventRequest;
+	event.body = convertUrlEncodedRequestBodyToString(req.body);
 	
 	const tokenResponse = await lambdaHandler(event, {});
 	res.status(tokenResponse.statusCode);
