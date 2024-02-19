@@ -11,6 +11,7 @@ import * as AWS from "@aws-sdk/client-kms";
 
 export class KmsJwtAdapter {
 	readonly kid: string;	
+	
 	readonly dnsSuffix: string;	
 
 	private kms: AWS.KMS;

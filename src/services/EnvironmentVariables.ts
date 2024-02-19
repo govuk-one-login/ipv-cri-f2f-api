@@ -216,7 +216,7 @@ export class EnvironmentVariables {
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
 					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
 					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0 ||
-					!this.DNSSUFFIX || this.DNSSUFFIX.trim().length === 0){
+					!this.DNSSUFFIX || this.DNSSUFFIX.trim().length === 0) {
 					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or YOTICALLBACKURL or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Callback Service incorrectly configured");
 				}
@@ -358,7 +358,7 @@ export class EnvironmentVariables {
 	}
 
 	dnsSuffix(): any {
-		return this.DNSSUFFIX
+		return this.DNSSUFFIX;
 	}
 	
 	encryptionKeyIds(): any {
