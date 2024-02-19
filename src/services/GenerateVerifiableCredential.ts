@@ -146,6 +146,7 @@ export class GenerateVerifiableCredential {
   				case "DIFFERENT_PERSON":
   					addToCI("V01");
   					rejectionReasons.push({ ci: "V01", reason });
+  					this.logger.info({ message: "Handling face match rejection", reason, contraIndicator: "V01" });
   					break;
   				default:
   					break;
