@@ -108,6 +108,17 @@ describe("EnvironmentVariables", () => {
 		});
 	});
 
+	describe("dnsSuffix", () => {
+		it("should return the value of DNSSUFFIX", () => {
+			process.env.DNSSUFFIX = "DNSSUFFIX";
+			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+
+			const result = envVars.kmsKeyArn();
+
+			expect(result).toBe("DNSSUFFIX");
+		});
+	});
+
 	describe("encryptionKeyIds", () => {
 		it("should return the value of ENCRYPTION_KEY_IDS", () => {
 			process.env.ENCRYPTION_KEY_IDS = "ENCRYPTION_KEY_IDS_VALUE";
