@@ -113,7 +113,7 @@ describe("EnvironmentVariables", () => {
 			process.env.DNSSUFFIX = "DNSSUFFIX";
 			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
 
-			const result = envVars.kmsKeyArn();
+			const result = envVars.dnsSuffix();
 
 			expect(result).toBe("DNSSUFFIX");
 		});
