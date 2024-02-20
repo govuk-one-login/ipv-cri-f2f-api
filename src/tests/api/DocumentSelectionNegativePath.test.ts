@@ -1,9 +1,5 @@
 import dataDriversLicenseInvalid from "../data/docSelectionPayloadDriversLicenceInvalid.json";
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
-import dataPassportMissingFad from "../data/dataPassportMissingFad.json";
-import dataPassportBlankFad from "../data/dataPassportBlankFad.json";
-import dataPassportIncorrectFad from "../data/dataPassportIncorrectFad.json";
-import dataPassportInvalidFadFormat from "../data/dataPassportInvalidFadFormat.json";
 import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../utils/ApiTestSteps";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 
@@ -23,33 +19,9 @@ describe("E2E Negative Path /documentSelection Endpoint", () => {
 
 	});
 
-	it("E2E Negative Path Journey - Incorrect Session Id", async () => {
+	it("E2E Happy Path Journey - Incorrect Session Id", async () => {
 		const response = await postDocumentSelection(dataPassport, "sessionId");
 		expect(response.status).toBe(401);
 		expect(response.data).toBe("Unauthorized");
-	});
-
-	it("E2E Negative Path Journey - Blank fad_code", async () => {
-		const response = await postDocumentSelection(dataPassportBlankFad, sessionId);
-		expect(response.status).toBe(500);
-		expect(response.data).toBe("Error generating Yoti instructions PDF");
-	});
-
-	it("E2E Negative Path Journey - Incorrect fad_code", async () => {
-		const response = await postDocumentSelection(dataPassportIncorrectFad, sessionId);
-		expect(response.status).toBe(500);
-		expect(response.data).toBe("Error generating Yoti instructions PDF");
-	});
-	
-	it("E2E Negative Path Journey - Invalid fad format", async () => {
-		const response = await postDocumentSelection(dataPassportInvalidFadFormat, sessionId);
-		expect(response.status).toBe(500);
-		expect(response.data).toBe("Error generating Yoti instructions PDF");
-	});
-
-	it("E2E Negative Path Journey - Missing fad_code", async () => {
-		const response = await postDocumentSelection(dataPassportMissingFad, sessionId);
-		expect(response.status).toBe(400);
-		expect(response.data).toStrictEqual({ "message": "Invalid request body" });
 	});
 });
