@@ -17,15 +17,21 @@
     "@aws-sdk/credential-providers": "3.352.0",
     "@aws-sdk/lib-dynamodb": "3.150.0",
     "@aws-sdk/node-http-handler": "^3.374.0",
+    "@pact-foundation/pact": "^12.1.3",
     "aws-xray-sdk-core": "^3.4.1",
     "axios": ">=1.3.4",
+    "body-parser": "^1.20.2",
     "class-validator": "0.14.0",
+    "cross-env": "^7.0.3",
+    "express": "^4.18.2",
+    "express-asyncify": "^2.1.2",
     "ecdsa-sig-formatter": "^1.0.11",
     "esbuild": "0.14.14",
     "jose": "^5.2.1",
     "lodash": "^4.17.21",
     "node-jose": "^2.1.1",
-    "notifications-node-client": "^7.0.0"
+    "notifications-node-client": "^7.0.0",
+    "npm-run-all": "^4.1.5"
   },
   "scripts": {
     "unit": "./node_modules/.bin/jest --testPathPattern=tests/unit --coverage",
@@ -36,12 +42,20 @@
     "test:e2e": "./node_modules/.bin/jest --testMatch '**/e2e/?(*.)test.ts' --passWithNoTests",
     "test:infra": "./node_modules/.bin/jest --testMatch '**/infra/?(*.)test.ts' ",
     "api": "JEST_JUNIT_OUTPUT_NAME=api-report.xml ./node_modules/.bin/jest --runInBand --testPathPattern=tests/api/",
-    "test:api": "npm run compile && npm run api"
+    "test:api": "npm run compile && npm run api",
+    "kill:dynamodblocal": "cd tests/contract; ./scripts/kill-dynamodb-local.sh",
+    "start:dynamodblocal": "cd tests/contract; ./scripts/setup-dynamodb-local.sh",
+    "start:contract": "npm-run-all -s start:dynamodblocal wait-start:contract",
+    "wait-start:contract": "wait-on tcp:127.0.0.1:8000 && cd tests/contract && ts-node ./app.ts",
+    "test:provider": "./node_modules/.bin/jest --testMatch '**/contract/F2fCriProvider.test.ts' --coverage=false",
+    "test:contract": "wait-on tcp:127.0.0.1:3000; cd tests/contract; npm run test:provider; npm run kill:dynamodblocal",
+    "test:contract:ci": "cross-env USE_MOCKED=true AWS_ACCESS_KEY_ID=dummy AWS_SECRET_ACCESS_KEY=dummy AWS_PAGER=\"\" npm-run-all -p -r start:contract test:contract"
   },
   "devDependencies": {
     "@aws-cdk/assertions": "^1.172.0",
     "@aws-cdk/yaml-cfn": "^1.172.0",
     "@types/aws-lambda": "^8.10.109",
+    "@types/express": "^4.17.21",
     "@types/jest": "^29.4.0",
     "@types/js-yaml": "^4.0.5",
     "@types/node": "^18.11.18",
@@ -66,10 +80,11 @@
     "jest-mock-extended": "^3.0.1",
     "prettier": "^2.8.4",
     "ts-jest": "^29.0.5",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "ts-standard": "^12.0.2",
     "tslint": "^6.1.3",
     "typescript": "^4.9.4",
+    "wait-on": "^7.2.0",
     "yaml-cfn": "^0.3.2"
   },
   "engines": {
