@@ -37,6 +37,9 @@
         "timestamp": {
             "type": "integer"
         },
+        "event_timestamp_ms": {
+            "type": "integer"
+        },
         "component_id": {
             "type": "string"
         },
@@ -70,6 +73,7 @@
         "user",
         "client_id",
         "timestamp",
+        "event_timestamp_ms",
         "component_id",
         "extensions"
     ]
