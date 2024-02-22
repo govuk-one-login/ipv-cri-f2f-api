@@ -19,7 +19,7 @@ describe("Negative Path /userInfo Endpoint", () => {
 		// // Post Token
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
 		// Post User Info
-		const userInfoResponse = await userInfoPost("Bearer ");
+		const userInfoResponse = await userInfoPost("Bearer 123");
 		expect(userInfoResponse.status).toBe(400);
 		expect(userInfoResponse.data).toBe("Failed to Validate - Authentication header: Failed to verify signature");
 	});

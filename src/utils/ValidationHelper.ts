@@ -39,12 +39,12 @@ export class ValidationHelper {
 
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing header: Authorization header value is missing or invalid auth_scheme");
 		}
-		const authHeader = event.headers.Authorization as string;
-		if (authHeader !== null && !authHeader.includes(Constants.BEARER)) {
+		if (!headerValue.includes(Constants.BEARER + " ")) {
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing header: Authorization header is not of Bearer type access_token");
 
 		}
 		const token = headerValue.replace(/^Bearer\s+/, "");
+
 		let isValidJwt = false;
 		try {
 			isValidJwt = await jwtAdapter.verify(token);
