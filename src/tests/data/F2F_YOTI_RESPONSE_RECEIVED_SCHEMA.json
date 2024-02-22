@@ -72,5 +72,6 @@
         "event_timestamp_ms",
         "component_id",
         "extensions"
-    ]
+    ],
+    "additionalProperties": false
 }

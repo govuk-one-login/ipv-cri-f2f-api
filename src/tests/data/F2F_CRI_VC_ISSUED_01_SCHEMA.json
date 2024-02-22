@@ -227,5 +227,6 @@
         "component_id",
         "extensions",
         "restricted"
-    ]
+    ],
+    "additionalProperties": false
 }
