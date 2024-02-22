@@ -218,7 +218,7 @@ export class EnvironmentVariables {
 					!this.YOTIBASEURL || this.YOTIBASEURL.trim().length === 0 ||
 					!this.KMS_KEY_ARN || this.KMS_KEY_ARN.trim().length === 0 ||
 					!this.DNSSUFFIX || this.DNSSUFFIX.trim().length === 0) {
-					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or KMS_KEY_ARN or ISSUER is not configured");
+					logger.error("Environment variable PERSON_IDENTITY_TABLE_NAME or YOTI_SDK or KMS_KEY_ARN or ISSUER or DNSSUFFIX is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Callback Service incorrectly configured");
 				}
 				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS < 10) {

@@ -31,13 +31,13 @@ export class VerifiableCredentialService {
   	kmsJwtAdapter: KmsJwtAdapter,
   	issuer: string,
   	logger: Logger,
-	dnsSuffix: string
+  	dnsSuffix: string,
   ) {
   	this.issuer = issuer;
   	this.tableName = tableName;
   	this.logger = logger;
   	this.kmsJwtAdapter = kmsJwtAdapter;
-	this.dnsSuffix = dnsSuffix;
+  	this.dnsSuffix = dnsSuffix;
   }
 
   static getInstance(
@@ -45,7 +45,7 @@ export class VerifiableCredentialService {
   	kmsJwtAdapter: KmsJwtAdapter,
   	issuer: string,
   	logger: Logger,
-	dnsSuffix: string
+  	dnsSuffix: string,
   ): VerifiableCredentialService {
   	if (!VerifiableCredentialService.instance) {
   		VerifiableCredentialService.instance = new VerifiableCredentialService(tableName, kmsJwtAdapter, issuer, logger, dnsSuffix);
