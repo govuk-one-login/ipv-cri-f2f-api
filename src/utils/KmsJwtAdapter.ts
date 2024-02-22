@@ -11,8 +11,6 @@ import * as AWS from "@aws-sdk/client-kms";
 
 export class KmsJwtAdapter {
 	readonly kid: string;	
-	
-	readonly dnsSuffix: string;	
 
 	private kms: AWS.KMS;
 
@@ -23,17 +21,16 @@ export class KmsJwtAdapter {
 	 */
 	ALG = "ECDSA_SHA_256";
 
-	constructor(kid: string, dnsSuffix: string) {
+	constructor(kid: string) {
 		this.kid = kid;
-		this.dnsSuffix = dnsSuffix;
 		this.kms = createKmsClient();
 	}
 
-	async sign(jwtPayload: JwtPayload): Promise<string> {
+	async sign(jwtPayload: JwtPayload, dnsSuffix: string): Promise<string> {
 		const jwtHeader: JwtHeader = { alg: "ES256", typ: "JWT" };
 		const kid = this.kid.split("/").pop();
 		if (kid != null) {
-			jwtHeader.kid = (`did:web:${this.dnsSuffix}#${jwtUtils.getHashedKid(kid)}`);
+			jwtHeader.kid = (`did:web:${dnsSuffix}#${jwtUtils.getHashedKid(kid)}`);
 		}
 		const tokenComponents = {
 			header: jwtUtils.base64Encode(JSON.stringify(jwtHeader)),
