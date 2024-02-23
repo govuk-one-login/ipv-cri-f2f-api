@@ -189,7 +189,7 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: "UNEXPECTED_ERROR_VERIFYING_JWT",
+				messageCode: MessageCodes.FAILED_VERIFYING_JWT,
 			}),
 		);
 	});
