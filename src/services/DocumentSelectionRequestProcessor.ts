@@ -194,7 +194,6 @@ export class DocumentSelectionRequestProcessor {
   				f2fSessionInfo,
   				this.environmentVariables.issuer(),
   				f2fSessionInfo.clientIpAddress,
-  				absoluteTimeNow,
   			);
   			await this.f2fService.sendToTXMA({
   				event_name: "F2F_YOTI_START",

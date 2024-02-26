@@ -31,6 +31,7 @@ export const TXMA_CORE_FIELDS = {
 	"component_id": "https://XXX-c.env.account.gov.uk",
 	"event_name": "F2F_YOTI_RESPONSE_RECEIVED",
 	"timestamp": 1,
+	"event_timestamp_ms": 1000,
 	"extensions": {
 		"previous_govuk_signin_journey_id": "sdfssg",
 		"evidence": [
@@ -232,6 +233,7 @@ export const TXMA_PASSPORT_YOTI_START = {
 		],
 	},
 	"timestamp": 1684933200,
+	"event_timestamp_ms": 1684933200000,
 	"user": {
 		"govuk_signin_journey_id": "sdfssg",
 		"ip_address": "127.0.0.1",
@@ -260,6 +262,7 @@ export const TXMA_NATIONAL_ID_YOTI_START = {
 		],
 	},
 	"timestamp": 1684933200,
+	"event_timestamp_ms": 1684933200000,
 	"user": {
 		"govuk_signin_journey_id": "sdfssg",
 		"ip_address": "127.0.0.1",
