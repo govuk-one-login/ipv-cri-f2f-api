@@ -5,7 +5,6 @@ import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
-import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
@@ -81,7 +80,7 @@ export class AbortRequestProcessor {
   	try {
   		await this.f2fService.sendToTXMA({
   			event_name: "F2F_CRI_SESSION_ABORTED",
-  			...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer() as string, f2fSessionInfo.clientIpAddress, absoluteTimeNow),
+  			...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer() as string, f2fSessionInfo.clientIpAddress),
   		});
   	} catch (error) {
   		this.logger.error("Auth session successfully aborted. Failed to send F2F_CRI_SESSION_ABORTED event to TXMA", {

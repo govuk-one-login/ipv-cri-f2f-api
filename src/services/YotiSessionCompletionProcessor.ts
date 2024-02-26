@@ -178,7 +178,7 @@ export class YotiSessionCompletionProcessor {
 			  f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
 			  f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED
 		  ) {
-  			const coreEventFields = buildCoreEventFields(f2fSession, this.environmentVariables.issuer(), f2fSession.clientIpAddress, absoluteTimeNow);
+  			const coreEventFields = buildCoreEventFields(f2fSession, this.environmentVariables.issuer(), f2fSession.clientIpAddress);
 			  try {
 				  await this.f2fService.sendToTXMA({
 					  event_name: "F2F_YOTI_RESPONSE_RECEIVED",
@@ -380,7 +380,6 @@ export class YotiSessionCompletionProcessor {
 				  f2fSession,
 				  this.environmentVariables.issuer(),
 				  f2fSession.clientIpAddress,
-				  absoluteTimeNow,
 			  ),
 			  extensions: {
   				previous_govuk_signin_journey_id: f2fSession.clientSessionId,

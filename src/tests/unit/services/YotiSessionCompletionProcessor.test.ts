@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+/* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
@@ -124,35 +126,36 @@ describe("YotiSessionCompletionProcessor", () => {
 
 	beforeEach(() => {
 		jest.clearAllMocks();
+		jest.useFakeTimers();
+		jest.setSystemTime(new Date(1585695600000));
 		// @ts-ignore
 		mockCompletedSessionProcessor.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 	});
 
+	afterEach(() => {
+		jest.useRealTimers();
+	});
+
 	it("Return successful response with 200 OK when YOTI session created with UK Passport", async () => {
-		jest.useFakeTimers();
-		jest.setSystemTime(absoluteTimeNow());
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		const coreFields = TXMA_CORE_FIELDS;
-		coreFields.timestamp = absoluteTimeNow();
+		coreFields.timestamp = 1585695600;
+		coreFields.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(coreFields);
 		const vcIssued =  TXMA_VC_ISSUED;
 		vcIssued.event_name = "F2F_CRI_VC_ISSUED";
-		vcIssued.timestamp = absoluteTimeNow();
+		vcIssued.timestamp = 1585695600;
+		vcIssued.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, vcIssued);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "testsub",
 			state: "Y@atr",
@@ -224,38 +227,31 @@ describe("YotiSessionCompletionProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
-		jest.useRealTimers();
 	});
 
 	it("Return successful response with 200 OK when YOTI session created with driving permit", async () => {
 		documentFields = getDrivingPermitFields();
 		const ukDLYotiSession =  getCompletedYotiSession();
 		ukDLYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE";
-		jest.useFakeTimers();
-		jest.setSystemTime(absoluteTimeNow());
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(ukDLYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		const ukDlcoreFields = TXMA_CORE_FIELDS;
-		ukDlcoreFields.timestamp = absoluteTimeNow();
+		ukDlcoreFields.timestamp = 1585695600;
+		ukDlcoreFields.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, ukDlcoreFields);
 		const ukDlVcIssued =  TXMA_DL_VC_ISSUED;
 		ukDlVcIssued.event_name = "F2F_CRI_VC_ISSUED";
-		ukDlVcIssued.timestamp = absoluteTimeNow();
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		ukDlVcIssued.timestamp = 1585695600;
+		ukDlVcIssued.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, ukDlVcIssued);
-
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "testsub",
 			state: "Y@atr",
@@ -334,7 +330,6 @@ describe("YotiSessionCompletionProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
-		jest.useRealTimers();
 	});
 
 	it("Return successful response with 200 OK when YOTI session created with EU driving permit", async () => {
@@ -342,8 +337,6 @@ describe("YotiSessionCompletionProcessor", () => {
 		const euDLYotiSession = getCompletedYotiSession();
 		euDLYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE";
 		euDLYotiSession.resources.id_documents[0].issuing_country = "DEU";
-		jest.useFakeTimers();
-		jest.setSystemTime(absoluteTimeNow());
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(euDLYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
@@ -353,20 +346,17 @@ describe("YotiSessionCompletionProcessor", () => {
 
 		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 		const euDlcoreFields = TXMA_CORE_FIELDS;
-		euDlcoreFields.timestamp = absoluteTimeNow();
+		euDlcoreFields.timestamp = 1585695600;
+		euDlcoreFields.event_timestamp_ms = 1585695600000;
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, euDlcoreFields);
 		const euDlVcIssued =  TXMA_EU_DL_VC_ISSUED;
 		euDlVcIssued.event_name = "F2F_CRI_VC_ISSUED";
-		euDlVcIssued.timestamp = absoluteTimeNow();
+		euDlVcIssued.timestamp = 1585695600;
+		euDlVcIssued.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, euDlVcIssued);
-
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "testsub",
 			state: "Y@atr",
@@ -440,7 +430,6 @@ describe("YotiSessionCompletionProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
-		jest.useRealTimers();
 	});
 
 	it("Return successful response with 200 OK when YOTI session created with EEA Identity Card", async () => {
@@ -448,30 +437,24 @@ describe("YotiSessionCompletionProcessor", () => {
 		const eeaYotiSession = getCompletedYotiSession();
 		eeaYotiSession.resources.id_documents[0].document_type = "NATIONAL_ID";
 		eeaYotiSession.resources.id_documents[0].issuing_country = "NLD";
-		jest.useFakeTimers();
-		jest.setSystemTime(absoluteTimeNow());
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(eeaYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 		const eeaDlcoreFields = TXMA_CORE_FIELDS;
-		eeaDlcoreFields.timestamp = absoluteTimeNow();
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		eeaDlcoreFields.timestamp = 1585695600;
+		eeaDlcoreFields.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, eeaDlcoreFields);
 		const eeaVcIssued =  TXMA_EEA_VC_ISSUED;
 		eeaVcIssued.event_name = "F2F_CRI_VC_ISSUED";
-		eeaVcIssued.timestamp = absoluteTimeNow();
+		eeaVcIssued.timestamp = 1585695600;
+		eeaVcIssued.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, eeaVcIssued);
-
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "testsub",
 			state: "Y@atr",
@@ -544,38 +527,31 @@ describe("YotiSessionCompletionProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
-		jest.useRealTimers();
 	});
 
 	it("Return successful response with 200 OK when YOTI session created with BRP", async () => {
 		documentFields = getBrpFields();
 		const brpYotiSession = getCompletedYotiSession();
 		brpYotiSession.resources.id_documents[0].document_type = "RESIDENCE_PERMIT";
-		jest.useFakeTimers();
-		jest.setSystemTime(absoluteTimeNow());
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(brpYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 		const brpCoreFields = TXMA_CORE_FIELDS;
-		brpCoreFields.timestamp = absoluteTimeNow();
+		brpCoreFields.timestamp = 1585695600;
+		brpCoreFields.event_timestamp_ms = 1585695600000;
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, brpCoreFields);
 		const brpVcIssued =  TXMA_BRP_VC_ISSUED;
 		brpVcIssued.event_name = "F2F_CRI_VC_ISSUED";
-		brpVcIssued.timestamp = absoluteTimeNow();
+		brpVcIssued.timestamp = 1585695600;
+		brpVcIssued.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, brpVcIssued);
-
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "testsub",
 			state: "Y@atr",
@@ -648,8 +624,6 @@ describe("YotiSessionCompletionProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
-		jest.useRealTimers();
-		jest.clearAllMocks();
 	});
 
 	describe("name checks", () => {
@@ -657,7 +631,6 @@ describe("YotiSessionCompletionProcessor", () => {
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-
 			// @ts-ignore
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
@@ -674,18 +647,15 @@ describe("YotiSessionCompletionProcessor", () => {
 			});
 			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-
 			// @ts-ignore
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		
 			await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+
 			expect(logger.info).toHaveBeenCalledWith("Getting NameParts using F2F Person Identity Info");
 		});	
 
 		it("Should use name casing from documentFields when using getNamesFromPersonIdentity", async () => {
-			jest.useFakeTimers();
-			jest.setSystemTime(absoluteTimeNow());
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 			mockYotiService.getMediaContent.mockResolvedValueOnce({ 
 				...documentFields,
@@ -694,7 +664,6 @@ describe("YotiSessionCompletionProcessor", () => {
 			});
 			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-
 			// @ts-ignore
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
@@ -769,7 +738,6 @@ describe("YotiSessionCompletionProcessor", () => {
 					},
 		 })],
 			});
-			jest.useRealTimers();
 		});
 
 		it("Should throw an error of name mismatch between F2F and Yoti DocumentFields", async () => {
@@ -781,7 +749,6 @@ describe("YotiSessionCompletionProcessor", () => {
 			});
 			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-
 			// @ts-ignore
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
@@ -1003,10 +970,7 @@ describe("YotiSessionCompletionProcessor", () => {
 
 		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
-
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenNthCalledWith(1, "Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", { messageCode: MessageCodes.FAILED_TO_WRITE_TXMA });
 		expect(logger.error).toHaveBeenNthCalledWith(2, "Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", { error: {}, messageCode: MessageCodes.FAILED_TO_WRITE_TXMA });
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);

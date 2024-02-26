@@ -1,57 +1,98 @@
 {
   "type": "object",
   "properties": {
-      "event_name": {
+    "event_name": {
+      "type": "string"
+    },
+    "user": {
+      "type": "object",
+      "properties": {
+        "user_id": {
           "type": "string"
-      },
-      "user": {
-        "type": "object",
-        "properties": {
-            "user_id": {
-                "type": "string"
-            }
         },
-        "required": [
-            "user_id"
-        ]
+        "session_id": {
+          "type": "string"
+        },
+        "ip_address": {
+          "type": "string"
+        }
       },
-      "timestamp": {
-        "type": "integer"
-      },
-      "extensions": {
-        "type": "object",
-        "properties": {
-            "previous_govuk_signin_journey_id": {
-                "type": "string"
-            },
-            "post_office_visit_details": {
-              "type": "array",
-              "items": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "post_office_date_of_visit": {
-                        "type": "string"
-                    },
-                    "post_office_time_of_visit": {
-                        "type": "string"
-                    }
-                  }
+      "required": [
+        "user_id",
+        "session_id",
+        "ip_address"
+      ]
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "integer"
+    },
+    "event_timestamp_ms": {
+      "type": "integer"
+    },
+    "component_id": {
+      "type": "string"
+    },
+    "extensions": {
+      "type": "object",
+      "properties": {
+        "previous_govuk_signin_journey_id": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "properties": {
+                "txn": {
+                  "type": "string"
                 }
+              },
+              "required": [
+                "txn"
               ]
             }
-          }
+          ]
         },
-        "required": [
-            "previous_govuk_signin_journey_id",
-            "post_office_visit_details"
-        ]
-      }
-    },
-    "required": [
-      "event_name",
-      "user",
-      "timestamp",
-      "extensions"
-    ]
- }
+        "post_office_timings": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "properties": {
+                "post_office_date": {
+                  "type": "string"
+                },
+                "post_office_time": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "post_office_date",
+                "post_office_time"
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "previous_govuk_signin_journey_id",
+        "evidence",
+        "post_office_timings"
+      ]
+    }
+  },
+  "required": [
+    "event_name",
+    "user",
+    "client_id",
+    "timestamp",
+    "event_timestamp_ms",
+    "component_id",
+    "extensions"
+  ],
+  "additionalProperties": false
+}
