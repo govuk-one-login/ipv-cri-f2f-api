@@ -2016,9 +2016,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue platform-alarm-topic-slack-warning-alert
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of GovNotify concurrency is used. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-concurrency"
