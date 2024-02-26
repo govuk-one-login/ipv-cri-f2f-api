@@ -374,7 +374,14 @@ export async function getDequeuedSqsMessage(prefix: string): Promise<any> {
 
 export function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): void {
 	const [rawHead, rawBody, signature] = jwtToken.split(".");
+	// Validate Header
+	const decodedHeader = JSON.parse(jwtUtils.base64DecodeToString(rawHead.replace(/\W/g, "")));
+	expect(decodedHeader.typ).toBe("JWT");
+	expect(decodedHeader.kid).toBe("did:web:review-o.dev.account.gov.uk#" + process.env.ENCRYPTED_KMS_KEY);
+
+	
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
+
 	expect(decodedBody.jti).toBeTruthy();
 	// Strength Score
 	const expecedStrengthScore = eval("vcData.s" + yotiId + ".strengthScore");
