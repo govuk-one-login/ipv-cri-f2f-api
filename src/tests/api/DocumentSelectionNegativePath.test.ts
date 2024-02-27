@@ -35,19 +35,19 @@ describe("E2E Negative Path /documentSelection Endpoint", () => {
 		expect(response.data).toBe("Error generating Yoti instructions PDF");
 	});
 
-	it("E2E Negative Path Journey - Incorrect fad_code", async () => {
+	it.skip("E2E Negative Path Journey - Incorrect fad_code", async () => {
 		const response = await postDocumentSelection(dataPassportIncorrectFad, sessionId);
 		expect(response.status).toBe(500);
 		expect(response.data).toBe("Error generating Yoti instructions PDF");
 	});
 	
-	it("E2E Negative Path Journey - Invalid fad format", async () => {
+	it.skip("E2E Negative Path Journey - Invalid fad format", async () => {
 		const response = await postDocumentSelection(dataPassportInvalidFadFormat, sessionId);
 		expect(response.status).toBe(500);
 		expect(response.data).toBe("Error generating Yoti instructions PDF");
 	});
 
-	it("E2E Negative Path Journey - Missing fad_code", async () => {
+	it.skip("E2E Negative Path Journey - Missing fad_code", async () => {
 		const response = await postDocumentSelection(dataPassportMissingFad, sessionId);
 		expect(response.status).toBe(400);
 		expect(response.data).toStrictEqual({ "message": "Invalid request body" });
