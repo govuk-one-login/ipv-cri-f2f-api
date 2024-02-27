@@ -22,6 +22,7 @@ export interface PostOfficeInfo {
 		latitude: number;
 		longitude: number;
 	};
+	fad_code: string;
 }
 
 export interface CreateSessionPayload {
