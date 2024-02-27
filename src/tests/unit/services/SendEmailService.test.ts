@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { SQSEvent } from "aws-lambda";
@@ -52,10 +53,6 @@ function getMockSessionItem(): ISessionItem {
 
 const timestamp = 1689952318;
 
-jest.mock("../../../utils/DateTimeUtils", () => ({
-	absoluteTimeNow: () => timestamp,
-}));
-
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
 		sendEmailServiceTest = SendEmailService.getInstance(logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
@@ -72,7 +69,13 @@ describe("SendEmailProcessor", () => {
 
 	beforeEach(() => {
 		jest.clearAllMocks();
+		jest.useFakeTimers();
+		jest.setSystemTime(new Date(timestamp * 1000));
 		sqsEvent = VALID_SQS_EVENT;
+	});
+
+	afterEach(() => {
+		jest.useRealTimers();
 	});
 
 	it("Returns EmailResponse when YOTI PDF email is sent successfully", async () => {
@@ -92,6 +95,7 @@ describe("SendEmailProcessor", () => {
 			client_id: "ipv-core-stub",
 			component_id: "https://XXX-c.env.account.gov.uk",
 			timestamp,
+			event_timestamp_ms: timestamp * 1000,
 			extensions: {
 				evidence: [
 					{
@@ -133,7 +137,9 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("SendEmailService retries when GovNotify throws a 500 error", async () => {
-		mockGovNotify.sendEmail.mockRejectedValue( {
+		jest.useRealTimers();
+		mockYotiService.fetchInstructionsPdf.mockResolvedValue("instructionsPdf");
+		mockGovNotify.sendEmail.mockRejectedValue({
 			"response": {
 				"data": {
 					"errors": [
@@ -144,7 +150,6 @@ describe("SendEmailProcessor", () => {
 					],
 					"status_code": 500,
 				},
-
 			},
 		});
 
@@ -155,7 +160,9 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("SendEmailService retries when GovNotify throws a 429 error", async () => {
-		mockGovNotify.sendEmail.mockRejectedValue( {
+		jest.useRealTimers();
+		mockYotiService.fetchInstructionsPdf.mockResolvedValue("instructionsPdf");
+		mockGovNotify.sendEmail.mockRejectedValue({
 			"response": {
 				"data": {
 					"errors": [
@@ -166,7 +173,6 @@ describe("SendEmailProcessor", () => {
 					],
 					"status_code": 429,
 				},
-
 			},
 		});
 

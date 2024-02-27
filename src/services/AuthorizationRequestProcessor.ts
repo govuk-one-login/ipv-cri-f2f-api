@@ -4,7 +4,6 @@ import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { randomUUID } from "crypto";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { ValidationHelper } from "../utils/ValidationHelper";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
@@ -40,10 +39,9 @@ export class AuthorizationRequestProcessor {
 	}
 
 	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
-		
 		this.logger.appendKeys({ sessionId });
 		const session = await this.f2fService.getSessionById(sessionId);
-		
+
 		if (session != null) {
 			if (session.expiryDate < absoluteTimeNow()) {
 				this.logger.error("Session has expired", { messageCode: MessageCodes.EXPIRED_SESSION });
@@ -65,7 +63,7 @@ export class AuthorizationRequestProcessor {
 
 				this.metrics.addMetric("Set authorization code", MetricUnits.Count, 1);
 				try {
-					const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow);
+					const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress);
 					await this.f2fService.sendToTXMA({
 						event_name: "F2F_CRI_AUTH_CODE_ISSUED",
 						...coreEventFields,
@@ -92,7 +90,7 @@ export class AuthorizationRequestProcessor {
 				try {
 					await this.f2fService.sendToTXMA({
 						event_name: "F2F_CRI_END",
-						...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress, absoluteTimeNow),
+						...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress),
 						extensions: {
 							previous_govuk_signin_journey_id: session.clientSessionId,
 							evidence: [

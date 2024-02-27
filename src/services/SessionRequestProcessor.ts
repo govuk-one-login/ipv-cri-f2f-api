@@ -211,7 +211,7 @@ export class SessionRequestProcessor {
   	}
 
   	try {
-  		const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer() as string, clientIpAddress, absoluteTimeNow);
+  		const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer() as string, clientIpAddress);
   		await this.f2fService.sendToTXMA({
   			event_name: "F2F_CRI_START",
   			...coreEventFields,

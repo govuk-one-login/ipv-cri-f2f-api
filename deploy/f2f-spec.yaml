@@ -1034,7 +1034,7 @@ components:
               description: claimed expiry date for the document to be presented at the post office
         post_office_selection:
           type: object
-          additionalProperties: false
+          additionalProperties: true
           required:
             - address
             - post_code
