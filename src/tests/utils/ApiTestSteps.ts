@@ -378,7 +378,7 @@ export async function validateJwtToken(jwtToken: any, vcData: any, yotiId?: stri
 	// Validate Header
 	const decodedHeader = JSON.parse(jwtUtils.base64DecodeToString(rawHead.replace(/\W/g, "")));
 	expect(decodedHeader.typ).toBe("JWT");
-	const msgBuffer = new TextEncoder().encode(constants.RAW_KMS_KEY);
+	const msgBuffer = new TextEncoder().encode(constants.VC_SIGNING_KEY_ID);
 	const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
 	const hashArray = Array.from(new Uint8Array(hashBuffer));
 	const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');

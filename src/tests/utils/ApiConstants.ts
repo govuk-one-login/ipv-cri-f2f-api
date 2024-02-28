@@ -8,5 +8,5 @@ export const constants = {
 	DEV_F2F_SESSION_TABLE_NAME: "session-f2f-cri-ddb",
 	GOV_NOTIFY_API: process.env.GOV_NOTIFY_API,
 	DEV_F2F_PO_STUB_URL: process.env.DEV_F2F_PO_STUB_URL,
-	RAW_KMS_KEY: process.env.RAW_KMS_KEY,
+	VC_SIGNING_KEY_ID: process.env.VC_SIGNING_KEY_ID,
 };
