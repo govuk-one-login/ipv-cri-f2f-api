@@ -145,7 +145,7 @@ export async function sessionConfigurationGet(sessionId: any):Promise<any> {
 		return error.response;
 	}
 }
-export async function postYotiSession(trackingId: any, userData: any): Promise<any> {
+export async function postYotiSession(trackingId: string, userData: any): Promise<any> {
 	const path = "/sessions";
 	try {
 		// update fullName to contain trackingId - this determines the behaviour of the Yoti mock
@@ -159,7 +159,7 @@ export async function postYotiSession(trackingId: any, userData: any): Promise<a
 	}
 }
 
-export async function getYotiSessionsConfiguration(sessionId: any): Promise<any> {
+export async function getYotiSessionsConfiguration(sessionId: string): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/configuration";
 	console.log(path);
 	try {
@@ -172,11 +172,11 @@ export async function getYotiSessionsConfiguration(sessionId: any): Promise<any>
 	}
 }
 
-export async function putYotiSessionsInstructions(sessionId: any): Promise<any> {
+export async function putYotiSessionsInstructions(sessionId: string, fadcodePayload: { branch: { fad_code: string } }): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions";
 	console.log(path);
 	try {
-		const postRequest = await YOTI_INSTANCE.put(path);
+		const postRequest = await YOTI_INSTANCE.put(path, fadcodePayload);
 		return postRequest;
 
 	} catch (error: any) {
@@ -186,7 +186,7 @@ export async function putYotiSessionsInstructions(sessionId: any): Promise<any> 
 }
 
 
-export async function getYotiSessionsInstructions(sessionId: any): Promise<any> {
+export async function getYotiSessionsInstructions(sessionId: string): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions/pdf";
 	console.log(path);
 	try {
