@@ -2,7 +2,7 @@
 import yotiRequestData from "../data/yotiSessionsPayloadValid.json";
 import { postYotiSession, getYotiSessionsConfiguration, putYotiSessionsInstructions, getYotiSessionsInstructions } from "../utils/ApiTestSteps";
 
-const payload = {"branch": {"fad_code":"1234567"}}
+const payload = { "branch": { "fad_code":"1234567" } };
 
 describe("Yoti /sessions endpoint", () => {
 	//responseCode, user_tracking_ui
