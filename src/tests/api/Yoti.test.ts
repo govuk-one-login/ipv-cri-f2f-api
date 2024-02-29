@@ -40,7 +40,7 @@ describe("Yoti /sessions endpoint", () => {
 		[503, "3503"],
 		  ];
 	it.each(putInstructionsParams)("Yoti - expect '%i' response on PUT/ssessions/{id}/instructions '/sessions/%s/instructions'", async (responseCode, sessionId) => {
-		const fadcodePayload = { "branch": { "fad_code":"1234567" } }
+		const fadcodePayload = { "branch": { "fad_code":"1234567" } };
 		const response = await putYotiSessionsInstructions(sessionId as string, fadcodePayload);
 		expect(response.status).toBe(responseCode);
 	});
