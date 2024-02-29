@@ -2,6 +2,8 @@
 import yotiRequestData from "../data/yotiSessionsPayloadValid.json";
 import { postYotiSession, getYotiSessionsConfiguration, putYotiSessionsInstructions, getYotiSessionsInstructions } from "../utils/ApiTestSteps";
 
+const payload = {"branch": {"fad_code":"1234567"}}
+
 describe("Yoti /sessions endpoint", () => {
 	//responseCode, user_tracking_ui
 	const postSessionsParams = [
@@ -40,7 +42,7 @@ describe("Yoti /sessions endpoint", () => {
 		[503, "3503"],
 		  ];
 	it.each(putInstructionsParams)("Yoti - expect '%i' response on PUT/ssessions/{id}/instructions/pdf '/sessions/%s/instructions/pdf'", async (responseCode, sessionId) => {
-		const response = await putYotiSessionsInstructions(sessionId);
+		const response = await putYotiSessionsInstructions(sessionId, payload);
 		expect(response.status).toBe(responseCode);
 	});
 

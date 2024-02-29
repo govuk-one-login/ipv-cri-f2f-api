@@ -172,11 +172,11 @@ export async function getYotiSessionsConfiguration(sessionId: any): Promise<any>
 	}
 }
 
-export async function putYotiSessionsInstructions(sessionId: any): Promise<any> {
+export async function putYotiSessionsInstructions(sessionId: any, payload: any): Promise<any> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions";
 	console.log(path);
 	try {
-		const postRequest = await YOTI_INSTANCE.put(path);
+		const postRequest = await YOTI_INSTANCE.put(path, payload);
 		return postRequest;
 
 	} catch (error: any) {
