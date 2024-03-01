@@ -220,7 +220,7 @@ describe("GenerateVerifiableCredential", () => {
 			{ reason: "COUNTERFEIT", contraIndicator: ["D14"] },
 			{ reason: "EXPIRED_DOCUMENT", contraIndicator: ["D16"] },
 			{ reason: "FRAUD_LIST_MATCH", contraIndicator: ["F03"] },
-			{ reason: "DOC_NUMBER_INVALID", contraIndicator: ["D02"] },
+			{ reason: "DOC_NUMBER_INVALID", contraIndicator: ["D14"] },
 			{ reason: "TAMPERED", contraIndicator: ["D14"] },
 			{ reason: "MISSING_HOLOGRAM", contraIndicator: ["D14"] },
 			{ reason: "NO_HOLOGRAM_MOVEMENT", contraIndicator: ["D14"] },
