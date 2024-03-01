@@ -5811,3 +5811,8 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Post Office Stub API"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, POSTOFFICESTUBAPI]
+  VcSigningKeyId:
+    Condition: IsNotProdLikeEnvironment
+    Description: "Signing Key used to sign VC"
+    Value:
+      Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key-id"
