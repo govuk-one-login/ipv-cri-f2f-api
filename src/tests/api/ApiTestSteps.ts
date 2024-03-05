@@ -1,12 +1,13 @@
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import Ajv from "ajv";
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
 import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";
+import { StubStartRequest, StubStartResponse, SessionResponse } from "./types";
 
 const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOV_NOTIFY_API });
 const API_INSTANCE = axios.create({ baseURL: constants.DEV_CRI_F2F_API_URL });
@@ -33,14 +34,17 @@ HARNESS_API_INSTANCE.interceptors.request.use(awsSigv4Interceptor);
 const xmlParser = new XMLParser();
 const ajv = new Ajv({ strictTuples: false });
 
-export async function startStubServiceAndReturnSessionId(stubPayload: any): Promise<any> {
+export async function startStubServiceAndReturnSessionId(stubPayload: StubStartRequest): Promise<{ sessionId: string; sub: string }> {
 	const stubResponse = await stubStartPost(stubPayload);
 	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-	postRequest.data.sub = stubResponse.data.sub;
-	return postRequest;
+
+	return {
+		sessionId: postRequest.data.session_id,
+		sub: stubResponse.data.sub,
+	};
 }
 
-export async function stubStartPost(stubPayload: any): Promise<any> {
+export async function stubStartPost(stubPayload: StubStartRequest): Promise<AxiosResponse<StubStartResponse>> {
 	const path = constants.DEV_IPV_F2F_STUB_URL;
 	try {
 		const postRequest = await axios.post(`${path}`, stubPayload);
@@ -52,6 +56,7 @@ export async function stubStartPost(stubPayload: any): Promise<any> {
 	}
 }
 
+// TODO this also seems like a duplicate?
 export async function stubStartPostNoSharedClaims(requestBody: any): Promise<any> {
 	const path = constants.DEV_IPV_F2F_STUB_URL;
 	try {
@@ -64,7 +69,7 @@ export async function stubStartPostNoSharedClaims(requestBody: any): Promise<any
 	}
 }
 
-export async function sessionPost(clientId?: string, request?: string): Promise<any> {
+export async function sessionPost(clientId: string, request: string): Promise<AxiosResponse<SessionResponse>> {
 	const path = "/session";
 	try {
 		const postRequest = await API_INSTANCE.post(path, { client_id: clientId, request });
@@ -121,15 +126,14 @@ export async function userInfoPost(accessToken?: any): Promise<any> {
 	}
 }
 
-export async function callbackPost(sessionId: string | undefined, topic = "session_completion"): Promise<any> {
+export async function callbackPost(sessionId: string | undefined, topic = "session_completion"): Promise<void> {
 	const path = "/callback";
 	if (!sessionId) throw new Error("no yoti session ID provided");
 	try {
-		const postRequest = await API_INSTANCE.post(path, {
+		await API_INSTANCE.post(path, {
 			session_id: sessionId,
 			topic,
 		});
-		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;

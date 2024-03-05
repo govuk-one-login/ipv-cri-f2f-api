@@ -327,6 +327,7 @@ const JEST_RULES = {
 }
 
 const OVERRIDE_DEFAULTS_RULES = {
+  'import/named': 0,
   // Allow defining functions (incl. arrow expressions) after use as per "Stepdown Rule" best practice
   '@typescript-eslint/no-use-before-define': 'off',
 
