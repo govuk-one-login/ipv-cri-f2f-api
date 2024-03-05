@@ -1,7 +1,7 @@
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import abortPayload from "../data/abortPayload.json";
 
-import { startStubServiceAndReturnSessionId, postAbortSession } from "../utils/ApiTestSteps";
+import { startStubServiceAndReturnSessionId, postAbortSession } from "./ApiTestSteps";
 
 describe("E2E Happy Path /abort enpoint", () => {
 	let sessionId: string;

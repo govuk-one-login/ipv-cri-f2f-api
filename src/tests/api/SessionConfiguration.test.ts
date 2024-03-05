@@ -3,7 +3,7 @@ import thinFilePayload from "../data/thinFilePayload.json";
 import { randomUUID } from "crypto";
 
 
-import { sessionConfigurationGet, startStubServiceAndReturnSessionId } from "../utils/ApiTestSteps";
+import { sessionConfigurationGet, startStubServiceAndReturnSessionId } from "./ApiTestSteps";
 
 describe("Session Configuration Endpoint Tests", () => {
 

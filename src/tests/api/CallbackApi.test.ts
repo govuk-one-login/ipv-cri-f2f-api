@@ -18,9 +18,9 @@ import {
 	getSqsEventList,
 	validateTxMAEvent,
 	validateTxMAEventData,
-} from "../utils/ApiTestSteps";
+} from "./ApiTestSteps";
 import "dotenv/config";
-import { constants } from "../utils/ApiConstants";
+import { constants } from "./ApiConstants";
 
 describe("Callback API", () => {
 	jest.setTimeout(60000);

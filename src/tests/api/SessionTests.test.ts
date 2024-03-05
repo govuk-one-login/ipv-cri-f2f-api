@@ -1,4 +1,4 @@
-import { sessionPost, stubStartPost } from "../utils/ApiTestSteps";
+import { sessionPost, stubStartPost } from "./ApiTestSteps";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import addressSessionPayload from "../data/addressSessionPayload.json";
 import exampleStubPayload from "../data/exampleStubPayload.json";

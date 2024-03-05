@@ -2,8 +2,8 @@ import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import dataDriversLicense from "../data/docSelectionPayloadDriversLicenceValid.json";
 import dataBrp from "../data/docSelectionPayloadBrpValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
-import { initiateUserInfo, postDocumentSelection, startStubServiceAndReturnSessionId, getSessionById } from "../utils/ApiTestSteps";
-import { constants } from "../utils/ApiConstants";
+import { initiateUserInfo, postDocumentSelection, startStubServiceAndReturnSessionId, getSessionById } from "./ApiTestSteps";
+import { constants } from "./ApiConstants";
 
 describe("E2E Happy Path /documentSelection Endpoint", () => {
 	let sessionId: string;

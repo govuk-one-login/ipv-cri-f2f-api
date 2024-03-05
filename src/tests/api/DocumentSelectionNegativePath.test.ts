@@ -4,7 +4,7 @@ import dataPassportMissingFad from "../data/dataPassportMissingFad.json";
 import dataPassportBlankFad from "../data/dataPassportBlankFad.json";
 import dataPassportIncorrectFad from "../data/dataPassportIncorrectFad.json";
 import dataPassportInvalidFadFormat from "../data/dataPassportInvalidFadFormat.json";
-import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../utils/ApiTestSteps";
+import { postDocumentSelection, startStubServiceAndReturnSessionId } from "./ApiTestSteps";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 
 describe("E2E Negative Path /documentSelection Endpoint", () => {

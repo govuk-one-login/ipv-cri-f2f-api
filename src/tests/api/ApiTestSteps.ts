@@ -4,7 +4,7 @@ import axios, { AxiosInstance } from "axios";
 import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
-import { constants } from "../utils/ApiConstants";
+import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";
 

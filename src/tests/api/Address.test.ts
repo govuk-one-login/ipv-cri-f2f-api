@@ -1,7 +1,7 @@
 /* eslint-disable max-lines-per-function */
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
-import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../utils/ApiTestSteps";
+import { postDocumentSelection, startStubServiceAndReturnSessionId } from "./ApiTestSteps";
 
 describe("Address fields tests", () => {
 	let sessionId: string;

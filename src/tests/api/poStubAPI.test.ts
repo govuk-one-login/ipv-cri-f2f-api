@@ -1,5 +1,5 @@
 import poStubPayloadData from "../data/poStubPayload.json";
-import { postPOCodeRequest } from "../utils/ApiTestSteps";
+import { postPOCodeRequest } from "./ApiTestSteps";
 
 describe("PO Endpoint /postoffice/locations/search", () => {
 	const postPOParams = [

@@ -1,7 +1,7 @@
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
-import { postDocumentSelection, startStubServiceAndReturnSessionId, authorizationGet, tokenPost, userInfoPost } from "../utils/ApiTestSteps";
+import { postDocumentSelection, startStubServiceAndReturnSessionId, authorizationGet, tokenPost, userInfoPost } from "./ApiTestSteps";
 import f2fStubPayload from "../data/exampleStubPayload.json";
-import { constants } from "../utils/ApiConstants";
+import { constants } from "./ApiConstants";
 
 describe("Negative Path /userInfo Endpoint", () => {
 	let sessionId: string;

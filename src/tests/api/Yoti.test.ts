@@ -1,6 +1,6 @@
 /* eslint-disable max-lines-per-function */
 import yotiRequestData from "../data/yotiSessionsPayloadValid.json";
-import { postYotiSession, getYotiSessionsConfiguration, putYotiSessionsInstructions, getYotiSessionsInstructions } from "../utils/ApiTestSteps";
+import { postYotiSession, getYotiSessionsConfiguration, putYotiSessionsInstructions, getYotiSessionsInstructions } from "./ApiTestSteps";
 
 describe("Yoti /sessions endpoint", () => {
 	//responseCode, user_tracking_ui
