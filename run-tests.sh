@@ -19,6 +19,10 @@ export DEV_F2F_TEST_HARNESS_URL=$(remove_quotes "$CFN_F2FTestHarnessURL")
 export GOV_NOTIFY_API=$(remove_quotes "$CFN_F2FGovNotifyURL")
 # shellcheck disable=SC2154
 export DEV_F2F_PO_STUB_URL=$(remove_quotes "$CFN_F2FPostOfficeStubURL")
+# shellcheck disable=SC2154
+export VC_SIGNING_KEY_ID=$(remove_quotes "$CFN_VcSigningKeyId")
+# shellcheck disable=SC2154
+export DNS_SUFFIX=$(remove_quotes "$CFN_DNSSuffix")
 
 cd /src; npm run test:api
 cp -rf results $TEST_REPORT_ABSOLUTE_DIR

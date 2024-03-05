@@ -53,7 +53,7 @@ export class YotiSessionCompletionProcessor {
   	this.yotiService = YotiService.getInstance(this.logger, this.environmentVariables.yotiSdk(), this.environmentVariables.resourcesTtlInSeconds(), this.environmentVariables.clientSessionTokenTtlInDays(), YOTI_PRIVATE_KEY, this.environmentVariables.yotiBaseUrl());
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
-  	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.logger);
+  	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.logger, this.environmentVariables.dnsSuffix());
   	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger);
   }
 
@@ -178,7 +178,7 @@ export class YotiSessionCompletionProcessor {
 			  f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
 			  f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED
 		  ) {
-  			const coreEventFields = buildCoreEventFields(f2fSession, this.environmentVariables.issuer(), f2fSession.clientIpAddress, absoluteTimeNow);
+  			const coreEventFields = buildCoreEventFields(f2fSession, this.environmentVariables.issuer(), f2fSession.clientIpAddress);
 			  try {
 				  await this.f2fService.sendToTXMA({
 					  event_name: "F2F_YOTI_RESPONSE_RECEIVED",
@@ -380,7 +380,6 @@ export class YotiSessionCompletionProcessor {
 				  f2fSession,
 				  this.environmentVariables.issuer(),
 				  f2fSession.clientIpAddress,
-				  absoluteTimeNow,
 			  ),
 			  extensions: {
   				previous_govuk_signin_journey_id: f2fSession.clientSessionId,

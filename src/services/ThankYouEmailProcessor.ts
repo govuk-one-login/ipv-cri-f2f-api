@@ -8,7 +8,6 @@ import { YotiCompletedSession } from "../models/YotiPayloads";
 import { YotiCallbackPayload } from "../type/YotiCallbackPayload";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { AppError } from "../utils/AppError";
-import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { Response } from "../utils/Response";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
@@ -94,7 +93,7 @@ export class ThankYouEmailProcessor {
 
   		await this.f2fService.sendToTXMA({
   			event_name: "F2F_DOCUMENT_UPLOADED",
-  			...buildCoreEventFields(f2fSession, this.environmentVariables.issuer() as string, f2fSession.clientIpAddress, absoluteTimeNow),
+  			...buildCoreEventFields(f2fSession, this.environmentVariables.issuer() as string, f2fSession.clientIpAddress),
   			extensions: {
   				previous_govuk_signin_journey_id: f2fSession.clientSessionId,
   				post_office_visit_details: [{

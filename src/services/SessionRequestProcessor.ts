@@ -120,9 +120,9 @@ export class SessionRequestProcessor {
   			return new Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
   		}
   	} catch (error) {
-  		this.logger.error("Invalid request: Could not verify jwt", {
+  		this.logger.error("Could not verify jwt", {
   			error,
-  			messageCode: "UNEXPECTED_ERROR_VERIFYING_JWT",
+  			messageCode: MessageCodes.FAILED_VERIFYING_JWT,
   		});
   		return unauthorizedResponse;
   	}
@@ -211,7 +211,7 @@ export class SessionRequestProcessor {
   	}
 
   	try {
-  		const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer() as string, clientIpAddress, absoluteTimeNow);
+  		const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer() as string, clientIpAddress);
   		await this.f2fService.sendToTXMA({
   			event_name: "F2F_CRI_START",
   			...coreEventFields,

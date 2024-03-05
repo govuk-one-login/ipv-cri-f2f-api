@@ -293,7 +293,7 @@ Globals:
         DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: "true"
         # These should always be alphabetically organised.
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
-        POWERTOOLS_LOG_LEVEL: DEBUG # The LogLevel for the AWS PowerTools LogHelper
+        POWERTOOLS_LOG_LEVEL: !If [IsNotProdLikeEnvironment, "DEBUG", "INFO"] # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
         RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
         SESSION_TABLE:
@@ -999,6 +999,7 @@ Resources:
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+          DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -2016,9 +2017,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue platform-alarm-topic-slack-warning-alert
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if over 80% of GovNotify concurrency is used. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-concurrency"
@@ -2701,6 +2702,7 @@ Resources:
           YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+          DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
           IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
           YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
       Policies:
@@ -5801,6 +5803,10 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Test Harness"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, TESTHARNESSURL]
+  DNSSuffix:
+    Condition: IsNotProdLikeEnvironment
+    Description: "F2F DNS Suffix"
+    Value: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
   F2FGovNotifyURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Gov Notify API"
@@ -5809,3 +5815,8 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Post Office Stub API"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, POSTOFFICESTUBAPI]
+  VcSigningKeyId:
+    Condition: IsNotProdLikeEnvironment
+    Description: "Signing Key used to sign VC"
+    Value:
+      Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key-id"

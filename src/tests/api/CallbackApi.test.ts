@@ -84,7 +84,7 @@ describe("Callback API", () => {
 			sqsMessage = await getDequeuedSqsMessage(sessionResponse.data.sub);
 		} while (!sqsMessage);
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
-		validateJwtToken(jwtToken, vcResponseData, yotiMockId);
+		await validateJwtToken(jwtToken, vcResponseData, yotiMockId);
 
 	}, 20000);
 
@@ -108,7 +108,7 @@ describe("Callback API", () => {
 		} while (!sqsMessage);
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 
-		validateJwtToken(jwtToken, vcResponseData, "0000");
+		await validateJwtToken(jwtToken, vcResponseData, "0000");
 	}, 20000);
 
 	describe("F2F CRI Callback Endpoint UnHappyPath - Verifiable Credential Error", () => {

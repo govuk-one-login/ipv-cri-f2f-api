@@ -1,0 +1,97 @@
+{
+    "session-table": [        
+        {
+            "PutRequest": {
+                "Item": {
+                    "sessionId": {
+                      "S": "eb80b0a6-fb2f-4c06-83e6-a6caa4892afc"
+                    },
+                    "attemptCount": {
+                      "N": "0"
+                    },
+                    "authorizationCode": {
+                      "S": "0328ba66-a1b5-4314-acf8-f4673f1f05a2"
+                    },
+                    "authorizationCodeExpiryDate": {
+                      "N": "1706200661919"
+                    },
+                    "authSessionState": {
+                      "S": "F2F_AUTH_CODE_ISSUED"
+                    },
+                    "clientId": {
+                      "S": "5C584572"
+                    },
+                    "clientSessionId": {
+                      "S": "ab8a26249a268c7d678b713c51d70fe5"
+                    },
+                    "createdDate": {
+                      "N": "1686070173439"
+                    },
+                    "expiryDate": {
+                      "N": "1687020573439"
+                    },
+                    "redirectUri": {
+                      "S": "https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f"
+                    },
+                    "reminderEmailSent": {
+                      "BOOL": true
+                    },
+                    "state": {
+                      "S": "236a9875d6baf2c3fcc651feadda3340"
+                    },
+                    "subject": {
+                      "S": "8bce6c9f-6840-448c-a2f6-212ecc77e2f7"
+                    },
+                    "yotiSessionId": {
+                      "S": "7af57b1e-740e-4ee2-8721-602a56440029"
+                    }
+                  }
+            }
+        },
+        {
+          "PutRequest": {
+              "Item": {
+                  "sessionId": {
+                    "S": "74655ce3-a679-4c09-a3b0-1d0dc2eff373"
+                  },
+                  "attemptCount": {
+                    "N": "0"
+                  },
+                  "authorizationCodeExpiryDate": {
+                    "N": "1706200661919"
+                  },
+                  "authSessionState": {
+                    "S": "F2F_ACCESS_TOKEN_ISSUED"
+                  },
+                  "clientId": {
+                    "S": "5C584572"
+                  },
+                  "clientSessionId": {
+                    "S": "ab8a26249a268c7d678b713c51d70fe5"
+                  },
+                  "createdDate": {
+                    "N": "1686070173439"
+                  },
+                  "expiryDate": {
+                    "N": "1687020573439"
+                  },
+                  "redirectUri": {
+                    "S": "https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"
+                  },
+                  "reminderEmailSent": {
+                    "BOOL": true
+                  },
+                  "state": {
+                    "S": "236a9875d6baf2c3fcc651feadda3340"
+                  },
+                  "subject": {
+                    "S": "dummyTestUser"
+                  },
+                  "yotiSessionId": {
+                    "S": "7af57b1e-740e-4ee2-8721-602a56440029"
+                  }
+                }
+          }
+      }     
+    ]
+}

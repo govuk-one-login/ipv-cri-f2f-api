@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+/* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/dot-notation */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -186,7 +188,13 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	beforeEach(() => {
 		jest.clearAllMocks();
+		jest.useFakeTimers();
+		jest.setSystemTime(new Date(1585695600000));
 		personIdentityItem = getPersonIdentityItem();
+	});
+
+	afterEach(() => {
+		jest.useRealTimers();
 	});
 
 	it("Return successful response with 200 OK when YOTI session created", async () => {
@@ -199,22 +207,15 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		jest.useFakeTimers();
-		const fakeTime = 1684933200.123;
-		jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.000Z
-
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
-		const passportYotiStart =  TXMA_PASSPORT_YOTI_START;
+		const passportYotiStart = TXMA_PASSPORT_YOTI_START;
 		passportYotiStart.event_name = "F2F_YOTI_START";
-		passportYotiStart.timestamp = absoluteTimeNow();
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		passportYotiStart.timestamp = 1585695600;
+		passportYotiStart.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
@@ -233,16 +234,13 @@ describe("DocumentSelectionRequestProcessor", () => {
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_NON_UK_PASSPORT_REQUEST, "RandomF2FSessionID");
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		const passportYotiStart =  TXMA_PASSPORT_YOTI_START;
 		passportYotiStart.event_name = "F2F_YOTI_START";
-		passportYotiStart.timestamp = absoluteTimeNow();
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		passportYotiStart.timestamp = 1585695600;
+		passportYotiStart.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
@@ -263,16 +261,13 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_EEA_ID_CARD_REQUEST, "RandomF2FSessionID");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		const nationalIdYotiStart =  TXMA_NATIONAL_ID_YOTI_START;
 		nationalIdYotiStart.event_name = "F2F_YOTI_START";
-		nationalIdYotiStart.timestamp = absoluteTimeNow();
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		nationalIdYotiStart.timestamp = 1585695600;
+		nationalIdYotiStart.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, nationalIdYotiStart);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
@@ -523,7 +518,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { "messageCode": "ERROR_WRITING_TXMA" });
 		
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
@@ -544,7 +538,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error occurred when sending message to GovNotify handler");
@@ -572,7 +565,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");
@@ -596,7 +588,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");
@@ -616,7 +607,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");

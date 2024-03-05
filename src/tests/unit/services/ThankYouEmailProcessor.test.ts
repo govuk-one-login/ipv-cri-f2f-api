@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -307,6 +308,7 @@ describe("ThankYouEmailProcessor", () => {
 				client_id: "ipv-core-stub",
 				component_id: "https://XXX-c.env.account.gov.uk",
 				timestamp: 1585695600,
+				event_timestamp_ms: 1585695600000,
 				user: {
 					ip_address: "127.0.0.1",
 					persistent_session_id: "sdgsdg",
