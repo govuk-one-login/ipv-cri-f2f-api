@@ -1,4 +1,4 @@
-import { fromNodeProviderChain } from "@aws-sdk/credential-providers"; 
+import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import Ajv from "ajv";
 import axios, { AxiosInstance } from "axios";
 import { aws4Interceptor } from "aws4-axios";
@@ -10,7 +10,7 @@ import { jwtUtils } from "../../utils/JwtUtils";
 const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOV_NOTIFY_API });
 const API_INSTANCE = axios.create({ baseURL: constants.DEV_CRI_F2F_API_URL });
 const YOTI_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_YOTI_STUB_URL });
-const HARNESS_API_INSTANCE : AxiosInstance = axios.create({ baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
+const HARNESS_API_INSTANCE: AxiosInstance = axios.create({ baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
 const PO_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_PO_STUB_URL });
 
 const customCredentialsProvider = {
@@ -135,10 +135,10 @@ export async function callbackPost(sessionId: string | undefined, topic = "sessi
 	}
 }
 
-export async function sessionConfigurationGet(sessionId: any):Promise<any> {
+export async function sessionConfigurationGet(sessionId: any): Promise<any> {
 	const path = "/sessionConfiguration";
 	try {
-		const getRequest = await API_INSTANCE.get(path, { headers:{ "x-govuk-signin-session-id": sessionId } });
+		const getRequest = await API_INSTANCE.get(path, { headers: { "x-govuk-signin-session-id": sessionId } });
 		return getRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
@@ -280,7 +280,7 @@ export async function getSqsEventList(folder: string, prefix: string, txmaEventS
 		if (!contents || !contents.length) {
 			return undefined;
 		}
-		
+
 		keyList = contents.map(({ Key }) => Key);
 	} while (contents.length < txmaEventSize);
 
@@ -288,14 +288,14 @@ export async function getSqsEventList(folder: string, prefix: string, txmaEventS
 }
 
 export async function validateTxMAEventData(keyList: any, yotiMockID: any): Promise<any> {
-	let i:any;
+	let i: any;
 	const yotiMockIdPrefix = yotiMockID.slice(0, 2);
 	for (i = 0; i < keyList.length; i++) {
 		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
 		console.log(JSON.stringify(getObjectResponse.data, null, 2));
 		let valid = true;
 		if (getObjectResponse.data.event_name === "F2F_CRI_VC_ISSUED" || getObjectResponse.data.event_name === "F2F_YOTI_START") {
-			import("../data/" + getObjectResponse.data.event_name + "_" + yotiMockIdPrefix + "_SCHEMA.json" )
+			import("../data/" + getObjectResponse.data.event_name + "_" + yotiMockIdPrefix + "_SCHEMA.json")
 				.then((jsonSchema) => {
 					const validate = ajv.compile(jsonSchema);
 					valid = validate(getObjectResponse.data);
@@ -310,7 +310,7 @@ export async function validateTxMAEventData(keyList: any, yotiMockID: any): Prom
 					expect(valid).toBe(true);
 				});
 		} else {
-			import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json" )
+			import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json")
 				.then((jsonSchema) => {
 					const validate = ajv.compile(jsonSchema);
 					valid = validate(getObjectResponse.data);
@@ -329,10 +329,10 @@ export async function validateTxMAEventData(keyList: any, yotiMockID: any): Prom
 }
 
 export async function validateTxMAEvent(txmaEvent: string, keyList: any, yotiMockId: string, failedCheck: boolean, vcData: any): Promise<any> {
-	let i:any;
+	let i: any;
 	for (i = 0; i < keyList.length; i++) {
 		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
-	
+
 		if (getObjectResponse.data.event_name === txmaEvent) {
 			console.log(JSON.stringify(getObjectResponse.data, null, 2));
 			validateCriVcIssuedTxMAEvent(getObjectResponse.data, yotiMockId);
@@ -372,9 +372,20 @@ export async function getDequeuedSqsMessage(prefix: string): Promise<any> {
 	return getObjectResponse.data;
 }
 
-export function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): void {
+export async function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): Promise<void> {
 	const [rawHead, rawBody, signature] = jwtToken.split(".");
+	// Validate Header
+	const decodedHeader = JSON.parse(jwtUtils.base64DecodeToString(rawHead.replace(/\W/g, "")));
+	expect(decodedHeader.typ).toBe("JWT");
+	const msgBuffer = new TextEncoder().encode(constants.VC_SIGNING_KEY_ID);
+	const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+	const hashArray = Array.from(new Uint8Array(hashBuffer));
+	const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+	expect(decodedHeader.kid).toBe("did:web:review-o.dev.account.gov.uk#" + hashHex);
+
+	// Validate Body 
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
+
 	expect(decodedBody.jti).toBeTruthy();
 	// Strength Score
 	const expecedStrengthScore = eval("vcData.s" + yotiId + ".strengthScore");
@@ -418,7 +429,7 @@ export function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): v
 	}
 }
 
-export function validateJwtTokenNamePart(jwtToken:any, givenName1:any, givenName2:any, givenName3:any, familyName:any):void {
+export function validateJwtTokenNamePart(jwtToken: any, givenName1: any, givenName2: any, givenName3: any, familyName: any): void {
 	const [rawHead, rawBody, signature] = jwtToken.split(".");
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
 	expect(decodedBody.vc.credentialSubject.name[0].nameParts[0].value).toBe(givenName1);
@@ -428,11 +439,11 @@ export function validateJwtTokenNamePart(jwtToken:any, givenName1:any, givenName
 
 }
 
-export async function postAbortSession(reasion:any, sessionId:any): Promise<any> {
+export async function postAbortSession(reasion: any, sessionId: any): Promise<any> {
 	const path = constants.DEV_CRI_F2F_API_URL + "/abort";
 	console.log(path);
 	try {
-		const postRequest = await API_INSTANCE.post(path, reasion, { headers:{ "x-govuk-signin-session-id": sessionId } });
+		const postRequest = await API_INSTANCE.post(path, reasion, { headers: { "x-govuk-signin-session-id": sessionId } });
 		return postRequest;
 
 	} catch (error: any) {
@@ -484,7 +495,7 @@ export function validateCriVcIssuedTxMAEvent(txmaEvent: any, yotiMockId: any): a
 		default:
 			console.warn("Yoti Mock Id provided does not match expected list");
 	}
-} 
+}
 
 export async function postPOCodeRequest(mockDelimitator: any, userData: any): Promise<any> {
 	const path = "/v1/locations/search";
@@ -499,7 +510,7 @@ export async function postPOCodeRequest(mockDelimitator: any, userData: any): Pr
 	}
 }
 
-function validateCriVcIssuedFailedChecks(txmaEvent: any, yotiMockId: any, vcData: any):void {
+function validateCriVcIssuedFailedChecks(txmaEvent: any, yotiMockId: any, vcData: any): void {
 	// Contra Indicators
 	const expectedContraIndicatiors = eval("vcData.s" + yotiMockId + ".ci");
 	if (expectedContraIndicatiors) {
@@ -518,7 +529,7 @@ function validateCriVcIssuedFailedChecks(txmaEvent: any, yotiMockId: any, vcData
 	}
 }
 
-export async function initiateUserInfo(docSelectionData:any, sessionId: string): Promise<void> {
+export async function initiateUserInfo(docSelectionData: any, sessionId: string): Promise<void> {
 	expect(sessionId).toBeTruthy();
 
 	const documentSelectionResponse = await postDocumentSelection(docSelectionData, sessionId);
@@ -529,11 +540,11 @@ export async function initiateUserInfo(docSelectionData:any, sessionId: string):
 	const authResponse = await authorizationGet(sessionId);
 	expect(authResponse.status).toBe(200);
 
-	const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
+	const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri);
 	expect(tokenResponse.status).toBe(200);
 
 	const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
 	expect(userInfoResponse.status).toBe(202);
 
-} 
+}
 

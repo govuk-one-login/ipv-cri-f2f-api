@@ -999,6 +999,7 @@ Resources:
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+          DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -2701,6 +2702,7 @@ Resources:
           YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+          DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
           IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
           YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
       Policies:
@@ -5809,3 +5811,8 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Post Office Stub API"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, POSTOFFICESTUBAPI]
+  VcSigningKeyId:
+    Condition: IsNotProdLikeEnvironment
+    Description: "Signing Key used to sign VC"
+    Value:
+      Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key-id"

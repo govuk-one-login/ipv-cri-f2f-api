@@ -24,6 +24,7 @@ describe("VerifiableCredentialService", () => {
 	const issuer = "test-issuer";
 	const logger = mock<Logger>();
 	const kmsJwtAdapter = new KmsJwtAdapter("kid");
+	const dnsSuffix = "dnsSuffix123";
 
 	const credentialSubject = {
 		"birthDate": [
@@ -99,6 +100,7 @@ describe("VerifiableCredentialService", () => {
 			kmsJwtAdapter,
 			issuer,
 			logger,
+			dnsSuffix,
 		);
 	});
 
@@ -144,7 +146,7 @@ describe("VerifiableCredentialService", () => {
 			const result = await verifiableCredentialService.signGeneratedVerifiableCredentialJwt(jwt);
 
 			expect(getNow).toHaveBeenCalled();
-			expect(signMock).toHaveBeenCalledWith(payloadToSign);
+			expect(signMock).toHaveBeenCalledWith(payloadToSign, dnsSuffix);
 			expect(result).toBe(signedJwt);
 		});
 
@@ -218,7 +220,7 @@ describe("VerifiableCredentialService", () => {
 			}))
 				.rejects.toThrow(new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt"));
 
-			expect(signMock).toHaveBeenCalledWith(payloadToSign);
+			expect(signMock).toHaveBeenCalledWith(payloadToSign, dnsSuffix);
 		});
 	});
 
