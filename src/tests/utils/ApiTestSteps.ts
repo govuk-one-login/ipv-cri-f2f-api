@@ -382,7 +382,7 @@ export async function validateJwtToken(jwtToken: any, vcData: any, yotiId?: stri
 	const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
 	const hashArray = Array.from(new Uint8Array(hashBuffer));
 	const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-	expect(decodedHeader.kid).toBe("did:web:review-o.dev.account.gov.uk#" + hashHex);
+	expect(decodedHeader.kid).toBe("did:web:" + constants.DNS_SUFFIX + "#" + hashHex);
 
 	// Validate Body 
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
