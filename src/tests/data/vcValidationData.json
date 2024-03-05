@@ -184,7 +184,7 @@
         "verificationScore": 0,
         "checkMethod": null,
         "failedCheck": "DOC_NUMBER_INVALID",
-        "ci": "D02"
+        "ci": "D14"
     },
     "s0123":{
         "strengthScore": null,
