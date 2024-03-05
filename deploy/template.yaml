@@ -5882,6 +5882,10 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Test Harness"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, TESTHARNESSURL]
+  DNSSuffix:
+    Condition: IsNotProdLikeEnvironment
+    Description: "F2F DNS Suffix"
+    Value: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
   F2FGovNotifyURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Gov Notify API"
