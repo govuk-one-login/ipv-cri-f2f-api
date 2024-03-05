@@ -9,4 +9,5 @@ export const constants = {
 	GOV_NOTIFY_API: process.env.GOV_NOTIFY_API,
 	DEV_F2F_PO_STUB_URL: process.env.DEV_F2F_PO_STUB_URL,
 	VC_SIGNING_KEY_ID: process.env.VC_SIGNING_KEY_ID,
+	DNS_SUFFIX: process.env.DNS_SUFFIX,
 };
