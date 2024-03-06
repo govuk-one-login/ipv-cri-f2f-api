@@ -164,6 +164,7 @@ export class GenerateVerifiableCredential {
   				case "TAMPERED":
   				case "MISSING_HOLOGRAM":
   				case "NO_HOLOGRAM_MOVEMENT":
+  				case "DOC_NUMBER_INVALID":
   					contraIndicator = "D14";
   					break;
   				case "EXPIRED_DOCUMENT":
@@ -171,9 +172,6 @@ export class GenerateVerifiableCredential {
   					break;
   				case "FRAUD_LIST_MATCH":
   					contraIndicator = "F03";
-  					break;
-  				case "DOC_NUMBER_INVALID":
-  					contraIndicator = "D02";
   					break;
   				case "DATA_MISMATCH":
   				case "CHIP_DATA_INTEGRITY_FAILED":
