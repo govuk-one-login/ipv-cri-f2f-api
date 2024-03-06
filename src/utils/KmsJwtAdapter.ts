@@ -26,11 +26,11 @@ export class KmsJwtAdapter {
 		this.kms = createKmsClient();
 	}
 
-	async sign(jwtPayload: JwtPayload): Promise<string> {
+	async sign(jwtPayload: JwtPayload, dnsSuffix: string): Promise<string> {
 		const jwtHeader: JwtHeader = { alg: "ES256", typ: "JWT" };
 		const kid = this.kid.split("/").pop();
 		if (kid != null) {
-			jwtHeader.kid = kid;
+			jwtHeader.kid = (`did:web:${dnsSuffix}#${jwtUtils.getHashedKid(kid)}`);
 		}
 		const tokenComponents = {
 			header: jwtUtils.base64Encode(JSON.stringify(jwtHeader)),

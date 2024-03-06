@@ -95,7 +95,7 @@ export class AccessTokenRequestProcessor {
 				};
 				let accessToken;
 				try {
-					accessToken = await this.kmsJwtAdapter.sign(jwtPayload);
+					accessToken = await this.kmsJwtAdapter.sign(jwtPayload, this.environmentVariables.dnsSuffix());
 				} catch (error) {
 					this.logger.error("Failed to sign the accessToken Jwt", { messageCode: MessageCodes.FAILED_SIGNING_JWT });
 					return new Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the accessToken Jwt");
