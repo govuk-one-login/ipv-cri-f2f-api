@@ -28,7 +28,7 @@
                       "N": "1686070173439"
                     },
                     "expiryDate": {
-                      "N": "1687020573439"
+                      "N": "4865226539"
                     },
                     "redirectUri": {
                       "S": "https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f"
@@ -73,7 +73,7 @@
                     "N": "1686070173439"
                   },
                   "expiryDate": {
-                    "N": "1687020573439"
+                    "N": "4865226539"
                   },
                   "redirectUri": {
                     "S": "https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect"
