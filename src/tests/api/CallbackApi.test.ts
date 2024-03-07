@@ -16,12 +16,10 @@ import {
 	getSessionById,
 	callbackPost,
 	validateJwtTokenNamePart,
-	getSqsEventList,
-	validateTxMAEvent,
-	validateTxMAEventData,
 } from "./ApiTestSteps";
 import "dotenv/config";
 import { constants } from "./ApiConstants";
+import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "./ApiUtils";
 import { DocSelectionData } from "./types";
 
 describe("/callback endpoint", () => {
@@ -67,7 +65,7 @@ describe("/callback endpoint", () => {
 		{ yotiMockId: "0501", docSelectionData: dataEeaIdCard },
 		{ yotiMockId: "0502", docSelectionData: dataEeaIdCard },
 		{ yotiMockId: "0503", docSelectionData: dataEeaIdCard },
-	])("F2F CRI Callback Endpoint - yotiMockId: '%s'", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; docSelectionData: DocSelectionData }) => {
+	])("F2F CRI Callback Endpoint - yotiMockId $yotiMockId", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; docSelectionData: DocSelectionData }) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
 
 		const { sessionId, sub } = await startStubServiceAndReturnSessionId(f2fStubPayload);
@@ -92,9 +90,8 @@ describe("/callback endpoint", () => {
 		it.each([
 			{ yotiMockId: "0134", vcError: "VC generation failed : Multiple document_fields in response" },
 			{ yotiMockId: "0160", vcError: "VC generation failed : Yoti document_fields not populated" },
-		])("yotiMockId: '%s'", async ({ yotiMockId, vcError }: { yotiMockId: string; vcError: string }) => {
+		])("yotiMockId: $yotiMockId'", async ({ yotiMockId, vcError }: { yotiMockId: string; vcError: string }) => {
 			f2fStubPayload.yotiMockID = yotiMockId;
-
 			const { sessionId, sub } = await startStubServiceAndReturnSessionId(f2fStubPayload);
 
 			await initiateUserInfo(dataNonUkPassport, sessionId);
@@ -124,7 +121,7 @@ describe("/callback endpoint", () => {
 		{ yotiMockId:"0402", docSelectionData: dataEuDrivingLicence, givenName1: "FREDERICK", givenName2: "SMITH", givenName3: "JON", familyName: "FLINTSTONE" },
 		{ yotiMockId:"0206", docSelectionData: dataNonUkPassport, givenName1: "FREDERICK", givenName2: "JON", givenName3: "De", familyName: "FLINTSTONE" },
 
-	])("Mutltuple given Names in Yoti Response - yotiMockId: '%s'", async (
+	])("Mutltuple given Names in Yoti Response - yotiMockId $yotiMockId'", async (
 		{ yotiMockId, docSelectionData, givenName1, givenName2, givenName3, familyName }:
 		// eslint-disable-next-line max-len
 		{ yotiMockId: string; docSelectionData: DocSelectionData; givenName1: string; givenName2: string; givenName3: string; familyName: string },
@@ -153,13 +150,13 @@ describe("/callback endpoint", () => {
 	}, 20000);
 
 	it.each([
-		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence },
-		{ yotiMockId: "0101", docSelectionData: dataPassport },
-		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport },
-		{ yotiMockId: "0300", docSelectionData: dataBrp },
-		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence },
-		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard },
-	])("TxMA event Validation %yotiMockId", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; docSelectionData: DocSelectionData }) => {
+		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_SCHEMA" },
+		{ yotiMockId: "0101", docSelectionData: dataPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_01_SCHEMA" },
+		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_01_SCHEMA" },
+		{ yotiMockId: "0300", docSelectionData: dataBrp, yotiStartSchema: "F2F_YOTI_START_03_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_03_SCHEMA" },
+		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_04_SCHEMA" },
+		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard, yotiStartSchema: "F2F_YOTI_START_05_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_05_SCHEMA" },
+	])("TxMA event Validation $yotiMockId", async ({ yotiMockId, docSelectionData, yotiStartSchema, vcIssuedSchema }: { yotiMockId: string; docSelectionData: DocSelectionData; yotiStartSchema: string; vcIssuedSchema: string }) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
 		
 		const { sessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
@@ -169,46 +166,17 @@ describe("/callback endpoint", () => {
 		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
-	
+
 		await callbackPost(yotiSessionId);
 
-		// Retrieve Verifiable Credential from dequeued SQS queue
-		let sqsMessage;
-		do {
-			sqsMessage = await getSqsEventList("txma/", sessionId, 7);
-		} while (!sqsMessage);
-		await validateTxMAEventData(sqsMessage, yotiMockId);
-
-	}, 20000);
-
-
-	it.each([
-		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence },
-		{ yotiMockId: "0101", docSelectionData: dataPassport },
-		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport },
-		{ yotiMockId: "0300", docSelectionData: dataBrp },
-		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence },
-		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard },
-	])("F2F CRI Callback Endpoint TxMA Validation - yotiMockId: '%s'", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; docSelectionData: DocSelectionData }) => {
-		f2fStubPayload.yotiMockID = yotiMockId;
-		
-		const { sessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
-
-		await initiateUserInfo(docSelectionData, sessionId);
-
-		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
-		const yotiSessionId: any = session?.yotiSessionId;
-		expect(yotiSessionId).toBeTruthy();
-	
-		await callbackPost(yotiSessionId);
-
-		// Retrieve Verifiable Credential from dequeued SQS queue
-		let sqsMessage;
-		do {
-			sqsMessage = await getSqsEventList("txma/", sessionId, 7);
-		} while (!sqsMessage);
-		await validateTxMAEvent("F2F_CRI_VC_ISSUED", sqsMessage, yotiMockId, false, vcResponseData);
-
+		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 7);
+		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: yotiStartSchema }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_CRI_AUTH_CODE_ISSUED", schemaName: "F2F_CRI_AUTH_CODE_ISSUED_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_CRI_END", schemaName: "F2F_CRI_END_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_EMAILED", schemaName: "F2F_YOTI_PDF_EMAILED_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_YOTI_RESPONSE_RECEIVED", schemaName: "F2F_YOTI_RESPONSE_RECEIVED_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_CRI_VC_ISSUED", schemaName: vcIssuedSchema }, allTxmaEventBodies);
 	}, 20000);
 
 	it("Thank you email - yotiMockId 0101", async () => {
@@ -225,12 +193,13 @@ describe("/callback endpoint", () => {
 	
 		await callbackPost(yotiSessionId);
 
-		// Retrieve Verifiable Credential from dequeued SQS queue
-		let sqsMessage;
-		do {
-			sqsMessage = await getSqsEventList("txma/", sessionId, 6);
-		} while (!sqsMessage);
-
-		await validateTxMAEventData(sqsMessage, yotiMockID);
+		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 6);
+		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: "F2F_YOTI_START_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_CRI_AUTH_CODE_ISSUED", schemaName: "F2F_CRI_AUTH_CODE_ISSUED_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_CRI_END", schemaName: "F2F_CRI_END_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_EMAILED", schemaName: "F2F_YOTI_PDF_EMAILED_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_YOTI_RESPONSE_RECEIVED", schemaName: "F2F_YOTI_RESPONSE_RECEIVED_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_CRI_VC_ISSUED", schemaName: "F2F_CRI_VC_ISSUED_01_SCHEMA" }, allTxmaEventBodies);
 	}, 20000);
 });
