@@ -1,14 +1,13 @@
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import abortPayload from "../data/abortPayload.json";
-
 import { startStubServiceAndReturnSessionId, postAbortSession } from "./ApiTestSteps";
 
 describe("E2E Happy Path /abort enpoint", () => {
 	let sessionId: string;
 	beforeEach(async () => {
 		f2fStubPayload.yotiMockID = "0000";
-		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
-		sessionId = sessionResponse.data.session_id;
+		const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		sessionId = newSessionId;
 		console.log("session id: " + sessionId);
 	});
 

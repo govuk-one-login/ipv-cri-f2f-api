@@ -36,3 +36,26 @@ export interface StubStartResponse {
 export interface SessionResponse {
 	session_id: string;
 }
+
+export interface AuthorizationResponse {
+	authorizationCode: { value: string };
+	redirect_uri: string;
+	state: string;
+}
+
+export interface TokenResponse {
+	access_token: string;
+	token_type: string;
+	expires_in: string;
+}
+
+export interface UserInfoResponse {
+	sub: string;
+	"https://vocab.account.gov.uk/v1/credentialStatus": string;
+}
+
+export interface SessionConfigResponse {
+	evidence_requested: {
+		strengthScore: number;
+	};
+}

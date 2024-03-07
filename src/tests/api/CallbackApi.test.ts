@@ -7,7 +7,6 @@ import dataBrp from "../data/docSelectionPayloadBrpValid.json";
 import dataEeaIdCard from "../data/docSelectionPayloadEeaIdCardValid.json";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import vcResponseData from "../data/vcValidationData.json";
-import { sleep } from "../../../src/utils/Sleep";
 import {
 	startStubServiceAndReturnSessionId,
 	validateJwtToken,
@@ -79,9 +78,12 @@ describe("/callback endpoint", () => {
 		await callbackPost(yotiSessionId);
 
 		let sqsMessage;
+		let i = 0;
 		do {
 			sqsMessage = await getDequeuedSqsMessage(sub);
-		} while (!sqsMessage);
+			i++;
+		} while (i < 10 && !sqsMessage);
+
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		await validateJwtToken(jwtToken, vcResponseData, yotiMockId);
 	}, 20000);
@@ -106,11 +108,10 @@ describe("/callback endpoint", () => {
 			let i = 0;
 			do {
 				sqsMessage = await getDequeuedSqsMessage(sub);
-				await sleep(1000);
 				i++;
-			} while (i < 10 || sqsMessage === undefined);
+			} while (i < 10 && !sqsMessage);
 	
-			expect(sqsMessage.error_description).toBe(vcError);
+			expect(sqsMessage?.error_description).toBe(vcError);
 		}, 20000);
 	});
 
@@ -142,9 +143,12 @@ describe("/callback endpoint", () => {
 		await callbackPost(yotiSessionId);
 
 		let sqsMessage;
+		let i = 0;
 		do {
 			sqsMessage = await getDequeuedSqsMessage(sub);
-		} while (!sqsMessage);
+			i++;
+		} while (i < 10 && !sqsMessage);
+
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		validateJwtTokenNamePart(jwtToken, givenName1, givenName2, givenName3, familyName + yotiMockId);
 	}, 20000);
