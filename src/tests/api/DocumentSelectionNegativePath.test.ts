@@ -4,15 +4,17 @@ import dataPassportMissingFad from "../data/dataPassportMissingFad.json";
 import dataPassportBlankFad from "../data/dataPassportBlankFad.json";
 import dataPassportIncorrectFad from "../data/dataPassportIncorrectFad.json";
 import dataPassportInvalidFadFormat from "../data/dataPassportInvalidFadFormat.json";
-import { postDocumentSelection, startStubServiceAndReturnSessionId } from "../utils/ApiTestSteps";
+import { postDocumentSelection, startStubServiceAndReturnSessionId } from "./ApiTestSteps";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 
+// eslint-disable-next-line max-lines-per-function
 describe("E2E Negative Path /documentSelection Endpoint", () => {
 	let sessionId: string;
+
 	beforeEach(async () => {
 		f2fStubPayload.yotiMockID = "0000";
-		const sessionResponse = await startStubServiceAndReturnSessionId(f2fStubPayload);
-		sessionId = sessionResponse.data.session_id;
+		const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		sessionId = newSessionId;
 		console.log("session id: " + sessionId);
 	});
 

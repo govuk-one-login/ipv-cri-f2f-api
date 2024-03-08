@@ -1,4 +1,4 @@
-import { stubStartPost, sessionPost } from "../utils/ApiTestSteps";
+import { stubStartPost, sessionPost } from "./ApiTestSteps";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 
 describe("E2E Negative Path /session Endpoint", () => {

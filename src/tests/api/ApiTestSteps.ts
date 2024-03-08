@@ -1,17 +1,28 @@
+/* eslint-disable max-lines */
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
-import Ajv from "ajv";
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
-import { constants } from "../utils/ApiConstants";
+import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";
+import { sleep } from "../../../src/utils/Sleep";
+import {
+	StubStartRequest,
+	StubStartResponse,
+	SessionResponse,
+	DocSelectionData,
+	AuthorizationResponse,
+	TokenResponse,
+	UserInfoResponse,
+	SessionConfigResponse,
+} from "./types";
 
 const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOV_NOTIFY_API });
 const API_INSTANCE = axios.create({ baseURL: constants.DEV_CRI_F2F_API_URL });
 const YOTI_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_YOTI_STUB_URL });
-const HARNESS_API_INSTANCE: AxiosInstance = axios.create({ baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
+export const HARNESS_API_INSTANCE: AxiosInstance = axios.create({ baseURL: constants.DEV_F2F_TEST_HARNESS_URL });
 const PO_INSTANCE = axios.create({ baseURL: constants.DEV_F2F_PO_STUB_URL });
 
 const customCredentialsProvider = {
@@ -31,16 +42,18 @@ const awsSigv4Interceptor = aws4Interceptor({
 HARNESS_API_INSTANCE.interceptors.request.use(awsSigv4Interceptor);
 
 const xmlParser = new XMLParser();
-const ajv = new Ajv({ strictTuples: false });
 
-export async function startStubServiceAndReturnSessionId(stubPayload: any): Promise<any> {
+export async function startStubServiceAndReturnSessionId(stubPayload: StubStartRequest): Promise<{ sessionId: string; sub: string }> {
 	const stubResponse = await stubStartPost(stubPayload);
 	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-	postRequest.data.sub = stubResponse.data.sub;
-	return postRequest;
+
+	return {
+		sessionId: postRequest.data.session_id,
+		sub: stubResponse.data.sub,
+	};
 }
 
-export async function stubStartPost(stubPayload: any): Promise<any> {
+export async function stubStartPost(stubPayload: StubStartRequest): Promise<AxiosResponse<StubStartResponse>> {
 	const path = constants.DEV_IPV_F2F_STUB_URL;
 	try {
 		const postRequest = await axios.post(`${path}`, stubPayload);
@@ -52,19 +65,7 @@ export async function stubStartPost(stubPayload: any): Promise<any> {
 	}
 }
 
-export async function stubStartPostNoSharedClaims(requestBody: any): Promise<any> {
-	const path = constants.DEV_IPV_F2F_STUB_URL;
-	try {
-		const postRequest = await axios.post(`${path}`, requestBody);
-		expect(postRequest.status).toBe(201);
-		return postRequest;
-	} catch (error: any) {
-		console.log(`Error response from ${path} endpoint: ${error}`);
-		return error.response;
-	}
-}
-
-export async function sessionPost(clientId?: string, request?: string): Promise<any> {
+export async function sessionPost(clientId: string, request: string): Promise<AxiosResponse<SessionResponse>> {
 	const path = "/session";
 	try {
 		const postRequest = await API_INSTANCE.post(path, { client_id: clientId, request });
@@ -76,7 +77,7 @@ export async function sessionPost(clientId?: string, request?: string): Promise<
 	}
 }
 
-export async function postDocumentSelection(userData: any, sessionId: any): Promise<any> {
+export async function postDocumentSelection(userData: DocSelectionData, sessionId: string): Promise<AxiosResponse<string>> {
 	const path = "/documentSelection";
 	try {
 		const postRequest = await API_INSTANCE.post(path, userData, { headers: { "x-govuk-signin-session-id": sessionId } });
@@ -88,7 +89,7 @@ export async function postDocumentSelection(userData: any, sessionId: any): Prom
 }
 
 
-export async function authorizationGet(sessionId: any): Promise<any> {
+export async function authorizationGet(sessionId: string): Promise<AxiosResponse<AuthorizationResponse>> {
 	const path = "/authorization";
 	try {
 		const getRequest = await API_INSTANCE.get(path, { headers: { "session-id": sessionId } });
@@ -99,7 +100,7 @@ export async function authorizationGet(sessionId: any): Promise<any> {
 	}
 }
 
-export async function tokenPost(authCode?: any, redirectUri?: any): Promise<any> {
+export async function tokenPost(authCode: string, redirectUri: string): Promise<AxiosResponse<TokenResponse>> {
 	const path = "/token";
 	try {
 		const postRequest = await API_INSTANCE.post(path, `code=${authCode}&grant_type=authorization_code&redirect_uri=${redirectUri}`, { headers: { "Content-Type": "text/plain" } });
@@ -110,7 +111,7 @@ export async function tokenPost(authCode?: any, redirectUri?: any): Promise<any>
 	}
 }
 
-export async function userInfoPost(accessToken?: any): Promise<any> {
+export async function userInfoPost(accessToken: string): Promise<AxiosResponse<UserInfoResponse>> {
 	const path = "/userinfo";
 	try {
 		const postRequest = await API_INSTANCE.post(path, null, { headers: { "Authorization": `${accessToken}` } });
@@ -121,22 +122,21 @@ export async function userInfoPost(accessToken?: any): Promise<any> {
 	}
 }
 
-export async function callbackPost(sessionId: string | undefined, topic = "session_completion"): Promise<any> {
+export async function callbackPost(sessionId?: string, topic = "session_completion"): Promise<void> {
 	const path = "/callback";
 	if (!sessionId) throw new Error("no yoti session ID provided");
 	try {
-		const postRequest = await API_INSTANCE.post(path, {
+		await API_INSTANCE.post(path, {
 			session_id: sessionId,
 			topic,
 		});
-		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
 	}
 }
 
-export async function sessionConfigurationGet(sessionId: any): Promise<any> {
+export async function sessionConfigurationGet(sessionId: string): Promise<AxiosResponse<SessionConfigResponse>> {
 	const path = "/sessionConfiguration";
 	try {
 		const getRequest = await API_INSTANCE.get(path, { headers: { "x-govuk-signin-session-id": sessionId } });
@@ -146,7 +146,7 @@ export async function sessionConfigurationGet(sessionId: any): Promise<any> {
 		return error.response;
 	}
 }
-export async function postYotiSession(trackingId: string, userData: any): Promise<any> {
+export async function postYotiSession(trackingId: string, userData: any): Promise<AxiosResponse<string>> {
 	const path = "/sessions";
 	try {
 		// update fullName to contain trackingId - this determines the behaviour of the Yoti mock
@@ -160,7 +160,7 @@ export async function postYotiSession(trackingId: string, userData: any): Promis
 	}
 }
 
-export async function getYotiSessionsConfiguration(sessionId: string): Promise<any> {
+export async function getYotiSessionsConfiguration(sessionId: string): Promise<AxiosResponse<string>> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/configuration";
 	console.log(path);
 	try {
@@ -173,7 +173,10 @@ export async function getYotiSessionsConfiguration(sessionId: string): Promise<a
 	}
 }
 
-export async function putYotiSessionsInstructions(sessionId: string, fadcodePayload: { branch: { fad_code: string } }): Promise<any> {
+export async function putYotiSessionsInstructions(
+	sessionId: string,
+	fadcodePayload: { branch: { fad_code: string } },
+): Promise<AxiosResponse<string>> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions";
 	console.log(path);
 	try {
@@ -187,7 +190,7 @@ export async function putYotiSessionsInstructions(sessionId: string, fadcodePayl
 }
 
 
-export async function getYotiSessionsInstructions(sessionId: string): Promise<any> {
+export async function getYotiSessionsInstructions(sessionId: string): Promise<AxiosResponse<string>> {
 	const path = constants.DEV_F2F_YOTI_STUB_URL + "/sessions/" + sessionId + "/instructions/pdf";
 	console.log(path);
 	try {
@@ -255,96 +258,6 @@ export async function getSessionByAuthCode(sessionId: string, tableName: string)
 	return session.Items[0] as ISessionItem;
 }
 
-
-/**
- * Retrieves an object from the bucket with the specified prefix, which is the latest message dequeued from the SQS
- * queue under test
- *
- * @param prefix
- * @returns {any} - returns either the body of the SQS message or undefined if no such message found
- */
-export async function getSqsEventList(folder: string, prefix: string, txmaEventSize: number): Promise<any> {
-	let contents: any[];
-	let keyList: string[];
-
-	do {
-		await new Promise(res => setTimeout(res, 3000));
-
-		const listObjectsResponse = await HARNESS_API_INSTANCE.get("/bucket/", {
-			params: {
-				prefix: folder + prefix,
-			},
-		});
-		const listObjectsParsedResponse = xmlParser.parse(listObjectsResponse.data);
-		contents = listObjectsParsedResponse?.ListBucketResult?.Contents;
-
-		if (!contents || !contents.length) {
-			return undefined;
-		}
-
-		keyList = contents.map(({ Key }) => Key);
-	} while (contents.length < txmaEventSize);
-
-	return keyList;
-}
-
-export async function validateTxMAEventData(keyList: any, yotiMockID: any): Promise<any> {
-	let i: any;
-	const yotiMockIdPrefix = yotiMockID.slice(0, 2);
-	for (i = 0; i < keyList.length; i++) {
-		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
-		console.log(JSON.stringify(getObjectResponse.data, null, 2));
-		let valid = true;
-		if (getObjectResponse.data.event_name === "F2F_CRI_VC_ISSUED" || getObjectResponse.data.event_name === "F2F_YOTI_START") {
-			import("../data/" + getObjectResponse.data.event_name + "_" + yotiMockIdPrefix + "_SCHEMA.json")
-				.then((jsonSchema) => {
-					const validate = ajv.compile(jsonSchema);
-					valid = validate(getObjectResponse.data);
-					if (!valid) {
-						console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
-					}
-				})
-				.catch((err) => {
-					console.log(err.message);
-				})
-				.finally(() => {
-					expect(valid).toBe(true);
-				});
-		} else {
-			import("../data/" + getObjectResponse.data.event_name + "_SCHEMA.json")
-				.then((jsonSchema) => {
-					const validate = ajv.compile(jsonSchema);
-					valid = validate(getObjectResponse.data);
-					if (!valid) {
-						console.error(getObjectResponse.data.event_name + " Event Errors: " + JSON.stringify(validate.errors));
-					}
-				})
-				.catch((err) => {
-					console.log(err.message);
-				})
-				.finally(() => {
-					expect(valid).toBe(true);
-				});
-		}
-	}
-}
-
-export async function validateTxMAEvent(txmaEvent: string, keyList: any, yotiMockId: string, failedCheck: boolean, vcData: any): Promise<any> {
-	let i: any;
-	for (i = 0; i < keyList.length; i++) {
-		const getObjectResponse = await HARNESS_API_INSTANCE.get("/object/" + keyList[i], {});
-
-		if (getObjectResponse.data.event_name === txmaEvent) {
-			console.log(JSON.stringify(getObjectResponse.data, null, 2));
-			validateCriVcIssuedTxMAEvent(getObjectResponse.data, yotiMockId);
-			if (failedCheck) {
-				validateCriVcIssuedFailedChecks(getObjectResponse.data, yotiMockId, vcData);
-			}
-		}
-	}
-}
-
-
 /**
  * Retrieves an object from the bucket with the specified prefix, which is the latest message dequeued from the SQS
  * queue under test
@@ -353,6 +266,8 @@ export async function validateTxMAEvent(txmaEvent: string, keyList: any, yotiMoc
  * @returns {any} - returns either the body of the SQS message or undefined if no such message found
  */
 export async function getDequeuedSqsMessage(prefix: string): Promise<any> {
+	await sleep(1000);
+
 	const listObjectsResponse = await HARNESS_API_INSTANCE.get("/bucket/", {
 		params: {
 			prefix: "ipv-core/" + prefix,
@@ -425,7 +340,6 @@ export async function validateJwtToken(jwtToken: any, vcData: any, yotiId?: stri
 		for (let i = 0; i < expectedContraIndicatiors.split(",").length; i++) {
 			actualContraIndicatiors.push(decodedBody.vc.evidence[0].ci[i]);
 		}
-		console.log(actualContraIndicatiors);
 		expect(expectedContraIndicatiors.split(",")).toStrictEqual(actualContraIndicatiors);
 	}
 }
@@ -440,11 +354,11 @@ export function validateJwtTokenNamePart(jwtToken: any, givenName1: any, givenNa
 
 }
 
-export async function postAbortSession(reasion: any, sessionId: any): Promise<any> {
+export async function postAbortSession(reasonPayload: { reason: string }, sessionId: string): Promise<AxiosResponse<string>> {
 	const path = constants.DEV_CRI_F2F_API_URL + "/abort";
 	console.log(path);
 	try {
-		const postRequest = await API_INSTANCE.post(path, reasion, { headers: { "x-govuk-signin-session-id": sessionId } });
+		const postRequest = await API_INSTANCE.post(path, reasonPayload, { headers: { "x-govuk-signin-session-id": sessionId } });
 		return postRequest;
 
 	} catch (error: any) {
@@ -453,11 +367,14 @@ export async function postAbortSession(reasion: any, sessionId: any): Promise<an
 	}
 }
 
-export async function postGovNotifyRequest(mockDelimitator: any, userData: any): Promise<any> {
+export async function postGovNotifyRequest(
+	mockDelimitator: number,
+	userData: { template_id: string; email_address: string },
+): Promise<AxiosResponse<string>> {
 	const path = "/v2/notifications/email";
 	try {
 		// update email to contain mock delimitator before the @ - this determines the behaviour of the GovNotify mock
-		userData.email_address = insertBeforeLastOccurrence(userData.email_address, "@", mockDelimitator);
+		userData.email_address = insertBeforeLastOccurrence(userData.email_address, "@", mockDelimitator.toString());
 		const postRequest = await GOV_NOTIFY_INSTANCE.post(path, userData);
 		return postRequest;
 	} catch (error: any) {
@@ -472,33 +389,10 @@ export async function postGovNotifyRequest(mockDelimitator: any, userData: any):
 	}
 }
 
-export function validateCriVcIssuedTxMAEvent(txmaEvent: any, yotiMockId: any): any {
-	const yotiMockIdPrefix = yotiMockId.slice(0, 2);
-	switch (yotiMockIdPrefix) {
-		case "00":
-			expect(txmaEvent.restricted.drivingPermit[0].documentType).toBe("DRIVING_LICENCE");
-			break;
-		case "01":
-			expect(txmaEvent.restricted.passport[0].documentType).toBe("PASSPORT");
-			break;
-		case "02":
-			expect(txmaEvent.restricted.passport[0].documentType).toBe("PASSPORT");
-			break;
-		case "03":
-			expect(txmaEvent.restricted.residencePermit[0].documentType).toBe("RESIDENCE_PERMIT");
-			break;
-		case "04":
-			expect(txmaEvent.restricted.drivingPermit[0].documentType).toBe("DRIVING_LICENCE");
-			break;
-		case "05":
-			expect(txmaEvent.restricted.idCard[0].documentType).toBe("NATIONAL_ID");
-			break;
-		default:
-			console.warn("Yoti Mock Id provided does not match expected list");
-	}
-}
-
-export async function postPOCodeRequest(mockDelimitator: any, userData: any): Promise<any> {
+export async function postPOCodeRequest(
+	mockDelimitator: string,
+	userData: { searchString: string; productFilter: string },
+): Promise<AxiosResponse<string>> {
 	const path = "/v1/locations/search";
 	try {
 		userData.searchString = userData.searchString + " " + mockDelimitator;
@@ -511,32 +405,10 @@ export async function postPOCodeRequest(mockDelimitator: any, userData: any): Pr
 	}
 }
 
-function validateCriVcIssuedFailedChecks(txmaEvent: any, yotiMockId: any, vcData: any): void {
-	// Contra Indicators
-	const expectedContraIndicatiors = eval("vcData.s" + yotiMockId + ".ci");
-	if (expectedContraIndicatiors) {
-		const actualContraIndicatiors = txmaEvent.extensions.evidence[0].ci[0];
-		expect(expectedContraIndicatiors).toEqual(actualContraIndicatiors);
-	}
-
-	// Contra Indicators Failed Check
-	const expectedFailedCheck = eval("vcData.s" + yotiMockId + ".failedCheck");
-	if (expectedFailedCheck) {
-		const actualFailedCheckReason = txmaEvent.extensions.evidence[0].ciReasons[0].reason;
-		const actualFailedCheckCi = txmaEvent.extensions.evidence[0].ciReasons[0].ci;
-		expect(expectedContraIndicatiors).toEqual(actualFailedCheckCi);
-		expect(expectedFailedCheck).toEqual(actualFailedCheckReason);
-
-	}
-}
-
-export async function initiateUserInfo(docSelectionData: any, sessionId: string): Promise<void> {
-	expect(sessionId).toBeTruthy();
-
+export async function initiateUserInfo(docSelectionData: DocSelectionData, sessionId: string): Promise<void> {
 	const documentSelectionResponse = await postDocumentSelection(docSelectionData, sessionId);
 	expect(documentSelectionResponse.status).toBe(200);
 	expect(documentSelectionResponse.data).toBe("Instructions PDF Generated");
-
 
 	const authResponse = await authorizationGet(sessionId);
 	expect(authResponse.status).toBe(200);
@@ -548,4 +420,3 @@ export async function initiateUserInfo(docSelectionData: any, sessionId: string)
 	expect(userInfoResponse.status).toBe(202);
 
 }
-

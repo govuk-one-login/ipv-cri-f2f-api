@@ -1,5 +1,5 @@
 import govNotifyRequestData from "../data/govNotifyStubPayload.json";
-import { postGovNotifyRequest } from "../utils/ApiTestSteps";
+import { postGovNotifyRequest } from "./ApiTestSteps";
 
 describe("GovNotify Endpoint /v2/notifications/emai", () => {
 	const postGovNotifyParams = [
@@ -9,7 +9,7 @@ describe("GovNotify Endpoint /v2/notifications/emai", () => {
 		[500],
 		[201],
 	];
-	it.each(postGovNotifyParams)("GovNotify - expect '%i' response on POST/v2/notifications/email", async (govNotifyDelimitator) => {
+	it.each(postGovNotifyParams)("GovNotify - expect '%i' response on POST/v2/notifications/email", async (govNotifyDelimitator: number) => {
 		const response = await postGovNotifyRequest(govNotifyDelimitator, govNotifyRequestData);
 		expect(response.status).toBe(govNotifyDelimitator);
 	});

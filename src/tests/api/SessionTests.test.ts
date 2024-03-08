@@ -1,7 +1,8 @@
-import { sessionPost, stubStartPost } from "../utils/ApiTestSteps";
+import { sessionPost, stubStartPost } from "./ApiTestSteps";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import addressSessionPayload from "../data/addressSessionPayload.json";
 import exampleStubPayload from "../data/exampleStubPayload.json";
+import { StubStartRequest } from "./types";
 
 describe("Address fields tests", () => {
 	beforeEach(() => {
@@ -29,7 +30,7 @@ describe("Address fields tests", () => {
 
 	it("Incorrect address format", async () => {
 		console.log(JSON.stringify(addressSessionPayload));
-		const stubResponse = await stubStartPost(addressSessionPayload);
+		const stubResponse = await stubStartPost(addressSessionPayload as StubStartRequest);
 		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		expect(postRequest.status).toBe(401);
 	});
