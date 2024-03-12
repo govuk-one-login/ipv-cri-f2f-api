@@ -8,8 +8,22 @@ birthDate=$(jq -r '.shared_claims.birthDate[0].value' "$test_data")
 emailAddress=$(jq -r '.shared_claims.emailAddress' "$test_data")
 address_postalCode=$(jq -r '.shared_claims.address[0].postalCode' "$test_data")
 
-query="fields @timestamp, @message, @logStream, @log | filter @message like \"$firstName\" or @message like \"$firstName1\" or @message like \"$lastName\" or @message like \"$birthDate\" or @message like \"$emailAddress\" or @message like \"$address_postalCode\""
+query="fields @timestamp, @message, @logStream, @log | filter @message like \"$firstName\""
 
+function update_query_string() {
+  # Get the array of search strings as arguments  
+  local searchStrings=("$@")
+
+  for value in "${searchStrings[@]}"
+  do
+    query+=" or @message like \"$value\""
+  done
+
+  # Return the updated query string
+  echo $query
+}
+
+query=$(update_query_string $firstName1 $lastName $birthDate $emailAddress $address_postalCode)
 echo $query
 
 stack_name="f2f-cri-api"
