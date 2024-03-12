@@ -12,7 +12,7 @@ query="fields @timestamp, @message, @logStream, @log | filter @message like \"$f
 
 echo $query
 
-stack_name="f2f-cri-api-1526"
+stack_name="f2f-cri-api"
 log_groups=(
     "/aws/lambda/F2F-Authorization-$stack_name"
     "/aws/lambda/Access-Token-$stack_name"
