@@ -4,7 +4,7 @@
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import abortPayload from "../data/abortPayload.json";
-import { startStubServiceAndReturnSessionId, postAbortSession, abortPost, getSessionAndVerifyKey, postDocumentSelection } from "./ApiTestSteps";
+import { startStubServiceAndReturnSessionId, postAbortSession, getSessionAndVerifyKey, postDocumentSelection } from "./ApiTestSteps";
 import { constants } from "./ApiConstants";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "./ApiUtils";
 
@@ -18,7 +18,7 @@ describe("E2E Happy Path /abort enpoint", () => {
 	});
 
 	it("E2E Happy Path Journey - Abort Session", async () => {
-		const response = await abortPost(sessionId);
+		const response =  await postAbortSession(abortPayload, sessionId);
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Session has been aborted");
 
@@ -39,7 +39,7 @@ describe("E2E Happy Path /abort enpoint", () => {
 		const postDocumentSelectionResponse = await postDocumentSelection(dataPassport, sessionId);
 		expect(postDocumentSelectionResponse.status).toBe(200);
 
-		const response = await abortPost(sessionId);
+		const response = await postAbortSession(abortPayload, sessionId);
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Session has been aborted");
 		

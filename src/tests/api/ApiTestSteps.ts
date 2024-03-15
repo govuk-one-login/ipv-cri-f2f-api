@@ -43,8 +43,7 @@ HARNESS_API_INSTANCE.interceptors.request.use(awsSigv4Interceptor);
 
 const xmlParser = new XMLParser();
 
-export async function startStubServiceAndReturnSessionId(stubPayload: StubStartRequest): Promise<{
-	[x: string]: string; sessionId: string; sub: string; 
+export async function startStubServiceAndReturnSessionId(stubPayload: StubStartRequest): Promise<{ sessionId: string; sub: string;
 }> {
 	const stubResponse = await stubStartPost(stubPayload);
 	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
@@ -422,18 +421,7 @@ export async function initiateUserInfo(docSelectionData: DocSelectionData, sessi
 	expect(userInfoResponse.status).toBe(202);
 
 }
-
-export async function abortPost(sessionId: string): Promise<AxiosResponse<string>> {
-	const path = "/abort";
-	try {
-		return await API_INSTANCE.post(path, null, { headers: { "x-govuk-signin-session-id": sessionId } });
-	} catch (error: any) {
-		console.log(`Error response from ${path} endpoint: ${error}`);
-		return error.response;
-	}
-}
-
-export async function getSessionAndVerifyKey(sessionId: string, tableName: string, key: string, expectedValue: string): Promise<void> {
+export async function getSessionAndVerifyKey(sessionId:	string, tableName: string, key: string, expectedValue: string): Promise<void> {
 	const sessionInfo = await getSessionById(sessionId, tableName);
 	try {
 		expect(sessionInfo![key as keyof ISessionItem]).toBe(expectedValue);
