@@ -2,8 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable max-lines-per-function */
 import f2fStubPayload from "../data/exampleStubPayload.json";
+import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import abortPayload from "../data/abortPayload.json";
-import { startStubServiceAndReturnSessionId, postAbortSession, abortPost, getSessionAndVerifyKey } from "./ApiTestSteps";
+import { startStubServiceAndReturnSessionId, postAbortSession, abortPost, getSessionAndVerifyKey, postDocumentSelection } from "./ApiTestSteps";
 import { constants } from "./ApiConstants";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "./ApiUtils";
 
@@ -17,30 +18,30 @@ describe("E2E Happy Path /abort enpoint", () => {
 	});
 
 	it("E2E Happy Path Journey - Abort Session", async () => {
-		expect(sessionId).toBeTruthy();
-		const response = await postAbortSession(abortPayload, sessionId);
+		const response = await abortPost(sessionId);
 		expect(response.status).toBe(200);
 		expect(response.data).toBe("Session has been aborted");
 
-     	const url = new URL(decodeURIComponent(response.headers.location));
-     	expect(url.searchParams.has("error")).toBe(true);
-     	expect(url.searchParams.has("state")).toBe(true);
-     	expect(url.searchParams.get("error")).toBe("access_denied");
+	 	const url = new URL(decodeURIComponent(response.headers.location));
+	 	expect(url.searchParams.has("error")).toBe(true);
+	 	expect(url.searchParams.has("state")).toBe(true);
+	 	expect(url.searchParams.get("error")).toBe("access_denied");
 
-     	await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_CRI_SESSION_ABORTED");
-     	await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "state", "" + url.searchParams.get("state"));
+	 	await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_CRI_SESSION_ABORTED");
+	 	await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "state", "" + url.searchParams.get("state"));
 
-     	const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 2);
-     	validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
-     	validateTxMAEventData({ eventName: "F2F_CRI_SESSION_ABORTED", schemaName: "F2F_CRI_SESSION_ABORTED_SCHEMA" }, allTxmaEventBodies);
-
+	 	const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 2);
+	 	validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
+	 	validateTxMAEventData({ eventName: "F2F_CRI_SESSION_ABORTED", schemaName: "F2F_CRI_SESSION_ABORTED_SCHEMA" }, allTxmaEventBodies);
 	});
 
 	it("E2E Happy Path Journey - Abort Previously Aborted Session", async () => {
-		expect(sessionId).toBeTruthy();
-		const response = await postAbortSession(abortPayload, sessionId);
+		const postDocumentSelectionResponse = await postDocumentSelection(dataPassport, sessionId);
+		expect(postDocumentSelectionResponse.status).toBe(200);
+
+		const response = await abortPost(sessionId);
 		expect(response.status).toBe(200);
-		expect(response.data).toBe("Session has already been aborted");
+		expect(response.data).toBe("Session has been aborted");
 		
 		const url = new URL(decodeURIComponent(response.headers.location));
      	expect(url.searchParams.has("error")).toBe(true);
@@ -49,10 +50,10 @@ describe("E2E Happy Path /abort enpoint", () => {
 
 		 await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_CRI_SESSION_ABORTED");
 
-     	const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 2);
+     	const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 3);
 
      	validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
-
+     	validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: "F2F_YOTI_START_SCHEMA" }, allTxmaEventBodies);
      	validateTxMAEventData({ eventName: "F2F_CRI_SESSION_ABORTED", schemaName: "F2F_CRI_SESSION_ABORTED_SCHEMA" }, allTxmaEventBodies);
 
 		expect(response.headers).toBeTruthy(); 
