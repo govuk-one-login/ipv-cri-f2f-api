@@ -23,6 +23,8 @@ export DEV_F2F_PO_STUB_URL=$(remove_quotes "$CFN_F2FPostOfficeStubURL")
 export VC_SIGNING_KEY_ID=$(remove_quotes "$CFN_VcSigningKeyId")
 # shellcheck disable=SC2154
 export DNS_SUFFIX=$(remove_quotes "$CFN_DNSSuffix")
+# shellcheck disable=SC2154
+export DEV_F2F_SESSION_TABLE_NAME=$(remove_quotes "$CFN_SessionTableName")
 
 cd /src; npm run test:api
 cp -rf results $TEST_REPORT_ABSOLUTE_DIR
