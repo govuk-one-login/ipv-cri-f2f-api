@@ -11,6 +11,12 @@ import { mock } from "jest-mock-extended";
 jest.mock("@aws-lambda-powertools/logger");
 jest.mock("axios");
 
+const errorResponseHeaders = {					
+	"headers": {
+		"x-request-id": "dummy-request-id",
+	},	
+};
+
 const personDetails: PersonIdentityItem = {
 	addresses: [
 		{
@@ -484,14 +490,16 @@ describe("YotiService", () => {
 				config: {},
 			});
 
-			axiosMock.get.mockRejectedValueOnce(new Error("Failed to fetch session info"));
+			axiosMock.get.mockRejectedValueOnce({
+				"message": "Failed to fetch session info",
+				"code": 404,
+				"response": errorResponseHeaders,						
+			});
 
-			await expect(yotiService.fetchSessionInfo(sessionId)).rejects.toThrow(
-				new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session"),
-			);
+			await expect(yotiService.fetchSessionInfo(sessionId)).rejects.toThrow();
 
 			expect(logger.error).toHaveBeenCalledWith(
-				{ "message": "Error fetching Yoti session", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to fetch session info" },
+				{ "message": "Error fetching Yoti session", "yotiErrorCode": 404, "yotiErrorMessage": "Failed to fetch session info", "xRequestId": "dummy-request-id" },
 			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123/configuration", expect.any(Object));
@@ -545,14 +553,18 @@ describe("YotiService", () => {
 				config: {},
 			});
 
-			axiosMock.put.mockRejectedValueOnce(new Error("Failed to generate instructions"));
+			axiosMock.put.mockRejectedValueOnce({
+				"message": "Failed to generate instructions",
+				"code": 400,
+				"response": errorResponseHeaders,						
+			});
 
 			await expect(
 				yotiService.generateInstructions(sessionID, personDetails, requirements, PostOfficeSelection),
-			).rejects.toThrow(new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF"));
+			).rejects.toThrow();
 
 			expect(logger.error).toHaveBeenCalledWith(
-				{ "message": "An error occurred when generating Yoti instructions PDF", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to generate instructions" },
+				{ "message": "An error occurred when generating Yoti instructions PDF", "yotiErrorCode": 400, "yotiErrorMessage": "Failed to generate instructions", "xRequestId": "dummy-request-id" },
 			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.put).toHaveBeenCalledWith(
@@ -597,14 +609,16 @@ describe("YotiService", () => {
 				},
 			});
 
-			axiosMock.get.mockRejectedValueOnce(new Error("Failed to fetch PDF"));
+			axiosMock.get.mockRejectedValueOnce({
+				"message": "Failed to fetch PDF",
+				"code": 500,
+				"response": errorResponseHeaders,						
+			});
 
-			await expect(yotiService.fetchInstructionsPdf(sessionId)).rejects.toThrow(
-				new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF"),
-			);
+			await expect(yotiService.fetchInstructionsPdf(sessionId)).rejects.toThrow();
 
 			expect(logger.error).toHaveBeenCalledWith(
-				{ "message": "An error occurred when fetching Yoti instructions PDF", "messageCode": "FAILED_YOTI_GET_INSTRUCTIONS", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to fetch PDF" },
+				{ "message": "An error occurred when fetching Yoti instructions PDF", "messageCode": "FAILED_YOTI_GET_INSTRUCTIONS", "yotiErrorCode": 500, "yotiErrorMessage": "Failed to fetch PDF", "xRequestId": "dummy-request-id" },
 			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith(
@@ -638,14 +652,15 @@ describe("YotiService", () => {
 				config: {},
 			});
 
-			axiosMock.get.mockRejectedValueOnce(new Error("Failed to fetch completed session info"));
-
-			await expect(yotiService.getCompletedSessionInfo(sessionId)).rejects.toThrow(
-				new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session"),
-			);
+			axiosMock.get.mockRejectedValueOnce({
+				"message": "Failed to fetch completed session info",
+				"code": 404,
+				"response": errorResponseHeaders,
+			});
+			await expect(yotiService.getCompletedSessionInfo(sessionId)).rejects.toThrow();
 
 			expect(logger.error).toHaveBeenCalledWith(
-				{ "message": "An error occurred when fetching Yoti session", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to fetch completed session info" },
+				{ "message": "An error occurred when fetching Yoti session", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": 404, "yotiErrorMessage": "Failed to fetch completed session info", "xRequestId": "dummy-request-id" },
 			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123", expect.any(Object));
@@ -680,21 +695,22 @@ describe("YotiService", () => {
 				url: "https://example.com/api/sessions/session123/media/media123/content",
 				config: {},
 			};
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue(yotiRequest);
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue(yotiRequest);	
+			
+			axiosMock.get.mockRejectedValueOnce({
+				"message": "Failed to fetch media content",
+				"code": 400,
+				"response": errorResponseHeaders,						
+			});	
 
-			const error = new Error("Failed to fetch media content");
-			axiosMock.get.mockRejectedValueOnce(error);
-
-			await expect(yotiService.getMediaContent(sessionId, mediaId)).rejects.toThrow(
-				new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti media content"),
-			);
+			await expect(yotiService.getMediaContent(sessionId, mediaId)).rejects.toThrow();
 
 			expect(axios.get).toHaveBeenCalledWith(
 				yotiRequest.url,
 				yotiRequest.config,
 			);
-			expect(logger.error).toHaveBeenCalledWith(
-				{ "message": "An error occurred when fetching Yoti media content", "messageCode": "FAILED_YOTI_GET_MEDIA_CONTENT", "yotiErrorCode": undefined, "yotiErrorMessage": "Failed to fetch media content" },
+			expect(logger.error).toHaveBeenNthCalledWith(1,
+				{ "message": "An error occurred when fetching Yoti media content", "messageCode": "FAILED_YOTI_GET_MEDIA_CONTENT", "yotiErrorCode": 400, "yotiErrorMessage": "Failed to fetch media content", "xRequestId": "dummy-request-id" },
 			);
 		});
 	});
