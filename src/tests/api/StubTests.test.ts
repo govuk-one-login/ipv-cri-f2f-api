@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import govNotifyRequestData from "../data/govNotifyStubPayload.json";
 import yotiRequestData from "../data/yotiSessionsPayloadValid.json";
 import poStubPayloadData from "../data/poStubPayload.json";

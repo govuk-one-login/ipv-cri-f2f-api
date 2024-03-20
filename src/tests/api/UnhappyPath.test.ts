@@ -1,4 +1,14 @@
-import { sessionPost, stubStartPost, startStubServiceAndReturnSessionId, postDocumentSelection, authorizationGet, tokenPost, userInfoPost, sessionConfigurationGet } from "./ApiTestSteps";
+/* eslint-disable max-lines-per-function */
+import { 
+	sessionPost, 
+	stubStartPost, 
+	startStubServiceAndReturnSessionId, 
+	postDocumentSelection, 
+	authorizationGet, 
+	tokenPost, 
+	userInfoPost, 
+	sessionConfigurationGet 
+} from "./ApiTestSteps";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import addressSessionPayload from "../data/addressSessionPayload.json";
 import dataDriversLicenseInvalid from "../data/docSelectionPayloadDriversLicenceInvalid.json";
@@ -68,8 +78,9 @@ describe("/documentSelection endpoint", () => {
 		{ yotiMockId: "0104", statusCode: 500, docSelectionData: dataPassportInvalidFadFormat, errorMessage: "Error generating Yoti instructions PDF" },
 		{ yotiMockId: "0105", statusCode: 400, docSelectionData: dataPassportMissingFad, errorMessage: { "message": "Invalid request body" } },
 	])("Unsuccessful Request Tests - yotiMockId $yotiMockId", async ({ yotiMockId, statusCode, docSelectionData, errorMessage }: { yotiMockId: string; statusCode: number; docSelectionData: DocSelectionData; errorMessage: any }) => {
-		f2fStubPayload.yotiMockID = yotiMockId;
-		const { sessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = yotiMockId;
+		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
 		const response = await postDocumentSelection(docSelectionData, sessionId);
 		expect(response.status).toBe(statusCode);
@@ -87,8 +98,9 @@ describe("/userInfo Endpoint", () => {
 	let sessionId: string;
 
 	beforeEach(async () => {
-		f2fStubPayload.yotiMockID = "0000";
-		const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = "0000";
+		const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 		sessionId = newSessionId;
 	});
 

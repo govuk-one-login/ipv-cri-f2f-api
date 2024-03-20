@@ -1,8 +1,20 @@
-import { sessionPost, stubStartPost, postDocumentSelection, startStubServiceAndReturnSessionId, getSessionById, getSessionAndVerifyKey, authorizationGet, tokenPost, userInfoPost, sessionConfigurationGet, postAbortSession } from "./ApiTestSteps";
+/* eslint-disable max-lines-per-function */
+import { 
+	sessionPost, 
+	stubStartPost, 
+	postDocumentSelection, 
+	startStubServiceAndReturnSessionId, 
+	getSessionById, 
+	getSessionAndVerifyKey, 
+	authorizationGet, 
+	tokenPost, 
+	userInfoPost, 
+	sessionConfigurationGet, 
+	postAbortSession 
+} from "./ApiTestSteps";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "./ApiUtils";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import thinFilePayload from "../data/thinFilePayload.json";
-import exampleStubPayload from "../data/exampleStubPayload.json";
 import abortPayload from "../data/abortPayload.json";
 import dataPassport from "../data/docSelectionPayloadPassportValid.json";
 import dataUkDrivingLicence from "../data/docSelectionPayloadDriversLicenceValid.json";
@@ -16,7 +28,7 @@ import { DocSelectionData } from "./types";
 describe("/session endpoint", () => {
 
 	it("Successful Request Tests", async () => {
-		const stubResponse = await stubStartPost(exampleStubPayload);
+		const stubResponse = await stubStartPost(f2fStubPayload);
 		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		expect(postRequest.status).toBe(200);
 		const sessionId = postRequest.data.session_id;
@@ -37,8 +49,9 @@ describe("/documentSelection Endpoint", () => {
 		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard, yotiStartSchema: "F2F_YOTI_START_05_SCHEMA" },
 	])("Successful Request Tests - $yotiMockId", async ({ yotiMockId, docSelectionData, yotiStartSchema }: { yotiMockId: string; docSelectionData: DocSelectionData; yotiStartSchema: string }) => {
-		f2fStubPayload.yotiMockID = yotiMockId;
-		const { sessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = yotiMockId;
+		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
 		await postDocumentSelection(docSelectionData, sessionId);
 
@@ -51,8 +64,9 @@ describe("/documentSelection Endpoint", () => {
 	});
 
 	it("Successful Request Tests - Validate Session Expiry is Updated after Document Selection", async () => {
-		f2fStubPayload.yotiMockID = "0000";
-		const { sessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = "0000";
+		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
 		const initinalSessionRecord = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const initinalYotiSessionExpiry = initinalSessionRecord?.expiryDate;
@@ -98,8 +112,9 @@ describe("/authorization endpoint", () => {
 		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard, yotiStartSchema: "F2F_YOTI_START_05_SCHEMA" },
 	])("Successful Request Tests - $yotiMockId", async ({ yotiMockId, docSelectionData, yotiStartSchema }: { yotiMockId: string; docSelectionData: DocSelectionData; yotiStartSchema: string }) => {
-		f2fStubPayload.yotiMockID = yotiMockId;
-		const { sessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = yotiMockId;
+		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
 		await postDocumentSelection(docSelectionData, sessionId);
 
@@ -119,15 +134,16 @@ describe("/authorization endpoint", () => {
 
 describe("/token endpoint", () => {
 	it.each([
-		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
-		{ yotiMockId: "0100", docSelectionData: dataPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA" },
-		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA" },
-		{ yotiMockId: "0300", docSelectionData: dataBrp, yotiStartSchema: "F2F_YOTI_START_03_SCHEMA" },
-		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
-		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard, yotiStartSchema: "F2F_YOTI_START_05_SCHEMA" },
-	])("Successful Request Tests - $yotiMockId", async ({ yotiMockId, docSelectionData, yotiStartSchema }: { yotiMockId: string; docSelectionData: DocSelectionData; yotiStartSchema: string }) => {
-		f2fStubPayload.yotiMockID = yotiMockId;
-		const { sessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence },
+		{ yotiMockId: "0100", docSelectionData: dataPassport },
+		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport },
+		{ yotiMockId: "0300", docSelectionData: dataBrp },
+		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence },
+		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard },
+	])("Successful Request Tests - $yotiMockId", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; docSelectionData: DocSelectionData }) => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = yotiMockId;
+		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
 		await postDocumentSelection(docSelectionData, sessionId);
 
@@ -143,15 +159,16 @@ describe("/token endpoint", () => {
 
 describe("/userinfo endpoint", () => {
 	it.each([
-		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
-		{ yotiMockId: "0100", docSelectionData: dataPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA" },
-		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA" },
-		{ yotiMockId: "0300", docSelectionData: dataBrp, yotiStartSchema: "F2F_YOTI_START_03_SCHEMA" },
-		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
-		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard, yotiStartSchema: "F2F_YOTI_START_05_SCHEMA" },
-	])("Successful Request Tests - $yotiMockId", async ({ yotiMockId, docSelectionData, yotiStartSchema }: { yotiMockId: string; docSelectionData: DocSelectionData; yotiStartSchema: string }) => {
-		f2fStubPayload.yotiMockID = yotiMockId;
-		const { sessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence },
+		{ yotiMockId: "0100", docSelectionData: dataPassport },
+		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport },
+		{ yotiMockId: "0300", docSelectionData: dataBrp },
+		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence },
+		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard },
+	])("Successful Request Tests - $yotiMockId", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; docSelectionData: DocSelectionData }) => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = yotiMockId;
+		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
 		await postDocumentSelection(docSelectionData, sessionId);
 
@@ -178,7 +195,10 @@ describe("/sessionConfiguration endpoint", () => {
 	});
 
 	it("Successful Request Tests - Evidence Object Not Returned", async () => {
-		const { sessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = "0000";
+		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+		
 		const sessionConfigurationResponse = await sessionConfigurationGet(sessionId);
 
 		expect(sessionConfigurationResponse.status).toBe(200);
@@ -188,11 +208,12 @@ describe("/sessionConfiguration endpoint", () => {
 
 describe("/abort endpoint", () => {
 	let sessionId: string;
+
 	beforeEach(async () => {
-		f2fStubPayload.yotiMockID = "0000";
-		const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = "0000";
+		const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 		sessionId = newSessionId;
-		console.log("session id: " + sessionId);
 	});
 
 	it("Successful Request Tests - Abort Session", async () => {
