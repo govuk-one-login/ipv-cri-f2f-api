@@ -1,8 +1,32 @@
 /* eslint-disable max-lines-per-function */
+import govNotifyRequestData from "../data/govNotifyStubPayload.json";
 import yotiRequestData from "../data/yotiSessionsPayloadValid.json";
-import { postYotiSession, getYotiSessionsConfiguration, putYotiSessionsInstructions, getYotiSessionsInstructions } from "./ApiTestSteps";
+import poStubPayloadData from "../data/poStubPayload.json";
+import { 
+	postYotiSession, 
+	getYotiSessionsConfiguration, 
+	putYotiSessionsInstructions, 
+	getYotiSessionsInstructions, 
+	postGovNotifyRequest, 
+	postPOCodeRequest, 
+} from "./ApiTestSteps";
 
-describe("Yoti /sessions endpoint", () => {
+describe("GovNotify Stub", () => {
+	const postGovNotifyParams = [
+		[400],
+		[403],
+		[429],
+		[500],
+		[201],
+	];
+	it.each(postGovNotifyParams)("GovNotify - expect '%i' response on POST/v2/notifications/email", async (govNotifyDelimitator: number) => {
+		const response = await postGovNotifyRequest(govNotifyDelimitator, govNotifyRequestData);
+		expect(response.status).toBe(govNotifyDelimitator);
+	});
+});
+
+
+describe("Yoti Stub", () => {
 	const postSessionsParams = [
 		{ responseCode: 201, userTrackerId: "2000" },
 		{ responseCode: 400, userTrackerId: "1400" },
@@ -56,3 +80,20 @@ describe("Yoti /sessions endpoint", () => {
 		expect(response.status).toBe(responseCode);
 	});
 });
+
+describe("Post Office Stub", () => {
+	const postPOParams = [
+		["400"],
+		["403"],
+		["429"],
+		["500"],
+		["200"],
+		["503"],
+	];
+
+	it.each(postPOParams)("Post Office Stub - expect '%i' response on POST/postoffice/locations/search", async (poStubDelimitator: string) => {
+		const response = await postPOCodeRequest(poStubDelimitator, poStubPayloadData);
+		expect(response.status).toBe(Number(poStubDelimitator));
+	});
+});
+
