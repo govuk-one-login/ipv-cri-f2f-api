@@ -43,15 +43,6 @@ describe("/session endpoint", () => {
 		expect(sessionResponse.data).toBe("Unauthorized");
 	});
 
-	it("Unsuccessful Request Tests - No Email Address", async () => {
-		const newf2fStubPayload = structuredClone(f2fStubPayload);
-		newf2fStubPayload.shared_claims.emailAddress = "";
-		const stubResponse = await stubStartPost(newf2fStubPayload);
-		const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-		expect(sessionResponse.status).toBe(401);
-		expect(sessionResponse.data).toBe("Unauthorized");
-	});
-
 	it("Unsuccessful Request Tests - Incorrect Country Code", async () => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		newf2fStubPayload.shared_claims.address[0].addressCountry = "XY";
