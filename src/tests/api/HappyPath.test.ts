@@ -10,7 +10,7 @@ import {
 	tokenPost, 
 	userInfoPost, 
 	sessionConfigurationGet, 
-	postAbortSession 
+	postAbortSession, 
 } from "./ApiTestSteps";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "./ApiUtils";
 import f2fStubPayload from "../data/exampleStubPayload.json";

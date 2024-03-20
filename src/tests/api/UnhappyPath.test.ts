@@ -7,7 +7,7 @@ import {
 	authorizationGet, 
 	tokenPost, 
 	userInfoPost, 
-	sessionConfigurationGet 
+	sessionConfigurationGet,
 } from "./ApiTestSteps";
 import f2fStubPayload from "../data/exampleStubPayload.json";
 import addressSessionPayload from "../data/addressSessionPayload.json";

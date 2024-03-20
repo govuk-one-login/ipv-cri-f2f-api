@@ -2,7 +2,14 @@
 import govNotifyRequestData from "../data/govNotifyStubPayload.json";
 import yotiRequestData from "../data/yotiSessionsPayloadValid.json";
 import poStubPayloadData from "../data/poStubPayload.json";
-import { postYotiSession, getYotiSessionsConfiguration, putYotiSessionsInstructions, getYotiSessionsInstructions, postGovNotifyRequest, postPOCodeRequest } from "./ApiTestSteps";
+import { 
+	postYotiSession, 
+	getYotiSessionsConfiguration, 
+	putYotiSessionsInstructions, 
+	getYotiSessionsInstructions, 
+	postGovNotifyRequest, 
+	postPOCodeRequest, 
+} from "./ApiTestSteps";
 
 describe("GovNotify Stub", () => {
 	const postGovNotifyParams = [
