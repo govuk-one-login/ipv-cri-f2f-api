@@ -209,7 +209,7 @@ export function generateRandomAlphanumeric(substringStart: number, substringEnd:
 	return result;
 }
 
-export async function getSessionById(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
+export async function getSessionById(sessionId: string, tableName: any): Promise<ISessionItem | undefined> {
 	interface OriginalValue {
 		N?: string;
 		S?: string;
