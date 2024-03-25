@@ -211,7 +211,8 @@ export class YotiService {
 			this.logger.info("Received response from Yoti for create /sessions");
 			return data.session_id;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when creating Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });
+			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
+			this.logger.error({ message: "An error occurred when creating Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION, xRequestId });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session");
 		}
 	}
@@ -227,7 +228,8 @@ export class YotiService {
 
 			return data;
 		} catch (error: any) {
-			this.logger.error({ message: "Error fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code });
+			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
+			this.logger.error({ message: "Error fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, xRequestId });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
 		}
 	}
@@ -270,7 +272,8 @@ export class YotiService {
 
 			return HttpCodesEnum.OK;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code });
+			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
+			this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, xRequestId });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF");
 		}
 	}
@@ -291,7 +294,8 @@ export class YotiService {
 				return (await axios.get(yotiRequest.url, yotiRequest.config)).data;
 
 			} catch (error: any) {
-				this.logger.error({ message: "An error occurred when fetching Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS });
+				const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
+				this.logger.error({ message: "An error occurred when fetching Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS, xRequestId });
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF");
 			}
 		} else {
@@ -310,7 +314,8 @@ export class YotiService {
 
 			return data;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_SESSION });
+			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
+			this.logger.error({ message: "An error occurred when fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_SESSION, xRequestId });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
 		}
 	}
@@ -326,7 +331,8 @@ export class YotiService {
 
 			return data;
 		} catch (error: any) {
-			this.logger.error({ message: "An error occurred when fetching Yoti media content", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_MEDIA_CONTENT });
+			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
+			this.logger.error({ message: "An error occurred when fetching Yoti media content", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_MEDIA_CONTENT, xRequestId });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti media content");
 		}
 	}
