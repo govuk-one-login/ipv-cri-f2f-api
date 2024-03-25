@@ -60,6 +60,7 @@ export class SessionRequestProcessor {
   	const deserialisedRequestBody = JSON.parse(event.body as string);
   	const requestBodyClientId = deserialisedRequestBody.client_id;
   	const clientIpAddress = event.requestContext.identity?.sourceIp;
+  	const sessionId: string = randomUUID();
 
 
   	let configClient;
@@ -104,6 +105,10 @@ export class SessionRequestProcessor {
   	}
 
   	const jwtPayload: JwtPayload = parsedJwt.payload;
+  	this.logger.appendKeys({
+  		govuk_signin_journey_id: jwtPayload.govuk_signin_journey_id as string,
+  		sessionId,
+  	});
   	try {
   		if (configClient?.jwksEndpoint) {
   			const payload = await this.kmsDecryptor.verifyWithJwks(urlEncodedJwt, configClient.jwksEndpoint);
@@ -149,11 +154,6 @@ export class SessionRequestProcessor {
   		return unauthorizedResponse;
   	}
 
-  	const sessionId: string = randomUUID();
-  	this.logger.appendKeys({
-  		sessionId,
-  		govuk_signin_journey_id: jwtPayload.govuk_signin_journey_id as string,
-  	});
   	try {
   		if (await this.f2fService.getSessionById(sessionId)) {
   			this.logger.error("SESSION_ALREADY_EXISTS", {
