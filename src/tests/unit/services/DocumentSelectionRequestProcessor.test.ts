@@ -179,8 +179,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore
 		mockDocumentSelectionRequestProcessor.f2fService = mockF2fService;
-		// @ts-ignore
-		mockDocumentSelectionRequestProcessor.yotiService = mockYotiService;
+
+		YotiService.getInstance = jest.fn(() => mockYotiService);
 
 		yotiSessionInfo = getYotiSessionInfo();
 		f2fSessionItem = getMockSessionItem();

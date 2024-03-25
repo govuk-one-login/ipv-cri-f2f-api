@@ -114,8 +114,8 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockCompletedSessionProcessor = new YotiSessionCompletionProcessor(logger, metrics, "YOTIPRIM");
 		// @ts-ignore
 		mockCompletedSessionProcessor.f2fService = mockF2fService;
-		// @ts-ignore
-		mockCompletedSessionProcessor.yotiService = mockYotiService;
+
+		YotiService.getInstance = jest.fn(() => mockYotiService);
 
 		completedYotiSession = getCompletedYotiSession();
 		documentFields = getDocumentFields();

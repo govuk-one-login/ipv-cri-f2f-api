@@ -10,8 +10,8 @@ import { ApplicantProfile, PostOfficeInfo, YotiSessionInfo, CreateSessionPayload
 import { YotiDocumentTypesEnum, YOTI_REQUESTED_CHECKS, YOTI_REQUESTED_TASKS, YOTI_SESSION_TOPICS, UK_POST_OFFICE } from "../utils/YotiPayloadEnums";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 import { MessageCodes } from "../models/enums/MessageCodes";
-import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { ValidationHelper } from "../utils/ValidationHelper";
+import { Constants } from "../utils/Constants";
 
 export class YotiService {
 	readonly logger: Logger;
@@ -30,6 +30,14 @@ export class YotiService {
 
 	readonly validationHelper: ValidationHelper;
 
+	static validateEnvVars() {
+		const requiredVars = ['YOTISDK', 'YOTI_SESSION_TTL_DAYS', 'RESOURCES_TTL_SECS'];
+		const missingVars = requiredVars.filter(varName => !process.env[varName]);
+		if (missingVars.length > 0) {
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
+	}
+
 	constructor(logger: Logger, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number, PEM_KEY: string, YOTI_BASE_URL: string) {
 		this.RESOURCES_TTL_SECS = RESOURCES_TTL_SECS;
 		this.YOTI_SESSION_TTL_DAYS = YOTI_SESSION_TTL_DAYS;
@@ -40,16 +48,18 @@ export class YotiService {
 		this.validationHelper = new ValidationHelper();
 	}
 
-	static getInstance(
-		logger: Logger,
-		CLIENT_SDK_ID: string,
-		RESOURCES_TTL_SECS: number,
-		YOTI_SESSION_TTL_DAYS: number,
-		PEM_KEY: string,
-		YOTI_BASE_URL: string,
-	): YotiService {
+	static getInstance(logger: Logger, PEM_KEY: string, YOTI_BASE_URL: string): YotiService {
 		if (!YotiService.instance) {
-			YotiService.instance = new YotiService(logger, CLIENT_SDK_ID, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS, PEM_KEY, YOTI_BASE_URL);
+			this.validateEnvVars(); // Validate environment variables before instance creation
+			const { YOTISDK, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS } = process.env;
+			YotiService.instance = new YotiService(
+				logger,
+				YOTISDK!,
+				Number(RESOURCES_TTL_SECS),
+				Number(YOTI_SESSION_TTL_DAYS),
+				PEM_KEY,
+				YOTI_BASE_URL
+			);
 		}
 		return YotiService.instance;
 	}

@@ -17,6 +17,7 @@ export const v3KmsClient = new KMSClient({
 });
 
 let frontendURL: string; 
+let clientID: string; 
 
 export const handler = async (
   event: APIGatewayProxyEvent
@@ -27,6 +28,7 @@ export const handler = async (
     config.jwksUri = overrides.target;
   }
 	frontendURL = overrides?.frontendURL != null ? overrides.frontendURL : config.oauthUri
+	clientID = overrides?.clientId != null ? overrides.clientId : process.env.CLIENT_ID
   const defaultClaims = {
     name: [
       {
@@ -76,7 +78,7 @@ export const handler = async (
         : crypto.randomBytes(16).toString("hex"),
     aud: frontendURL,
     iss: "https://ipv.core.account.gov.uk",
-    client_id: config.clientId,
+    client_id: clientID,
     state: crypto.randomBytes(16).toString("hex"),
     iat,
     nbf: iat - 1,
@@ -109,8 +111,8 @@ export const handler = async (
     body: JSON.stringify({
       request,
       responseType: "code",
-      clientId: config.clientId,
-      AuthorizeLocation: `${frontendURL}/oauth2/authorize?request=${request}&response_type=code&client_id=${config.clientId}`,
+      AuthorizeLocation: `${frontendURL}/oauth2/authorize?request=${request}&response_type=code&client_id=${clientID}`,
+      clientId: clientID,
       sub: payload.sub,
       state: payload.state,
     }),
@@ -120,7 +122,6 @@ export const handler = async (
 export function getConfig(): {
   redirectUri: string;
   jwksUri: string;
-  clientId: string;
   signingKey: string;
   oauthUri: string;
 } {
@@ -137,7 +138,6 @@ export function getConfig(): {
   return {
     redirectUri: process.env.REDIRECT_URI,
     jwksUri: process.env.JWKS_URI,
-    clientId: process.env.CLIENT_ID,
     signingKey: process.env.SIGNING_KEY,
     oauthUri: process.env.OAUTH_FRONT_BASE_URI,
   };

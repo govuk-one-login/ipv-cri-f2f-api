@@ -243,8 +243,9 @@ describe("ThankYouEmailProcessor", () => {
 		thankYouEmailProcessor = new ThankYouEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY);
 		// @ts-ignore
 		thankYouEmailProcessor.f2fService = mockF2fService;
-		// @ts-ignore
-		thankYouEmailProcessor.yotiService = mockYotiService;
+		
+		YotiService.getInstance = jest.fn(() => mockYotiService);
+		
 		f2fSessionItem = getMockSessionItem();
 		yotiSessionItem = getMockYotiSessionItem();
 		jest.useFakeTimers();

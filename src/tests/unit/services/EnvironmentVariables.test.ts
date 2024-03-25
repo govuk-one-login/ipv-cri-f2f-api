@@ -86,17 +86,6 @@ describe("EnvironmentVariables", () => {
 		});
 	});
 
-	describe("yotiBaseUrl", () => {
-		it("should return the value of YOTIBASEURL", () => {
-			process.env.YOTIBASEURL = "YOTIBASEURL_VALUE";
-			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
-
-			const result = envVars.yotiBaseUrl();
-
-			expect(result).toBe("YOTIBASEURL_VALUE");
-		});
-	});
-
 	describe("kmsKeyArn", () => {
 		it("should return the value of KMS_KEY_ARN", () => {
 			process.env.KMS_KEY_ARN = "KMS_KEY_ARN_VALUE";
