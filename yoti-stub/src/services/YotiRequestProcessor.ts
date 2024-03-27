@@ -30,7 +30,8 @@ import {
     UK_PASSPORT_MEDIA_ID_ANTHONY,
     UK_PASSPORT_MEDIA_ID_PAUL,
     IPV_INTEG_FULL_NAME_SUZIE,
-    UK_PASSPORT_MEDIA_ID_SUZIE
+    UK_PASSPORT_MEDIA_ID_SUZIE,
+    UK_DL_MISSING_FORMATTED_ADDRESS_MEDIA_ID
 } from "../utils/Constants";
 import {HttpCodesEnum} from "../utils/HttpCodesEnum";
 import {YotiSessionItem} from "../models/YotiSessionItem";
@@ -104,6 +105,7 @@ import { DEU_DRIVING_LICENCE_INCORRECT_NAME_SEQUENCE } from "../data/getMediaCon
 import {GBR_PASSPORT_PAUL} from "../data/getMediaContent/gbPassportResponsePAUL";
 import {GBR_PASSPORT_ANTHONY} from "../data/getMediaContent/gbPassportResponseANTHONY";
 import {GBR_PASSPORT_SUZIE} from "../data/getMediaContent/gbPassportResponseSUZIE";
+import { GBR_DRIVING_LICENCE_MISSING_FORMATTED_ADDRESS } from "../data/getMediaContent/gbDriversLicenseMissingFormatedAddressResponse";
 
 export class YotiRequestProcessor {
     private static instance: YotiRequestProcessor;
@@ -308,6 +310,14 @@ export class YotiRequestProcessor {
                     VALID_DL_RESPONSE_0002.resources.id_documents[0].document_fields.media.id = sessionId;
                     VALID_DL_RESPONSE_0002.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE_0002.resources.id_documents[0].document_fields.media.id, UK_DL_WRONG_NON_SPACE_CHARS);
                     return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE_0002));
+
+                    case '0003': // UK Driving License Success - No formatted_address in structural_address
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        const VALID_DL_RESPONSE_0003 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
+                        VALID_DL_RESPONSE_0003.session_id = sessionId; 
+                        VALID_DL_RESPONSE_0003.resources.id_documents[0].document_fields.media.id = sessionId;
+                        VALID_DL_RESPONSE_0003.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE_0003.resources.id_documents[0].document_fields.media.id, UK_DL_MISSING_FORMATTED_ADDRESS_MEDIA_ID);
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE_0003));
 
                     default:
                         return undefined;
@@ -1442,6 +1452,9 @@ export class YotiRequestProcessor {
 
             case EEA_ID_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(NLD_NATIONAL_ID));
+            
+            case UK_DL_MISSING_FORMATTED_ADDRESS_MEDIA_ID:
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE_MISSING_FORMATTED_ADDRESS));
 
             case '5400':
                 logger.info({message: "last 4 ID chars", lastUuidChars});
