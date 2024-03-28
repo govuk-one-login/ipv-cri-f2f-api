@@ -85,7 +85,7 @@ describe("/documentSelection Endpoint", () => {
 
 	it("Successful Request Tests - formatted_address field optional", async () => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
-		newf2fStubPayload.yotiMockID = "XXXX";
+		newf2fStubPayload.yotiMockID = "0003";
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
 		await postDocumentSelection(dataUkDrivingLicence, sessionId);
