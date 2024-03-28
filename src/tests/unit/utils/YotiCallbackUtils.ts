@@ -376,7 +376,7 @@ export function getDrivingPermitFields(): any {
 	return documentFields;
 }
 
-export function getDrivingPermitFieldsWithoutPostalAddress(): any {
+export function getDrivingPermitFieldsWithoutFormattedAddress(): any {
 	const documentFields = {
 		"full_name": "LEEROY JENKINS",
 		"date_of_birth": "1988-12-04",

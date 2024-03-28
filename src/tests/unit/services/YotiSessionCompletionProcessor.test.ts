@@ -20,7 +20,7 @@ import { AppError } from "../../../utils/AppError";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { TXMA_BRP_VC_ISSUED, TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_DL_VC_ISSUED_WITHOUT_FULL_ADDRESS, TXMA_EEA_VC_ISSUED, TXMA_EU_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
-import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getDrivingPermitFieldsWithoutPostalAddress, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
+import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getDrivingPermitFieldsWithoutFormattedAddress, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
 
 let mockCompletedSessionProcessor: YotiSessionCompletionProcessor;
 const mockF2fService = mock<F2fService>();
@@ -333,7 +333,7 @@ describe("YotiSessionCompletionProcessor", () => {
 	});
 
 	it("Return successful response with 200 OK when YOTI session is completed for driving permit- Media not containing formatted_address", async () => {
-		documentFields = getDrivingPermitFieldsWithoutPostalAddress();
+		documentFields = getDrivingPermitFieldsWithoutFormattedAddress();
 		const ukDLYotiSession =  getCompletedYotiSession();
 		ukDLYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE";
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(ukDLYotiSession);
@@ -436,7 +436,7 @@ describe("YotiSessionCompletionProcessor", () => {
 	});
 
 	it("Return successful response with 200 OK when YOTI session is completed for driving permit- Media not containing structured_postal_address", async () => {
-		documentFields = getDrivingPermitFieldsWithoutPostalAddress();
+		documentFields = getDrivingPermitFieldsWithoutFormattedAddress();
 		delete documentFields.structured_postal_address;
 		const ukDLYotiSession =  getCompletedYotiSession();
 		ukDLYotiSession.resources.id_documents[0].document_type = "DRIVING_LICENCE";

@@ -356,7 +356,7 @@ export class YotiSessionCompletionProcessor {
 			  } else {
 				  documentInfo.issuedBy = documentFields.issuing_authority;
 				  documentInfo.issueDate = documentFields.date_of_issue;
-				  documentInfo.fullAddress = documentFields.structured_postal_address ? documentFields.structured_postal_address.formatted_address : undefined;
+				  documentInfo.fullAddress = documentFields.structured_postal_address?.formatted_address;
 			  }
 			  break;
 		  case DocumentTypes.NATIONAL_ID:
