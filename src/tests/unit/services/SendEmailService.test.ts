@@ -92,7 +92,6 @@ describe("SendEmailProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({
 			event_name: "F2F_YOTI_PDF_EMAILED",
-			client_id: "ipv-core-stub",
 			component_id: "https://XXX-c.env.account.gov.uk",
 			timestamp,
 			event_timestamp_ms: timestamp * 1000,

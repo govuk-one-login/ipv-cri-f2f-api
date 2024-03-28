@@ -305,7 +305,6 @@ describe("ThankYouEmailProcessor", () => {
 			expect(Date.prototype.toLocaleTimeString).toHaveBeenCalledWith("en-GB", { hour: "numeric", minute: "numeric", hourCycle: "h12" });
 			expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({
 				event_name: "F2F_DOCUMENT_UPLOADED",
-				client_id: "ipv-core-stub",
 				component_id: "https://XXX-c.env.account.gov.uk",
 				timestamp: 1585695600,
 				event_timestamp_ms: 1585695600000,

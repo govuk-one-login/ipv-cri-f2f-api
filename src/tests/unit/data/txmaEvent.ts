@@ -27,7 +27,6 @@ const TXMA_EXTENSION = {
 };
 
 export const TXMA_CORE_FIELDS = {
-	"client_id": "ipv-core-stub",
 	"component_id": "https://XXX-c.env.account.gov.uk",
 	"event_name": "F2F_YOTI_RESPONSE_RECEIVED",
 	"timestamp": 1,

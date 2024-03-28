@@ -18,6 +18,7 @@ import { ReminderEmail } from "../models/ReminderEmail";
 import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { Constants } from "../utils/Constants";
+import { TxmaEventNames } from "../models/enums/TxmaEvents";
 
 
 /**
@@ -150,7 +151,7 @@ export class SendEmailService {
 			const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress);
 			try {
 				await this.f2fService.sendToTXMA({
-					event_name: "F2F_YOTI_PDF_EMAILED",
+					event_name: TxmaEventNames.F2F_YOTI_PDF_EMAILED,
 					...coreEventFields,
 					extensions: {
 						evidence: [

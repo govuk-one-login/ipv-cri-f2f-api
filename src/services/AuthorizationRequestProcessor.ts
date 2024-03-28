@@ -12,6 +12,7 @@ import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
+import { TxmaEventNames } from "../models/enums/TxmaEvents";
 
 export class AuthorizationRequestProcessor {
 	private static instance: AuthorizationRequestProcessor;
@@ -65,7 +66,7 @@ export class AuthorizationRequestProcessor {
 				try {
 					const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress);
 					await this.f2fService.sendToTXMA({
-						event_name: "F2F_CRI_AUTH_CODE_ISSUED",
+						event_name: TxmaEventNames.F2F_CRI_AUTH_CODE_ISSUED,
 						...coreEventFields,
 						user: {
 							...coreEventFields.user,
@@ -89,7 +90,7 @@ export class AuthorizationRequestProcessor {
 
 				try {
 					await this.f2fService.sendToTXMA({
-						event_name: "F2F_CRI_END",
+						event_name: TxmaEventNames.F2F_CRI_END,
 						...buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress),
 						extensions: {
 							previous_govuk_signin_journey_id: session.clientSessionId,

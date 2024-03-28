@@ -15,6 +15,7 @@ import { JwtPayload, Jwt } from "../utils/IVeriCredential";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
+import { TxmaEventNames } from "../models/enums/TxmaEvents";
 
 
 interface ClientConfig {
@@ -213,7 +214,7 @@ export class SessionRequestProcessor {
   	try {
   		const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer() as string, clientIpAddress);
   		await this.f2fService.sendToTXMA({
-  			event_name: "F2F_CRI_START",
+  			event_name: TxmaEventNames.F2F_CRI_START,
   			...coreEventFields,
   			user: {
   				...coreEventFields.user,
