@@ -82,7 +82,7 @@ describe("/documentSelection Endpoint", () => {
 
 		expect(Number(updatedYotiSessionExpiry)).toBeGreaterThan(Number(initinalYotiSessionExpiry));
 	});
-
+	
 	it.each([
 		{ buildingNumber: "32", buildingName: "", subBuildingName: "" },
 		{ buildingNumber: "", buildingName: "19 A", subBuildingName: "" },

@@ -13,6 +13,13 @@
         "checkMethod": "vri,pvr",
         "ci": null
     },
+    "s0003":{
+        "strengthScore": 3,
+        "validityScore": 2,
+        "verificationScore": 3,
+        "checkMethod": "vri,bvr",
+        "ci": null
+    },
     "s0100":{
         "strengthScore": 4,
         "validityScore": 3,
