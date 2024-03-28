@@ -27,6 +27,7 @@ describe("/callback endpoint", () => {
 	it.each([
 		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence },
 		{ yotiMockId: "0001", docSelectionData: dataUkDrivingLicence },
+		{ yotiMockId: "0003", docSelectionData: dataUkDrivingLicence },
 		{ yotiMockId: "0101", docSelectionData: dataPassport },
 		{ yotiMockId: "0102", docSelectionData: dataPassport },
 		{ yotiMockId: "0103", docSelectionData: dataPassport },

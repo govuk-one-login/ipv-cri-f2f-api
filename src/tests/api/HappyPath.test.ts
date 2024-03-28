@@ -82,21 +82,6 @@ describe("/documentSelection Endpoint", () => {
 
 		expect(Number(updatedYotiSessionExpiry)).toBeGreaterThan(Number(initinalYotiSessionExpiry));
 	});
-
-	it("Successful Request Tests - formatted_address field optional", async () => {
-		const newf2fStubPayload = structuredClone(f2fStubPayload);
-		newf2fStubPayload.yotiMockID = "0003";
-		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
-
-		await postDocumentSelection(dataUkDrivingLicence, sessionId);
-
-		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
-
-		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 3);
-		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
-		validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: "F2F_YOTI_START_00_SCHEMA" }, allTxmaEventBodies);
-		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_EMAILED", schemaName: "F2F_YOTI_PDF_EMAILED_SCHEMA" }, allTxmaEventBodies);
-	});
 	
 	it.each([
 		{ buildingNumber: "32", buildingName: "", subBuildingName: "" },
