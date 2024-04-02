@@ -21,6 +21,7 @@ import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "..
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 import { YotiCallbackPayload } from "../type/YotiCallbackPayload";
 import { ISessionItem } from "../models/ISessionItem";
+import { TxmaEventNames } from "../models/enums/TxmaEvents";
 
 export class YotiSessionCompletionProcessor {
 
@@ -181,7 +182,7 @@ export class YotiSessionCompletionProcessor {
   			const coreEventFields = buildCoreEventFields(f2fSession, this.environmentVariables.issuer(), f2fSession.clientIpAddress);
 			  try {
 				  await this.f2fService.sendToTXMA({
-					  event_name: "F2F_YOTI_RESPONSE_RECEIVED",
+					  event_name: TxmaEventNames.F2F_YOTI_RESPONSE_RECEIVED,
 					  ...coreEventFields,
   					user: {
   						...coreEventFields.user,
@@ -375,7 +376,7 @@ export class YotiSessionCompletionProcessor {
 	  }
 	  try {
 		  await this.f2fService.sendToTXMA({
-			  event_name: "F2F_CRI_VC_ISSUED",
+			  event_name: TxmaEventNames.F2F_CRI_VC_ISSUED,
 			  ...buildCoreEventFields(
 				  f2fSession,
 				  this.environmentVariables.issuer(),
