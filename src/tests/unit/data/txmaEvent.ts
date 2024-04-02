@@ -104,6 +104,34 @@ export const TXMA_DL_VC_ISSUED = {
 	},
 };
 
+export const TXMA_DL_VC_ISSUED_WITHOUT_FULL_ADDRESS = {
+	...TXMA_CORE_FIELDS,
+	...TXMA_EXTENSION,
+	restricted: {
+		"name": [{
+			"nameParts": [
+				{ "value": "LEEROY", "type": "GivenName" },
+				{ "value": "JENKINS", "type": "FamilyName" },
+			],
+		}],
+		"birthDate": [
+			{
+				"value": "1988-12-04",
+			},
+		],
+		"drivingPermit": [
+			{
+				"documentType": "DRIVING_LICENCE",
+				"personalNumber": "LJENK533401372",
+				"expiryDate": "2025-09-28",
+				"issuingCountry": "GBR",
+				"issuedBy": "DVLA",
+				"issueDate": "2015-09-28",
+			},
+		],
+	},
+};
+
 export const TXMA_EU_DL_VC_ISSUED = {
 	...TXMA_CORE_FIELDS,
 	...TXMA_EXTENSION,
