@@ -89,7 +89,7 @@ describe("Post Office Stub", () => {
 		["500"],
 		["200"],
 		["503"],
-		["NAME"]
+		["MNE"]
 	];
 
 	it.each(postPOParams)("Post Office Stub - expect '%i' response on POST/postoffice/locations/search", async (poStubDelimitator: string) => {

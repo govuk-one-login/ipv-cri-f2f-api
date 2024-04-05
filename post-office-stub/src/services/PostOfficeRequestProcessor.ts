@@ -54,7 +54,7 @@ export class PostOfficeRequestProcessor {
     		case "503":
     			this.logger.info({ message: "Returning 503 response back" });
     			return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(POST_REPONSE_503));
-    		case "NAME":
+    		case "MNE":
     			this.logger.info({ message: "Returning missing name error object" });
     			return new Response(HttpCodesEnum.OK, JSON.stringify(POST_OFFICE_RESPONSE_NO_NAME));
     		default:
