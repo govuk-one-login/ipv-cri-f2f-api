@@ -27,7 +27,6 @@ const TXMA_EXTENSION = {
 };
 
 export const TXMA_CORE_FIELDS = {
-	"client_id": "ipv-core-stub",
 	"component_id": "https://XXX-c.env.account.gov.uk",
 	"event_name": "F2F_YOTI_RESPONSE_RECEIVED",
 	"timestamp": 1,
@@ -100,6 +99,34 @@ export const TXMA_DL_VC_ISSUED = {
 				"issuedBy": "DVLA",
 				"issueDate": "2015-09-28",
 				"fullAddress": "122 BURNS CRESCENT\nStormwind\nEH1 9GP",
+			},
+		],
+	},
+};
+
+export const TXMA_DL_VC_ISSUED_WITHOUT_FULL_ADDRESS = {
+	...TXMA_CORE_FIELDS,
+	...TXMA_EXTENSION,
+	restricted: {
+		"name": [{
+			"nameParts": [
+				{ "value": "LEEROY", "type": "GivenName" },
+				{ "value": "JENKINS", "type": "FamilyName" },
+			],
+		}],
+		"birthDate": [
+			{
+				"value": "1988-12-04",
+			},
+		],
+		"drivingPermit": [
+			{
+				"documentType": "DRIVING_LICENCE",
+				"personalNumber": "LJENK533401372",
+				"expiryDate": "2025-09-28",
+				"issuingCountry": "GBR",
+				"issuedBy": "DVLA",
+				"issueDate": "2015-09-28",
 			},
 		],
 	},

@@ -41,6 +41,8 @@ export const EU_DL_INCORRECT_NAME_SEQUENCE: string = '0402'
 
 export const EEA_ID_MEDIA_ID: string = "0500"
 
+export const UK_DL_MISSING_FORMATTED_ADDRESS_MEDIA_ID = "0003"
+
 export const SUPPORTED_DOCUMENTS: string[] = [DocumentMapping.UK_DL, DocumentMapping.UK_PASSPORT, DocumentMapping.NON_UK_PASSPORT,
                                               DocumentMapping.BRP, DocumentMapping.EU_DL, DocumentMapping.EEA_ID] // <-- Update this Array when introducing new doucment types
 

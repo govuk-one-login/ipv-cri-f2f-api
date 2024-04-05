@@ -19,6 +19,7 @@ import { PostOfficeInfo } from "../models/YotiPayloads";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AllDocumentTypes, DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { ValidationHelper } from "../utils/ValidationHelper";
+import { TxmaEventNames } from "../models/enums/TxmaEvents";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -196,7 +197,7 @@ export class DocumentSelectionRequestProcessor {
   				f2fSessionInfo.clientIpAddress,
   			);
   			await this.f2fService.sendToTXMA({
-  				event_name: "F2F_YOTI_START",
+  				event_name: TxmaEventNames.F2F_YOTI_START,
   				...coreEventFields,
   				user: {
   					...coreEventFields.user,

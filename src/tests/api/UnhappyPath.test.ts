@@ -33,16 +33,16 @@ describe("/session endpoint", () => {
 		expect(sessionResponse.data).toBe("Unauthorized");
 	});
 
-	// KIWI-1750: calls to /session returning 200 status code when Family Name is missing in shared_claims payload
-	// it("Unsuccessful Request Tests - No Family Name Field", async () => {
-	//     const newf2fStubPayload = structuredClone(f2fStubPayload);
-	// 	newf2fStubPayload.shared_claims.name[0].nameParts[2].value = "";
-	//     console.log(JSON.stringify(newf2fStubPayload));
-	// 	const stubResponse = await stubStartPost(newf2fStubPayload);
-	// 	const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-	// 	expect(sessionResponse.status).toBe(401);
-	// 	expect(sessionResponse.data).toBe("Unauthorized");
-	// });
+	it("Unsuccessful Request Tests - No Family Name Field", async () => {
+	    const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = "";
+		newf2fStubPayload.shared_claims.name[0].nameParts[2].value = "";
+	    console.log(JSON.stringify(newf2fStubPayload));
+		const stubResponse = await stubStartPost(newf2fStubPayload);
+		const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		expect(sessionResponse.status).toBe(401);
+		expect(sessionResponse.data).toBe("Unauthorized");
+	});
 
 	it("Unsuccessful Request Tests - No Email Address", async () => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);

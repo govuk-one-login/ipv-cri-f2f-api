@@ -23,9 +23,6 @@
         "ip_address"
       ]
     },
-    "client_id": {
-      "type": "string"
-    },
     "timestamp": {
       "type": "integer"
     },
@@ -88,7 +85,6 @@
   "required": [
     "event_name",
     "user",
-    "client_id",
     "timestamp",
     "event_timestamp_ms",
     "component_id",
