@@ -10,6 +10,7 @@ import {
 	postGovNotifyRequest, 
 	postPOCodeRequest, 
 } from "./ApiTestSteps";
+import { POST_OFFICE_RESPONSE_NO_NAME } from "../../../post-office-stub/src/data/postOfficeResponse/postOfficeResponseNoName";
 
 describe("GovNotify Stub", () => {
 	const postGovNotifyParams = [
@@ -89,12 +90,18 @@ describe("Post Office Stub", () => {
 		["500"],
 		["200"],
 		["503"],
-		["MNE"]
 	];
 
 	it.each(postPOParams)("Post Office Stub - expect '%i' response on POST/postoffice/locations/search", async (poStubDelimitator: string) => {
 		const response = await postPOCodeRequest(poStubDelimitator, poStubPayloadData);
 		expect(response.status).toBe(Number(poStubDelimitator));
+	});
+
+	it("returns 200 and the missing name error object when MNE fed as last 3 chars", async () => {
+		const response = await postPOCodeRequest("MNE", poStubPayloadData);
+		console.log("--------------------------------",response.data)
+		expect(response.status).toBe(200);
+		expect(response.data).toEqual(POST_OFFICE_RESPONSE_NO_NAME);
 	});
 });
 
