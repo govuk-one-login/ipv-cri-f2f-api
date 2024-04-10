@@ -16,31 +16,32 @@ export const v3KmsClient = new KMSClient({
   maxAttempts: 2,
 });
 
-let frontendURL: string; 
+let frontendURL: string;
+let clientID: string;
 
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  const config = getConfig();
-  const overrides = event.body !== null ? JSON.parse(event.body) : null;
-  if (overrides?.target != null) {
-    config.jwksUri = overrides.target;
-  }
-	frontendURL = overrides?.frontendURL != null ? overrides.frontendURL : config.oauthUri
+  const config = getDefaultConfig();
+  const overrides = event.body ? JSON.parse(event.body) : {};
+  config.jwksUri = overrides.target || config.jwksUri;
+  frontendURL = overrides.frontendURL || config.oauthUri;
+  clientID = overrides.clientId || process.env.CLIENT_ID;
+
   const defaultClaims = {
     name: [
       {
         nameParts: [
           {
-            value: "Frederick",
+            value: "Kenneth",
             type: "GivenName",
           },
           {
-            value: "Joseph",
+            value: "Automated",
             type: "GivenName",
           },
           {
-            value: "Flintstone",
+            value: "Decerqueira",
             type: "FamilyName",
           },
         ],
@@ -55,11 +56,12 @@ export const handler = async (
       {
         uprn: "123456789",
         buildingNumber: "32",
-        buildingName: "Sherman",
-        streetName: "Wallaby Way",
-        addressLocality: "Sidney",
+        buildingName: "London",
+        subBuildingName: "Flat 20",
+        streetName: "Demo",
+        addressLocality: "London",
         addressCountry: "GB",
-        postalCode: "F1 1SH",
+        postalCode: "SW19",
       },
     ],
     emailAddress: "fred.flintstone@bedrock-live.com",
@@ -71,35 +73,30 @@ export const handler = async (
     redirect_uri: config.redirectUri,
     response_type: "code",
     govuk_signin_journey_id:
-      overrides?.gov_uk_signin_journey_id != null
-        ? overrides?.gov_uk_signin_journey_id
-        : crypto.randomBytes(16).toString("hex"),
+      overrides?.gov_uk_signin_journey_id ||
+      crypto.randomBytes(16).toString("hex"),
     aud: frontendURL,
     iss: "https://ipv.core.account.gov.uk",
-    client_id: config.clientId,
+    client_id: clientID,
     state: crypto.randomBytes(16).toString("hex"),
     iat,
     nbf: iat - 1,
     exp: iat + 3 * 60,
-    shared_claims:
-      overrides?.shared_claims != null
-        ? overrides.shared_claims
-        : defaultClaims,
-    evidence_requested: overrides?.evidence_requested
+    shared_claims: overrides?.shared_claims || defaultClaims,
+    evidence_requested: overrides?.evidence_requested,
   };
 
-  if(!overrides?.evidence_requested){
-    delete payload.evidence_requested
-  }
-  if (overrides?.yotiMockID != null) {
-    if (overrides?.yotiMockID.length > 4) {
-      throw new Error("Only 4 digits values allowed for yotiMockID");
-    }
-    payload.shared_claims.name[0].nameParts[2].value =
-      payload.shared_claims.name[0].nameParts[2].value + overrides?.yotiMockID;
+  if (!overrides?.evidence_requested) delete payload.evidence_requested;
+
+  if (overrides?.yotiMockID?.length > 4)
+    throw new Error("Only 4 digits values allowed for yotiMockID");
+
+  if (overrides?.yotiMockID) {
+    const namePart = payload.shared_claims.name[0].nameParts[2];
+    namePart.value += overrides.yotiMockID;
   }
 
-  console.log("Generate payload is"+JSON.stringify(payload));
+  console.log("Generate payload is" + JSON.stringify(payload));
   const signedJwt = await sign(payload, config.signingKey);
   const publicEncryptionKey: CryptoKey = await getPublicEncryptionKey(config);
   const request = await encrypt(signedJwt, publicEncryptionKey);
@@ -109,37 +106,39 @@ export const handler = async (
     body: JSON.stringify({
       request,
       responseType: "code",
-      clientId: config.clientId,
-      AuthorizeLocation: `${frontendURL}/oauth2/authorize?request=${request}&response_type=code&client_id=${config.clientId}`,
+      AuthorizeLocation: `${frontendURL}/oauth2/authorize?request=${request}&response_type=code&client_id=${clientID}`,
+      clientId: clientID,
       sub: payload.sub,
       state: payload.state,
     }),
   };
 };
 
-export function getConfig(): {
+export function getDefaultConfig(): {
   redirectUri: string;
   jwksUri: string;
-  clientId: string;
   signingKey: string;
   oauthUri: string;
 } {
-  if (
-    process.env.REDIRECT_URI == null ||
-    process.env.JWKS_URI == null ||
-    process.env.CLIENT_ID == null ||
-    process.env.SIGNING_KEY == null ||
-    process.env.OAUTH_FRONT_BASE_URI == null
-  ) {
-    throw new Error("Missing configuration");
+  const requiredEnvVars = [
+    "REDIRECT_URI",
+    "JWKS_URI",
+    "SIGNING_KEY",
+    "OAUTH_FRONT_BASE_URI",
+  ];
+
+  const missingVars = requiredEnvVars.filter(
+    (varName) => !process.env[varName]
+  );
+  if (missingVars.length > 0) {
+    throw new Error(`Missing configuration: ${missingVars.join(", ")}`);
   }
 
   return {
-    redirectUri: process.env.REDIRECT_URI,
-    jwksUri: process.env.JWKS_URI,
-    clientId: process.env.CLIENT_ID,
-    signingKey: process.env.SIGNING_KEY,
-    oauthUri: process.env.OAUTH_FRONT_BASE_URI,
+    redirectUri: process.env.REDIRECT_URI!,
+    jwksUri: process.env.JWKS_URI!,
+    signingKey: process.env.SIGNING_KEY!,
+    oauthUri: process.env.OAUTH_FRONT_BASE_URI!,
   };
 }
 
