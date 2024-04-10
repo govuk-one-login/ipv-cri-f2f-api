@@ -114,7 +114,7 @@ Mappings:
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f"}]'
-      AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 86400 # 1 day in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
     build:
@@ -874,6 +874,85 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+
+  VerifyAuthorizeRequestMessageCodeMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref SessionFunctionLogGroup
+      FilterPattern: "{ $.messageCode =* }"
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "VerifyAuthorizeRequest-lambda-messageCode"
+          Dimensions:
+            - Key: MessageCode
+              Value: $.messageCode
+  VerifyAuthorizeRequestFailedVerifyingJwtLowThresholdAlarm:
+    DependsOn:
+      - "VerifyAuthorizeRequestMessageCodeMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-VerifyAuthorizeRequestFailedVerifyingJwtAlarm"
+      AlarmDescription: !Sub "There has been an error verifying the JWT using the RP's public key. This is likely an issue with the RP. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: error
+          ReturnData: true
+          MetricStat:
+            Metric:
+              Namespace: !Sub "${AWS::StackName}/LogMessages"
+              MetricName: VerifyAuthorizeRequest-lambda-messageCode
+              Dimensions:
+                - Name: MessageCode
+                  Value: F2F_FAILED_VERIFYING_JWT
+            Period: 60
+            Stat: Sum
+
+  VerifyAuthorizeRequestFailedVerifyingJwtCriticalAlarm:
+    DependsOn:
+      - "VerifyAuthorizeRequestMessageCodeMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-VerifyAuthorizeRequestFailedVerifyingJwtCriticalAlarm"
+      AlarmDescription: !Sub "There has been an error verifying the JWT using the RP's public key. This is likely an issue with the RP. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: error
+          ReturnData: true
+          MetricStat:
+            Metric:
+              Namespace: !Sub "${AWS::StackName}/LogMessages"
+              MetricName: VerifyAuthorizeRequest-lambda-messageCode
+              Dimensions:
+                - Name: MessageCode
+                  Value: F2F_FAILED_VERIFYING_JWT
+            Period: 300
+            Stat: Sum
+
 
   ## SessionConfiguration
 
@@ -2295,7 +2374,7 @@ Resources:
         ScheduledEvent:
           Type: Schedule
           Properties:
-            Schedule: cron(0 13 ? * MON-FRI *)  # This will run at 1 pm on weekdays (Monday to Friday) - To be changed back to 10am soon
+            Schedule: cron(0 * * * ? *)
 
 
     Metadata: # Manage esbuild properties
