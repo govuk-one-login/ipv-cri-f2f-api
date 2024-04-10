@@ -104,7 +104,7 @@ export class YotiSessionCompletionProcessor {
 		  });
 
 		  this.logger.info({ message: "Fetching status for Yoti SessionID" });
-		  const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID);
+		  const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries());
 
 		  if (!completedYotiSessionInfo) {
 			  this.logger.error({ message: "No YOTI Session found with ID:" }, {

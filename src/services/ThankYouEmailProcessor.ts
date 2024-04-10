@@ -75,7 +75,7 @@ export class ThankYouEmailProcessor {
 		  });
 
   		this.logger.info({ message: "Fetching yoti session" });
-		  const yotiSessionInfo: YotiCompletedSession | undefined = await this.yotiService.getCompletedSessionInfo(yotiSessionID);
+		  const yotiSessionInfo: YotiCompletedSession | undefined = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries());
 
 		  if (!yotiSessionInfo) {
 			  this.logger.error({ message: "No Yoti Session found with ID" }, {
