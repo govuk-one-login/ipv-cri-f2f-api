@@ -45,7 +45,7 @@ Parameters:
   SupportManualURL:
     Description: "Link to the F2F support manual"
     Type: String
-    Default: 'https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3623583745/F2F+Support+Documentation'
+    Default: 'https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3623583773/F2F+BE+Metrics+Alerts'
   IPVStubStackName:
     Type: String
     Default: "f2f-ipv-stub"
@@ -327,7 +327,7 @@ Resources:
     Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-S3Bucket-changes"
-      AlarmDescription: A CloudWatch Alarm that triggers when changes are made to S3 Bucket.
+      AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to S3 Bucket. ${SupportManualURL}"
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -362,7 +362,7 @@ Resources:
     Condition: "DeployAlarms"
     Properties: 
       AlarmName: !Sub "${AWS::StackName}-IGW-changes"
-      AlarmDescription: Triggers CloudWatch Alarm when changes are made to an Internet Gateway in a VPC.
+      AlarmDescription: !Sub "Triggers CloudWatch Alarm when changes are made to an Internet Gateway in a VPC. ${SupportManualURL}"
       MetricName: IGatewayActivityEvent
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
@@ -391,7 +391,7 @@ Resources:
     Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-vpc-route-changes"
-      AlarmDescription: A CloudWatch Alarm that triggers when changes are made to a VPC's Route Table.
+      AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to a VPC's Route Table. ${SupportManualURL}"
       MetricName: VpcRouteTableEvent
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
@@ -420,7 +420,7 @@ Resources:
     Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-vpc-changes"
-      AlarmDescription: A CloudWatch Alarm that triggers when changes are made to a VPC.
+      AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to a VPC. ${SupportManualURL}"
       MetricName: VpcEventChanges
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
@@ -450,7 +450,7 @@ Resources:
     Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-organisations-changes"
-      AlarmDescription: A CloudWatch Alarm that triggers when changes are made to AWS Organisations.
+      AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to AWS Organisations. ${SupportManualURL}"
       MetricName: OrganisationsEventChange
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
@@ -4937,7 +4937,7 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
-      AlarmDescription: Trigger the alarm if any lambda in the account timesout 5 times within 5 minutes.
+      AlarmDescription: !Sub "Trigger the alarm if any lambda in the account timesout 5 times within 5 minutes. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-LambdaTimeoutAlarm"
       EvaluationPeriods: 5
       DatapointsToAlarm: 5
