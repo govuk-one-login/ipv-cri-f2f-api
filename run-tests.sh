@@ -23,6 +23,25 @@ export DEV_F2F_PO_STUB_URL=$(remove_quotes "$CFN_F2FPostOfficeStubURL")
 export VC_SIGNING_KEY_ID=$(remove_quotes "$CFN_VcSigningKeyId")
 # shellcheck disable=SC2154
 export DNS_SUFFIX=$(remove_quotes "$CFN_DNSSuffix")
+# shellcheck disable=SC2154
+export DEV_F2F_SESSION_TABLE_NAME=$(remove_quotes "$CFN_SessionTableName")
 
+# disabling error_check to allow report generation for successful + failed tests
+set +e
 cd /src; npm run test:api
+error_code=$?
 cp -rf results $TEST_REPORT_ABSOLUTE_DIR
+if [ $error_code -ne 0 ]
+then
+  exit $error_code
+fi
+
+sleep 2m
+
+set -e
+apt-get install jq -y
+cd /src; npm run test:pii
+error_code=$?
+
+exit $error_code
+

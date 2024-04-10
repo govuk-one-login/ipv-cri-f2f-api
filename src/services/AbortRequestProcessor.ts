@@ -10,6 +10,7 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
+import { TxmaEventNames } from "../models/enums/TxmaEvents";
 
 export class AbortRequestProcessor {
 
@@ -79,7 +80,7 @@ export class AbortRequestProcessor {
 
   	try {
   		await this.f2fService.sendToTXMA({
-  			event_name: "F2F_CRI_SESSION_ABORTED",
+  			event_name: TxmaEventNames.F2F_CRI_SESSION_ABORTED,
   			...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer() as string, f2fSessionInfo.clientIpAddress),
   		});
   	} catch (error) {

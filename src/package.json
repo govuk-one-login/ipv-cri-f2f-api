@@ -43,6 +43,7 @@
     "test:infra": "./node_modules/.bin/jest --testMatch '**/infra/?(*.)test.ts' ",
     "api": "JEST_JUNIT_OUTPUT_NAME=api-report.xml ./node_modules/.bin/jest --runInBand --testPathPattern=tests/api/",
     "test:api": "npm run compile && npm run api",
+    "test:pii": "bash ./check-logs.sh",
     "kill:dynamodblocal": "cd tests/contract; ./scripts/kill-dynamodb-local.sh",
     "start:dynamodblocal": "cd tests/contract; ./scripts/setup-dynamodb-local.sh",
     "start:contract": "npm-run-all -s start:dynamodblocal wait-start:contract",
