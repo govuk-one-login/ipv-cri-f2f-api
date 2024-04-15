@@ -315,8 +315,7 @@ export class YotiService {
     			yotiSessionId: sessionId,
     			retryCount,
     		});
-			console.log("retryCount: " + retryCount + ", backoffPeriodMs: " + backoffPeriodMs + "retries: " + maxRetries);
-
+			
     		try {
     			const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
 
