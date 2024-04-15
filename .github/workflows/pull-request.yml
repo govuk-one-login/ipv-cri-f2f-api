@@ -93,7 +93,10 @@ jobs:
         run: npm run test:infra
 
       - name: Run Contract tests
-        run: npm run test:contract:ci          
+        run: npm run test:contract:ci   
+      
+      - name: Kill DynamoDB 
+        run: npm run kill:dynamodblocal
 
   sam-validate:
     name: SAM Validate
