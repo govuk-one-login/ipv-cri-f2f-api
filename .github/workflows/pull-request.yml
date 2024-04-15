@@ -36,6 +36,8 @@ env: # Only adding the variables in that are required for
   DEV_F2F_MISSING_SUB_ACCESS_TOKEN: ${{ secrets.DEV_F2F_MISSING_SUB_ACCESS_TOKEN }}
   DEV_F2F_TEST_HARNESS_URL: ${{ secrets.DEV_TEST_HARNESS_API_ENDPOINT }}
   DEV_F2F_GOV_NOTIFY_STUB_URL: ${{ secrets.DEV_F2F_GOV_NOTIFY_STUB_URL }}
+  PACT_BROKER_USER: ${{ secrets.PACT_BROKER_USER }}
+  PACT_BROKER_PASSWORD: ${{ secrets.PACT_BROKER_PASSWORD }}
 
 jobs:
   run-code-check:
@@ -89,6 +91,9 @@ jobs:
 
       - name: Run Infra checks
         run: npm run test:infra
+
+      - name: Run Contract tests
+        run: npm run test:contract:ci          
 
   sam-validate:
     name: SAM Validate
