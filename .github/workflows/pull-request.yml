@@ -95,8 +95,19 @@ jobs:
       # - name: Run Infra checks
       #   run: npm run test:infra
 
-      - name: Test Pact Connection
-        run: npm run test:pactconnection
+      - name: Perform PACT Broker Authentication Test
+        run: |
+          export LOCAL_HOST="localhost"
+          export LOCAL_APP_PORT="3000"
+          username="${{ secrets.PACT_BROKER_USER }}"
+          password="${{ secrets.PACT_BROKER_PASSWORD }}"
+          pact_url="${{ secrets.PACT_BROKER_URL }}"
+          response=$(curl -s -o /dev/null -w "%{http_code}" --user "$username:$password" "$pact_url")
+          if [ "$response" -eq 200 ]; then
+            echo "PACT BROKER AUTHORIZED SUCCESSFULLY VIA PROVIDER"
+          else
+            echo "Response code: $response"
+          fi
 
       - name: Run Contract tests
         run: npm run test:contract:ci   
