@@ -76,9 +76,6 @@ jobs:
           path: ${{ steps.offline-mirror-path.outputs.mirror-dir }}
           key: offline-mirror-oauth
 
-      - name: Install dependencies
-        run: npm install
-
       # - name: Run lint
       #   run: npm run lint
 
@@ -108,6 +105,9 @@ jobs:
           else
             echo "Response code: $response"
           fi
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Run Contract tests
         run: npm run test:contract:ci   
