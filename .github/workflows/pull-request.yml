@@ -95,6 +95,9 @@ jobs:
       # - name: Run Infra checks
       #   run: npm run test:infra
 
+      - name: Test Pact Connection
+        run: npm run test:pactconnection
+
       - name: Run Contract tests
         run: npm run test:contract:ci   
       
