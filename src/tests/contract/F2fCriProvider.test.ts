@@ -30,7 +30,7 @@ describe("Pact Verification", () => {
 			publishVerificationResult: true,
 			providerVersion: process.env.PACT_PROVIDER_VERSION,
 			// You can set the log level here, useful for debugging
-			logLevel: "debug",
+			logLevel: "info",
 		};
 	});  
 	
