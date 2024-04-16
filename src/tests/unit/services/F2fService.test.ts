@@ -30,7 +30,6 @@ const getTXMAEventPayload = (): TxmaEvent => ({
 		govuk_signin_journey_id: "clientSessionId",
 		ip_address: "sourceIp",
 	},
-	client_id: "clientId",
 	timestamp: 123,
 	event_timestamp_ms: 123000,
 	component_id: "issuer",

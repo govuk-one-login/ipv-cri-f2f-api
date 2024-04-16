@@ -12,6 +12,7 @@ import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { Response } from "../utils/Response";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { YotiService } from "./YotiService";
+import { TxmaEventNames } from "../models/enums/TxmaEvents";
 
 export class ThankYouEmailProcessor {
 
@@ -92,7 +93,7 @@ export class ThankYouEmailProcessor {
   		this.logger.info("Post office visit details", { postOfficeDateOfVisit, postOfficeTimeOfVisit });
 
   		await this.f2fService.sendToTXMA({
-  			event_name: "F2F_DOCUMENT_UPLOADED",
+  			event_name: TxmaEventNames.F2F_DOCUMENT_UPLOADED,
   			...buildCoreEventFields(f2fSession, this.environmentVariables.issuer() as string, f2fSession.clientIpAddress),
   			extensions: {
   				previous_govuk_signin_journey_id: f2fSession.clientSessionId,

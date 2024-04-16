@@ -77,7 +77,6 @@ describe("AuthorizationRequestProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {
 			event_name: "F2F_CRI_AUTH_CODE_ISSUED",
-			client_id: "ipv-core-stub",
 			component_id: "https://XXX-c.env.account.gov.uk",
 			timestamp: 1585695600,
 			event_timestamp_ms: 1585695600000,
@@ -91,7 +90,6 @@ describe("AuthorizationRequestProcessor", () => {
 		});
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {
 			event_name: "F2F_CRI_END",
-			client_id: "ipv-core-stub",
 			component_id: "https://XXX-c.env.account.gov.uk",
 			timestamp: 1585695600,
 			event_timestamp_ms: 1585695600000,

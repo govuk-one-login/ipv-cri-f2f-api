@@ -376,6 +376,35 @@ export function getDrivingPermitFields(): any {
 	return documentFields;
 }
 
+export function getDrivingPermitFieldsWithoutFormattedAddress(): any {
+	const documentFields = {
+		"full_name": "LEEROY JENKINS",
+		"date_of_birth": "1988-12-04",
+		"given_names": "LEEROY",
+		"family_name": "JENKINS",
+		"place_of_birth": "UNITED KINGDOM",
+		"gender": "MALE",
+		"structured_postal_address": {
+			"address_format": 1,
+			"building_number": "122",
+			"address_line1": "122 BURNS CRESCENT",
+			"address_line2": "EDINBURGH",
+			"address_line3": "EH1 9GP",
+			"town_city": "STORMWIND",
+			"postal_code": "EH1 9GP",
+			"country_iso": "GBR",
+			"country": "United Kingdom",
+		},
+		"document_type": "DRIVING_LICENCE",
+		"issuing_country": "GBR",
+		"document_number": "LJENK533401372",
+		"expiration_date": "2025-09-28",
+		"date_of_issue": "2015-09-28",
+		"issuing_authority": "DVLA",
+	};
+	return documentFields;
+}
+
 export function getEuDrivingPermitFields(): any {
 	const documentFields = {
 		"full_name": "Erika - Mustermann",

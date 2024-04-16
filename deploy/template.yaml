@@ -38,14 +38,14 @@ Parameters:
     Type: String
     Default: "f2f-cri-kms"
     Description: The name of the L2 DynamoDB stack deployed.
-  DeployAlarmsInNonProdLikeEnvironment:
+  DeployAlarmsInDev:
     Description: "Set to the string value `true` to deploy alarms in a DEV environment"
     Type: String
-    Default: true
+    Default: false
   SupportManualURL:
     Description: "Link to the F2F support manual"
     Type: String
-    Default: 'https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3623583745/F2F+Support+Documentation'
+    Default: 'https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3623583773/F2F+BE+Metrics+Alerts'
   IPVStubStackName:
     Type: String
     Default: "f2f-ipv-stub"
@@ -114,7 +114,7 @@ Mappings:
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f"}]'
-      AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 86400 # 1 day in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
     build:
@@ -205,10 +205,6 @@ Conditions:
   CreateDevResources: !Equals
     - !Ref Environment
     - dev
-  ApplyReservedConcurrency: !Or
-    - !Not
-      - !Condition CreateDevResources
-    - !Equals [!Ref ApplyReservedConcurrencyInDev, "true"]
   IsProdLikeEnvironment: !Or
     - !Equals [!Ref Environment, staging]
     - !Equals [!Ref Environment, integration]
@@ -222,6 +218,11 @@ Conditions:
     - !Equals [!Ref Environment, staging]
     - !Equals [!Ref Environment, integration]
     - !Equals [!Ref Environment, production]
+  IsNotDevelopment: !Or
+    - !Equals [ !Ref Environment, build ]
+    - !Equals [ !Ref Environment, staging ]
+    - !Equals [ !Ref Environment, integration ]
+    - !Equals [ !Ref Environment, production ]
   UseCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -238,11 +239,11 @@ Conditions:
           - !Ref SecretPrefix
           - "none"
   DeployAlarms: !Or
-    - Condition: IsProdLikeEnvironment
-    - !Equals [!Ref DeployAlarmsInNonProdLikeEnvironment, true]
-  DeployConcurrencyAlarms: !And
-    - Condition: DeployAlarms
-    - Condition: ApplyReservedConcurrency
+    - Condition: IsNotDevelopment
+    - !Equals [!Ref DeployAlarmsInDev, true]
+  ApplyReservedConcurrency: !Or
+    - Condition: IsNotDevelopment
+    - !Equals [!Ref ApplyReservedConcurrencyInDev, true]
 
 Globals:
   Function:
@@ -312,6 +313,7 @@ Resources:
   # Log metric filter and alarm for S3 bucket policy changes
   S3BucketActivityEventMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ ($.eventSource = s3.amazonaws.com) && (($.eventName = PutBucketAcl) || ($.eventName = PutBucketPolicy) || ($.eventName = PutBucketCors) || ($.eventName = PutBucketLifecycle) || ($.eventName = PutBucketReplication) || ($.eventName = DeleteBucketPolicy) || ($.eventName = DeleteBucketCors) || ($.eventName = DeleteBucketLifecycle) || ($.eventName = DeleteBucketReplication)) }'
@@ -322,9 +324,10 @@ Resources:
 
   S3BucketActivityEventErrorAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-S3Bucket-changes"
-      AlarmDescription: A CloudWatch Alarm that triggers when changes are made to S3 Bucket.
+      AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to S3 Bucket. ${SupportManualURL}"
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -345,6 +348,7 @@ Resources:
   # Log metric filter and alarm for changes to network gateways
   InternetGatewayEventMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
+    Condition: "DeployAlarms"
     Properties: 
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ ($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway) }'
@@ -355,9 +359,10 @@ Resources:
 
   InternetGatewayActivityEventErrorAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
     Properties: 
       AlarmName: !Sub "${AWS::StackName}-IGW-changes"
-      AlarmDescription: Triggers CloudWatch Alarm when changes are made to an Internet Gateway in a VPC.
+      AlarmDescription: !Sub "Triggers CloudWatch Alarm when changes are made to an Internet Gateway in a VPC. ${SupportManualURL}"
       MetricName: IGatewayActivityEvent
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
@@ -373,6 +378,7 @@ Resources:
   # Log metric filter and alarm for route table changes
   RouteTableChangesMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ ($.eventName = AssociateRouteTable) || ($.eventName = CreateRoute) || ($.eventName = CreateRouteTable) || ($.eventName = DeleteRoute) || ($.eventName = DeleteRouteTable) || ($.eventName = ReplaceRoute) || ($.eventName = ReplaceRouteTableAssociation) || ($.eventName = DisassociateRouteTable) }'
@@ -382,9 +388,10 @@ Resources:
           MetricName: VPCRouteTableEvent
   RouteTableChangesEventErrorAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-vpc-route-changes"
-      AlarmDescription: A CloudWatch Alarm that triggers when changes are made to a VPC's Route Table.
+      AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to a VPC's Route Table. ${SupportManualURL}"
       MetricName: VpcRouteTableEvent
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
@@ -400,6 +407,7 @@ Resources:
   # Log metric filter and alarm when changes are made to VPC.
   VpcChangesEventMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }'
@@ -409,9 +417,10 @@ Resources:
           MetricName: VpcEventChanges
   VpcChangesEventAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-vpc-changes"
-      AlarmDescription: A CloudWatch Alarm that triggers when changes are made to a VPC.
+      AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to a VPC. ${SupportManualURL}"
       MetricName: VpcEventChanges
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
@@ -428,6 +437,7 @@ Resources:
   # Log metric and alarm when changes are made to AWS Organisations.
   OrganisationChangesEventMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ ($.eventSource = organizations.amazonaws.com) && (($.eventName = AcceptHandshake) || ($.eventName = AttachPolicy) || ($.eventName = CreateAccount) || ($.eventName = CreateOrganizationalUnit) || ($.eventName = CreatePolicy) || ($.eventName = DeclineHandshake) || ($.eventName = DeleteOrganization) || ($.eventName = DeleteOrganizationalUnit) || ($.eventName = DeletePolicy) || ($.eventName = DetachPolicy) || ($.eventName = DisablePolicyType) || ($.eventName = EnablePolicyType) || ($.eventName = InviteAccountToOrganization) || ($.eventName = LeaveOrganization) || ($.eventName = MoveAccount) || ($.eventName = RemoveAccountFromOrganization) || ($.eventName = UpdatePolicy) || ($.eventName = UpdateOrganizationalUnit)) }'
@@ -437,9 +447,10 @@ Resources:
           MetricName: OrganisationsEventChange
   OrganisationChangesEventAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-organisations-changes"
-      AlarmDescription: A CloudWatch Alarm that triggers when changes are made to AWS Organisations.
+      AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to AWS Organisations. ${SupportManualURL}"
       MetricName: OrganisationsEventChange
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
@@ -634,6 +645,7 @@ Resources:
 
   F2FRestAPIFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref F2FAPIGatewayAccessLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -778,6 +790,7 @@ Resources:
 
   SessionFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -814,7 +827,7 @@ Resources:
 
   SessionConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "ApplyReservedConcurrency"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -861,6 +874,85 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+
+  VerifyAuthorizeRequestMessageCodeMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref SessionFunctionLogGroup
+      FilterPattern: "{ $.messageCode =* }"
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "VerifyAuthorizeRequest-lambda-messageCode"
+          Dimensions:
+            - Key: MessageCode
+              Value: $.messageCode
+  VerifyAuthorizeRequestFailedVerifyingJwtLowThresholdAlarm:
+    DependsOn:
+      - "VerifyAuthorizeRequestMessageCodeMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-VerifyAuthorizeRequestFailedVerifyingJwtAlarm"
+      AlarmDescription: !Sub "There has been an error verifying the JWT using the RP's public key. This is likely an issue with the RP. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: error
+          ReturnData: true
+          MetricStat:
+            Metric:
+              Namespace: !Sub "${AWS::StackName}/LogMessages"
+              MetricName: VerifyAuthorizeRequest-lambda-messageCode
+              Dimensions:
+                - Name: MessageCode
+                  Value: F2F_FAILED_VERIFYING_JWT
+            Period: 60
+            Stat: Sum
+
+  VerifyAuthorizeRequestFailedVerifyingJwtCriticalAlarm:
+    DependsOn:
+      - "VerifyAuthorizeRequestMessageCodeMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-VerifyAuthorizeRequestFailedVerifyingJwtCriticalAlarm"
+      AlarmDescription: !Sub "There has been an error verifying the JWT using the RP's public key. This is likely an issue with the RP. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: error
+          ReturnData: true
+          MetricStat:
+            Metric:
+              Namespace: !Sub "${AWS::StackName}/LogMessages"
+              MetricName: VerifyAuthorizeRequest-lambda-messageCode
+              Dimensions:
+                - Name: MessageCode
+                  Value: F2F_FAILED_VERIFYING_JWT
+            Period: 300
+            Stat: Sum
+
 
   ## SessionConfiguration
 
@@ -1062,6 +1154,7 @@ Resources:
 
   TokenFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref TokenFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1098,7 +1191,7 @@ Resources:
 
   TokenConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "ApplyReservedConcurrency"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1234,6 +1327,7 @@ Resources:
 
   AuthorizationFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref AuthorizationFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1270,7 +1364,7 @@ Resources:
 
   AuthorizationConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "ApplyReservedConcurrency"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1438,6 +1532,7 @@ Resources:
 
   DocumentSelectionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref DocumentSelectionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1474,7 +1569,7 @@ Resources:
 
   DocumentSelectionConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "ApplyReservedConcurrency"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1596,6 +1691,7 @@ Resources:
 
   AbortFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref AbortLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1787,6 +1883,7 @@ Resources:
 
   JsonWebKeysFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref JsonWebKeysLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1823,7 +1920,7 @@ Resources:
 
   JsonWebKeysConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "ApplyReservedConcurrency"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1977,6 +2074,7 @@ Resources:
 
   GovNotifyFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref GovNotifyFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2013,7 +2111,7 @@ Resources:
 
   GovNotifyConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "ApplyReservedConcurrency"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -2129,6 +2227,7 @@ Resources:
 
   UserInfoFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref UserInfoFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2165,7 +2264,7 @@ Resources:
 
   UserInfoConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "ApplyReservedConcurrency"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -2275,7 +2374,7 @@ Resources:
         ScheduledEvent:
           Type: Schedule
           Properties:
-            Schedule: cron(0 13 ? * MON-FRI *)  # This will run at 1 pm on weekdays (Monday to Friday) - To be changed back to 10am soon
+            Schedule: cron(0 * * * ? *)
 
 
     Metadata: # Manage esbuild properties
@@ -2315,6 +2414,7 @@ Resources:
 
   ReminderEmailFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref ReminderEmailFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2351,7 +2451,7 @@ Resources:
 
   ReminderEmailConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "ApplyReservedConcurrency"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -2581,6 +2681,7 @@ Resources:
 
   TriggerYotiCallbackSMFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref TriggerYotiCallbackStateMachineLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2617,7 +2718,7 @@ Resources:
 
   TriggerYotiConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "ApplyReservedConcurrency"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -2906,6 +3007,7 @@ Resources:
 
   ThankYouEmailFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref ThankYouEmailFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2942,7 +3044,7 @@ Resources:
 
   ThankYouEmailConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "ApplyReservedConcurrency"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -3064,6 +3166,7 @@ Resources:
 
   YotiCallbackFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref YotiCallbackFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3100,7 +3203,7 @@ Resources:
 
   YotiCallbackConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployConcurrencyAlarms"
+    Condition: "ApplyReservedConcurrency"
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -4834,7 +4937,7 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
-      AlarmDescription: Trigger the alarm if any lambda in the account timesout 5 times within 5 minutes.
+      AlarmDescription: !Sub "Trigger the alarm if any lambda in the account timesout 5 times within 5 minutes. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-LambdaTimeoutAlarm"
       EvaluationPeriods: 5
       DatapointsToAlarm: 5
@@ -4881,7 +4984,7 @@ Resources:
 
   ConcurrencyAlarmDashboard:
     Type: AWS::CloudWatch::Dashboard
-    Condition: DeployConcurrencyAlarms
+    Condition: ApplyReservedConcurrency
     Properties:
       DashboardName: !Sub '${AWS::StackName}-Concurrency-Alarm-Overview'
       DashboardBody:
