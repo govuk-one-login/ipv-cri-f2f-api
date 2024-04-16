@@ -76,9 +76,6 @@ jobs:
           path: ${{ steps.offline-mirror-path.outputs.mirror-dir }}
           key: offline-mirror-oauth
 
-      # - name: Test Pact Connection
-      #   run: npm run test:pactconnection
-
       - name: Install dependencies
         run: npm install
 
