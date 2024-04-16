@@ -4,7 +4,6 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Verifier, VerifierOptions } from "@pact-foundation/pact";
 import { Constants } from "./utils/Constants";
 import axios from "axios";
-import btoa from "btoa";
 
 const logger = new Logger({
 	logLevel: "INFO",
@@ -34,7 +33,7 @@ describe("Pact Verification", () => {
 			logLevel: "debug",
 		};
 
-		const auth = btoa(`${opts.pactBrokerUsername}:${opts.pactBrokerPassword}`);
+		const auth = Buffer.from(`${opts.pactBrokerUsername}:${opts.pactBrokerPassword}`).toString("base64");
 		const pact_url = opts.pactBrokerUrl || "";
 
 		axios.get(pact_url, {
