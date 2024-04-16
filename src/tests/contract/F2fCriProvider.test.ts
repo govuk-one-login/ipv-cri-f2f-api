@@ -16,10 +16,10 @@ describe("Pact Verification", () => {
 			provider: process.env.PACT_PROVIDER_NAME,
 			// we need to where the provider will be running,
 			// we are starting it locally and defined the port above
-			providerBaseUrl: `${Constants.LOCAL_HOST}:${Constants.LOCAL_APP_PORT}`,
+			// providerBaseUrl: `${Constants.LOCAL_HOST}:${Constants.LOCAL_APP_PORT}`,
 			pactBrokerUrl: process.env.PACT_BROKER_URL,
 			pactBrokerUsername: process.env.PACT_BROKER_USER,
-    		pactBrokerPassword: process.env.PACT_BROKER_PASSWORD,
+			pactBrokerPassword: process.env.PACT_BROKER_PASSWORD,
 			consumerVersionSelectors: [
 				{ mainBranch: true },
 				{ deployedOrReleased: true },
@@ -34,17 +34,17 @@ describe("Pact Verification", () => {
 	it("should validate the expectations of Authorization API", async () => {
 		logger.debug("PactBroker opts: ", { opts });
 		let result;
-		await new Verifier(opts)
-			.verifyProvider()
-			.then((output) => {
-				logger.info("Pact Verification Complete!");
-				logger.info("Output: ", output);
-				result = Number(output.match(/\d+/));				
-			})
-			.catch((error) => {
-				logger.error("Pact verification failed :(", { error });
-				result = 1;
-			});
-		expect(result).toBe(0);		
+		await new Verifier(opts).verifyProvider();
+			// .verifyProvider()
+		// 	.then((output) => {
+		// 		logger.info("Pact Verification Complete!");
+		// 		logger.info("Output: ", output);
+		// 		result = Number(output.match(/\d+/));				
+		// 	})
+		// 	.catch((error) => {
+		// 		logger.error("Pact verification failed :(", { error });
+		// 		result = 1;
+		// 	});
+		// expect(result).toBe(0);		
 	});
 });
