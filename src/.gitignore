@@ -8,3 +8,4 @@ build/
 docker_vars.env
 cf-output.txt
 results/
+*.env

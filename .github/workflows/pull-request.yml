@@ -27,7 +27,7 @@ permissions:
   id-token: write
   contents: read
 
-env: # Only adding the variables in that are required for
+env:
   AWS_REGION: eu-west-2
   DEV_CRI_F2F_API_URL: ${{ secrets.DEV_CRI_F2F_API_URL }}
   DEV_IPV_F2F_STUB_URL: ${{ secrets.DEV_IPV_F2F_STUB_URL }}
@@ -38,6 +38,7 @@ env: # Only adding the variables in that are required for
   DEV_F2F_GOV_NOTIFY_STUB_URL: ${{ secrets.DEV_F2F_GOV_NOTIFY_STUB_URL }}
   PACT_BROKER_USER: ${{ secrets.PACT_BROKER_USER }}
   PACT_BROKER_PASSWORD: ${{ secrets.PACT_BROKER_PASSWORD }}
+  PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}?testSource=${{ env.PACT_BROKER_SOURCE_HEADER }}
 
 jobs:
   run-code-check:
@@ -92,6 +93,14 @@ jobs:
       - name: Run Infra checks
         run: npm run test:infra
 
+  run-contract-tests:
+    name: Code Checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./src/
+    steps:
       - name: Run Contract tests
         run: npm run test:contract:ci   
       
