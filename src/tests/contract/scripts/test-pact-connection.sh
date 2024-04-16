@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# Define environment variables
-export LOCAL_HOST="localhost"
-export LOCAL_APP_PORT="3000"
-
 # Read environment variables for authentication
 username="$PACT_BROKER_USER"
 password="$PACT_BROKER_PASSWORD"
