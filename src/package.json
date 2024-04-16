@@ -47,7 +47,7 @@
     "kill:dynamodblocal": "cd tests/contract; ./scripts/kill-dynamodb-local.sh",
     "start:dynamodblocal": "cd tests/contract; ./scripts/setup-dynamodb-local.sh",
 		"test:pactconnection": "cd tests/contract; ./scripts/test-pact-connection.sh",
-    "start:contract": "npm-run-all -s start:dynamodblocal wait-start:contract",
+    "start:contract": "npm-run-all -s start:dynamodblocal test:pactconnection wait-start:contract",
     "wait-start:contract": "wait-on tcp:127.0.0.1:8000 && cd tests/contract && ts-node ./app.ts",
     "test:provider": "./node_modules/.bin/jest --testMatch '**/contract/F2fCriProvider.test.ts' --coverage=false",
     "test:contract": "wait-on tcp:127.0.0.1:3000; cd tests/contract; npm run test:provider && npm run kill:dynamodblocal",
