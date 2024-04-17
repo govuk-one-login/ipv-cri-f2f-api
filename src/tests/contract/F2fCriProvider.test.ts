@@ -3,7 +3,6 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Verifier, VerifierOptions } from "@pact-foundation/pact";
 import { Constants } from "./utils/Constants";
-import axios from "axios";
 
 const logger = new Logger({
 	logLevel: "INFO",
@@ -35,37 +34,19 @@ describe("Pact Verification", () => {
 	});  
 	
 	it("tests against potential new contracts", async () => {
-		console.log("START PACT VERIFICATION");
+		logger.debug("Starting Pact Verification");
 		let result;
 		await new Verifier(opts)
 			.verifyProvider()
 			.then((output) => {
-				console.log("PACT VERIFICATION COMPLETE");
+				logger.info("Pact Verification Complete!");
+				logger.info("Output: ", output);
 				result = Number(output.match(/\d+/));
 			})
 			.catch((error) => {
-				console.log("PACT VERIFY ERROR");
-				console.log(error);
+				logger.error("Pact verification failed :(", { error });
 				result = 1;
 			});
 		expect(result).toBe(0);
 	});
-
-	// it("should validate the expectations of Authorization API", async () => {
-	// 	logger.debug("PactBroker opts: ", { opts });
-	// 	let result;
-
-	// 	await new Verifier(opts)
-	// 		.verifyProvider()
-	// 		.then((output) => {
-	// 			logger.info("Pact Verification Complete!");
-	// 			logger.info("Output: ", output);
-	// 			result = Number(output.match(/\d+/));				
-	// 		})
-	// 		.catch((error) => {
-	// 			logger.error("Pact verification failed :(", { error });
-	// 			result = 1;
-	// 		});
-	// 	expect(result).toBe(0);		
-	// });
 });
