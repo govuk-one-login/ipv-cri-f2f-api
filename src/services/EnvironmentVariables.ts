@@ -66,6 +66,10 @@ export class EnvironmentVariables {
 
 	private YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS = process.env.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS;
 
+	private FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS = process.env.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
+
+	private FETCH_YOTI_SESSION_MAX_RETRIES = process.env.FETCH_YOTI_SESSION_MAX_RETRIES;
+
 
 	/*
 	 * This function performs validation on env variable values.
@@ -229,6 +233,19 @@ export class EnvironmentVariables {
 					this.RESOURCES_TTL_SECS = 1209600;
 					logger.warn("RESOURCES_TTL_SECS env var is not set or below 12 days. Setting to minimum - 12 days.");
 				}
+				if (!this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS
+					|| this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS.trim().length === 0
+					|| +this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS.trim() === 0
+					|| +this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS.trim() >= 60000) {
+					this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS = "5000";
+					logger.warn("FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS env var is not set. Setting to default - 5000");
+				}
+				if (!this.FETCH_YOTI_SESSION_MAX_RETRIES
+					|| this.FETCH_YOTI_SESSION_MAX_RETRIES.trim().length === 0
+					|| +this.FETCH_YOTI_SESSION_MAX_RETRIES.trim() >= 100) {
+					this.FETCH_YOTI_SESSION_MAX_RETRIES = "3";
+					logger.warn("FETCH_YOTI_SESSION_MAX_RETRIES env var is not set. Setting to default - 3");
+				}
 				break;
 			}
 			case ServicesEnum.THANK_YOU_EMAIL_SERVICE: {
@@ -247,6 +264,19 @@ export class EnvironmentVariables {
 				if (!this.RESOURCES_TTL_SECS	|| this.RESOURCES_TTL_SECS < 1209600) {
 					this.RESOURCES_TTL_SECS = 1209600;
 					logger.warn("RESOURCES_TTL_SECS env var is not set or below 12 days. Setting to minimum - 12 days.");
+				}
+				if (!this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS
+					|| this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS.trim().length === 0
+					|| +this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS.trim() === 0
+					|| +this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS.trim() >= 60000) {
+					this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS = "5000";
+					logger.warn("FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS env var is not set. Setting to default - 5000");
+				}
+				if (!this.FETCH_YOTI_SESSION_MAX_RETRIES
+					|| this.FETCH_YOTI_SESSION_MAX_RETRIES.trim().length === 0
+					|| +this.FETCH_YOTI_SESSION_MAX_RETRIES.trim() >= 100) {
+					this.FETCH_YOTI_SESSION_MAX_RETRIES = "3";
+					logger.warn("FETCH_YOTI_SESSION_MAX_RETRIES env var is not set. Setting to default - 3");
 				}
 				break;
 			}
@@ -404,6 +434,14 @@ export class EnvironmentVariables {
 
 	yotiInstructionsPdfBackoffPeriod(): number {
 		return +this.YOTI_INSTRUCTIONS_PDF_BACKOFF_PERIOD_MS!;
+	}
+
+	fetchYotiSessionMaxRetries(): number {
+		return +this.FETCH_YOTI_SESSION_MAX_RETRIES!;
+	}
+
+	fetchYotiSessionBackoffPeriod(): number {
+		return +this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS!;
 	}
 
 	govukNotifyApiUrl(): any {
