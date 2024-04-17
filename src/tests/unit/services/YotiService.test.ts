@@ -7,9 +7,13 @@ import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { mock } from "jest-mock-extended";
+import { sleep } from "../../../utils/Sleep";
 
 jest.mock("@aws-lambda-powertools/logger");
 jest.mock("axios");
+jest.mock(("../../../utils/Sleep"), () => ({
+	sleep: jest.fn(),
+}));
 
 const errorResponseHeaders = {					
 	"headers": {
@@ -172,7 +176,7 @@ const generateInstructionsPayload = {
 };
 
 describe("YotiService", () => {
-	const logger = mock<Logger>();
+	const logger = mock<Logger>();	
 	let axiosMock: jest.Mocked<typeof axios>;
 	let yotiService: YotiService;
 
@@ -639,7 +643,7 @@ describe("YotiService", () => {
 
 			axiosMock.get.mockResolvedValueOnce({ data: {} });
 
-			const completedSessionInfo = await yotiService.getCompletedSessionInfo(sessionId);
+			const completedSessionInfo = await yotiService.getCompletedSessionInfo(sessionId, 2000, 3);
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123", {});
@@ -655,15 +659,76 @@ describe("YotiService", () => {
 			axiosMock.get.mockRejectedValueOnce({
 				"message": "Failed to fetch completed session info",
 				"code": 404,
-				"response": errorResponseHeaders,
+				"response": {
+					"status": 404,
+					...errorResponseHeaders,
+				},
 			});
-			await expect(yotiService.getCompletedSessionInfo(sessionId)).rejects.toThrow();
+			await expect(yotiService.getCompletedSessionInfo(sessionId, 2000, 3)).rejects.toThrow();
 
 			expect(logger.error).toHaveBeenCalledWith(
 				{ "message": "An error occurred when fetching Yoti session", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": 404, "yotiErrorMessage": "Failed to fetch completed session info", "xRequestId": "dummy-request-id" },
 			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123", expect.any(Object));
+		});
+
+		it("should throw an AppError and doesn't retry if there is a non 5XX or 4249 error while fetching the completed Yoti session info", async () => {
+			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123",
+				config: {},
+			});
+
+			axiosMock.get.mockRejectedValueOnce({
+				"message": "Failed to fetch completed session info",
+				"code": 404,
+				"response": {
+					"status": 404,
+					...errorResponseHeaders,
+				},
+			});
+
+			await expect(yotiService.getCompletedSessionInfo(sessionId, 2000, 3)).rejects.toThrow();
+
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "An error occurred when fetching Yoti session", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": 404, "yotiErrorMessage": "Failed to fetch completed session info", "xRequestId": "dummy-request-id" },
+			);
+			expect(generateYotiRequestMock).toHaveBeenCalled();
+
+			expect(axios.get).toHaveBeenCalledTimes(1);
+			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123", expect.any(Object));
+		});
+	
+		it("getCompletedSessionInfo retries when there is a 429 error fetching the completed Yoti session info", async () => {
+			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123",
+				config: {},
+			});
+
+			jest.useRealTimers();
+
+			axiosMock.get.mockRejectedValue({
+				"message": "Failed to fetch completed session info",
+				"code": 429,
+				"response": {
+					"status": 429,
+					...errorResponseHeaders,
+				},
+			});
+
+			await expect(yotiService.getCompletedSessionInfo(sessionId, 2000, 3)).rejects.toThrow();
+
+			expect(logger.warn).toHaveBeenCalledTimes(3);
+			expect(logger.warn).toHaveBeenNthCalledWith(2,
+				{ "message": "getCompletedSessionInfo - Retrying to fetch Yoti session. Sleeping for 2000 ms", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": 429, "yotiErrorMessage": "Failed to fetch completed session info", "yotiErrorStatus": 429, "retryCount": 1, "xRequestId": "dummy-request-id" },
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "getCompletedSessionInfo - cannot fetch Yoti session even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
+			);
+			expect(sleep).toHaveBeenCalledTimes(3);
+			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
+			expect(axios.get).toHaveBeenCalledTimes(4);
+			
 		});
 	});
 

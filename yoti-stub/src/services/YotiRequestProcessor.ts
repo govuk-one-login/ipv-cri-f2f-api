@@ -106,6 +106,8 @@ import {GBR_PASSPORT_PAUL} from "../data/getMediaContent/gbPassportResponsePAUL"
 import {GBR_PASSPORT_ANTHONY} from "../data/getMediaContent/gbPassportResponseANTHONY";
 import {GBR_PASSPORT_SUZIE} from "../data/getMediaContent/gbPassportResponseSUZIE";
 import { GBR_DRIVING_LICENCE_MISSING_FORMATTED_ADDRESS } from "../data/getMediaContent/gbDriversLicenseMissingFormatedAddressResponse";
+import { GET_SESSIONS_429 } from "../data/getSessions/getSessions429";
+import { GET_SESSIONS_503 } from "../data/getSessions/getSessions503";
 
 export class YotiRequestProcessor {
     private static instance: YotiRequestProcessor;
@@ -1219,10 +1221,17 @@ export class YotiRequestProcessor {
             case '5404':
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(POST_SESSIONS_404), ERROR_RESPONSE_HEADERS);
+            case '5429':
+                this.logger.info({message: "Responding with 429 error response", lastUuidChars});
+                return new Response(HttpCodesEnum.TOO_MANY_REQUESTS, JSON.stringify(GET_SESSIONS_429), ERROR_RESPONSE_HEADERS);
             case '5999':
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
                 await sleep(30000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));
+            case '5503':
+                this.logger.info({message: "Responding with 503 error response", lastUuidChars});
+                return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(GET_SESSIONS_503), ERROR_RESPONSE_HEADERS);
+                    
             default:
                 return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`, ERROR_RESPONSE_HEADERS);
         }
