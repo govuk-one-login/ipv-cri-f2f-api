@@ -2801,6 +2801,8 @@ Resources:
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
+          FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: 5000
+          FETCH_YOTI_SESSION_MAX_RETRIES: 3
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
@@ -2920,6 +2922,8 @@ Resources:
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           YOTIBASEURL: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTIBASEURL ]
+          FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: 5000
+          FETCH_YOTI_SESSION_MAX_RETRIES: 3
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
       Policies:
@@ -3032,6 +3036,42 @@ Resources:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: [ ]
       MetricName: ThankYouEmail-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  ThankYouEmailRetriesExceededErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref ThankYouEmailFunctionLogGroup
+      FilterPattern: '{ $.level = "ERROR" || $.messageCode = "YOTI_RETRIES_EXCEEDED" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "ThankYouEmail-GetCompletedSessionInfoRetriesExceeded-error"
+
+  ThankYouEmailRetriesExceededErrorAlarm:
+    DependsOn:
+      - "ThankYouEmailRetriesExceededErrorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-ThankYouEmail-YotiCallbackRetriesExceededErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when we are unable to fetch Yoti session after max retries. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: ThankYouEmail-GetCompletedSessionInfoRetriesExceeded-error
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
       Dimensions: [ ]
@@ -3191,6 +3231,42 @@ Resources:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: [ ]
       MetricName: YotiCallbackFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  YotiCallbackRetriesExceededErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref YotiCallbackFunctionLogGroup
+      FilterPattern: '{ $.level = "ERROR" || $.messageCode = "YOTI_RETRIES_EXCEEDED" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "YotiCallbackFunction-GetCompletedSessionInfoRetriesExceeded-error"
+
+  YotiCallbackRetriesExceededErrorAlarm:
+    DependsOn:
+      - "YotiCallbackRetriesExceededErrorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-YotiCallbackRetriesExceededErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when we are unable to fetch Yoti session after max retries. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: YotiCallbackFunction-GetCompletedSessionInfoRetriesExceeded-error
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
       Dimensions: [ ]
