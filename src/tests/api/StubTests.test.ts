@@ -10,7 +10,7 @@ import {
 	postGovNotifyRequest, 
 	postPOCodeRequest, 
 } from "./ApiTestSteps";
-import { POST_OFFICE_RESPONSE_NO_NAME } from "../../../post-office-stub/src/data/postOfficeResponse/postOfficeResponseNoName";
+import { POST_OFFICE_RESPONSE_INCOMPLETE_DATA } from "../../../post-office-stub/src/data/postOfficeResponse/postOfficeResponseIncompleteData";
 
 describe("GovNotify Stub", () => {
 	const postGovNotifyParams = [
@@ -99,8 +99,8 @@ describe("Post Office Stub", () => {
 
 	it("returns 200 and the missing name error object when MNE fed as last 3 chars", async () => {
 		const response = await postPOCodeRequest("MNE", poStubPayloadData);
-		expect(response.status).toBe(200);
-		expect(response.data).toEqual(POST_OFFICE_RESPONSE_NO_NAME);
+		expect(response.status).toBe(400);
+		expect(response.data).toEqual(POST_OFFICE_RESPONSE_INCOMPLETE_DATA);
 	});
 });
 
