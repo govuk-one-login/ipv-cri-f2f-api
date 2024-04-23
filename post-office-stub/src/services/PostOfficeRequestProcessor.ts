@@ -1,5 +1,6 @@
 import { Response } from "../utils/Response";
 import { POST_OFFICE_RESPONSE } from "../data/postOfficeResponse/postOfficeSuccessResponse";
+import { POST_OFFICE_RESPONSE_INCOMPLETE_DATA } from "../data/postOfficeResponse/postOfficeResponseIncompleteData";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -53,6 +54,9 @@ export class PostOfficeRequestProcessor {
     		case "503":
     			this.logger.info({ message: "Returning 503 response back" });
     			return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(POST_REPONSE_503));
+    		case "MNE":
+    			this.logger.info({ message: "Returning incomplete data" });
+    			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_OFFICE_RESPONSE_INCOMPLETE_DATA));
     		default:
     			this.logger.info({ message: "Successful request" });
     			return new Response(HttpCodesEnum.OK, JSON.stringify(POST_OFFICE_RESPONSE));
