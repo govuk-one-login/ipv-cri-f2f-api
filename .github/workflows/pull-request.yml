@@ -36,6 +36,11 @@ env: # Only adding the variables in that are required for
   DEV_F2F_MISSING_SUB_ACCESS_TOKEN: ${{ secrets.DEV_F2F_MISSING_SUB_ACCESS_TOKEN }}
   DEV_F2F_TEST_HARNESS_URL: ${{ secrets.DEV_TEST_HARNESS_API_ENDPOINT }}
   DEV_F2F_GOV_NOTIFY_STUB_URL: ${{ secrets.DEV_F2F_GOV_NOTIFY_STUB_URL }}
+  PACT_BROKER_USER: ${{ secrets.PACT_BROKER_USER }}
+  PACT_BROKER_PASSWORD: ${{ secrets.PACT_BROKER_PASSWORD }}
+  PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}?testSource=${{ secrets.PACT_BROKER_SOURCE_HEADER }}
+  PACT_PROVIDER_NAME: ${{ secrets.PACT_PROVIDER_NAME }}
+  PACT_PROVIDER_VERSION: ${{ secrets.PACT_PROVIDER_VERSION }}
 
 jobs:
   run-code-check:
@@ -89,6 +94,12 @@ jobs:
 
       - name: Run Infra checks
         run: npm run test:infra
+
+      - name: Run Contract tests
+        run: npm run test:contract:ci   
+      
+      - name: Kill DynamoDB 
+        run: npm run kill:dynamodblocal
 
   sam-validate:
     name: SAM Validate

@@ -3050,7 +3050,7 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref ThankYouEmailFunctionLogGroup
-      FilterPattern: '{ $.level = "ERROR" || $.messageCode = "YOTI_RETRIES_EXCEEDED" }'
+      FilterPattern: '{ $.level = "ERROR" && $.messageCode = "YOTI_RETRIES_EXCEEDED" }'
       MetricTransformations:
         -
           MetricValue: "1"
@@ -3245,7 +3245,7 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref YotiCallbackFunctionLogGroup
-      FilterPattern: '{ $.level = "ERROR" || $.messageCode = "YOTI_RETRIES_EXCEEDED" }'
+      FilterPattern: '{ $.level = "ERROR" && $.messageCode = "YOTI_RETRIES_EXCEEDED" }'
       MetricTransformations:
         -
           MetricValue: "1"

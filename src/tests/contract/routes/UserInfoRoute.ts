@@ -5,11 +5,6 @@ import { APIGatewayProxyEvent } from "aws-lambda";
 import { convertIncomingHeadersToAPIGatewayHeaders, eventRequest } from "../utils/ApiRequestUtils";
 import { Constants } from "../utils/Constants";
 
-process.env.SESSION_TABLE = "session-table";
-process.env.TXMA_QUEUE_URL = "txma-queue";
-process.env.USE_MOCKED = "true";
-process.env.KMS_KEY_ARN = "kid";
-
 export const userInfoRouter = asyncify(express.Router());
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises

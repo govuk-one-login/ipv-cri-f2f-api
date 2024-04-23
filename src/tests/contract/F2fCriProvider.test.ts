@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/tslint/config */
+/* eslint-disable max-lines-per-function */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Verifier, VerifierOptions } from "@pact-foundation/pact";
-import path from "path";
+import { Constants } from "./utils/Constants";
 
 const logger = new Logger({
 	logLevel: "INFO",
@@ -8,43 +10,43 @@ const logger = new Logger({
 });
 
 let opts: VerifierOptions;
-const pactFile = path.resolve("./tests/contract/pacts/IpvCoreBack-F2fCriProviderAll.json");
 // Verify that the provider meets all consumer expectations
 describe("Pact Verification", () => {
 	beforeAll(() => {  
 		opts = {
 			// we need to know the providers name
-			provider: "F2fCriProvider",
-			// // we need to where the provider will be running,
-			// // we are starting it locally and defined the port above
-			providerBaseUrl: "http://localhost:3000",
-			//pactBrokerUrl: "https://ysi5tc076m.execute-api.eu-west-2.amazonaws.com",
-			// consumerVersionSelectors: [
-			// 	{ mainBranch: true },
-			// 	{ deployedOrReleased: true },
-			//   ],
-			pactUrls: [pactFile],
-			publishVerificationResult: false,
-			providerVersion: "1.0.1",
+			provider: process.env.PACT_PROVIDER_NAME,
+			// we need to where the provider will be running,
+			// we are starting it locally and defined the port above
+			providerBaseUrl: `${Constants.LOCAL_HOST}:${Constants.LOCAL_APP_PORT}`,
+			pactBrokerUrl: process.env.PACT_BROKER_URL,
+			pactBrokerUsername: process.env.PACT_BROKER_USER,
+			pactBrokerPassword: process.env.PACT_BROKER_PASSWORD,
+			consumerVersionSelectors: [
+				{ mainBranch: true },
+				{ deployedOrReleased: true },
+			  ],
+			publishVerificationResult: true,
+			providerVersion: process.env.PACT_PROVIDER_VERSION,
 			// You can set the log level here, useful for debugging
 			logLevel: "info",
 		};
 	});  
-  
-	it("should validate the expectations of Authorization API", async () => {
-		logger.debug("PactBroker opts: ", { opts });
+	
+	it("tests against potential new contracts", async () => {
+		logger.debug("Starting Pact Verification");
 		let result;
 		await new Verifier(opts)
 			.verifyProvider()
 			.then((output) => {
 				logger.info("Pact Verification Complete!");
 				logger.info("Output: ", output);
-				result = Number(output.match(/\d+/));				
+				result = Number(output.match(/\d+/));
 			})
 			.catch((error) => {
 				logger.error("Pact verification failed :(", { error });
 				result = 1;
 			});
-		expect(result).toBe(0);		
+		expect(result).toBe(0);
 	});
 });
