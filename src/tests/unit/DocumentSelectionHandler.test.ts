@@ -1,9 +1,12 @@
-import { lambdaHandler } from "../../DocumentSelectionHandler";
+/* eslint-disable max-lines-per-function */
+/* eslint-disable @typescript-eslint/unbound-method */
+import { lambdaHandler, logger } from "../../DocumentSelectionHandler";
 import { mock } from "jest-mock-extended";
 import { VALID_REQUEST, INVALID_SESSION_ID, MISSING_SESSION_ID } from "./data/documentSelection-events";
 
-import { SECURITY_HEADERS } from "../../utils/Response";
 import { DocumentSelectionRequestProcessor } from "../../services/DocumentSelectionRequestProcessor";
+import { Constants } from "../../utils/Constants";
+import { MessageCodes } from "../../models/enums/MessageCodes";
 
 const mockDocumentSelectionRequestProcessor = mock<DocumentSelectionRequestProcessor>();
 jest.mock("../../utils/Config", () => {
@@ -13,32 +16,40 @@ jest.mock("../../utils/Config", () => {
 });
 
 describe("DocumentSelectionHandler", () => {
-	it("return Unauthorized if session id is missing", async () => {
-		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
+	let loggerSpy: jest.SpyInstance;
 
-		return expect(lambdaHandler(MISSING_SESSION_ID, "")).resolves.toEqual({
+	beforeEach(() => {
+		loggerSpy = jest.spyOn(logger, "error");
+	});	
+
+	it("return Unauthorized when x-govuk-signin-session-id header is missing", async () => {
+		const message = `Missing header: ${Constants.X_SESSION_ID} is required`;
+		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
+		const response = await lambdaHandler(MISSING_SESSION_ID, "");
+
+		expect(response).toEqual({
 			statusCode: 401,
-			headers: SECURITY_HEADERS,
-			body: "Unauthorized",
+			body: message,
 		});
+		expect(loggerSpy).toHaveBeenCalledWith({ message, messageCode: MessageCodes.INVALID_SESSION_ID });
 	});
 
-	it("return Unauthorized if session id validation fails", async () => {
+	it("return Unauthorized when x-govuk-signin-session-id header is invalid", async () => {
+		const message = `${Constants.X_SESSION_ID} header does not contain a valid uuid`;
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 
 		const response = await lambdaHandler(INVALID_SESSION_ID, "");
 		expect(response).toEqual({
 			statusCode: 401,
-			headers: SECURITY_HEADERS,
-			body: "Unauthorized",
+			body: message,
 		});
+		expect(loggerSpy).toHaveBeenCalledWith({ message, messageCode: MessageCodes.INVALID_SESSION_ID });
 	});
 
 	it("return success for valid request", async () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 
 		await lambdaHandler(VALID_REQUEST, "");
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockDocumentSelectionRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
 });

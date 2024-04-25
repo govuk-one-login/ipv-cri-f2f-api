@@ -5,7 +5,7 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
-import { VALID_SESSION, SESSION_WITH_INVALID_CLIENT } from "../data/session-events";
+import { VALID_SESSION, SESSION_WITH_INVALID_CLIENT, VALID_SESSION_MISSING_XFORWARDEDFOR } from "../data/session-events";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { KmsJwtAdapter } from "../../../utils/KmsJwtAdapter";
 import { JWTPayload } from "jose";
@@ -13,6 +13,7 @@ import { Jwt } from "../../../utils/IVeriCredential";
 import { ValidationHelper } from "../../../utils/ValidationHelper";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
+import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 
 /* eslint @typescript-eslint/unbound-method: 0 */
 /* eslint jest/unbound-method: error */
@@ -23,6 +24,10 @@ const mockKmsJwtAdapter = mock<KmsJwtAdapter>();
 const logger = mock<Logger>();
 const metrics = mock<Metrics>();
 const mockValidationHelper = mock<ValidationHelper>();
+jest.mock("crypto", () => ({
+	...jest.requireActual("crypto"),
+	randomUUID: () => "session-id",
+}));
 
 const decodedJwtFactory = ():Jwt => {
 	return {
@@ -103,7 +108,31 @@ const sessionItemFactory = ():ISessionItem => {
 	};
 };
 
+const F2F_SESSION_STARTED_TXMA_EVENT = {
+	event_name: TxmaEventNames.F2F_CRI_START,
+	component_id: "https://XXX-c.env.account.gov.uk",
+	event_timestamp_ms: 1585695600000,
+	timestamp: 1585695600000 / 1000,
+	user: {
+		govuk_signin_journey_id: "abcdef",
+		ip_address: "82.41.23.127",
+		user_id: "",
+		persistent_session_id: undefined,
+		session_id: "session-id",
+	},
+};
+
 describe("SessionRequestProcessor", () => {
+	beforeEach(() => {
+		jest.useFakeTimers();
+		jest.setSystemTime(new Date(1585695600000)); // == 2020-03-31T23:00:00.000Z
+	});
+
+	afterEach(() => {
+		jest.useRealTimers();
+		jest.resetAllMocks();
+	});
+
 	beforeAll(() => {
 		sessionRequestProcessor = new SessionRequestProcessor(logger, metrics);
 		// @ts-ignore
@@ -330,12 +359,47 @@ describe("SessionRequestProcessor", () => {
 		mockF2fService.createAuthSession.mockResolvedValue();
 
 		const response = await sessionRequestProcessor.processRequest(VALID_SESSION);
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(expect.objectContaining(
+			{
+				event_name: TxmaEventNames.F2F_CRI_START,
+			}), "ENCHEADER");
 
 		expect(response.statusCode).toBe(HttpCodesEnum.OK);
 		expect(logger.appendKeys).toHaveBeenCalledWith({
 			sessionId: expect.any(String),
 			govuk_signin_journey_id: "abcdef",
 		});
+	});
+
+	it("ip_address is X_FORWARDED_FOR header if present in event header", async () => {
+		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
+		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockValidationHelper.isJwtValid.mockReturnValue("");
+		mockValidationHelper.isPersonDetailsValid.mockReturnValue({ errorMessage : "", errorMessageCode : "" });
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
+		mockF2fService.getSessionById.mockResolvedValue(undefined);
+		mockF2fService.createAuthSession.mockResolvedValue();
+
+		await sessionRequestProcessor.processRequest(VALID_SESSION);
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(F2F_SESSION_STARTED_TXMA_EVENT, "ENCHEADER");
+	});
+
+	it("ip_address is source_ip when X_FORWARDED_FOR header is not present", async () => {
+		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
+		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockValidationHelper.isJwtValid.mockReturnValue("");
+		mockValidationHelper.isPersonDetailsValid.mockReturnValue({ errorMessage : "", errorMessageCode : "" });
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
+		mockF2fService.getSessionById.mockResolvedValue(undefined);
+		mockF2fService.createAuthSession.mockResolvedValue();
+
+		await sessionRequestProcessor.processRequest(VALID_SESSION_MISSING_XFORWARDEDFOR);
+
+		const expectedTxmaEvent = F2F_SESSION_STARTED_TXMA_EVENT;
+		expectedTxmaEvent.user.ip_address = "1.0.0.15";
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(expectedTxmaEvent, "ENCHEADER");
 	});
 
 	it("should create a new session but report a TxMA failure", async () => {
@@ -394,5 +458,5 @@ describe("SessionRequestProcessor", () => {
 		const actualExpiryDate = mockF2fService.createAuthSession.mock.calls[0][0].expiryDate;
 		expect(actualExpiryDate).toBeLessThan(10000000000);
 		jest.useRealTimers();
-	});
+	});	
 });
