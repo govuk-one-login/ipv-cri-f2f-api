@@ -396,9 +396,10 @@ export async function postPOCodeRequest(
 ): Promise<AxiosResponse<string>> {
 	const path = "/v1/locations/search";
 	try {
-		userData.searchString = userData.searchString + " " + mockDelimitator;
+		const searchUserData = structuredClone(userData);
+		searchUserData.searchString = userData.searchString + " " + mockDelimitator;
 		console.log("userData in try statement: ", userData);
-		const postRequest = await PO_INSTANCE.post(path, userData);
+		const postRequest = await PO_INSTANCE.post(path, searchUserData);
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
