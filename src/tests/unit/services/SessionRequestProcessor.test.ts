@@ -402,6 +402,26 @@ describe("SessionRequestProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(expectedTxmaEvent, "ENCHEADER");
 	});
 
+	it("when headers is missing", async () => {
+		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
+		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(decryptedJwtPayloadFactory());
+		mockValidationHelper.isJwtValid.mockReturnValue("");
+		mockValidationHelper.isPersonDetailsValid.mockReturnValue({ errorMessage : "", errorMessageCode : "" });
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
+		mockF2fService.getSessionById.mockResolvedValue(undefined);
+		mockF2fService.createAuthSession.mockResolvedValue();
+
+		const session_event = JSON.parse(JSON.stringify(VALID_SESSION_MISSING_XFORWARDEDFOR));
+		delete session_event.headers;
+
+		await sessionRequestProcessor.processRequest(session_event);
+
+		const expectedTxmaEvent = F2F_SESSION_STARTED_TXMA_EVENT;
+		expectedTxmaEvent.user.ip_address = "1.0.0.15";
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(expectedTxmaEvent, undefined);
+	});
+
 	it("should create a new session but report a TxMA failure", async () => {
 		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
 		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
