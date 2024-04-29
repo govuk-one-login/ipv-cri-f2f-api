@@ -35,6 +35,25 @@
         },
         "component_id": {
             "type": "string"
+        },
+        "restricted": {
+            "type": "object",
+            "properties": {
+              "device_information": {
+                "type": "object",
+                "properties": {
+                  "encoded": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "encoded"
+                ]
+              }
+            },
+            "required": [
+              "device_information"
+            ]
         }
     },
     "required": [
@@ -42,7 +61,8 @@
         "user",
         "timestamp",
         "event_timestamp_ms",
-        "component_id"
+        "component_id",
+        "restricted"
     ],
     "additionalProperties": false
 }

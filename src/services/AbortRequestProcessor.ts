@@ -42,7 +42,7 @@ export class AbortRequestProcessor {
   	return AbortRequestProcessor.instance;
   }
 
-  async processRequest(sessionId: string): Promise<Response> {
+  async processRequest(sessionId: string, encodedHeader: string): Promise<Response> {
   	const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
   	this.logger.appendKeys({
   		govuk_signin_journey_id: f2fSessionInfo?.clientSessionId,
@@ -82,7 +82,7 @@ export class AbortRequestProcessor {
   		await this.f2fService.sendToTXMA({
   			event_name: TxmaEventNames.F2F_CRI_SESSION_ABORTED,
   			...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer() as string, f2fSessionInfo.clientIpAddress),
-  		});
+  		}, encodedHeader);
   	} catch (error) {
   		this.logger.error("Auth session successfully aborted. Failed to send F2F_CRI_SESSION_ABORTED event to TXMA", {
   			error,

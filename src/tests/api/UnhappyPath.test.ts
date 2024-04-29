@@ -87,10 +87,17 @@ describe("/documentSelection endpoint", () => {
 		expect(response.data).toStrictEqual(errorMessage);
 	});
 
-	it("Unsuccessful Request Tests - Incorrect Session Id", async () => {
+	it("Unsuccessful Request Tests - Invalid Session Id", async () => {
 		const response = await postDocumentSelection(dataPassport, "sessionId");
 		expect(response.status).toBe(401);
-		expect(response.data).toBe("Unauthorized");
+		expect(response.data).toBe("x-govuk-signin-session-id header does not contain a valid uuid");
+	});
+
+	it("Unsuccessful Request Tests - Incorrect Session Id", async () => {
+		const sessionId = randomUUID();
+		const response = await postDocumentSelection(dataPassport, sessionId);
+		expect(response.status).toBe(400);
+		expect(response.data).toBe("Missing details in SESSION or PERSON IDENTITY tables");
 	});
 });
 

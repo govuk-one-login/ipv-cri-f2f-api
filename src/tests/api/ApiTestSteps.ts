@@ -69,7 +69,7 @@ export async function stubStartPost(stubPayload: StubStartRequest): Promise<Axio
 export async function sessionPost(clientId: string, request: string): Promise<AxiosResponse<SessionResponse>> {
 	const path = "/session";
 	try {
-		const postRequest = await API_INSTANCE.post(path, { client_id: clientId, request });
+		const postRequest = await API_INSTANCE.post(path, { client_id: clientId, request }, { headers: { "x-forwarded-for": "ip-address", "txma-audit-encoded": "encoded-header" } });
 		expect(postRequest.status).toBe(200);
 		return postRequest;
 	} catch (error: any) {
@@ -81,7 +81,7 @@ export async function sessionPost(clientId: string, request: string): Promise<Ax
 export async function postDocumentSelection(userData: DocSelectionData, sessionId: string): Promise<AxiosResponse<string>> {
 	const path = "/documentSelection";
 	try {
-		const postRequest = await API_INSTANCE.post(path, userData, { headers: { "x-govuk-signin-session-id": sessionId } });
+		const postRequest = await API_INSTANCE.post(path, userData, { headers: { "x-govuk-signin-session-id": sessionId, "txma-audit-encoded": "encoded-header" } });
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
@@ -359,7 +359,7 @@ export async function postAbortSession(reasonPayload: { reason: string }, sessio
 	const path = constants.DEV_CRI_F2F_API_URL + "/abort";
 	console.log(path);
 	try {
-		const postRequest = await API_INSTANCE.post(path, reasonPayload, { headers: { "x-govuk-signin-session-id": sessionId } });
+		const postRequest = await API_INSTANCE.post(path, reasonPayload, { headers: { "x-govuk-signin-session-id": sessionId, "txma-audit-encoded": "encoded-header" } });
 		return postRequest;
 
 	} catch (error: any) {

@@ -39,6 +39,9 @@ export interface RestrictedObject {
 	"drivingPermit"?: DrivingPermit;
 	"residencePermit"?: ResidencePermit;
 	"idCard"?: IdentityCard;
+	device_information?: {
+		encoded: string;
+	};
 }
 
 export type CiReason = {

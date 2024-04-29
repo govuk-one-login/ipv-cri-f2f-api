@@ -1,3 +1,5 @@
+/* eslint-disable complexity */
+/* eslint-disable max-lines-per-function */
 import { Response, GenericServerError, unauthorizedResponse, SECURITY_HEADERS } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
@@ -16,6 +18,7 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
+import { Constants } from "../utils/Constants";
 
 
 interface ClientConfig {
@@ -58,11 +61,17 @@ export class SessionRequestProcessor {
   }
 
   async processRequest(event: APIGatewayProxyEvent): Promise<Response> {
+  	let encodedHeader, clientIpAddress;
+  	if (event.headers) {
+	  encodedHeader = event.headers[Constants.ENCODED_AUDIT_HEADER] ?? "";
+	  clientIpAddress = event.headers[Constants.X_FORWARDED_FOR] ?? event.requestContext.identity?.sourceIp;
+  	} else {
+  		clientIpAddress = event.requestContext.identity?.sourceIp;
+  	}
+
   	const deserialisedRequestBody = JSON.parse(event.body as string);
   	const requestBodyClientId = deserialisedRequestBody.client_id;
-  	const clientIpAddress = event.requestContext.identity?.sourceIp;
   	const sessionId: string = randomUUID();
-
 
   	let configClient;
   	try {
@@ -219,8 +228,8 @@ export class SessionRequestProcessor {
   			user: {
   				...coreEventFields.user,
   				govuk_signin_journey_id: session.clientSessionId,
-  			},
-  		});
+  			},  			
+  		}, encodedHeader);
   	} catch (error) {
   		this.logger.error("Auth session successfully created. Failed to send CIC_CRI_START event to TXMA", {
   			sessionId: session.sessionId,

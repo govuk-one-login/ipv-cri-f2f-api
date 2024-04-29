@@ -174,8 +174,14 @@ export class F2fService {
 		}
 	}
 
-	async sendToTXMA(event: TxmaEvent): Promise<void> {
+	async sendToTXMA(event: TxmaEvent, encodedHeader?: string): Promise<void> {
 		try {
+
+			if (encodedHeader) {
+				event.restricted = event.restricted ?? { device_information: { encoded: "" } };
+				event.restricted.device_information = { encoded: encodedHeader };
+			}
+			
 			const messageBody = JSON.stringify(event);
 			const params = {
 				MessageBody: messageBody,

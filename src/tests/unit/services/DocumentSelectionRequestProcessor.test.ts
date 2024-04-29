@@ -21,7 +21,6 @@ import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { TXMA_NATIONAL_ID_YOTI_START, TXMA_PASSPORT_YOTI_START } from "../data/txmaEvent";
-import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 
 let mockDocumentSelectionRequestProcessor: DocumentSelectionRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -29,6 +28,7 @@ const mockYotiService = mock<YotiService>();
 
 const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "F2F" });
+const encodedHeader = "ENCHEADER";
 
 function getMockSessionItem(): ISessionItem {
 	const sessionInfo: ISessionItem = {
@@ -207,14 +207,14 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
 
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		const passportYotiStart = TXMA_PASSPORT_YOTI_START;
 		passportYotiStart.event_name = "F2F_YOTI_START";
 		passportYotiStart.timestamp = 1585695600;
 		passportYotiStart.event_timestamp_ms = 1585695600000;
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart);
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart, encodedHeader);
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
@@ -233,13 +233,13 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_NON_UK_PASSPORT_REQUEST, "RandomF2FSessionID");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_NON_UK_PASSPORT_REQUEST, "RandomF2FSessionID", encodedHeader);
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		const passportYotiStart =  TXMA_PASSPORT_YOTI_START;
 		passportYotiStart.event_name = "F2F_YOTI_START";
 		passportYotiStart.timestamp = 1585695600;
 		passportYotiStart.event_timestamp_ms = 1585695600000;
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart);
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart, encodedHeader);
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
@@ -259,14 +259,14 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_EEA_ID_CARD_REQUEST, "RandomF2FSessionID");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_EEA_ID_CARD_REQUEST, "RandomF2FSessionID", encodedHeader);
 
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		const nationalIdYotiStart =  TXMA_NATIONAL_ID_YOTI_START;
 		nationalIdYotiStart.event_name = "F2F_YOTI_START";
 		nationalIdYotiStart.timestamp = 1585695600;
 		nationalIdYotiStart.event_timestamp_ms = 1585695600000;
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, nationalIdYotiStart);
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, nationalIdYotiStart, encodedHeader);
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
@@ -277,7 +277,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(undefined);
 
-		await expect(mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234")).rejects.toThrow(expect.objectContaining({
+		await expect(mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.BAD_REQUEST,
 			message: "Missing details in SESSION or PERSON IDENTITY tables",
 		}));
@@ -300,7 +300,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		const fakeTime = 1684933200.123;
 		jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.000Z
 
-		await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
+		await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
 
 		expect(mockF2fService.updateSessionTtl).toHaveBeenNthCalledWith(1, "RandomF2FSessionID", Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL_SECS!), "SESSIONTABLE");
 		expect(mockF2fService.updateSessionTtl).toHaveBeenNthCalledWith(2, "RandomF2FSessionID", Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL_SECS!), "PERSONIDENTITYTABLE");
@@ -316,7 +316,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
+		await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
 
 		expect(mockF2fService.addUsersSelectedDocument).toHaveBeenCalledWith("RandomF2FSessionID", "PASSPORT", "SESSIONTABLE");
 	});
@@ -330,7 +330,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 		expect(out.body).toBe("Yoti session already exists for this authorization session or Session is in the wrong state");
@@ -349,7 +349,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		personIdentityItem.emailAddress = " ";
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("Missing emailAddress in the PERSON IDENTITY table");
@@ -368,7 +368,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		personIdentityItem.name = [];
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("Missing person's GivenName or FamilyName in the PERSON IDENTITY table");
@@ -400,7 +400,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		];
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("Missing person's GivenName or FamilyName in the PERSON IDENTITY table");
@@ -432,7 +432,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		];
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("Missing person's GivenName or FamilyName in the PERSON IDENTITY table");
@@ -447,7 +447,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.createSession.mockResolvedValueOnce(undefined);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error occurred when creating Yoti Session");
@@ -468,7 +468,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.fetchSessionInfo.mockResolvedValueOnce(undefined);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe( "An error occurred when fetching Yoti Session");
@@ -491,7 +491,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.fetchInstructionsPdf.mockResolvedValueOnce(undefined);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe( "An error occurred when generating Yoti instructions pdf");
@@ -516,7 +516,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { "messageCode": "ERROR_WRITING_TXMA" });
 		
@@ -536,7 +536,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockF2fService.sendToGovNotify.mockRejectedValueOnce("Failed to send to GovNotify Queue");
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
@@ -563,7 +563,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		mockF2fService.updateSessionWithYotiIdAndStatus.mockRejectedValueOnce("Got error saving Yoti session details");
 
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
@@ -586,7 +586,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockF2fService.updateSessionTtl.mockRejectedValueOnce("Got error updating SESSIONTABLE ttl");
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
 
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
@@ -605,7 +605,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockF2fService.addUsersSelectedDocument.mockRejectedValueOnce("Got error updating SESSIONTABLE ttl");
 
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID");
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
 
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
