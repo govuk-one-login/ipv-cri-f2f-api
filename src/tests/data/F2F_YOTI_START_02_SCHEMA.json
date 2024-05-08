@@ -157,11 +157,23 @@
                             ]
                         }
                     ]
+                },
+                "device_information": {
+                    "type": "object",
+                    "properties": {
+                      "encoded": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "encoded"
+                    ]
                 }
             },
             "required": [
                 "name",
-                "passport"
+                "passport",
+                "device_information"
             ]
         }
     },

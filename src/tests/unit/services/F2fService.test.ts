@@ -1,15 +1,18 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable max-lines */
+/* eslint-disable max-lines-per-function */
 import { mock } from "jest-mock-extended";
 import { F2fService } from "../../../services/F2fService";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { randomUUID } from "crypto";
 import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-import { createSqsClient } from "../../../utils/SqsClient";
 import { TxmaEvent } from "../../../utils/TxmaEvent";
 import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { personIdentityInputRecord, personIdentityOutputRecord } from "../data/personIdentity-records";
+import { createSqsClient } from "../../../utils/SqsClient";
+import { SendMessageCommand } from "@aws-sdk/client-sqs";
 
 const logger = mock<Logger>();
 let f2fService: F2fService;
@@ -18,6 +21,10 @@ const sessionId = "SESSID";
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
 const mockSqsClient = createSqsClient();
 const SESSION_RECORD = require("../data/db_record.json");
+
+jest.mock("@aws-sdk/client-sqs", () => ({
+	SendMessageCommand: jest.fn().mockImplementation(() => {}),
+}));
 
 const FAILURE_VALUE = "throw_me";
 
@@ -117,14 +124,6 @@ describe("F2f Service", () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce("Session Updated");
 		await f2fService.updateSessionWithYotiIdAndStatus("123", "456", "YOTI_SESSION_CREATED");
 		expect(logger.info).toHaveBeenCalledWith({ message: "Updated Yoti session details in dynamodb" });
-	});
-
-	it("show throw error if failed to send to TXMA queue", async () => {
-		mockSqsClient.send = jest.fn().mockRejectedValue({});
-
-		await expect(f2fService.sendToTXMA(txmaEventPayload)).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.SERVER_ERROR,
-		}));
 	});
 
 	it("show throw error if failed to send to GovNotify queue", async () => {
@@ -517,6 +516,89 @@ describe("F2f Service", () => {
 	
 			// Check that non-object input is obfuscated as '***'
 			expect(obfuscatedValue).toBe("***");
+		});
+	});
+
+	describe("#sendToTXMA", () => {
+		it("Should send event to TxMA without encodedHeader if encodedHeader param is missing", async () => {  
+			const payload = txmaEventPayload;
+			await f2fService.sendToTXMA(payload);
+	
+			const messageBody = JSON.stringify(payload);			
+	
+			expect(SendMessageCommand).toHaveBeenCalledWith({
+				MessageBody: messageBody,
+				QueueUrl: "MYQUEUE",
+			});
+			expect(mockSqsClient.send).toHaveBeenCalled();
+			expect(f2fService.logger.info).toHaveBeenCalledWith("Sent message to TxMA");
+		});
+
+		it("Should send event to TxMA without encodedHeader if encodedHeader param is empty", async () => {  
+			const payload = txmaEventPayload;
+			await f2fService.sendToTXMA(payload, "");
+	
+			const messageBody = JSON.stringify(payload);			
+	
+			expect(SendMessageCommand).toHaveBeenCalledWith({
+				MessageBody: messageBody,
+				QueueUrl: "MYQUEUE",
+			});
+			expect(mockSqsClient.send).toHaveBeenCalled();
+			expect(f2fService.logger.info).toHaveBeenCalledWith("Sent message to TxMA");
+		});
+
+		it("Should send event to TxMA with the correct details for a payload without restricted present", async () => {  
+			await f2fService.sendToTXMA(txmaEventPayload, "ENCHEADER");
+	
+			const messageBody = JSON.stringify({
+				...txmaEventPayload,
+				restricted: {
+					device_information: {
+						encoded: "ENCHEADER",
+					},
+				},
+			});
+	
+			expect(SendMessageCommand).toHaveBeenCalledWith({
+				MessageBody: messageBody,
+				QueueUrl: "MYQUEUE",
+			});
+			expect(mockSqsClient.send).toHaveBeenCalled();
+			expect(f2fService.logger.info).toHaveBeenCalledWith("Sent message to TxMA");
+		});
+
+		it("Should send event to TxMA with the correct details for a payload with restricted present", async () => {  
+				
+			const restrictedDetails = {
+				device_information: {
+					encoded: "ENCHEADER",
+				},
+			};
+	
+			const payload = txmaEventPayload;
+			payload.restricted = restrictedDetails;
+	
+			await f2fService.sendToTXMA(payload, "ENCHEADER");
+			const messageBody = JSON.stringify(payload);
+	
+			expect(SendMessageCommand).toHaveBeenCalledWith({
+				MessageBody: messageBody,
+				QueueUrl: "MYQUEUE",
+			});
+			expect(mockSqsClient.send).toHaveBeenCalled();
+			expect(f2fService.logger.info).toHaveBeenCalledWith("Sent message to TxMA");
+		});		
+
+		it("show throw error if failed to send to TXMA queue", async () => {
+			mockSqsClient.send = jest.fn().mockRejectedValue({});
+
+			await expect(f2fService.sendToTXMA(txmaEventPayload)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+			}));
+			expect(f2fService.logger.error).toHaveBeenCalledWith({
+				message: "Error when sending message to TXMA Queue", error: expect.anything(),
+			});
 		});
 	});
 });

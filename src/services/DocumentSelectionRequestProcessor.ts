@@ -58,7 +58,7 @@ export class DocumentSelectionRequestProcessor {
   	return DocumentSelectionRequestProcessor.instance;
   }
 
-  async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
+  async processRequest(event: APIGatewayProxyEvent, sessionId: string, encodedHeader: string): Promise<Response> {
 
   	let postOfficeSelection: PostOfficeInfo;
   	let selectedDocument;
@@ -232,7 +232,7 @@ export class DocumentSelectionRequestProcessor {
   						},
   					],
   				},
-  			});
+  			}, encodedHeader);
   		} catch (error) {
   			this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
   		}

@@ -8,11 +8,12 @@ import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { Response, unauthorizedResponse } from "./utils/Response";
 import { AppError } from "./utils/AppError";
 import { AbortRequestProcessor } from "./services/AbortRequestProcessor";
+import { getSessionIdHeaderErrors } from "./utils/Validations";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.ABORT_LOGGER_SVC_NAME;
-const logger = new Logger({
+export const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
 	serviceName: POWERTOOLS_SERVICE_NAME,
 });
@@ -28,35 +29,9 @@ export class AbortHandler implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 		try {
-			let sessionId: string;
-			if (event.headers) {
-				sessionId = event.headers[Constants.X_SESSION_ID] as string;
-				logger.appendKeys({ sessionId });
-				if (sessionId) {
-					if (!Constants.REGEX_UUID.test(sessionId)) {
-						logger.error("Session id must be a valid uuid",
-							{
-								messageCode: MessageCodes.INVALID_SESSION_ID,
-							});
-						return unauthorizedResponse;
-					}
-				} else {
-					logger.error("Missing header: session-id is required",
-						{
-							messageCode: MessageCodes.MISSING_SESSION_ID,
-						});
-					return unauthorizedResponse;
-				}
-			} else {
-				logger.error("Empty headers",
-					{
-						messageCode: MessageCodes.EMPTY_HEADERS,
-					});
-				return unauthorizedResponse;
-			}
-
+			const { sessionId, encodedHeader } = this.validateEvent(event);
 			logger.info("Starting AbortRequestProcessor");
-			return await AbortRequestProcessor.getInstance(logger, metrics).processRequest(sessionId);
+			return await AbortRequestProcessor.getInstance(logger, metrics).processRequest(sessionId, encodedHeader);
 		} catch (error) {
 			logger.error({ message: "AbortRequestProcessor encoundered an error.",
 				error,
@@ -67,6 +42,25 @@ export class AbortHandler implements LambdaInterface {
 			}
 			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 		}
+	}
+
+	validateEvent(event: APIGatewayProxyEvent): { sessionId: string; encodedHeader: string } {
+		if (!event.headers) {			
+			const message = "Invalid request: missing headers";
+			logger.error({ message, messageCode: MessageCodes.MISSING_HEADER });
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, message);
+		}
+
+		const sessionIdError = getSessionIdHeaderErrors(event.headers);
+		if (sessionIdError) {
+			logger.error({ message: sessionIdError, messageCode: MessageCodes.INVALID_SESSION_ID });
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, sessionIdError);
+		}
+
+		return {
+			sessionId: event.headers[Constants.X_SESSION_ID]!,
+			encodedHeader: event.headers[Constants.ENCODED_AUDIT_HEADER] ?? "",
+		};
 	}
 }
 

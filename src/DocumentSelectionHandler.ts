@@ -9,11 +9,12 @@ import { DocumentSelectionRequestProcessor } from "./services/DocumentSelectionR
 import { AppError } from "./utils/AppError";
 import { getParameter } from "./utils/Config";
 import { MessageCodes } from "./models/enums/MessageCodes";
+import { getSessionIdHeaderErrors } from "./utils/Validations";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.DOCUMENT_SELECTION_LOGGER_SVC_NAME;
-const logger = new Logger({
+export const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
 	serviceName: POWERTOOLS_SERVICE_NAME,
 });
@@ -36,32 +37,7 @@ export class DocumentSelection implements LambdaInterface {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		try {
-			let sessionId: string;
-			if (event.headers) {
-				sessionId = event.headers[Constants.X_SESSION_ID] as string;
-				logger.appendKeys({ sessionId });
-				if (sessionId) {
-					if (!Constants.REGEX_UUID.test(sessionId)) {
-						logger.error("Session id must be a valid uuid",
-							{
-								messageCode: MessageCodes.INVALID_SESSION_ID,
-							});
-						return unauthorizedResponse;
-					}
-				} else {
-					logger.error("Missing header: session-id is required",
-						{
-							messageCode: MessageCodes.MISSING_SESSION_ID,
-						});
-					return unauthorizedResponse;
-				}
-			} else {
-				logger.error("Empty headers",
-					{
-						messageCode: MessageCodes.EMPTY_HEADERS,
-					});
-				return unauthorizedResponse;
-			}
+			const { sessionId, encodedHeader } = this.validateEvent(event);
 
 			if (!YOTI_PRIVATE_KEY) {
 				logger.info({ message: "Fetching key from SSM" });
@@ -75,7 +51,7 @@ export class DocumentSelection implements LambdaInterface {
 					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
 			}
-			return await DocumentSelectionRequestProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event, sessionId);
+			return await DocumentSelectionRequestProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event, sessionId, encodedHeader);
 		} catch (error) {
 			logger.error({ message: "An error has occurred. ",
 				error,
@@ -86,6 +62,25 @@ export class DocumentSelection implements LambdaInterface {
 			}
 			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 		}
+	}
+
+	validateEvent(event: APIGatewayProxyEvent): { sessionId: string; encodedHeader: string } {
+		if (!event.headers) {			
+			const message = "Invalid request: missing headers";
+			logger.error({ message, messageCode: MessageCodes.MISSING_HEADER });
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, message);
+		}
+
+		const sessionIdError = getSessionIdHeaderErrors(event.headers);
+		if (sessionIdError) {
+			logger.error({ message: sessionIdError, messageCode: MessageCodes.INVALID_SESSION_ID });
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, sessionIdError);
+		}
+
+		return {
+			sessionId: event.headers[Constants.X_SESSION_ID]!,
+			encodedHeader: event.headers[Constants.ENCODED_AUDIT_HEADER] ?? "",
+		};
 	}
 }
 const handlerClass = new DocumentSelection();
