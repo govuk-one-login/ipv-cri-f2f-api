@@ -97,7 +97,7 @@ describe("Post Office Stub", () => {
 		expect(response.status).toBe(Number(poStubDelimitator));
 	});
 
-	it("returns 200 and the missing name error object when MNE fed as last 3 chars", async () => {
+	it("returns 400 and the missing name error object when MNE fed as last 3 chars", async () => {
 		const response = await postPOCodeRequest("MNE", poStubPayloadData);
 		expect(response.status).toBe(400);
 		expect(response.data).toEqual(POST_OFFICE_RESPONSE_INCOMPLETE_DATA);
