@@ -7,5 +7,5 @@ s3_prefix = "f2f-cri-api"
 region = "eu-west-2"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "CodeSigningConfigArn=\"none\" Environment=\"dev\" PermissionsBoundary=\"none\" SecretPrefix=\"none\" VpcStackName=\"vpc-cri\" L2DynamoStackName=\"f2f-cri-ddb\" L2KMSStackName=\"f2f-cri-kms\""
+parameter_overrides = "CodeSigningConfigArn=\"none\" Environment=\"dev\" PermissionsBoundary=\"none\" SecretPrefix=\"none\" VpcStackName=\"vpc-cri\" L2DynamoStackName=\"f2f-cri-ddb-1779\" L2KMSStackName=\"f2f-cri-kms\""
 image_repositories = []
