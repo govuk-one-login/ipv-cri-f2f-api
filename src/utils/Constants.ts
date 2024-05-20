@@ -28,6 +28,8 @@ export class Constants {
 
 	static readonly REMINDER_EMAIL_LOGGER_SVC_NAME : "ReminderEmail";
 
+	static readonly EXPIRED_SESSIONS_LOGGER_SVC_NAME : "ExpiredSessions";
+
 	static readonly DEBUG = "DEBUG";
 
 	static readonly INFO = "INFO";
