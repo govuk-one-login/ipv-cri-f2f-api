@@ -143,12 +143,12 @@ describe("EnvironmentVariables", () => {
 
 	describe("authSessionTtlInSecs", () => {
 		it("should return the value of AUTH_SESSION_TTL_IN_SECS", () => {
-			process.env.AUTH_SESSION_TTL_SECS = "950400";
+			process.env.AUTH_SESSION_TTL_SECS = "1382400";
 			const envVars = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
 
 			const result = envVars.authSessionTtlInSecs();
 
-			expect(result).toBe(950400);
+			expect(result).toBe(1382400);
 		});
 	});
 
