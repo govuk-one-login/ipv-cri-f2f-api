@@ -111,7 +111,7 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
-      YOTISESSIONTTLDAYS: 15 # Default 10 days
+      YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json","clientId":"5C584572","redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f"}]'
       AUTHSESSIONTTLSECS: 86400 # 1 day in seconds
@@ -129,10 +129,10 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
-      YOTISESSIONTTLDAYS: 15 # Default 10 days
+      YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json","clientId":"BD7B2A5D","redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f"}]'
-      AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
     staging:
@@ -146,10 +146,10 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
-      YOTISESSIONTTLDAYS: 15 # Default 10 days
+      YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.staging.account.gov.uk/.well-known/jwks.json","clientId":"03A5A659-17AA-453F-B905-95D2804823D1","redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f"}]'
-      AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
       YOTIBASEURL: "https://proxy.review-o.integration.account.gov.uk/yoti"
@@ -162,10 +162,10 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
-      YOTISESSIONTTLDAYS: 15 # Default 10 days
+      YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.integration.account.gov.uk/.well-known/jwks.json", "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F", "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback?id=f2f"}]'
-      AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
       YOTIBASEURL: "https://proxy.review-o.account.gov.uk/yoti"
@@ -178,10 +178,10 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "ccba5634-33e9-4e0d-96c1-57067db941af"
       GOVUKNOTIFYREMINDERTEMPLATEID: "0d0d2aab-3c31-46da-8462-1af0f5f456f0"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0d3b9cb6-2c54-4316-865a-933f0f0dfb53"
-      YOTISESSIONTTLDAYS: 15 # Default 10 days
+      YOTISESSIONTTLDAYS: 10 # Default 10 days
       RESOURCETTLSECS: 1209600 # Default 14 days
       CLIENTS: '[{"jwksEndpoint":"https://api.identity.account.gov.uk/.well-known/jwks.json", "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342", "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f"}]'
-      AUTHSESSIONTTLSECS: 950400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
