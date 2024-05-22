@@ -238,7 +238,7 @@ export class DocumentSelectionRequestProcessor {
   		}
 
 
-  		return new Response(HttpCodesEnum.OK, "Instructions PDF Generated 1779");
+  		return new Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 
   	} else {
   		this.logger.warn(`Yoti session already exists for this authorization session or Session is in the wrong state: ${f2fSessionInfo.authSessionState}`, {
