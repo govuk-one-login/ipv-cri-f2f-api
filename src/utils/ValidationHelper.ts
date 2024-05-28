@@ -221,4 +221,13 @@ export class ValidationHelper {
 		return false;
 	}
 
+	checkRequiredYotiVars(): boolean {
+		const requiredVars = ["YOTISDK", "YOTI_SESSION_TTL_DAYS", "RESOURCES_TTL_SECS"];
+		const missingVars = requiredVars.filter(varName => !process.env[varName]);
+		if (missingVars.length > 0) {
+			return false;
+		}
+		return true;
+	}
+
 }

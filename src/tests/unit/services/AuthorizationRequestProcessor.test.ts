@@ -11,6 +11,7 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { AuthorizationRequestProcessor } from "../../../services/AuthorizationRequestProcessor";
 import { VALID_AUTHCODE } from "../data/auth-events";
+import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 
 let authorizationRequestProcessorTest: AuthorizationRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -76,7 +77,7 @@ describe("AuthorizationRequestProcessor", () => {
 		expect(mockF2fService.setAuthorizationCode).toHaveBeenCalledTimes(1);
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {
-			event_name: "F2F_CRI_AUTH_CODE_ISSUED",
+			event_name: TxmaEventNames.F2F_CRI_AUTH_CODE_ISSUED,
 			component_id: "https://XXX-c.env.account.gov.uk",
 			timestamp: 1585695600,
 			event_timestamp_ms: 1585695600000,
@@ -89,7 +90,7 @@ describe("AuthorizationRequestProcessor", () => {
 			},
 		});
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {
-			event_name: "F2F_CRI_END",
+			event_name: TxmaEventNames.F2F_CRI_END,
 			component_id: "https://XXX-c.env.account.gov.uk",
 			timestamp: 1585695600,
 			event_timestamp_ms: 1585695600000,

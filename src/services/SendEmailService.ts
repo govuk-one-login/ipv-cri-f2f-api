@@ -18,7 +18,9 @@ import { ReminderEmail } from "../models/ReminderEmail";
 import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { Constants } from "../utils/Constants";
+import { getClientConfig } from "../utils/ClientConfig";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
+import { ValidationHelper } from "../utils/ValidationHelper";
 
 /**
  * Class to send emails using gov notify service
@@ -34,9 +36,17 @@ export class SendEmailService {
 
   private readonly logger: Logger;
 
-  private yotiService: YotiService;
+	private readonly validationHelper: ValidationHelper;
+
+  private yotiService!: YotiService;
 
   private readonly f2fService: F2fService;
+
+  private readonly YOTI_PRIVATE_KEY: string;
+
+  private readonly GOV_NOTIFY_SERVICE_ID: string;
+
+  private readonly GOVUKNOTIFY_API_KEY: string;
 
   /**
    * Constructor sets up the client needed to use gov notify service with API key read from env var
@@ -55,25 +65,16 @@ export class SendEmailService {
   		logger,
   		ServicesEnum.GOV_NOTIFY_SERVICE,
   	);
-  	this.govNotify = new NotifyClient(
-  		this.environmentVariables.govukNotifyApiUrl(),
-  		govnotifyServiceId,
-  		GOVUKNOTIFY_API_KEY,
-  	);
-  	this.yotiService = YotiService.getInstance(
-  		this.logger,
-  		this.environmentVariables.yotiSdk(),
-  		this.environmentVariables.resourcesTtlInSeconds(),
-  		this.environmentVariables.clientSessionTokenTtlInDays(),
-  		YOTI_PRIVATE_KEY,
-  		this.environmentVariables.yotiBaseUrl(),
-  	);
+  	this.GOV_NOTIFY_SERVICE_ID = govnotifyServiceId;
+  	this.GOVUKNOTIFY_API_KEY = GOVUKNOTIFY_API_KEY;
   	this.govNotifyErrorMapper = new GovNotifyErrorMapper();
   	this.f2fService = F2fService.getInstance(
   		this.environmentVariables.sessionTable(),
   		this.logger,
   		createDynamoDbClient(),
   	);
+  	this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
+  	this.validationHelper = new ValidationHelper();
   }
 
   static getInstance(
@@ -108,7 +109,38 @@ export class SendEmailService {
   async sendYotiPdfEmail(message: Email): Promise<EmailResponse> {
   	// Fetch the instructions pdf from Yoti
   	try {
-  		const encoded = await this.fetchInstructionsPdf(message);
+  		const f2fSessionInfo = await this.f2fService.getSessionById(
+  			message.sessionId,
+  		);
+
+  		if (!f2fSessionInfo) {
+  			this.logger.warn("Missing details in SESSION table", {
+  				messageCode: MessageCodes.SESSION_NOT_FOUND,
+  			});
+  			throw new AppError(
+  				HttpCodesEnum.BAD_REQUEST,
+  				"Missing details in SESSION or table",
+  			);
+  		}
+
+  		//Initialise Yoti Service base on SessionClietID
+  		const clientConfig = getClientConfig(
+  			this.environmentVariables.clientConfig(),
+  			f2fSessionInfo.clientId,
+  			this.logger,
+  		);
+			
+  		if (!clientConfig) {
+  			this.logger.error("Unrecognised client in request", {
+  				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
+  			});
+  			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+  		}
+
+  		const encoded = await this.fetchInstructionsPdf(
+  			message,
+  			clientConfig.YotiBaseUrl,
+  		);
   		if (encoded) {
   			this.logger.debug("sendEmail", SendEmailService.name);
   			this.logger.info("Sending Yoti PDF email");
@@ -132,6 +164,7 @@ export class SendEmailService {
   				this.environmentVariables.getPdfEmailTemplateId(this.logger),
   				message,
   				options,
+  				clientConfig.GovNotifyApi,
   			);
   			await this.sendF2FYotiEmailedEvent(message);
   			return emailResponse;
@@ -167,6 +200,7 @@ export class SendEmailService {
   			this.environmentVariables.getReminderEmailTemplateId(this.logger),
   			message,
   			options,
+  			this.environmentVariables.reminderEmailsGovNotifyUrl(),
   		);
   		return emailResponse;
   	} catch (err: any) {
@@ -203,6 +237,7 @@ export class SendEmailService {
   			),
   			message,
   			options,
+  			this.environmentVariables.reminderEmailsGovNotifyUrl(),
   		);
   		return emailResponse;
   	} catch (err: any) {
@@ -258,6 +293,7 @@ export class SendEmailService {
   	templateId: string,
   	message: Email | ReminderEmail,
   	options: any,
+  	GovNotifyApi: string,
   ): Promise<EmailResponse> {
   	let retryCount = 0;
   	//retry for maxRetry count configured value if fails
@@ -271,6 +307,11 @@ export class SendEmailService {
   		});
 
   		try {
+  			this.govNotify = new NotifyClient(
+  				GovNotifyApi,
+  				this.GOV_NOTIFY_SERVICE_ID,
+  				this.GOVUKNOTIFY_API_KEY,
+  			);
   			const emailResponse = await this.govNotify.sendEmail(
   				templateId,
   				message.emailAddress,
@@ -331,7 +372,11 @@ export class SendEmailService {
   	);
   }
 
-  async fetchInstructionsPdf(message: Email): Promise<string> {
+  async fetchInstructionsPdf(
+  	message: Email,
+  	yotiBaseUrl: string,
+  ): Promise<string> {
+  	if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
   	let yotiInstructionsPdfRetryCount = 0;
   	//retry for maxRetry count configured value if fails
   	while (
@@ -343,6 +388,12 @@ export class SendEmailService {
   			message.yotiSessionId,
   		);
   		try {
+  			this.logger.info("BASE_URL", yotiBaseUrl);
+  			this.yotiService = YotiService.getInstance(
+  				this.logger,
+  				this.YOTI_PRIVATE_KEY,
+  				yotiBaseUrl,
+  			);
   			const instructionsPdf = await this.yotiService.fetchInstructionsPdf(
   				message.yotiSessionId,
   			);
