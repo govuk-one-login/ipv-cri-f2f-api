@@ -214,6 +214,73 @@ paths:
           default:
             statusCode: "200"
         type: aws
+
+  getSessionByState/{tableName}/{state}:
+    get:
+      operationId: getSessionByState
+      summary: Get a session by using state-index from DynamoDB
+      description: |
+        Endpoint to get a session from DynamoDB using either state as the primary key
+      parameters:
+        - name: tableName
+          in: path
+          description: The name of the table to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: path
+          description: The value of the secondary index identifier to find the record in DynamoDB
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session:
+                    type: object
+                    description: The found session from DynamoDB.
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+        - sigv4Reference: []
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        credentials:
+          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
+        uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.path.tableName: "method.request.path.tableName"
+          integration.request.path.state: "method.request.path.state"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName":"$input.params('tableName')",
+              "IndexName":"state-index",
+              "KeyConditionExpression": "#st = :state",
+              "ExpressionAttributeNames": {
+                  "#st": "state"
+              },
+              "ExpressionAttributeValues":{
+                  ":state":{
+                    "S":"$input.params('state')"
+                  }
+              }
+            }
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
   
   /bucket/:
     get:
