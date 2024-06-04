@@ -56,6 +56,7 @@ class GovNotifyHandler implements LambdaInterface {
 					logger.info({ message: "Fetching GOVUKNOTIFY_API_KEY from SSM" });
 					try {
 						GOVUKNOTIFY_API_KEY = await getParameter(this.environmentVariables.govNotifyApiKeySsmPath());
+						console.log("GEORGE APIKEY", GOVUKNOTIFY_API_KEY)
 					} catch (error) {
 						logger.error(`failed to get param from ssm at ${this.environmentVariables.govNotifyApiKeySsmPath()}`, {
 							messageCode: MessageCodes.MISSING_CONFIGURATION,
@@ -67,6 +68,7 @@ class GovNotifyHandler implements LambdaInterface {
 				let govnotifyServiceId;
 				try {
 					govnotifyServiceId = GOVUKNOTIFY_API_KEY.substring(GOVUKNOTIFY_API_KEY.length - 73, GOVUKNOTIFY_API_KEY.length - 37);
+					console.log("GEORGE SERVICE ID", govnotifyServiceId)
 				} catch (error) {
 					logger.error("failed to extract govnotifyServiceId from the GOVUKNOTIFY_API_KEY", { error });
 					return failEntireBatch;

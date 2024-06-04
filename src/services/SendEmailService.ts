@@ -295,6 +295,7 @@ export class SendEmailService {
   	options: any,
   	GovNotifyApi: string,
   ): Promise<EmailResponse> {
+	console.log("WOOKIE", templateId)
   	let retryCount = 0;
   	//retry for maxRetry count configured value if fails
   	while (retryCount <= this.environmentVariables.maxRetries()) {
@@ -312,6 +313,10 @@ export class SendEmailService {
   				this.GOV_NOTIFY_SERVICE_ID,
   				this.GOVUKNOTIFY_API_KEY,
   			);
+			const personalisation = { "zoinks" : "scoob" }
+			this.govNotify.previewTemplateById(templateId, personalisation)
+				.then((res) => console.log("PALM", res))
+				.catch((err) => console.log("GLADE", err))
   			const emailResponse = await this.govNotify.sendEmail(
   				templateId,
   				message.emailAddress,
