@@ -167,6 +167,7 @@ export class SendEmailService {
   				clientConfig.GovNotifyApi,
   			);
   			await this.sendF2FYotiEmailedEvent(message);
+			console.log("EMAIL RESPONSE", emailResponse)
   			return emailResponse;
   		} else {
   			this.logger.error("Failed to fetch the Instructions pdf", {
@@ -312,6 +313,23 @@ export class SendEmailService {
   				this.GOV_NOTIFY_SERVICE_ID,
   				this.GOVUKNOTIFY_API_KEY,
   			);
+
+			  
+			  console.log("BEFORE PREVIEW")
+			  const { GOV_NOTIFY_OPTIONS } = Constants;
+			  const personalisation = {
+				[GOV_NOTIFY_OPTIONS.FIRST_NAME]: "GEORGE",
+				[GOV_NOTIFY_OPTIONS.LAST_NAME]: "TEST",
+				[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
+					file: "empty link",
+					confirm_email_before_download: true,
+					retention_period: "2 weeks",
+				}}
+			  this.govNotify.previewTemplateById(templateId, personalisation)
+				  .then((res: any) => console.log("PREVIEW SUCCESS", res))
+				  .catch((err: any) => console.log("PREVIEW FAIL", err))
+			  console.log("PREVIEW OVER")
+
   			const emailResponse = await this.govNotify.sendEmail(
   				templateId,
   				message.emailAddress,
@@ -401,6 +419,7 @@ export class SendEmailService {
   				const encoded = Buffer.from(instructionsPdf, "binary").toString(
   					"base64",
   				);
+				console.log("ENCODED PDF", encoded)
   				return encoded;
   			}
   		} catch (err: any) {
