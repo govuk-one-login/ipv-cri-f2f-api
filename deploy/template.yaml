@@ -2569,16 +2569,14 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: ExpiredSessionsHandler
-          GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
-          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
-          PERSON_IDENTITY_TABLE_NAME:
-            Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           ENCRYPTION_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
           AUTH_SESSION_TTL_SECS:
             !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
+          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -2590,29 +2588,21 @@ Resources:
             TableName:
               Fn::ImportValue:
                 !Sub "${L2DynamoStackName}-session-table-name"
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-person-identity-table-name"
         - KMSDecryptPolicy:
             KeyId:
               Fn::ImportValue:
                 !Sub "${L2DynamoStackName}-session-table-key-id"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-person-identity-table-key-id"
         - Statement:
-            - Effect: Allow
-              Action:
-                - "sqs:SendMessage"
-              Resource: !GetAtt [GovNotifySQSQueue, Arn]
-            - Effect: Allow
-              Action:
-                - "kms:Encrypt"
-                - "kms:Decrypt"
-                - "kms:GenerateDataKey"
-              Resource: !GetAtt [GovNotifyEncryptionKey, Arn]
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt IPVCoreSQSQueue.Arn
+          - Effect: Allow
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !GetAtt IPVCoreQueueEncryptionKey.Arn
       Events:
         ScheduledEvent:
           Type: Schedule

@@ -261,6 +261,6 @@ describe("ReminderEmailProcessor", () => {
 
 		await reminderEmailProcessor.processRequest();
 
-		expect(mockLogger.error).toHaveBeenCalledWith("Unexpected error accessing session table", { "error": "Permission Denied", "messageCode": "FAILED_FETHCING_SESSIONS" });
+		expect(mockLogger.error).toHaveBeenCalledWith("Unexpected error accessing session table", { "error": "Permission Denied", "messageCode": "FAILED_FETCHING_SESSIONS" });
 	});
 });

@@ -8,9 +8,8 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
-import { buildDynamicReminderEmailEventFields, buildReminderEmailEventFields } from "../utils/GovNotifyEvent";
+import { Constants } from "../utils/Constants";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
-import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 
 export class ExpiredSessionsProcessor {
   private static instance: ExpiredSessionsProcessor;
@@ -28,79 +27,81 @@ export class ExpiredSessionsProcessor {
 
   async processRequest(): Promise<Response> {
   	try {
-  		const F2FYotiSessionCreatedRecords = await this.f2fService.getSessionsByAuthSessionStates([AuthSessionState.F2F_YOTI_SESSION_CREATED, AuthSessionState.F2F_AUTH_CODE_ISSUED, AuthSessionState.F2F_ACCESS_TOKEN_ISSUED]);
+  		const sessionStates = [
+  			AuthSessionState.F2F_YOTI_SESSION_CREATED,
+  			AuthSessionState.F2F_AUTH_CODE_ISSUED,
+  			AuthSessionState.F2F_ACCESS_TOKEN_ISSUED,
+  		];
 
-  		if (F2FYotiSessionCreatedRecords.length === 0) {
-  			this.logger.info(`No users with session states ${[AuthSessionState.F2F_YOTI_SESSION_CREATED, AuthSessionState.F2F_AUTH_CODE_ISSUED, AuthSessionState.F2F_ACCESS_TOKEN_ISSUED]}`);
+  		const records = await this.f2fService.getSessionsByAuthSessionStates(sessionStates, Constants.EXPIRED_SESSIONS_INDEX_NAME);
+
+  		if (!records.length) {
+  			this.logger.info(`No users with session states ${sessionStates}`);
   			return { statusCode: HttpCodesEnum.OK, body: "No Session Records matching state" };
   		}
 
-  		const authSessionTTL = process.env.AUTH_SESSION_TTL_SECS;
-  		if (!authSessionTTL) throw new Error("AUTH_SESSION_TTL_SECS environment variable is not defined.");
+  		const yotiSessionTTL = process.env.YOTI_SESSION_TTL_DAYS ? +process.env.YOTI_SESSION_TTL_DAYS : NaN;
+  		if (isNaN(yotiSessionTTL)) {
+  			throw new Error("YOTI_SESSION_TTL_DAYS is not defined or not a valid number.");
+  		}
 
-  		const authSessionTTLDays: number = +authSessionTTL / 86400;
-
-  		const sessionsToExpire = F2FYotiSessionCreatedRecords.filter(
-  			({ createdDate, expiredNotificationSent }) => {
-  				const ttl: number = +authSessionTTL;
-  				if (isNaN(ttl)) throw new Error("AUTH_SESSION_TTL_SECS is not a valid number.");
-  				return (createdDate <= absoluteTimeNow() - ttl) && !expiredNotificationSent;
-  			},
+  		const expirationTime = absoluteTimeNow() - ((yotiSessionTTL + 1) * 24 * 60 * 60);
+  		const sessionsToExpire = records.filter(
+  			({ createdDate, expiredNotificationSent }) =>
+  				(createdDate <= expirationTime) && !expiredNotificationSent,
   		);
 
-
-  		if (sessionsToExpire.length === 0) {
-  			this.logger.info(`No users with session states ${[AuthSessionState.F2F_YOTI_SESSION_CREATED, AuthSessionState.F2F_AUTH_CODE_ISSUED, AuthSessionState.F2F_ACCESS_TOKEN_ISSUED]} older than ${authSessionTTLDays} days`);
-  			return { statusCode: HttpCodesEnum.OK, body: "No Sessions older than 5 days" };
+  		if (!sessionsToExpire.length) {
+  			this.logger.info(`No users with session states ${sessionStates} older than ${yotiSessionTTL + 1} days`);
+  			return { statusCode: HttpCodesEnum.OK, body: "No Sessions older than specified TTL" };
   		}
 
   		this.logger.info("Total num. of user sessions to send expired notifications:", { numOfExpiredSessions: sessionsToExpire.length });
 
-  		const usersToRemind = await Promise.all(
-  			filteredSessions.map(async ({ sessionId, documentUsed }) => {
-  				try {
-  					const envVariables = new EnvironmentVariables(this.logger, ServicesEnum.REMINDER_SERVICE);
-  					const personIdentityItem = await this.f2fService.getPersonIdentityById(sessionId, envVariables.personIdentityTableName());
-  					if ( personIdentityItem ) {
-  						const nameParts = personIdentityUtils.getNames(personIdentityItem);
-  						return { sessionId, emailAddress: personIdentityItem.emailAddress, firstName: nameParts.givenNames[0], lastName: nameParts.familyNames[0], documentUsed };
-  					} else {
-  						this.logger.warn("No records returned from Person Identity Table");
-  						return null;
-  					}
-  				} catch (error) {
-  					this.logger.error("Error fetching record from Person Identity Table", { error });
-  				}
-  			}),
-  		);
+  		const ipvCoreSessionLogs: string[] = [];
 
-  		if (usersToRemind.length === 0) {
-  			return { statusCode: HttpCodesEnum.OK, body: "No PersonIdentity Records" };
-  		}
+  		await Promise.all(sessionsToExpire.map(async (session) => {
+  			try {
+  				await this.f2fService.sendToIPVCore({
+  					sub: session.subject,
+  					state: session.state,
+  					error: "access_denied",
+  					error_description: "Time given to visit PO has expired",
+  				});
+  				ipvCoreSessionLogs.push(session.sessionId);
+  			} catch (error) {
+  				this.logger.error("Failed to send error message to IPV Core Queue", {
+  					sessionId: session.sessionId,
+  					error,
+  					session,
+  					messageCode: MessageCodes.FAILED_SENDING_VC,
+  				});
+  			}
+  		}));
 
-  		const sendEmailPromises = usersToRemind
-  			.filter((user): user is { sessionId: any; emailAddress: string; firstName: string; lastName: string; documentUsed: string } => user !== null)
-  			.map(async ({ sessionId, emailAddress, firstName, lastName, documentUsed }) => {
-  				try {
-  					if (firstName && lastName && documentUsed) {
-  						this.logger.info("Sending Dynamic Reminder Email", { sessionId });
-  						await this.f2fService.sendToGovNotify(buildDynamicReminderEmailEventFields(emailAddress, firstName, lastName, documentUsed));
-  					} else { 
-  						this.logger.info("Sending Static Reminder Email", { sessionId });
-  						await this.f2fService.sendToGovNotify(buildReminderEmailEventFields(emailAddress));
-  					}
-  					await this.f2fService.updateReminderEmailFlag(sessionId, true);
-  					this.logger.info("Reminder email sent to user: ", { sessionId });
-  				} catch (error) {
-  					this.logger.error("Failed to send reminder email or update flag", { error });
-  				}
-  			});
+  		this.logger.info("Successfully sent error message to IPV Core Queue", { count: ipvCoreSessionLogs.length, sessions: ipvCoreSessionLogs });
 
-  		await Promise.all(sendEmailPromises);
+  		const markSessionsLogs: string[] = [];
+
+  		await Promise.all(sessionsToExpire.map(async (session) => {
+  			try {
+  				await this.f2fService.markSessionAsExpired(session.sessionId);
+  				markSessionsLogs.push(session.sessionId);
+  			} catch (error) {
+  				this.logger.error("Failed to set expired notification flag", {
+  					sessionId: session.sessionId,
+  					error,
+  				});
+  			}
+  		}));
+
+  		this.logger.info("Sessions marked as Expired", { count: markSessionsLogs.length, sessions: markSessionsLogs });
+
+  		this.logger.info("All expired session notifications have been processed.");
   	} catch (error) {
   		this.logger.error("Unexpected error accessing session table", {
   			error,
-  			messageCode: MessageCodes.FAILED_FETHCING_SESSIONS,
+  			messageCode: MessageCodes.FAILED_FETCHING_SESSIONS,
   		});
   		return GenericServerError;
   	}
