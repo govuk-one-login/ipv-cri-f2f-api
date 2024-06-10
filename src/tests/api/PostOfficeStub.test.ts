@@ -1,13 +1,6 @@
 /* eslint-disable max-lines-per-function */
-import govNotifyRequestData from "../data/govNotifyStubPayload.json";
-import yotiRequestData from "../data/yotiSessionsPayloadValid.json";
 import poStubPayloadData from "../data/poStubPayload.json";
 import { 
-	postYotiSession, 
-	getYotiSessionsConfiguration, 
-	putYotiSessionsInstructions, 
-	getYotiSessionsInstructions, 
-	postGovNotifyRequest, 
 	postPOCodeRequest, 
 } from "./ApiTestSteps";
 import { POST_OFFICE_RESPONSE_INCOMPLETE_DATA } from "../../../post-office-stub/src/data/postOfficeResponse/postOfficeResponseIncompleteData";

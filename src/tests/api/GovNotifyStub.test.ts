@@ -2,14 +2,8 @@
 import govNotifyRequestData from "../data/govNotifyStubPayload.json";
 
 import { 
-	postYotiSession, 
-	getYotiSessionsConfiguration, 
-	putYotiSessionsInstructions, 
-	getYotiSessionsInstructions, 
 	postGovNotifyRequest, 
-	postPOCodeRequest, 
 } from "./ApiTestSteps";
-import { POST_OFFICE_RESPONSE_INCOMPLETE_DATA } from "../../../post-office-stub/src/data/postOfficeResponse/postOfficeResponseIncompleteData";
 
 describe("GovNotify Stub", () => {
 	const postGovNotifyParams = [
