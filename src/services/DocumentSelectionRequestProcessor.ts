@@ -70,6 +70,7 @@ export class DocumentSelectionRequestProcessor {
   	let selectedDocument;
   	let countryCode;
   	let yotiSessionId;
+	let letterPreference;
 
   	if (!event.body) {
   		this.logger.error("No body present in post request", {
@@ -83,8 +84,9 @@ export class DocumentSelectionRequestProcessor {
   		postOfficeSelection = eventBody.post_office_selection;
   		selectedDocument = eventBody.document_selection.document_selected;
   		countryCode = eventBody.document_selection.country_code;
-  		if (!postOfficeSelection || !selectedDocument) {
-  			this.logger.error("Missing mandatory fields (post_office_selection or document_selection.document_selected) in request payload", {
+		letterPreference = "letter"
+  		if (!postOfficeSelection || !selectedDocument || !letterPreference) {
+  			this.logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or letter_preference) in request payload", {
   				messageCode: MessageCodes.MISSING_MANDATORY_FIELDS,
   			});
   			return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
@@ -137,9 +139,10 @@ export class DocumentSelectionRequestProcessor {
   				postOfficeSelection,
   				selectedDocument,
   				countryCode,
+				letterPreference
   			);
 			  if (yotiSessionId) {
-				  await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
+				  await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails, letterPreference);
 				  await this.f2fService.updateSessionWithYotiIdAndStatus(
   					f2fSessionInfo.sessionId,
   					yotiSessionId,
@@ -270,6 +273,7 @@ export class DocumentSelectionRequestProcessor {
   	personDetails: PersonIdentityItem,
   	f2fSessionInfo: ISessionItem,
   	postOfficeSelection: PostOfficeInfo,
+	letterPreference: string,
   	selectedDocument: string,
   	countryCode: string,
 	): Promise<string> {
@@ -326,6 +330,7 @@ export class DocumentSelectionRequestProcessor {
   		personDetails,
   		requirements,
   		postOfficeSelection,
+		letterPreference
   	);
 
   	if (generateInstructionsResponse !== HttpCodesEnum.OK) {
@@ -336,10 +341,10 @@ export class DocumentSelectionRequestProcessor {
   	return yotiSessionId;
 	}
 
-	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
+	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem, letterPreference: string): Promise<any> {
   	this.logger.info({ message: "Posting message to Gov Notify" });
   	try {
-  		await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
+  		await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails, letterPreference));
   	} catch (error) {
   		this.logger.error("Yoti session created, failed to post message to GovNotify SQS Queue", {
   			error,
