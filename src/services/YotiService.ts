@@ -241,6 +241,7 @@ export class YotiService {
     	personDetails: PersonIdentityItem,
     	requirements: Array<{ requirement_id: string; document: { type: string; country_code: string; document_type: string } } | undefined>,
     	PostOfficeSelection: PostOfficeInfo,
+		letterPreference: string
 	):Promise<number | undefined> {
     	const nameParts = personIdentityUtils.getNames(personDetails);
     	const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(" ") : nameParts.givenNames[0];
@@ -257,6 +258,7 @@ export class YotiService {
     			type: UK_POST_OFFICE.type,
     			fad_code: PostOfficeSelection.fad_code,
     		},
+			letterPreference: letterPreference
     	};
 
     	const yotiRequest = this.generateYotiRequest({
