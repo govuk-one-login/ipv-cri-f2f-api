@@ -3,7 +3,7 @@ import govNotifyRequestData from "../../data/govNotifyStubPayload.json";
 
 import { 
 	postGovNotifyRequest, 
-} from "./ApiTestSteps";
+} from "../backend/ApiTestSteps";
 
 describe("GovNotify Stub", () => {
 	const postGovNotifyParams = [
@@ -18,5 +18,4 @@ describe("GovNotify Stub", () => {
 		expect(response.status).toBe(govNotifyDelimitator);
 	});
 });
-
 

@@ -13,15 +13,15 @@ import {
 	postAbortSession, 
 } from "./ApiTestSteps";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "./ApiUtils";
-import f2fStubPayload from "../data/exampleStubPayload.json";
-import thinFilePayload from "../data/thinFilePayload.json";
-import abortPayload from "../data/abortPayload.json";
-import dataPassport from "../data/docSelectionPayloadPassportValid.json";
-import dataUkDrivingLicence from "../data/docSelectionPayloadDriversLicenceValid.json";
-import dataEuDrivingLicence from "../data/docSelectionPayloadEuDriversLicenceValid.json";
-import dataNonUkPassport from "../data/docSelectionPayloadNonUkPassportValid.json";
-import dataBrp from "../data/docSelectionPayloadBrpValid.json";
-import dataEeaIdCard from "../data/docSelectionPayloadEeaIdCardValid.json";
+import f2fStubPayload from "../../data/exampleStubPayload.json";
+import thinFilePayload from "../../data/thinFilePayload.json";
+import abortPayload from "../../data/abortPayload.json";
+import dataPassport from "../../data/docSelectionPayloadPassportValid.json";
+import dataUkDrivingLicence from "../../data/docSelectionPayloadDriversLicenceValid.json";
+import dataEuDrivingLicence from "../../data/docSelectionPayloadEuDriversLicenceValid.json";
+import dataNonUkPassport from "../../data/docSelectionPayloadNonUkPassportValid.json";
+import dataBrp from "../../data/docSelectionPayloadBrpValid.json";
+import dataEeaIdCard from "../../data/docSelectionPayloadEeaIdCardValid.json";
 import { constants } from "./ApiConstants";
 import { DocSelectionData } from "./types";
 

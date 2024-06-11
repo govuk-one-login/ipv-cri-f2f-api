@@ -1,12 +1,12 @@
 /* eslint-disable max-lines-per-function */
-import dataPassport from "../data/docSelectionPayloadPassportValid.json";
-import dataUkDrivingLicence from "../data/docSelectionPayloadDriversLicenceValid.json";
-import dataEuDrivingLicence from "../data/docSelectionPayloadEuDriversLicenceValid.json";
-import dataNonUkPassport from "../data/docSelectionPayloadNonUkPassportValid.json";
-import dataBrp from "../data/docSelectionPayloadBrpValid.json";
-import dataEeaIdCard from "../data/docSelectionPayloadEeaIdCardValid.json";
-import f2fStubPayload from "../data/exampleStubPayload.json";
-import vcResponseData from "../data/vcValidationData.json";
+import dataPassport from "../../data/docSelectionPayloadPassportValid.json";
+import dataUkDrivingLicence from "../../data/docSelectionPayloadDriversLicenceValid.json";
+import dataEuDrivingLicence from "../../data/docSelectionPayloadEuDriversLicenceValid.json";
+import dataNonUkPassport from "../../data/docSelectionPayloadNonUkPassportValid.json";
+import dataBrp from "../../data/docSelectionPayloadBrpValid.json";
+import dataEeaIdCard from "../../data/docSelectionPayloadEeaIdCardValid.json";
+import f2fStubPayload from "../../data/exampleStubPayload.json";
+import vcResponseData from "../../data/vcValidationData.json";
 import {
 	startStubServiceAndReturnSessionId,
 	validateJwtToken,

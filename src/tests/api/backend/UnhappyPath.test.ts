@@ -9,14 +9,14 @@ import {
 	userInfoPost, 
 	sessionConfigurationGet,
 } from "./ApiTestSteps";
-import f2fStubPayload from "../data/exampleStubPayload.json";
-import addressSessionPayload from "../data/addressSessionPayload.json";
-import dataDriversLicenseInvalid from "../data/docSelectionPayloadDriversLicenceInvalid.json";
-import dataPassport from "../data/docSelectionPayloadPassportValid.json";
-import dataPassportMissingFad from "../data/dataPassportMissingFad.json";
-import dataPassportBlankFad from "../data/dataPassportBlankFad.json";
-import dataPassportIncorrectFad from "../data/dataPassportIncorrectFad.json";
-import dataPassportInvalidFadFormat from "../data/dataPassportInvalidFadFormat.json";
+import f2fStubPayload from "../../data/exampleStubPayload.json";
+import addressSessionPayload from "../../data/addressSessionPayload.json";
+import dataDriversLicenseInvalid from "../../data/docSelectionPayloadDriversLicenceInvalid.json";
+import dataPassport from "../../data/docSelectionPayloadPassportValid.json";
+import dataPassportMissingFad from "../../data/dataPassportMissingFad.json";
+import dataPassportBlankFad from "../../data/dataPassportBlankFad.json";
+import dataPassportIncorrectFad from "../../data/dataPassportIncorrectFad.json";
+import dataPassportInvalidFadFormat from "../../data/dataPassportInvalidFadFormat.json";
 import { StubStartRequest, DocSelectionData } from "./types";
 import { randomUUID } from "crypto";
 
