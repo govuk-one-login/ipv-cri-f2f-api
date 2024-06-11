@@ -1,9 +1,9 @@
 /* eslint-disable max-lines-per-function */
-import poStubPayloadData from "../data/poStubPayload.json";
+import poStubPayloadData from "../../data/poStubPayload.json";
 import { 
 	postPOCodeRequest, 
 } from "./ApiTestSteps";
-import { POST_OFFICE_RESPONSE_INCOMPLETE_DATA } from "../../../post-office-stub/src/data/postOfficeResponse/postOfficeResponseIncompleteData";
+import { POST_OFFICE_RESPONSE_INCOMPLETE_DATA } from "../../../../post-office-stub/src/data/postOfficeResponse/postOfficeResponseIncompleteData";
 
 
 

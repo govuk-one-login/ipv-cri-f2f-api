@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import govNotifyRequestData from "../data/govNotifyStubPayload.json";
+import govNotifyRequestData from "../../data/govNotifyStubPayload.json";
 
 import { 
 	postGovNotifyRequest, 
