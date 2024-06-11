@@ -28,7 +28,3 @@ describe("Post Office Stub", () => {
 	});
 });
 
-function expect(status: any) {
-	throw new Error("Function not implemented.");
-}
-
