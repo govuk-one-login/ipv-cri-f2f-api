@@ -10,6 +10,7 @@ export interface GovNotifyEvent {
 		"firstName": string;
 		"lastName": string;
 		"messageType": string;
+		"letterPreference": string;
 	};
 }
 
@@ -30,7 +31,7 @@ export interface ReminderEmailEventDynamic {
 }
 
 
-export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, personDetails: PersonIdentityItem): GovNotifyEvent => {
+export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, personDetails: PersonIdentityItem, letterPreference: string): GovNotifyEvent => {
 	const nameParts = personIdentityUtils.getNames(personDetails);
 
 	return {
@@ -41,6 +42,7 @@ export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: stri
 			firstName: nameParts.givenNames[0],
 			lastName: nameParts.familyNames[0],
 			messageType: Constants.PDF_EMAIL,
+			letterPreference
 		},
 	};
 };
