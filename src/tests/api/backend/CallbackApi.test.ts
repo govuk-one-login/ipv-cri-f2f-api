@@ -17,9 +17,9 @@ import {
 	validateJwtTokenNamePart,
 } from "./ApiTestSteps";
 import "dotenv/config";
-import { constants } from "./ApiConstants";
-import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "./ApiUtils";
-import { DocSelectionData } from "./types";
+import { constants } from "../ApiConstants";
+import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";
+import { DocSelectionData } from "../types";
 
 describe("/callback endpoint", () => {
 	jest.setTimeout(60000);

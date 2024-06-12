@@ -4,7 +4,7 @@ import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../../models/ISessionItem";
-import { constants } from "./ApiConstants";
+import { constants } from "../ApiConstants";
 import { jwtUtils } from "../../../utils/JwtUtils";
 import crypto from "node:crypto";
 import { sleep } from "../../../../src/utils/Sleep";
@@ -17,7 +17,7 @@ import {
 	TokenResponse,
 	UserInfoResponse,
 	SessionConfigResponse,
-} from "./types";
+} from "../types";
 
 const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOV_NOTIFY_API });
 const API_INSTANCE = axios.create({ baseURL: constants.DEV_CRI_F2F_API_URL });

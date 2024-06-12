@@ -12,7 +12,7 @@ import {
 	sessionConfigurationGet, 
 	postAbortSession, 
 } from "./ApiTestSteps";
-import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "./ApiUtils";
+import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
 import thinFilePayload from "../../data/thinFilePayload.json";
 import abortPayload from "../../data/abortPayload.json";
@@ -22,8 +22,8 @@ import dataEuDrivingLicence from "../../data/docSelectionPayloadEuDriversLicence
 import dataNonUkPassport from "../../data/docSelectionPayloadNonUkPassportValid.json";
 import dataBrp from "../../data/docSelectionPayloadBrpValid.json";
 import dataEeaIdCard from "../../data/docSelectionPayloadEeaIdCardValid.json";
-import { constants } from "./ApiConstants";
-import { DocSelectionData } from "./types";
+import { constants } from "../ApiConstants";
+import { DocSelectionData } from "../types";
 
 describe("/session endpoint", () => {
 

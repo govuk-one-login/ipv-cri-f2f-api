@@ -1,4 +1,4 @@
-import { BirthDate, Address, Name } from "../../../utils/IVeriCredential";
+import { BirthDate, Address, Name } from "../../utils/IVeriCredential";
 
 export interface DocSelectionData {
 	document_selection: {
