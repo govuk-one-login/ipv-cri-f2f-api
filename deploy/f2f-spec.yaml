@@ -1078,6 +1078,9 @@ components:
               type: string
               description: Fad code of post office
               example: "004010X"
+        letter_preference:
+          type: string
+          additionalProperties: false 
     JWKSFile:
       type: object
       required:
