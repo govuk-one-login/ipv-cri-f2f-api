@@ -43,10 +43,13 @@ HARNESS_API_INSTANCE.interceptors.request.use(awsSigv4Interceptor);
 
 const xmlParser = new XMLParser();
 
-export async function startStubServiceAndReturnSessionId(stubPayload: StubStartRequest): Promise<{ sessionId: string; sub: string;
+export async function startStubServiceAndReturnSessionId(stubPayload: StubStartRequest,thirdPartyClientId?:string): Promise<{ sessionId: string; sub: string;
 }> {
 	const stubResponse = await stubStartPost(stubPayload);
-	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+	if (thirdPartyClientId) {
+		clientId = thirdPartyClientId;
+	}
+	const postRequest = await sessionPost(clientId = thirdPartyClientId, stubResponse.data.request);
 
 	return {
 		sessionId: postRequest.data.session_id,
