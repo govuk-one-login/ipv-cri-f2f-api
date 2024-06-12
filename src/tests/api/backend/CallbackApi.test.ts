@@ -68,7 +68,7 @@ describe("/callback endpoint", () => {
 	])("F2F CRI Callback Endpoint - yotiMockId $yotiMockId", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; docSelectionData: DocSelectionData }) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
 
-		const { sessionId, sub } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		const { sessionId, sub } = await startStubServiceAndReturnSessionId(f2fStubPayload, process.env.thirdPartyClienId);
 
 		await initiateUserInfo(docSelectionData, sessionId);
 
