@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/indent */
+/* eslint-disable max-lines */
+/* eslint-disable complexity */
+/* eslint-disable max-len */
+/* eslint-disable max-lines-per-function */
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -71,6 +78,7 @@ export class DocumentSelectionRequestProcessor {
   	let countryCode;
   	let yotiSessionId;
 	let letterPreference;
+	let postalAddress;
 
   	if (!event.body) {
   		this.logger.error("No body present in post request", {
@@ -84,7 +92,9 @@ export class DocumentSelectionRequestProcessor {
   		postOfficeSelection = eventBody.post_office_selection;
   		selectedDocument = eventBody.document_selection.document_selected;
   		countryCode = eventBody.document_selection.country_code;
-		letterPreference = "letter"
+		letterPreference = eventBody.letter_preference;
+		postalAddress = eventBody.postal_address;
+		
   		if (!postOfficeSelection || !selectedDocument || !letterPreference) {
   			this.logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or letter_preference) in request payload", {
   				messageCode: MessageCodes.MISSING_MANDATORY_FIELDS,
@@ -282,7 +292,7 @@ export class DocumentSelectionRequestProcessor {
   	const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
 
   	if (!yotiSessionId) {
-		  this.logger.error("An error occurred when creating Yoti Session", { messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });
+		  this.logger.error("An error occurred when creating Yoti SessionDS288", { messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });
 	      throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when creating Yoti Session");
   	}
 
@@ -290,7 +300,7 @@ export class DocumentSelectionRequestProcessor {
   	const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId);
 
   	if (!yotiSessionInfo) {
-		  this.logger.error("An error occurred when fetching Yoti Session", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
+		  this.logger.error("An error occurred when fetching Yoti SessionDS296", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
   		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when fetching Yoti Session");
   	}
 
