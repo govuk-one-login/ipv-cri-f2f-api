@@ -11,7 +11,7 @@ import {
 	userInfoPost, 
 	sessionConfigurationGet, 
 	postAbortSession, 
-} from "./ApiTestSteps";
+} from "../ApiTestSteps";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
 import thinFilePayload from "../../data/thinFilePayload.json";

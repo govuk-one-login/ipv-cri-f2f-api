@@ -15,7 +15,7 @@ import {
 	getSessionById,
 	callbackPost,
 	validateJwtTokenNamePart,
-} from "./ApiTestSteps";
+} from "../ApiTestSteps";
 import "dotenv/config";
 import { constants } from "../ApiConstants";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";

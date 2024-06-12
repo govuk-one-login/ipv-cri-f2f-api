@@ -5,7 +5,7 @@ import {
 	getYotiSessionsConfiguration, 
 	putYotiSessionsInstructions, 
 	getYotiSessionsInstructions, 
-} from "../backend/ApiTestSteps";
+} from "../ApiTestSteps";
 
 describe("Yoti Stub", () => {
 	const postSessionsParams = [

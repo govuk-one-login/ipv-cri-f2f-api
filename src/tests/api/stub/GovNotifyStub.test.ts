@@ -3,7 +3,7 @@ import govNotifyRequestData from "../../data/govNotifyStubPayload.json";
 
 import { 
 	postGovNotifyRequest, 
-} from "../backend/ApiTestSteps";
+} from "../ApiTestSteps";
 
 describe("GovNotify Stub", () => {
 	const postGovNotifyParams = [

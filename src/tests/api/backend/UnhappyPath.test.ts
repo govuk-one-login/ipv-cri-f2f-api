@@ -8,7 +8,7 @@ import {
 	tokenPost, 
 	userInfoPost, 
 	sessionConfigurationGet,
-} from "./ApiTestSteps";
+} from "../ApiTestSteps";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
 import addressSessionPayload from "../../data/addressSessionPayload.json";
 import dataDriversLicenseInvalid from "../../data/docSelectionPayloadDriversLicenceInvalid.json";

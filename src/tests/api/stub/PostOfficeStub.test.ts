@@ -2,7 +2,7 @@
 import poStubPayloadData from "../../data/poStubPayload.json";
 import { 
 	postPOCodeRequest, 
-} from "../backend/ApiTestSteps";
+} from "../ApiTestSteps";
 import { POST_OFFICE_RESPONSE_INCOMPLETE_DATA } from "../../../../post-office-stub/src/data/postOfficeResponse/postOfficeResponseIncompleteData";
 
 
