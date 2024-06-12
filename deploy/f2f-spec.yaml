@@ -1080,7 +1080,47 @@ components:
               example: "004010X"
         letter_preference:
           type: string
-          additionalProperties: false 
+          additionalProperties: false
+        postal_address:
+          type: object
+          additionalProperties: false
+          required:
+            - addressLocality
+            - postalCode
+            - addressCountry
+          properties:
+            uprn:
+              type: string
+              description: Unique Property Reference Number
+              example: "123456789"
+            buildingNumber:
+              type: string
+              description: Number of building on street
+              example: "32"
+            buildingName:
+              type: string
+              description: Name of building
+              example: "Krelboyne Mansions"
+            subBuildingName:
+              type: string
+              description: Name of residential sub unit
+              example: "Flat 20"
+            streetName:
+              type: string
+              description: Name of street
+              example: "Boing Street"
+            addressLocality:
+              type: string
+              description: Name of conurbation
+              example: "London"
+            addressCountry:
+              type: string
+              description: Country name
+              example: "UK"
+            postalCode:
+              type: string
+              description: Postcode
+              example: "SW1A1AA"
     JWKSFile:
       type: object
       required:
