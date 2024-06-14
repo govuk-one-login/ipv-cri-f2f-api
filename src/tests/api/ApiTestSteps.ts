@@ -7,7 +7,7 @@ import { ISessionItem } from "../../models/ISessionItem";
 import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";
-import { sleep } from "../../../src/utils/Sleep";
+import { sleep } from "../../utils/Sleep";
 import {
 	StubStartRequest,
 	StubStartResponse,
