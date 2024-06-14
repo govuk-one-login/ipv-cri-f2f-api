@@ -36,9 +36,11 @@ export interface PersonEmailAddress {
 export interface PersonIdentityItem {
 	sessionId: string;
 	addresses: PersonIdentityAddress[];
+	postalAddress: PersonIdentityAddress;
 	name: PersonIdentityName[];
 	birthDate: PersonIdentityDateOfBirth[];
 	emailAddress: string;
+	letterPreference: string;
 	expiryDate: number;
 	createdDate: number;
 }
