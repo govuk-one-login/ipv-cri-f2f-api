@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable max-lines */
 /* eslint-disable no-console */
 import { ISessionItem } from "../models/ISessionItem";
@@ -33,6 +34,7 @@ export class F2fService {
 	private readonly environmentVariables: EnvironmentVariables;
 
 	private static instance: F2fService;
+	f2fService: any;
 
 	constructor(tableName: any, logger: Logger, dynamoDbClient: DynamoDBDocument) {
 		this.tableName = tableName;
@@ -209,7 +211,6 @@ export class F2fService {
 				MessageBody: messageBody,
 				QueueUrl: this.environmentVariables.getGovNotifyQueueURL(this.logger),
 			};
-			console.log("PINEAPPLE", params);
 			await createSqsClient().send(new SendMessageCommand(params));
 			this.logger.info("Sent message to Gov Notify");
 		} catch (error) {
@@ -461,6 +462,33 @@ export class F2fService {
 		return putSessionCommand?.input?.Item?.sessionId;
 	}
 
+	async addPostalAddress(
+		sessionId: string,
+		postalAddress: PersonIdentityAddress,
+	): Promise<void> {
+		const personDetails = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
+		const personDetailsAddressArray = personDetails?.addresses;
+		personDetailsAddressArray?.push(postalAddress)
+
+		const updateUserAddresses = new UpdateCommand({
+			TableName: this.environmentVariables.personIdentityTableName(),
+			Key: { sessionId },
+			UpdateExpression: "SET addresses = :addresses",
+			ExpressionAttributeValues: {
+				":addresses": personDetailsAddressArray,
+			},
+		});
+
+		this.logger.info({ message: "Updating person table with postal address", updateUserAddresses });
+		try {
+			await this.dynamo.send(updateUserAddresses);
+			this.logger.info({ message: "Updated address details in dynamodb" });
+		} catch (error) {
+			this.logger.error({ message: "Got error saving address details", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving address details");
+		}
+	}
+
 	async updateSessionAuthState(sessionId: string, authSessionState: string): Promise<void> {
 		const updateStateCommand = new UpdateCommand({
 			TableName: this.tableName,
@@ -537,26 +565,6 @@ export class F2fService {
 			this.logger.info({ message: `Updated ${tableName} with letterPreference` });
 		} catch (error) {
 			this.logger.error({ message: `Got error updating letterPreference in ${tableName}`, error });
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
-		}
-	}
-
-	async addPostalAddress(sessionId: string, postalAddress: string, tableName: string = this.tableName): Promise<void> {
-		const updateStateCommand = new UpdateCommand({
-			TableName: tableName,
-			Key: { sessionId },
-			UpdateExpression: "SET postalAddress = :postalAddress",
-			ExpressionAttributeValues: {
-				":postalAddress": postalAddress,
-			},
-		});
-
-		this.logger.info({ message: `Updating postalAddress in ${tableName}`, updateStateCommand });
-		try {
-			await this.dynamo.send(updateStateCommand);
-			this.logger.info({ message: `Updated ${tableName} with postalAddress` });
-		} catch (error) {
-			this.logger.error({ message: `Got error updating postalAddress in ${tableName}`, error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
 		}
 	}

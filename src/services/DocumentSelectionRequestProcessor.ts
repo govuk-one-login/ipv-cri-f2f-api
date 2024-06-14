@@ -94,7 +94,7 @@ export class DocumentSelectionRequestProcessor {
   		countryCode = eventBody.document_selection.country_code;
 		letterPreference = eventBody.letter_preference;
 		postalAddress = eventBody.postal_address;
-		
+
   		if (!postOfficeSelection || !selectedDocument || !letterPreference) {
   			this.logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or letter_preference) in request payload", {
   				messageCode: MessageCodes.MISSING_MANDATORY_FIELDS,
@@ -113,9 +113,21 @@ export class DocumentSelectionRequestProcessor {
   	this.logger.appendKeys({
   		govuk_signin_journey_id: f2fSessionInfo?.clientSessionId,
   	});
-	  await this.f2fService.addLetterPreference(sessionId, letterPreference, this.environmentVariables.personIdentityTableName());
-	  await this.f2fService.addPostalAddress(sessionId, postalAddress, this.environmentVariables.personIdentityTableName());
-  	const personDetails = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
+
+	await this.f2fService.addLetterPreference(sessionId, letterPreference, this.environmentVariables.personIdentityTableName());
+
+	const personDetailsForAddressCheck = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
+
+	if (personDetailsForAddressCheck?.addresses[0].uprn !== postalAddress.uprn) {
+		console.log("IN ADDRESS IF")
+		const updatedAddressArray = await this.f2fService.updatePersonIdentity(sessionId, postalAddress);
+		console.log("BINGO", updatedAddressArray)
+	}
+
+	const personDetails = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
+	//await this.f2fService.addPostalAddress(sessionId, postalAddress, this.environmentVariables.personIdentityTableName());
+
+  	// const personDetails = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
 	console.log("BANANA", personDetails);
 
   	if (!personDetails || !f2fSessionInfo) {
@@ -124,12 +136,6 @@ export class DocumentSelectionRequestProcessor {
   		});
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
   	}
-
-	
-
-	if (personDetails.addresses[0].uprn !== postalAddress.uprn) {
-		console.log("MATCH", postalAddress);
-	}
 		
 		//Initialise Yoti Service base on session client_id
 		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSessionInfo.clientId, this.logger);
@@ -361,7 +367,6 @@ export class DocumentSelectionRequestProcessor {
 	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
   	this.logger.info({ message: "Posting message to Gov Notify" });
   	try {
-		console.log("PEACH", personDetails)
   		await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
   	} catch (error) {
   		this.logger.error("Yoti session created, failed to post message to GovNotify SQS Queue", {
