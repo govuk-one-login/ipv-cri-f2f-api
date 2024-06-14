@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable no-console */
 import { Logger } from "@aws-lambda-powertools/logger";
 import crypto, { randomUUID } from "crypto";
@@ -153,7 +154,7 @@ export class YotiService {
 	): Promise<string | undefined> {
     	const sessionDeadlineDate = new Date(new Date().getTime() + this.YOTI_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000);
     	sessionDeadlineDate.setUTCHours(22, 0, 0, 0);
-
+		console.log("--------------157");
     	const payloadJSON: CreateSessionPayload = {
     		session_deadline: sessionDeadlineDate,
     		resources_ttl: this.RESOURCES_TTL_SECS,
@@ -190,31 +191,32 @@ export class YotiService {
     			),
     		},
     	};
-
+		console.log("--------------194");
     	if (selectedDocument.toUpperCase() === "UKPASSPORT") {
     		payloadJSON.required_documents[0].filter.allow_expired_documents = true;
     	}
-
+		console.log("--------------198");
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.POST,
     		payloadJSON: JSON.stringify(payloadJSON),
     		endpoint: "/sessions",
     	});
-
+		console.log("--------------204");
     	try {
+			console.log("--------------206");
     		const { data } = await axios.post(
     			yotiRequest.url,
     			payloadJSON,
     			yotiRequest.config,
     		);
-
+			console.log("--------------212");
     		this.logger.appendKeys({ yotiSessionId: data.session_id });
-
+			console.log("--------------214");
     		this.logger.info("Received response from Yoti for create /sessions");
     		return data.session_id;
     	} catch (error: any) {
     		const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
-    		this.logger.error({ message: "An error occurred when creating Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION, xRequestId });
+    		this.logger.error({ message: "An error occurred when creating Yoti sessionYS218", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION, xRequestId });
     		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session");
     	}
 	}
@@ -241,7 +243,6 @@ export class YotiService {
     	personDetails: PersonIdentityItem,
     	requirements: Array<{ requirement_id: string; document: { type: string; country_code: string; document_type: string } } | undefined>,
     	PostOfficeSelection: PostOfficeInfo,
-		letterPreference: string
 	):Promise<number | undefined> {
     	const nameParts = personIdentityUtils.getNames(personDetails);
     	const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(" ") : nameParts.givenNames[0];
@@ -258,7 +259,6 @@ export class YotiService {
     			type: UK_POST_OFFICE.type,
     			fad_code: PostOfficeSelection.fad_code,
     		},
-			letterPreference: letterPreference
     	};
 
     	const yotiRequest = this.generateYotiRequest({
