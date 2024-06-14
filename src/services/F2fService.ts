@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 /* eslint-disable no-console */
 import { ISessionItem } from "../models/ISessionItem";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -208,7 +209,7 @@ export class F2fService {
 				MessageBody: messageBody,
 				QueueUrl: this.environmentVariables.getGovNotifyQueueURL(this.logger),
 			};
-
+			console.log("PINEAPPLE", params);
 			await createSqsClient().send(new SendMessageCommand(params));
 			this.logger.info("Sent message to Gov Notify");
 		} catch (error) {
@@ -520,4 +521,43 @@ export class F2fService {
 		}
 	}
 
+	async addLetterPreference(sessionId: string, letterPreference: string, tableName: string = this.tableName): Promise<void> {
+		const updateStateCommand = new UpdateCommand({
+			TableName: tableName,
+			Key: { sessionId },
+			UpdateExpression: "SET letterPreference = :letterPreference",
+			ExpressionAttributeValues: {
+				":letterPreference": letterPreference,
+			},
+		});
+
+		this.logger.info({ message: `Updating letterPreference in ${tableName}`, updateStateCommand });
+		try {
+			await this.dynamo.send(updateStateCommand);
+			this.logger.info({ message: `Updated ${tableName} with letterPreference` });
+		} catch (error) {
+			this.logger.error({ message: `Got error updating letterPreference in ${tableName}`, error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
+		}
+	}
+
+	async addPostalAddress(sessionId: string, postalAddress: string, tableName: string = this.tableName): Promise<void> {
+		const updateStateCommand = new UpdateCommand({
+			TableName: tableName,
+			Key: { sessionId },
+			UpdateExpression: "SET postalAddress = :postalAddress",
+			ExpressionAttributeValues: {
+				":postalAddress": postalAddress,
+			},
+		});
+
+		this.logger.info({ message: `Updating postalAddress in ${tableName}`, updateStateCommand });
+		try {
+			await this.dynamo.send(updateStateCommand);
+			this.logger.info({ message: `Updated ${tableName} with postalAddress` });
+		} catch (error) {
+			this.logger.error({ message: `Got error updating postalAddress in ${tableName}`, error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
+		}
+	}
 }

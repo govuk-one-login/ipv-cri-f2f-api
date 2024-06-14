@@ -108,11 +108,15 @@ export class DocumentSelectionRequestProcessor {
   		return Response(HttpCodesEnum.SERVER_ERROR, "An error occurred parsing the payload");
   	}
 
+
   	const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
   	this.logger.appendKeys({
   		govuk_signin_journey_id: f2fSessionInfo?.clientSessionId,
   	});
+	  await this.f2fService.addLetterPreference(sessionId, letterPreference, this.environmentVariables.personIdentityTableName());
+	  await this.f2fService.addPostalAddress(sessionId, postalAddress, this.environmentVariables.personIdentityTableName());
   	const personDetails = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
+	console.log("BANANA", personDetails);
 
   	if (!personDetails || !f2fSessionInfo) {
   		this.logger.warn("Missing details in SESSION or PERSON IDENTITY tables", {
@@ -121,6 +125,12 @@ export class DocumentSelectionRequestProcessor {
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
   	}
 
+	
+
+	if (personDetails.addresses[0].uprn !== postalAddress.uprn) {
+		console.log("MATCH", postalAddress);
+	}
+		
 		//Initialise Yoti Service base on session client_id
 		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSessionInfo.clientId, this.logger);
 
@@ -149,10 +159,9 @@ export class DocumentSelectionRequestProcessor {
   				postOfficeSelection,
   				selectedDocument,
   				countryCode,
-				letterPreference
   			);
 			  if (yotiSessionId) {
-				  await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails, letterPreference);
+				  await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
 				  await this.f2fService.updateSessionWithYotiIdAndStatus(
   					f2fSessionInfo.sessionId,
   					yotiSessionId,
@@ -283,7 +292,6 @@ export class DocumentSelectionRequestProcessor {
   	personDetails: PersonIdentityItem,
   	f2fSessionInfo: ISessionItem,
   	postOfficeSelection: PostOfficeInfo,
-	letterPreference: string,
   	selectedDocument: string,
   	countryCode: string,
 	): Promise<string> {
@@ -340,7 +348,6 @@ export class DocumentSelectionRequestProcessor {
   		personDetails,
   		requirements,
   		postOfficeSelection,
-		letterPreference
   	);
 
   	if (generateInstructionsResponse !== HttpCodesEnum.OK) {
@@ -351,10 +358,11 @@ export class DocumentSelectionRequestProcessor {
   	return yotiSessionId;
 	}
 
-	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem, letterPreference: string): Promise<any> {
+	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
   	this.logger.info({ message: "Posting message to Gov Notify" });
   	try {
-  		await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails, letterPreference));
+		console.log("PEACH", personDetails)
+  		await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
   	} catch (error) {
   		this.logger.error("Yoti session created, failed to post message to GovNotify SQS Queue", {
   			error,

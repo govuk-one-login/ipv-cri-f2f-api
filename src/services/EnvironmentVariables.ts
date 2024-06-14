@@ -1,3 +1,5 @@
+/* eslint-disable complexity */
+/* eslint-disable max-lines-per-function */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
