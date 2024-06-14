@@ -120,7 +120,7 @@ export class DocumentSelectionRequestProcessor {
 
 	if (personDetailsForAddressCheck?.addresses[0].uprn !== postalAddress.uprn) {
 		console.log("IN ADDRESS IF")
-		const updatedAddressArray = await this.f2fService.updatePersonIdentity(sessionId, postalAddress);
+		const updatedAddressArray = await this.f2fService.addPostalAddress(sessionId, postalAddress);
 		console.log("BINGO", updatedAddressArray)
 	}
 
