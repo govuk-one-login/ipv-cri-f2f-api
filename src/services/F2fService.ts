@@ -441,30 +441,50 @@ export class F2fService {
 		return putSessionCommand?.input?.Item?.sessionId;
 	}
 
-	async addPostalAddress(
+	async userPostalPreferences(
 		sessionId: string,
+		letterPreference: string,
 		postalAddress: PersonIdentityAddress,
+		tableName: string = this.tableName,
 	): Promise<void> {
 		const personDetails = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
 		const personDetailsAddressArray = personDetails?.addresses;
-		personDetailsAddressArray?.push(postalAddress)
-
-		const updateUserAddresses = new UpdateCommand({
-			TableName: this.environmentVariables.personIdentityTableName(),
-			Key: { sessionId },
-			UpdateExpression: "SET addresses = :addresses",
-			ExpressionAttributeValues: {
-				":addresses": personDetailsAddressArray,
-			},
-		});
-
-		this.logger.info({ message: "Updating person table with postal address", updateUserAddresses });
-		try {
-			await this.dynamo.send(updateUserAddresses);
-			this.logger.info({ message: "Updated address details in dynamodb" });
-		} catch (error) {
-			this.logger.error({ message: "Got error saving address details", error });
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving address details");
+		if (personDetails?.addresses[0].uprn !== postalAddress.uprn) {
+			personDetailsAddressArray?.push(postalAddress);
+			const updateUserDetails = new UpdateCommand({
+				TableName: tableName,
+				Key: { sessionId },
+				UpdateExpression: "SET letterPreference = :letterPreference, addresses = :addresses",
+				ExpressionAttributeValues: {
+					":letterPreference": letterPreference,
+					":addresses": personDetailsAddressArray,
+				},
+			});
+			this.logger.info({ message: "Updating person table with letter preference and postal address", updateUserDetails });
+			try {
+				await this.dynamo.send(updateUserDetails);
+				this.logger.info({ message: "Updated letter preference and postal address details in dynamodb" });
+			} catch (error) {
+				this.logger.error({ message: "Got error saving letter preference or postal address details", error });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving letter preference or postal address details");
+			}
+		} else {
+			const updateUserPreference = new UpdateCommand({
+				TableName: tableName,
+				Key: { sessionId },
+				UpdateExpression: "SET letterPreference = :letterPreference",
+				ExpressionAttributeValues: {
+					":letterPreference": letterPreference,
+				},
+			});
+			this.logger.info({ message: `Updating letterPreference in ${tableName}`, updateUserPreference });
+			try {
+				await this.dynamo.send(updateUserPreference);
+				this.logger.info({ message: `Updated ${tableName} with letterPreference` });
+			} catch (error) {
+				this.logger.error({ message: `Got error updating letterPreference in ${tableName}`, error });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
+			}
 		}
 	}
 
