@@ -114,21 +114,9 @@ export class DocumentSelectionRequestProcessor {
   		govuk_signin_journey_id: f2fSessionInfo?.clientSessionId,
   	});
 
-	await this.f2fService.addLetterPreference(sessionId, letterPreference, this.environmentVariables.personIdentityTableName());
-
-	const personDetailsForAddressCheck = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
-
-	if (personDetailsForAddressCheck?.addresses[0].uprn !== postalAddress.uprn) {
-		console.log("IN ADDRESS IF")
-		const updatedAddressArray = await this.f2fService.addPostalAddress(sessionId, postalAddress);
-		console.log("BINGO", updatedAddressArray)
-	}
-
+	await this.f2fService.userPostalPreferences(sessionId, letterPreference, postalAddress, this.environmentVariables.personIdentityTableName());
+	
 	const personDetails = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
-	//await this.f2fService.addPostalAddress(sessionId, postalAddress, this.environmentVariables.personIdentityTableName());
-
-  	// const personDetails = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
-	console.log("BANANA", personDetails);
 
   	if (!personDetails || !f2fSessionInfo) {
   		this.logger.warn("Missing details in SESSION or PERSON IDENTITY tables", {
