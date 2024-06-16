@@ -1,6 +1,3 @@
-/* eslint-disable max-lines-per-function */
-/* eslint-disable max-lines */
-/* eslint-disable no-console */
 import { ISessionItem } from "../models/ISessionItem";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
@@ -34,6 +31,7 @@ export class F2fService {
 	private readonly environmentVariables: EnvironmentVariables;
 
 	private static instance: F2fService;
+
 	f2fService: any;
 
 	constructor(tableName: any, logger: Logger, dynamoDbClient: DynamoDBDocument) {
@@ -441,22 +439,22 @@ export class F2fService {
 		return putSessionCommand?.input?.Item?.sessionId;
 	}
 
-	async userPostalPreferences(
+	async userPdfPreferences(
 		sessionId: string,
-		letterPreference: string,
+		pdfPreference: string,
 		postalAddress: PersonIdentityAddress,
 		tableName: string = this.tableName,
 	): Promise<void> {
 		const personDetails = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
 		const personDetailsAddressArray = personDetails?.addresses;
-		if (personDetails?.addresses[0].uprn !== postalAddress.uprn) {
+		if (pdfPreference === "letter" && personDetails?.addresses[0].uprn !== postalAddress.uprn) {
 			personDetailsAddressArray?.push(postalAddress);
 			const updateUserDetails = new UpdateCommand({
 				TableName: tableName,
 				Key: { sessionId },
-				UpdateExpression: "SET letterPreference = :letterPreference, addresses = :addresses",
+				UpdateExpression: "SET pdfPreference = :pdfPreference, addresses = :addresses",
 				ExpressionAttributeValues: {
-					":letterPreference": letterPreference,
+					":pdfPreference": pdfPreference,
 					":addresses": personDetailsAddressArray,
 				},
 			});
@@ -472,17 +470,17 @@ export class F2fService {
 			const updateUserPreference = new UpdateCommand({
 				TableName: tableName,
 				Key: { sessionId },
-				UpdateExpression: "SET letterPreference = :letterPreference",
+				UpdateExpression: "SET pdfPreference = :pdfPreference",
 				ExpressionAttributeValues: {
-					":letterPreference": letterPreference,
+					":pdfPreference": pdfPreference,
 				},
 			});
-			this.logger.info({ message: `Updating letterPreference in ${tableName}`, updateUserPreference });
+			this.logger.info({ message: `Updating pdfPreference in ${tableName}`, updateUserPreference });
 			try {
 				await this.dynamo.send(updateUserPreference);
-				this.logger.info({ message: `Updated ${tableName} with letterPreference` });
+				this.logger.info({ message: `Updated ${tableName} with pdfPreference` });
 			} catch (error) {
-				this.logger.error({ message: `Got error updating letterPreference in ${tableName}`, error });
+				this.logger.error({ message: `Got error updating pdfPreference in ${tableName}`, error });
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
 			}
 		}
@@ -544,26 +542,6 @@ export class F2fService {
 			this.logger.info({ message: `Updated ${tableName} with documentUsed` });
 		} catch (error) {
 			this.logger.error({ message: `Got error updating documentUsed in ${tableName}`, error });
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
-		}
-	}
-
-	async addLetterPreference(sessionId: string, letterPreference: string, tableName: string = this.tableName): Promise<void> {
-		const updateStateCommand = new UpdateCommand({
-			TableName: tableName,
-			Key: { sessionId },
-			UpdateExpression: "SET letterPreference = :letterPreference",
-			ExpressionAttributeValues: {
-				":letterPreference": letterPreference,
-			},
-		});
-
-		this.logger.info({ message: `Updating letterPreference in ${tableName}`, updateStateCommand });
-		try {
-			await this.dynamo.send(updateStateCommand);
-			this.logger.info({ message: `Updated ${tableName} with letterPreference` });
-		} catch (error) {
-			this.logger.error({ message: `Got error updating letterPreference in ${tableName}`, error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
 		}
 	}

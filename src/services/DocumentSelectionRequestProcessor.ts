@@ -1,10 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/indent */
-/* eslint-disable max-lines */
-/* eslint-disable complexity */
-/* eslint-disable max-len */
-/* eslint-disable max-lines-per-function */
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -77,8 +70,8 @@ export class DocumentSelectionRequestProcessor {
   	let selectedDocument;
   	let countryCode;
   	let yotiSessionId;
-	let letterPreference;
-	let postalAddress;
+		let pdfPreference;
+		let postalAddress;
 
   	if (!event.body) {
   		this.logger.error("No body present in post request", {
@@ -92,11 +85,10 @@ export class DocumentSelectionRequestProcessor {
   		postOfficeSelection = eventBody.post_office_selection;
   		selectedDocument = eventBody.document_selection.document_selected;
   		countryCode = eventBody.document_selection.country_code;
-		letterPreference = eventBody.letter_preference;
-		postalAddress = eventBody.postal_address;
-
-  		if (!postOfficeSelection || !selectedDocument || !letterPreference) {
-  			this.logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or letter_preference) in request payload", {
+			pdfPreference = eventBody.pdf_preference;
+			postalAddress = eventBody.postal_address;
+  		if (!postOfficeSelection || !selectedDocument || !pdfPreference) {
+  			this.logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", {
   				messageCode: MessageCodes.MISSING_MANDATORY_FIELDS,
   			});
   			return new Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
@@ -114,10 +106,9 @@ export class DocumentSelectionRequestProcessor {
   		govuk_signin_journey_id: f2fSessionInfo?.clientSessionId,
   	});
 
-	await this.f2fService.userPostalPreferences(sessionId, letterPreference, postalAddress, this.environmentVariables.personIdentityTableName());
+		await this.f2fService.userPdfPreferences(sessionId, pdfPreference, postalAddress, this.environmentVariables.personIdentityTableName());
 	
-	const personDetails = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
-
+		const personDetails = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
   	if (!personDetails || !f2fSessionInfo) {
   		this.logger.warn("Missing details in SESSION or PERSON IDENTITY tables", {
   			messageCode: MessageCodes.SESSION_NOT_FOUND,
