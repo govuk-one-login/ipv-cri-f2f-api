@@ -10,7 +10,7 @@ export interface GovNotifyEvent {
 		"firstName": string;
 		"lastName": string;
 		"messageType": string;
-		"pdfPreference": string;
+		"pdfPreference"?: string;
 		"postalAddress"?: PersonIdentityAddress;
 	};
 }
@@ -32,9 +32,9 @@ export interface ReminderEmailEventDynamic {
 }
 
 
-export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, pdfPreference: string, personDetails: PersonIdentityItem): GovNotifyEvent => {
+export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, personDetails: PersonIdentityItem): GovNotifyEvent => {
 	const nameParts = personIdentityUtils.getNames(personDetails);
-	if (pdfPreference === "letter") {
+	if (personDetails.pdfPreference === "letter") {
 		const addressesLength = personDetails.addresses.length;
 		return {
 			Message : {
@@ -44,7 +44,7 @@ export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: stri
 				firstName: nameParts.givenNames[0],
 				lastName: nameParts.familyNames[0],
 				messageType: Constants.PDF_EMAIL,
-				pdfPreference,
+				pdfPreference: personDetails.pdfPreference,
 				postalAddress: {
 					uprn: personDetails.addresses[addressesLength - 1].uprn,
 					organisationName: personDetails.addresses[addressesLength - 1].organisationName,
@@ -73,7 +73,7 @@ export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: stri
 				firstName: nameParts.givenNames[0],
 				lastName: nameParts.familyNames[0],
 				messageType: Constants.PDF_EMAIL,
-				pdfPreference,
+				pdfPreference: personDetails.pdfPreference,
 			},
 		};
 	}

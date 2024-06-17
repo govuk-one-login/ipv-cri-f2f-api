@@ -91,6 +91,7 @@ function getPersonIdentityItem(): PersonIdentityItem {
 				],
 			},
 		],
+		"pdfPreference": "email",
 		expiryDate: 1612345678,
 		createdDate: 1612335678,
 	};
@@ -208,7 +209,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
-
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		const passportYotiStart = TXMA_PASSPORT_YOTI_START;
 		passportYotiStart.event_name = "F2F_YOTI_START";
@@ -223,7 +223,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	it("Should return successful response with 200 OK when non-UK passport used for YOTI session", async () => {
 		yotiSessionInfo.capture.required_resources[0].supported_countries[0].code = "ESP";
-
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 

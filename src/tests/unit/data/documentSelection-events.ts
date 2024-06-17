@@ -13,6 +13,7 @@ export const VALID_REQUEST = {
 			},
 			"post_code":"SW19 4NS",
 		},
+		"pdf_preference": "letter",
 	}),
 	headers: {
 		// pragma: allowlist secret
@@ -101,6 +102,7 @@ export const VALID_NON_UK_PASSPORT_REQUEST = {
 			},
 			"post_code":"SW19 4NS",
 		},
+		"pdf_preference": "email",
 	}),
 	headers: {
 		// pragma: allowlist secret
@@ -167,6 +169,7 @@ export const VALID_EEA_ID_CARD_REQUEST = {
 			},
 			"post_code":"SW19 4NS",
 		},
+		"pdf_preference": "email",
 	}),
 	headers: {
 		// pragma: allowlist secret

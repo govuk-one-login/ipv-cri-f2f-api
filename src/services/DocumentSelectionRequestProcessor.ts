@@ -1,3 +1,5 @@
+/* eslint-disable complexity */
+/* eslint-disable max-lines-per-function */
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -146,7 +148,7 @@ export class DocumentSelectionRequestProcessor {
   				countryCode,
   			);
 			  if (yotiSessionId) {
-				  await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, pdfPreference, personDetails);
+				  await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
 				  await this.f2fService.updateSessionWithYotiIdAndStatus(
   					f2fSessionInfo.sessionId,
   					yotiSessionId,
@@ -285,7 +287,7 @@ export class DocumentSelectionRequestProcessor {
   	const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
 
   	if (!yotiSessionId) {
-		  this.logger.error("An error occurred when creating Yoti SessionDS288", { messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });
+		  this.logger.error("An error occurred when creating Yoti Session", { messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });
 	      throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when creating Yoti Session");
   	}
 
@@ -293,7 +295,7 @@ export class DocumentSelectionRequestProcessor {
   	const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId);
 
   	if (!yotiSessionInfo) {
-		  this.logger.error("An error occurred when fetching Yoti SessionDS296", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
+		  this.logger.error("An error occurred when fetching Yoti Session", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
   		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when fetching Yoti Session");
   	}
 
@@ -343,10 +345,10 @@ export class DocumentSelectionRequestProcessor {
   	return yotiSessionId;
 	}
 
-	async postToGovNotify(sessionId: string, yotiSessionID: string, pdfPreference: string, personDetails: PersonIdentityItem): Promise<any> {
+	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
   	this.logger.info({ message: "Posting message to Gov Notify" });
   	try {
-  		await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, pdfPreference, personDetails));
+  		await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
   	} catch (error) {
   		this.logger.error("Yoti session created, failed to post message to GovNotify SQS Queue", {
   			error,

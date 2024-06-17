@@ -207,7 +207,7 @@ export class YotiService {
     		return data.session_id;
     	} catch (error: any) {
     		const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
-    		this.logger.error({ message: "An error occurred when creating Yoti sessionYS218", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION, xRequestId });
+    		this.logger.error({ message: "An error occurred when creating Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION, xRequestId });
     		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session");
     	}
 	}
@@ -217,7 +217,7 @@ export class YotiService {
     		method: HttpVerbsEnum.GET,
     		endpoint: `/sessions/${sessionId}/configuration`,
     	});
-
+		
     	try {
     		const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
 

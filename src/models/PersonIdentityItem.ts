@@ -41,6 +41,7 @@ export interface PersonIdentityItem {
 	emailAddress: string;
 	expiryDate: number;
 	createdDate: number;
+	pdfPreference?: string;
 }
 
 export interface SharedClaimsPersonIdentity {
