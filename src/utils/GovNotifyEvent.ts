@@ -32,9 +32,9 @@ export interface ReminderEmailEventDynamic {
 }
 
 
-export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, personDetails: PersonIdentityItem): GovNotifyEvent => {
+export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, pdfPreference: string, personDetails: PersonIdentityItem): GovNotifyEvent => {
 	const nameParts = personIdentityUtils.getNames(personDetails);
-	if (personDetails.pdfPreference === "letter") {
+	if (pdfPreference === "letter") {
 		const addressesLength = personDetails.addresses.length;
 		return {
 			Message : {

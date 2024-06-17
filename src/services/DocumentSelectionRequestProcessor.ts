@@ -148,7 +148,7 @@ export class DocumentSelectionRequestProcessor {
   				countryCode,
   			);
 			  if (yotiSessionId) {
-				  await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
+				  await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, pdfPreference, personDetails);
 				  await this.f2fService.updateSessionWithYotiIdAndStatus(
   					f2fSessionInfo.sessionId,
   					yotiSessionId,
@@ -345,10 +345,10 @@ export class DocumentSelectionRequestProcessor {
   	return yotiSessionId;
 	}
 
-	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
+	async postToGovNotify(sessionId: string, yotiSessionID: string, pdfPreference: string, personDetails: PersonIdentityItem): Promise<any> {
   	this.logger.info({ message: "Posting message to Gov Notify" });
   	try {
-  		await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
+  		await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, pdfPreference, personDetails));
   	} catch (error) {
   		this.logger.error("Yoti session created, failed to post message to GovNotify SQS Queue", {
   			error,
