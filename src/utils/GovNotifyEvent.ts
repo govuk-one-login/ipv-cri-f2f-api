@@ -73,7 +73,7 @@ export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: stri
 				firstName: nameParts.givenNames[0],
 				lastName: nameParts.familyNames[0],
 				messageType: Constants.PDF_EMAIL,
-				pdfPreference: personIdentityUtils.getpdfPreference(personDetails),
+				pdfPreference,
 			},
 		};
 	}
