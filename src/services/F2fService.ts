@@ -468,7 +468,7 @@ export class F2fService {
 	): Promise<void> {
 		const personDetails = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
 		const personDetailsAddressArray = personDetails?.addresses;
-		if (pdfPreference === "letter" && personDetails?.addresses[0].uprn !== postalAddress.uprn) {
+		if (pdfPreference === "letter" && postalAddress && personDetails?.addresses[0].uprn !== postalAddress.uprn) {
 			personDetailsAddressArray?.push(postalAddress);
 			const updateUserDetails = new UpdateCommand({
 				TableName: tableName,
