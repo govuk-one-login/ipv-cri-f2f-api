@@ -52,6 +52,7 @@ function getGovNotifyEventPayload(): GovNotifyEvent {
 			firstName: "John",
 			lastName: "Doe",
 			messageType: "email",
+			pdfPreference: "email",
 		},
 	};
 	return govNotifyEventPayload;

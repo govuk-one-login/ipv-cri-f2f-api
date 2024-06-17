@@ -63,15 +63,6 @@ export const personIdentityUtils = {
 		return personDetails.emailAddress;
 	},
 
-	getpdfPreference(personDetails: PersonIdentityItem): string {
-		return personDetails.pdfPreference;
-	},
-
-	getPostalAddress(personDetails: PersonIdentityItem): object {
-		return personDetails.postalAddress;
-	},
-
-
 	getYotiStructuredPostalAddress(address: PersonIdentityAddress, logger: Logger) : { address_format: number; building_number: string; sub_building: string; building: string; address_line1: string; address_line2: string; town_city: string; postal_code: string; country_iso: string; country: string } {
 
 		try {
