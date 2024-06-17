@@ -1,31 +1,11 @@
 /* eslint-disable max-lines-per-function */
-import govNotifyRequestData from "../data/govNotifyStubPayload.json";
-import yotiRequestData from "../data/yotiSessionsPayloadValid.json";
-import poStubPayloadData from "../data/poStubPayload.json";
+import yotiRequestData from "../../data/yotiSessionsPayloadValid.json";
 import { 
 	postYotiSession, 
 	getYotiSessionsConfiguration, 
 	putYotiSessionsInstructions, 
 	getYotiSessionsInstructions, 
-	postGovNotifyRequest, 
-	postPOCodeRequest, 
-} from "./ApiTestSteps";
-import { POST_OFFICE_RESPONSE_INCOMPLETE_DATA } from "../../../post-office-stub/src/data/postOfficeResponse/postOfficeResponseIncompleteData";
-
-describe("GovNotify Stub", () => {
-	const postGovNotifyParams = [
-		[400],
-		[403],
-		[429],
-		[500],
-		[201],
-	];
-	it.each(postGovNotifyParams)("GovNotify - expect '%i' response on POST/v2/notifications/email", async (govNotifyDelimitator: number) => {
-		const response = await postGovNotifyRequest(govNotifyDelimitator, govNotifyRequestData);
-		expect(response.status).toBe(govNotifyDelimitator);
-	});
-});
-
+} from "../ApiTestSteps";
 
 describe("Yoti Stub", () => {
 	const postSessionsParams = [
@@ -81,26 +61,3 @@ describe("Yoti Stub", () => {
 		expect(response.status).toBe(responseCode);
 	});
 });
-
-describe("Post Office Stub", () => {
-	const postPOParams = [
-		["400"],
-		["403"],
-		["429"],
-		["500"],
-		["200"],
-		["503"],
-	];
-
-	it.each(postPOParams)("Post Office Stub - expect '%i' response on POST/postoffice/locations/search", async (poStubDelimitator: string) => {
-		const response = await postPOCodeRequest(poStubDelimitator, poStubPayloadData);
-		expect(response.status).toBe(Number(poStubDelimitator));
-	});
-
-	it("returns 400 and the missing name error object when MNE fed as last 3 chars", async () => {
-		const response = await postPOCodeRequest("MNE", poStubPayloadData);
-		expect(response.status).toBe(400);
-		expect(response.data).toEqual(POST_OFFICE_RESPONSE_INCOMPLETE_DATA);
-	});
-});
-
