@@ -1084,14 +1084,6 @@ components:
         postal_address:
           type: object
           additionalProperties: false
-          required:
-            - uprn
-            - buildingNumber
-            - buildingName
-            - streetName
-            - addressLocality
-            - postalCode
-            - addressCountry
           properties:
             uprn:
               type: string
