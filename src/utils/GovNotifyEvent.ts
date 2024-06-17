@@ -1,5 +1,3 @@
-/* eslint-disable max-lines-per-function */
-/* eslint-disable max-len */
 import { PersonIdentityAddress, PersonIdentityItem } from "../models/PersonIdentityItem";
 import { Constants } from "./Constants";
 import { personIdentityUtils } from "./PersonIdentityUtils";
@@ -46,7 +44,7 @@ export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: stri
 				firstName: nameParts.givenNames[0],
 				lastName: nameParts.familyNames[0],
 				messageType: Constants.PDF_EMAIL,
-				pdfPreference: personIdentityUtils.getpdfPreference(personDetails),
+				pdfPreference,
 				postalAddress: {
 					uprn: personDetails.addresses[addressesLength - 1].uprn,
 					organisationName: personDetails.addresses[addressesLength - 1].organisationName,
