@@ -34,8 +34,6 @@ export interface PersonEmailAddress {
 }
 
 export interface PersonIdentityItem {
-	postalAddress: PersonIdentityAddress;
-	pdfPreference: string;
 	sessionId: string;
 	addresses: PersonIdentityAddress[];
 	name: PersonIdentityName[];
