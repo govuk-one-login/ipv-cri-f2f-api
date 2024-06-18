@@ -1,6 +1,7 @@
 import { PersonIdentityAddress, PersonIdentityItem } from "../models/PersonIdentityItem";
 import { Constants } from "./Constants";
 import { personIdentityUtils } from "./PersonIdentityUtils";
+import { PdfPreferenceEnum } from "./PdfPreferenceEnum";
 
 export interface GovNotifyEvent {
 	"Message": {
@@ -34,7 +35,7 @@ export interface ReminderEmailEventDynamic {
 
 export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, personDetails: PersonIdentityItem): GovNotifyEvent => {
 	const nameParts = personIdentityUtils.getNames(personDetails);
-	if (personDetails.pdfPreference === "letter") {
+	if (personDetails.pdfPreference === PdfPreferenceEnum.PRINTED_LETTER) {
 		const addressesLength = personDetails.addresses.length;
 		return {
 			Message : {

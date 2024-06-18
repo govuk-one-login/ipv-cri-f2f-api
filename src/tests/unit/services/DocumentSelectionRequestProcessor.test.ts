@@ -10,6 +10,7 @@ import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "../../../services/DocumentSelectionRequestProcessor";
 import {
+	MISSING_PDF_PREFERENCE,
 	VALID_EEA_ID_CARD_REQUEST,
 	VALID_NON_UK_PASSPORT_REQUEST,
 	VALID_REQUEST,
@@ -272,7 +273,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.body).toBe("Instructions PDF Generated");
 	});
 
-	it("Throw bad request error when personDetails is missing", async () => {
+	it("Throws bad request error when personDetails is missing", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(undefined);
 
@@ -282,6 +283,16 @@ describe("DocumentSelectionRequestProcessor", () => {
 		}));
 		expect(logger.warn).toHaveBeenNthCalledWith(1,
 			"Missing details in SESSION or PERSON IDENTITY tables", { "messageCode": "SESSION_NOT_FOUND" },
+		);
+	});
+
+	it("Throws bad request error when pdf_preference is missing from FE payload", async () => {
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(MISSING_PDF_PREFERENCE, "1234", encodedHeader)
+		
+		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
+		expect(out.body).toBe("Missing mandatory fields in request payload");
+		expect(logger.error).toHaveBeenCalledWith(
+			"Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", { messageCode: "MISSING_MANDATORY_FIELDS" },
 		);
 	});
 

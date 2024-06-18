@@ -21,6 +21,8 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { IPVCoreEvent } from "../utils/IPVCoreEvent";
 import { MessageCodes } from "../models/enums/MessageCodes";
+import { PdfPreferenceEnum } from "../utils/PdfPreferenceEnum";
+
 export class F2fService {
 	readonly tableName: string;
 
@@ -31,8 +33,6 @@ export class F2fService {
 	private readonly environmentVariables: EnvironmentVariables;
 
 	private static instance: F2fService;
-
-	f2fService: any;
 
 	constructor(tableName: any, logger: Logger, dynamoDbClient: DynamoDBDocument) {
 		this.tableName = tableName;
@@ -439,15 +439,15 @@ export class F2fService {
 		return putSessionCommand?.input?.Item?.sessionId;
 	}
 
-	async userPdfPreferences(
+	async saveUserPdfPreferences(
 		sessionId: string,
 		pdfPreference: string,
 		postalAddress: PersonIdentityAddress,
 		tableName: string = this.tableName,
-	): Promise<void> {
+	): Promise<PersonIdentityItem | undefined> {
 		const personDetails = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
 		const personDetailsAddressArray = personDetails?.addresses;
-		if (pdfPreference === "letter" && postalAddress && personDetails?.addresses[0].uprn !== postalAddress.uprn) {
+		if (pdfPreference === PdfPreferenceEnum.PRINTED_LETTER && postalAddress && personDetails?.addresses[0].uprn !== postalAddress.uprn) {
 			personDetailsAddressArray?.push(postalAddress);
 			const updateUserDetails = new UpdateCommand({
 				TableName: tableName,
@@ -457,8 +457,9 @@ export class F2fService {
 					":pdfPreference": pdfPreference,
 					":addresses": personDetailsAddressArray,
 				},
+				ReturnValues: "ALL_NEW",
 			});
-			this.logger.info({ message: "Updating person table with letter preference and postal address", updateUserDetails });
+			this.logger.info({ message: "Updating person table with letter preference and postal address" });
 			try {
 				await this.dynamo.send(updateUserDetails);
 				this.logger.info({ message: "Updated letter preference and postal address details in dynamodb" });
@@ -474,8 +475,9 @@ export class F2fService {
 				ExpressionAttributeValues: {
 					":pdfPreference": pdfPreference,
 				},
+				ReturnValues: "ALL_NEW",
 			});
-			this.logger.info({ message: `Updating pdfPreference in ${tableName}`, updateUserPreference });
+			this.logger.info({ message: `Updating pdfPreference in ${tableName}` });
 			try {
 				await this.dynamo.send(updateUserPreference);
 				this.logger.info({ message: `Updated ${tableName} with pdfPreference` });
@@ -484,6 +486,8 @@ export class F2fService {
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
 			}
 		}
+		const returnValue = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
+		return returnValue;
 	}
 
 	async updateSessionAuthState(sessionId: string, authSessionState: string): Promise<void> {

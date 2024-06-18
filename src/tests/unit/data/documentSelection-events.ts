@@ -1,3 +1,5 @@
+import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
+
 export const VALID_REQUEST = {
 	httpMethod: "POST",
 	body: JSON.stringify({
@@ -13,7 +15,7 @@ export const VALID_REQUEST = {
 			},
 			"post_code":"SW19 4NS",
 		},
-		"pdf_preference": "letter",
+		"pdf_preference": PdfPreferenceEnum.PRINTED_LETTER,
 	}),
 	headers: {
 		// pragma: allowlist secret
@@ -85,6 +87,24 @@ export const INVALID_SESSION_ID = {
 export const MISSING_SESSION_ID = {
 	...VALID_REQUEST,
 	headers: {},
+}
+;
+export const MISSING_PDF_PREFERENCE = {
+	...VALID_REQUEST,
+	body: JSON.stringify({
+		"document_selection":{
+			"document_selected":"ukPassport",
+			"date_of_expiry":"1970-01-01",
+		},
+		"post_office_selection":{
+			"address":"1 The Street, Funkytown",
+			"location":{
+				"latitude":0.34322,
+				"longitude":-42.48372,
+			},
+			"post_code":"SW19 4NS",
+		},
+	}),
 };
 
 export const VALID_NON_UK_PASSPORT_REQUEST = {
@@ -102,7 +122,7 @@ export const VALID_NON_UK_PASSPORT_REQUEST = {
 			},
 			"post_code":"SW19 4NS",
 		},
-		"pdf_preference": "email",
+		"pdf_preference": PdfPreferenceEnum.EMAIL_ONLY,
 	}),
 	headers: {
 		// pragma: allowlist secret
@@ -169,7 +189,7 @@ export const VALID_EEA_ID_CARD_REQUEST = {
 			},
 			"post_code":"SW19 4NS",
 		},
-		"pdf_preference": "email",
+		"pdf_preference": PdfPreferenceEnum.EMAIL_ONLY,
 	}),
 	headers: {
 		// pragma: allowlist secret
