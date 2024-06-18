@@ -45,13 +45,7 @@ const xmlParser = new XMLParser();
 
 export async function startStubServiceAndReturnSessionId(stubPayload: StubStartRequest): Promise<{ sessionId: string; sub: string;
 }> {
-	if (constants.THIRD_PARTY_CLIENT_ID) {
-		stubPayload.clientId = constants.THIRD_PARTY_CLIENT_ID;
-	} 
-	console.log("Stub Payload: " + JSON.stringify(stubPayload));
-	
 	const stubResponse = await stubStartPost(stubPayload);
-
 	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 
 	return {
@@ -62,6 +56,9 @@ export async function startStubServiceAndReturnSessionId(stubPayload: StubStartR
 
 export async function stubStartPost(stubPayload: StubStartRequest): Promise<AxiosResponse<StubStartResponse>> {
 	const path = constants.DEV_IPV_F2F_STUB_URL;
+	if (constants.THIRD_PARTY_CLIENT_ID) {
+		stubPayload.clientId = constants.THIRD_PARTY_CLIENT_ID;
+	} 
 	try {
 		const postRequest = await axios.post(`${path}`, stubPayload);
 		expect(postRequest.status).toBe(201);
