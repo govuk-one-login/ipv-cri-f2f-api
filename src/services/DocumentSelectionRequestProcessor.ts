@@ -87,8 +87,8 @@ export class DocumentSelectionRequestProcessor {
   		postOfficeSelection = eventBody.post_office_selection;
   		selectedDocument = eventBody.document_selection.document_selected;
   		countryCode = eventBody.document_selection.country_code;
-		pdfPreference = eventBody.pdf_preference;
-		postalAddress = eventBody.postal_address;
+			pdfPreference = eventBody.pdf_preference;
+			postalAddress = eventBody.postal_address;
 		
   		if (!postOfficeSelection || !selectedDocument || !pdfPreference) {
   			this.logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", {
