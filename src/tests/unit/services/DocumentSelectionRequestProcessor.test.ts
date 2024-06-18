@@ -288,7 +288,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	});
 
 	it("Throws bad request error when pdf_preference is missing from FE payload", async () => {
-		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(MISSING_PDF_PREFERENCE, "1234", encodedHeader)
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(MISSING_PDF_PREFERENCE, "1234", encodedHeader);
 		
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 		expect(out.body).toBe("Missing mandatory fields in request payload");
