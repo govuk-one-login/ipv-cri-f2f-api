@@ -1,16 +1,16 @@
 /* eslint-disable max-lines-per-function */
-import { 
-	sessionPost, 
-	stubStartPost, 
-	postDocumentSelection, 
-	startStubServiceAndReturnSessionId, 
-	getSessionById, 
-	getSessionAndVerifyKey, 
-	authorizationGet, 
-	tokenPost, 
-	userInfoPost, 
-	sessionConfigurationGet, 
-	postAbortSession, 
+import {
+	sessionPost,
+	stubStartPost,
+	postDocumentSelection,
+	startStubServiceAndReturnSessionId,
+	getSessionById,
+	getSessionAndVerifyKey,
+	authorizationGet,
+	tokenPost,
+	userInfoPost,
+	sessionConfigurationGet,
+	postAbortSession,
 } from "../ApiTestSteps";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
@@ -60,7 +60,9 @@ describe("/documentSelection Endpoint", () => {
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 3);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: yotiStartSchema }, allTxmaEventBodies);
-		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_EMAILED", schemaName: "F2F_YOTI_PDF_EMAILED_SCHEMA" }, allTxmaEventBodies);
+		if (!constants.THIRD_PARTY_CLIENT_ID) {
+			validateTxMAEventData({ eventName: "F2F_YOTI_PDF_EMAILED", schemaName: "F2F_YOTI_PDF_EMAILED_SCHEMA" }, allTxmaEventBodies);
+		}
 	});
 
 	it("Successful Request Tests - Validate Session Expiry is Updated after Document Selection", async () => {
@@ -82,7 +84,7 @@ describe("/documentSelection Endpoint", () => {
 
 		expect(Number(updatedYotiSessionExpiry)).toBeGreaterThan(Number(initinalYotiSessionExpiry));
 	});
-	
+
 	it.each([
 		{ buildingNumber: "32", buildingName: "", subBuildingName: "" },
 		{ buildingNumber: "", buildingName: "19 A", subBuildingName: "" },
@@ -126,7 +128,9 @@ describe("/authorization endpoint", () => {
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 5);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: yotiStartSchema }, allTxmaEventBodies);
-		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_EMAILED", schemaName: "F2F_YOTI_PDF_EMAILED_SCHEMA" }, allTxmaEventBodies);
+		if (!constants.THIRD_PARTY_CLIENT_ID) {
+			validateTxMAEventData({ eventName: "F2F_YOTI_PDF_EMAILED", schemaName: "F2F_YOTI_PDF_EMAILED_SCHEMA" }, allTxmaEventBodies);
+		}
 		validateTxMAEventData({ eventName: "F2F_CRI_AUTH_CODE_ISSUED", schemaName: "F2F_CRI_AUTH_CODE_ISSUED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_CRI_END", schemaName: "F2F_CRI_END_SCHEMA" }, allTxmaEventBodies);
 	});

@@ -18,6 +18,7 @@ export interface DocSelectionData {
 }
 
 export interface StubStartRequest {
+	clientId?: string;
 	yotiMockID: string;
 	shared_claims: {
 		name: Name[];
