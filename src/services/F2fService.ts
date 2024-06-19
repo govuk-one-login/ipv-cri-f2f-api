@@ -442,7 +442,7 @@ export class F2fService {
 	async saveUserPdfPreferences(
 		sessionId: string,
 		pdfPreference: string,
-		postalAddress: PersonIdentityAddress,
+		postalAddress?: PersonIdentityAddress,
 		tableName: string = this.tableName,
 	): Promise<PersonIdentityItem | undefined> {
 		const personDetails = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
@@ -457,7 +457,6 @@ export class F2fService {
 					":pdfPreference": pdfPreference,
 					":addresses": personDetailsAddressArray,
 				},
-				ReturnValues: "ALL_NEW",
 			});
 			this.logger.info({ message: "Updating person table with letter preference and postal address" });
 			try {
@@ -475,7 +474,6 @@ export class F2fService {
 				ExpressionAttributeValues: {
 					":pdfPreference": pdfPreference,
 				},
-				ReturnValues: "ALL_NEW",
 			});
 			this.logger.info({ message: `Updating pdfPreference in ${tableName}` });
 			try {
