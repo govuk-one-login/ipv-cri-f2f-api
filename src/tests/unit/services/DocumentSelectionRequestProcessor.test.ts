@@ -22,7 +22,7 @@ import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { TXMA_NATIONAL_ID_YOTI_START, TXMA_PASSPORT_YOTI_START } from "../data/txmaEvent";
-import { APIGatewayProxyResult } from "aws-lambda";
+import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
 
 let mockDocumentSelectionRequestProcessor: DocumentSelectionRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -93,7 +93,7 @@ function getPersonIdentityItem(): PersonIdentityItem {
 				],
 			},
 		],
-		"pdfPreference": "email",
+		"pdfPreference": PdfPreferenceEnum.EMAIL_ONLY,
 		expiryDate: 1612345678,
 		createdDate: 1612335678,
 	};
@@ -203,6 +203,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it("Return successful response with 200 OK when YOTI session created", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -227,6 +228,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		yotiSessionInfo.capture.required_resources[0].supported_countries[0].code = "ESP";
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -253,6 +255,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -300,6 +303,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it("Should update the TTL on both Session & Person Identity Tables", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -320,6 +324,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it("Should save the documentUsed type in session table", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -340,6 +345,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		};
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
@@ -359,6 +365,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
 		personIdentityItem.emailAddress = " ";
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
@@ -378,6 +385,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
 		personIdentityItem.name = [];
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
@@ -410,6 +418,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 			},
 		];
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
@@ -442,6 +451,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 			},
 		];
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
@@ -455,6 +465,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it("Throw server error if Yoti Session creation fails", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce(undefined);
 
@@ -474,6 +485,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it("Throw server error if Yoti Session info fetch fails", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -495,6 +507,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it("Throw server error if Yoti pdf generation fails", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
+
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -519,6 +533,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it("Return 200 when write to txMA fails", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
+
 		mockF2fService.sendToTXMA.mockRejectedValue({});
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
@@ -538,6 +554,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it("Throws server error if failure to send to GovNotify queue", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -564,6 +581,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it("Return 500 when updating the session returns an error", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -584,6 +602,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it("Return 500 when updating the TTLs returns an error", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -607,6 +626,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it("Return 500 when add users documentUsed returns an error", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
