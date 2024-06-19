@@ -11,13 +11,16 @@ import { TxmaEvent } from "../../../utils/TxmaEvent";
 import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { personIdentityInputRecord, personIdentityOutputRecord } from "../data/personIdentity-records";
+import { postalAddressInputRecord } from "../data/postalAddress-events";
 import { createSqsClient } from "../../../utils/SqsClient";
 import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
+import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
 
 const logger = mock<Logger>();
 let f2fService: F2fService;
 const tableName = "SESSIONTABLE";
+const personTableName = "PERSONTABLE";
 const sessionId = "SESSID";
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
 const mockSqsClient = createSqsClient();
@@ -456,6 +459,43 @@ describe("F2f Service", () => {
 			message: "updateItem - failed: got error updating SESSIONTABLE",
 		}));
 	});	
+
+	it("should add user PDF instructions preference to the person record", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		await f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.EMAIL_ONLY, undefined, personTableName);
+		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
+			input: {
+				ExpressionAttributeValues: {
+					":pdfPreference": PdfPreferenceEnum.EMAIL_ONLY,
+				},
+				Key: {
+					sessionId,
+				},
+				TableName: personTableName,
+				UpdateExpression: "SET pdfPreference = :pdfPreference",
+			},
+		}));
+	});
+
+	it("should add user PDF instructions preference and postal address to the person record", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: personIdentityOutputRecord });
+		await f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressInputRecord, personTableName);
+		expect(mockDynamoDbClient.send).toHaveBeenNthCalledWith(2, expect.objectContaining({
+			input: {
+				ExpressionAttributeValues: {
+					":pdfPreference": PdfPreferenceEnum.PRINTED_LETTER,
+					":addresses": [personIdentityOutputRecord.addresses[0], postalAddressInputRecord],
+				},
+				Key: {
+					sessionId,
+				},
+				TableName: personTableName,
+				UpdateExpression: "SET pdfPreference = :pdfPreference, addresses = :addresses",
+			},
+			
+		}),
+		);
+	});
 
 	describe("obfuscateJSONValues", () => {
 		it("should obfuscate all fields except those in txmaFieldsToShow", async () => {
