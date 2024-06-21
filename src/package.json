@@ -29,11 +29,14 @@
     "express-asyncify": "^2.1.2",
     "jose": "^5.2.1",
     "lodash": "^4.17.21",
+    "node-fetch": "^3.3.2",
     "node-jose": "^2.1.1",
     "notifications-node-client": "^7.0.0",
     "npm-run-all": "^4.1.5"
   },
   "scripts": {
+    "install": "npm run setup-python-env",
+		"setup-python-env": "python3 -m venv venv && ./venv/bin/pip install PyPDF2 weasyprint && ./venv/bin/pip freeze > requirements.txt",
     "unit": "./node_modules/.bin/jest --testPathPattern=tests/unit --coverage",
     "test:unit": "npm run compile && npm run unit",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c .eslintrc.js --ext .ts .",
@@ -52,13 +55,13 @@
     "test:pii": "bash ./check-logs.sh",
     "kill:dynamodblocal": "cd tests/contract; ./scripts/kill-dynamodb-local.sh",
     "start:dynamodblocal": "cd tests/contract; ./scripts/setup-dynamodb-local.sh",
-		"test:pactconnection": "cd tests/contract; ./scripts/test-pact-connection.sh",
+    "test:pactconnection": "cd tests/contract; ./scripts/test-pact-connection.sh",
     "start:contract": "npm-run-all -s start:dynamodblocal test:pactconnection wait-start:contract",
     "wait-start:contract": "wait-on tcp:127.0.0.1:8000 && cd tests/contract && ts-node ./app.ts",
     "test:provider": "./node_modules/.bin/jest --testMatch '**/contract/F2fCriProvider.test.ts' --coverage=false",
     "test:contract": "wait-on tcp:127.0.0.1:3000; cd tests/contract; npm run test:provider && npm run kill:dynamodblocal",
     "test:contract:ci": "dotenv -e.env.contract -- npm-run-all -p -r start:contract test:contract",
-		"deploy": "cd ../deploy ; sam build && sam deploy --config-env dev --resolve-s3 ; cd src/"
+    "deploy": "cd ../deploy ; sam build && sam deploy --config-env dev --resolve-s3 ; cd src/"
   },
   "devDependencies": {
     "@aws-cdk/assertions": "^1.172.0",

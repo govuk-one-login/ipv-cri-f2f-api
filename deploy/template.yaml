@@ -801,13 +801,13 @@ Resources:
                 - "kms:Decrypt"
                 - "kms:GenerateDataKey"
               Resource: !GetAtt TxMAKMSEncryptionKey.Arn
-      Events:
-        session:
-          Type: Api
-          Properties:
-            Path: /session
-            Method: post
-            RestApiId: !Ref F2FRestApi
+      # Events:
+      #   session:
+      #     Type: Api
+      #     Properties:
+      #       Path: /session
+      #       Method: post
+      #       RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
@@ -817,6 +817,33 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - SessionHandler.ts
+
+  PdfFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: SessionFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-PDFMerge-${AWS::StackName}"
+      Handler: session_handler.lambda_handler
+      CodeUri: ../src/
+      Runtime: python3.8
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+      Events:
+        session:
+          Type: Api
+          Properties:
+            Path: /session
+            Method: post
+            RestApiId: !Ref F2FRestApi
+
+    Metadata: # Manage build properties for Python
+      BuildMethod: makefile
 
   SessionFunctionLogGroup:
     Type: AWS::Logs::LogGroup
