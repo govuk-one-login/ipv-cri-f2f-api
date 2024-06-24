@@ -301,6 +301,5 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-MockYotiApiGatewayId
   F2FYotiStubURL:
-    Condition: IsNotProdLikeEnvironment
     Description: "F2F Yoti Stub"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, YOTIBASEURLTWO]
