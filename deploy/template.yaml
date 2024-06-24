@@ -368,6 +368,11 @@ Globals:
 
 Resources:
 
+  Functions:
+    Type: AWS::Include
+    Properties:
+      Location: ./f2f-functions.yaml
+
   # Log metric filter and alarm for S3 bucket policy changes
   S3BucketActivityEventMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
@@ -740,84 +745,6 @@ Resources:
 
   ### End of API Gateway Custom Domain definition
 
-  ### Function Definition
-  ## SessionHandler
-  SessionFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: SessionFunctionLogGroup
-    Properties:
-      FunctionName: !Sub "F2F-Session-${AWS::StackName}"
-      Handler: SessionHandler.lambdaHandler
-      CodeUri: ../src/
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Environment:
-        Variables:
-          AUTH_SESSION_TTL_SECS:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
-          POWERTOOLS_SERVICE_NAME: SessionHandler
-          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-          PERSON_IDENTITY_TABLE_NAME:
-            Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-          TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          ENCRYPTION_KEY_IDS:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSXrayWriteOnlyAccess
-        - DynamoDBWritePolicy:
-            TableName:
-              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
-        - DynamoDBWritePolicy:
-            TableName:
-              Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-id"
-        - Statement:
-            - Sid: KMSPolicy
-              Effect: Allow
-              Action:
-                - kms:*
-              Resource:
-                "*"
-              #Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-              #Resource: !Sub "arn:aws:kms:eu-west-2:060113405249:key/ff437a51-ec7e-4118-9c95-7b0bb2856836"
-        - Statement:
-            - Effect: Allow
-              Action:
-                - "sqs:SendMessage"
-              Resource: !GetAtt TxMASQSQueue.Arn
-            - Effect: Allow
-              Action:
-                - "kms:Encrypt"
-                - "kms:Decrypt"
-                - "kms:GenerateDataKey"
-              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
-      Events:
-        session:
-          Type: Api
-          Properties:
-            Path: /session
-            Method: post
-            RestApiId: !Ref F2FRestApi
-
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - SessionHandler.ts
-
   SessionFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -1009,49 +936,6 @@ Resources:
             Period: 300
             Stat: Sum
 
-
-  ## SessionConfiguration
-
-  SessionConfigFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: SessionConfigFunctionLogGroup
-    Properties:
-      FunctionName: !Sub "F2F-SessionConfig-${AWS::StackName}"
-      Handler: SessionConfigHandler.lambdaHandler
-      CodeUri: ../src/
-      Environment:
-        Variables:
-          POWERTOOLS_SERVICE_NAME: SessionConfigHandler
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSXrayWriteOnlyAccess
-        - DynamoDBWritePolicy:
-            TableName:
-              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
-
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-id"
-      Events:
-        session:
-          Type: Api
-          Properties:
-            Path: /sessionConfiguration
-            Method: get
-            RestApiId: !Ref F2FRestApi
-
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - SessionConfigHandler.ts
-
   SessionConfigFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -1128,63 +1012,7 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  ## AccessToken
-  TokenFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: TokenFunctionLogGroup
-    Properties:
-      FunctionName: !Sub "Access-Token-${AWS::StackName}"
-      Handler: AccessTokenHandler.lambdaHandler
-      CodeUri: ../src/
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Environment:
-        Variables:
-          POWERTOOLS_SERVICE_NAME: AccessTokenHandler
-          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-          TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-          DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSXrayWriteOnlyAccess
-        - DynamoDBWritePolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-key-id"
-        - Statement:
-            - Sid: KMSPolicy
-              Effect: Allow
-              Action:
-                - kms:Sign
-              Resource:
-                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-      Events:
-        userInfo:
-          Type: Api
-          Properties:
-            Path: /token
-            Method: post
-            RestApiId: !Ref F2FRestApi
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - AccessTokenHandler.ts
+  
 
   TokenFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1294,65 +1122,6 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
-
-  AuthorizationFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: AuthorizationFunctionLogGroup
-    Properties:
-      FunctionName: !Sub "F2F-Authorization-${AWS::StackName}"
-      Handler: AuthorizationCodeHandler.lambdaHandler
-      CodeUri: ../src/
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Environment:
-        Variables:
-          POWERTOOLS_SERVICE_NAME: AuthorizationCodeHandler
-          TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSXrayWriteOnlyAccess
-        - DynamoDBWritePolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-key-id"
-        - Statement:
-            - Effect: Allow
-              Action:
-                - "sqs:SendMessage"
-              Resource: !GetAtt TxMASQSQueue.Arn
-            - Effect: Allow
-              Action:
-                - "kms:Encrypt"
-                - "kms:Decrypt"
-                - "kms:GenerateDataKey"
-              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
-      Events:
-        authorization:
-          Type: Api
-          Properties:
-            Path: /authorization
-            Method: get
-            RestApiId: !Ref F2FRestApi
-
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - AuthorizationCodeHandler.ts
 
   AuthorizationFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1468,101 +1237,6 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  DocumentSelectionFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: DocumentSelectionLogGroup
-    Properties:
-      FunctionName: !Sub "Document-Selection-${AWS::StackName}"
-      Handler: DocumentSelectionHandler.lambdaHandler
-      CodeUri: ../src/
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Environment:
-        Variables:
-          POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
-          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-          AUTH_SESSION_TTL_SECS:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
-          PERSON_IDENTITY_TABLE_NAME:
-            Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
-          YOTICALLBACKURL: !If
-            - CreateDevResources
-            - !Sub
-              - "https://api-${AWS::StackName}.${DNSSUFFIX}/callback"
-              - DNSSUFFIX:
-                  !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
-            - !Sub
-              - "https://api.${DNSSUFFIX}/callback"
-              - DNSSUFFIX:
-                  !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
-          GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
-          TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
-          YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSXrayWriteOnlyAccess
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
-        - DynamoDBReadPolicy:
-            TableName: !ImportValue
-              Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
-        - DynamoDBWritePolicy:
-            TableName: !ImportValue
-              Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
-        - DynamoDBReadPolicy:
-            TableName: !ImportValue
-              Fn::Sub: "${L2DynamoStackName}-session-table-name"
-        - DynamoDBWritePolicy:
-            TableName: !ImportValue
-              Fn::Sub: "${L2DynamoStackName}-session-table-name"
-        - KMSDecryptPolicy:
-            KeyId: !ImportValue
-              Fn::Sub: "${L2DynamoStackName}-person-identity-table-key-id"
-        - KMSDecryptPolicy:
-            KeyId: !ImportValue
-              Fn::Sub: "${L2DynamoStackName}-session-table-key-id"
-        - Statement:
-            - Effect: Allow
-              Action:
-                - "sqs:SendMessage"
-              Resource: !GetAtt [TxMASQSQueue, Arn]
-            - Effect: Allow
-              Action:
-                - "kms:Encrypt"
-                - "kms:Decrypt"
-                - "kms:GenerateDataKey"
-              Resource: !GetAtt [TxMAKMSEncryptionKey, Arn]
-        - Statement:
-            - Effect: Allow
-              Action:
-                - "sqs:SendMessage"
-              Resource: !GetAtt [GovNotifySQSQueue, Arn]
-            - Effect: Allow
-              Action:
-                - "kms:Encrypt"
-                - "kms:Decrypt"
-                - "kms:GenerateDataKey"
-              Resource: !GetAtt [GovNotifyEncryptionKey, Arn]
-      Events:
-        documentSelection:
-          Type: Api
-          Properties:
-            Path: /documentSelection
-            Method: post
-            RestApiId: !Ref F2FRestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - DocumentSelectionHandler.ts
-
   DocumentSelectionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -1671,63 +1345,6 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
-
-  AbortFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: AbortLogGroup
-    Properties:
-      FunctionName: !Sub "Abort-${AWS::StackName}"
-      Handler: AbortHandler.lambdaHandler
-      CodeUri: ../src/
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Environment:
-        Variables:
-          POWERTOOLS_SERVICE_NAME: AbortHandler
-          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-          TXMA_QUEUE_URL: !Ref TxMASQSQueue
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSXrayWriteOnlyAccess
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
-        - DynamoDBWritePolicy:
-            TableName: !ImportValue
-              Fn::Sub: "${L2DynamoStackName}-session-table-name"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-key-id"
-        - Statement:
-            - Effect: Allow
-              Action:
-                - "sqs:SendMessage"
-              Resource: !GetAtt [TxMASQSQueue, Arn]
-            - Effect: Allow
-              Action:
-                - "kms:Encrypt"
-                - "kms:Decrypt"
-                - "kms:GenerateDataKey"
-              Resource: !GetAtt [TxMAKMSEncryptionKey, Arn]
-      Events:
-        abort:
-          Type: Api
-          Properties:
-            Path: /abort
-            Method: post
-            RestApiId: !Ref F2FRestApi
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - AbortHandler.ts
 
   AbortLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1875,54 +1492,6 @@ Resources:
         - alias/TxMAKMSEncryptionKey
       TargetKeyId: !Ref TxMAKMSEncryptionKey
 
-  JsonWebKeysFunction:
-    Type: AWS::Serverless::Function
-    DependsOn:
-      - "JsonWebKeysLogGroup"
-    Properties:
-      FunctionName: !Sub "JsonWebKeys-${AWS::StackName}"
-      CodeUri: ../src/
-      Handler: JwksHandler.lambdaHandler
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Policies:
-        - AWSXRayDaemonWriteAccess
-        - S3WritePolicy:
-            BucketName: !Ref JsonWebKeysBucket
-        - S3ReadPolicy:
-            BucketName: !Ref JsonWebKeysBucket
-        - Statement:
-            - Sid: KMSSignPolicy
-              Effect: Allow
-              Action:
-                - kms:GetPublicKey
-              Resource:
-                - Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-                - Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
-      Events:
-        InvocationLevel:
-          Type: Schedule
-          Properties:
-            Schedule: cron(0 * * * ? *)
-
-      Environment:
-        Variables:
-          JWKS_BUCKET_NAME: !Ref JsonWebKeysBucket
-          SIGNING_KEY_IDS:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-          ENCRYPTION_KEY_IDS:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: true
-        EntryPoints:
-          - JwksHandler.ts
-
   JsonWebKeysLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -2023,83 +1592,6 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  GovNotifyFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: GovNotifyFunctionLogGroup
-    Properties:
-      FunctionName: !Sub "F2F-GovNotify-${AWS::StackName}"
-      Handler: GovNotifyHandler.lambdaHandler
-      CodeUri: ../src/
-      Timeout: 300
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Environment:
-        Variables:
-          POWERTOOLS_SERVICE_NAME: GovNotifyHandler
-          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-          TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          REMINDER_EMAIL_GOVUKNOTIFY_API: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI ]
-          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
-          GOVUKNOTIFY_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]
-          GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]
-          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
-          GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
-          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSXrayWriteOnlyAccess
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
-        - DynamoDBWritePolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-key-id"
-        - Statement:
-            - Effect: Allow
-              Action:
-                - "sqs:SendMessage"
-              Resource: !GetAtt TxMASQSQueue.Arn
-            - Effect: Allow
-              Action:
-                - "kms:Encrypt"
-                - "kms:Decrypt"
-                - "kms:GenerateDataKey"
-              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
-            - Effect: Allow
-              Action:
-                - "kms:Decrypt"
-              Resource: !GetAtt GovNotifyEncryptionKey.Arn
-      Events:
-        SQSEvent:
-          Type: SQS
-          Properties:
-            Queue: !GetAtt GovNotifySQSQueue.Arn
-            BatchSize: 1
-            Enabled: true
-            FunctionResponseTypes:
-              - ReportBatchItemFailures
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - GovNotifyHandler.ts
-
   GovNotifyFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -2187,70 +1679,6 @@ Resources:
       Threshold: !Ref LambdaConcurrencyThreshold
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
-
-  ## UserInfo
-  UserInfoFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: UserInfoFunctionLogGroup
-    Properties:
-      FunctionName: !Sub "User-Info-${AWS::StackName}"
-      Handler: UserInfoHandler.lambdaHandler
-      CodeUri: ../src/
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Environment:
-        Variables:
-          POWERTOOLS_SERVICE_NAME: UserInfoHandler
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-          TXMA_QUEUE_URL: !Ref TxMASQSQueue
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSXrayWriteOnlyAccess
-        - DynamoDBWritePolicy:
-            TableName:
-              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-id"
-        - Statement:
-            - Sid: KMSPolicy
-              Effect: Allow
-              Action:
-                - kms:Verify
-              Resource:
-                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-        - Statement:
-            - Effect: Allow
-              Action:
-                - "sqs:SendMessage"
-              Resource: !GetAtt TxMASQSQueue.Arn
-            - Effect: Allow
-              Action:
-                - "kms:Encrypt"
-                - "kms:Decrypt"
-                - "kms:GenerateDataKey"
-              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
-      Events:
-        userInfo:
-          Type: Api
-          Properties:
-            Path: /userinfo
-            Method: post
-            RestApiId: !Ref F2FRestApi
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - UserInfoHandler.ts
 
   UserInfoFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2365,80 +1793,6 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
-
-  ## ReminderEmailHandler
-  ReminderEmailFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: ReminderEmailFunctionLogGroup
-    Properties:
-      FunctionName: !Sub "F2F-ReminderEmail-${AWS::StackName}"
-      Handler: ReminderEmailHandler.lambdaHandler
-      CodeUri: ../src/
-      Timeout: 900
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Environment:
-        Variables:
-          POWERTOOLS_SERVICE_NAME: ReminderEmailHandler
-          GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
-          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
-          PERSON_IDENTITY_TABLE_NAME:
-            Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-          ENCRYPTION_KEY_IDS:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSXrayWriteOnlyAccess
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
-        - DynamoDBWritePolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-person-identity-table-name"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-key-id"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-person-identity-table-key-id"
-        - Statement:
-            - Effect: Allow
-              Action:
-                - "sqs:SendMessage"
-              Resource: !GetAtt [GovNotifySQSQueue, Arn]
-            - Effect: Allow
-              Action:
-                - "kms:Encrypt"
-                - "kms:Decrypt"
-                - "kms:GenerateDataKey"
-              Resource: !GetAtt [GovNotifyEncryptionKey, Arn]
-      Events:
-        ScheduledEvent:
-          Type: Schedule
-          Properties:
-            Schedule: cron(0 * * * ? *)
-
-
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - ReminderEmailHandler.ts
 
   ReminderEmailFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2646,67 +2000,6 @@ Resources:
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
 
-  TriggerYotiCallbackStateMachine:
-    Type: AWS::Serverless::Function
-    DependsOn: TriggerYotiCallbackStateMachineLogGroup
-    Properties:
-      FunctionName: !Sub "F2F-TriggerYotiCallbackStateMachine-${AWS::StackName}"
-      Handler: TriggerYotiCallbackStateMachineHandler.lambdaHandler
-      CodeUri: ../src/
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Environment:
-        Variables:
-          POWERTOOLS_SERVICE_NAME: TriggerYotiCallbackStateMachineHandler
-          STATE_MACHINE_ARN: !GetAtt YotiCallbackStateMachine.Arn
-      Policies:
-        - AWSXrayWriteOnlyAccess
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
-        - Statement:
-            - Effect: Allow
-              Action:
-                - "kms:Decrypt"
-              Resource: !GetAtt YotiCallbackEncryptionKey.Arn
-        - Statement:
-            - Sid: KMSPolicy
-              Effect: Allow
-              Action:
-                - kms:Verify
-                - kms:Sign
-              Resource:
-                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-        -  Statement:
-              - Effect: Allow
-                Action:
-                  - "sqs:SendMessage"
-                  - "sqs:ReceiveMessage"
-                Resource: !GetAtt YotiCallbackQueue.Arn
-        -  Statement:
-              - Effect: Allow
-                Action:
-                  - "states:StartExecution"
-                Resource: !GetAtt YotiCallbackStateMachine.Arn
-      Events:
-        SQSEvent:
-          Type: SQS
-          Properties:
-            Queue: !GetAtt YotiCallbackQueue.Arn
-            BatchSize: 1
-            Enabled: true
-            FunctionResponseTypes:
-              - ReportBatchItemFailures
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - TriggerYotiCallbackStateMachineHandler.ts
-
   TriggerYotiCallbackStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -2833,103 +2126,6 @@ Resources:
             - "Arn"
         maxReceiveCount: 10
 
-  YotiCallbackFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: YotiCallbackFunctionLogGroup
-    Properties:
-      FunctionName: !Sub "F2F-YotiCallback-${AWS::StackName}"
-      Handler: YotiSessionCompletionHandler.lambdaHandler
-      CodeUri: ../src/
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Environment:
-        Variables:
-          POWERTOOLS_SERVICE_NAME: YotiSessionCompletionHandler
-          PERSON_IDENTITY_TABLE_NAME:
-            Fn::ImportValue:
-              !Sub "${L2DynamoStackName}-person-identity-table-name"
-          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-          TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
-          FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: 5000
-          FETCH_YOTI_SESSION_MAX_RETRIES: 3
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-          DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
-          IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSXrayWriteOnlyAccess
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
-        - DynamoDBWritePolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-key-id"
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-person-identity-table-name"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-person-identity-table-key-id"
-        - Statement:
-            - Effect: Allow
-              Action:
-                - "kms:Decrypt"
-              Resource: !GetAtt YotiCallbackEncryptionKey.Arn
-        - Statement:
-            - Sid: KMSPolicy
-              Effect: Allow
-              Action:
-                - kms:Verify
-                - kms:Sign
-              Resource:
-                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-        - Statement:
-          - Effect: Allow
-            Action:
-              - "sqs:SendMessage"
-            Resource: !GetAtt TxMASQSQueue.Arn
-          - Effect: Allow
-            Action:
-              - "kms:Encrypt"
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: !GetAtt TxMAKMSEncryptionKey.Arn
-        - Statement:
-          - Effect: Allow
-            Action:
-              - "sqs:SendMessage"
-            Resource: !GetAtt IPVCoreSQSQueue.Arn
-          - Effect: Allow
-            Action:
-              - "kms:Encrypt"
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: !GetAtt IPVCoreQueueEncryptionKey.Arn
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - YotiSessionCompletionHandler.ts
-
   YotiCallbackFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -2955,85 +2151,6 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref YotiCallbackFunction
       Principal: apigateway.amazonaws.com
-
-  ThankYouEmailFunction:
-    Type: AWS::Serverless::Function
-    DependsOn: ThankYouEmailFunctionLogGroup
-    Properties:
-      FunctionName: !Sub "F2F-ThankYouEmail-${AWS::StackName}"
-      Handler: ThankYouEmailHandler.lambdaHandler
-      CodeUri: ../src/
-      ReservedConcurrentExecutions: !If
-        - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
-        - !Ref AWS::NoValue
-      Environment:
-        Variables:
-          POWERTOOLS_SERVICE_NAME: ThankYouEmailHandler
-          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-          TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
-          FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: 5000
-          FETCH_YOTI_SESSION_MAX_RETRIES: 3
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSXrayWriteOnlyAccess
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
-        - DynamoDBReadPolicy:
-            TableName:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-name"
-        - KMSDecryptPolicy:
-            KeyId:
-              Fn::ImportValue:
-                !Sub "${L2DynamoStackName}-session-table-key-id"
-        - Statement:
-            - Effect: Allow
-              Action:
-                - "kms:Decrypt"
-              Resource: !GetAtt YotiCallbackEncryptionKey.Arn
-        - Statement:
-            - Sid: KMSPolicy
-              Effect: Allow
-              Action:
-                - kms:Verify
-                - kms:Sign
-              Resource:
-                Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-        - Statement:
-          - Effect: Allow
-            Action:
-              - "sqs:SendMessage"
-            Resource: !GetAtt TxMASQSQueue.Arn
-          - Effect: Allow
-            Action:
-              - "kms:Encrypt"
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: !GetAtt TxMAKMSEncryptionKey.Arn
-        - Statement:
-          - Effect: Allow
-            Action:
-              - "sqs:SendMessage"
-            Resource: !GetAtt IPVCoreSQSQueue.Arn
-          - Effect: Allow
-            Action:
-              - "kms:Encrypt"
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: !GetAtt IPVCoreQueueEncryptionKey.Arn
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - ThankYouEmailHandler.ts
 
   ThankYouEmailFunctionLogGroup:
     Type: AWS::Logs::LogGroup
