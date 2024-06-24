@@ -741,6 +741,24 @@ Resources:
   ### End of API Gateway Custom Domain definition
 
   ### Function Definition
+
+  PdfFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: SessionFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-Session-${AWS::StackName}"
+      Handler: session_handler.lambda_handler
+      CodeUri: ../src/
+      Runtime: python3.8
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+
   ## SessionHandler
   SessionFunction:
     Type: AWS::Serverless::Function
