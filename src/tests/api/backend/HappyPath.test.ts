@@ -18,6 +18,7 @@ import thinFilePayload from "../../data/thinFilePayload.json";
 import abortPayload from "../../data/abortPayload.json";
 import dataPassport from "../../data/docSelectionPayloadPassportValid.json";
 import dataUkDrivingLicence from "../../data/docSelectionPayloadDriversLicenceValid.json";
+import dataUkDrivingLicencePrintedLetter from "../../data/docSelectionPayloadDriversLicenceValidPrintedLetter.json";
 import dataEuDrivingLicence from "../../data/docSelectionPayloadEuDriversLicenceValid.json";
 import dataNonUkPassport from "../../data/docSelectionPayloadNonUkPassportValid.json";
 import dataBrp from "../../data/docSelectionPayloadBrpValid.json";
@@ -97,7 +98,30 @@ describe("/documentSelection Endpoint", () => {
 		newf2fStubPayload.shared_claims.address[0].subBuildingName = subBuildingName;
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
+		const docSelect = structuredClone(dataUkDrivingLicence);
+		docSelect.pdf_preference = "EMAIl_ONLY";
 		const response = await postDocumentSelection(dataUkDrivingLicence, sessionId);
+		expect(response.status).toBe(200);
+
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
+	});
+
+	it.each([
+		{ buildingNumber: "32", buildingName: "", subBuildingName: "" },
+		{ buildingNumber: "", buildingName: "19 A", subBuildingName: "" },
+		{ buildingNumber: "", buildingName: "", subBuildingName: "Flat 5" },
+		{ buildingNumber: "", buildingName: "19 A", subBuildingName: "Flat 5" },
+	])("Successful Request Tests - $PrintedLetter", async ({ buildingNumber, buildingName, subBuildingName }: { buildingNumber: string; buildingName: string; subBuildingName: string }) => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.shared_claims.address[0].buildingNumber = buildingNumber;
+		newf2fStubPayload.shared_claims.address[0].buildingName = buildingName;
+		newf2fStubPayload.shared_claims.address[0].subBuildingName = subBuildingName;
+		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+
+		const docSelect = structuredClone(dataUkDrivingLicencePrintedLetter);
+		docSelect.pdf_preference = "PRINTED_LETTER";
+		docSelect.postal_address.preferredAddress = true;
+		const response = await postDocumentSelection(dataUkDrivingLicencePrintedLetter, sessionId);
 		expect(response.status).toBe(200);
 
 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
