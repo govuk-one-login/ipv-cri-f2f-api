@@ -10,7 +10,7 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { TxmaEvent } from "../../../utils/TxmaEvent";
 import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
-import { personIdentityInputRecord, personIdentityOutputRecord } from "../data/personIdentity-records";
+import { personIdentityInputRecord, personIdentityOutputRecord, personIdentityOutputRecordTwoAddresses } from "../data/personIdentity-records";
 import { postalAddressSameInputRecord, postalAddressDifferentInputRecord } from "../data/postalAddress-events";
 import { createSqsClient } from "../../../utils/SqsClient";
 import { SendMessageCommand } from "@aws-sdk/client-sqs";
@@ -479,13 +479,13 @@ describe("F2f Service", () => {
 	});
 
 	it("should add user PDF instructions preference and postal address to the person record if letter chosen and postal address is different to shared claims", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: personIdentityOutputRecord });
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: personIdentityOutputRecordTwoAddresses });
 		await f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressDifferentInputRecord, personTableName);
 		expect(mockDynamoDbClient.send).toHaveBeenNthCalledWith(2, expect.objectContaining({
 			input: {
 				ExpressionAttributeValues: {
 					":pdfPreference": PdfPreferenceEnum.PRINTED_LETTER,
-					":addresses": [personIdentityOutputRecord.addresses[0], postalAddressDifferentInputRecord],
+					":addresses": [personIdentityOutputRecordTwoAddresses.addresses[0], postalAddressDifferentInputRecord],
 				},
 				Key: {
 					sessionId,

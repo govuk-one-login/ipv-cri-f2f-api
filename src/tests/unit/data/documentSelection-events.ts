@@ -107,6 +107,209 @@ export const MISSING_PDF_PREFERENCE = {
 	}),
 };
 
+export const MISSING_UPRN = {
+	...VALID_REQUEST,
+	body: JSON.stringify({
+		"document_selection":{
+			"document_selected":"ukPassport",
+			"date_of_expiry":"1970-01-01",
+		},
+		"post_office_selection":{
+			"address":"1 The Street, Funkytown",
+			"location":{
+				"latitude":0.34322,
+				"longitude":-42.48372,
+			},
+			"post_code":"SW19 4NS",
+		},
+		"pdf_preference": "PRINTED_LETTER",
+		"postal_address": 
+            {
+            	"buildingNumber": "2",
+            	"buildingName": "The Cave",
+            	"streetName": "Rocky Road",
+            	"addressLocality": "Bedrock",
+            	"postalCode": "R1 0CK",
+            	"addressCountry": "CARTOONLAND",
+            	"preferredAddress": true,
+            },
+	}),
+};
+
+export const MISSING_BUILDING_NUMBER_AND_BUILDING_NAME = {
+	...VALID_REQUEST,
+	body: JSON.stringify({
+		"document_selection":{
+			"document_selected":"ukPassport",
+			"date_of_expiry":"1970-01-01",
+		},
+		"post_office_selection":{
+			"address":"1 The Street, Funkytown",
+			"location":{
+				"latitude":0.34322,
+				"longitude":-42.48372,
+			},
+			"post_code":"SW19 4NS",
+		},
+		"pdf_preference": "PRINTED_LETTER",
+		"postal_address": 
+            {
+            	"uprn": 1235,
+            	"streetName": "Rocky Road",
+            	"addressLocality": "Bedrock",
+            	"postalCode": "R1 0CK",
+            	"addressCountry": "CARTOONLAND",
+            	"preferredAddress": true,
+            },
+	}),
+};
+
+export const MISSING_STREET_NAME = {
+	...VALID_REQUEST,
+	body: JSON.stringify({
+		"document_selection":{
+			"document_selected":"ukPassport",
+			"date_of_expiry":"1970-01-01",
+		},
+		"post_office_selection":{
+			"address":"1 The Street, Funkytown",
+			"location":{
+				"latitude":0.34322,
+				"longitude":-42.48372,
+			},
+			"post_code":"SW19 4NS",
+		},
+		"pdf_preference": "PRINTED_LETTER",
+		"postal_address": 
+            {
+            	"uprn": 1235,
+            	"buildingNumber": "2",
+            	"buildingName": "The Cave",
+            	"addressLocality": "Bedrock",
+            	"postalCode": "R1 0CK",
+            	"addressCountry": "CARTOONLAND",
+            	"preferredAddress": true,
+            },
+	}),
+};
+
+export const MISSING_ADDRESS_LOCALITY = {
+	...VALID_REQUEST,
+	body: JSON.stringify({
+		"document_selection":{
+			"document_selected":"ukPassport",
+			"date_of_expiry":"1970-01-01",
+		},
+		"post_office_selection":{
+			"address":"1 The Street, Funkytown",
+			"location":{
+				"latitude":0.34322,
+				"longitude":-42.48372,
+			},
+			"post_code":"SW19 4NS",
+		},
+		"pdf_preference": "PRINTED_LETTER",
+		"postal_address": 
+            {
+            	"uprn": 1235,
+            	"buildingNumber": "2",
+            	"buildingName": "The Cave",
+            	"streetName": "Rocky Road",
+            	"postalCode": "R1 0CK",
+            	"addressCountry": "CARTOONLAND",
+            	"preferredAddress": true,
+            },
+	}),
+};
+
+export const MISSING_ADDRESS_COUNTRY = {
+	...VALID_REQUEST,
+	body: JSON.stringify({
+		"document_selection":{
+			"document_selected":"ukPassport",
+			"date_of_expiry":"1970-01-01",
+		},
+		"post_office_selection":{
+			"address":"1 The Street, Funkytown",
+			"location":{
+				"latitude":0.34322,
+				"longitude":-42.48372,
+			},
+			"post_code":"SW19 4NS",
+		},
+		"pdf_preference": "PRINTED_LETTER",
+		"postal_address": 
+            {
+            	"uprn": 1235,
+            	"buildingNumber": "2",
+            	"buildingName": "The Cave",
+            	"streetName": "Rocky Road",
+            	"addressLocality": "Bedrock",
+            	"postalCode": "R1 0CK",
+            	"preferredAddress": true,
+            },
+	}),
+};
+
+export const MISSING_POSTAL_CODE = {
+	...VALID_REQUEST,
+	body: JSON.stringify({
+		"document_selection":{
+			"document_selected":"ukPassport",
+			"date_of_expiry":"1970-01-01",
+		},
+		"post_office_selection":{
+			"address":"1 The Street, Funkytown",
+			"location":{
+				"latitude":0.34322,
+				"longitude":-42.48372,
+			},
+			"post_code":"SW19 4NS",
+		},
+		"pdf_preference": "PRINTED_LETTER",
+		"postal_address": 
+            {
+            	"uprn": 1235,
+            	"buildingNumber": "2",
+            	"buildingName": "The Cave",
+            	"streetName": "Rocky Road",
+            	"addressLocality": "Bedrock",
+            	"addressCountry": "CARTOONLAND",
+            	"preferredAddress": true,
+            },
+	}),
+};
+
+export const MISSING_PREFERRED_ADDRESS = {
+	...VALID_REQUEST,
+	body: JSON.stringify({
+		"document_selection":{
+			"document_selected":"ukPassport",
+			"date_of_expiry":"1970-01-01",
+		},
+		"post_office_selection":{
+			"address":"1 The Street, Funkytown",
+			"location":{
+				"latitude":0.34322,
+				"longitude":-42.48372,
+			},
+			"post_code":"SW19 4NS",
+		},
+		"pdf_preference": "PRINTED_LETTER",
+		"postal_address": 
+            {
+            	"uprn": 123456787,
+            	"buildingNumber": "32",
+            	"buildingName": "London",
+            	"subBuildingName": "Flat 20",
+            	"streetName": "Demo",
+            	"addressLocality": "London",
+            	"addressCountry": "GB",
+            	"postalCode": "SW19",
+            },
+	}),
+};
+
 export const VALID_NON_UK_PASSPORT_REQUEST = {
 	httpMethod: "POST",
 	body: JSON.stringify({

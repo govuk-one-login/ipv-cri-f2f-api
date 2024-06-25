@@ -10,10 +10,17 @@ import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "../../../services/DocumentSelectionRequestProcessor";
 import {
-	MISSING_PDF_PREFERENCE,
 	VALID_EEA_ID_CARD_REQUEST,
 	VALID_NON_UK_PASSPORT_REQUEST,
 	VALID_REQUEST,
+	MISSING_PDF_PREFERENCE,
+	MISSING_UPRN,
+	MISSING_BUILDING_NUMBER_AND_BUILDING_NAME,
+	MISSING_STREET_NAME,
+	MISSING_ADDRESS_LOCALITY,
+	MISSING_ADDRESS_COUNTRY,
+	MISSING_POSTAL_CODE,
+	MISSING_PREFERRED_ADDRESS,
 } from "../data/documentSelection-events";
 import { YotiService } from "../../../services/YotiService";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
@@ -66,6 +73,7 @@ function getPersonIdentityItem(): PersonIdentityItem {
 				"postalCode": "F1 1SH",
 				"buildingNumber": "32",
 				"addressLocality": "Sidney",
+				"preferredAddress": true,
 			},
 		],
 		"sessionId": "RandomF2FSessionID",
@@ -290,13 +298,31 @@ describe("DocumentSelectionRequestProcessor", () => {
 		);
 	});
 
-	it("Throws bad request error when pdf_preference is missing from FE payload", async () => {
+	it("Returns bad request response when pdf_preference is missing from FE payload", async () => {
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(MISSING_PDF_PREFERENCE, "1234", encodedHeader);
 		
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 		expect(out.body).toBe("Missing mandatory fields in request payload");
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", { messageCode: "MISSING_MANDATORY_FIELDS" },
+		);
+	});
+
+	it.each([
+		MISSING_UPRN,
+		MISSING_BUILDING_NUMBER_AND_BUILDING_NAME,
+		MISSING_STREET_NAME,
+		MISSING_ADDRESS_LOCALITY,
+		MISSING_ADDRESS_COUNTRY,
+		MISSING_POSTAL_CODE,
+		MISSING_PREFERRED_ADDRESS,
+	])("Returns bad request response when postal_address is present but mandatory fields within postal_address are missing from FE payload", async (payload) => {
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(payload, "1234", encodedHeader);
+		
+		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
+		expect(out.body).toBe("Missing mandatory fields in postal address");
+		expect(logger.error).toHaveBeenCalledWith(
+			"Postal address missing mandatory fields in postal address", { messageCode: "MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS" },
 		);
 	});
 

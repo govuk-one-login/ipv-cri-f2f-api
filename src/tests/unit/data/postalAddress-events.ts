@@ -8,16 +8,16 @@ export const postalAddressSameInputRecord: PersonIdentityAddress = {
 	addressLocality: "Bedrock",
 	postalCode: "R1 0CK",
 	addressCountry: "CARTOONLAND",
-	
+	preferredAddress: true,
 };
 
 export const postalAddressDifferentInputRecord: PersonIdentityAddress = {
 	uprn: 1235,
-	buildingNumber: "32",
-	buildingName: "London",
-	subBuildingName: "Flat 20",
-	streetName: "Demo",
-	addressLocality: "London",
-	addressCountry: "GB",
-	postalCode: "SW19",
+	buildingNumber: "2",
+	buildingName: "The Cave",
+	streetName: "Rocky Road",
+	addressLocality: "Bedrock",
+	postalCode: "R1 0CK",
+	addressCountry: "CARTOONLAND",
+	preferredAddress: true,
 };
