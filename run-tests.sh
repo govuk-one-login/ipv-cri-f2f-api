@@ -21,6 +21,9 @@ run_tests() {
 # Navigate to script directory
 cd /src
 
+# Initialize error_code
+error_code=0
+
 # Configuration based on SAM_STACK_NAME
 case "$SAM_STACK_NAME" in
     "f2f-yoti-stub")
