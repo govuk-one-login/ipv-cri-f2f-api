@@ -1,4 +1,4 @@
-# IPV Stub 
+# IPV Stub
 If there are requirements for data contract changes between IPV Core and CRIs, then please do not use the default stack to build and deploy and instead use a different stack with
 similar naming convention - i.e 
 ``` bash

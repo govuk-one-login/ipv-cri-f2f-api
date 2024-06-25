@@ -1,6 +1,6 @@
-name: Deploy Main to Dev Env
+name: Deploy Backend API Stack
+
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches:
       - main
@@ -11,25 +11,35 @@ on:
       - 'test-harness/**'
       - 'post-office-stub/**'
       - 'infra-l2-outbound-proxy/**'
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy to which environment?'
+        required: true
+        type: choice
+        options:
+          - DEV
+          - BUILD
 
 permissions:
   id-token: write
   contents: read
 
-env: # Only adding the variables in that are required for
+env:
   AWS_REGION: eu-west-2
   DEV_F2F_TEST_HARNESS_URL: ${{ secrets.DEV_TEST_HARNESS_API_ENDPOINT }}
+  BUILD_F2F_TEST_HARNESS_URL: ${{ secrets.BUILD_TEST_HARNESS_API_ENDPOINT }}
 
 jobs:
-  deploy-to-dev:
-    name: Validate & Deploy SAM template to Dev Environment
+  deploy:
+    name: Validate & Deploy SAM template
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./deploy/
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.environments) }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -42,7 +52,7 @@ jobs:
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.DEV_CRI_F2F_GH_ACTIONS_ROLE_ARN }}
+          role-to-assume: ${{ secrets[format('{0}_CRI_F2F_GH_ACTIONS_ROLE_ARN', matrix.environment)] }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: SAM Validate
@@ -54,7 +64,15 @@ jobs:
       - name: Deploy SAM app
         uses: alphagov/di-devplatform-upload-action@v3
         with:
-            artifact-bucket-name: ${{ secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME }}
-            signing-profile-name: ${{ secrets.DEV_CRI_F2F_SIGNING_PROFILE_NAME }}
+            artifact-bucket-name: ${{ secrets[format('{0}_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
+            signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
             working-directory: deploy
             template-file: template.yaml
+
+  setup:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      environments: '["DEV", "BUILD"]'
+    steps:
+      - run: echo "Setting up environments"

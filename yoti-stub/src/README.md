@@ -1,1 +1,0 @@
-# Yoti stub 
