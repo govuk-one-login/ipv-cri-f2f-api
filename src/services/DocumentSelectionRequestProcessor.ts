@@ -16,7 +16,7 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { ISessionItem } from "../models/ISessionItem";
-import { PersonIdentityItem } from "../models/PersonIdentityItem";
+import { PersonIdentityAddress, PersonIdentityItem } from "../models/PersonIdentityItem";
 import { PostOfficeInfo } from "../models/YotiPayloads";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AllDocumentTypes, DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
@@ -73,7 +73,7 @@ export class DocumentSelectionRequestProcessor {
   	let countryCode;
   	let yotiSessionId;
 		let pdfPreference;
-		let postalAddress;
+		let postalAddress: PersonIdentityAddress;
 
   	if (!event.body) {
   		this.logger.error("No body present in post request", {
@@ -94,8 +94,20 @@ export class DocumentSelectionRequestProcessor {
   			this.logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", {
   				messageCode: MessageCodes.MISSING_MANDATORY_FIELDS,
   			});
-  			return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
-  		}
+  			return new Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
+  		} else if (postalAddress && !postalAddress.uprn ||
+			postalAddress && !postalAddress.buildingNumber && !postalAddress.buildingName ||
+			postalAddress && !postalAddress.streetName ||
+			postalAddress && !postalAddress.addressLocality ||
+			postalAddress && !postalAddress.postalCode ||
+			postalAddress && !postalAddress.addressCountry ||
+			postalAddress && !postalAddress.preferredAddress
+			) {
+				this.logger.error("Postal address missing mandatory fields in postal address", {
+					messageCode: MessageCodes.MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS,
+				});
+				return new Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in postal address");
+			} 
   	} catch (error) {
   		this.logger.error("Error parsing the payload", {
   			messageCode: MessageCodes.ERROR_PARSING_PAYLOAD,
