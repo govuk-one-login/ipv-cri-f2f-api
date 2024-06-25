@@ -38,6 +38,7 @@ export const personIdentityOutputRecord = {
 		addressLocality: "Bedrock",
 		postalCode: "R1 0CK",
 		addressCountry: "CARTOONLAND",
+		preferredAddress: true,
 	}],
 	birthDate: [{
 		value: "1900-01-01",
