@@ -1,0 +1,83 @@
+p {
+  font-family: "GDS Transport", arial, sans-serif;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+ul {
+  font-family: "GDS Transport", arial, sans-serif;
+  list-style-type: disc;
+  margin-top: 10px;
+  margin-bottom: 25px;
+  font-size: 16px;
+}
+
+h2 {
+  margin-top: 25px;
+  margin-bottom: 25px;
+}
+
+.body {
+  font-family: "GDS Transport", arial, sans-serif;
+}
+
+.page {
+  width: 210mm;
+  height: 297mm;
+  padding: 20mm;
+  background: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  position: relative;
+  box-sizing: border-box;
+}
+
+
+footer {
+  text-align: right;
+} 
+
+
+.address {
+  margin-left: 85px;
+  margin-bottom: 140px;
+}
+
+#addressLine1, #addressLine2, #addressLine3, #addressLine4, #addressLine5, #addressLine6, #postcode   {
+  font-size: small;
+  margin-bottom: -15px;
+}
+
+#code {
+  font-size: x-small;
+  margin-left: 85px;
+  margin-top: -10px;
+  margin-bottom: -12px;
+}
+
+.instructions {
+  margin-left: 50px;
+}
+
+.logo {
+  width: 200px;
+  height: 80px;
+  margin-left: 50px;
+  margin-bottom: 30px;
+  margin-top:30px
+}
+
+.qr-code {
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
+}
+
+#poLink {
+  font-weight: bold;
+  color: black;
+  text-decoration: none;
+  
+}
+
+
