@@ -31,9 +31,19 @@ env:
   BUILD_F2F_TEST_HARNESS_URL: ${{ secrets.BUILD_TEST_HARNESS_API_ENDPOINT }}
 
 jobs:
+  setup:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      environments: ${{ steps.set-output.outputs.environments }}
+    steps:
+      - id: set-output
+        run: echo "::set-output name=environments::['DEV','BUILD']"
+
   deploy:
     name: Validate & Deploy SAM template
     runs-on: ubuntu-latest
+    needs: setup
     defaults:
       run:
         working-directory: ./deploy/
@@ -68,11 +78,3 @@ jobs:
             signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
             working-directory: deploy
             template-file: template.yaml
-
-  setup:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    outputs:
-      environments: '["DEV", "BUILD"]'
-    steps:
-      - run: echo "Setting up environments"
