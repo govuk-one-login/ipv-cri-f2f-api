@@ -25,12 +25,21 @@ env:
 
 jobs:
   setup:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
-      environments: '["DEV", "BUILD"]'
+      environments: ${{ steps.set-output.outputs.environments }}
     steps:
-      - run: echo "Setting up environments"
+      - id: set-output
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "::set-output name=environments::[\"DEV\",\"BUILD\"]"
+          else
+            if [[ "${{ github.event.inputs.environment }}" == "BUILD" && "${{ github.ref }}" != "refs/heads/main" ]]; then
+              echo "Deployment to BUILD environment is only allowed from the main branch."
+              exit 1
+            fi
+            echo "::set-output name=environments::[\"${{ github.event.inputs.environment }}\"]"
+          fi
 
   deploy:
     name: Validate & Deploy PostOffice Mock template

@@ -39,13 +39,13 @@ jobs:
       - id: set-output
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            echo "::set-output name=environments::\"['DEV','BUILD']\""
+            echo "::set-output name=environments::[\"DEV\",\"BUILD\"]"
           else
             if [[ "${{ github.event.inputs.environment }}" == "BUILD" && "${{ github.ref }}" != "refs/heads/main" ]]; then
               echo "Deployment to BUILD environment is only allowed from the main branch."
               exit 1
             fi
-            echo "::set-output name=environments::\"['${{ github.event.inputs.environment }}']\""
+            echo "::set-output name=environments::[\"${{ github.event.inputs.environment }}\"]"
           fi
 
   deploy:
