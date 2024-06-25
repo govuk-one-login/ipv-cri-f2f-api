@@ -12,5 +12,6 @@
       },
       "post_code": null,
       "fad_code": "004010X"
-   }
+   },
+    "pdf_preference": "EMAIL_ONLY"
 }
