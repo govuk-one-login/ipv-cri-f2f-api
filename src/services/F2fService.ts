@@ -1,3 +1,8 @@
+/* eslint-disable max-lines */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable max-len */
+/* eslint-disable max-lines-per-function */
 import { ISessionItem } from "../models/ISessionItem";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
@@ -391,6 +396,7 @@ export class F2fService {
 			doubleDependentAddressLocality: address.doubleDependentAddressLocality,
 			validFrom: address.validFrom,
 			validUntil: address.validUntil,
+			preferredAddress: true,
 		}));
 	}
 
@@ -448,6 +454,9 @@ export class F2fService {
 		const personDetails = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
 		const personDetailsAddressArray = personDetails?.addresses;
 		if (pdfPreference === PdfPreferenceEnum.PRINTED_LETTER && postalAddress && personDetails?.addresses[0].uprn !== postalAddress.uprn) {
+			if (personDetailsAddressArray) {
+				personDetailsAddressArray[0].preferredAddress = false;
+			}
 			personDetailsAddressArray?.push(postalAddress);
 			const updateUserDetails = new UpdateCommand({
 				TableName: tableName,
