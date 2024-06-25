@@ -1,4 +1,4 @@
-# Test Harness 
+# Test Harness
 
 This is a test harness that listens to events from IPV Core and TxMA SQS queues and puts them in the `${AWS::StackName}-f2f-event-test-${Environment}` bucket which can then be accessed using and API.
 

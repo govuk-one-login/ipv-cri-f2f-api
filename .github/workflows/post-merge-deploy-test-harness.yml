@@ -1,4 +1,5 @@
-name: Deploy Test Harness to Dev Env
+name: Deploy Test Harness
+
 on:
   push:
     branches:
@@ -6,6 +7,14 @@ on:
     paths:
       - 'test-harness/**'
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy to which environment?'
+        required: true
+        type: choice
+        options:
+          - DEV
+          - BUILD
 
 permissions:
   id-token: write
@@ -15,12 +24,24 @@ env:
   AWS_REGION: eu-west-2
 
 jobs:
-  deploy-to-dev:
-    name: Validate & Deploy SAM template to Dev Environment
+  setup:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    outputs:
+      environments: '["DEV", "BUILD"]'
+    steps:
+      - run: echo "Setting up environments"
+
+  deploy:
+    name: Validate & Deploy Test Harness
+    runs-on: ubuntu-latest
+    needs: setup
     defaults:
       run:
         working-directory: test-harness
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.environments) }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -33,7 +54,7 @@ jobs:
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.DEV_TEST_HARNESS_GH_ACTIONS_ROLE_ARN }}
+          role-to-assume: ${{ secrets[format('{0}_TEST_HARNESS_GH_ACTIONS_ROLE_ARN', matrix.environment)] }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: SAM Validate
@@ -45,7 +66,7 @@ jobs:
       - name: Deploy SAM app
         uses: alphagov/di-devplatform-upload-action@v3
         with:
-            artifact-bucket-name: ${{ secrets.DEV_TEST_HARNESS_ARTIFACT_SOURCE_BUCKET_NAME }}
-            signing-profile-name: ${{ secrets.DEV_CRI_F2F_SIGNING_PROFILE_NAME }}
+            artifact-bucket-name: ${{ secrets[format('{0}_TEST_HARNESS_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
+            signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
             working-directory: test-harness
             template-file: template.yaml

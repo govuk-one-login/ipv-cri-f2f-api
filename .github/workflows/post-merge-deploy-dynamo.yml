@@ -1,27 +1,38 @@
-name: Deploy Dynamo Infra to Dev
+name: Deploy Dynamo Infra
+
 on:
-  workflow_dispatch:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches:
       - main
     paths:
       - 'infra-l2-dynamo/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy to which environment?'
+        required: true
+        type: choice
+        options:
+          - DEV
+          - BUILD
 
 permissions:
   id-token: write
   contents: read
 
-env: # Only adding the variables in that are required for
+env:
   AWS_REGION: eu-west-2
 
 jobs:
-  deploy-to-dev:
-    name: Validate & Deploy Dynamo Infra template to Dev Environment
+  deploy:
+    name: Validate & Deploy Dynamo Infra template
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: infra-l2-dynamo
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.environments) }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -34,7 +45,7 @@ jobs:
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.DEV_F2F_DDB_GH_ACTIONS_ROLE_ARN }}
+          role-to-assume: ${{ secrets[format('{0}_F2F_DDB_GH_ACTIONS_ROLE_ARN', matrix.environment)] }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: SAM Validate
@@ -46,6 +57,14 @@ jobs:
       - name: Deploy SAM app
         uses: alphagov/di-devplatform-upload-action@v3
         with:
-            artifact-bucket-name: ${{ secrets.DEV_F2F_DDB_ARTIFACT_SOURCE_BUCKET_NAME }}
+            artifact-bucket-name: ${{ secrets[format('{0}_F2F_DDB_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
             working-directory: infra-l2-dynamo
             template-file: template.yaml
+
+  setup:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      environments: '["DEV", "BUILD"]'
+    steps:
+      - run: echo "Setting up environments"
