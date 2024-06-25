@@ -23,6 +23,7 @@ export interface PersonIdentityAddress {
 	addressCountry: string;
 	validFrom?: string;
 	validUntil?: string;
+	preferredAddress: boolean;
 }
 
 export interface PersonIdentityDateOfBirth {
