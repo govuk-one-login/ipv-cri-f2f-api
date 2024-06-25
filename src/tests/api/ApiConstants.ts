@@ -10,4 +10,5 @@ export const constants = {
 	DEV_F2F_PO_STUB_URL: process.env.DEV_F2F_PO_STUB_URL,
 	VC_SIGNING_KEY_ID: process.env.VC_SIGNING_KEY_ID,
 	DNS_SUFFIX: process.env.DNS_SUFFIX,
+	THIRD_PARTY_CLIENT_ID:process.env.THIRD_PARTY_CLIENT_ID,
 };
