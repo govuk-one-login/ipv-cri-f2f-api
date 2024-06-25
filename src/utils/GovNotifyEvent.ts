@@ -62,6 +62,7 @@ export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: stri
 					addressCountry: personDetails.addresses[addressesLength - 1].addressCountry,
 					validFrom: personDetails.addresses[addressesLength - 1].validFrom,
 					validUntil: personDetails.addresses[addressesLength - 1].validUntil,
+					preferredAddress: true,
 				},
 			},
 		};

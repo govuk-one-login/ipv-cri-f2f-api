@@ -1086,9 +1086,9 @@ components:
           additionalProperties: false
           properties:
             uprn:
-              type: string
+              type: number
               description: Unique Property Reference Number
-              example: "123456789"
+              example: 123456789
             organisationName:
               type: string
               description: Name of organisation registered at address
@@ -1141,6 +1141,10 @@ components:
               type: string
               description: Address valid until
               example: "1/1/2030"
+            preferredAddress:
+              type: boolean
+              description: Indicates user's preferred address for postal correspondence 
+              example: true
     JWKSFile:
       type: object
       required:
