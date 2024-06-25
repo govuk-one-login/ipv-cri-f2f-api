@@ -32,17 +32,26 @@ env:
 
 jobs:
   setup:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       environments: ${{ steps.set-output.outputs.environments }}
     steps:
       - id: set-output
-        run: echo "::set-output name=environments::['DEV','BUILD']"
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "::set-output name=environments::\"['DEV','BUILD']\""
+          else
+            if [[ "${{ github.event.inputs.environment }}" == "BUILD" && "${{ github.ref }}" != "refs/heads/main" ]]; then
+              echo "Deployment to BUILD environment is only allowed from the main branch."
+              exit 1
+            fi
+            echo "::set-output name=environments::\"['${{ github.event.inputs.environment }}']\""
+          fi
 
   deploy:
     name: Validate & Deploy SAM template
     runs-on: ubuntu-latest
+    needs: setup
     defaults:
       run:
         working-directory: ./deploy/
