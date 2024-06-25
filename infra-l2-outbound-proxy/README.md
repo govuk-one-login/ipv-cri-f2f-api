@@ -1,4 +1,4 @@
-# infra-l2-outbound-proxy
+# infra-l2-outbound-proxy 
 
 F2F Outbound Proxy API Gateway definition
 
