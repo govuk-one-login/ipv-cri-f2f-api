@@ -13,16 +13,5 @@
       "post_code": null,
       "fad_code": "004010X"
    },
-   "pdf_preference": "PRINTED_LETTER",
-   "postal_address": 
-            {
-               "uprn": 1235,
-               "buildingNumber": "2",
-               "buildingName": "The Cave",
-               "streetName": "Rocky Road",
-               "addressLocality": "Bedrock",
-               "postalCode": "R1 0CK",
-               "addressCountry": "CARTOONLAND",
-               "preferredAddress": true
-            }
+   "pdf_preference": "PRINTED_LETTER"
 }
