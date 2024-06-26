@@ -77,7 +77,7 @@ jobs:
         run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml
 
       - name: SAM Build
-        run: sam build -t template.yaml
+        run: sam build --parallel -t template.yaml
 
       - name: Deploy SAM app
         uses: alphagov/di-devplatform-upload-action@v3

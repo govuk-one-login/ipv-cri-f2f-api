@@ -107,4 +107,4 @@ jobs:
 #        run: npm install
 
       - name: SAM Build
-        run: sam build -t template.yaml
+        run: sam build --parallel -t template.yaml
