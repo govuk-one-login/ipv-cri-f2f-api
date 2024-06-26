@@ -76,7 +76,7 @@ jobs:
         run: npm install
 
       - name: SAM Build
-        run: sam build -t template.yaml
+        run: sam build --parallel -t template.yaml
 
       - name: Deploy SAM app
         uses: alphagov/di-devplatform-upload-action@v3

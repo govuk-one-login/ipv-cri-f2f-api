@@ -21,15 +21,19 @@ run_tests() {
 # Navigate to script directory
 cd /src
 
+echo "RUNNING NEW SCRIPT"
+
 # Configuration based on SAM_STACK_NAME
 case "$SAM_STACK_NAME" in
     "f2f-yoti-stub")
+        echo "Running Yoti Stub Test Suite"
         export DEV_F2F_YOTI_STUB_URL=$(remove_quotes "$CFN_F2FYotiStubURL")
         run_tests "test:yoti"
         error_code=$?
         ;;
 
     "f2f-cri-api")
+        echo "Running API Test Suite"
         export DEV_CRI_F2F_API_URL=$(remove_quotes "$CFN_F2FBackendURL")
         export DEV_IPV_F2F_STUB_URL=$(remove_quotes "$CFN_F2FIPVStubExecuteURL")
         export DEV_F2F_TEST_HARNESS_URL=$(remove_quotes "$CFN_F2FTestHarnessURL")
