@@ -35,7 +35,7 @@ case "$SAM_STACK_NAME" in
     "f2f-cri-api")
         echo "Running API Test Suite"
         export DEV_CRI_F2F_API_URL=$(remove_quotes "$CFN_F2FBackendURL")
-        export DEV_IPV_F2F_STUB_URL=$(remove_quotes "$CFN_F2FIPVStubExecuteURL")
+        export DEV_IPV_F2F_STUB_URL=$(remove_quotes "$CFN_F2FIPVStubExecuteURL")start
         export DEV_F2F_TEST_HARNESS_URL=$(remove_quotes "$CFN_F2FTestHarnessURL")
         export GOV_NOTIFY_API=$(remove_quotes "$CFN_F2FGovNotifyURL")
         export DEV_F2F_PO_STUB_URL=$(remove_quotes "$CFN_F2FPostOfficeStubURL")
