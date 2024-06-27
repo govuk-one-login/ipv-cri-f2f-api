@@ -2682,56 +2682,6 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ExpiredSessionsConcurrency80Alarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: "ApplyReservedConcurrency"
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
-      OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
-      InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of ExpiredSessions is used. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-ExpiredSessionsFunction-concurrency"
-      MetricName: ConcurrentExecutions
-      Namespace: AWS/Lambda
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref ExpiredSessionsFunction
-      Statistic: Maximum
-      Period: 60 # This is the minimum value for the AWS Namespace
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: !Ref LambdaConcurrencyThreshold
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-
-  ExpiredSessionsThrottleAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
-      OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
-      InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${ExpiredSessionsFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-ExpiredSessionsFunction-throttles"
-      MetricName: Throttles
-      Namespace: AWS/Lambda
-      Statistic: Sum
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref ExpiredSessionsFunction
-      TreatMissingData: notBreaching
-      Period: 60 # This is the minimum value for the AWS Namespace
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-
   #Gov Notify SQS Queue
   GovNotifySQSQueue:
     Type: "AWS::SQS::Queue"
