@@ -27,5 +27,6 @@ export interface ISessionItem extends IF2fSession {
 	authSessionState: string;
 	yotiSessionId?: string;
 	evidence_requested?: EvidenceRequested;
+	expiredNotificationSent?: boolean;
 }
 

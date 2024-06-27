@@ -91,7 +91,7 @@ export class ReminderEmailProcessor {
   	} catch (error) {
   		this.logger.error("Unexpected error accessing session table", {
   			error,
-  			messageCode: MessageCodes.FAILED_FETHCING_SESSIONS,
+  			messageCode: MessageCodes.FAILED_FETCHING_SESSIONS,
   		});
   		return GenericServerError;
   	}

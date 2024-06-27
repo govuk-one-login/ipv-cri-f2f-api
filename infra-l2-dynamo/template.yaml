@@ -128,6 +128,19 @@ Resources:
               - "expiryDate"
               - "documentUsed"
             ProjectionType: "INCLUDE"
+        - IndexName: "expiredCheck-index"
+          KeySchema:
+            - AttributeName: "authSessionState"
+              KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "sessionId"
+              - "createdDate"
+              - "expiredNotificationSent"
+              - "expiryDate"
+              - "subject"
+              - "state"
+            ProjectionType: "INCLUDE"
       TimeToLiveSpecification:
         AttributeName: expiryDate
         Enabled: true
