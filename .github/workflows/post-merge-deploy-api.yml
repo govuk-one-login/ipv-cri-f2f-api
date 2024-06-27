@@ -80,7 +80,7 @@ jobs:
         run: sam build --parallel -t template.yaml
 
       - name: Deploy SAM app
-        uses: alphagov/di-devplatform-upload-action@v3
+        uses: govuk-one-login/devplatform-upload-action@v3.8.1
         with:
             artifact-bucket-name: ${{ secrets[format('{0}_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
             signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
