@@ -2,7 +2,7 @@ version = 0.1
 [dev]
 [dev.deploy]
 [dev.deploy.parameters]
-stack_name = "f2f-cri-api"
+stack_name = "f2f-cri-api-person"
 s3_prefix = "f2f-cri-api"
 region = "eu-west-2"
 confirm_changeset = false

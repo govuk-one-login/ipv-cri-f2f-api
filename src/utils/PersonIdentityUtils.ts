@@ -66,7 +66,7 @@ export const personIdentityUtils = {
 	getYotiStructuredPostalAddress(address: PersonIdentityAddress, logger: Logger) : { address_format: number; building_number: string; sub_building: string; building: string; address_line1: string; address_line2: string; town_city: string; postal_code: string; country_iso: string; country: string } {
 
 		try {
-			const { addressLine1, addressLine2 } = this.getYotiAddressLines(address, logger);
+			const { addressLine1, addressLine2 } = this.getAddressLines(address, logger);
 			return {
 				address_format: YOTI_ADDRESS_FORMAT_CODE,
 				building_number: address.buildingNumber ? address.buildingNumber.trim() : "",
@@ -85,13 +85,31 @@ export const personIdentityUtils = {
 
 	},
 
-	getYotiAddressLines(address: PersonIdentityAddress, logger: Logger) : { addressLine1: string; addressLine2: string } {
+	getStructuredPostalAddress(address: PersonIdentityAddress, logger: Logger) : { address_line1: string; address_line2: string; town_city: string; postal_code: string; } {
+
+		try {
+			const { addressLine1, addressLine2 } = this.getAddressLines(address, logger);
+			return {
+				address_line1: addressLine1,
+				address_line2: addressLine2,
+				town_city: address.addressLocality,
+				postal_code: address.postalCode,
+			};
+		} catch (error: any) {
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, error.message);
+		}
+
+	},
+
+
+	getAddressLines(address: PersonIdentityAddress, logger: Logger) : { addressLine1: string; addressLine2: string } {
 
 		const validationHelper = new ValidationHelper();
 		let addressLine1, addressLine2;
 		if (!validationHelper.checkIfAddressIsValid(address)) {
 			// Throw an error if all the mandatory postalAddress fields- subBuildingName, buildingName, buildingNumber and streetName exists and is a valid string or atleast one of subBuildingName, buildingName, buildingNumber is a valid string
 			logger.error({ message: "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session" }, { messageCode: MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS });
+			// can we change this message
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing all mandatory postalAddress fields, unable to create the session");
 		} else if ( !validationHelper.checkIfValidString([address.subBuildingName, address.buildingName])) {
 			// Log a warning message if subBuildingName and buildingName is absent and hence setting the addressLine1 with buildingNumber and StreetName and setting the addressLine2 to an empty string.
