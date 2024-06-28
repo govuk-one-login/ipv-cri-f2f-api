@@ -28,6 +28,8 @@ export class Constants {
 
 	static readonly REMINDER_EMAIL_LOGGER_SVC_NAME : "ReminderEmail";
 
+	static readonly EXPIRED_SESSIONS_LOGGER_SVC_NAME : "ExpiredSessions";
+
 	static readonly DEBUG = "DEBUG";
 
 	static readonly INFO = "INFO";
@@ -51,6 +53,8 @@ export class Constants {
 	static readonly YOTI_SESSION_ID_INDEX_NAME = "yotiSessionId-index";
 
 	static readonly AUTH_SESSION_STATE_INDEX_NAME = "authSessionState-updated-index";
+
+	static readonly EXPIRED_SESSIONS_INDEX_NAME = "expiredCheck-index";
 
 	static readonly TOKEN_EXPIRY_SECONDS = 3600;
 

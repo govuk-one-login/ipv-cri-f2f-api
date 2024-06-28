@@ -19,3 +19,4 @@ process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS = "10";
 process.env.REMINDER_EMAIL_GOVUKNOTIFY_API = "https://test-govnotify-stub";
 process.env.USE_MOCKED = "true";
 process.env.PUBLIC_KEY_SSM_PATH = "dev/person-info/PUBLIC_KEY"
+process.env.YOTI_SESSION_TTL_DAYS = "10";

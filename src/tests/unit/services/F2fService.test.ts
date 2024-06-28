@@ -289,6 +289,24 @@ describe("F2f Service", () => {
 		}));
 	});
 
+	it("should update session with expired notification flag", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		await f2fService.markSessionAsExpired(sessionId);
+		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
+			input: {
+				ExpressionAttributeValues: {
+					":expiredNotificationSent": true,
+					":authSessionState": "F2F_SESSION_EXPIRED",
+				},
+				Key: {
+					sessionId,
+				},
+				TableName: "SESSIONTABLE",
+				UpdateExpression: "SET expiredNotificationSent = :expiredNotificationSent, authSessionState = :authSessionState",
+			},
+		}));
+	});
+
 
 	it("should update session auth state", async () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
