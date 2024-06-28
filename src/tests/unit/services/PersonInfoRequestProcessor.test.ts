@@ -69,7 +69,6 @@ function getMockSessionItem(): ISessionItem {
 	const sess: ISessionItem = {
 		sessionId: "sdfsdg",
 		clientId: "ipv-core-stub",
-		// pragma: allowlist secret
 		accessToken: "AbCdEf123456",
 		clientSessionId: "sdfssg",
 		authorizationCode: "",
