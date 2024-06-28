@@ -16,15 +16,15 @@ export interface DocSelectionData {
 	post_code?: string;
 	fad_code?: string;
 	pdf_preference: string;
-	postal_address: {
+	postal_address?: {
 		
-		uprn: number;
-		buildingNumber: string;
-		buildingName: string;
-		streetName: string;
-		addressLocality: string;
-		addressCountry: string;
-		preferredAddress: boolean;
+		uprn?: number;
+		buildingNumber?: string;
+		buildingName?: string;
+		streetName?: string;
+		addressLocality?: string;
+		addressCountry?: string;
+		preferredAddress?: boolean;
 
 	};
 }

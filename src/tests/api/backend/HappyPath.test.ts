@@ -19,6 +19,7 @@ import abortPayload from "../../data/abortPayload.json";
 import dataPassport from "../../data/docSelectionPayloadPassportValid.json";
 import dataUkDrivingLicence from "../../data/docSelectionPayloadDriversLicenceValid.json";
 import dataUkDrivingLicencePrintedLetter from "../../data/docSelectionPayloadDriversLicenceValidPrintedLetter.json";
+import dataUkDrivingLicencePreferredAddress from "../../data/docSelectionPayloadDriversLicenceValidPreferredAddress.json";
 import dataEuDrivingLicence from "../../data/docSelectionPayloadEuDriversLicenceValid.json";
 import dataNonUkPassport from "../../data/docSelectionPayloadNonUkPassportValid.json";
 import dataBrp from "../../data/docSelectionPayloadBrpValid.json";
@@ -78,7 +79,7 @@ describe("/documentSelection Endpoint", () => {
 
 		const response = await postDocumentSelection(dataUkDrivingLicence, sessionId);
 		expect(response.status).toBe(200);
-		expect(response.data).toBe("Instructions PDF Generated");
+		expect( response.data).toBe("Instructions PDF Generated");
 
 		const updatedSessionRecord = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const updatedYotiSessionExpiry: any = updatedSessionRecord?.expiryDate;
@@ -104,27 +105,39 @@ describe("/documentSelection Endpoint", () => {
 		expect(response.status).toBe(200);
 
 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "pdf_preference", "EMAIL_ONLY");
 	});
 
 	it.each([
-		{ buildingNumber: "32", buildingName: "", subBuildingName: "" },
-		{ buildingNumber: "", buildingName: "19 A", subBuildingName: "" },
-		{ buildingNumber: "", buildingName: "", subBuildingName: "Flat 5" },
-		{ buildingNumber: "", buildingName: "19 A", subBuildingName: "Flat 5" },
-	])("Successful Request Tests - $PrintedLetter", async ({ buildingNumber, buildingName, subBuildingName }: { buildingNumber: string; buildingName: string; subBuildingName: string }) => {
+		{ docSelectionData: dataUkDrivingLicencePrintedLetter },
+	])("Successful Request Tests - $PrintedLetter", async ({ docSelectionData }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
-		newf2fStubPayload.shared_claims.address[0].buildingNumber = buildingNumber;
-		newf2fStubPayload.shared_claims.address[0].buildingName = buildingName;
-		newf2fStubPayload.shared_claims.address[0].subBuildingName = subBuildingName;
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+	
 
-		const docSelect = structuredClone(dataUkDrivingLicencePrintedLetter);
+		const docSelect = structuredClone(docSelectionData);
 		docSelect.pdf_preference = "PRINTED_LETTER";
-		docSelect.postal_address.preferredAddress = true;
-		const response = await postDocumentSelection(dataUkDrivingLicencePrintedLetter, sessionId);
-		expect(response.status).toBe(200);
+		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
+		expect(postResponse.status).toBe(200);
 
 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "pdf_preference", "PRINTED_LETTER");
+	});
+
+	it.each([
+		{ docSelectionData: dataUkDrivingLicencePreferredAddress },
+	])("Successful Request Tests - $PreferredAddress", async ({ docSelectionData }) => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+	
+
+		const docSelect = structuredClone(docSelectionData);
+		docSelect.postal_address.preferredAddress = true;
+		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
+		expect(postResponse.status).toBe(200);
+
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "preferredAddress", "true");
 	});
 });
 
