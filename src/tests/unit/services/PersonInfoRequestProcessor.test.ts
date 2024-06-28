@@ -19,16 +19,20 @@ jest.mock("node-rsa", () => {
 	}));
 });
 
+let personInfoRequestProcessorTest: PersonInfoRequestProcessor;
 const mockF2fService = mock<F2fService>();
+
 const logger = mock<Logger>();
-const metrics = new Metrics({ namespace: "BAV" });
+const metrics = new Metrics({ namespace: "F2F" });
 const PUBLIC_KEY_SSM_PARAM = "argadfgadf";
 const sessionId = "sessionId";
+
 const person: PersonIdentityItem = {
 	"addresses": [
 		{
 			"addressCountry": "GB",
 			"buildingName": "Sherman",
+			"subBuildingName": "Flat 5",
 			"uprn": 123456789,
 			"streetName": "Wallaby Way",
 			"postalCode": "F1 1SH",
@@ -87,13 +91,12 @@ function getMockSessionItem(): ISessionItem {
 	};
 	return sess;
 }
-let personInfoRequestProcessorTest: PersonInfoRequestProcessor;
 
 describe("PersonInfoRequestProcessor", () => {
 	beforeAll(() => {
 		personInfoRequestProcessorTest = new PersonInfoRequestProcessor(logger, metrics, PUBLIC_KEY_SSM_PARAM);
 		// @ts-ignore
-		personInfoRequestProcessorTest.F2fService = mockF2fService;
+		personInfoRequestProcessorTest.f2fService = mockF2fService;
 	});
 
 	describe("#processRequest", () => {
