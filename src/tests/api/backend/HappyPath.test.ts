@@ -18,6 +18,8 @@ import thinFilePayload from "../../data/thinFilePayload.json";
 import abortPayload from "../../data/abortPayload.json";
 import dataPassport from "../../data/docSelectionPayloadPassportValid.json";
 import dataUkDrivingLicence from "../../data/docSelectionPayloadDriversLicenceValid.json";
+import dataUkDrivingLicencePrintedLetter from "../../data/docSelectionPayloadDriversLicenceValidPrintedLetter.json";
+import dataUkDrivingLicencePreferredAddress from "../../data/docSelectionPayloadDriversLicenceValidPreferredAddress.json";
 import dataEuDrivingLicence from "../../data/docSelectionPayloadEuDriversLicenceValid.json";
 import dataNonUkPassport from "../../data/docSelectionPayloadNonUkPassportValid.json";
 import dataBrp from "../../data/docSelectionPayloadBrpValid.json";
@@ -77,7 +79,7 @@ describe("/documentSelection Endpoint", () => {
 
 		const response = await postDocumentSelection(dataUkDrivingLicence, sessionId);
 		expect(response.status).toBe(200);
-		expect(response.data).toBe("Instructions PDF Generated");
+		expect( response.data).toBe("Instructions PDF Generated");
 
 		const updatedSessionRecord = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const updatedYotiSessionExpiry: any = updatedSessionRecord?.expiryDate;
@@ -97,10 +99,45 @@ describe("/documentSelection Endpoint", () => {
 		newf2fStubPayload.shared_claims.address[0].subBuildingName = subBuildingName;
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
+		const docSelect = structuredClone(dataUkDrivingLicence);
+		docSelect.pdf_preference = "EMAIl_ONLY";
 		const response = await postDocumentSelection(dataUkDrivingLicence, sessionId);
 		expect(response.status).toBe(200);
 
 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "pdf_preference", "EMAIL_ONLY");
+	});
+
+	it.each([
+		{ docSelectionData: dataUkDrivingLicencePrintedLetter },
+	])("Successful Request Tests - $PrintedLetter", async ({ docSelectionData }) => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+	
+
+		const docSelect = structuredClone(docSelectionData);
+		docSelect.pdf_preference = "PRINTED_LETTER";
+		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
+		expect(postResponse.status).toBe(200);
+
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "pdf_preference", "PRINTED_LETTER");
+	});
+
+	it.each([
+		{ docSelectionData: dataUkDrivingLicencePreferredAddress },
+	])("Successful Request Tests - $PreferredAddress", async ({ docSelectionData }) => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+	
+
+		const docSelect = structuredClone(docSelectionData);
+		docSelect.postal_address.preferredAddress = true;
+		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
+		expect(postResponse.status).toBe(200);
+
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "preferredAddress", "true");
 	});
 });
 

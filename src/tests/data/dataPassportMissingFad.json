@@ -11,5 +11,6 @@
           "longitude": -42.48372
        },
        "post_code": "BA1 1RT"
-    }
+    },
+    "pdf_preference": "EMAIL_ONLY"
  }

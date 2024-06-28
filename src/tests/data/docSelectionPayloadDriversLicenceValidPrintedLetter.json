@@ -1,8 +1,8 @@
 {
    "document_selection": {
-      "document_selected": "nonUkPassport",
+      "document_selected": "ukPhotocardDl",
       "date_of_expiry": "1970-01-01",
-      "country_code": "ESP"
+      "country_code": "GBR"
    },
    "post_office_selection": {
       "address": "6-7 Union Street, Bath, Somerset, BA1 1RT",
@@ -10,8 +10,8 @@
          "latitude": 0.34322,
          "longitude": -42.48372
       },
-      "post_code": "BA1 1RT",
+      "post_code": null,
       "fad_code": "004010X"
-  },
-    "pdf_preference": "EMAIL_ONLY"
+   },
+   "pdf_preference": "PRINTED_LETTER"
 }
