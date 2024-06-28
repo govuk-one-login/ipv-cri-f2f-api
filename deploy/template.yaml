@@ -1858,13 +1858,13 @@ Resources:
           logretentionindays,
         ]
 
-  # PersonInfoFunctionLogsSubscriptionFilterCSLS:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Properties:
-  #     DestinationArn:
-  #       !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref PersonInfoFunctionLogGroup
+  PersonInfoFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref PersonInfoFunctionLogGroup
 
   PersonInfoFunctionPermission:
     Type: AWS::Lambda::Permission

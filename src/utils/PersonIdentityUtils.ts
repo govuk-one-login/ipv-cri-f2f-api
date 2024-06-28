@@ -109,7 +109,6 @@ export const personIdentityUtils = {
 		if (!validationHelper.checkIfAddressIsValid(address)) {
 			// Throw an error if all the mandatory postalAddress fields- subBuildingName, buildingName, buildingNumber and streetName exists and is a valid string or atleast one of subBuildingName, buildingName, buildingNumber is a valid string
 			logger.error({ message: "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session" }, { messageCode: MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS });
-			// can we change this message
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing all mandatory postalAddress fields, unable to create the session");
 		} else if ( !validationHelper.checkIfValidString([address.subBuildingName, address.buildingName])) {
 			// Log a warning message if subBuildingName and buildingName is absent and hence setting the addressLine1 with buildingNumber and StreetName and setting the addressLine2 to an empty string.
