@@ -25,7 +25,8 @@ let PUBLIC_KEY: string;
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 export class PersonInfoHandler implements LambdaInterface {
-	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.PUBLIC_KEY_SSM_PATH_SERVICE)
+	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.PUBLIC_KEY_SSM_PATH_SERVICE);
+
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {

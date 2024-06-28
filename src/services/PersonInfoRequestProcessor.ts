@@ -65,7 +65,7 @@ export class PersonInfoRequestProcessor {
   	return new Response(HttpCodesEnum.OK, encryptedResponseValue);
 	}
 
-	encryptResponse(data: { address_line1: string; address_line2: string; town_city: string; postal_code: string; }): string {
+	encryptResponse(data: { address_line1: string; address_line2: string; town_city: string; postal_code: string }): string {
 		const dataString = JSON.stringify(data);
 
 		this.logger.info("Encrypting personal info");

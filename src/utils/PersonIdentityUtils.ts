@@ -85,7 +85,7 @@ export const personIdentityUtils = {
 
 	},
 
-	getStructuredPostalAddress(address: PersonIdentityAddress, logger: Logger) : { address_line1: string; address_line2: string; town_city: string; postal_code: string; } {
+	getStructuredPostalAddress(address: PersonIdentityAddress, logger: Logger) : { address_line1: string; address_line2: string; town_city: string; postal_code: string } {
 
 		try {
 			const { addressLine1, addressLine2 } = this.getAddressLines(address, logger);
