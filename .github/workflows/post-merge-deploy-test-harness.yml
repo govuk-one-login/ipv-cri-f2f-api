@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'test-harness/**'
+      - .github/workflows/post-merge-deploy-test-harness.yml
   workflow_dispatch:
     inputs:
       environment:

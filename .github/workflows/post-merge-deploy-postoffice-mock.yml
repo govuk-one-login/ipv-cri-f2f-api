@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'post-office-stub/**'
+      - .github/workflows/post-merge-deploy-postoffice-mock.yml
   workflow_dispatch:
     inputs:
       environment:

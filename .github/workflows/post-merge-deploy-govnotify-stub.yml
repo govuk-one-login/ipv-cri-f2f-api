@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'gov-notify-stub/**'
+      - .github/workflows/post-merge-deploy-govnotify-stub.yml
   workflow_dispatch:
     inputs:
       environment:

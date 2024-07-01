@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'infra-l2-kms/**'
+      - .github/workflows/post-merge-deploy-kms.yml
   workflow_dispatch:
     inputs:
       environment:

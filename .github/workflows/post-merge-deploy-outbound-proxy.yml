@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'infra-l2-outbound-proxy/**'
+      - .github/workflows/post-merge-deploy-outbound-proxy.yml
   workflow_dispatch:
     inputs:
       environment:

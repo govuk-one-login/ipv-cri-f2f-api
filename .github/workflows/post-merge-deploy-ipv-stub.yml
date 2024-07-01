@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'f2f-ipv-stub/**'
+      - .github/workflows/post-merge-deploy-ipv-stub.yml
   workflow_dispatch:
     inputs:
       environment:

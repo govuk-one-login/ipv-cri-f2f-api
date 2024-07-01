@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'yoti-stub/**'
+      - .github/workflows/post-merge-deploy-yoti-stub.yml
   workflow_dispatch:
     inputs:
       environment:
