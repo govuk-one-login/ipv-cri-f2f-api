@@ -79,4 +79,4 @@ jobs:
             artifact-bucket-name: ${{ secrets[format('{0}_PO_MOCK_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
             signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
             working-directory: post-office-stub
-            template-file: template.yaml
+            template-file: .aws-sam/build/template.yaml

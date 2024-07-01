@@ -78,4 +78,4 @@ jobs:
         with:
             artifact-bucket-name: ${{ secrets[format('{0}_F2F_PROXY_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
             working-directory: infra-l2-outbound-proxy
-            template-file: template.yaml
+            template-file: .aws-sam/build/template.yaml
