@@ -101,7 +101,6 @@ Mappings:
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
       YOTIBASEURL: "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk"
-      IPVSTUBURL: "https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
@@ -136,7 +135,6 @@ Mappings:
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
     build:
       YOTIBASEURL: "https://yotistub.review-o.build.account.gov.uk"
-      IPVSTUBURL: "https://ipvstub.review-o.build.account.gov.uk/"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.build.account.gov.uk'
       DNSSUFFIX: review-o.build.account.gov.uk
@@ -6099,7 +6097,8 @@ Outputs:
   F2FIPVStubExecuteURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F IPV Stub"
-    Value: !FindInMap [EnvironmentVariables, !Ref Environment, IPVSTUBURL]
+    Value:
+      Fn::ImportValue: !Sub '${IPVStubStackName}-IPVStubExecuteUrl'
   F2FYotiStubURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Yoti Stub"
