@@ -70,6 +70,7 @@ function getPersonIdentityItem(): PersonIdentityItem {
 				"postalCode": "F1 1SH",
 				"buildingNumber": "32",
 				"addressLocality": "Sidney",
+				"preferredAddress": true,
 			},
 		],
 		"sessionId": "RandomF2FSessionID",

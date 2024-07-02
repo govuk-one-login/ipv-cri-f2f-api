@@ -23,6 +23,7 @@ export interface PersonIdentityAddress {
 	addressCountry: string;
 	validFrom?: string;
 	validUntil?: string;
+	preferredAddress: boolean;
 }
 
 export interface PersonIdentityDateOfBirth {
@@ -41,6 +42,7 @@ export interface PersonIdentityItem {
 	emailAddress: string;
 	expiryDate: number;
 	createdDate: number;
+	pdfPreference?: string;
 }
 
 export interface SharedClaimsPersonIdentity {

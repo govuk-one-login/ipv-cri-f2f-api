@@ -14,7 +14,7 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { ISessionItem } from "../models/ISessionItem";
-import { PersonIdentityItem } from "../models/PersonIdentityItem";
+import { PersonIdentityAddress, PersonIdentityItem } from "../models/PersonIdentityItem";
 import { PostOfficeInfo } from "../models/YotiPayloads";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AllDocumentTypes, DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
@@ -70,6 +70,8 @@ export class DocumentSelectionRequestProcessor {
   	let selectedDocument;
   	let countryCode;
   	let yotiSessionId;
+		let pdfPreference;
+		let postalAddress: PersonIdentityAddress;
 
   	if (!event.body) {
   		this.logger.error("No body present in post request", {
@@ -83,12 +85,27 @@ export class DocumentSelectionRequestProcessor {
   		postOfficeSelection = eventBody.post_office_selection;
   		selectedDocument = eventBody.document_selection.document_selected;
   		countryCode = eventBody.document_selection.country_code;
-  		if (!postOfficeSelection || !selectedDocument) {
-  			this.logger.error("Missing mandatory fields (post_office_selection or document_selection.document_selected) in request payload", {
+			pdfPreference = eventBody.pdf_preference;
+			postalAddress = eventBody.postal_address;
+		
+  		if (!postOfficeSelection || !selectedDocument || !pdfPreference) {
+  			this.logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", {
   				messageCode: MessageCodes.MISSING_MANDATORY_FIELDS,
   			});
   			return new Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
-  		}
+  		} else if (postalAddress && !postalAddress.uprn ||
+			postalAddress && !postalAddress.buildingNumber && !postalAddress.buildingName ||
+			postalAddress && !postalAddress.streetName ||
+			postalAddress && !postalAddress.addressLocality ||
+			postalAddress && !postalAddress.postalCode ||
+			postalAddress && !postalAddress.addressCountry ||
+			postalAddress && !postalAddress.preferredAddress
+			) {
+				this.logger.error("Postal address missing mandatory fields in postal address", {
+					messageCode: MessageCodes.MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS,
+				});
+				return new Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in postal address");
+			} 
   	} catch (error) {
   		this.logger.error("Error parsing the payload", {
   			messageCode: MessageCodes.ERROR_PARSING_PAYLOAD,
@@ -96,19 +113,21 @@ export class DocumentSelectionRequestProcessor {
   		return new Response(HttpCodesEnum.SERVER_ERROR, "An error occurred parsing the payload");
   	}
 
+
   	const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
   	this.logger.appendKeys({
   		govuk_signin_journey_id: f2fSessionInfo?.clientSessionId,
   	});
-  	const personDetails = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
 
+		const personDetails = await this.f2fService.saveUserPdfPreferences(sessionId, pdfPreference, postalAddress, this.environmentVariables.personIdentityTableName());
+	
   	if (!personDetails || !f2fSessionInfo) {
   		this.logger.warn("Missing details in SESSION or PERSON IDENTITY tables", {
   			messageCode: MessageCodes.SESSION_NOT_FOUND,
   		});
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
   	}
-
+		
 		//Initialise Yoti Service base on session client_id
 		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSessionInfo.clientId, this.logger);
 

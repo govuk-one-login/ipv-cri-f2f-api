@@ -13,6 +13,14 @@ import {
 	VALID_EEA_ID_CARD_REQUEST,
 	VALID_NON_UK_PASSPORT_REQUEST,
 	VALID_REQUEST,
+	MISSING_PDF_PREFERENCE,
+	MISSING_UPRN,
+	MISSING_BUILDING_NUMBER_AND_BUILDING_NAME,
+	MISSING_STREET_NAME,
+	MISSING_ADDRESS_LOCALITY,
+	MISSING_ADDRESS_COUNTRY,
+	MISSING_POSTAL_CODE,
+	MISSING_PREFERRED_ADDRESS,
 } from "../data/documentSelection-events";
 import { YotiService } from "../../../services/YotiService";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
@@ -21,6 +29,7 @@ import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { TXMA_NATIONAL_ID_YOTI_START, TXMA_PASSPORT_YOTI_START } from "../data/txmaEvent";
+import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
 
 let mockDocumentSelectionRequestProcessor: DocumentSelectionRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -64,6 +73,7 @@ function getPersonIdentityItem(): PersonIdentityItem {
 				"postalCode": "F1 1SH",
 				"buildingNumber": "32",
 				"addressLocality": "Sidney",
+				"preferredAddress": true,
 			},
 		],
 		"sessionId": "RandomF2FSessionID",
@@ -91,6 +101,7 @@ function getPersonIdentityItem(): PersonIdentityItem {
 				],
 			},
 		],
+		"pdfPreference": PdfPreferenceEnum.EMAIL_ONLY,
 		expiryDate: 1612345678,
 		createdDate: 1612335678,
 	};
@@ -199,7 +210,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	it("Return successful response with 200 OK when YOTI session created", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -208,7 +220,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
-
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		const passportYotiStart = TXMA_PASSPORT_YOTI_START;
 		passportYotiStart.event_name = "F2F_YOTI_START";
@@ -223,9 +234,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	it("Should return successful response with 200 OK when non-UK passport used for YOTI session", async () => {
 		yotiSessionInfo.capture.required_resources[0].supported_countries[0].code = "ESP";
-
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -251,7 +262,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		yotiSessionInfo.capture.required_resources[0].supported_countries[0].supported_documents[0].type = "NATIONAL_ID";
 
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -273,7 +285,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.body).toBe("Instructions PDF Generated");
 	});
 
-	it("Throw bad request error when personDetails is missing", async () => {
+	it("Throws bad request error when personDetails is missing", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(undefined);
 
@@ -286,9 +298,38 @@ describe("DocumentSelectionRequestProcessor", () => {
 		);
 	});
 
+	it("Returns bad request response when pdf_preference is missing from FE payload", async () => {
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(MISSING_PDF_PREFERENCE, "1234", encodedHeader);
+		
+		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
+		expect(out.body).toBe("Missing mandatory fields in request payload");
+		expect(logger.error).toHaveBeenCalledWith(
+			"Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", { messageCode: "MISSING_MANDATORY_FIELDS" },
+		);
+	});
+
+	it.each([
+		MISSING_UPRN,
+		MISSING_BUILDING_NUMBER_AND_BUILDING_NAME,
+		MISSING_STREET_NAME,
+		MISSING_ADDRESS_LOCALITY,
+		MISSING_ADDRESS_COUNTRY,
+		MISSING_POSTAL_CODE,
+		MISSING_PREFERRED_ADDRESS,
+	])("Returns bad request response when postal_address is present but mandatory fields within postal_address are missing from FE payload", async (payload) => {
+		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(payload, "1234", encodedHeader);
+		
+		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
+		expect(out.body).toBe("Missing mandatory fields in postal address");
+		expect(logger.error).toHaveBeenCalledWith(
+			"Postal address missing mandatory fields in postal address", { messageCode: "MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS" },
+		);
+	});
+
 	it("Should update the TTL on both Session & Person Identity Tables", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -308,7 +349,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	it("Should save the documentUsed type in session table", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -328,7 +370,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 			yotiSessionId: "RandomYOTISessionID",
 		};
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
@@ -347,7 +390,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		};
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
 		personIdentityItem.emailAddress = " ";
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
@@ -366,7 +410,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		};
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItemInvalid);
 		personIdentityItem.name = [];
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
@@ -398,7 +443,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 				],
 			},
 		];
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
@@ -430,7 +476,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 				],
 			},
 		];
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		const out: Response = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
@@ -443,7 +490,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	it("Throw server error if Yoti Session creation fails", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce(undefined);
 
@@ -462,7 +510,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	it("Throw server error if Yoti Session info fetch fails", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -483,7 +532,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	it("Throw server error if Yoti pdf generation fails", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
+
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -507,7 +558,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	it("Return 200 when write to txMA fails", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
+
 		mockF2fService.sendToTXMA.mockRejectedValue({});
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
@@ -526,7 +579,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	it("Throws server error if failure to send to GovNotify queue", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -552,7 +606,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	it("Return 500 when updating the session returns an error", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -572,7 +627,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	it("Return 500 when updating the TTLs returns an error", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
@@ -595,7 +651,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	it("Return 500 when add users documentUsed returns an error", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
+		
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
 
 		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
 
