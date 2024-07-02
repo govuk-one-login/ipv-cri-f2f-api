@@ -545,6 +545,12 @@ Resources:
       - IPVStubApiGwDeployment
 
 Outputs:
+  IPVStubExecuteUrl:
+    Description: "API Gateway endpoint URL for the environment stage"
+    Export:
+      Name: !Sub "${AWS::StackName}-IPVStubExecuteUrl"
+    Value: !Sub "https://${IPVStubApiGw}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+
   IPVStubApiGwId:
     Description: "The ID of the API Gateway"
     Export:
