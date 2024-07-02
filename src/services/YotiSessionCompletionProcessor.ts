@@ -25,6 +25,7 @@ import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { getClientConfig } from "../utils/ClientConfig";
 import { ValidationHelper } from "../utils/ValidationHelper";
 import { Constants } from "../utils/Constants";
+import { APIGatewayProxyResult } from "aws-lambda";
 
 export class YotiSessionCompletionProcessor {
 
@@ -92,7 +93,7 @@ export class YotiSessionCompletionProcessor {
   	return YotiSessionCompletionProcessor.instance;
 	}
 
-	async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
+	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
 		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		
   	const yotiSessionID = eventBody.session_id;
@@ -120,7 +121,7 @@ export class YotiSessionCompletionProcessor {
 				this.logger.error("Unrecognised client in request", {
 					messageCode: MessageCodes.UNRECOGNISED_CLIENT,
 				});
-				return new Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+				return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 			}
 
 			this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
@@ -287,7 +288,7 @@ export class YotiSessionCompletionProcessor {
 						  messageCode: MessageCodes.FAILED_SIGNING_JWT,
 					  });
 					  await this.sendErrorMessageToIPVCore(f2fSession, "Failed to sign the verifiableCredential Jwt");
-					  return new Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the verifiableCredential Jwt");
+					  return Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the verifiableCredential Jwt");
 				  }
 			  }
 
@@ -319,11 +320,11 @@ export class YotiSessionCompletionProcessor {
 				  AuthSessionState.F2F_CREDENTIAL_ISSUED,
 			  );
 
-			  return new Response(HttpCodesEnum.OK, "OK");
+			  return Response(HttpCodesEnum.OK, "OK");
 		  } else {
 			  this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
 			  await this.sendErrorMessageToIPVCore(f2fSession, "AuthSession is in wrong Auth state"); 
-			  return new Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED} or ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${f2fSession.authSessionState}`);
+			  return Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED} or ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${f2fSession.authSessionState}`);
 		  }
 	  } else {
 		  //log error

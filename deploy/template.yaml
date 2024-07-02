@@ -371,7 +371,7 @@ Resources:
   # Log metric filter and alarm for S3 bucket policy changes
   S3BucketActivityEventMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ ($.eventSource = s3.amazonaws.com) && (($.eventName = PutBucketAcl) || ($.eventName = PutBucketPolicy) || ($.eventName = PutBucketCors) || ($.eventName = PutBucketLifecycle) || ($.eventName = PutBucketReplication) || ($.eventName = DeleteBucketPolicy) || ($.eventName = DeleteBucketCors) || ($.eventName = DeleteBucketLifecycle) || ($.eventName = DeleteBucketReplication)) }'
@@ -382,7 +382,7 @@ Resources:
 
   S3BucketActivityEventErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-S3Bucket-changes"
       AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to S3 Bucket. ${SupportManualURL}"
@@ -406,7 +406,7 @@ Resources:
   # Log metric filter and alarm for changes to network gateways
   InternetGatewayEventMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties: 
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ ($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway) }'
@@ -417,7 +417,7 @@ Resources:
 
   InternetGatewayActivityEventErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties: 
       AlarmName: !Sub "${AWS::StackName}-IGW-changes"
       AlarmDescription: !Sub "Triggers CloudWatch Alarm when changes are made to an Internet Gateway in a VPC. ${SupportManualURL}"
@@ -436,7 +436,7 @@ Resources:
   # Log metric filter and alarm for route table changes
   RouteTableChangesMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ ($.eventName = AssociateRouteTable) || ($.eventName = CreateRoute) || ($.eventName = CreateRouteTable) || ($.eventName = DeleteRoute) || ($.eventName = DeleteRouteTable) || ($.eventName = ReplaceRoute) || ($.eventName = ReplaceRouteTableAssociation) || ($.eventName = DisassociateRouteTable) }'
@@ -446,7 +446,7 @@ Resources:
           MetricName: VPCRouteTableEvent
   RouteTableChangesEventErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-vpc-route-changes"
       AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to a VPC's Route Table. ${SupportManualURL}"
@@ -465,7 +465,7 @@ Resources:
   # Log metric filter and alarm when changes are made to VPC.
   VpcChangesEventMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }'
@@ -475,7 +475,7 @@ Resources:
           MetricName: VpcEventChanges
   VpcChangesEventAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-vpc-changes"
       AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to a VPC. ${SupportManualURL}"
@@ -495,7 +495,7 @@ Resources:
   # Log metric and alarm when changes are made to AWS Organisations.
   OrganisationChangesEventMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ ($.eventSource = organizations.amazonaws.com) && (($.eventName = AcceptHandshake) || ($.eventName = AttachPolicy) || ($.eventName = CreateAccount) || ($.eventName = CreateOrganizationalUnit) || ($.eventName = CreatePolicy) || ($.eventName = DeclineHandshake) || ($.eventName = DeleteOrganization) || ($.eventName = DeleteOrganizationalUnit) || ($.eventName = DeletePolicy) || ($.eventName = DetachPolicy) || ($.eventName = DisablePolicyType) || ($.eventName = EnablePolicyType) || ($.eventName = InviteAccountToOrganization) || ($.eventName = LeaveOrganization) || ($.eventName = MoveAccount) || ($.eventName = RemoveAccountFromOrganization) || ($.eventName = UpdatePolicy) || ($.eventName = UpdateOrganizationalUnit)) }'
@@ -505,7 +505,7 @@ Resources:
           MetricName: OrganisationsEventChange
   OrganisationChangesEventAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-organisations-changes"
       AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to AWS Organisations. ${SupportManualURL}"
@@ -703,7 +703,7 @@ Resources:
 
   F2FRestAPIFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref F2FAPIGatewayAccessLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -717,7 +717,7 @@ Resources:
     DependsOn:
       - "F2FRestAPIFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-F2FRestAPI-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -846,7 +846,7 @@ Resources:
 
   SessionFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -860,7 +860,7 @@ Resources:
     DependsOn:
       - "SessionFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SessionFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -908,7 +908,7 @@ Resources:
 
   SessionThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1080,7 +1080,7 @@ Resources:
 
   SessionConfigConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1105,7 +1105,7 @@ Resources:
 
   SessionConfigThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1210,7 +1210,7 @@ Resources:
 
   TokenFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref TokenFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1224,7 +1224,7 @@ Resources:
     DependsOn:
       - "TokenFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TokenFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1272,7 +1272,7 @@ Resources:
 
   TokenThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1383,7 +1383,7 @@ Resources:
 
   AuthorizationFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref AuthorizationFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1397,7 +1397,7 @@ Resources:
     DependsOn:
       - "AuthorizationFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1445,7 +1445,7 @@ Resources:
 
   AuthorizationThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1587,7 +1587,7 @@ Resources:
 
   DocumentSelectionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref DocumentSelectionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1601,7 +1601,7 @@ Resources:
     DependsOn:
       - "DocumentSelectionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DocumentSelection-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1649,7 +1649,7 @@ Resources:
 
   DocumentSelectionThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -1746,7 +1746,7 @@ Resources:
 
   AbortFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref AbortLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1760,7 +1760,7 @@ Resources:
     DependsOn:
       - "AbortFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AbortFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1938,7 +1938,7 @@ Resources:
 
   JsonWebKeysFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref JsonWebKeysLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1952,7 +1952,7 @@ Resources:
     DependsOn:
       - "JsonWebKeysFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2000,7 +2000,7 @@ Resources:
 
   JsonWebKeysThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -2128,7 +2128,7 @@ Resources:
 
   GovNotifyFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref GovNotifyFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2142,7 +2142,7 @@ Resources:
     DependsOn:
       - "GovNotifyFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2281,7 +2281,7 @@ Resources:
 
   UserInfoFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref UserInfoFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2295,7 +2295,7 @@ Resources:
     DependsOn:
       - "UserInfoFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-UserInfoFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2343,7 +2343,7 @@ Resources:
 
   UserInfoThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -2468,7 +2468,7 @@ Resources:
 
   ReminderEmailFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref ReminderEmailFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2482,7 +2482,7 @@ Resources:
     DependsOn:
       - "ReminderEmailFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ReminderEmailFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2530,7 +2530,7 @@ Resources:
 
   ReminderEmailThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -2647,7 +2647,7 @@ Resources:
 
   ExpiredSessionsFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref ExpiredSessionsFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2661,7 +2661,7 @@ Resources:
     DependsOn:
       - "ExpiredSessionsFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ExpiredSessionsFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2864,7 +2864,7 @@ Resources:
 
   TriggerYotiCallbackSMFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref TriggerYotiCallbackStateMachineLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2878,7 +2878,7 @@ Resources:
     DependsOn:
       - "YotiCallbackFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackStateMachineFatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2926,7 +2926,7 @@ Resources:
 
   TriggerYotiThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -3192,7 +3192,7 @@ Resources:
 
   ThankYouEmailFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref ThankYouEmailFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3206,7 +3206,7 @@ Resources:
     DependsOn:
       - "ThankYouEmailFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ThankYouEmail-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -3242,7 +3242,7 @@ Resources:
     DependsOn:
       - "ThankYouEmailRetriesExceededErrorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ThankYouEmail-YotiCallbackRetriesExceededErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when we are unable to fetch Yoti session after max retries. ${SupportManualURL}"
@@ -3290,7 +3290,7 @@ Resources:
 
   ThankYouEmailThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -3387,7 +3387,7 @@ Resources:
 
   YotiCallbackFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref YotiCallbackFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3401,7 +3401,7 @@ Resources:
     DependsOn:
       - "YotiCallbackFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -3437,7 +3437,7 @@ Resources:
     DependsOn:
       - "YotiCallbackRetriesExceededErrorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-YotiCallbackRetriesExceededErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when we are unable to fetch Yoti session after max retries. ${SupportManualURL}"
@@ -3485,7 +3485,7 @@ Resources:
 
   YotiCallbackThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -3596,7 +3596,7 @@ Resources:
 
   5XXErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-5XXErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the backend api-gateway. ${SupportManualURL}"
@@ -3646,7 +3646,7 @@ Resources:
 
   5XXErrorCriticalAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-5XXErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the backend api-gateway. ${SupportManualURL}"
@@ -4942,7 +4942,7 @@ Resources:
 
   LatencyAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-apiGWLatencyAlarm"
       AlarmDescription: !Sub "There has been increased latency on backend api-gateway. ${SupportManualURL}"
@@ -4988,7 +4988,7 @@ Resources:
 
   TXMASQSOldMessagesAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TXMASQSOldMessagesAlarm"
       AlarmDescription: !Sub "Trigger an alarm when the age of the oldest TXMA message is 5 or more minutes. ${SupportManualURL}"
@@ -5013,7 +5013,7 @@ Resources:
 
   TXMADLQMessagesVisibleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TXMADLQMessagesVisibleAlarm"
       AlarmDescription: !Sub "Trigger an alarm when message gets added to TXMA DLQ. ${SupportManualURL}"
@@ -5038,7 +5038,7 @@ Resources:
 
   GovNotifySQSOldMessagesAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GovNotifySQSOldMessagesAlarm"
       AlarmDescription: !Sub "Trigger an alarm when the age of the oldest TXMA message is 5 or more minutes. ${SupportManualURL}"
@@ -5063,7 +5063,7 @@ Resources:
 
   GovNotifyDLQMessagesVisibleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GovNotifyDLQMessagesVisibleAlarm"
       AlarmDescription: !Sub "Trigger an alarm when message gets added to GovNotify DLQ. ${SupportManualURL}"
@@ -5088,7 +5088,7 @@ Resources:
 
   YotiCallbackOldMessagesAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackOldMessagesAlarm"
       AlarmDescription: !Sub "Trigger an alarm when the age of the oldest YotiCallback message is 5 or more minutes. ${SupportManualURL}"
@@ -5113,7 +5113,7 @@ Resources:
 
   YotiCallbackDLQMessagesVisibleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackDLQMessagesVisibleAlarm"
       AlarmDescription: !Sub "Trigger an alarm when message gets added to YotiCallback DLQ. ${SupportManualURL}"
@@ -5138,7 +5138,7 @@ Resources:
 
   IPVCoreSQSOldMessagesAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IPVCoreSQSOldMessagesAlarm"
       AlarmDescription: !Sub "Trigger an alarm when the age of the oldest TXMA message is 5 or more minutes. ${SupportManualURL}"
@@ -5163,7 +5163,7 @@ Resources:
 
   IPVCoreDLQMessagesVisibleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IPVCoreDLQMessagesVisibleAlarm"
       AlarmDescription: !Sub "Trigger an alarm when message gets added to IPVCore DLQ. ${SupportManualURL}"

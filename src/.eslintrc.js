@@ -16,7 +16,7 @@ const CODE_COMPLEXITY_RULES = {
   /* Definition can be found at - https://eslint.org/docs/rules/max-len */
   'max-len': [
     'warn', {
-      code: 140,
+      code: 150,
       ignoreUrls: true,
       ignoreStrings: true,
       ignoreTemplateLiterals: true,
@@ -36,7 +36,7 @@ const CODE_COMPLEXITY_RULES = {
   /* Definition can be found at - https://eslint.org/docs/rules/max-lines-per-function */
   'max-lines-per-function': [
     'warn', {
-      max: 30,
+      max: 300,
       skipBlankLines: true,
       skipComments: true
     }

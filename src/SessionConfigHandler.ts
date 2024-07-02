@@ -38,13 +38,13 @@ class SessionConfigHandler implements LambdaInterface {
 			if (!sessionId) {
 				const errorMessage = "Missing header: x-govuk-signin-session-id is required";
 				logger.error(errorMessage, { messageCode: MessageCodes.MISSING_HEADER });
-				return new Response(HttpCodesEnum.BAD_REQUEST, errorMessage);
+				return Response(HttpCodesEnum.BAD_REQUEST, errorMessage);
 			}
 	
 			if (!Constants.REGEX_UUID.test(sessionId)) {
 				const errorMessage = "Session id is not a valid uuid";
 				logger.error(errorMessage, { messageCode: MessageCodes.FAILED_VALIDATING_SESSION_ID });
-				return new Response(HttpCodesEnum.BAD_REQUEST, errorMessage);
+				return Response(HttpCodesEnum.BAD_REQUEST, errorMessage);
 			}
 	
 			logger.info("Starting SessionConfigRequestProcessor");
@@ -53,8 +53,8 @@ class SessionConfigHandler implements LambdaInterface {
 			const errorMessage = "SessionConfigProcessor encoundered an error.";
 			logger.error({ message: errorMessage, err });
 			return err instanceof AppError
-				? new Response(err.statusCode, err.message)
-				: new Response(HttpCodesEnum.SERVER_ERROR, errorMessage);
+				? Response(err.statusCode, err.message)
+				: Response(HttpCodesEnum.SERVER_ERROR, errorMessage);
 		}
 	}	
 

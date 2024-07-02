@@ -16,6 +16,7 @@ import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { getClientConfig } from "../utils/ClientConfig";
 import { ValidationHelper } from "../utils/ValidationHelper";
 import { Constants } from "../utils/Constants";
+import { APIGatewayProxyResult } from "aws-lambda";
 
 export class ThankYouEmailProcessor {
 
@@ -63,7 +64,7 @@ export class ThankYouEmailProcessor {
   	return ThankYouEmailProcessor.instance;
 	}
 
-	async processRequest(eventBody: YotiCallbackPayload): Promise<Response> {
+	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
 		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		
   	const yotiSessionID = eventBody.session_id;
@@ -91,7 +92,7 @@ export class ThankYouEmailProcessor {
 				this.logger.error("Unrecognised client in request", {
 					messageCode: MessageCodes.UNRECOGNISED_CLIENT,
 				});
-				return new Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+				return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 			}
 
 			this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
@@ -126,7 +127,7 @@ export class ThankYouEmailProcessor {
   			},
   		});
 
-  		return new Response(HttpCodesEnum.OK, "OK");
+  		return Response(HttpCodesEnum.OK, "OK");
 
   	} else {
   		this.logger.error("Event does not include yoti session_id", { messageCode: MessageCodes.MISSING_SESSION_ID });

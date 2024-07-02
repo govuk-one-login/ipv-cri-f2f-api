@@ -12,6 +12,7 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { AuthorizationRequestProcessor } from "../../../services/AuthorizationRequestProcessor";
 import { VALID_AUTHCODE } from "../data/auth-events";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
+import { APIGatewayProxyResult } from "aws-lambda";
 
 let authorizationRequestProcessorTest: AuthorizationRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -63,7 +64,7 @@ describe("AuthorizationRequestProcessor", () => {
 		const sess = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
-		const out: Response = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
+		const out: APIGatewayProxyResult = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
 
 		const f2fResp = new F2fResponse(JSON.parse(out.body ));
 
@@ -117,7 +118,7 @@ describe("AuthorizationRequestProcessor", () => {
 		sess.expiryDate = 1485695600;
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
-		const out: Response = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
+		const out: APIGatewayProxyResult = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
 
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 		expect(out.body).toBe("Session with session id: 1234 has expired");
@@ -127,7 +128,7 @@ describe("AuthorizationRequestProcessor", () => {
 	it("Return 401 when session with that session id not found in the DB", async () => {
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 
-		const out: Response = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
+		const out: APIGatewayProxyResult = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
 
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 		expect(out.body).toBe("No session found with the session id: 1234");
@@ -139,7 +140,7 @@ describe("AuthorizationRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 		mockF2fService.sendToTXMA.mockRejectedValue({});
 
-		const out: Response = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
+		const out: APIGatewayProxyResult = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
 
 		const f2fResp = new F2fResponse(JSON.parse(out.body ));
 

@@ -1,4 +1,3 @@
-import { Response, GenericServerError } from "../utils/Response";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -10,6 +9,8 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { Constants } from "../utils/Constants";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
+import { APIGatewayProxyResult } from "aws-lambda";
+import { Response } from "../utils/Response";
 
 export class ExpiredSessionsProcessor {
   private static instance: ExpiredSessionsProcessor;
@@ -25,7 +26,7 @@ export class ExpiredSessionsProcessor {
   	return this.instance || (this.instance = new ExpiredSessionsProcessor(logger, metrics));
   }
 
-  async processRequest(): Promise<Response> {
+  async processRequest(): Promise<APIGatewayProxyResult> {
   	try {
   		const sessionStates = [
   			AuthSessionState.F2F_YOTI_SESSION_CREATED,
@@ -103,7 +104,7 @@ export class ExpiredSessionsProcessor {
   			error,
   			messageCode: MessageCodes.FAILED_FETCHING_SESSIONS,
   		});
-  		return GenericServerError;
+  		return Response(HttpCodesEnum.SERVER_ERROR, "Internal server error");
   	}
 
   	return { statusCode: HttpCodesEnum.OK, body: "Success" };

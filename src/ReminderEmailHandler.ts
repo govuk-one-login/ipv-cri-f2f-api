@@ -7,6 +7,7 @@ import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
 import { MessageCodes } from "./models/enums/MessageCodes";
+import { APIGatewayProxyResult } from "aws-lambda";
 
 const {
 	POWERTOOLS_METRICS_NAMESPACE = "F2F-CRI",
@@ -19,7 +20,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 
 class Session implements LambdaInterface {
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: any, context: any): Promise<Response> {
+	async handler(event: any, context: any): Promise<APIGatewayProxyResult> {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
@@ -29,7 +30,7 @@ class Session implements LambdaInterface {
 		} catch (error: any) {
 			const statusCode = error instanceof AppError ? error.statusCode : HttpCodesEnum.SERVER_ERROR;
 			logger.error("An error has occurred.", { messageCode: MessageCodes.SERVER_ERROR });
-			return new Response(statusCode, "Server Error");
+			return Response(statusCode, "Server Error");
 		}
 	}
 }
