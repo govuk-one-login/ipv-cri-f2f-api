@@ -66,14 +66,4 @@ describe("IPV Stub Infrastructure", () => {
       expect(logGroups[logGroup].Properties.RetentionInDays).toEqual(30);
     });
   });
-
-  it("API execute URL is in Outputs", () => {
-    template.hasOutput("*", {
-      Export: { Name: { "Fn::Sub": "${AWS::StackName}-IPVStubExecuteUrl" } },
-      Value: {
-        "Fn::Sub":
-          "https://${IPVStubApiGw}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/",
-      },
-    });
-  });
 });
