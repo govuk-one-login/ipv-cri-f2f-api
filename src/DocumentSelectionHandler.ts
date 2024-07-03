@@ -1,9 +1,9 @@
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Constants } from "./utils/Constants";
-import { Response, unauthorizedResponse } from "./utils/Response";
+import { Response } from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "./services/DocumentSelectionRequestProcessor";
 import { AppError } from "./utils/AppError";
@@ -26,7 +26,7 @@ export class DocumentSelection implements LambdaInterface {
 	private readonly YOTI_KEY_SSM_PATH = process.env.YOTI_KEY_SSM_PATH;
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
+	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
 
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
@@ -48,7 +48,7 @@ export class DocumentSelection implements LambdaInterface {
 						messageCode: MessageCodes.MISSING_CONFIGURATION,
 						error,
 					});
-					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+					return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
 			}
 			return await DocumentSelectionRequestProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event, sessionId, encodedHeader);
@@ -58,9 +58,9 @@ export class DocumentSelection implements LambdaInterface {
 				messageCode: MessageCodes.SERVER_ERROR,
 			});
 			if (error instanceof AppError) {
-				return new Response(error.statusCode, error.message);
+				return Response(error.statusCode, error.message);
 			}
-			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+			return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 		}
 	}
 

@@ -38,9 +38,9 @@ class Session implements LambdaInterface {
 				error,
 			});
 			if (error instanceof AppError) {
-				return new Response(error.statusCode, "Server Error");
+				return Response(error.statusCode, "Server Error");
 			}
-			return new Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
+			return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
 		}
 
 	}

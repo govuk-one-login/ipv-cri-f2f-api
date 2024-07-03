@@ -1,4 +1,3 @@
-import { Response, GenericServerError } from "../utils/Response";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -11,6 +10,8 @@ import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { buildDynamicReminderEmailEventFields, buildReminderEmailEventFields } from "../utils/GovNotifyEvent";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
+import { APIGatewayProxyResult } from "aws-lambda";
+import { Response } from "../utils/Response";
 
 export class ReminderEmailProcessor {
   private static instance: ReminderEmailProcessor;
@@ -26,7 +27,7 @@ export class ReminderEmailProcessor {
   	return this.instance || (this.instance = new ReminderEmailProcessor(logger, metrics));
   }
 
-  async processRequest(): Promise<Response> {
+  async processRequest(): Promise<APIGatewayProxyResult> {
   	try {
   		const F2FSessionCreatedRecords = await this.f2fService.getSessionsByAuthSessionStates([AuthSessionState.F2F_YOTI_SESSION_CREATED, AuthSessionState.F2F_AUTH_CODE_ISSUED, AuthSessionState.F2F_ACCESS_TOKEN_ISSUED]);
 
@@ -93,7 +94,7 @@ export class ReminderEmailProcessor {
   			error,
   			messageCode: MessageCodes.FAILED_FETCHING_SESSIONS,
   		});
-  		return GenericServerError;
+  		return Response(HttpCodesEnum.SERVER_ERROR, "Internal server error");
   	}
 
   	return { statusCode: HttpCodesEnum.OK, body: "Success" };

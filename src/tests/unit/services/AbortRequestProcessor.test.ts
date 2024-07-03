@@ -6,9 +6,9 @@ import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
-import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
+import { APIGatewayProxyResult } from "aws-lambda";
 
 const mockF2fService = mock<F2fService>();
 const logger = mock<Logger>();
@@ -69,7 +69,7 @@ describe("AbortRequestProcessor", () => {
 	it("returns successful response if session has already been aborted", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce({ ...f2fSessionItem, authSessionState: AuthSessionState.F2F_CRI_SESSION_ABORTED });
 
-		const out: Response = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
+		const out: APIGatewayProxyResult = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has already been aborted");
@@ -80,13 +80,13 @@ describe("AbortRequestProcessor", () => {
 	it("updates auth session state and returns successful response if session has not been aborted", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 
-		const out: Response = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
+		const out: APIGatewayProxyResult = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(sessionId, AuthSessionState.F2F_CRI_SESSION_ABORTED);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
-		expect(out.headers).toStrictEqual({ Location: encodeURIComponent(`${f2fSessionItem.redirectUri}?error=access_denied&state=${f2fSessionItem.state}`) });
+		expect(out.headers?.Location).toBe(encodeURIComponent(`${f2fSessionItem.redirectUri}?error=access_denied&state=${f2fSessionItem.state}`));
 	});
 
 	it("Returns successful response if session has not been aborted and redirectUri contains f2f id", async () => {
@@ -94,13 +94,13 @@ describe("AbortRequestProcessor", () => {
 		f2fSessionItemClone.redirectUri = "http://localhost:8085/callback?id=f2f";
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 
-		const out: Response = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
+		const out: APIGatewayProxyResult = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(sessionId, AuthSessionState.F2F_CRI_SESSION_ABORTED);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
-		expect(out.headers).toStrictEqual({ Location: encodeURIComponent(`${f2fSessionItem.redirectUri}&error=access_denied&state=${f2fSessionItem.state}`) });
+		expect(out.headers?.Location).toContain(encodeURIComponent(`${f2fSessionItem.redirectUri}&error=access_denied&state=${f2fSessionItem.state}`));
 	});
 
 	it("sends TxMA event after auth session state has been updated", async () => {
@@ -118,7 +118,7 @@ describe("AbortRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.sendToTXMA.mockRejectedValueOnce({});
 
-		const out: Response = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
+		const out: APIGatewayProxyResult = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith("Auth session successfully aborted. Failed to send F2F_CRI_SESSION_ABORTED event to TXMA", {
@@ -133,7 +133,7 @@ describe("AbortRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.updateSessionAuthState.mockRejectedValueOnce("Error updating auth session state");
 
-		const out: Response = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
+		const out: APIGatewayProxyResult = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");

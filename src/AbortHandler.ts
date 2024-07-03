@@ -1,11 +1,11 @@
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { Constants } from "./utils/Constants";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
-import { Response, unauthorizedResponse } from "./utils/Response";
+import { Response } from "./utils/Response";
 import { AppError } from "./utils/AppError";
 import { AbortRequestProcessor } from "./services/AbortRequestProcessor";
 import { getSessionIdHeaderErrors } from "./utils/Validations";
@@ -23,7 +23,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 export class AbortHandler implements LambdaInterface {
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 
-	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
+	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
 
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
@@ -38,9 +38,9 @@ export class AbortHandler implements LambdaInterface {
 				messageCode: MessageCodes.SERVER_ERROR,
 			});
 			if (error instanceof AppError) {
-				return new Response(error.statusCode, error.message);
+				return Response(error.statusCode, error.message);
 			}
-			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+			return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 		}
 	}
 

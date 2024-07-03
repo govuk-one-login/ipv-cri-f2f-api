@@ -3,13 +3,13 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { MISSING_AUTH_HEADER_USERINFO, VALID_USERINFO } from "../data/userInfo-events";
-import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { MockKmsJwtAdapter } from "../utils/MockJwtVerifierSigner";
 import { F2fService } from "../../../services/F2fService";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
+import { APIGatewayProxyResult } from "aws-lambda";
 
 let userInforequestProcessorTest: UserInfoRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -62,7 +62,7 @@ describe("UserInfoRequestProcessor", () => {
 	it("Return successful response with 200 OK when session is found for an accessToken", async () => {
 		mockF2fService.getSessionById.mockResolvedValue(mockSession);
 
-		const out: Response = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
+		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 
@@ -82,7 +82,7 @@ describe("UserInfoRequestProcessor", () => {
 	});
 
 	it("Return 401 when Authorization header is missing in the request", async () => {
-		const out: Response = await userInforequestProcessorTest.processRequest(MISSING_AUTH_HEADER_USERINFO);
+		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(MISSING_AUTH_HEADER_USERINFO);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		// @ts-ignore
@@ -93,7 +93,7 @@ describe("UserInfoRequestProcessor", () => {
 	it("Return 401 when access_token JWT validation fails", async () => {
 		// @ts-ignore
 		userInforequestProcessorTest.kmsJwtAdapter = failingKmsJwtAdapterFactory();
-		const out: Response = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
+		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		// @ts-ignore
@@ -104,7 +104,7 @@ describe("UserInfoRequestProcessor", () => {
 	it("Return 401 when sub is missing from JWT access_token", async () => {
 		// @ts-ignore
 		userInforequestProcessorTest.kmsJwtAdapter.mockJwt.payload.sub = null;
-		const out: Response = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
+		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		// @ts-ignore
@@ -115,7 +115,7 @@ describe("UserInfoRequestProcessor", () => {
 	it("Return 401 when we receive expired JWT access_token", async () => {
 		// @ts-ignore
 		userInforequestProcessorTest.kmsJwtAdapter.mockJwt.payload.exp = absoluteTimeNow() - 500;
-		const out: Response = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
+		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		// @ts-ignore
@@ -126,7 +126,7 @@ describe("UserInfoRequestProcessor", () => {
 	it("Return 401 when session (based upon sub) was not found in the DB", async () => {
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 
-		const out: Response = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
+		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
@@ -141,7 +141,7 @@ describe("UserInfoRequestProcessor", () => {
 	it("Return 401 when AuthSessionState is not F2F_ACCESS_TOKEN_ISSUED", async () => {
 		mockF2fService.getSessionById.mockResolvedValue(mockSession);
 		mockSession.authSessionState = "F2F_AUTH_CODE_ISSUED";
-		const out: Response = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
+		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);

@@ -2,7 +2,7 @@ import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -62,7 +62,7 @@ export class DocumentSelectionRequestProcessor {
   	return DocumentSelectionRequestProcessor.instance;
 	}
 
-	async processRequest(event: APIGatewayProxyEvent, sessionId: string, encodedHeader: string): Promise<Response> {
+	async processRequest(event: APIGatewayProxyEvent, sessionId: string, encodedHeader: string): Promise<APIGatewayProxyResult> {
 		
 		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		
@@ -87,13 +87,13 @@ export class DocumentSelectionRequestProcessor {
   			this.logger.error("Missing mandatory fields (post_office_selection or document_selection.document_selected) in request payload", {
   				messageCode: MessageCodes.MISSING_MANDATORY_FIELDS,
   			});
-  			return new Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
+  			return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
   		}
   	} catch (error) {
   		this.logger.error("Error parsing the payload", {
   			messageCode: MessageCodes.ERROR_PARSING_PAYLOAD,
   		});
-  		return new Response(HttpCodesEnum.SERVER_ERROR, "An error occurred parsing the payload");
+  		return Response(HttpCodesEnum.SERVER_ERROR, "An error occurred parsing the payload");
   	}
 
   	const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
@@ -116,7 +116,7 @@ export class DocumentSelectionRequestProcessor {
   		this.logger.error("Unrecognised client in request", {
   			messageCode: MessageCodes.UNRECOGNISED_CLIENT,
   		});
-  		return new Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+  		return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
   	}
 
 		this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
@@ -125,7 +125,7 @@ export class DocumentSelectionRequestProcessor {
   	const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);
   	if (data.errorMessage.length > 0) {
   		this.logger.error( data.errorMessage + " in the PERSON IDENTITY table", { messageCode : data.errorMessageCode });
-  		return new Response(HttpCodesEnum.SERVER_ERROR, data.errorMessage + " in the PERSON IDENTITY table");
+  		return Response(HttpCodesEnum.SERVER_ERROR, data.errorMessage + " in the PERSON IDENTITY table");
   	}
 
   	if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
@@ -157,9 +157,9 @@ export class DocumentSelectionRequestProcessor {
   			this.logger.error("Error occurred during documentSelection orchestration", error.message,
   				{ messageCode: MessageCodes.FAILED_DOCUMENT_SELECTION_ORCHESTRATION });
   			if (error instanceof AppError) {
-  				return new Response(HttpCodesEnum.SERVER_ERROR, error.message);
+  				return Response(HttpCodesEnum.SERVER_ERROR, error.message);
   			} else {
-  				return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+  				return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
   			}
   		}
 
@@ -202,9 +202,9 @@ export class DocumentSelectionRequestProcessor {
   			this.logger.error("Error occurred during documentSelection orchestration", error.message,
   				{ messageCode: MessageCodes.FAILED_DOCUMENT_SELECTION_ORCHESTRATION });
   			if (error instanceof AppError) {
-  				return new Response(HttpCodesEnum.SERVER_ERROR, error.message);
+  				return Response(HttpCodesEnum.SERVER_ERROR, error.message);
   			} else {
-  				return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+  				return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
   			}
   		}
 
@@ -256,13 +256,13 @@ export class DocumentSelectionRequestProcessor {
   		}
 
 
-  		return new Response(HttpCodesEnum.OK, "Instructions PDF Generated");
+  		return Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 
   	} else {
   		this.logger.warn(`Yoti session already exists for this authorization session or Session is in the wrong state: ${f2fSessionInfo.authSessionState}`, {
   			messageCode: MessageCodes.STATE_MISMATCH,
   		});
-  		return new Response(HttpCodesEnum.UNAUTHORIZED, "Yoti session already exists for this authorization session or Session is in the wrong state");
+  		return Response(HttpCodesEnum.UNAUTHORIZED, "Yoti session already exists for this authorization session or Session is in the wrong state");
   	}
 	}
 
