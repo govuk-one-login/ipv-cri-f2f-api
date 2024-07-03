@@ -8,6 +8,7 @@ import {
 	tokenPost, 
 	userInfoPost, 
 	sessionConfigurationGet,
+	personInfoGet,
 } from "../ApiTestSteps";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
 import addressSessionPayload from "../../data/addressSessionPayload.json";
@@ -73,19 +74,10 @@ describe("/session endpoint", () => {
 describe("/personInfo endpoint", () => {
 
 	it("Unsuccessful Request Tests - 4XX Returned", async () => {
-		const stubResponse = await stubStartPost(f2fStubPayload);
-		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-		expect(postRequest.status).toBe(200);
-		const sessionId = postRequest.data.session_id;
-
-	});
-
-	it("Unsuccessful Request Tests - 5XX Returned", async () => {
-		const stubResponse = await stubStartPost(f2fStubPayload);
-		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-		expect(postRequest.status).toBe(200);
-		const sessionId = postRequest.data.session_id;
-
+		const sessionId = randomUUID();
+		const personInfoResponse = await personInfoGet(sessionId);
+		expect(personInfoResponse.status).toBe(401);
+		expect(personInfoResponse.data).toBe(`No session found with the session id: ${sessionId}`);	
 	});
 
 });

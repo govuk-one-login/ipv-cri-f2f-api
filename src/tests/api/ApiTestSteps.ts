@@ -81,12 +81,12 @@ export async function sessionPost(clientId: string, request: string): Promise<Ax
 	}
 }
 
-export async function sessionPost(clientId: string, request: string): Promise<AxiosResponse<SessionResponse>> {
-	const path = "/session";
+export async function personInfoGet(sessionId: string): Promise<AxiosResponse<string>> {
+	const path = "/person-info";
 	try {
-		const postRequest = await API_INSTANCE.post(path, { client_id: clientId, request }, { headers: { "x-forwarded-for": "ip-address", "txma-audit-encoded": "encoded-header" } });
-		expect(postRequest.status).toBe(200);
-		return postRequest;
+		const getRequest = await API_INSTANCE.get(path, { headers: { "x-govuk-signin-session-id": sessionId, "txma-audit-encoded": "encoded-header" } });
+		expect(getRequest.status).toBe(200);
+		return getRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
