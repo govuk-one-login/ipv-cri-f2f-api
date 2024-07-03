@@ -144,7 +144,6 @@ describe("/documentSelection Endpoint", () => {
 		if (personIdentityRecord) {
 			expect(personIdentityRecord.pdfPreference).toBe(docSelectionData.pdf_preference);
 
-			// Check the second address (index 1) for postalCode and preferredAddress
 			const preferredAddress = personIdentityRecord.addresses?.find(address => address.preferredAddress);
 			expect(preferredAddress).toBeDefined();
 			if (preferredAddress) {

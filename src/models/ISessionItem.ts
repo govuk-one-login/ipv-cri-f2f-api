@@ -1,18 +1,5 @@
 import { EvidenceRequested } from "../utils/IVeriCredential";
 
-
-interface Address {
-	addressCountry: string;
-	preferredAddress: boolean;
-	uprn?: string;
-	buildingName?: string;
-	streetName?: string;
-	postalCode?: string;
-	buildingNumber?: string;
-	addressLocality?: string;
-	subBuildingName?: string;
-  }
-
 export interface IF2fSession {
 	given_names?: string[];
 	family_names?: string[];
@@ -41,7 +28,5 @@ export interface ISessionItem extends IF2fSession {
 	yotiSessionId?: string;
 	evidence_requested?: EvidenceRequested;
 	expiredNotificationSent?: boolean;
-	addresses?: Address[];
-	pdfPreference?: string;
 }
 

@@ -4,6 +4,8 @@ import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
+import { PersonIdentityItem } from "../../models/PersonIdentityItem";
+
 import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";
@@ -237,7 +239,7 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 	return session;
 }
 
-export async function getPersonIdentityRecordById(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
+export async function getPersonIdentityRecordById(sessionId: string, tableName: string): Promise<PersonIdentityItem | undefined> {
 	interface OriginalValue {
 		N?: string;
 		S?: string;
@@ -250,7 +252,7 @@ export async function getPersonIdentityRecordById(sessionId: string, tableName: 
 		[key: string]: OriginalValue;
 	}
 
-	let session: ISessionItem | undefined;
+	let session: PersonIdentityItem | undefined;
 
 	const unwrapValue = (value: OriginalValue): any => {
 		if (value.N !== undefined) {
@@ -276,7 +278,7 @@ export async function getPersonIdentityRecordById(sessionId: string, tableName: 
 		const originalSession = response.data.Item;
 		session = Object.fromEntries(
 			Object.entries(originalSession).map(([key, value]) => [key, unwrapValue(value)]),
-		) as unknown as ISessionItem;
+		) as unknown as PersonIdentityItem;
 	} catch (e: any) {
 		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
 	}
