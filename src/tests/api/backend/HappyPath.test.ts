@@ -40,6 +40,30 @@ describe("/session endpoint", () => {
 	});
 });
 
+describe("/personInfo endpoint", () => {
+
+	it("Successful Request Tests - Postal Address Found", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		expect(postRequest.status).toBe(200);
+		const sessionId = postRequest.data.session_id;
+
+	});
+
+	it("Successful Request Tests - Postal Address Not Found", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		expect(postRequest.status).toBe(200);
+		const sessionId = postRequest.data.session_id;
+
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_SESSION_CREATED");
+
+		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 1);
+		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
+	});
+
+});
+
 describe("/documentSelection Endpoint", () => {
 	it.each([
 		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },

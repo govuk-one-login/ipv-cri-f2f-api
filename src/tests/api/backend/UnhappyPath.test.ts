@@ -70,6 +70,26 @@ describe("/session endpoint", () => {
 	});
 });
 
+describe("/personInfo endpoint", () => {
+
+	it("Unsuccessful Request Tests - 4XX Returned", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		expect(postRequest.status).toBe(200);
+		const sessionId = postRequest.data.session_id;
+
+	});
+
+	it("Unsuccessful Request Tests - 5XX Returned", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		expect(postRequest.status).toBe(200);
+		const sessionId = postRequest.data.session_id;
+
+	});
+
+});
+
 describe("/documentSelection endpoint", () => {
 	it.each([
 		{ yotiMockId: "0000", statusCode: 400, docSelectionData: dataDriversLicenseInvalid, errorMessage: { "message": "Invalid request body" } },

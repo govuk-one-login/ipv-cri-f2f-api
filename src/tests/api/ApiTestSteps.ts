@@ -81,6 +81,19 @@ export async function sessionPost(clientId: string, request: string): Promise<Ax
 	}
 }
 
+export async function sessionPost(clientId: string, request: string): Promise<AxiosResponse<SessionResponse>> {
+	const path = "/session";
+	try {
+		const postRequest = await API_INSTANCE.post(path, { client_id: clientId, request }, { headers: { "x-forwarded-for": "ip-address", "txma-audit-encoded": "encoded-header" } });
+		expect(postRequest.status).toBe(200);
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+}
+
+
 export async function postDocumentSelection(userData: DocSelectionData, sessionId: string): Promise<AxiosResponse<string>> {
 	const path = "/documentSelection";
 	try {
