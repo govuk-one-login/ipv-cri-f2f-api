@@ -31,9 +31,27 @@ env:
   BUILD_F2F_TEST_HARNESS_URL: ${{ secrets.BUILD_TEST_HARNESS_API_ENDPOINT }}
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      environments: ${{ steps.set-output.outputs.environments }}
+    steps:
+      - id: set-output
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "::set-output name=environments::[\"DEV\",\"BUILD\"]"
+          else
+            if [[ "${{ github.event.inputs.environment }}" == "BUILD" && "${{ github.ref }}" != "refs/heads/main" ]]; then
+              echo "Deployment to BUILD environment is only allowed from the main branch."
+              exit 1
+            fi
+            echo "::set-output name=environments::[\"${{ github.event.inputs.environment }}\"]"
+          fi
+
   deploy:
     name: Validate & Deploy SAM template
     runs-on: ubuntu-latest
+    needs: setup
     defaults:
       run:
         working-directory: ./deploy/
@@ -62,17 +80,9 @@ jobs:
         run: sam build -t template.yaml
 
       - name: Deploy SAM app
-        uses: alphagov/di-devplatform-upload-action@v3
+        uses: govuk-one-login/devplatform-upload-action@v3.8.1
         with:
             artifact-bucket-name: ${{ secrets[format('{0}_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
             signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
             working-directory: deploy
-            template-file: template.yaml
-
-  setup:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    outputs:
-      environments: '["DEV", "BUILD"]'
-    steps:
-      - run: echo "Setting up environments"
+            template-file: .aws-sam/build/template.yaml

@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'infra-l2-dynamo/**'
+      - .github/workflows/post-merge-deploy-dynamo.yml
   workflow_dispatch:
     inputs:
       environment:
@@ -24,9 +25,27 @@ env:
   AWS_REGION: eu-west-2
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      environments: ${{ steps.set-output.outputs.environments }}
+    steps:
+      - id: set-output
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "::set-output name=environments::[\"DEV\",\"BUILD\"]"
+          else
+            if [[ "${{ github.event.inputs.environment }}" == "BUILD" && "${{ github.ref }}" != "refs/heads/main" ]]; then
+              echo "Deployment to BUILD environment is only allowed from the main branch."
+              exit 1
+            fi
+            echo "::set-output name=environments::[\"${{ github.event.inputs.environment }}\"]"
+          fi
+
   deploy:
     name: Validate & Deploy Dynamo Infra template
     runs-on: ubuntu-latest
+    needs: setup
     defaults:
       run:
         working-directory: infra-l2-dynamo
@@ -55,16 +74,8 @@ jobs:
         run: sam build -t template.yaml
 
       - name: Deploy SAM app
-        uses: alphagov/di-devplatform-upload-action@v3
+        uses: govuk-one-login/devplatform-upload-action@v3.8.1
         with:
             artifact-bucket-name: ${{ secrets[format('{0}_F2F_DDB_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
             working-directory: infra-l2-dynamo
-            template-file: template.yaml
-
-  setup:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    outputs:
-      environments: '["DEV", "BUILD"]'
-    steps:
-      - run: echo "Setting up environments"
+            template-file: .aws-sam/build/template.yaml

@@ -1,0 +1,162 @@
+name: Deploy All Services
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        type: string
+      environment:
+        description: 'Deploy to which environment?'
+        required: true
+        type: choice
+        options:
+          - DEV
+          - BUILD
+
+jobs:
+  trigger-deployments:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Test Container Deployment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'post-merge-deploy-test-container.yml',
+              ref: '${{ github.event.inputs.branch }}',
+              inputs: {
+                environment: '${{ github.event.inputs.environment }}'
+              }
+            })
+
+      - name: Trigger Dynamo Infra Deployment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'post-merge-deploy-dynamo.yml',
+              ref: '${{ github.event.inputs.branch }}',
+              inputs: {
+                environment: '${{ github.event.inputs.environment }}'
+              }
+            })
+
+      - name: Trigger KMS Infra Deployment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'post-merge-deploy-kms.yml',
+              ref: '${{ github.event.inputs.branch }}',
+              inputs: {
+                environment: '${{ github.event.inputs.environment }}'
+              }
+            })
+
+      - name: Trigger Outbound Proxy Infra Deployment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'post-merge-deploy-outbound-proxy.yml',
+              ref: '${{ github.event.inputs.branch }}',
+              inputs: {
+                environment: '${{ github.event.inputs.environment }}'
+              }
+            })
+
+      - name: Trigger Test Harness Deployment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'post-merge-deploy-test-harness.yml',
+              ref: '${{ github.event.inputs.branch }}',
+              inputs: {
+                environment: '${{ github.event.inputs.environment }}'
+              }
+            })
+
+      - name: Trigger PostOffice Mock Deployment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'post-merge-deploy-postoffice-mock.yml',
+              ref: '${{ github.event.inputs.branch }}',
+              inputs: {
+                environment: '${{ github.event.inputs.environment }}'
+              }
+            })
+
+      - name: Trigger Yoti Stub Deployment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'post-merge-deploy-yoti-stub.yml',
+              ref: '${{ github.event.inputs.branch }}',
+              inputs: {
+                environment: '${{ github.event.inputs.environment }}'
+              }
+            })
+
+      - name: Trigger GovNotify Stub Deployment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'post-merge-deploy-govnotify-stub.yml',
+              ref: '${{ github.event.inputs.branch }}',
+              inputs: {
+                environment: '${{ github.event.inputs.environment }}'
+              }
+            })
+
+      - name: Trigger IPV Stub Deployment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'post-merge-deploy-ipv-stub.yml',
+              ref: '${{ github.event.inputs.branch }}',
+              inputs: {
+                environment: '${{ github.event.inputs.environment }}'
+              }
+            })
+
+      - name: Trigger API Deployment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'post-merge-deploy-api.yml',
+              ref: '${{ github.event.inputs.branch }}',
+              inputs: {
+                environment: '${{ github.event.inputs.environment }}'
+              }
+            })
+
+      

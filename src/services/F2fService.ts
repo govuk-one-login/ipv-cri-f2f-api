@@ -265,14 +265,14 @@ export class F2fService {
 		return sessionItem.Items[0] as ISessionItem;
 	}
 
-	async getSessionsByAuthSessionStates(authSessionStates: string[]): Promise<Array<Record<string, any>>> {
+	async getSessionsByAuthSessionStates(authSessionStates: string[], index: string = Constants.AUTH_SESSION_STATE_INDEX_NAME): Promise<Array<Record<string, any>>> {
 		const uniqueSessionIds = new Set();
 		const filteredItems = [];
 	
 		for (const authSessionState of authSessionStates) {
 			const params = {
 				TableName: this.tableName,
-				IndexName: Constants.AUTH_SESSION_STATE_INDEX_NAME,
+				IndexName: index,
 				KeyConditionExpression: "authSessionState = :authSessionState",
 				ExpressionAttributeValues: {
 					":authSessionState": authSessionState,
@@ -291,6 +291,7 @@ export class F2fService {
 	
 		return filteredItems;
 	}
+	
 
 	async updateReminderEmailFlag(sessionId: string, reminderEmailSent: boolean): Promise<void> {
 		const updateStateCommand = new UpdateCommand({
@@ -309,6 +310,26 @@ export class F2fService {
 		} catch (error) {
 			this.logger.error({ message: "Got error setting reminderEmailSent flag", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error setting reminderEmailSent flag");
+		}
+	}
+
+	async markSessionAsExpired(sessionId: string): Promise<void> {
+		const updateStateCommand = new UpdateCommand({
+			TableName: this.tableName,
+			Key: { sessionId },
+			UpdateExpression: "SET expiredNotificationSent = :expiredNotificationSent, authSessionState = :authSessionState",
+			ExpressionAttributeValues: {
+				":expiredNotificationSent": true,
+				":authSessionState": AuthSessionState.F2F_SESSION_EXPIRED,
+			},
+		});
+
+		try {
+			await this.dynamo.send(updateStateCommand);
+			this.logger.info({ message: "Session marked as expired", sessionId });
+		} catch (error) {
+			this.logger.error({ message: "Got error marking session as expired", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error marking session as expired");
 		}
 	}
 
