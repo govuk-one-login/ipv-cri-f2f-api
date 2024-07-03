@@ -237,7 +237,7 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 	return session;
 }
 
-export async function getPersonIdentityRecordById(sessionId: string, tableName: string): Promise<any> {
+export async function getPersonIdentityRecordById(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
 	interface OriginalValue {
 		N?: string;
 		S?: string;
