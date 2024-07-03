@@ -11,6 +11,7 @@ import {
 	userInfoPost,
 	sessionConfigurationGet,
 	postAbortSession,
+	getPersonIdentityRecordById,
 } from "../ApiTestSteps";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
@@ -99,13 +100,13 @@ describe("/documentSelection Endpoint", () => {
 		newf2fStubPayload.shared_claims.address[0].subBuildingName = subBuildingName;
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
-		const docSelect = structuredClone(dataUkDrivingLicence);
-		docSelect.pdf_preference = "EMAIl_ONLY";
 		const response = await postDocumentSelection(dataUkDrivingLicence, sessionId);
 		expect(response.status).toBe(200);
 
 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
-		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "pdf_preference", "EMAIL_ONLY");
+
+		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
+		expect(personIdentityRecord.pdfPreference).toBe(dataUkDrivingLicence.pdf_preference);
 	});
 
 	it.each([
@@ -115,13 +116,12 @@ describe("/documentSelection Endpoint", () => {
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 	
 
-		const docSelect = structuredClone(docSelectionData);
-		docSelect.pdf_preference = "PRINTED_LETTER";
 		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
 		expect(postResponse.status).toBe(200);
 
-		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
-		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "pdf_preference", "PRINTED_LETTER");
+		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
+
+		expect(personIdentityRecord.pdfPreference).toBe(docSelectionData.pdf_preference);
 	});
 
 	it.each([
@@ -135,9 +135,12 @@ describe("/documentSelection Endpoint", () => {
 		docSelect.postal_address.preferredAddress = true;
 		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
 		expect(postResponse.status).toBe(200);
+	
+		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
 
-		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
-		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "preferredAddress", "true");
+		expect(personIdentityRecord.pdfPreference).toBe(docSelectionData.pdf_preference);
+		expect(personIdentityRecord.addresses[1].postalCode).toBe(docSelectionData.postal_address.postalCode);
+		expect(personIdentityRecord.addresses[1].preferredAddress).toBe(true);
 	});
 });
 
