@@ -2,6 +2,8 @@ import Ajv from "ajv";
 import { XMLParser } from "fast-xml-parser";
 import { HARNESS_API_INSTANCE } from "./ApiTestSteps";
 import { TxmaEvent, TxmaEventName } from "../../utils/TxmaEvent";
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+const client = new LambdaClient({ region: process.env.REGION });
 import * as F2F_CRI_AUTH_CODE_ISSUED_SCHEMA from "../data/F2F_CRI_AUTH_CODE_ISSUED_SCHEMA.json";
 import * as F2F_CRI_END_SCHEMA from "../data/F2F_CRI_END_SCHEMA.json";
 import * as F2F_CRI_START_SCHEMA from "../data/F2F_CRI_START_SCHEMA.json";
@@ -139,3 +141,19 @@ export function validateTxMAEventData(
 		throw new Error(`No event found in the test harness for ${eventName} event`);
 	}
 }
+
+export async function invokeLambdaFunction(lambdaName: string, payload: object): Promise<void> {
+  
+	const command = new InvokeCommand({
+	  FunctionName: lambdaName,
+	  Payload: new TextEncoder().encode(JSON.stringify(payload)),
+	});
+  
+	try {
+	  await client.send(command);
+	} catch (error) {
+	  console.error("Error invoking Lambda function", error);
+	  throw new Error(`Failed to invoke Lambda function: ${error}`);
+	}
+  }
+

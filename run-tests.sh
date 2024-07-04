@@ -42,6 +42,8 @@ case "$SAM_STACK_NAME" in
         export VC_SIGNING_KEY_ID=$(remove_quotes "$CFN_VcSigningKeyId")
         export DNS_SUFFIX=$(remove_quotes "$CFN_DNSSuffix")
         export DEV_F2F_SESSION_TABLE_NAME=$(remove_quotes "$CFN_SessionTableName")
+        export DEV_EXPIRED_SESSIONS_LAMBDA_NAME=$(remove_quotes "$CFN_ExpiredSessionsLambdaName")
+
         
         run_tests "test:api" "test:api-third-party"
         error_code=$?
