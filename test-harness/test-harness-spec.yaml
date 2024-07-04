@@ -2,7 +2,7 @@ openapi: 3.0.1
 
 info:
   title:
-    Fn::Sub: "${AWS::StackName} - F2F Credential Issuer Private API"
+     Fn::Sub: "${AWS::StackName} - F2F Credential Issuer Private API"
   version: "1.0"
   description: F2F Test automation harness API specification
 
@@ -17,20 +17,20 @@ tags:
 x-amazon-apigateway-policy:
   Version: "2012-10-17"
   Statement:
-    - Effect: "Deny"
-      Principal:
-        AWS: "*"
-      Action: "execute-api:Invoke"
-      Resource: "execute-api:/*"
-      Condition:
-        StringNotEquals:
-          "aws:PrincipalAccount":
-            - "${AWS::AccountId}"
-    - Effect: "Allow"
-      Principal:
-        AWS: "*"
-      Action: "execute-api:Invoke"
-      Resource: "execute-api:/*"
+  - Effect: "Deny"
+    Principal:
+      AWS:  "*"
+    Action: "execute-api:Invoke"
+    Resource: "execute-api:/*"
+    Condition:
+      StringNotEquals:
+        "aws:PrincipalAccount":
+          - "${AWS::AccountId}"
+  - Effect: "Allow"
+    Principal:
+      AWS:  "*"
+    Action: "execute-api:Invoke"
+    Resource: "execute-api:/*"
 
 paths:
   getRecordBySessionId/{tableName}/{sessionId}:
@@ -73,7 +73,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: POST
         credentials:
-          Fn::GetAtt: ["DynamoDbAccessRole", "Arn"]
+          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
         uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/GetItem"
         passthroughBehavior: when_no_match
         requestParameters:
@@ -135,7 +135,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: POST
         credentials:
-          Fn::GetAtt: ["DynamoDbAccessRole", "Arn"]
+          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
         uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
         passthroughBehavior: when_no_match
         requestParameters:
@@ -191,7 +191,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: POST
         credentials:
-          Fn::GetAtt: ["DynamoDbAccessRole", "Arn"]
+          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
         uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
         passthroughBehavior: when_no_match
         requestParameters:
@@ -255,7 +255,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: POST
         credentials:
-          Fn::GetAtt: ["DynamoDbAccessRole", "Arn"]
+          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
         uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
         passthroughBehavior: when_no_match
         requestParameters:
