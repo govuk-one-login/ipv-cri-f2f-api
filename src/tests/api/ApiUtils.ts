@@ -155,5 +155,5 @@ export async function invokeLambdaFunction(lambdaName: string, payload: object):
 	  console.error("Error invoking Lambda function", error);
 	  throw new Error(`Failed to invoke Lambda function: ${error}`);
 	}
-  }
+}
 
