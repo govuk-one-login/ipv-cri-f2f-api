@@ -232,17 +232,17 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 	  const originalSession = response.data.Item;
   
 	  session = Object.fromEntries(
-		Object.entries(originalSession).map(([key, value]) => {
+			Object.entries(originalSession).map(([key, value]) => {
 		  if (value.N !== undefined) {
-			return [key, Number(value.N)];
+					return [key, Number(value.N)];
 		  } else if (value.S !== undefined) {
-			return [key, value.S];
+					return [key, value.S];
 		  } else if (value.BOOL !== undefined) {
-			return [key, value.BOOL];
+					return [key, value.BOOL];
 		  } else {
-			return [key, undefined];
+					return [key, undefined];
 		  }
-		})
+			}),
 	  ) as unknown as ISessionItem;
 	} catch (e: any) {
 	  console.error({ message: "getSessionById - failed getting session from Dynamo", e });
@@ -336,7 +336,7 @@ export async function updateDynamoDbRecord(sessionId: string, tableName: string,
 		const queryParams = { sessionId };
 
 		await HARNESS_API_INSTANCE.patch(url, requestBody, {
-			params: queryParams
+			params: queryParams,
 		});
 
 		console.log(`Record updated successfully for table ${tableName}`);
