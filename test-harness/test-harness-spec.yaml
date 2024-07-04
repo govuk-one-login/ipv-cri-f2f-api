@@ -380,7 +380,7 @@ paths:
             statusCode: "200"
         type: aws
 
-  updateRecord/{tableName}:
+  /updateRecord/{tableName}:
     patch:
       operationId: updateRecord
       summary: Update a record in a DynamoDB table
@@ -409,11 +409,20 @@ paths:
               properties:
                 attributeName:
                   type: string
+                  description: The name of the attribute to update
                 newValue:
+                  oneOf:
+                    - type: string
+                    - type: number
+                    - type: boolean
+                  description: The new value for the attribute
+                newValueType:
                   type: string
+                  description: The type of the new value (S for string, N for number, BOOL for boolean)
               required:
                 - attributeName
                 - newValue
+                - newValueType
       responses:
         "200":
           description: Record updated successfully
@@ -449,7 +458,7 @@ paths:
               },
               "ExpressionAttributeValues": {
                 ":attrValue": {
-                  "S": $input.json('$.newValue')
+                  $input.json('$.newValueType'): $input.json('$.newValue')
                 }
               }
             }

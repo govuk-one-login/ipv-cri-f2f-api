@@ -6747,3 +6747,8 @@ Outputs:
     Description: "Signing Key used to sign VC"
     Value:
       Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key-id"
+  ExpiredSessionsLambdaName:
+    Condition: IsNotProdLikeEnvironment
+    Description: "Lambda Service to process expired user sessions"
+    Value:
+      Fn::ImportValue: !Sub "F2F-ExpiredSessions-${AWS::StackName}"
