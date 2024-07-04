@@ -2,7 +2,7 @@ openapi: 3.0.1
 
 info:
   title:
-     Fn::Sub: "${AWS::StackName} - F2F Credential Issuer Private API"
+    Fn::Sub: "${AWS::StackName} - F2F Credential Issuer Private API"
   version: "1.0"
   description: F2F Test automation harness API specification
 
@@ -17,20 +17,20 @@ tags:
 x-amazon-apigateway-policy:
   Version: "2012-10-17"
   Statement:
-  - Effect: "Deny"
-    Principal:
-      AWS:  "*"
-    Action: "execute-api:Invoke"
-    Resource: "execute-api:/*"
-    Condition:
-      StringNotEquals:
-        "aws:PrincipalAccount":
-          - "${AWS::AccountId}"
-  - Effect: "Allow"
-    Principal:
-      AWS:  "*"
-    Action: "execute-api:Invoke"
-    Resource: "execute-api:/*"
+    - Effect: "Deny"
+      Principal:
+        AWS: "*"
+      Action: "execute-api:Invoke"
+      Resource: "execute-api:/*"
+      Condition:
+        StringNotEquals:
+          "aws:PrincipalAccount":
+            - "${AWS::AccountId}"
+    - Effect: "Allow"
+      Principal:
+        AWS: "*"
+      Action: "execute-api:Invoke"
+      Resource: "execute-api:/*"
 
 paths:
   getRecordBySessionId/{tableName}/{sessionId}:
@@ -73,7 +73,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: POST
         credentials:
-          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
+          Fn::GetAtt: ["DynamoDbAccessRole", "Arn"]
         uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/GetItem"
         passthroughBehavior: when_no_match
         requestParameters:
@@ -135,7 +135,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: POST
         credentials:
-          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
+          Fn::GetAtt: ["DynamoDbAccessRole", "Arn"]
         uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
         passthroughBehavior: when_no_match
         requestParameters:
@@ -191,7 +191,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: POST
         credentials:
-          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
+          Fn::GetAtt: ["DynamoDbAccessRole", "Arn"]
         uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
         passthroughBehavior: when_no_match
         requestParameters:
@@ -255,7 +255,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: POST
         credentials:
-          Fn::GetAtt: [ "DynamoDbAccessRole", "Arn" ]
+          Fn::GetAtt: ["DynamoDbAccessRole", "Arn"]
         uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
         passthroughBehavior: when_no_match
         requestParameters:
@@ -380,6 +380,86 @@ paths:
             statusCode: "200"
         type: aws
 
+  updateRecord/{tableName}:
+    patch:
+      operationId: updateRecord
+      summary: Update a record in a DynamoDB table
+      description: |
+        Endpoint to update fields in an existing record in a specified DynamoDB table.
+      parameters:
+        - name: tableName
+          in: path
+          description: The name of the table to update the record in DynamoDB
+          required: true
+          schema:
+            type: string
+        - name: sessionId
+          in: query
+          description: The sessionId to identify the record
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: The fields to update in the record
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                attributeName:
+                  type: string
+                newValue:
+                  type: string
+              required:
+                - attributeName
+                - newValue
+      responses:
+        "200":
+          description: Record updated successfully
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+        - sigv4Reference: []
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        credentials:
+          Fn::GetAtt: ["DynamoDbAccessRole", "Arn"]
+        uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.path.tableName: "method.request.path.tableName"
+          integration.request.querystring.sessionId: "method.request.querystring.sessionId"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "$input.params('tableName')",
+              "Key": {
+                "sessionId": {
+                  "S": "$input.params('sessionId')"
+                }
+              },
+              "UpdateExpression": "SET #attrName = :attrValue",
+              "ExpressionAttributeNames": {
+                "#attrName": "$input.json('$.attributeName')"
+              },
+              "ExpressionAttributeValues": {
+                ":attrValue": {
+                  "S": "$input.json('$.newValue')"
+                }
+              }
+            }
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
+
+
+
 components:
   securitySchemes:
     sigv4Reference:
@@ -389,12 +469,12 @@ components:
       x-amazon-apigateway-authtype: awsSigv4
 
 x-amazon-apigateway-request-validators:
-    both:
-      validateRequestBody: true
-      validateRequestParameters: true
-    requestBodyOnly:
-      validateRequestBody: true
-      validateRequestParameters: false
-    requestParamsOnly:
-      validateRequestBody: false
-      validateRequestParameters: true
+  both:
+    validateRequestBody: true
+    validateRequestParameters: true
+  requestBodyOnly:
+    validateRequestBody: true
+    validateRequestParameters: false
+  requestParamsOnly:
+    validateRequestBody: false
+    validateRequestParameters: true
