@@ -445,11 +445,11 @@ paths:
               },
               "UpdateExpression": "SET #attrName = :attrValue",
               "ExpressionAttributeNames": {
-                "#attrName": "$input.json('$.attributeName')"
+                "#attrName": $input.json('$.attributeName')
               },
               "ExpressionAttributeValues": {
                 ":attrValue": {
-                  "S": "$input.json('$.newValue')"
+                  "S": $input.json('$.newValue')
                 }
               }
             }
@@ -457,8 +457,6 @@ paths:
           default:
             statusCode: "200"
         type: aws
-
-
 
 components:
   securitySchemes:
