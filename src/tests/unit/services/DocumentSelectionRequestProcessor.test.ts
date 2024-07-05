@@ -231,7 +231,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart, encodedHeader);
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
-		expect(out.status).toBe(HttpCodesEnum.OK);
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
 	});
 
@@ -304,7 +304,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it("Returns bad request response when pdf_preference is missing from FE payload", async () => {
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(MISSING_PDF_PREFERENCE, "1234", encodedHeader);
 		
-		expect(out.status).toBe(HttpCodesEnum.BAD_REQUEST);
+		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 		expect(out.body).toBe("Missing mandatory fields in request payload");
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", { messageCode: "MISSING_MANDATORY_FIELDS" },
@@ -322,7 +322,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	])("Returns bad request response when postal_address is present but mandatory fields within postal_address are missing from FE payload", async (payload) => {
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(payload, "1234", encodedHeader);
 		
-		expect(out.status).toBe(HttpCodesEnum.BAD_REQUEST);
+		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 		expect(out.body).toBe("Missing mandatory fields in postal address");
 		expect(logger.error).toHaveBeenCalledWith(
 			"Postal address missing mandatory fields in postal address", { messageCode: "MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS" },
