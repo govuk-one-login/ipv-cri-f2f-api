@@ -92,7 +92,7 @@ export class DocumentSelectionRequestProcessor {
   			this.logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", {
   				messageCode: MessageCodes.MISSING_MANDATORY_FIELDS,
   			});
-  			return new Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
+  			return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
   		} else if (postalAddress && !postalAddress.uprn ||
 			postalAddress && !postalAddress.buildingNumber && !postalAddress.buildingName ||
 			postalAddress && !postalAddress.streetName ||
@@ -104,7 +104,7 @@ export class DocumentSelectionRequestProcessor {
 				this.logger.error("Postal address missing mandatory fields in postal address", {
 					messageCode: MessageCodes.MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS,
 				});
-				return new Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in postal address");
+				return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in postal address");
 			} 
   	} catch (error) {
   		this.logger.error("Error parsing the payload", {
