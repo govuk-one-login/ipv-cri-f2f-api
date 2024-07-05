@@ -4,7 +4,7 @@ import { F2fService } from "./F2fService";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Response } from "../utils/Response";
 import { AccessTokenRequestValidationHelper } from "../utils/AccessTokenRequestValidationHelper";
 import { ISessionItem } from "../models/ISessionItem";
@@ -47,7 +47,7 @@ export class AccessTokenRequestProcessor {
 		return AccessTokenRequestProcessor.instance;
 	}
 
-	async processRequest(event: APIGatewayProxyEvent): Promise<Response> {
+	async processRequest(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 		try {
 			let requestPayload;
 			try {
@@ -55,16 +55,16 @@ export class AccessTokenRequestProcessor {
 			} catch (error) {
 				this.logger.error("Failed validating the Access token request body.", { messageCode: MessageCodes.FAILED_VALIDATING_ACCESS_TOKEN_REQUEST_BODY });
 				if (error instanceof AppError) {
-					return new Response(error.statusCode, error.message);
+					return Response(error.statusCode, error.message);
 				}
-				return new Response(HttpCodesEnum.UNAUTHORIZED, "An error has occurred while validating the Access token request payload.");
+				return Response(HttpCodesEnum.UNAUTHORIZED, "An error has occurred while validating the Access token request payload.");
 			}
 			let session: ISessionItem | undefined;
 			try {
 				session = await this.f2fService.getSessionByAuthorizationCode(requestPayload.code);
 				if (!session) {
 					this.logger.info(`No session found by authorization code: : ${requestPayload.code}`, { messageCode: MessageCodes.SESSION_NOT_FOUND });
-					return new Response(HttpCodesEnum.UNAUTHORIZED, `No session found by authorization code: ${requestPayload.code}`);
+					return Response(HttpCodesEnum.UNAUTHORIZED, `No session found by authorization code: ${requestPayload.code}`);
 				}
 				this.logger.appendKeys({ sessionId: session.sessionId });
 				this.logger.info({ message: "Found Session" });
@@ -73,14 +73,14 @@ export class AccessTokenRequestProcessor {
 				});
 			} catch (error) {
 				if (error instanceof AppError) {
-					return new Response(error.statusCode, error.message);
+					return Response(error.statusCode, error.message);
 				}
 
 				this.logger.error("Error while retrieving the session", {
 					messageCode: MessageCodes.SESSION_NOT_FOUND,
 					error,
 				});
-				return new Response(HttpCodesEnum.UNAUTHORIZED, "Error while retrieving the session");
+				return Response(HttpCodesEnum.UNAUTHORIZED, "Error while retrieving the session");
 			}
 
 			if (session.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED) {
@@ -98,7 +98,7 @@ export class AccessTokenRequestProcessor {
 					accessToken = await this.kmsJwtAdapter.sign(jwtPayload, this.environmentVariables.dnsSuffix());
 				} catch (error) {
 					this.logger.error("Failed to sign the accessToken Jwt", { messageCode: MessageCodes.FAILED_SIGNING_JWT });
-					return new Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the accessToken Jwt");
+					return Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the accessToken Jwt");
 				}
 
 				// Update the sessionTable with accessTokenExpiryDate and AuthSessionState.
@@ -116,11 +116,11 @@ export class AccessTokenRequestProcessor {
 				};
 			} else {
 				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_AUTH_CODE_ISSUED}`, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
-				return new Response(HttpCodesEnum.UNAUTHORIZED, `Session is in the wrong state: ${session.authSessionState}`);
+				return Response(HttpCodesEnum.UNAUTHORIZED, `Session is in the wrong state: ${session.authSessionState}`);
 			}
 		} catch (err: any) {
 			this.logger.error({ message: "Error processing access token request", err });
-			return new Response(err.statusCode, err.message);
+			return Response(err.statusCode, err.message);
 		}
 	}
 }

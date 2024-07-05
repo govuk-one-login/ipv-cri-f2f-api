@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Response } from "./utils/Response";
@@ -23,7 +23,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 class AuthorizationCodeHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
+	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
 
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
@@ -40,24 +40,24 @@ class AuthorizationCodeHandler implements LambdaInterface {
 
 					if (!Constants.REGEX_UUID.test(sessionId)) {
 						logger.error("Session id not not a valid uuid", { messageCode: MessageCodes.FAILED_VALIDATING_SESSION_ID });
-						return new Response(HttpCodesEnum.BAD_REQUEST, "Session id must be a valid uuid");
+						return Response(HttpCodesEnum.BAD_REQUEST, "Session id must be a valid uuid");
 					}
 				} else {
 					logger.error("Missing header: session-id is required", { messageCode: MessageCodes.MISSING_HEADER });
-					return new Response(HttpCodesEnum.BAD_REQUEST, "Missing header: session-id is required");
+					return Response(HttpCodesEnum.BAD_REQUEST, "Missing header: session-id is required");
 				}
 			} else {
 				logger.error("Empty headers", { messageCode: MessageCodes.MISSING_HEADER });
-				return new Response(HttpCodesEnum.BAD_REQUEST, "Empty headers");
+				return Response(HttpCodesEnum.BAD_REQUEST, "Empty headers");
 			}
 			logger.info("Starting AuthorizationRequestProcessor");
 			return await AuthorizationRequestProcessor.getInstance(logger, metrics).processRequest(event, sessionId);
 		} catch (err: any) {
 			logger.error({ message: "An error has occurred.", err });
 			if (err instanceof AppError) {
-				return new Response(err.statusCode, err.message);
+				return Response(err.statusCode, err.message);
 			}
-			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+			return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 		}
 	}
 

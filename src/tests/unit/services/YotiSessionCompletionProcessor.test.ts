@@ -5,7 +5,6 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
-import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { YotiSessionCompletionProcessor } from "../../../services/YotiSessionCompletionProcessor";
 import { YotiService } from "../../../services/YotiService";
@@ -21,6 +20,7 @@ import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { TXMA_BRP_VC_ISSUED, TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_DL_VC_ISSUED_WITHOUT_FULL_ADDRESS, TXMA_EEA_VC_ISSUED, TXMA_EU_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
 import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getDrivingPermitFieldsWithoutFormattedAddress, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
+import { APIGatewayProxyResult } from "aws-lambda";
 
 let mockCompletedSessionProcessor: YotiSessionCompletionProcessor;
 const mockF2fService = mock<F2fService>();
@@ -144,7 +144,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		const coreFields = TXMA_CORE_FIELDS;
@@ -240,7 +240,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		const ukDlcoreFields = TXMA_CORE_FIELDS;
@@ -343,7 +343,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		const ukDlcoreFields = TXMA_CORE_FIELDS;
@@ -447,7 +447,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		const ukDlcoreFields = TXMA_CORE_FIELDS;
@@ -543,7 +543,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 		const euDlcoreFields = TXMA_CORE_FIELDS;
 		euDlcoreFields.timestamp = 1585695600;
 		euDlcoreFields.event_timestamp_ms = 1585695600000;
@@ -642,7 +642,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 		const eeaDlcoreFields = TXMA_CORE_FIELDS;
 		eeaDlcoreFields.timestamp = 1585695600;
 		eeaDlcoreFields.event_timestamp_ms = 1585695600000;
@@ -738,7 +738,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 		const brpCoreFields = TXMA_CORE_FIELDS;
 		brpCoreFields.timestamp = 1585695600;
 		brpCoreFields.event_timestamp_ms = 1585695600000;
@@ -1144,7 +1144,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		f2fModifiedAuthSessionItem.authSessionState = "F2F_YOTI_SESSION_CREATED";
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fModifiedAuthSessionItem);
 
-		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 		expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : AuthSession is in wrong Auth state", {
 			messageCode: MessageCodes.ERROR_GENERATING_VC,
 		});
@@ -1167,7 +1167,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		// @ts-ignore
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-		const out: Response = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		expect(logger.error).toHaveBeenNthCalledWith(1, "Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", { messageCode: MessageCodes.FAILED_TO_WRITE_TXMA });

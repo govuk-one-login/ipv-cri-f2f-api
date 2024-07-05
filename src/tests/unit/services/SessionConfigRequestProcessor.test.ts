@@ -8,6 +8,7 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { VALID_SESSION_CONFIG } from "../data/session-config-events";
 import { SessionConfigRequestProcessor } from "../../../services/SessionConfigRequestProcessor";
+import { APIGatewayProxyResult } from "aws-lambda";
 
 let sessionConfigRequestProcessorTest: SessionConfigRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -53,7 +54,7 @@ describe("SessionConfigRequestProcessor", () => {
 		const sess = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
-		const out: Response = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
+		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
 		expect(out.body).toEqual(JSON.stringify({}));
 
@@ -65,7 +66,7 @@ describe("SessionConfigRequestProcessor", () => {
 		sess.evidence_requested = { strengthScore: 4 };
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
-		const out: Response = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
+		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
 		expect(out.body).toEqual(JSON.stringify({ evidence_requested: { strengthScore: 4 } }));
 
@@ -77,7 +78,7 @@ describe("SessionConfigRequestProcessor", () => {
 		sess.evidence_requested = { strengthScore: 3 };
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
-		const out: Response = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
+		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
 		expect(out.body).toEqual(JSON.stringify({ evidence_requested: { strengthScore: 3 } }));
 
@@ -89,7 +90,7 @@ describe("SessionConfigRequestProcessor", () => {
 		sess.expiryDate = 1675458564;
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
-		const out: Response = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
+		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
@@ -100,7 +101,7 @@ describe("SessionConfigRequestProcessor", () => {
 	it("Return 401 when session with that session id not found in the DB", async () => {
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 
-		const out: Response = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
+		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);

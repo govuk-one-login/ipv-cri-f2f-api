@@ -21,7 +21,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 class UserInfo implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: APIGatewayProxyEvent, context: any): Promise<Response> {
+	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
 
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
@@ -33,7 +33,7 @@ class UserInfo implements LambdaInterface {
 			return await UserInfoRequestProcessor.getInstance(logger, metrics).processRequest(event);
 		} catch (err) {
 			logger.error({ message: "An error has occurred. ", err }, { messageCode: MessageCodes.SERVER_ERROR });
-			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+			return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 		}
 	}
 }

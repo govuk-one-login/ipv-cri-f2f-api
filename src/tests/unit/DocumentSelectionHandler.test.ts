@@ -27,10 +27,8 @@ describe("DocumentSelectionHandler", () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 		const response = await lambdaHandler(MISSING_SESSION_ID, "");
 
-		expect(response).toEqual({
-			statusCode: 401,
-			body: message,
-		});
+		expect(response.statusCode).toBe(401);
+		expect(response.body).toBe(message);
 		expect(loggerSpy).toHaveBeenCalledWith({ message, messageCode: MessageCodes.INVALID_SESSION_ID });
 	});
 
@@ -39,10 +37,8 @@ describe("DocumentSelectionHandler", () => {
 		DocumentSelectionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockDocumentSelectionRequestProcessor);
 
 		const response = await lambdaHandler(INVALID_SESSION_ID, "");
-		expect(response).toEqual({
-			statusCode: 401,
-			body: message,
-		});
+		expect(response.statusCode).toBe(401);
+		expect(response.body).toBe(message);
 		expect(loggerSpy).toHaveBeenCalledWith({ message, messageCode: MessageCodes.INVALID_SESSION_ID });
 	});
 
