@@ -580,6 +580,23 @@ Resources:
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
 
+  YotiLetterBucket:
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
+      VersioningConfiguration:
+        Status: "Enabled"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
   ### Start of API Gateway definition.
 
   F2FRestApi:
@@ -741,7 +758,13 @@ Resources:
   ### End of API Gateway Custom Domain definition
 
   ### Function Definition
-  ## SessionHandler
+
+####################################################################
+#                                                                  #
+# Session Function                                                 #
+#                                                                  #
+####################################################################
+
   SessionFunction:
     Type: AWS::Serverless::Function
     DependsOn: SessionFunctionLogGroup
@@ -1010,7 +1033,11 @@ Resources:
             Stat: Sum
 
 
-  ## SessionConfiguration
+####################################################################
+#                                                                  #
+# Session Config Function                                          #
+#                                                                  #
+####################################################################
 
   SessionConfigFunction:
     Type: AWS::Serverless::Function
@@ -1128,7 +1155,12 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  ## AccessToken
+####################################################################
+#                                                                  #
+# Access Token Function                                            #
+#                                                                  #
+####################################################################
+
   TokenFunction:
     Type: AWS::Serverless::Function
     DependsOn: TokenFunctionLogGroup
@@ -1294,6 +1326,12 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+
+####################################################################
+#                                                                  #
+# Authorization Function                                           #
+#                                                                  #
+####################################################################
 
   AuthorizationFunction:
     Type: AWS::Serverless::Function
@@ -1467,6 +1505,12 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+
+####################################################################
+#                                                                  #
+# Document Selection Function                                      #
+#                                                                  #
+####################################################################
 
   DocumentSelectionFunction:
     Type: AWS::Serverless::Function
@@ -1672,6 +1716,12 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
+####################################################################
+#                                                                  #
+# Abort Function                                                   #
+#                                                                  #
+####################################################################
+
   AbortFunction:
     Type: AWS::Serverless::Function
     DependsOn: AbortLogGroup
@@ -1875,6 +1925,12 @@ Resources:
         - alias/TxMAKMSEncryptionKey
       TargetKeyId: !Ref TxMAKMSEncryptionKey
 
+####################################################################
+#                                                                  #
+# JWKS Function                                                    #
+#                                                                  #
+####################################################################
+
   JsonWebKeysFunction:
     Type: AWS::Serverless::Function
     DependsOn:
@@ -2022,6 +2078,12 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+
+####################################################################
+#                                                                  #
+# GovNotify Function                                               #
+#                                                                  #
+####################################################################
 
   GovNotifyFunction:
     Type: AWS::Serverless::Function
@@ -2188,7 +2250,12 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
-  ## UserInfo
+####################################################################
+#                                                                  #
+# UserInfo Function                                                #
+#                                                                  #
+####################################################################
+
   UserInfoFunction:
     Type: AWS::Serverless::Function
     DependsOn: UserInfoFunctionLogGroup
@@ -2366,7 +2433,12 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  ## ReminderEmailHandler
+####################################################################
+#                                                                  #
+# Reminder Email Function                                          #
+#                                                                  #
+####################################################################
+
   ReminderEmailFunction:
     Type: AWS::Serverless::Function
     DependsOn: ReminderEmailFunctionLogGroup
@@ -2553,7 +2625,12 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  ## ExpiredSessionsHandler
+####################################################################
+#                                                                  #
+# Expired Sessions Function                                        #
+#                                                                  #
+####################################################################
+
   ExpiredSessionsFunction:
     Type: AWS::Serverless::Function
     DependsOn: ExpiredSessionsFunctionLogGroup
@@ -2962,6 +3039,12 @@ Resources:
             - "Arn"
         maxReceiveCount: 10
 
+####################################################################
+#                                                                  #
+# Yoti Callback Function                                           #
+#                                                                  #
+####################################################################
+
   YotiCallbackFunction:
     Type: AWS::Serverless::Function
     DependsOn: YotiCallbackFunctionLogGroup
@@ -3084,6 +3167,12 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref YotiCallbackFunction
       Principal: apigateway.amazonaws.com
+
+####################################################################
+#                                                                  #
+# ThankYou Email Function                                          #
+#                                                                  #
+####################################################################
 
   ThankYouEmailFunction:
     Type: AWS::Serverless::Function
@@ -3313,7 +3402,11 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  #### GenerateYotiLetterFunction - START ####
+####################################################################
+#                                                                  #
+# Generate Yoti Letter Function                                    #
+#                                                                  #
+####################################################################
 
   GenerateYotiLetterFunction:
     Type: AWS::Serverless::Function
@@ -3328,6 +3421,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
+          POWERTOOLS_SERVICE_NAME: GenerateYotiLetterHandler
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -3366,10 +3460,98 @@ Resources:
       FunctionName: !Ref GenerateYotiLetterFunction
       Principal: apigateway.amazonaws.com
 
-  #### GenerateYotiLetterFunction - END ####
+  GenerateYotiLetterFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: DeployAlarms
+    Properties:
+      LogGroupName: !Ref GenerateYotiLetterFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "GenerateYotiLetter-Fatalerror"
 
+  GenerateYotiLetterFatalErrorAlarm:
+    DependsOn:
+      - "GenerateYotiLetterFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-GenerateYotiLetter-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: GenerateYotiLetter-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
-  #### GeneratePrintedLetterFunction - START ####
+  GenerateYotiLetterConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "ApplyReservedConcurrency"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of GenerateYotiLetter concurrency is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-GenerateYotiLetterFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref GenerateYotiLetterFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  GenerateYotiLetterThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${GenerateYotiLetterFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-GenerateYotiLetterFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref GenerateYotiLetterFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+####################################################################
+#                                                                  #
+# Generate Printed Letter Function                                 #
+#                                                                  #
+####################################################################
 
   GeneratePrintedLetterFunction:
     Type: AWS::Serverless::Function
@@ -3384,6 +3566,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
+          POWERTOOLS_SERVICE_NAME: GeneratePrintedLetterHandler
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -3422,9 +3605,98 @@ Resources:
       FunctionName: !Ref GeneratePrintedLetterFunction
       Principal: apigateway.amazonaws.com
 
-  #### GeneratePrintedLetterFunction - END ####
+  GeneratePrintedLetterFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: DeployAlarms
+    Properties:
+      LogGroupName: !Ref GeneratePrintedLetterFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "GeneratePrintedLetter-Fatalerror"
 
-  #### SendToGovNotifyFunction - START ####
+  GeneratePrintedLetterFatalErrorAlarm:
+    DependsOn:
+      - "GeneratePrintedLetterFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-GeneratePrintedLetter-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: GeneratePrintedLetter-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  GeneratePrintedLetterConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "ApplyReservedConcurrency"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of GeneratePrintedLetter concurrency is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-GeneratePrintedLetterFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref GeneratePrintedLetterFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  GeneratePrintedLetterThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${GeneratePrintedLetterFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-GeneratePrintedLetterFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref GeneratePrintedLetterFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+####################################################################
+#                                                                  #
+# SendToGovNotify Function                                         #
+#                                                                  #
+####################################################################
 
   SendToGovNotifyFunction:
     Type: AWS::Serverless::Function
@@ -3439,6 +3711,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
+          POWERTOOLS_SERVICE_NAME: SendToGovNotifyHandler
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -3477,9 +3750,98 @@ Resources:
       FunctionName: !Ref SendToGovNotifyFunction
       Principal: apigateway.amazonaws.com
 
-  #### SendToGovNotifyFunction - END ####
+  SendToGovNotifyFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: DeployAlarms
+    Properties:
+      LogGroupName: !Ref SendToGovNotifyFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "SendToGovNotify-Fatalerror"
 
-  #### SendYotiLetterStateMachine - START ####
+  SendToGovNotifyFatalErrorAlarm:
+    DependsOn:
+      - "SendToGovNotifyFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-SendToGovNotify-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: SendToGovNotify-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  SendToGovNotifyConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "ApplyReservedConcurrency"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of SendToGovNotify concurrency is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-SendToGovNotifyFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SendToGovNotifyFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  SendToGovNotifyThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${SendToGovNotifyFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-SendToGovNotifyFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SendToGovNotifyFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+####################################################################
+#                                                                  #
+# Send Yoti Letter StepFunction                                    #
+#                                                                  #
+####################################################################
 
   SendYotiLetterStateMachine:
     Type: AWS::Serverless::StateMachine
@@ -3505,8 +3867,6 @@ Resources:
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
 
-  #### SendYotiLetterStateMachine - END ####
-  
   YotiCallbackQueueDeadLetterQueue:
     Type: "AWS::SQS::Queue"
     Properties:

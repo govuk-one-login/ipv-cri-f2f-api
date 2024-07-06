@@ -1,22 +1,22 @@
 {
   "Comment": "Face to Face CRI - Send Yoti Letter State Machine",
-  "StartAt": "TopicChoiceState",
+  "StartAt": "GenerateYotiLetter",
   "States": {
     "GenerateYotiLetter": {
       "Type": "Task",
       "Resource": "${GenerateYotiLetterFunctionArn}",
-      "Next": "TopicChoiceState"
+      "Next": "LetterChoiceState"
     },
-		"TopicChoiceState": {
+		"LetterChoiceState": {
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.pdf_preference",
+          "Variable": "$.body.pdf_preference",
           "StringEquals": "email",
           "Next": "SendToGovNotify"
         },
         {
-          "Variable": "$.topic",
+          "Variable": "$.body.pdf_preference",
           "StringEquals": "post",
           "Next": "GeneratePrintedLetter"
         }
@@ -25,7 +25,7 @@
     "GeneratePrintedLetter": {
       "Type": "Task",
       "Resource": "${GenerateYotiLetterFunctionArn}",
-      "End": true
+      "Next": "SendToGovNotify"
     },
 		"SendToGovNotify": {
       "Type": "Task",

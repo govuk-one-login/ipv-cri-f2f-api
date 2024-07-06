@@ -24,9 +24,10 @@ class GenerateYotiLetterHandler implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
+		console.log("EVENT", event);
+
 		return {
-			statusCode: 200,
-			body: "OK",
+			pdf_preference: event.pdf_preference,
 		};
 	}
 }
