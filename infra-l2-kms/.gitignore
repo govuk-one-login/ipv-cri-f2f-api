@@ -2,3 +2,4 @@
 samconfig.toml
 node_modules/
 results/
+coverage/
