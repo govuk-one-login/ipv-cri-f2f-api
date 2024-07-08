@@ -1,4 +1,4 @@
-import { Template } from "@aws-cdk/assertions";
+import { Template } from 'aws-cdk-lib/assertions';
 import { readFileSync } from "fs";
 import { load } from "js-yaml";
 import { schema } from "yaml-cfn";
