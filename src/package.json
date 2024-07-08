@@ -64,8 +64,7 @@
     "deploy": "cd ../deploy ; sam build && sam deploy --config-env dev --resolve-s3 ; cd src/"
   },
   "devDependencies": {
-    "@aws-cdk/assertions": "^1.172.0",
-    "@aws-cdk/yaml-cfn": "^1.172.0",
+    "aws-cdk-lib": "^2.147.3",
     "@types/aws-lambda": "^8.10.109",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.4.0",
