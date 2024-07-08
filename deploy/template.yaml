@@ -6750,5 +6750,4 @@ Outputs:
   ExpiredSessionsLambdaName:
     Condition: IsNotProdLikeEnvironment
     Description: "Lambda Service to process expired user sessions"
-    Value:
-      Fn::ImportValue: !Sub "F2F-ExpiredSessions-${AWS::StackName}"
+    Value: !Ref ExpiredSessionsFunction
