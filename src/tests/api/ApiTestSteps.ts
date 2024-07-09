@@ -400,7 +400,7 @@ export async function postGovNotifyRequestLetter(
 	const path = "/v2/notifications/letter";
 	try {
 		// update letter reference to include mock delimatator after last char - this determines the behaviour of the GovNotify mock
-		userData.reference = insertBeforeLastOccurrence(userData.reference, "!", mockDelimitator.toString());
+		userData.reference = insertBeforeLastOccurrence(userData.reference, "x", mockDelimitator.toString());
 		const postRequest = await GOV_NOTIFY_INSTANCE.post(path, userData);
 		return postRequest;
 	} catch (error: any) {

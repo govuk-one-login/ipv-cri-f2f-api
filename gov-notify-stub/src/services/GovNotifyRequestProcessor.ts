@@ -67,8 +67,8 @@ export class GovNotifyRequestProcessor {
      * @param referenceId
      */
 	async mockSendLetter(referenceId: any): Promise<any> {
-    	const lastCodeChars = referenceId.slice(-4);
-    	this.logger.info({ message: "last 4 chars", lastCodeChars });
+    	const lastCodeChars = referenceId.slice(-3);
+    	this.logger.info({ message: "last 3 chars", lastCodeChars });
 
     	switch (lastCodeChars) {
     		case "400":
