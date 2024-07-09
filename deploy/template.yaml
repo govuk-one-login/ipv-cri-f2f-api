@@ -2045,7 +2045,7 @@ Resources:
           GOVUKNOTIFY_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]
           GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
-          GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
+          GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY_ENC"
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
           YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
       Policies:
@@ -2054,7 +2054,7 @@ Resources:
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
         - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
+            ParameterName: !Sub "${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY_ENC"
         - DynamoDBWritePolicy:
             TableName:
               Fn::ImportValue:
