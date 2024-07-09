@@ -29,7 +29,7 @@ class MockGovNotifyHandler implements LambdaInterface {
 			const payload = event.body;
 			let payloadParsed;
 
-			if (payload) {
+			if (payload.includes("email_address")) {
 				logger.info("Event body", { payload });
 				if (event.isBase64Encoded) {
 					payloadParsed = JSON.parse(Buffer.from(payload, "base64").toString("binary"));
@@ -41,6 +41,18 @@ class MockGovNotifyHandler implements LambdaInterface {
 				logger.info("PARSED EMAIL", payloadParsed.email_address);
 				logger.info("Starting GovNotifyRequestProcessor");
 				return await GovNotifyRequestProcessor.getInstance(logger, metrics).mockSendEmail(payloadParsed.email_address);
+			} else {
+				logger.info("Event body", { payload });
+				if (event.isBase64Encoded) {
+					payloadParsed = JSON.parse(Buffer.from(payload, "base64").toString("binary"));
+				} else {
+					payloadParsed = JSON.parse(payload);
+				}
+
+				logger.info("PARSED JSON", { payloadParsed });
+				logger.info("PARSED REFERENCE", payloadParsed.reference);
+				logger.info("Starting GovNotifyRequestProcessor");
+				return await GovNotifyRequestProcessor.getInstance(logger, metrics).mockSendLetter(payloadParsed.reference);
 			}
 
 		} catch (err) {

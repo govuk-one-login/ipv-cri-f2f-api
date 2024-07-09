@@ -3,8 +3,8 @@ import { POST_SEND_EMAIL_400 } from "../data/postSendEmail/postSendEmail400";
 import { POST_SEND_EMAIL_403 } from "../data/postSendEmail/postSendEmail403";
 import { POST_SEND_EMAIL_429 } from "../data/postSendEmail/postSendEmail429";
 import { POST_SEND_EMAIL_500 } from "../data/postSendEmail/postSendEmail500";
-import { POST_SEND_LETTER_400_POSTAGE_INVALID, POST_SEND_LETTER_400_TRIAL_MODE, POST_SEND_LETTER_400_NO_REFERENCE, POST_SEND_LETTER_400_PDF_FORMAT } from "../data/postSendLetter/postSendLetter400";
-import { POST_SEND_LETTER_403 } from "../data/postSendLetter/postSendLetter403";
+import { POST_SEND_LETTER_400_POSTAGE_INVALID, POST_SEND_LETTER_400_TRIAL_MODE, POST_SEND_LETTER_400_MISSING_ADDRESS } from "../data/postSendLetter/postSendLetter400";
+import { POST_SEND_LETTER_403_API_KEY, POST_SEND_LETTER_403_INVALID_TOKEN, POST_SEND_LETTER_403_SYSTEM_CLOCK } from "../data/postSendLetter/postSendLetter403";
 import { POST_SEND_LETTER_429_API_KEY, POST_SEND_LETTER_429_SERVICE_LIMIT } from "../data/postSendLetter/postSendLetter429";
 import { POST_SEND_LETTER_500 } from "../data/postSendLetter/postSendLetter500";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -63,7 +63,7 @@ export class GovNotifyRequestProcessor {
     }
 
 	/***
-     * POST /govnotify/v2/notifications/email
+     * POST /govnotify/v2/notifications/letter
      * @param referenceId
      */
 	async mockSendLetter(referenceId: any): Promise<any> {
@@ -73,29 +73,32 @@ export class GovNotifyRequestProcessor {
     	switch (lastCodeChars) {
     		case "400a":
     			this.logger.info({ message: "Returning 400 response back" });
-    			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SEND_LETTER_400_NO_REFERENCE));
+    			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SEND_LETTER_400_TRIAL_MODE));
     		case "400b":
     			this.logger.info({ message: "Returning 400 response back" });
-    			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SEND_LETTER_400_PDF_FORMAT));
+    			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SEND_LETTER_400_MISSING_ADDRESS));
     		case "400c":
     			this.logger.info({ message: "Returning 400 response back" });
     			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SEND_LETTER_400_POSTAGE_INVALID));
-    		case "400d":
-    			this.logger.info({ message: "Returning 400 response back" });
-    			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SEND_LETTER_400_TRIAL_MODE));
-    		case "0403":
+    		case "403a":
     			this.logger.info({ message: "Returning 403 response back" });
-    			return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(POST_SEND_LETTER_403));
+    			return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(POST_SEND_LETTER_403_API_KEY));
+    		case "403b":
+    			this.logger.info({ message: "Returning 403 response back" });
+    			return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(POST_SEND_LETTER_403_SYSTEM_CLOCK));
+    		case "403c":
+    			this.logger.info({ message: "Returning 403 response back" });
+    			return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(POST_SEND_LETTER_403_INVALID_TOKEN));
     		case "429a":
     			this.logger.info({ message: "Returning 429 response back" });
     			return new Response(HttpCodesEnum.TOO_MANY_REQUESTS, JSON.stringify(POST_SEND_LETTER_429_API_KEY));
     		case "429b":
     			this.logger.info({ message: "Returning 429 response back" });
     			return new Response(HttpCodesEnum.TOO_MANY_REQUESTS, JSON.stringify(POST_SEND_LETTER_429_SERVICE_LIMIT));
-    		case "0500":
+    		case "500a":
     			this.logger.info({ message: "Returning 500 response back" });
-    			return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(POST_SEND_EMAIL_500));
-    		case "9999":
+    			return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(POST_SEND_LETTER_500));
+    		case "999a":
     			// This will result in 504 timeout currently as sleep interval is 30s
     			this.logger.info({ message: "Timeout" });
     			await new Promise(resolve => setTimeout(resolve, 30000));
