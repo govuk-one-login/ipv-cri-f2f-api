@@ -28,7 +28,7 @@ There is a `.pre-commit-config.yaml` configuration setup in this repo, this uses
 
 - Check Json files for formatting issues
 - Fixes end of file issues (it will auto correct if it spots an issue - you will need to run the git commit again after it has fixed the issue)
-- It automatically removes trailing whitespaces (again will need to run commit again after it detects and fixes the issue)
+- Automatically removes trailing whitespaces (again will need to run commit again after it detects and fixes the issue)
 - Detects aws credentials or private keys accidentally added to the repo
 - runs cloud formation linter and detects issues
 - runs checkov and checks for any issues
