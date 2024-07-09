@@ -1,4 +1,4 @@
-import { Template, Match } from "@aws-cdk/assertions";
+import { Template, Match } from 'aws-cdk-lib/assertions';
 import { testHelper } from "../../lib/test-helper";
 
 const helper = new testHelper();
