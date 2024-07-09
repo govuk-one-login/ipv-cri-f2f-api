@@ -380,93 +380,6 @@ paths:
             statusCode: "200"
         type: aws
 
-  /updateRecord/{tableName}:
-    patch:
-      operationId: updateRecord
-      summary: Update a record in a DynamoDB table
-      description: |
-        Endpoint to update fields in an existing record in a specified DynamoDB table.
-      parameters:
-        - name: tableName
-          in: path
-          description: The name of the table to update the record in DynamoDB
-          required: true
-          schema:
-            type: string
-        - name: sessionId
-          in: query
-          description: The sessionId to identify the record
-          required: true
-          schema:
-            type: string
-      requestBody:
-        description: The fields to update in the record
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                attributeName:
-                  type: string
-                  description: The name of the attribute to update
-                newValue:
-                  oneOf:
-                    - type: string
-                    - type: number
-                    - type: boolean
-                  description: The new value for the attribute
-                newValueType:
-                  type: string
-                  description: The type of the new value (S for string, N for number, BOOL for boolean)
-              required:
-                - attributeName
-                - newValue
-                - newValueType
-      responses:
-        "200":
-          description: Record updated successfully
-        "401":
-          description: Unauthorized
-        "500":
-          description: Internal Server Error
-      security:
-        - sigv4Reference: []
-      x-amazon-apigateway-request-validator: "both"
-      x-amazon-apigateway-integration:
-        httpMethod: POST
-        credentials:
-          Fn::GetAtt: ["DynamoDbAccessRole", "Arn"]
-        uri: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem"
-        passthroughBehavior: when_no_match
-        requestParameters:
-          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
-          integration.request.path.tableName: "method.request.path.tableName"
-          integration.request.querystring.sessionId: "method.request.querystring.sessionId"
-        requestTemplates:
-          application/json: |
-            {
-              "TableName": "$input.params('tableName')",
-              "Key": {
-                "sessionId": {
-                  "S": "$input.params('sessionId')"
-                }
-              },
-              "UpdateExpression": "SET #attrName = :attrValue",
-              "ExpressionAttributeNames": {
-                "#attrName": $input.json('$.attributeName')
-              },
-              "ExpressionAttributeValues": {
-                ":attrValue": {
-                  $input.json('$.newValueType'): $input.json('$.newValue')
-                }
-              }
-            }
-        responses:
-          default:
-            statusCode: "200"
-        type: aws
-
 components:
   securitySchemes:
     sigv4Reference:
@@ -476,12 +389,12 @@ components:
       x-amazon-apigateway-authtype: awsSigv4
 
 x-amazon-apigateway-request-validators:
-  both:
-    validateRequestBody: true
-    validateRequestParameters: true
-  requestBodyOnly:
-    validateRequestBody: true
-    validateRequestParameters: false
-  requestParamsOnly:
-    validateRequestBody: false
-    validateRequestParameters: true
+    both:
+      validateRequestBody: true
+      validateRequestParameters: true
+    requestBodyOnly:
+      validateRequestBody: true
+      validateRequestParameters: false
+    requestParamsOnly:
+      validateRequestBody: false
+      validateRequestParameters: true

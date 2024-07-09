@@ -297,16 +297,6 @@ Resources:
                     }
                   }
                 ]
-        - PolicyName: SessionTablePutAndUpdateAccess
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-            - Effect: Allow
-              Action:
-              - dynamodb:PutItem
-              - dynamodb:UpdateItem
-              Resource:
-                Fn::ImportValue: !Sub "${BackendStack}-SessionTable-arn"
         - PolicyName: SessionTableDecryptPolicy
           PolicyDocument:
             Version: 2012-10-17
