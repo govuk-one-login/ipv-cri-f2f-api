@@ -1,15 +1,3 @@
-import { HttpCodesEnum } from "./HttpCodesEnum";
-
-export class Response {
-	constructor(
-		public statusCode: number,
-		public body: string,
-		public headers?: { [header: string]: boolean | number | string } | undefined,
-		public multiValueHeaders?: { [header: string]: Array<boolean | number | string> } | undefined,
-	) {
-	}
-}
-
 export const SECURITY_HEADERS = {
 	"Cache-Control": "no-store",
 	"Content-Type": "application/json",
@@ -18,14 +6,35 @@ export const SECURITY_HEADERS = {
 	"X-Frame-Options": "DENY",
 };
 
-export const GenericServerError = {
-	statusCode: HttpCodesEnum.SERVER_ERROR,
-	headers: SECURITY_HEADERS,
-	body: "Internal server error",
+type Headers = {
+	[header: string]: boolean | number | string;
 };
 
-export const unauthorizedResponse = {
-	statusCode: HttpCodesEnum.UNAUTHORIZED,
-	headers: SECURITY_HEADERS,
-	body: "Unauthorized",
+const mergeHeaders = (
+	baseHeaders: Headers,
+	newHeaders?: Headers,
+) => {
+	if (!newHeaders) return baseHeaders;
+	const mergedHeaders = { ...baseHeaders };
+	for (const key in newHeaders) {
+		if (!Object.prototype.hasOwnProperty.call(mergedHeaders, key)) {
+			mergedHeaders[key] = newHeaders[key];
+		}
+	}
+	return mergedHeaders;
+};
+
+export const Response = (
+	statusCode: number,
+	body: string,
+	headers?: { [header: string]: boolean | number | string } | undefined,
+	multiValueHeaders?: { [header: string]: Array<boolean | number | string> } | undefined,
+) => {
+	const finalHeaders = mergeHeaders(SECURITY_HEADERS, headers);
+
+	return {
+		statusCode,
+		headers: finalHeaders,
+		body,
+	};
 };

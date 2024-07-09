@@ -1,7 +1,7 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { ValidationHelper } from "../utils/ValidationHelper";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -39,7 +39,7 @@ export class SessionConfigRequestProcessor {
 		return SessionConfigRequestProcessor.instance;
 	}
 
-	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<Response> {
+	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<APIGatewayProxyResult> {
 
 		this.logger.appendKeys({ sessionId });
 		const session = await this.f2fService.getSessionById(sessionId);
@@ -47,7 +47,7 @@ export class SessionConfigRequestProcessor {
 		if (session != null) {
 			if (session.expiryDate < absoluteTimeNow()) {
 				this.logger.error("Session has expired", { messageCode: MessageCodes.EXPIRED_SESSION });
-				return new Response(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionId} has expired`);
+				return Response(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionId} has expired`);
 			}
 
 			this.logger.info({ message: "Found Session, processing /sessionConfiguration" });
@@ -69,13 +69,13 @@ export class SessionConfigRequestProcessor {
 				this.logger.info("Requested Strength score is not present");
 			}
 
-			return new Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));
+			return Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));
 
 		} else {
 			this.logger.error("No session found for session id", {
 				messageCode: MessageCodes.SESSION_NOT_FOUND,
 			});
-			return new Response(HttpCodesEnum.UNAUTHORIZED, `No session found with the session id: ${sessionId}`);
+			return Response(HttpCodesEnum.UNAUTHORIZED, `No session found with the session id: ${sessionId}`);
 		}
 	}
 }

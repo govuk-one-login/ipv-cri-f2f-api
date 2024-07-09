@@ -11,6 +11,7 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
+import { APIGatewayProxyResult } from "aws-lambda";
 
 export class AbortRequestProcessor {
 
@@ -42,7 +43,7 @@ export class AbortRequestProcessor {
   	return AbortRequestProcessor.instance;
   }
 
-  async processRequest(sessionId: string, encodedHeader: string): Promise<Response> {
+  async processRequest(sessionId: string, encodedHeader: string): Promise<APIGatewayProxyResult> {
   	const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
   	this.logger.appendKeys({
   		govuk_signin_journey_id: f2fSessionInfo?.clientSessionId,
@@ -61,7 +62,7 @@ export class AbortRequestProcessor {
 
   	if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_CRI_SESSION_ABORTED) {
   		this.logger.info("Session has already been aborted");
-  		return new Response(HttpCodesEnum.OK, "Session has already been aborted", { Location: encodeURIComponent(redirectUri) });
+  		return Response(HttpCodesEnum.OK, "Session has already been aborted", { Location: encodeURIComponent(redirectUri) });
   	}
 
   	try {
@@ -72,9 +73,9 @@ export class AbortRequestProcessor {
   			messageCode: MessageCodes.SERVER_ERROR,
   		});
   		if (error instanceof AppError) {
-  			return new Response(HttpCodesEnum.SERVER_ERROR, error.message);
+  			return Response(HttpCodesEnum.SERVER_ERROR, error.message);
   		} else {
-  			return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+  			return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
   		}
   	}
 
@@ -90,6 +91,6 @@ export class AbortRequestProcessor {
   		});
   	}
 
-  	return new Response(HttpCodesEnum.OK, "Session has been aborted", { Location: encodeURIComponent(redirectUri) });
+  	return Response(HttpCodesEnum.OK, "Session has been aborted", { Location: encodeURIComponent(redirectUri) });
   }
 }

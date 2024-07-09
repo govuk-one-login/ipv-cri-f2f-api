@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'f2f-ipv-stub/**'
+      - .github/workflows/post-merge-deploy-ipv-stub.yml
   workflow_dispatch:
     inputs:
       environment:
@@ -76,12 +77,12 @@ jobs:
         run: npm install
 
       - name: SAM Build
-        run: sam build --parallel -t template.yaml
+        run: sam build -t template.yaml
 
       - name: Deploy SAM app
-        uses: alphagov/di-devplatform-upload-action@v3
+        uses: govuk-one-login/devplatform-upload-action@v3.8.1
         with:
             artifact-bucket-name: ${{ secrets[format('{0}_IPV_STUB_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
             signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
             working-directory: f2f-ipv-stub
-            template-file: template.yaml
+            template-file: .aws-sam/build/template.yaml

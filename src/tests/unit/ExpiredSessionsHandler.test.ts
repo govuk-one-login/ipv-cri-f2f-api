@@ -15,7 +15,7 @@ jest.mock("../../services/ExpiredSessionsProcessor", () => {
 describe("ExpiredSessionHandler", () => {
 	it("return success response for ReminderEmail", async () => {
 		ExpiredSessionsProcessor.getInstance = jest.fn().mockReturnValue(mockedExpiredSessionsProcessor);
-		mockedExpiredSessionsProcessor.processRequest.mockResolvedValueOnce(new Response(200, "Success"));
+		mockedExpiredSessionsProcessor.processRequest.mockResolvedValueOnce(Response(200, "Success"));
 
 		const result = await lambdaHandler("", CONTEXT);
 
@@ -27,7 +27,7 @@ describe("ExpiredSessionHandler", () => {
 
 	it("returns error if ExpiredSessionsProcessor fails", async () => {
 		ExpiredSessionsProcessor.getInstance = jest.fn().mockReturnValue(mockedExpiredSessionsProcessor);
-		mockedExpiredSessionsProcessor.processRequest.mockRejectedValueOnce(new Response(500, "ERROR"));
+		mockedExpiredSessionsProcessor.processRequest.mockRejectedValueOnce(Response(500, "ERROR"));
 
 		const result = await lambdaHandler("", CONTEXT);
 

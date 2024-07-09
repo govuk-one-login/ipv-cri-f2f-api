@@ -1,9 +1,9 @@
 /* eslint-disable complexity */
 /* eslint-disable max-lines-per-function */
-import { Response, GenericServerError, unauthorizedResponse, SECURITY_HEADERS } from "../utils/Response";
+import { Response, SECURITY_HEADERS } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
@@ -60,7 +60,7 @@ export class SessionRequestProcessor {
   	return SessionRequestProcessor.instance;
   }
 
-  async processRequest(event: APIGatewayProxyEvent): Promise<Response> {
+  async processRequest(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   	let encodedHeader, clientIpAddress;
   	if (event.headers) {
 	  encodedHeader = event.headers[Constants.ENCODED_AUDIT_HEADER] ?? "";
@@ -82,14 +82,14 @@ export class SessionRequestProcessor {
   			error,
   			messageCode: MessageCodes.MISSING_CONFIGURATION,
   		});
-  		return new Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
+  		return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
   	}
 
   	if (!configClient) {
   		this.logger.error("Unrecognised client in request", {
   			messageCode: MessageCodes.UNRECOGNISED_CLIENT,
   		});
-  		return new Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+  		return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
   	}
 
   	let urlEncodedJwt: string;
@@ -100,7 +100,7 @@ export class SessionRequestProcessor {
   			error,
   			messageCode: MessageCodes.FAILED_DECRYPTING_JWE,
   		});
-  		return unauthorizedResponse;
+  		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
 
   	let parsedJwt: Jwt;
@@ -111,7 +111,7 @@ export class SessionRequestProcessor {
   			error,
   			messageCode: MessageCodes.FAILED_DECODING_JWT,
   		});
-  		return unauthorizedResponse;
+  		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
 
   	const jwtPayload: JwtPayload = parsedJwt.payload;
@@ -126,20 +126,20 @@ export class SessionRequestProcessor {
   				this.logger.error("Failed to verify JWT", {
   					messageCode: MessageCodes.FAILED_VERIFYING_JWT,
   				});
-  				return unauthorizedResponse;
+  				return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   			}
   		} else {
   			this.logger.error("Incomplete Client Configuration", {
   				messageCode: MessageCodes.MISSING_CONFIGURATION,
   			});
-  			return new Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
+  			return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
   		}
   	} catch (error) {
   		this.logger.error("Could not verify jwt", {
   			error,
   			messageCode: MessageCodes.FAILED_VERIFYING_JWT,
   		});
-  		return unauthorizedResponse;
+  		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
 
   	const JwtErrors = this.validationHelper.isJwtValid(jwtPayload, requestBodyClientId, configClient.redirectUri);
@@ -147,21 +147,21 @@ export class SessionRequestProcessor {
   		this.logger.error(JwtErrors, {
   			messageCode: MessageCodes.FAILED_VALIDATING_JWT,
   		});
-  		return unauthorizedResponse;
+  		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
 
   	// Validate the user details of the shared_claims received from the jwt.
   	const data = this.validationHelper.isPersonDetailsValid(jwtPayload.shared_claims.emailAddress, jwtPayload.shared_claims.name);
   	if (data.errorMessage.length > 0) {
   		this.logger.error( { message: data.errorMessage + "  from shared claims data" }, { messageCode : data.errorMessageCode });
-  		return unauthorizedResponse;
+  		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
 
   	// Validate the address format of the shared_claims received from the jwt.
   	const { errorMessage, errorMessageCode } = this.validationHelper.isAddressFormatValid(jwtPayload);
   	if (errorMessage.length > 0) {
   		this.logger.error( { message: errorMessage }, { messageCode : errorMessageCode });
-  		return unauthorizedResponse;
+  		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
 
   	try {
@@ -172,14 +172,14 @@ export class SessionRequestProcessor {
   				reason: "sessionId already exists in the database",
   				messageCode: "SESSION_ALREADY_EXISTS",
   			});
-  			return GenericServerError;
+  			return Response(HttpCodesEnum.SERVER_ERROR, "Internal server error");
   		}
   	} catch (error) {
   		this.logger.error("Unexpected error accessing session table", {
   			error,
   			messageCode: MessageCodes.UNEXPECTED_ERROR_SESSION_EXISTS,
   		});
-  		return GenericServerError;
+  		return Response(HttpCodesEnum.SERVER_ERROR, "Internal server error");
   	}
 
   	const session: ISessionItem = {
@@ -205,7 +205,7 @@ export class SessionRequestProcessor {
   			error,
   			messageCode: MessageCodes.FAILED_CREATING_SESSION,
   		});
-  		return GenericServerError;
+  		return Response(HttpCodesEnum.SERVER_ERROR, "Internal server error");
   	}
 
   	if (jwtPayload.shared_claims) {
@@ -216,7 +216,7 @@ export class SessionRequestProcessor {
   				error,
   				messageCode: MessageCodes.FAILED_SAVING_PERSON_IDENTITY,
   			});
-  			return GenericServerError;
+  			return Response(HttpCodesEnum.SERVER_ERROR, "Internal server error");
   		}
   	}
 
