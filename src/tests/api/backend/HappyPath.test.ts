@@ -11,6 +11,7 @@ import {
 	userInfoPost,
 	sessionConfigurationGet,
 	postAbortSession,
+	personInfoGet,
 } from "../ApiTestSteps";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
@@ -38,6 +39,19 @@ describe("/session endpoint", () => {
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 1);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
 	});
+});
+
+describe("/personInfo endpoint", () => {
+
+	it("Successful Request Tests - Postal Address Found", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		expect(postRequest.status).toBe(200);
+		const sessionId = postRequest.data.session_id;
+		const personInfoResponse = await personInfoGet(sessionId);
+		expect(personInfoResponse).toBeTruthy();
+	});
+
 });
 
 describe("/documentSelection Endpoint", () => {

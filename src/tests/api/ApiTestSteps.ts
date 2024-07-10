@@ -81,6 +81,19 @@ export async function sessionPost(clientId: string, request: string): Promise<Ax
 	}
 }
 
+export async function personInfoGet(sessionId: string): Promise<AxiosResponse<string>> {
+	const path = "/person-info";
+	try {
+		const getRequest = await API_INSTANCE.get(path, { headers: { "x-govuk-signin-session-id": sessionId, "txma-audit-encoded": "encoded-header" } });
+		expect(getRequest.status).toBe(200);
+		return getRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+}
+
+
 export async function postDocumentSelection(userData: DocSelectionData, sessionId: string): Promise<AxiosResponse<string>> {
 	const path = "/documentSelection";
 	try {
