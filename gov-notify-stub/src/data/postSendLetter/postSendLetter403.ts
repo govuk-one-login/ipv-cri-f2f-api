@@ -1,8 +1,8 @@
 export const POST_SEND_LETTER_403 = {
 	"errors": [
 		{
-			"error": "BadRequestError",
-			"message": "Can't send letters with a team API key",
+			"error": "AuthError",
+			"message": "Invalid token: API key not found",
 		},
 	],
 	"status_code": 403,

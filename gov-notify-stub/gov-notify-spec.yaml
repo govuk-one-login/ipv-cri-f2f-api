@@ -95,6 +95,7 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
+
 components:
   ## ---------------------
   ## Schema Definitions
@@ -144,6 +145,40 @@ components:
           type: object
       required:
         - emailSentDateTime
+        - metadata
+
+    SendLetterPayload:
+      type: object
+      description: Send Letter Payload
+      properties:
+        reference:
+          description: Letter reference
+          type: string
+          format: uuid
+        pdfFile:
+          description: Cover letter and Yoti instructions PDF file
+          type: string
+          format: string
+        postage:
+          description: Letter postage class
+          type: string
+          format: string
+      required:
+        - reference
+        - pdfFile
+
+    SendLetterResponseBody:
+      type: object
+      description: Send Letter Response Body
+      properties:
+        letterSentDateTime:
+          type: string
+        letterFailureMessage:
+          type: string
+        metadata:
+          type: object
+      required:
+        - letterSentDateTime
         - metadata
 
    ## ---------------------
