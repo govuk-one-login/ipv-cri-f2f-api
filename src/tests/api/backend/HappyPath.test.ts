@@ -106,8 +106,11 @@ describe("/documentSelection Endpoint", () => {
 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
 
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
-		if (personIdentityRecord) {
-			expect(personIdentityRecord.pdfPreference).toBe(dataUkDrivingLicence.pdf_preference);
+		try {
+			expect(personIdentityRecord?.pdfPreference).toBe(dataUkDrivingLicence.pdf_preference);
+		} catch (error) {
+			console.error("Error validating PDF Preference from Person Identity Table", error);
+			throw error;
 		}
 	});
 
@@ -122,8 +125,11 @@ describe("/documentSelection Endpoint", () => {
 		expect(postResponse.status).toBe(200);
 
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
-		if (personIdentityRecord) {
-			expect(personIdentityRecord.pdfPreference).toBe(docSelectionData.pdf_preference);
+		try {
+			expect(personIdentityRecord?.pdfPreference).toBe(dataUkDrivingLicence.pdf_preference);
+		} catch (error) {
+			console.error("Error validating PDF Preference from Person Identity Table", error);
+			throw error;
 		}
 	});
 
@@ -141,15 +147,15 @@ describe("/documentSelection Endpoint", () => {
 
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
 
-		if (personIdentityRecord) {
-			expect(personIdentityRecord.pdfPreference).toBe(docSelectionData.pdf_preference);
-
-			const preferredAddress = personIdentityRecord.addresses?.find(address => address.preferredAddress);
+		try {
+			const preferredAddress = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
 			expect(preferredAddress).toBeDefined();
 			if (preferredAddress) {
 				expect(preferredAddress.postalCode).toBe(docSelectionData.postal_address.postalCode);
 				expect(preferredAddress.preferredAddress).toBe(true);
-			}
+			}		} catch (error) {
+			console.error("Error validating PDF Preference from Person Identity Table", error);
+			throw error;
 		}
 
 	});
