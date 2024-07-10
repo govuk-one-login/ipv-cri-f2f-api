@@ -36,7 +36,7 @@ export interface ReminderEmailEventDynamic {
 export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: string, personDetails: PersonIdentityItem): GovNotifyEvent => {
 	const nameParts = personIdentityUtils.getNames(personDetails);
 	if (personDetails.pdfPreference === PdfPreferenceEnum.PRINTED_LETTER) {
-		const addressesLength = personDetails.addresses.length;
+		const postalAddress = personDetails.addresses.filter((address) => address.preferredAddress === true);
 		return {
 			Message : {
 				sessionId,
@@ -47,21 +47,21 @@ export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: stri
 				messageType: Constants.PDF_EMAIL,
 				pdfPreference: personDetails.pdfPreference,
 				postalAddress: {
-					uprn: personDetails.addresses[addressesLength - 1].uprn,
-					organisationName: personDetails.addresses[addressesLength - 1].organisationName,
-					departmentName: personDetails.addresses[addressesLength - 1].departmentName,
-					subBuildingName: personDetails.addresses[addressesLength - 1].subBuildingName,
-					buildingNumber: personDetails.addresses[addressesLength - 1].buildingNumber,
-					buildingName: personDetails.addresses[addressesLength - 1].buildingName,
-					dependentStreetName: personDetails.addresses[addressesLength - 1].dependentStreetName,
-					streetName: personDetails.addresses[addressesLength - 1].streetName,
-					doubleDependentAddressLocality: personDetails.addresses[addressesLength - 1].doubleDependentAddressLocality,
-					dependentAddressLocality: personDetails.addresses[addressesLength - 1].dependentAddressLocality,
-					addressLocality: personDetails.addresses[addressesLength - 1].addressLocality,
-					postalCode: personDetails.addresses[addressesLength - 1].postalCode,
-					addressCountry: personDetails.addresses[addressesLength - 1].addressCountry,
-					validFrom: personDetails.addresses[addressesLength - 1].validFrom,
-					validUntil: personDetails.addresses[addressesLength - 1].validUntil,
+					uprn: postalAddress[0].uprn,
+					organisationName: postalAddress[0].organisationName,
+					departmentName: postalAddress[0].departmentName,
+					subBuildingName: postalAddress[0].subBuildingName,
+					buildingNumber: postalAddress[0].buildingNumber,
+					buildingName: postalAddress[0].buildingName,
+					dependentStreetName: postalAddress[0].dependentStreetName,
+					streetName: postalAddress[0].streetName,
+					doubleDependentAddressLocality: postalAddress[0].doubleDependentAddressLocality,
+					dependentAddressLocality: postalAddress[0].dependentAddressLocality,
+					addressLocality: postalAddress[0].addressLocality,
+					postalCode: postalAddress[0].postalCode,
+					addressCountry: postalAddress[0].addressCountry,
+					validFrom: postalAddress[0].validFrom,
+					validUntil: postalAddress[0].validUntil,
 					preferredAddress: true,
 				},
 			},
