@@ -330,20 +330,21 @@ describe("/abort endpoint", () => {
 	});
 });
 
-describe("Expired User Sessions", () => {
+// Skipped while waiting on Test Container Permission Updates to Invoke Lambda
+// describe("Expired User Sessions", () => {
 
-	it("Session is Expired and Expired Notification Flag Updated", async () => {
-		const stubResponse = await stubStartPost(f2fStubPayload);
-		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
-		const sessionId = postRequest.data.session_id;		
-		console.log(sessionId);
-		await postDocumentSelection(dataUkDrivingLicence, sessionId);
+// 	it.skip("Session is Expired and Expired Notification Flag Updated", async () => {
+// 		const stubResponse = await stubStartPost(f2fStubPayload);
+// 		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+// 		const sessionId = postRequest.data.session_id;		
+// 		console.log(sessionId);
+// 		await postDocumentSelection(dataUkDrivingLicence, sessionId);
 
-		const newCreatedDateTimestamp = getEpochTimestampXDaysAgo(12);
-		await updateDynamoDbRecord(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "createdDate", newCreatedDateTimestamp, "N");
-		await invokeLambdaFunction(constants.DEV_EXPIRED_SESSIONS_LAMBDA_NAME, {});
+// 		const newCreatedDateTimestamp = getEpochTimestampXDaysAgo(12);
+// 		await updateDynamoDbRecord(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "createdDate", newCreatedDateTimestamp, "N");
+// 		await invokeLambdaFunction(constants.DEV_EXPIRED_SESSIONS_LAMBDA_NAME, {});
 
-		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_SESSION_EXPIRED");
-		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "expiredNotificationSent", true);
-	});
-});
+// 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_SESSION_EXPIRED");
+// 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "expiredNotificationSent", true);
+// 	});
+// });
