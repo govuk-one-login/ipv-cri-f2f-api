@@ -509,8 +509,8 @@ export class F2fService {
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
 			}
 		}
-		const returnValue = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
-		return returnValue;
+		const personIdentityItem = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
+		return personIdentityItem;
 	}
 
 	async updateSessionAuthState(sessionId: string, authSessionState: string): Promise<void> {

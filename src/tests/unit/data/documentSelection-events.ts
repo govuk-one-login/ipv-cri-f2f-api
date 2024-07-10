@@ -122,7 +122,7 @@ export const MISSING_UPRN = {
 			},
 			"post_code":"SW19 4NS",
 		},
-		"pdf_preference": "PRINTED_LETTER",
+		"pdf_preference": PdfPreferenceEnum.PRINTED_LETTER,
 		"postal_address": 
             {
             	"buildingNumber": "2",
@@ -151,7 +151,7 @@ export const MISSING_BUILDING_NUMBER_AND_BUILDING_NAME = {
 			},
 			"post_code":"SW19 4NS",
 		},
-		"pdf_preference": "PRINTED_LETTER",
+		"pdf_preference": PdfPreferenceEnum.PRINTED_LETTER,
 		"postal_address": 
             {
             	"uprn": 1235,
@@ -179,7 +179,7 @@ export const MISSING_STREET_NAME = {
 			},
 			"post_code":"SW19 4NS",
 		},
-		"pdf_preference": "PRINTED_LETTER",
+		"pdf_preference": PdfPreferenceEnum.PRINTED_LETTER,
 		"postal_address": 
             {
             	"uprn": 1235,
@@ -208,7 +208,7 @@ export const MISSING_ADDRESS_LOCALITY = {
 			},
 			"post_code":"SW19 4NS",
 		},
-		"pdf_preference": "PRINTED_LETTER",
+		"pdf_preference": PdfPreferenceEnum.PRINTED_LETTER,
 		"postal_address": 
             {
             	"uprn": 1235,
@@ -237,7 +237,7 @@ export const MISSING_ADDRESS_COUNTRY = {
 			},
 			"post_code":"SW19 4NS",
 		},
-		"pdf_preference": "PRINTED_LETTER",
+		"pdf_preference": PdfPreferenceEnum.PRINTED_LETTER,
 		"postal_address": 
             {
             	"uprn": 1235,
@@ -266,7 +266,7 @@ export const MISSING_POSTAL_CODE = {
 			},
 			"post_code":"SW19 4NS",
 		},
-		"pdf_preference": "PRINTED_LETTER",
+		"pdf_preference": PdfPreferenceEnum.PRINTED_LETTER,
 		"postal_address": 
             {
             	"uprn": 1235,
@@ -295,7 +295,7 @@ export const MISSING_PREFERRED_ADDRESS = {
 			},
 			"post_code":"SW19 4NS",
 		},
-		"pdf_preference": "PRINTED_LETTER",
+		"pdf_preference": PdfPreferenceEnum.PRINTED_LETTER,
 		"postal_address": 
             {
             	"uprn": 123456787,
