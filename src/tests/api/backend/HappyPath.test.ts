@@ -148,12 +148,12 @@ describe("/documentSelection Endpoint", () => {
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
 
 		try {
+			expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
 			const preferredAddress = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
 			expect(preferredAddress).toBeDefined();
-			if (preferredAddress) {
-				expect(preferredAddress.postalCode).toBe(docSelectionData.postal_address.postalCode);
-				expect(preferredAddress.preferredAddress).toBe(true);
-			}		} catch (error) {
+			expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
+			expect(preferredAddress?.preferredAddress).toBe(true);
+		} catch (error) {
 			console.error("Error validating PDF Preference from Person Identity Table", error);
 			throw error;
 		}
