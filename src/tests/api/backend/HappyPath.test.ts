@@ -154,7 +154,7 @@ describe("/documentSelection Endpoint", () => {
 			expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
 			expect(preferredAddress?.preferredAddress).toBe(true);
 		} catch (error) {
-			console.error("Error validating PDF Preference from Person Identity Table", error);
+			console.error("Error validating PDF and Address Preference from Person Identity Table", error);
 			throw error;
 		}
 
