@@ -4,6 +4,8 @@ import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
+import { PersonIdentityItem } from "../../models/PersonIdentityItem";
+
 import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";
@@ -43,7 +45,8 @@ HARNESS_API_INSTANCE.interceptors.request.use(awsSigv4Interceptor);
 
 const xmlParser = new XMLParser();
 
-export async function startStubServiceAndReturnSessionId(stubPayload: StubStartRequest): Promise<{ sessionId: string; sub: string;
+export async function startStubServiceAndReturnSessionId(stubPayload: StubStartRequest): Promise<{
+	sessionId: string; sub: string;
 }> {
 	const stubResponse = await stubStartPost(stubPayload);
 	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
@@ -58,7 +61,7 @@ export async function stubStartPost(stubPayload: StubStartRequest): Promise<Axio
 	const path = constants.DEV_IPV_F2F_STUB_URL;
 	if (constants.THIRD_PARTY_CLIENT_ID) {
 		stubPayload.clientId = constants.THIRD_PARTY_CLIENT_ID;
-	} 
+	}
 	try {
 		const postRequest = await axios.post(`${path}`, stubPayload);
 		expect(postRequest.status).toBe(201);
@@ -229,6 +232,53 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 		session = Object.fromEntries(
 			Object.entries(originalSession).map(([key, value]) => [key, value.N ?? value.S]),
 		) as unknown as ISessionItem;
+	} catch (e: any) {
+		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
+	}
+
+	return session;
+}
+
+export async function getPersonIdentityRecordById(sessionId: string, tableName: string): Promise<PersonIdentityItem | undefined> {
+	interface OriginalValue {
+		N?: string;
+		S?: string;
+		BOOL?: boolean;
+		L?: OriginalValue[];
+		M?: { [key: string]: OriginalValue };
+	}
+
+	interface OriginalSessionItem {
+		[key: string]: OriginalValue;
+	}
+
+	let session: PersonIdentityItem | undefined;
+
+	const unwrapValue = (value: OriginalValue): any => {
+		if (value.N !== undefined) {
+			return value.N;
+		}
+		if (value.S !== undefined) {
+			return value.S;
+		}
+		if (value.BOOL !== undefined) {
+			return value.BOOL;
+		}
+		if (value.L !== undefined) {
+			return value.L.map(unwrapValue);
+		}
+		if (value.M !== undefined) {
+			return Object.fromEntries(Object.entries(value.M).map(([k, v]) => [k, unwrapValue(v)]));
+		}
+		return value;
+	};
+
+	try {
+		const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
+		const originalSession = response.data.Item;
+		session = Object.fromEntries(
+			Object.entries(originalSession).map(([key, value]) => [key, unwrapValue(value)]),
+		) as unknown as PersonIdentityItem;
 	} catch (e: any) {
 		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
 	}
@@ -425,7 +475,7 @@ export async function initiateUserInfo(docSelectionData: DocSelectionData, sessi
 	expect(userInfoResponse.status).toBe(202);
 
 }
-export async function getSessionAndVerifyKey(sessionId:	string, tableName: string, key: string, expectedValue: string): Promise<void> {
+export async function getSessionAndVerifyKey(sessionId: string, tableName: string, key: string, expectedValue: string): Promise<void> {
 	const sessionInfo = await getSessionById(sessionId, tableName);
 	try {
 		expect(sessionInfo![key as keyof ISessionItem]).toBe(expectedValue);

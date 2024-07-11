@@ -10,14 +10,17 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { TxmaEvent } from "../../../utils/TxmaEvent";
 import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
-import { personIdentityInputRecord, personIdentityOutputRecord } from "../data/personIdentity-records";
+import { personIdentityInputRecord, personIdentityOutputRecord, personIdentityOutputRecordTwoAddresses } from "../data/personIdentity-records";
+import { postalAddressSameInputRecord, postalAddressDifferentInputRecord } from "../data/postalAddress-events";
 import { createSqsClient } from "../../../utils/SqsClient";
 import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
+import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
 
 const logger = mock<Logger>();
 let f2fService: F2fService;
 const tableName = "SESSIONTABLE";
+const personTableName = "PERSONTABLE";
 const sessionId = "SESSID";
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
 const mockSqsClient = createSqsClient();
@@ -52,6 +55,7 @@ function getGovNotifyEventPayload(): GovNotifyEvent {
 			firstName: "John",
 			lastName: "Doe",
 			messageType: "email",
+			pdfPreference: "email",
 		},
 	};
 	return govNotifyEventPayload;
@@ -455,6 +459,62 @@ describe("F2f Service", () => {
 			message: "updateItem - failed: got error updating SESSIONTABLE",
 		}));
 	});	
+
+	it("should add user PDF instructions preference to the person record if email only chosen", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: personIdentityOutputRecord });
+		await f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.EMAIL_ONLY, undefined, personTableName);
+		expect(mockDynamoDbClient.send).toHaveBeenNthCalledWith(2, expect.objectContaining({
+			input: {
+				ExpressionAttributeValues: {
+					":pdfPreference": PdfPreferenceEnum.EMAIL_ONLY,
+				},
+				Key: {
+					sessionId,
+				},
+				TableName: personTableName,
+				UpdateExpression: "SET pdfPreference = :pdfPreference",
+			},
+		}));
+	});
+
+	it("should add user PDF instructions preference to the person record if letter chosen but postal address matches shared claims", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: personIdentityOutputRecord });
+		await f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressSameInputRecord, personTableName);
+		expect(mockDynamoDbClient.send).toHaveBeenNthCalledWith(2, expect.objectContaining({
+			input: {
+				ExpressionAttributeValues: {
+					":pdfPreference": PdfPreferenceEnum.PRINTED_LETTER,
+				},
+				Key: {
+					sessionId,
+				},
+				TableName: personTableName,
+				UpdateExpression: "SET pdfPreference = :pdfPreference",
+			},
+			
+		}),
+		);
+	});
+
+	it("should add user PDF instructions preference and postal address to the person record if letter chosen and postal address is different to shared claims", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: personIdentityOutputRecordTwoAddresses });
+		await f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressDifferentInputRecord, personTableName);
+		expect(mockDynamoDbClient.send).toHaveBeenNthCalledWith(2, expect.objectContaining({
+			input: {
+				ExpressionAttributeValues: {
+					":pdfPreference": PdfPreferenceEnum.PRINTED_LETTER,
+					":addresses": [personIdentityOutputRecordTwoAddresses.addresses[0], postalAddressDifferentInputRecord],
+				},
+				Key: {
+					sessionId,
+				},
+				TableName: personTableName,
+				UpdateExpression: "SET pdfPreference = :pdfPreference, addresses = :addresses",
+			},
+			
+		}),
+		);
+	});
 
 	describe("obfuscateJSONValues", () => {
 		it("should obfuscate all fields except those in txmaFieldsToShow", async () => {
