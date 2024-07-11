@@ -40,7 +40,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: "POST"
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Gov-Notify-Stub-${AWS::StackName}:live/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Gov-Notify-Stub-Email-Handler${AWS::StackName}:live/invocations
         responses:
           default:
             statusCode: "201"
@@ -54,17 +54,7 @@ paths:
         - Backend Endpoint for GovNotify
       summary: Mock GovNotify's Send letter endpoint
       requestBody:
-        reference:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SendLetterPayload"
-        required: true
-        pdfFile:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SendLetterPayload"
-        required: true
-        postage:
+        content:
           application/json:
             schema:
               $ref: "#/components/schemas/SendLetterPayload"
@@ -88,7 +78,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: "POST"
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Gov-Notify-Stub-${AWS::StackName}:live/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Gov-Notify-Stub-Letter-Handler${AWS::StackName}:live/invocations
         responses:
           default:
             statusCode: "201"
