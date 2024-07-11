@@ -24,7 +24,7 @@
     },
     "GeneratePrintedLetter": {
       "Type": "Task",
-      "Resource": "${GenerateYotiLetterFunctionArn}",
+      "Resource": "${GenerateYotiPrintedLetterArn}",
       "Next": "SendToGovNotify"
     },
 		"SendToGovNotify": {
