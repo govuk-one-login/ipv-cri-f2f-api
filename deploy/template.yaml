@@ -62,6 +62,11 @@ Parameters:
     Description: "Set to true to apply reserved concurrency when deploying in DEV environments"
     Type: String
     Default: "false"
+  TestRoleArn:
+    Description: "ARN of the role used during pipeline test stage, allowing Lambda invocations. Injected by the deployment pipeline"
+    Type: String
+    Default: none
+
 
 Mappings:
   EnvironmentConfiguration: # This is where you store per-environment settings.
@@ -407,7 +412,7 @@ Resources:
   InternetGatewayEventMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
     Condition: DeployAlarms
-    Properties: 
+    Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ ($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway) }'
       MetricTransformations:
@@ -418,7 +423,7 @@ Resources:
   InternetGatewayActivityEventErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
-    Properties: 
+    Properties:
       AlarmName: !Sub "${AWS::StackName}-IGW-changes"
       AlarmDescription: !Sub "Triggers CloudWatch Alarm when changes are made to an Internet Gateway in a VPC. ${SupportManualURL}"
       MetricName: IGatewayActivityEvent
@@ -522,7 +527,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       TreatMissingData: notBreaching
-        
+
 
   LambdaEgressSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
@@ -2721,6 +2726,14 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ExpiredSessionsFunction
       Principal: apigateway.amazonaws.com
+
+  ExpiredSessionFunctionTestRolePermission:
+    Type: AWS::Lambda::Permission
+    Condition: IsNotProdLikeEnvironment
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt ExpiredSessionsFunction.Value
+      Principal: !Ref TestRoleArn
 
   ExpiredSessionsFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
@@ -6143,7 +6156,7 @@ Resources:
                 }
               ]
             }
-  
+
   CriticalAlarmDashboard:
     Type: AWS::CloudWatch::Dashboard
     Condition: DeployAlarms
@@ -6633,7 +6646,7 @@ Resources:
             ]
           }
 
- 
+
 
 Outputs:
   F2FApiGatewayId:
