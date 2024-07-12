@@ -210,6 +210,12 @@ Resources:
             Path: /govnotify/v2/notifications/email
             Method: post
             RestApiId: !Ref MockGovNotifyRestApi
+        postSendLetter:
+          Type: Api
+          Properties:
+            Path: /govnotify/v2/notifications/letter
+            Method: post
+            RestApiId: !Ref MockGovNotifyRestApi
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
