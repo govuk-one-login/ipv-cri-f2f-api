@@ -2,8 +2,8 @@ version = 0.1
 [dev]
 [dev.deploy]
 [dev.deploy.parameters]
-stack_name = "f2f-cri-api"
-s3_prefix = "f2f-cri-api"
+stack_name = "f2f-cri-api-viveakv"
+s3_prefix = "f2f-cri-api-viveakv"
 region = "eu-west-2"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"

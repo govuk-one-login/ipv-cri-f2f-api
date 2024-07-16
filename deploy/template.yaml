@@ -3435,9 +3435,15 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: GenerateYotiLetterHandler
+          YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
+          YOTI_PDF_BUCKET_FOLDER: pdf
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - S3WritePolicy:
+            BucketName: !Ref YotiLetterBucket
+        - S3ReadPolicy:
+            BucketName: !Ref YotiLetterBucket
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:

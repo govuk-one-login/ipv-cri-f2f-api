@@ -76,6 +76,8 @@ export class Constants {
 
 	static readonly EMAIL_LOGGER_SVC_NAME = "SendEmailHandler";
 
+	static readonly GENERATE_YOTI_LETTER_SVC_NAME = "GenerateYotiLetterHandler";
+
 	static readonly EMAIL_METRICS_NAMESPACE = "F2F-CRI";
 
 	static readonly W3_BASE_CONTEXT = "https://www.w3.org/2018/credentials/v1";
