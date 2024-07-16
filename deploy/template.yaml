@@ -2732,7 +2732,7 @@ Resources:
     Condition: IsNotProdLikeEnvironment
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt ExpiredSessionsFunction.Value
+      FunctionName: !Ref ExpiredSessionsFunction
       Principal: !Ref TestRoleArn
 
   ExpiredSessionsFunctionFatalErorMetricFilter:
