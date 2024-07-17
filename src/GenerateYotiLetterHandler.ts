@@ -47,6 +47,7 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 			}
 
 			logger.info("Starting GenerateYotiLetterProcessor");
+
 			return await GenerateYotiLetterProcessor.getInstance(logger, metrics, yotiPrivateKey).processRequest(event);
 
 		} catch (error: any) {
