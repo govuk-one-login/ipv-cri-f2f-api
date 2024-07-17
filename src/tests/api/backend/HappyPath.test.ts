@@ -51,7 +51,7 @@ describe("/personInfo endpoint", () => {
 		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		expect(postRequest.status).toBe(200);
 		const sessionId = postRequest.data.session_id;
-		const personInfoResponse = await getPersonIdentityRecordById(sessionId);
+		const personInfoResponse = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
 		expect(personInfoResponse).toBeTruthy();
 	});
 
