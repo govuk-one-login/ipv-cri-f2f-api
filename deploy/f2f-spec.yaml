@@ -894,6 +894,123 @@ paths:
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
 
+  /person-info:
+    get:
+      operationId: getPersonInfo
+      summary: Return the personal information stored for given session ID
+      description: >-
+        Return encrypted personal information needed to pre populate information on the frontend
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      tags:
+        - Backend - CI CRI specific
+      responses:
+        "200":
+          description: OK
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+            Content-Security-Policy:
+              schema:
+                type: "string"
+            Feature-Policy:
+              schema:
+                type: "string"
+            Referrer-Policy:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonInfoResponse"
+        "401":
+          description: Unauthorized
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+            Content-Security-Policy:
+              schema:
+                type: "string"
+            Feature-Policy:
+              schema:
+                type: "string"
+            Referrer-Policy:
+              schema:
+                type: "string"
+        "500":
+          description: Internal Server Error
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+            Content-Security-Policy:
+              schema:
+                type: "string"
+            Feature-Policy:
+              schema:
+                type: "string"
+            Referrer-Policy:
+              schema:
+                type: "string"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PersonInfoFunction.Arn}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+
 components:
   schemas:
     CallbackRequest:
@@ -1359,6 +1476,9 @@ components:
             - ACCESS_DENIED
             # The service is shut down for operational reasons
             - OAUTH_NOT_ENABLED
+    PersonInfoResponse:
+        type: string
+        description: encrypted string containing person info
   parameters:
     SessionHeader:
       name: session-id

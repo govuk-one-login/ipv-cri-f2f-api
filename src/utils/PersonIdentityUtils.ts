@@ -66,7 +66,7 @@ export const personIdentityUtils = {
 	getYotiStructuredPostalAddress(address: PersonIdentityAddress, logger: Logger) : { address_format: number; building_number: string; sub_building: string; building: string; address_line1: string; address_line2: string; town_city: string; postal_code: string; country_iso: string; country: string } {
 
 		try {
-			const { addressLine1, addressLine2 } = this.getYotiAddressLines(address, logger);
+			const { addressLine1, addressLine2 } = this.getAddressLines(address, logger);
 			return {
 				address_format: YOTI_ADDRESS_FORMAT_CODE,
 				building_number: address.buildingNumber ? address.buildingNumber.trim() : "",
@@ -85,7 +85,24 @@ export const personIdentityUtils = {
 
 	},
 
-	getYotiAddressLines(address: PersonIdentityAddress, logger: Logger) : { addressLine1: string; addressLine2: string } {
+	getStructuredPostalAddress(address: PersonIdentityAddress, logger: Logger) : { address_line1: string; address_line2: string; town_city: string; postal_code: string } {
+
+		try {
+			const { addressLine1, addressLine2 } = this.getAddressLines(address, logger);
+			return {
+				address_line1: addressLine1,
+				address_line2: addressLine2,
+				town_city: address.addressLocality,
+				postal_code: address.postalCode,
+			};
+		} catch (error: any) {
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, error.message);
+		}
+
+	},
+
+
+	getAddressLines(address: PersonIdentityAddress, logger: Logger) : { addressLine1: string; addressLine2: string } {
 
 		const validationHelper = new ValidationHelper();
 		let addressLine1, addressLine2;
