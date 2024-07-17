@@ -69,7 +69,7 @@ export class SessionConfigRequestProcessor {
 				const PRINTED_CUSTOMER_LETTER_ENABLED = await getParameter(this.environmentVariables.printedCustomerLetterEnabledSsmPath());
 				f2fResp.pcl_enabled = PRINTED_CUSTOMER_LETTER_ENABLED;
 			} catch (error) {
-				this.logger.error(`failed to get param from ssm at ${this.environmentVariables.printedCustomerLetterEnabledSsmPath()}`, {
+				this.logger.error(`Failed to get param from ssm at ${this.environmentVariables.printedCustomerLetterEnabledSsmPath()}`, {
 					messageCode: MessageCodes.MISSING_PRINTED_CUSTOMER_LETTER_ENABLED_CONFIGURATION,
 					error,
 				});

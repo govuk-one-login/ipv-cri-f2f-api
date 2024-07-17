@@ -3315,6 +3315,42 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+  
+  MissingPclEnabledFeatureFlagErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref SessionConfigFunctionLogGroup
+      FilterPattern: '{ $.level = "ERROR" && $.messageCode = "MISSING_PRINTED_CUSTOMER_LETTER_ENABLED_CONFIGURATION" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "Missing-printedCustomerLetterEnabled-featureFlag-error"
+
+  MissingPclEnabledFeatureFlagErrorAlarm:
+    DependsOn:
+      - "MissingPclEnabledFeatureFlagErrorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-MissingPclEnabledFeatureFlagErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when we are unable to fetch the printedCustomerLetter enabled SSM param. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: Missing-printedCustomerLetterEnabled-featureFlag-error
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   YotiCallbackQueueDeadLetterQueue:
     Type: "AWS::SQS::Queue"

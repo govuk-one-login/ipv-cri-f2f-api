@@ -19,3 +19,4 @@ process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS = "10";
 process.env.REMINDER_EMAIL_GOVUKNOTIFY_API = "https://test-govnotify-stub";
 process.env.USE_MOCKED = "true";
 process.env.YOTI_SESSION_TTL_DAYS = "10";
+process.env.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH = "/dev/f2f/printedCustomerLetter/enabled"
