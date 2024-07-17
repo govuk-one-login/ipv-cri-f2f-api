@@ -24,7 +24,7 @@ const mockF2fService = mock<F2fService>();
 
 const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "F2F" });
-const PUBLIC_KEY_SSM_PARAM = "argadfgadf";
+const PRIVATE_KEY_SSM_PARAM = "argadfgadf";
 const sessionId = "sessionId";
 
 const person: PersonIdentityItem = {
@@ -95,7 +95,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("PersonInfoRequestProcessor", () => {
 	beforeAll(() => {
-		personInfoRequestProcessorTest = new PersonInfoRequestProcessor(logger, metrics, PUBLIC_KEY_SSM_PARAM);
+		personInfoRequestProcessorTest = new PersonInfoRequestProcessor(logger, metrics, PRIVATE_KEY_SSM_PARAM);
 		// @ts-ignore
 		personInfoRequestProcessorTest.f2fService = mockF2fService;
 	});
@@ -149,7 +149,7 @@ describe("PersonInfoRequestProcessor", () => {
 
 			const result = personInfoRequestProcessorTest.encryptResponse(data);
 
-			expect(NodeRSA).toHaveBeenCalledWith(PUBLIC_KEY_SSM_PARAM);
+			expect(NodeRSA).toHaveBeenCalledWith(PRIVATE_KEY_SSM_PARAM);
 			expect(encryptMock).toHaveBeenCalledWith(JSON.stringify(data), "base64");
 			expect(result).toBe("Encrypted name");
 		});

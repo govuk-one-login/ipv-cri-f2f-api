@@ -1858,14 +1858,14 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: PersonInfoHandler
-          PUBLIC_KEY_SSM_PATH: !Sub "/${Environment}/person-info/PUBLIC_KEY"
+          PRIVATE_KEY_SSM_PATH: !Sub "/${Environment}/person-info/PRIVATE_KEY"
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/person-info/PUBLIC_KEY"
+            ParameterName: !Sub "${Environment}/person-info/PRIVATE_KEY"
         - DynamoDBReadPolicy:
             TableName:
               Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
