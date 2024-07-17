@@ -4083,6 +4083,8 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: SendToGovNotifyHandler
+          YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
+          YOTI_PDF_BUCKET_FOLDER: pdf
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess

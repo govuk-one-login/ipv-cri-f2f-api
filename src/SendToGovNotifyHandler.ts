@@ -1,6 +1,8 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
+import { PdfPreferencePayload } from "./type/PdfPreferencePayload";
+import { SendToGovNotifyProcessor } from "./services/SendToGovNotifyProcessor";
 import { Constants } from "./utils/Constants";
 
 const {
@@ -19,16 +21,18 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 
 class SendToGovNotifyHandler implements LambdaInterface {
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	handler(event: any, context: any): any {
+	async handler(event: PdfPreferencePayload, context: any): Promise<any> {
 
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
 		console.log("EVENT", event);
 
+		await SendToGovNotifyProcessor.getInstance(logger, metrics).processRequest(event);
+
 		return {
 			statusCode: 200,
-			body: "OK",
+			body: "working WIP",
 		};
 	}
 }
