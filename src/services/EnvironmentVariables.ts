@@ -68,6 +68,8 @@ export class EnvironmentVariables {
 
 	private FETCH_YOTI_SESSION_MAX_RETRIES = process.env.FETCH_YOTI_SESSION_MAX_RETRIES;
 
+	private readonly PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH = process.env.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH;
+
 
 	/*
 	 * This function performs validation on env variable values.
@@ -282,8 +284,9 @@ export class EnvironmentVariables {
 				break;
 			}
 			case ServicesEnum.SESSION_CONFIG_SERVICE: {
-				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ) {
-					logger.error("Environment variable SESSION_TABLE is not configured");
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+				!this.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH || this.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH.trim().length === 0 ) {
+					logger.error("Environment variable SESSION_TABLE  or PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "SessionConfig Service incorrectly configured");
 				}
 				break;
@@ -434,6 +437,10 @@ export class EnvironmentVariables {
 
 	reminderEmailsGovNotifyUrl(): any {
 		return this.REMINDER_EMAIL_GOVUKNOTIFY_API;
+	}
+
+	printedCustomerLetterEnabledSsmPath(): any {
+		return this.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH;
 	}
 
 }

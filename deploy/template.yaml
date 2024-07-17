@@ -1022,9 +1022,12 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: SessionConfigHandler
+          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${Environment}/f2f/printedCustomerLetter/enabled"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/f2f/printedCustomerLetter/enabled"
         - DynamoDBWritePolicy:
             TableName:
               Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"

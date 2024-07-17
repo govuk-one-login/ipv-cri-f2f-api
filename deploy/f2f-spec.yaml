@@ -1274,6 +1274,11 @@ components:
               type: number
               description: if supplied, minimum strength score required
               example: 4
+        pcl_enabled:
+          type: string
+          example: true
+          description: >-
+            returns the printed customer letter enabled flag- true/false
     OAuthErrorResponse:
       type: object
       additionalProperties: true
