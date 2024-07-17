@@ -1,8 +1,10 @@
 /* eslint-disable max-lines-per-function */
-import govNotifyRequestData from "../../data/govNotifyStubPayload.json";
+import govNotifyRequestDataEmail from "../../data/govNotifyStubEmailPayload.json";
+import govNotifyRequestDataLetter from "../../data/govNotifyStubLetterPayload.json";
 
 import { 
-	postGovNotifyRequest, 
+	postGovNotifyRequestEmail,
+	postGovNotifyRequestLetter,
 } from "../ApiTestSteps";
 
 describe("GovNotify Stub", () => {
@@ -13,8 +15,14 @@ describe("GovNotify Stub", () => {
 		[500],
 		[201],
 	];
+
 	it.each(postGovNotifyParams)("GovNotify - expect '%i' response on POST/v2/notifications/email", async (govNotifyDelimitator: number) => {
-		const response = await postGovNotifyRequest(govNotifyDelimitator, govNotifyRequestData);
+		const response = await postGovNotifyRequestEmail(govNotifyDelimitator, govNotifyRequestDataEmail);
+		expect(response.status).toBe(govNotifyDelimitator);
+	});
+
+	it.each(postGovNotifyParams)("GovNotify - expect '%i' response on POST/v2/notifications/letter", async (govNotifyDelimitator: number) => {
+		const response = await postGovNotifyRequestLetter(govNotifyDelimitator, govNotifyRequestDataLetter);
 		expect(response.status).toBe(govNotifyDelimitator);
 	});
 });

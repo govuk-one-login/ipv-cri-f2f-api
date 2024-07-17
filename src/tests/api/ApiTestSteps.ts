@@ -84,6 +84,19 @@ export async function sessionPost(clientId: string, request: string): Promise<Ax
 	}
 }
 
+export async function personInfoGet(sessionId: string): Promise<AxiosResponse<string>> {
+	const path = "/person-info";
+	try {
+		const getRequest = await API_INSTANCE.get(path, { headers: { "x-govuk-signin-session-id": sessionId, "txma-audit-encoded": "encoded-header" } });
+		expect(getRequest.status).toBe(200);
+		return getRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+}
+
+
 export async function postDocumentSelection(userData: DocSelectionData, sessionId: string): Promise<AxiosResponse<string>> {
 	const path = "/documentSelection";
 	try {
@@ -421,7 +434,7 @@ export async function postAbortSession(reasonPayload: { reason: string }, sessio
 	}
 }
 
-export async function postGovNotifyRequest(
+export async function postGovNotifyRequestEmail(
 	mockDelimitator: number,
 	userData: { template_id: string; email_address: string },
 ): Promise<AxiosResponse<string>> {
@@ -429,6 +442,28 @@ export async function postGovNotifyRequest(
 	try {
 		// update email to contain mock delimitator before the @ - this determines the behaviour of the GovNotify mock
 		userData.email_address = insertBeforeLastOccurrence(userData.email_address, "@", mockDelimitator.toString());
+		const postRequest = await GOV_NOTIFY_INSTANCE.post(path, userData);
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+
+	function insertBeforeLastOccurrence(strToSearch: string, strToFind: string, strToInsert: string): string {
+		const n = strToSearch.lastIndexOf(strToFind);
+		if (n < 0) return strToSearch;
+		return strToSearch.substring(0, n) + strToInsert + strToSearch.substring(n);
+	}
+}
+
+export async function postGovNotifyRequestLetter(
+	mockDelimitator: number,
+	userData: { reference: string; pdfFile: string },
+): Promise<AxiosResponse<string>> {
+	const path = "/v2/notifications/letter";
+	try {
+		// update letter reference to include mock delimatator after last char - this determines the behaviour of the GovNotify mock
+		userData.reference = insertBeforeLastOccurrence(userData.reference, "x", mockDelimitator.toString());
 		const postRequest = await GOV_NOTIFY_INSTANCE.post(path, userData);
 		return postRequest;
 	} catch (error: any) {

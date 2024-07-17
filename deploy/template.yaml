@@ -62,6 +62,11 @@ Parameters:
     Description: "Set to true to apply reserved concurrency when deploying in DEV environments"
     Type: String
     Default: "false"
+  TestRoleArn:
+    Description: "ARN of the role used during pipeline test stage, allowing Lambda invocations. Injected by the deployment pipeline"
+    Type: String
+    Default: none
+
 
 Mappings:
   EnvironmentConfiguration: # This is where you store per-environment settings.
@@ -407,7 +412,7 @@ Resources:
   InternetGatewayEventMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
     Condition: DeployAlarms
-    Properties: 
+    Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ ($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway) }'
       MetricTransformations:
@@ -418,7 +423,7 @@ Resources:
   InternetGatewayActivityEventErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
-    Properties: 
+    Properties:
       AlarmName: !Sub "${AWS::StackName}-IGW-changes"
       AlarmDescription: !Sub "Triggers CloudWatch Alarm when changes are made to an Internet Gateway in a VPC. ${SupportManualURL}"
       MetricName: IGatewayActivityEvent
@@ -522,7 +527,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       TreatMissingData: notBreaching
-        
+
 
   LambdaEgressSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
@@ -579,6 +584,23 @@ Resources:
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
+
+  YotiLetterBucket:
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
+      VersioningConfiguration:
+        Status: "Enabled"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 
   ### Start of API Gateway definition.
 
@@ -741,7 +763,13 @@ Resources:
   ### End of API Gateway Custom Domain definition
 
   ### Function Definition
-  ## SessionHandler
+
+####################################################################
+#                                                                  #
+# Session Function                                                 #
+#                                                                  #
+####################################################################
+
   SessionFunction:
     Type: AWS::Serverless::Function
     DependsOn: SessionFunctionLogGroup
@@ -1010,7 +1038,11 @@ Resources:
             Stat: Sum
 
 
-  ## SessionConfiguration
+####################################################################
+#                                                                  #
+# Session Config Function                                          #
+#                                                                  #
+####################################################################
 
   SessionConfigFunction:
     Type: AWS::Serverless::Function
@@ -1131,7 +1163,12 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  ## AccessToken
+####################################################################
+#                                                                  #
+# Access Token Function                                            #
+#                                                                  #
+####################################################################
+
   TokenFunction:
     Type: AWS::Serverless::Function
     DependsOn: TokenFunctionLogGroup
@@ -1297,6 +1334,12 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+
+####################################################################
+#                                                                  #
+# Authorization Function                                           #
+#                                                                  #
+####################################################################
 
   AuthorizationFunction:
     Type: AWS::Serverless::Function
@@ -1470,6 +1513,12 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+
+####################################################################
+#                                                                  #
+# Document Selection Function                                      #
+#                                                                  #
+####################################################################
 
   DocumentSelectionFunction:
     Type: AWS::Serverless::Function
@@ -1675,6 +1724,12 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
+####################################################################
+#                                                                  #
+# Abort Function                                                   #
+#                                                                  #
+####################################################################
+
   AbortFunction:
     Type: AWS::Serverless::Function
     DependsOn: AbortLogGroup
@@ -1790,6 +1845,364 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref AbortFunction
       Principal: apigateway.amazonaws.com
+  
+  ## PersonInfoHandler
+  PersonInfoFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: PersonInfoFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-person-info-${AWS::StackName}"
+      Handler: PersonInfoHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: PersonInfoHandler
+          PRIVATE_KEY_SSM_PATH: !Sub "/${Environment}/person-info/PRIVATE_KEY"
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/person-info/PRIVATE_KEY"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-key-id"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-id"
+        - Statement:
+            - Sid: KMSPolicy
+              Effect: Allow
+              Action:
+                - kms:*
+              Resource:
+                "*"
+      Events:
+        personInfo:
+          Type: Api
+          Properties:
+            Path: /person-info
+            Method: get
+            RestApiId: !Ref F2FRestApi
+
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false
+        EntryPoints:
+          - PersonInfoHandler.ts
+
+  PersonInfoFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-person-info-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  PersonInfoFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref PersonInfoFunctionLogGroup
+
+  PersonInfoFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PersonInfoFunction
+      Principal: apigateway.amazonaws.com
+
+  PersonInfoFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
+    Properties:
+      LogGroupName: !Ref PersonInfoFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "PersonInfoFunction-Fatalerror"
+
+  PersonInfoFunctionFatalErrorAlarm:
+    DependsOn:
+      - "PersonInfoFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: PersonInfoFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  PersonInfoConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "ApplyReservedConcurrency"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of PersonInfo is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PersonInfoFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PersonInfoThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${PersonInfoFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PersonInfoFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+  
+  PersonInfo5XXApiGwErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-PersonInfo5XXApiGwErrorAlarm"
+      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the PersonInfo endpoint. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: errorThreshold
+          Label: errorThreshold
+          ReturnData: true
+          Expression: IF(invocations<4 || error<2,0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: Method
+                  Value: GET
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Resource
+                  Value: /person-info
+            Period: 60
+            Stat: Sum
+        - Id: errorPercentage
+          Label: errorPercentage
+          ReturnData: false
+          Expression: (error/invocations)*100
+        - Id: error
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: Method
+                  Value: GET
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Resource
+                  Value: /person-info
+            Period: 60
+            Stat: Sum
+
+  PersonInfo5XXApiGwErrorCriticalAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-PersonInfo5XXApiGwErrorCriticalAlarm"
+      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the PersonInfo endpoint. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: errorThreshold
+          Label: errorThreshold
+          ReturnData: true
+          Expression: IF(invocations<10,0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: Method
+                  Value: GET
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Resource
+                  Value: /person-info
+            Period: 60
+            Stat: Sum
+        - Id: errorPercentage
+          Label: errorPercentage
+          ReturnData: false
+          Expression: (error/invocations)*100
+        - Id: error
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: Method
+                  Value: GET
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Resource
+                  Value: /person-info
+            Period: 60
+            Stat: Sum
+
+  PersonInfo4XXApiGwErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-PersonInfo4XXApiGwErrorAlarm"
+      AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the PersonInfo endpoint. ${SupportManualURL}"
+      ActionsEnabled: false   # alarm reviewed in production and decision made to disable
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      Threshold: 10
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: errorThreshold
+          Label: errorThreshold
+          ReturnData: true
+          Expression: IF(invocations<3 || error<2,0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                - Name: Resource
+                  Value: /person-info
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Method
+                  Value: GET
+            Period: 60
+            Stat: Sum
+        - Id: errorPercentage
+          Label: errorPercentage
+          ReturnData: false
+          Expression: (error/invocations)*100
+        - Id: error
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 4XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                - Name: Resource
+                  Value: /person-info
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Method
+                  Value: GET
+            Period: 60
+            Stat: Sum
 
   ## TXMA SQS Queue
   TxMASQSQueue:
@@ -1877,6 +2290,12 @@ Resources:
         - !Sub "alias/TxMAKMSEncryptionKey-${AWS::StackName}"
         - alias/TxMAKMSEncryptionKey
       TargetKeyId: !Ref TxMAKMSEncryptionKey
+
+####################################################################
+#                                                                  #
+# JWKS Function                                                    #
+#                                                                  #
+####################################################################
 
   JsonWebKeysFunction:
     Type: AWS::Serverless::Function
@@ -2025,6 +2444,12 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+
+####################################################################
+#                                                                  #
+# GovNotify Function                                               #
+#                                                                  #
+####################################################################
 
   GovNotifyFunction:
     Type: AWS::Serverless::Function
@@ -2191,7 +2616,12 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
-  ## UserInfo
+####################################################################
+#                                                                  #
+# UserInfo Function                                                #
+#                                                                  #
+####################################################################
+
   UserInfoFunction:
     Type: AWS::Serverless::Function
     DependsOn: UserInfoFunctionLogGroup
@@ -2369,7 +2799,12 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  ## ReminderEmailHandler
+####################################################################
+#                                                                  #
+# Reminder Email Function                                          #
+#                                                                  #
+####################################################################
+
   ReminderEmailFunction:
     Type: AWS::Serverless::Function
     DependsOn: ReminderEmailFunctionLogGroup
@@ -2556,7 +2991,12 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  ## ExpiredSessionsHandler
+####################################################################
+#                                                                  #
+# Expired Sessions Function                                        #
+#                                                                  #
+####################################################################
+
   ExpiredSessionsFunction:
     Type: AWS::Serverless::Function
     DependsOn: ExpiredSessionsFunctionLogGroup
@@ -2647,6 +3087,14 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ExpiredSessionsFunction
       Principal: apigateway.amazonaws.com
+
+  ExpiredSessionFunctionTestRolePermission:
+    Type: AWS::Lambda::Permission
+    Condition: IsNotProdLikeEnvironment
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ExpiredSessionsFunction
+      Principal: !Ref TestRoleArn
 
   ExpiredSessionsFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
@@ -2965,6 +3413,12 @@ Resources:
             - "Arn"
         maxReceiveCount: 10
 
+####################################################################
+#                                                                  #
+# Yoti Callback Function                                           #
+#                                                                  #
+####################################################################
+
   YotiCallbackFunction:
     Type: AWS::Serverless::Function
     DependsOn: YotiCallbackFunctionLogGroup
@@ -3087,6 +3541,12 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref YotiCallbackFunction
       Principal: apigateway.amazonaws.com
+
+####################################################################
+#                                                                  #
+# ThankYou Email Function                                          #
+#                                                                  #
+####################################################################
 
   ThankYouEmailFunction:
     Type: AWS::Serverless::Function
@@ -3351,6 +3811,471 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
+
+####################################################################
+#                                                                  #
+# Generate Yoti Letter Function                                    #
+#                                                                  #
+####################################################################
+
+  GenerateYotiLetterFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: GenerateYotiLetterFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-GenerateYotiLetter-${AWS::StackName}"
+      Handler: GenerateYotiLetterHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: GenerateYotiLetterHandler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - GenerateYotiLetterHandler.ts
+
+  GenerateYotiLetterFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-GenerateYotiLetter-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  GenerateYotiLetterFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsProdLikeEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref GenerateYotiLetterFunctionLogGroup
+
+  GenerateYotiLetterFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GenerateYotiLetterFunction
+      Principal: apigateway.amazonaws.com
+
+  GenerateYotiLetterFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: DeployAlarms
+    Properties:
+      LogGroupName: !Ref GenerateYotiLetterFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "GenerateYotiLetter-Fatalerror"
+
+  GenerateYotiLetterFatalErrorAlarm:
+    DependsOn:
+      - "GenerateYotiLetterFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-GenerateYotiLetter-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: GenerateYotiLetter-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  GenerateYotiLetterConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "ApplyReservedConcurrency"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of GenerateYotiLetter concurrency is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-GenerateYotiLetterFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref GenerateYotiLetterFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  GenerateYotiLetterThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${GenerateYotiLetterFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-GenerateYotiLetterFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref GenerateYotiLetterFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+####################################################################
+#                                                                  #
+# Generate Printed Letter Function                                 #
+#                                                                  #
+####################################################################
+
+  GeneratePrintedLetterFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: GeneratePrintedLetterFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-GeneratePrintedLetter-${AWS::StackName}"
+      Handler: GeneratePrintedLetterHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: GeneratePrintedLetterHandler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - GeneratePrintedLetterHandler.ts
+
+  GeneratePrintedLetterFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-GeneratePrintedLetter-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  GeneratePrintedLetterFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsProdLikeEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref GeneratePrintedLetterFunctionLogGroup
+
+  GeneratePrintedLetterFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GeneratePrintedLetterFunction
+      Principal: apigateway.amazonaws.com
+
+  GeneratePrintedLetterFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: DeployAlarms
+    Properties:
+      LogGroupName: !Ref GeneratePrintedLetterFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "GeneratePrintedLetter-Fatalerror"
+
+  GeneratePrintedLetterFatalErrorAlarm:
+    DependsOn:
+      - "GeneratePrintedLetterFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-GeneratePrintedLetter-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: GeneratePrintedLetter-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  GeneratePrintedLetterConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "ApplyReservedConcurrency"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of GeneratePrintedLetter concurrency is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-GeneratePrintedLetterFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref GeneratePrintedLetterFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  GeneratePrintedLetterThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${GeneratePrintedLetterFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-GeneratePrintedLetterFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref GeneratePrintedLetterFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+####################################################################
+#                                                                  #
+# SendToGovNotify Function                                         #
+#                                                                  #
+####################################################################
+
+  SendToGovNotifyFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: SendToGovNotifyFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-SendToGovNotify-${AWS::StackName}"
+      Handler: SendToGovNotifyHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: SendToGovNotifyHandler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - SendToGovNotifyHandler.ts
+
+  SendToGovNotifyFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-SendToGovNotify-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  SendToGovNotifyFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsProdLikeEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref SendToGovNotifyFunctionLogGroup
+
+  SendToGovNotifyFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SendToGovNotifyFunction
+      Principal: apigateway.amazonaws.com
+
+  SendToGovNotifyFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: DeployAlarms
+    Properties:
+      LogGroupName: !Ref SendToGovNotifyFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "SendToGovNotify-Fatalerror"
+
+  SendToGovNotifyFatalErrorAlarm:
+    DependsOn:
+      - "SendToGovNotifyFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-SendToGovNotify-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: SendToGovNotify-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  SendToGovNotifyConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "ApplyReservedConcurrency"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of SendToGovNotify concurrency is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-SendToGovNotifyFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SendToGovNotifyFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  SendToGovNotifyThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${SendToGovNotifyFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-SendToGovNotifyFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SendToGovNotifyFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+####################################################################
+#                                                                  #
+# Send Yoti Letter StepFunction                                    #
+#                                                                  #
+####################################################################
+
+  SendYotiLetterStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Name: !Sub "F2F-SendYotiLetter-stepfunction-${AWS::StackName}"
+      DefinitionUri: ../src/stepFunctions/sendYotiLetter.asl.json
+      DefinitionSubstitutions:
+        GenerateYotiLetterFunctionArn: !GetAtt GenerateYotiLetterFunction.Arn
+        GeneratePrintedLetterFunctionArn: !GetAtt GeneratePrintedLetterFunction.Arn
+        SendToGovNotifyFunctionArn: !GetAtt SendToGovNotifyFunction.Arn
+      Policies:
+        - AWSXrayWriteOnlyAccess
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GenerateYotiLetterFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GeneratePrintedLetterFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SendToGovNotifyFunction
+      Tracing:
+        Enabled: true
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
 
   YotiCallbackQueueDeadLetterQueue:
     Type: "AWS::SQS::Queue"
@@ -5628,7 +6553,7 @@ Resources:
                 }
               ]
             }
-  
+
   CriticalAlarmDashboard:
     Type: AWS::CloudWatch::Dashboard
     Condition: DeployAlarms
@@ -6118,7 +7043,7 @@ Resources:
             ]
           }
 
- 
+
 
 Outputs:
   F2FApiGatewayId:
