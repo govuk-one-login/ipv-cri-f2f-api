@@ -292,17 +292,10 @@ export class EnvironmentVariables {
 
 			case ServicesEnum.PERSON_INFO_SERVICE: {
 				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0
-					|| !this.PERSON_IDENTITY_TABLE_NAME || this.PERSON_IDENTITY_TABLE_NAME.trim().length === 0 ) {
-					logger.error("Environment variable SESSION_TABLE or PERSON_IDENTITY_TABLE_NAME is not configured");
+					|| !this.PERSON_IDENTITY_TABLE_NAME || this.PERSON_IDENTITY_TABLE_NAME.trim().length === 0
+					|| !this.PUBLIC_KEY_SSM_PATH || this.PUBLIC_KEY_SSM_PATH.trim().length === 0) {
+					logger.error("Environment variable SESSION_TABLE or PERSON_IDENTITY_TABLE_NAME or PUBLIC_KEY_SSM_PATH is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "PersonInfo Service incorrectly configured");
-				}
-				break;
-			}
-
-			case ServicesEnum.PUBLIC_KEY_SSM_PATH_SERVICE: {
-				if (!this.PUBLIC_KEY_SSM_PATH || this.PUBLIC_KEY_SSM_PATH.trim().length === 0) {
-					logger.error("Environment variable PUBLIC_KEY_SSM_PATH is not configured");
-					throw new AppError(HttpCodesEnum.SERVER_ERROR, "PublicKeySSMPath Service incorrectly configured");
 				}
 				break;
 			}
