@@ -8,6 +8,7 @@ import {
 	tokenPost, 
 	userInfoPost, 
 	sessionConfigurationGet,
+	personInfoGet,
 } from "../ApiTestSteps";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
 import addressSessionPayload from "../../data/addressSessionPayload.json";
@@ -68,6 +69,17 @@ describe("/session endpoint", () => {
 		expect(sessionResponse.status).toBe(401);
 		expect(sessionResponse.data).toBe("Unauthorized");
 	});
+});
+
+describe("/personInfo endpoint", () => {
+
+	it("Unsuccessful Request Tests - 4XX Returned", async () => {
+		const sessionId = randomUUID();
+		const personInfoResponse = await personInfoGet(sessionId);
+		expect(personInfoResponse.status).toBe(401);
+		expect(personInfoResponse.data).toBe(`No session found with the session id: ${sessionId}`);	
+	});
+
 });
 
 describe("/documentSelection endpoint", () => {
