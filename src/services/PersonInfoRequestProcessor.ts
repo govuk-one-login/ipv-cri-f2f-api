@@ -66,11 +66,11 @@ export class PersonInfoRequestProcessor {
   	return Response(HttpCodesEnum.OK, encryptedResponseValue);
 	}
 
-	encryptResponse(data: { address_line1: string; address_line2: string; town_city: string; postal_code: string }): string {
-		const dataString = JSON.stringify(data);
+	encryptResponse(postalAddress: { address_line1: string; address_line2: string; town_city: string; postal_code: string }): string {
+		const jsonAddress = JSON.stringify(postalAddress);
 
 		this.logger.info("Encrypting personal info");
 		const key = new NodeRSA(this.publicKey);
-		return key.encrypt(dataString, "base64");
+		return key.encrypt(jsonAddress, "base64");
 	}
 }
