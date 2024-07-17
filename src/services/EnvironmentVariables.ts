@@ -56,7 +56,7 @@ export class EnvironmentVariables {
 
 	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
 
-	private readonly PUBLIC_KEY_SSM_PATH = process.env.PUBLIC_KEY_SSM_PATH;
+	private readonly PRIVATE_KEY_SSM_PATH = process.env.PRIVATE_KEY_SSM_PATH;
 
 	private YOTI_SESSION_TTL_DAYS = +process.env.YOTI_SESSION_TTL_DAYS!;
 
@@ -293,8 +293,8 @@ export class EnvironmentVariables {
 			case ServicesEnum.PERSON_INFO_SERVICE: {
 				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0
 					|| !this.PERSON_IDENTITY_TABLE_NAME || this.PERSON_IDENTITY_TABLE_NAME.trim().length === 0
-					|| !this.PUBLIC_KEY_SSM_PATH || this.PUBLIC_KEY_SSM_PATH.trim().length === 0) {
-					logger.error("Environment variable SESSION_TABLE or PERSON_IDENTITY_TABLE_NAME or PUBLIC_KEY_SSM_PATH is not configured");
+					|| !this.PRIVATE_KEY_SSM_PATH || this.PRIVATE_KEY_SSM_PATH.trim().length === 0) {
+					logger.error("Environment variable SESSION_TABLE or PERSON_IDENTITY_TABLE_NAME or PRIVATE_KEY_SSM_PATH is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "PersonInfo Service incorrectly configured");
 				}
 				break;
@@ -448,8 +448,8 @@ export class EnvironmentVariables {
 		return this.REMINDER_EMAIL_GOVUKNOTIFY_API;
 	}
 
-	publicKeySsmPath(): any {
-		return this.PUBLIC_KEY_SSM_PATH;
+	privateKeySsmPath(): any {
+		return this.PRIVATE_KEY_SSM_PATH;
 	}
 
 }

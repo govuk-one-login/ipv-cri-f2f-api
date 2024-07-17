@@ -20,7 +20,7 @@ export const logger = new Logger({
 	serviceName: POWERTOOLS_SERVICE_NAME,
 });
 
-let PUBLIC_KEY: string;
+let PRIVATE_KEY: string;
 
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
@@ -35,11 +35,11 @@ export class PersonInfoHandler implements LambdaInterface {
 
 		try {
 			const sessionId = this.validateEvent(event);
-			const publicKeyPath = this.environmentVariables.publicKeySsmPath();
-			PUBLIC_KEY = PUBLIC_KEY ?? await getParameter(publicKeyPath);
+			const privateKeyPath = this.environmentVariables.privateKeySsmPath();
+			PRIVATE_KEY = PRIVATE_KEY ?? await getParameter(privateKeyPath);
 
 			logger.info("Starting PersonInfoRequestProcessor");
-			return await PersonInfoRequestProcessor.getInstance(logger, metrics, PUBLIC_KEY).processRequest(sessionId);
+			return await PersonInfoRequestProcessor.getInstance(logger, metrics, PRIVATE_KEY).processRequest(sessionId);
 		} catch (error: any) {
 			logger.error({ message: "PersonInfoRequestProcessor encountered an error.", error, messageCode: MessageCodes.SERVER_ERROR });
 			if (error instanceof AppError) {
