@@ -1195,6 +1195,73 @@ components:
               type: string
               description: Fad code of post office
               example: "004010X"
+        pdf_preference:
+          type: string
+          additionalProperties: false
+        postal_address:
+          type: object
+          additionalProperties: false
+          properties:
+            uprn:
+              type: number
+              description: Unique Property Reference Number
+              example: 123456789
+            organisationName:
+              type: string
+              description: Name of organisation registered at address
+              example: "Greggs"
+            buildingNumber:
+              type: string
+              description: Number of building on street
+              example: "32"
+            buildingName:
+              type: string
+              description: Name of building
+              example: "Krelboyne Mansions"
+            subBuildingName:
+              type: string
+              description: Name of residential sub unit
+              example: "Flat 20"
+            streetName:
+              type: string
+              description: Name of street
+              example: "Boing Street"
+            dependentStreetName:
+              type: string
+              description: Dependent thoroughfare
+              example: "Hazelnut Street"
+            addressLocality:
+              type: string
+              description: Name of conurbation
+              example: "London"
+            dependentAddressLocality:
+              type: string
+              description: Smaller area in or near locality
+              example: "Southwark"
+            doubleDependentAddressLocality:
+              type: string
+              description: Even smaller area in or near locality
+              example: "Delbridge industial estate"
+            addressCountry:
+              type: string
+              description: Country name
+              example: "UK"
+            postalCode:
+              type: string
+              description: Postcode
+              example: "SW1A1AA"
+            validFrom:
+              type: string
+              description: Address valid from
+              example: "1/1/2000"
+            validUntil:
+              type: string
+              description: Address valid until
+              example: "1/1/2030"
+            preferredAddress:
+              type: boolean
+              description: Indicates user's preferred address for postal correspondence 
+              example: true
     JWKSFile:
       type: object
       required:
