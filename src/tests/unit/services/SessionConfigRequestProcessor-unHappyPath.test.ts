@@ -67,7 +67,7 @@ describe("SessionConfigRequestProcessor-Missing pcl_enabled flag", () => {
 
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 
-		expect(logger.error).toHaveBeenCalledWith("Failed to get param from ssm at /dev/f2f/printedCustomerLetter/enabled", {"error": "error", "messageCode": MessageCodes.MISSING_PRINTED_CUSTOMER_LETTER_ENABLED_CONFIGURATION });
+		expect(logger.error).toHaveBeenCalledWith("Failed to get param from ssm at /dev/f2f/printedCustomerLetter/enabled", { "error": "error", "messageCode": MessageCodes.MISSING_PRINTED_CUSTOMER_LETTER_ENABLED_CONFIGURATION });
 	});
 
 });
