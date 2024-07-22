@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -22,6 +23,11 @@ import { ValidationHelper } from "../utils/ValidationHelper";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { getClientConfig } from "../utils/ClientConfig";
 import { Constants } from "../utils/Constants";
+import { SendToGovNotifyProcessor } from "./SendToGovNotifyProcessor";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
+
+
 
 export class DocumentSelectionRequestProcessor {
 
@@ -41,6 +47,8 @@ export class DocumentSelectionRequestProcessor {
 
 	private readonly YOTI_PRIVATE_KEY: string;
 
+	private readonly sendToGovNotifyProcessor: SendToGovNotifyProcessor;
+
 	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
 		this.logger = logger;
 		this.metrics = metrics;
@@ -48,6 +56,7 @@ export class DocumentSelectionRequestProcessor {
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
+		this.sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(logger, metrics);
 	}
 
 	static getInstance(
@@ -158,7 +167,42 @@ export class DocumentSelectionRequestProcessor {
 					countryCode,
 				);
 				if (yotiSessionId) {
-					await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
+					// await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
+					// console.log("982 JUST BEFORE SENDTOGOVNOTIFYPROC");
+					// await this.sendToGovNotifyProcessor.processRequest(sessionId);
+
+/////////////////////////////
+					const bucket = "f2f-cri-api-982b-yotiletter-f2f-dev";
+  	const folder = "pdf";
+  	const key = `${folder}/yoti.pdf`;
+
+    console.log("982 BUCKET", bucket)
+
+  	const s3Client = new S3Client({
+  		region: process.env.REGION,
+  		maxAttempts: 2,
+  		requestHandler: new NodeHttpHandler({
+  			connectionTimeout: 29000,
+  			socketTimeout: 29000,
+  		}),
+  	});
+
+  	const retrieveParams = {
+  		Bucket: bucket,
+  		Key: key,
+  	};
+
+    console.log("982 RETRIEVE PARAMS", retrieveParams)
+
+  	try {
+  		this.logger.info("Fetching object from bucket");
+  		const s3Item = await s3Client.send(new GetObjectCommand(retrieveParams));
+        console.log("S3 ITEM", s3Item)
+  	} catch (error) {
+  		this.logger.error({ message: "Error fetching object from S3 bucket", error });
+  	}
+///////////////////////////
+					console.log("982 JUST AFTER SENDTOGOVNOTIFYPROC");
 					await this.f2fService.updateSessionWithYotiIdAndStatus(
 						f2fSessionInfo.sessionId,
 						yotiSessionId,
@@ -275,7 +319,7 @@ export class DocumentSelectionRequestProcessor {
 			}
 
 
-			return Response(HttpCodesEnum.OK, "Instructions PDF Generated");
+			return Response(HttpCodesEnum.OK, "Instructions PDF Generated!");
 
 		} else {
 			this.logger.warn(`Yoti session already exists for this authorization session or Session is in the wrong state: ${f2fSessionInfo.authSessionState}`, {

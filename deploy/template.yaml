@@ -1574,6 +1574,8 @@ Resources:
         - KMSDecryptPolicy:
             KeyId: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-session-table-key-id"
+        - S3ReadPolicy:
+            BucketName: !Sub "${AWS::StackName}-yotiletter-f2f-${Environment}"
         - Statement:
             - Effect: Allow
               Action:
@@ -3085,13 +3087,13 @@ Resources:
       FunctionName: !Ref ExpiredSessionsFunction
       Principal: apigateway.amazonaws.com
 
-  ExpiredSessionFunctionTestRolePermission:
-    Type: AWS::Lambda::Permission
-    Condition: IsNotProdLikeEnvironment
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref ExpiredSessionsFunction
-      Principal: !Ref TestRoleArn
+  # ExpiredSessionFunctionTestRolePermission:
+  #   Type: AWS::Lambda::Permission
+  #   Condition: IsNotProdLikeEnvironment
+  #   Properties:
+  #     Action: lambda:InvokeFunction
+  #     FunctionName: !Ref ExpiredSessionsFunction
+  #     Principal: !Ref TestRoleArn
 
   ExpiredSessionsFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter

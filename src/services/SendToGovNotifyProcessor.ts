@@ -31,9 +31,10 @@ export class SendToGovNotifyProcessor {
   	return this.instance || (this.instance = new SendToGovNotifyProcessor(logger, metrics));
   }
 
-  async processRequest(event: PdfPreferencePayload): Promise<any> {
-
-  	const f2fSessionInfo = await this.f2fService.getSessionById(event.govuk_signin_journey_id);
+  async processRequest(sessionId: any): Promise<any> {
+  	console.log("982 BEFORE SESSION ID");
+  	const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
+    console.log("982 AFTER SESSION ID");
 
   	if (!f2fSessionInfo) {
   		this.logger.warn("Missing details in SESSION table", {
@@ -42,9 +43,11 @@ export class SendToGovNotifyProcessor {
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION table");
   	}
 
-  	const bucket = process.env.YOTI_LETTER_BUCKET;
-  	const folder = process.env.YOTI_PDF_BUCKET_FOLDER;
-  	const key = `${folder}-${f2fSessionInfo.yotiSessionId}`;
+  	const bucket = "f2f-cri-api-982b-yotiletter-f2f-dev";
+  	const folder = "pdf";
+  	const key = `${folder}/yoti.pdf`;
+
+    console.log("982 BUCKET", bucket)
 
   	const s3Client = new S3Client({
   		region: process.env.REGION,
@@ -60,14 +63,17 @@ export class SendToGovNotifyProcessor {
   		Key: key,
   	};
 
+    console.log("982 RETRIEVE PARAMS", retrieveParams)
+
   	try {
   		this.logger.info("Fetching object from bucket");
-  		await s3Client.send(new GetObjectCommand(retrieveParams));
+  		const s3Item = await s3Client.send(new GetObjectCommand(retrieveParams));
+        console.log("S3 ITEM", s3Item)
   	} catch (error) {
   		this.logger.error({ message: "Error fetching object from S3 bucket", error });
   	}
 
 
-  	return { statusCode: HttpCodesEnum.OK, body: "Success" };
+  	return { statusCode: HttpCodesEnum.OK, body: "982 PDF FETCH SUCCESS" };
   }
 }

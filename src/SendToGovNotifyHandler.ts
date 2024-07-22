@@ -21,7 +21,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 
 class SendToGovNotifyHandler implements LambdaInterface {
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: PdfPreferencePayload, context: any): Promise<any> {
+	async handler(event: any, context: any): Promise<any> {
 
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
@@ -32,7 +32,7 @@ class SendToGovNotifyHandler implements LambdaInterface {
 
 		return {
 			statusCode: 200,
-			body: "working WIP",
+			body: "working WIP 982",
 		};
 	}
 }
