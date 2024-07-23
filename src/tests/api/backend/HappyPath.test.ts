@@ -269,7 +269,7 @@ describe("/sessionConfiguration endpoint", () => {
 		thinFilePayload.evidence_requested.strengthScore = strengthScore;
 		const { sessionId } = await startStubServiceAndReturnSessionId(thinFilePayload);
 		const sessionConfigurationResponse = await sessionConfigurationGet(sessionId);
-		console.log("sessionConfigurationResponse" + JSON.stringify(sessionConfigurationResponse.data));
+
 		expect(sessionConfigurationResponse.status).toBe(200);
 		expect(sessionConfigurationResponse.data.pcl_enabled).toEqual("true");
 		expect(sessionConfigurationResponse.data.evidence_requested.strengthScore).toEqual(strengthScore);
@@ -281,7 +281,6 @@ describe("/sessionConfiguration endpoint", () => {
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
 		const sessionConfigurationResponse = await sessionConfigurationGet(sessionId);
-		console.log("sessionConfigurationResponse" + JSON.stringify(sessionConfigurationResponse.data));
 
 		expect(sessionConfigurationResponse.status).toBe(200);
 		expect(sessionConfigurationResponse.data).not.toHaveProperty("evidence_requested")
