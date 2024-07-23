@@ -305,6 +305,9 @@ Conditions:
   ApplyReservedConcurrency: !Or
     - Condition: IsNotDevelopment
     - !Equals [!Ref ApplyReservedConcurrencyInDev, true]
+  AddExpiredSessionFunctionTestRolePermissions: !And
+    - Condition: IsNotProdLikeEnvironment
+    - !Not [ !Equals [ !Ref TestRoleArn, none ]]
 
 Globals:
   Function:
@@ -1845,7 +1848,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref AbortFunction
       Principal: apigateway.amazonaws.com
-  
+
   ## PersonInfoHandler
   PersonInfoFunction:
     Type: AWS::Serverless::Function
@@ -2017,7 +2020,7 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
-  
+
   PersonInfo5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
@@ -3090,7 +3093,7 @@ Resources:
 
   ExpiredSessionFunctionTestRolePermission:
     Type: AWS::Lambda::Permission
-    Condition: IsNotProdLikeEnvironment
+    Condition: AddExpiredSessionFunctionTestRolePermissions
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ExpiredSessionsFunction
