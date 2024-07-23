@@ -68,7 +68,7 @@ export interface UserInfoResponse {
 }
 
 export interface SessionConfigResponse {
-	pcl_enabled: boolean;
+	pcl_enabled?: boolean;
 	evidence_requested: {
 		strengthScore: number;
 	};
