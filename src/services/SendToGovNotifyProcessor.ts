@@ -25,11 +25,13 @@ export class SendToGovNotifyProcessor {
   }
 
   async processRequest(eventBody: any): Promise<EmailResponse | undefined> {
+  	console.log("EVENT BODY", eventBody);
   	const messageType = eventBody.Message.messageType;
   	const yotiSessionId = eventBody.Message.yotiSessionId;
   	let dynamicReminderEmail: DynamicReminderEmail;
   	let reminderEmail: ReminderEmail;
   	let email: Email;
+  	const pdfPreference = eventBody.Message.pdfPreference;
 
   	switch (messageType) {
   		case Constants.REMINDER_EMAIL_DYNAMIC:
@@ -44,13 +46,14 @@ export class SendToGovNotifyProcessor {
 
   		case Constants.PDF_EMAIL:
   			email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			console.log("EMAIL", email);
   			await this.validationHelper.validateModel(email, this.logger);
-  			return this.sendToGovNotifyService.sendYotiPdfEmail(email, yotiSessionId);
+  			return this.sendToGovNotifyService.sendYotiPdfEmail(email, yotiSessionId, pdfPreference);
 
   		// case Constants.POSTED_CUSTOMER_LETTER:
   		// 	email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   		// 	await this.validationHelper.validateModel(email, this.logger);
-  		// 	return this.sendToGovNotifyService.sendYotiPdfEmail(email, yotiSessionId);
+  		// 	return this.sendToGovNotifyService.sendPrintedCustomerLetter(email, yotiSessionId);
   	}
 
   	return undefined;

@@ -1546,7 +1546,7 @@ Resources:
               - "https://api.${DNSSUFFIX}/callback"
               - DNSSUFFIX:
                   !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
-          GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
+          SEND_TO_GOV_NOTIFY_QUEUE_URL: !Ref SendToGovNotifySQSQueue
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
@@ -1591,7 +1591,7 @@ Resources:
             - Effect: Allow
               Action:
                 - "sqs:SendMessage"
-              Resource: !GetAtt [GovNotifySQSQueue, Arn]
+              Resource: !GetAtt [SendToGovNotifySQSQueue, Arn]
             - Effect: Allow
               Action:
                 - "kms:Encrypt"
@@ -3168,6 +3168,42 @@ Resources:
               - "sqs:DeleteMessage"
             Resource: !GetAtt GovNotifySQSQueue.Arn
 
+  #Send To Gov Notify SQS Queue
+  SendToGovNotifySQSQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      MessageRetentionPeriod: !FindInMap [EnvironmentVariables, !Ref Environment, MESSAGERETENTIONPERIODDAYS]
+      VisibilityTimeout: 1800 #Setting this to 6 times the GovNotify lambda timeout
+      KmsMasterKeyId: !Ref GovNotifyKeyAlias
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - "GovNotifySQSQueueDeadLetterQueue"
+            - "Arn"
+        maxReceiveCount: 2
+
+  SendToGovNotifySQSQueueDeadLetterQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      MessageRetentionPeriod: 259200 # three days
+      KmsMasterKeyId: !Sub GovNotifyEncryptionKey
+
+  SendToGovNotifySQSQueuePolicy:
+    Type: "AWS::SQS::QueuePolicy"
+    Properties:
+      Queues:
+        - !Ref SendToGovNotifySQSQueue
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+            Resource: !GetAtt SendToGovNotifySQSQueue.Arn
+
   GovNotifyEncryptionKey:
     Type: AWS::KMS::Key
     # KMS Key manually rotated.
@@ -4086,10 +4122,63 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: SendToGovNotifyHandler
           YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
-          YOTI_PDF_BUCKET_FOLDER: pdf
+          YOTI_PDF_BUCKET_FOLDER: yotiPdf
+          MERGED_PDF_BUCKET_FOLDER: mergedPdf
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+          REMINDER_EMAIL_GOVUKNOTIFY_API: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI ]
+          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
+          GOVUKNOTIFY_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]
+          GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]
+          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
+          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-key-id"
+        - S3ReadPolicy:
+            BucketName: !Sub "${AWS::StackName}-yotiletter-f2f-${Environment}"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt TxMASQSQueue.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:GenerateDataKey"
+              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Decrypt"
+              Resource: !GetAtt GovNotifyEncryptionKey.Arn
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt SendToGovNotifySQSQueue.Arn
+            BatchSize: 1
+            Enabled: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:

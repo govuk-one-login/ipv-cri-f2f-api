@@ -44,7 +44,7 @@ export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: stri
 				emailAddress: personIdentityUtils.getEmailAddress(personDetails),
 				firstName: nameParts.givenNames[0],
 				lastName: nameParts.familyNames[0],
-				messageType: Constants.POSTED_CUSTOMER_LETTER,
+				messageType: Constants.PDF_EMAIL,
 				pdfPreference: personDetails.pdfPreference,
 				postalAddress: {
 					uprn: postalAddress.uprn,
