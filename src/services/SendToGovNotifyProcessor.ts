@@ -1,79 +1,58 @@
-import { HttpCodesEnum } from "../utils/HttpCodesEnum";
-import { F2fService } from "./F2fService";
-import { YotiService } from "./YotiService";
-import { AppError } from "../utils/AppError";
-import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { createDynamoDbClient } from "../utils/DynamoDBFactory";
-import { EnvironmentVariables } from "./EnvironmentVariables";
-import { ServicesEnum } from "../models/enums/ServicesEnum";
-import { MessageCodes } from "../models/enums/MessageCodes";
-import { AuthSessionState } from "../models/enums/AuthSessionState";
-import { absoluteTimeNow } from "../utils/DateTimeUtils";
-import { personIdentityUtils } from "../utils/PersonIdentityUtils";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { Response } from "../utils/Response";
-import { PdfPreferencePayload } from "../type/PdfPreferencePayload";
-import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
+import { Metrics } from "@aws-lambda-powertools/metrics";
+import { SendToGovNotifyService } from "./SendToGovNotifyService";
+import { Constants } from "../utils/Constants";
+import { Email } from "../models/Email";
+import { ReminderEmail } from "../models/ReminderEmail";
+import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
+import { EmailResponse } from "../models/EmailResponse";
+import { ValidationHelper } from "../utils/ValidationHelper";
 
 export class SendToGovNotifyProcessor {
   private static instance: SendToGovNotifyProcessor;
 
-  private readonly f2fService: F2fService;
+  private readonly validationHelper: ValidationHelper;
 
-  constructor(private readonly logger: Logger, private readonly metrics: Metrics) {
-  	const envVariables = new EnvironmentVariables(logger, ServicesEnum.REMINDER_SERVICE);
-  	this.f2fService = F2fService.getInstance(envVariables.sessionTable(), logger, createDynamoDbClient());
+  private readonly sendToGovNotifyService: SendToGovNotifyService;
+
+  constructor(private readonly logger: Logger, private readonly metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, sendToGovNotifyServiceId: string) {
+  	this.validationHelper = new ValidationHelper();
+  	this.sendToGovNotifyService = SendToGovNotifyService.getInstance(this.logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, sendToGovNotifyServiceId);
   }
 
-  static getInstance(logger: Logger, metrics: Metrics): SendToGovNotifyProcessor {
-  	return this.instance || (this.instance = new SendToGovNotifyProcessor(logger, metrics));
+  static getInstance(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, sendToGovNotifyServiceId: string): SendToGovNotifyProcessor {
+  	return this.instance || (this.instance = new SendToGovNotifyProcessor(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, sendToGovNotifyServiceId));
   }
 
-  async processRequest(sessionId: any): Promise<any> {
-  	console.log("982 BEFORE SESSION ID");
-  	const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
-    console.log("982 AFTER SESSION ID");
+  async processRequest(eventBody: any): Promise<EmailResponse | undefined> {
+  	const messageType = eventBody.Message.messageType;
+  	const yotiSessionId = eventBody.Message.yotiSessionId;
+  	let dynamicReminderEmail: DynamicReminderEmail;
+  	let reminderEmail: ReminderEmail;
+  	let email: Email;
 
-  	if (!f2fSessionInfo) {
-  		this.logger.warn("Missing details in SESSION table", {
-  			messageCode: MessageCodes.SESSION_NOT_FOUND,
-  		});
-  		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION table");
+  	switch (messageType) {
+  		case Constants.REMINDER_EMAIL_DYNAMIC:
+  			dynamicReminderEmail = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			await this.validationHelper.validateModel(dynamicReminderEmail, this.logger);
+  			return this.sendToGovNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);
+				
+  		case Constants.REMINDER_EMAIL:
+  			reminderEmail = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			await this.validationHelper.validateModel(reminderEmail, this.logger);
+  			return this.sendToGovNotifyService.sendReminderEmail(reminderEmail);
+
+  		case Constants.PDF_EMAIL:
+  			email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			await this.validationHelper.validateModel(email, this.logger);
+  			return this.sendToGovNotifyService.sendYotiPdfEmail(email, yotiSessionId);
+
+  		// case Constants.POSTED_CUSTOMER_LETTER:
+  		// 	email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  		// 	await this.validationHelper.validateModel(email, this.logger);
+  		// 	return this.sendToGovNotifyService.sendYotiPdfEmail(email, yotiSessionId);
   	}
 
-  	const bucket = "f2f-cri-api-982b-yotiletter-f2f-dev";
-  	const folder = "pdf";
-  	const key = `${folder}/yoti.pdf`;
-
-    console.log("982 BUCKET", bucket)
-
-  	const s3Client = new S3Client({
-  		region: process.env.REGION,
-  		maxAttempts: 2,
-  		requestHandler: new NodeHttpHandler({
-  			connectionTimeout: 29000,
-  			socketTimeout: 29000,
-  		}),
-  	});
-
-  	const retrieveParams = {
-  		Bucket: bucket,
-  		Key: key,
-  	};
-
-    console.log("982 RETRIEVE PARAMS", retrieveParams)
-
-  	try {
-  		this.logger.info("Fetching object from bucket");
-  		const s3Item = await s3Client.send(new GetObjectCommand(retrieveParams));
-        console.log("S3 ITEM", s3Item)
-  	} catch (error) {
-  		this.logger.error({ message: "Error fetching object from S3 bucket", error });
-  	}
-
-
-  	return { statusCode: HttpCodesEnum.OK, body: "982 PDF FETCH SUCCESS" };
+  	return undefined;
   }
 }

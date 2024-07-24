@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
@@ -33,6 +34,8 @@ export class EnvironmentVariables {
 	private readonly GOVUKNOTIFY_API_KEY_SSM_PATH = process.env.GOVUKNOTIFY_API_KEY_SSM_PATH;
 
 	private readonly GOV_NOTIFY_QUEUE_URL = process.env.GOV_NOTIFY_QUEUE_URL;
+
+	private readonly SEND_TO_GOV_NOTIFY_QUEUE_URL = process.env.SEND_TO_GOV_NOTIFY_QUEUE_URL;
 
 	private readonly IPV_CORE_QUEUE_URL = process.env.IPV_CORE_QUEUE_URL;
 
@@ -374,6 +377,14 @@ export class EnvironmentVariables {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		return this.GOV_NOTIFY_QUEUE_URL;
+	}
+
+	getSendToGovNotifyQueueURL(logger: Logger): string {
+		if (!this.SEND_TO_GOV_NOTIFY_QUEUE_URL || this.SEND_TO_GOV_NOTIFY_QUEUE_URL.trim().length === 0) {
+			logger.error(`SendToGovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
+		return this.SEND_TO_GOV_NOTIFY_QUEUE_URL;
 	}
 
 	getIpvCoreQueueURL(logger: Logger): string {

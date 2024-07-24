@@ -217,6 +217,21 @@ export class F2fService {
 		}
 	}
 
+	async sendToSendToGovNotify(event: GovNotifyEvent | ReminderEmailEvent): Promise<void> {
+		try {
+			const messageBody = JSON.stringify(event);
+			const params = {
+				MessageBody: messageBody,
+				QueueUrl: this.environmentVariables.getSendToGovNotifyQueueURL(this.logger),
+			};
+			await createSqsClient().send(new SendMessageCommand(params));
+			this.logger.info("Sent message to Send To Gov Notify");
+		} catch (error) {
+			this.logger.error({ message: "Error when sending message to SendToGovNotify Queue", error });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to SendToGovNotify queue - failed ");
+		}
+	}
+
 	async sendToIPVCore(event: IPVCoreEvent): Promise<void> {
 		try {
 			const messageBody = JSON.stringify(event);

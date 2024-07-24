@@ -23,11 +23,7 @@ import { ValidationHelper } from "../utils/ValidationHelper";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { getClientConfig } from "../utils/ClientConfig";
 import { Constants } from "../utils/Constants";
-import { SendToGovNotifyProcessor } from "./SendToGovNotifyProcessor";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
-
-
+//import { SendToGovNotifyProcessor } from "./TO_BE_SCRAPPED";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -47,7 +43,7 @@ export class DocumentSelectionRequestProcessor {
 
 	private readonly YOTI_PRIVATE_KEY: string;
 
-	private readonly sendToGovNotifyProcessor: SendToGovNotifyProcessor;
+	//private readonly sendToGovNotifyProcessor: SendToGovNotifyProcessor;
 
 	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
 		this.logger = logger;
@@ -56,7 +52,7 @@ export class DocumentSelectionRequestProcessor {
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
-		this.sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(logger, metrics);
+		//this.sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(logger, metrics);
 	}
 
 	static getInstance(
@@ -167,42 +163,10 @@ export class DocumentSelectionRequestProcessor {
 					countryCode,
 				);
 				if (yotiSessionId) {
-					// await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
-					// console.log("982 JUST BEFORE SENDTOGOVNOTIFYPROC");
+					await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
+					// console.log("982 BEFORE SENDTOGOVNOTIFYPROC");
 					// await this.sendToGovNotifyProcessor.processRequest(sessionId);
-
-/////////////////////////////
-					const bucket = "f2f-cri-api-982b-yotiletter-f2f-dev";
-  	const folder = "pdf";
-  	const key = `${folder}/yoti.pdf`;
-
-    console.log("982 BUCKET", bucket)
-
-  	const s3Client = new S3Client({
-  		region: process.env.REGION,
-  		maxAttempts: 2,
-  		requestHandler: new NodeHttpHandler({
-  			connectionTimeout: 29000,
-  			socketTimeout: 29000,
-  		}),
-  	});
-
-  	const retrieveParams = {
-  		Bucket: bucket,
-  		Key: key,
-  	};
-
-    console.log("982 RETRIEVE PARAMS", retrieveParams)
-
-  	try {
-  		this.logger.info("Fetching object from bucket");
-  		const s3Item = await s3Client.send(new GetObjectCommand(retrieveParams));
-        console.log("S3 ITEM", s3Item)
-  	} catch (error) {
-  		this.logger.error({ message: "Error fetching object from S3 bucket", error });
-  	}
-///////////////////////////
-					console.log("982 JUST AFTER SENDTOGOVNOTIFYPROC");
+					// console.log("982 AFTER SENDTOGOVNOTIFYPROC");
 					await this.f2fService.updateSessionWithYotiIdAndStatus(
 						f2fSessionInfo.sessionId,
 						yotiSessionId,
@@ -402,7 +366,7 @@ export class DocumentSelectionRequestProcessor {
 	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
 		this.logger.info({ message: "Posting message to Gov Notify" });
 		try {
-			await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
+			await this.f2fService.sendToSendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
 		} catch (error) {
 			this.logger.error("Yoti session created, failed to post message to GovNotify SQS Queue", {
 				error,
