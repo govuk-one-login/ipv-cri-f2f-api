@@ -4,6 +4,7 @@ import { NotifyClient } from "notifications-node-client";
 
 import { EmailResponse } from "../models/EmailResponse";
 import { Email } from "../models/Email";
+import { PersonIdentityAddress } from "../models/PersonIdentityItem";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -110,7 +111,7 @@ export class SendToGovNotifyService {
    * @returns EmailResponse
    * @throws AppError
    */
-  async sendYotiInstructions(message: Email, pdfPreference: string): Promise<EmailResponse> {
+  async sendYotiInstructions(message: Email, pdfPreference: string, postalAddress: PersonIdentityAddress): Promise<EmailResponse> {
   	// Fetch the instructions pdf from Yoti
   	try {
   		const f2fSessionInfo = await this.f2fService.getSessionById(
@@ -125,7 +126,6 @@ export class SendToGovNotifyService {
   				"Missing details in SESSION or table",
   			);
   		}
-
   		const clientConfig = getClientConfig(
   			this.environmentVariables.clientConfig(),
   			f2fSessionInfo.clientId,
@@ -141,20 +141,19 @@ export class SendToGovNotifyService {
 
   		if (pdfPreference === "PRINTED_LETTER") {
 
-			const mergedPdf = await this.fetchMergedPdf(message.sessionId);
+  			const mergedPdf = await this.fetchMergedPdf(message.sessionId);
 
   			if (mergedPdf) {
   				this.logger.debug("sendLetter", SendToGovNotifyService.name);
   				this.logger.info("Sending precomplied letter");
 
-  			const letterResponse = await this.sendGovNotificationLetter(
+  			await this.sendGovNotificationLetter(
   				mergedPdf,
   				message,
   				clientConfig.GovNotifyApi,
   			);
 
-  			await this.sendF2FYotiEmailedEvent(message);
-  			return letterResponse;
+  			await this.sendF2FLetterSentEvent(message, postalAddress);
   			}
   		}
 		
@@ -414,7 +413,7 @@ export class SendToGovNotifyService {
   	}
   }
 
-  async sendF2FLetterSentEvent(message: Email): Promise<void> {
+  async sendF2FLetterSentEvent(message: Email, postalAddress: PersonIdentityAddress): Promise<void> {
   	const session = await this.f2fService.getSessionById(message.sessionId);
   	if (session != null) {
   		const coreEventFields = buildCoreEventFields(
@@ -437,6 +436,9 @@ export class SendToGovNotifyService {
   					...coreEventFields.user,
   					email: message.emailAddress,
   					govuk_signin_journey_id: session.clientSessionId,
+  				},
+				  restricted: {
+  					postalAddress,
   				},
   			});
   		} catch (error) {

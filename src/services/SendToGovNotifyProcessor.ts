@@ -27,6 +27,7 @@ export class SendToGovNotifyProcessor {
   async processRequest(eventBody: any): Promise<EmailResponse | undefined> {
   	const messageType = eventBody.Message.messageType;
   	const pdfPreference = eventBody.Message.pdfPreference;
+	const postalAddress = eventBody.Message.postalAddress;
   	let dynamicReminderEmail: DynamicReminderEmail;
   	let reminderEmail: ReminderEmail;
   	let email: Email;
@@ -44,9 +45,8 @@ export class SendToGovNotifyProcessor {
 
   		case Constants.PDF_EMAIL:
   			email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
-  			console.log("EMAIL", email);
   			await this.validationHelper.validateModel(email, this.logger);
-  			return this.sendToGovNotifyService.sendYotiInstructions(email, pdfPreference);
+  			return this.sendToGovNotifyService.sendYotiInstructions(email, pdfPreference, postalAddress);
   	}
 
   	return undefined;

@@ -40,6 +40,7 @@ export interface RestrictedObject {
 	"drivingPermit"?: DrivingPermit;
 	"residencePermit"?: ResidencePermit;
 	"idCard"?: IdentityCard;
+	"postalAddress"?: object;
 	device_information?: {
 		encoded: string;
 	};
