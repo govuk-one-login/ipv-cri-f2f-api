@@ -55,7 +55,7 @@ class GovNotifyHandler implements LambdaInterface {
 				if (!GOVUKNOTIFY_API_KEY) {
 					logger.info({ message: "Fetching GOVUKNOTIFY_API_KEY from SSM" });
 					try {
-						GOVUKNOTIFY_API_KEY = await getParameter(this.environmentVariables.govNotifyApiKeySsmPath());
+						GOVUKNOTIFY_API_KEY = await getParameter(this.environmentVariables.govNotifyApiKeySsmPath(), true);
 					} catch (error) {
 						logger.error(`failed to get param from ssm at ${this.environmentVariables.govNotifyApiKeySsmPath()}`, {
 							messageCode: MessageCodes.MISSING_CONFIGURATION,
