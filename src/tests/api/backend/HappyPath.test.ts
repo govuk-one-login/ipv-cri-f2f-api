@@ -61,12 +61,8 @@ describe("/personInfo endpoint", () => {
 		expect(personInfoResponse.status).toBe(200);
 
 		const personInfoKey = await personInfoKeyGet();
-		const subBuildingName = f2fStubPayload.shared_claims.address[0].subBuildingName;
-		const buildingName = f2fStubPayload.shared_claims.address[0].buildingName;
-		const buildingNumber = f2fStubPayload.shared_claims.address[0].buildingNumber;
-		const streetName = f2fStubPayload.shared_claims.address[0].streetName;
-		const address_line1 = subBuildingName + " " + buildingName;
-		const address_line2 = buildingNumber + " " + streetName;
+		const address_line1 = f2fStubPayload.shared_claims.address[0].subBuildingName + " " + f2fStubPayload.shared_claims.address[0].buildingName;
+		const address_line2 = f2fStubPayload.shared_claims.address[0].buildingNumber + " " + f2fStubPayload.shared_claims.address[0].streetName;
 		const town_city = f2fStubPayload.shared_claims.address[0].addressLocality;
 		const postalCode = f2fStubPayload.shared_claims.address[0].postalCode;
 
