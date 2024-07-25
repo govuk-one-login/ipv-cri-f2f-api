@@ -2054,7 +2054,7 @@ Resources:
                 - Name: Method
                   Value: GET
                 - Name: ApiName
-                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -2075,7 +2075,7 @@ Resources:
                 - Name: Method
                   Value: GET
                 - Name: ApiName
-                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -2116,7 +2116,7 @@ Resources:
                 - Name: Method
                   Value: GET
                 - Name: ApiName
-                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -2137,7 +2137,7 @@ Resources:
                 - Name: Method
                   Value: GET
                 - Name: ApiName
-                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -2176,7 +2176,7 @@ Resources:
               MetricName: Count
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /person-info
                 - Name: Stage
@@ -2197,7 +2197,7 @@ Resources:
               MetricName: 4XXError
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /person-info
                 - Name: Stage
@@ -2206,6 +2206,158 @@ Resources:
                   Value: GET
             Period: 60
             Stat: Sum
+
+  ## PersonInfoKeyHandler
+  PersonInfoKeyFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: PersonInfoKeyFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-person-info-key-${AWS::StackName}"
+      Handler: PersonInfoKeyHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: PersonInfoKeyHandler
+          PRIVATE_KEY_SSM_PATH: !Sub "/${Environment}/person-info/PRIVATE_KEY"
+          KMS_KEY_ARN:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/person-info/PRIVATE_KEY"
+      Events:
+        personInfoKey:
+          Type: Api
+          Properties:
+            Path: /person-info-key
+            Method: get
+            RestApiId: !Ref F2FRestApi
+
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false
+        EntryPoints:
+          - PersonInfoKeyHandler.ts
+
+  PersonInfoKeyFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-person-info-key-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  # PersonInfoKeyFunctionLogsSubscriptionFilterCSLS:
+  #   Type: AWS::Logs::SubscriptionFilter
+  #   Properties:
+  #     DestinationArn:
+  #       !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+  #     FilterPattern: ""
+  #     LogGroupName: !Ref PersonInfoKeyFunctionLogGroup
+
+  PersonInfoKeyFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PersonInfoKeyFunction
+      Principal: apigateway.amazonaws.com
+
+  PersonInfoKeyFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref PersonInfoKeyFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "PersonInfoKeyFunction-Fatalerror"
+
+  PersonInfoKeyFunctionFatalErrorAlarm:
+    DependsOn:
+      - "PersonInfoKeyFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: PersonInfoKeyFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  PersonInfoKeyConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployConcurrencyAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of PersonInfoKey is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PersonInfoKeyFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PersonInfoKeyThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${PersonInfoKeyFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PersonInfoKeyFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
 
   ## TXMA SQS Queue
   TxMASQSQueue:
