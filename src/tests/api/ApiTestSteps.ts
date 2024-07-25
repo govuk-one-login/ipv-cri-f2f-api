@@ -5,7 +5,7 @@ import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
 import { PersonIdentityItem } from "../../models/PersonIdentityItem";
-
+import NodeRSA = require("node-rsa");
 import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";
@@ -94,6 +94,26 @@ export async function personInfoGet(sessionId: string): Promise<AxiosResponse<st
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
 	}
+}
+
+export async function personInfoKeyGet(): Promise<AxiosResponse<{ key: string }>> {
+	const path = "/person-info-key";
+	try {
+		const getRequest = await API_INSTANCE.get(path);
+		expect(getRequest.status).toBe(200);
+		return getRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}.`);
+		return error.response;
+	}
+}
+export function validatePersonInfoResponse(personInfoKey: string, personInfoResponse: string, address_line1: string, address_line2: string, town_city: string, postalCode: string): void {
+	const privateKey = new NodeRSA(personInfoKey);
+	const encryptedValue = personInfoResponse;
+	const decryptedValue = privateKey.decrypt(encryptedValue, "utf8");
+	console.log(decryptedValue);
+	expect(decryptedValue).toBe("{\"address_line1\":\"" + address_line1 +  "\",\"address_line2\":\"" + address_line2  + "\",\"town_city\":\"" + town_city + "\",\"postal_code\":\"" + postalCode + "\"}");
+	
 }
 
 
