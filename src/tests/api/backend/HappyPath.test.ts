@@ -15,6 +15,9 @@ import {
 	getPersonIdentityRecordById,
 	updateDynamoDbRecord,
 	getEpochTimestampXDaysAgo,
+	personInfoGet,
+	personInfoKeyGet,
+	validatePersonInfoResponse,
 } from "../ApiTestSteps";
 import { getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
@@ -53,8 +56,17 @@ describe("/personInfo endpoint", () => {
 		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		expect(postRequest.status).toBe(200);
 		const sessionId = postRequest.data.session_id;
-		const personInfoResponse = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
-		expect(personInfoResponse).toBeTruthy();
+		
+		const personInfoResponse = await personInfoGet(sessionId);
+		expect(personInfoResponse.status).toBe(200);
+
+		const personInfoKey = await personInfoKeyGet();
+		const address_line1 = f2fStubPayload.shared_claims.address[0].subBuildingName + " " + f2fStubPayload.shared_claims.address[0].buildingName;
+		const address_line2 = f2fStubPayload.shared_claims.address[0].buildingNumber + " " + f2fStubPayload.shared_claims.address[0].streetName;
+		const town_city = f2fStubPayload.shared_claims.address[0].addressLocality;
+		const postalCode = f2fStubPayload.shared_claims.address[0].postalCode;
+
+		validatePersonInfoResponse(personInfoKey.data.key, personInfoResponse.data, address_line1, address_line2, town_city, postalCode);
 	});
 
 });

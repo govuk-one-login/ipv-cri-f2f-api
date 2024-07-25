@@ -29,6 +29,8 @@ export class EnvironmentVariables {
 	private readonly SESSION_TABLE = process.env.SESSION_TABLE;
 
 	private readonly YOTI_KEY_SSM_PATH = process.env.YOTI_KEY_SSM_PATH;
+	
+	private readonly PRIVATE_KEY_SSM_PATH = process.env.PRIVATE_KEY_SSM_PATH;
 
 	private readonly GOVUKNOTIFY_API_KEY_SSM_PATH = process.env.GOVUKNOTIFY_API_KEY_SSM_PATH;
 
@@ -55,8 +57,6 @@ export class EnvironmentVariables {
 	private readonly PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
 
 	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
-
-	private readonly PRIVATE_KEY_SSM_PATH = process.env.PRIVATE_KEY_SSM_PATH;
 
 	private YOTI_SESSION_TTL_DAYS = +process.env.YOTI_SESSION_TTL_DAYS!;
 
