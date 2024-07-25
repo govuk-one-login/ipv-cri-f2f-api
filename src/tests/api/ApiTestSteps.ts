@@ -4,6 +4,8 @@ import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
+import { PersonIdentityItem } from "../../models/PersonIdentityItem";
+
 import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";
@@ -43,7 +45,8 @@ HARNESS_API_INSTANCE.interceptors.request.use(awsSigv4Interceptor);
 
 const xmlParser = new XMLParser();
 
-export async function startStubServiceAndReturnSessionId(stubPayload: StubStartRequest): Promise<{ sessionId: string; sub: string;
+export async function startStubServiceAndReturnSessionId(stubPayload: StubStartRequest): Promise<{
+	sessionId: string; sub: string;
 }> {
 	const stubResponse = await stubStartPost(stubPayload);
 	const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
@@ -58,7 +61,7 @@ export async function stubStartPost(stubPayload: StubStartRequest): Promise<Axio
 	const path = constants.DEV_IPV_F2F_STUB_URL;
 	if (constants.THIRD_PARTY_CLIENT_ID) {
 		stubPayload.clientId = constants.THIRD_PARTY_CLIENT_ID;
-	} 
+	}
 	try {
 		const postRequest = await axios.post(`${path}`, stubPayload);
 		expect(postRequest.status).toBe(201);
@@ -80,6 +83,19 @@ export async function sessionPost(clientId: string, request: string): Promise<Ax
 		return error.response;
 	}
 }
+
+export async function personInfoGet(sessionId: string): Promise<AxiosResponse<string>> {
+	const path = "/person-info";
+	try {
+		const getRequest = await API_INSTANCE.get(path, { headers: { "x-govuk-signin-session-id": sessionId, "txma-audit-encoded": "encoded-header" } });
+		expect(getRequest.status).toBe(200);
+		return getRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+}
+
 
 export async function postDocumentSelection(userData: DocSelectionData, sessionId: string): Promise<AxiosResponse<string>> {
 	const path = "/documentSelection";
@@ -214,21 +230,80 @@ export function generateRandomAlphanumeric(substringStart: number, substringEnd:
 
 export async function getSessionById(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
 	interface OriginalValue {
+	  N?: string;
+	  S?: string;
+	  BOOL?: boolean;
+	}
+  
+	interface OriginalSessionItem {
+	  [key: string]: OriginalValue;
+	}
+  
+	let session: ISessionItem | undefined;
+	try {
+	  const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
+	  const originalSession = response.data.Item;
+  
+	  session = Object.fromEntries(
+			Object.entries(originalSession).map(([key, value]) => {
+		  if (value.N !== undefined) {
+					return [key, Number(value.N)];
+		  } else if (value.S !== undefined) {
+					return [key, value.S];
+		  } else if (value.BOOL !== undefined) {
+					return [key, value.BOOL];
+		  } else {
+					return [key, undefined];
+		  }
+			}),
+	  ) as unknown as ISessionItem;
+	} catch (e: any) {
+	  console.error({ message: "getSessionById - failed getting session from Dynamo", e });
+	}
+  
+	return session;
+}
+
+export async function getPersonIdentityRecordById(sessionId: string, tableName: string): Promise<PersonIdentityItem | undefined> {
+	interface OriginalValue {
 		N?: string;
 		S?: string;
+		BOOL?: boolean;
+		L?: OriginalValue[];
+		M?: { [key: string]: OriginalValue };
 	}
 
 	interface OriginalSessionItem {
 		[key: string]: OriginalValue;
 	}
 
-	let session: ISessionItem | undefined;
+	let session: PersonIdentityItem | undefined;
+
+	const unwrapValue = (value: OriginalValue): any => {
+		if (value.N !== undefined) {
+			return value.N;
+		}
+		if (value.S !== undefined) {
+			return value.S;
+		}
+		if (value.BOOL !== undefined) {
+			return value.BOOL;
+		}
+		if (value.L !== undefined) {
+			return value.L.map(unwrapValue);
+		}
+		if (value.M !== undefined) {
+			return Object.fromEntries(Object.entries(value.M).map(([k, v]) => [k, unwrapValue(v)]));
+		}
+		return value;
+	};
+
 	try {
 		const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
 		const originalSession = response.data.Item;
 		session = Object.fromEntries(
-			Object.entries(originalSession).map(([key, value]) => [key, value.N ?? value.S]),
-		) as unknown as ISessionItem;
+			Object.entries(originalSession).map(([key, value]) => [key, unwrapValue(value)]),
+		) as unknown as PersonIdentityItem;
 	} catch (e: any) {
 		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
 	}
@@ -260,6 +335,28 @@ export async function getSessionByAuthCode(sessionId: string, tableName: string)
 
 	console.log("getSessionByAuthCode Response", session.Items[0]);
 	return session.Items[0] as ISessionItem;
+}
+
+export async function updateDynamoDbRecord(sessionId: string, tableName: string, attributeName: string, newValue: any, newValueType: any): Promise<void> {
+	try {
+		const requestBody = {
+			attributeName,
+			newValue,
+			newValueType,
+		};
+
+		const url = `updateRecord/${tableName}`;
+		const queryParams = { sessionId };
+
+		await HARNESS_API_INSTANCE.patch(url, requestBody, {
+			params: queryParams,
+		});
+
+		console.log(`Record updated successfully for table ${tableName}`);
+
+	} catch (e: any) {
+		console.error({ message: "updateDynamoDbRecord - failed updating record in DynamoDB", e });
+	}
 }
 
 /**
@@ -371,7 +468,7 @@ export async function postAbortSession(reasonPayload: { reason: string }, sessio
 	}
 }
 
-export async function postGovNotifyRequest(
+export async function postGovNotifyRequestEmail(
 	mockDelimitator: number,
 	userData: { template_id: string; email_address: string },
 ): Promise<AxiosResponse<string>> {
@@ -379,6 +476,28 @@ export async function postGovNotifyRequest(
 	try {
 		// update email to contain mock delimitator before the @ - this determines the behaviour of the GovNotify mock
 		userData.email_address = insertBeforeLastOccurrence(userData.email_address, "@", mockDelimitator.toString());
+		const postRequest = await GOV_NOTIFY_INSTANCE.post(path, userData);
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		return error.response;
+	}
+
+	function insertBeforeLastOccurrence(strToSearch: string, strToFind: string, strToInsert: string): string {
+		const n = strToSearch.lastIndexOf(strToFind);
+		if (n < 0) return strToSearch;
+		return strToSearch.substring(0, n) + strToInsert + strToSearch.substring(n);
+	}
+}
+
+export async function postGovNotifyRequestLetter(
+	mockDelimitator: number,
+	userData: { reference: string; pdfFile: string },
+): Promise<AxiosResponse<string>> {
+	const path = "/v2/notifications/letter";
+	try {
+		// update letter reference to include mock delimatator after last char - this determines the behaviour of the GovNotify mock
+		userData.reference = insertBeforeLastOccurrence(userData.reference, "x", mockDelimitator.toString());
 		const postRequest = await GOV_NOTIFY_INSTANCE.post(path, userData);
 		return postRequest;
 	} catch (error: any) {
@@ -425,11 +544,19 @@ export async function initiateUserInfo(docSelectionData: DocSelectionData, sessi
 	expect(userInfoResponse.status).toBe(202);
 
 }
-export async function getSessionAndVerifyKey(sessionId:	string, tableName: string, key: string, expectedValue: string): Promise<void> {
+
+export async function getSessionAndVerifyKey(sessionId: string, tableName: string, key: string, expectedValue: string | boolean | number): Promise<void> {
 	const sessionInfo = await getSessionById(sessionId, tableName);
 	try {
 		expect(sessionInfo![key as keyof ISessionItem]).toBe(expectedValue);
 	} catch (error: any) {
 		throw new Error("getSessionAndVerifyKey - Failed to verify " + key + " value: " + error);
 	}
+}
+
+export function getEpochTimestampXDaysAgo(days: number): string {
+	const now = new Date();
+	const pastDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+	const epochTimestampInSeconds = Math.floor(pastDate.getTime() / 1000);
+	return epochTimestampInSeconds.toString();
 }

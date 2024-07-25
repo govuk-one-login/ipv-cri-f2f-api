@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-commented-out-tests */
 /* eslint-disable max-lines-per-function */
 import {
 	sessionPost,
@@ -11,13 +12,18 @@ import {
 	userInfoPost,
 	sessionConfigurationGet,
 	postAbortSession,
+	getPersonIdentityRecordById,
+	updateDynamoDbRecord,
+	getEpochTimestampXDaysAgo,
 } from "../ApiTestSteps";
-import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";
+import { getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
 import thinFilePayload from "../../data/thinFilePayload.json";
 import abortPayload from "../../data/abortPayload.json";
 import dataPassport from "../../data/docSelectionPayloadPassportValid.json";
 import dataUkDrivingLicence from "../../data/docSelectionPayloadDriversLicenceValid.json";
+// import dataUkDrivingLicencePrintedLetter from "../../data/docSelectionPayloadDriversLicenceValidPrintedLetter.json";
+// import dataUkDrivingLicencePreferredAddress from "../../data/docSelectionPayloadDriversLicenceValidPreferredAddress.json";
 import dataEuDrivingLicence from "../../data/docSelectionPayloadEuDriversLicenceValid.json";
 import dataNonUkPassport from "../../data/docSelectionPayloadNonUkPassportValid.json";
 import dataBrp from "../../data/docSelectionPayloadBrpValid.json";
@@ -38,6 +44,19 @@ describe("/session endpoint", () => {
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 1);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
 	});
+});
+
+describe("/personInfo endpoint", () => {
+
+	it("Successful Request Tests - Postal Address Found", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		expect(postRequest.status).toBe(200);
+		const sessionId = postRequest.data.session_id;
+		const personInfoResponse = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
+		expect(personInfoResponse).toBeTruthy();
+	});
+
 });
 
 describe("/documentSelection Endpoint", () => {
@@ -101,7 +120,64 @@ describe("/documentSelection Endpoint", () => {
 		expect(response.status).toBe(200);
 
 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
+
+		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
+		try {
+			expect(personIdentityRecord?.pdfPreference).toBe(dataUkDrivingLicence.pdf_preference);
+		} catch (error) {
+			console.error("Error validating PDF Preference from Person Identity Table", error);
+			throw error;
+		}
 	});
+
+	// Tests commented out pending update of frontend payload to DocumentSelection lambda to accept dynamic values 
+	// for pdf_Preference and postal_address properties
+
+	// it.each([
+	// 	{ docSelectionData: dataUkDrivingLicencePrintedLetter },
+	// ])("Successful Request Tests - $PrintedLetter", async ({ docSelectionData }) => {
+	// 	const newf2fStubPayload = structuredClone(f2fStubPayload);
+	// 	const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+
+
+	// 	const postResponse = await postDocumentSelection(docSelectionData, sessionId);
+	// 	expect(postResponse.status).toBe(200);
+
+	// 	const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
+	// 	try {
+	// 		expect(personIdentityRecord?.pdfPreference).toBe(dataUkDrivingLicence.pdf_preference);
+	// 	} catch (error) {
+	// 		console.error("Error validating PDF Preference from Person Identity Table", error);
+	// 		throw error;
+	// 	}
+	// });
+
+	// it.each([
+	// 	{ docSelectionData: dataUkDrivingLicencePreferredAddress },
+	// ])("Successful Request Tests - $PreferredAddress", async ({ docSelectionData }) => {
+	// 	const newf2fStubPayload = structuredClone(f2fStubPayload);
+	// 	const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+
+
+	// 	const docSelect = structuredClone(docSelectionData);
+	// 	docSelect.postal_address.preferredAddress = true;
+	// 	const postResponse = await postDocumentSelection(docSelectionData, sessionId);
+	// 	expect(postResponse.status).toBe(200);
+
+	// 	const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
+
+	// 	try {
+	// 		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
+	// 		const preferredAddress = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
+	// 		expect(preferredAddress).toBeDefined();
+	// 		expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
+	// 		expect(preferredAddress?.preferredAddress).toBe(true);
+	// 	} catch (error) {
+	// 		console.error("Error validating PDF and Address Preference from Person Identity Table", error);
+	// 		throw error;
+	// 	}
+
+	// });
 });
 
 
@@ -195,6 +271,7 @@ describe("/sessionConfiguration endpoint", () => {
 		const sessionConfigurationResponse = await sessionConfigurationGet(sessionId);
 
 		expect(sessionConfigurationResponse.status).toBe(200);
+		expect(sessionConfigurationResponse.data.pcl_enabled).toBe("true");
 		expect(sessionConfigurationResponse.data.evidence_requested.strengthScore).toEqual(strengthScore);
 	});
 
@@ -202,11 +279,11 @@ describe("/sessionConfiguration endpoint", () => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		newf2fStubPayload.yotiMockID = "0000";
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
-		
+
 		const sessionConfigurationResponse = await sessionConfigurationGet(sessionId);
 
 		expect(sessionConfigurationResponse.status).toBe(200);
-		expect(sessionConfigurationResponse.data).toStrictEqual({});
+		expect(sessionConfigurationResponse.data).not.toHaveProperty("evidence_requested");
 	});
 });
 
@@ -267,3 +344,20 @@ describe("/abort endpoint", () => {
 	});
 });
 
+describe("Expired User Sessions", () => {
+
+	it("Session is Expired and Expired Notification Flag Updated", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		const sessionId = postRequest.data.session_id;		
+		console.log(sessionId);
+		await postDocumentSelection(dataUkDrivingLicence, sessionId);
+
+		const newCreatedDateTimestamp = getEpochTimestampXDaysAgo(12);
+		await updateDynamoDbRecord(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "createdDate", newCreatedDateTimestamp, "N");
+		await invokeLambdaFunction(constants.DEV_EXPIRED_SESSIONS_LAMBDA_NAME, {});
+
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_SESSION_EXPIRED");
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "expiredNotificationSent", true);
+	});
+});

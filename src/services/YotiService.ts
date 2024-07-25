@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { Logger } from "@aws-lambda-powertools/logger";
 import crypto, { randomUUID } from "crypto";
 import axios, { AxiosRequestConfig } from "axios";
@@ -153,7 +152,6 @@ export class YotiService {
 	): Promise<string | undefined> {
     	const sessionDeadlineDate = new Date(new Date().getTime() + this.YOTI_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000);
     	sessionDeadlineDate.setUTCHours(22, 0, 0, 0);
-
     	const payloadJSON: CreateSessionPayload = {
     		session_deadline: sessionDeadlineDate,
     		resources_ttl: this.RESOURCES_TTL_SECS,
@@ -190,26 +188,21 @@ export class YotiService {
     			),
     		},
     	};
-
     	if (selectedDocument.toUpperCase() === "UKPASSPORT") {
     		payloadJSON.required_documents[0].filter.allow_expired_documents = true;
     	}
-
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.POST,
     		payloadJSON: JSON.stringify(payloadJSON),
     		endpoint: "/sessions",
     	});
-
     	try {
     		const { data } = await axios.post(
     			yotiRequest.url,
     			payloadJSON,
     			yotiRequest.config,
     		);
-
     		this.logger.appendKeys({ yotiSessionId: data.session_id });
-
     		this.logger.info("Received response from Yoti for create /sessions");
     		return data.session_id;
     	} catch (error: any) {
@@ -224,7 +217,7 @@ export class YotiService {
     		method: HttpVerbsEnum.GET,
     		endpoint: `/sessions/${sessionId}/configuration`,
     	});
-
+		
     	try {
     		const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
 

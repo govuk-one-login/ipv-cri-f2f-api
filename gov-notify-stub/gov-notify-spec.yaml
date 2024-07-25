@@ -47,6 +47,45 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
+
+  /govnotify/v2/notifications/letter:
+    post:
+      tags:
+        - Backend Endpoint for GovNotify
+      summary: Mock GovNotify's Send letter endpoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendLetterPayload"
+        required: false
+      responses:
+        201:
+          description: Letter sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendLetterResponseBody"
+        400:
+          $ref: "#/components/responses/400"
+        403:
+          $ref: "#/components/responses/403"
+        429:
+          $ref: "#/components/responses/429"
+        500:
+          $ref: "#/components/responses/500"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:Gov-Notify-Stub-${AWS::StackName}:live/invocations
+        responses:
+          default:
+            statusCode: "201"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+
 components:
   ## ---------------------
   ## Schema Definitions
@@ -96,6 +135,40 @@ components:
           type: object
       required:
         - emailSentDateTime
+        - metadata
+
+    SendLetterPayload:
+      type: object
+      description: Send Letter Payload
+      properties:
+        reference:
+          description: Letter reference
+          type: string
+          format: uuid
+        pdfFile:
+          description: Cover letter and Yoti instructions PDF file
+          type: string
+          format: string
+        postage:
+          description: Letter postage class
+          type: string
+          format: string
+      required:
+        - reference
+        - pdfFile
+
+    SendLetterResponseBody:
+      type: object
+      description: Send Letter Response Body
+      properties:
+        letterSentDateTime:
+          type: string
+        letterFailureMessage:
+          type: string
+        metadata:
+          type: object
+      required:
+        - letterSentDateTime
         - metadata
 
    ## ---------------------

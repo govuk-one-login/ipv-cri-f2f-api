@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { ISessionItem } from "../models/ISessionItem";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
@@ -22,6 +21,8 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { IPVCoreEvent } from "../utils/IPVCoreEvent";
 import { MessageCodes } from "../models/enums/MessageCodes";
+import { PdfPreferenceEnum } from "../utils/PdfPreferenceEnum";
+
 export class F2fService {
 	readonly tableName: string;
 
@@ -208,7 +209,6 @@ export class F2fService {
 				MessageBody: messageBody,
 				QueueUrl: this.environmentVariables.getGovNotifyQueueURL(this.logger),
 			};
-
 			await createSqsClient().send(new SendMessageCommand(params));
 			this.logger.info("Sent message to Gov Notify");
 		} catch (error) {
@@ -412,6 +412,7 @@ export class F2fService {
 			doubleDependentAddressLocality: address.doubleDependentAddressLocality,
 			validFrom: address.validFrom,
 			validUntil: address.validUntil,
+			preferredAddress: true,
 		}));
 	}
 
@@ -458,6 +459,58 @@ export class F2fService {
 		});
 		await this.dynamo.send(putSessionCommand);
 		return putSessionCommand?.input?.Item?.sessionId;
+	}
+
+	async saveUserPdfPreferences(
+		sessionId: string,
+		pdfPreference: string,
+		postalAddress?: PersonIdentityAddress,
+		tableName: string = this.tableName,
+	): Promise<PersonIdentityItem | undefined> {
+		const personDetails = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
+		const personDetailsAddressArray = personDetails?.addresses;
+		if (pdfPreference === PdfPreferenceEnum.PRINTED_LETTER && postalAddress && personDetails?.addresses[0].uprn !== postalAddress.uprn) {
+			if (personDetailsAddressArray) {
+				personDetailsAddressArray[0].preferredAddress = false;
+			}
+			personDetailsAddressArray?.push(postalAddress);
+			const updateUserDetails = new UpdateCommand({
+				TableName: tableName,
+				Key: { sessionId },
+				UpdateExpression: "SET pdfPreference = :pdfPreference, addresses = :addresses",
+				ExpressionAttributeValues: {
+					":pdfPreference": pdfPreference,
+					":addresses": personDetailsAddressArray,
+				},
+			});
+			this.logger.info({ message: "Updating person table with letter preference and postal address" });
+			try {
+				await this.dynamo.send(updateUserDetails);
+				this.logger.info({ message: "Updated letter preference and postal address details in dynamodb" });
+			} catch (error) {
+				this.logger.error({ message: "Got error saving letter preference or postal address details", error });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving letter preference or postal address details");
+			}
+		} else {
+			const updateUserPreference = new UpdateCommand({
+				TableName: tableName,
+				Key: { sessionId },
+				UpdateExpression: "SET pdfPreference = :pdfPreference",
+				ExpressionAttributeValues: {
+					":pdfPreference": pdfPreference,
+				},
+			});
+			this.logger.info({ message: `Updating pdfPreference in ${tableName}` });
+			try {
+				await this.dynamo.send(updateUserPreference);
+				this.logger.info({ message: `Updated ${tableName} with pdfPreference` });
+			} catch (error) {
+				this.logger.error({ message: `Got error updating pdfPreference in ${tableName}`, error });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
+			}
+		}
+		const personIdentityItem = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
+		return personIdentityItem;
 	}
 
 	async updateSessionAuthState(sessionId: string, authSessionState: string): Promise<void> {
@@ -519,5 +572,4 @@ export class F2fService {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
 		}
 	}
-
 }

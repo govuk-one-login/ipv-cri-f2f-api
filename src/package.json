@@ -10,6 +10,7 @@
     "@aws-lambda-powertools/metrics": "1.5.1",
     "@aws-sdk/client-dynamodb": "3.352.0",
     "@aws-sdk/client-kms": "^3.352.0",
+    "@aws-sdk/client-lambda": "^3.609.0",
     "@aws-sdk/client-s3": "^3.352.0",
     "@aws-sdk/client-sfn": "^3.408.0",
     "@aws-sdk/client-sqs": "^3.352.0",
@@ -31,7 +32,8 @@
     "lodash": "^4.17.21",
     "node-jose": "^2.1.1",
     "notifications-node-client": "^7.0.0",
-    "npm-run-all": "^4.1.5"
+    "npm-run-all": "^4.1.5",
+    "node-rsa": "^1.1.1"
   },
   "scripts": {
     "unit": "./node_modules/.bin/jest --testPathPattern=tests/unit --coverage",
@@ -70,6 +72,7 @@
     "@types/js-yaml": "^4.0.5",
     "@types/node": "^18.11.18",
     "@types/node-jose": "^1.1.10",
+    "@types/node-rsa": "^1.1.4",
     "@typescript-eslint/eslint-plugin": "^5.50.0",
     "@typescript-eslint/eslint-plugin-tslint": "^5.50.0",
     "ajv": "^8.12.0",

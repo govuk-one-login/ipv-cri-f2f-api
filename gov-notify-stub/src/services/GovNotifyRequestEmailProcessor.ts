@@ -7,8 +7,8 @@ import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 
-export class GovNotifyRequestProcessor {
-    private static instance: GovNotifyRequestProcessor;
+export class GovNotifyRequestEmailProcessor {
+    private static instance: GovNotifyRequestEmailProcessor;
 
     private readonly logger: Logger;
 
@@ -20,11 +20,11 @@ export class GovNotifyRequestProcessor {
     	this.metrics = metrics;
     }
 
-    static getInstance(logger: Logger, metrics: Metrics): GovNotifyRequestProcessor {
-    	if (!GovNotifyRequestProcessor.instance) {
-    		GovNotifyRequestProcessor.instance = new GovNotifyRequestProcessor(logger, metrics);
+    static getInstance(logger: Logger, metrics: Metrics): GovNotifyRequestEmailProcessor {
+    	if (!GovNotifyRequestEmailProcessor.instance) {
+    		GovNotifyRequestEmailProcessor.instance = new GovNotifyRequestEmailProcessor(logger, metrics);
     	}
-    	return GovNotifyRequestProcessor.instance;
+    	return GovNotifyRequestEmailProcessor.instance;
     }
 
     /***
@@ -57,5 +57,4 @@ export class GovNotifyRequestProcessor {
     			return new Response(HttpCodesEnum.CREATED, "Successfully sent email.");
     	}
     }
-
 }

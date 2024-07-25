@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
-import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { VALID_SESSION_CONFIG } from "../data/session-config-events";
@@ -12,6 +12,12 @@ import { APIGatewayProxyResult } from "aws-lambda";
 
 let sessionConfigRequestProcessorTest: SessionConfigRequestProcessor;
 const mockF2fService = mock<F2fService>();
+
+jest.mock("../../../utils/Config", () => {
+	return {
+		getParameter: jest.fn(() => "true" ),
+	};
+});
 
 const logger = mock<Logger>();
 const metrics = new Metrics({ namespace: "F2F" });
@@ -50,37 +56,37 @@ describe("SessionConfigRequestProcessor", () => {
 		jest.clearAllMocks();
 	});
 
-	it("Return successful response with 200 OK when evidence_requested is missing", async () => {
+	it("Return successful response with 200 OK and with pcl_enabled flag when evidence_requested is missing", async () => {
 		const sess = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
 		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
-		expect(out.body).toEqual(JSON.stringify({}));
+		expect(out.body).toEqual(JSON.stringify({ pcl_enabled: "true" }));
 
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
-	it("Return successful response with 200 OK when evidence_requested is present and is set to 4", async () => {
+	it("Return successful response with 200 OK and with pcl_enabled flag when evidence_requested is present and is set to 4", async () => {
 		const sess = getMockSessionItem();
 		sess.evidence_requested = { strengthScore: 4 };
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
 		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
-		expect(out.body).toEqual(JSON.stringify({ evidence_requested: { strengthScore: 4 } }));
+		expect(out.body).toEqual(JSON.stringify({ evidence_requested: { strengthScore: 4 }, pcl_enabled: "true" }));
 
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
-	it("Return successful response with 200 OK when evidence_requested is present but is set to less than 4", async () => {
+	it("Return successful response with 200 OK and with pcl_enabled flag when evidence_requested is present but is set to less than 4", async () => {
 		const sess = getMockSessionItem();
 		sess.evidence_requested = { strengthScore: 3 };
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
 		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
-		expect(out.body).toEqual(JSON.stringify({ evidence_requested: { strengthScore: 3 } }));
+		expect(out.body).toEqual(JSON.stringify({ evidence_requested: { strengthScore: 3 }, pcl_enabled: "true" }));
 
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
