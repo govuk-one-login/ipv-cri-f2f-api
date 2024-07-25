@@ -58,8 +58,6 @@ export class EnvironmentVariables {
 
 	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
 
-	private readonly PRIVATE_KEY_SSM_PATH = process.env.PRIVATE_KEY_SSM_PATH;
-
 	private YOTI_SESSION_TTL_DAYS = +process.env.YOTI_SESSION_TTL_DAYS!;
 
 	private RESOURCES_TTL_SECS = +process.env.RESOURCES_TTL_SECS!;
