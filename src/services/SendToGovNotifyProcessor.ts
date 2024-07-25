@@ -24,27 +24,27 @@ export class SendToGovNotifyProcessor {
   	return this.instance || (this.instance = new SendToGovNotifyProcessor(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, sendToGovNotifyServiceId));
   }
 
-  async processRequest(eventBody: any): Promise<EmailResponse | undefined> {
-  	const messageType = eventBody.Message.messageType;
-  	const pdfPreference = eventBody.Message.pdfPreference;
-	const postalAddress = eventBody.Message.postalAddress;
+  async processRequest(event: any): Promise<EmailResponse | undefined> {
+  	const messageType = event.Message.messageType;
+  	const pdfPreference = event.Message.pdfPreference;
+	const postalAddress = event.Message.postalAddress;
   	let dynamicReminderEmail: DynamicReminderEmail;
   	let reminderEmail: ReminderEmail;
   	let email: Email;
 
   	switch (messageType) {
   		case Constants.REMINDER_EMAIL_DYNAMIC:
-  			dynamicReminderEmail = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			dynamicReminderEmail = DynamicReminderEmail.parseRequest(JSON.stringify(event.Message), this.logger);
   			await this.validationHelper.validateModel(dynamicReminderEmail, this.logger);
   			return this.sendToGovNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);
 				
   		case Constants.REMINDER_EMAIL:
-  			reminderEmail = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			reminderEmail = ReminderEmail.parseRequest(JSON.stringify(event.Message), this.logger);
   			await this.validationHelper.validateModel(reminderEmail, this.logger);
   			return this.sendToGovNotifyService.sendReminderEmail(reminderEmail);
 
   		case Constants.PDF_EMAIL:
-  			email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
+  			email = Email.parseRequest(JSON.stringify(event.Message), this.logger);
   			await this.validationHelper.validateModel(email, this.logger);
   			return this.sendToGovNotifyService.sendYotiInstructions(email, pdfPreference, postalAddress);
   	}

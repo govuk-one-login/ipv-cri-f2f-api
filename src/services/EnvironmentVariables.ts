@@ -41,8 +41,6 @@ export class EnvironmentVariables {
 
 	private readonly GOV_NOTIFY_QUEUE_URL = process.env.GOV_NOTIFY_QUEUE_URL;
 
-	private readonly SEND_TO_GOV_NOTIFY_QUEUE_URL = process.env.SEND_TO_GOV_NOTIFY_QUEUE_URL;
-
 	private readonly IPV_CORE_QUEUE_URL = process.env.IPV_CORE_QUEUE_URL;
 
 	private readonly KMS_KEY_ARN = process.env.KMS_KEY_ARN;
@@ -396,14 +394,6 @@ export class EnvironmentVariables {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		}
 		return this.GOV_NOTIFY_QUEUE_URL;
-	}
-
-	getSendToGovNotifyQueueURL(logger: Logger): string {
-		if (!this.SEND_TO_GOV_NOTIFY_QUEUE_URL || this.SEND_TO_GOV_NOTIFY_QUEUE_URL.trim().length === 0) {
-			logger.error(`SendToGovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
-		}
-		return this.SEND_TO_GOV_NOTIFY_QUEUE_URL;
 	}
 
 	getIpvCoreQueueURL(logger: Logger): string {

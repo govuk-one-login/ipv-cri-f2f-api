@@ -30,64 +30,51 @@ class SendToGovNotifyHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: SQSEvent, context: Context): Promise<SQSBatchResponse> {
+	async handler(event: any, context: Context): Promise<any> {
 
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
-
-		if (event.Records.length === 1) {
-			const record: SQSRecord = event.Records[0];
-			logger.debug("Starting to process record");
-
-			try {
-				const body = JSON.parse(record.body);
-				logger.debug("Parsed SQS event body");
-				if (!YOTI_PRIVATE_KEY) {
-					logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
-					try {
-						YOTI_PRIVATE_KEY = await getParameter(this.environmentVariables.yotiKeySsmPath());
-					} catch (error) {
-						logger.error(`failed to get param from ssm at ${this.environmentVariables.yotiKeySsmPath()}`, {
-							messageCode: MessageCodes.MISSING_CONFIGURATION,
-							error,
-						});
-						throw error;
-					}
-				}
-				if (!GOVUKNOTIFY_API_KEY) {
-					logger.info({ message: "Fetching GOVUKNOTIFY_API_KEY from SSM" });
-					try {
-						GOVUKNOTIFY_API_KEY = await getParameter(this.environmentVariables.govNotifyApiKeySsmPath());
-					} catch (error) {
-						logger.error(`failed to get param from ssm at ${this.environmentVariables.govNotifyApiKeySsmPath()}`, {
-							messageCode: MessageCodes.MISSING_CONFIGURATION,
-							error,
-						});
-						throw error;
-					}
-				}
-				let govnotifyServiceId;
+		
+		try {
+			if (!YOTI_PRIVATE_KEY) {
+				logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
 				try {
-					govnotifyServiceId = GOVUKNOTIFY_API_KEY.substring(GOVUKNOTIFY_API_KEY.length - 73, GOVUKNOTIFY_API_KEY.length - 37);
+					YOTI_PRIVATE_KEY = await getParameter(this.environmentVariables.yotiKeySsmPath());
 				} catch (error) {
-					logger.error("failed to extract govnotifyServiceId from the GOVUKNOTIFY_API_KEY", { error });
-					return failEntireBatch;
+					logger.error(`failed to get param from ssm at ${this.environmentVariables.yotiKeySsmPath()}`, {
+						messageCode: MessageCodes.MISSING_CONFIGURATION,
+						error,
+					});
+					throw error;
 				}
-				await SendToGovNotifyProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(body);
-				logger.debug("Finished processing record from SQS");
-				return passEntireBatch;
-
-
-			} catch (error) {
-				logger.error({ message: "Email could not be sent. Returning failed message", error } );
-				return failEntireBatch;
 			}
+			if (!GOVUKNOTIFY_API_KEY) {
+				logger.info({ message: "Fetching GOVUKNOTIFY_API_KEY from SSM" });
+				try {
+					GOVUKNOTIFY_API_KEY = await getParameter(this.environmentVariables.govNotifyApiKeySsmPath());
+				} catch (error) {
+					logger.error(`failed to get param from ssm at ${this.environmentVariables.govNotifyApiKeySsmPath()}`, {
+						messageCode: MessageCodes.MISSING_CONFIGURATION,
+						error,
+					});
+					throw error;
+				}
+			}
+			let govnotifyServiceId;
+			try {
+				govnotifyServiceId = GOVUKNOTIFY_API_KEY.substring(GOVUKNOTIFY_API_KEY.length - 73, GOVUKNOTIFY_API_KEY.length - 37);
+			} catch (error) {
+				logger.error("failed to extract govnotifyServiceId from the GOVUKNOTIFY_API_KEY", { error });
+				throw error;
+			}
+			return await SendToGovNotifyProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(event);
 
-		} else {
-			logger.warn("Unexpected no of records received");
-			return failEntireBatch;
+		} catch (error) {
+			logger.error({ message: "Email could not be sent. Returning failed message", error } );
+			throw error;
 		}
+
 	}
 
 }

@@ -141,7 +141,7 @@ export class SendToGovNotifyService {
 
   		if (pdfPreference === "PRINTED_LETTER") {
 
-  			const mergedPdf = await this.fetchMergedPdf(message.sessionId);
+  			const mergedPdf = await this.fetchMergedPdf(message.sessionId, message.yotiSessionId);
 
   			if (mergedPdf) {
   				this.logger.debug("sendLetter", SendToGovNotifyService.name);
@@ -157,7 +157,7 @@ export class SendToGovNotifyService {
   			}
   		}
 		
-  		const instructionsPdf = await this.fetchYotiPdf(message.sessionId);
+  		const instructionsPdf = await this.fetchYotiPdf(message.sessionId, message.yotiSessionId);
 
   		if (instructionsPdf) {
   			this.logger.debug("sendEmail", SendToGovNotifyService.name);
@@ -207,7 +207,7 @@ export class SendToGovNotifyService {
   	}
   }
 
-  async fetchYotiPdf(sessionId: string): Promise<any> {
+  async fetchYotiPdf(sessionId: string, yotiSessionId: string): Promise<any> {
   	
   		const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
 
@@ -237,11 +237,10 @@ export class SendToGovNotifyService {
   				socketTimeout: 29000,
   			}),
   		});
-
   		const bucket = this.environmentVariables.yotiLetterBucket();
   		const folder = this.environmentVariables.yotiPdfBucketFolder();
-  		const key = `${folder}/${f2fSessionInfo.yotiSessionId}`;
-
+  		const key = `${folder}/${yotiSessionId}`;
+		
   		const pdfParams = {
   			Bucket: bucket,
   			Key: key,
@@ -260,7 +259,7 @@ export class SendToGovNotifyService {
   	}	
   }
 
-  async fetchMergedPdf(sessionId: string): Promise<any> {
+  async fetchMergedPdf(sessionId: string, yotiSessionId: string): Promise<any> {
   	const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
   		if (!f2fSessionInfo) {
   			this.logger.warn("Missing details in SESSION table", {
@@ -290,7 +289,7 @@ export class SendToGovNotifyService {
 
   	const bucket = this.environmentVariables.yotiLetterBucket();
   	const folder = this.environmentVariables.mergedPdfBucketFolder();
-  	const key = `${folder}/${f2fSessionInfo.yotiSessionId}`;
+  	const key = `${folder}/${yotiSessionId}`;
 		
   	const pdfParams = {
   		Bucket: bucket,
