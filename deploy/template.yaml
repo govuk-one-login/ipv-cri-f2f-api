@@ -2258,13 +2258,13 @@ Resources:
           logretentionindays,
         ]
 
-  # PersonInfoKeyFunctionLogsSubscriptionFilterCSLS:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Properties:
-  #     DestinationArn:
-  #       !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref PersonInfoKeyFunctionLogGroup
+  PersonInfoKeyFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn:
+        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
+      FilterPattern: ""
+      LogGroupName: !Ref PersonInfoKeyFunctionLogGroup
 
   PersonInfoKeyFunctionPermission:
     Type: AWS::Lambda::Permission
