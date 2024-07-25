@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable max-lines */
 // @ts-ignore
 import { NotifyClient } from "notifications-node-client";
@@ -29,7 +25,6 @@ import { ValidationHelper } from "../utils/ValidationHelper";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 import { Readable } from "stream";
-import { email } from "@pact-foundation/pact/src/dsl/matchers";
 
 /**
  * Class to send emails using gov notify service
@@ -115,13 +110,12 @@ export class SendToGovNotifyService {
    * @returns EmailResponse
    * @throws AppError
    */
-  async sendYotiPdfEmail(message: Email, yotiSessionId: string, pdfPreference: string): Promise<EmailResponse> {
+  async sendYotiInstructions(message: Email, pdfPreference: string): Promise<EmailResponse> {
   	// Fetch the instructions pdf from Yoti
   	try {
   		const f2fSessionInfo = await this.f2fService.getSessionById(
   			message.sessionId,
   		);
-  		console.log("CAN I USE THIS VAR FOR SESSIONID?", f2fSessionInfo);
   		if (!f2fSessionInfo) {
   			this.logger.warn("Missing details in SESSION table", {
   				messageCode: MessageCodes.SESSION_NOT_FOUND,
@@ -131,14 +125,12 @@ export class SendToGovNotifyService {
   				"Missing details in SESSION or table",
   			);
   		}
-		  console.log("--------------------LINE 134");
-  		//Initialise Yoti Service base on SessionClientID
+
   		const clientConfig = getClientConfig(
   			this.environmentVariables.clientConfig(),
   			f2fSessionInfo.clientId,
   			this.logger,
   		);
-		  console.log("--------------------LINE 141");
 			
   		if (!clientConfig) {
   			this.logger.error("Unrecognised client in request", {
@@ -146,11 +138,8 @@ export class SendToGovNotifyService {
   			});
   			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Bad Request");
   		}
-		  console.log("--------------------LINE 149");
-  		if (pdfPreference === "POSTED_CUSTOMER_LETTER") {
-  			console.log("--------------------LINE 151");
-  			const mergedPdf = await this.fetchMergedPdf(yotiSessionId, message.sessionId);
-			  console.log("--------------------MERGED PDF", mergedPdf);
+  		if (pdfPreference === "PRINTED_LETTER") {
+  			const mergedPdf = await this.fetchMergedPdf(message.sessionId);
 
 			  this.govNotify = new NotifyClient(
   				clientConfig.GovNotifyApi,
@@ -158,30 +147,21 @@ export class SendToGovNotifyService {
   				this.GOVUKNOTIFY_API_KEY,
   			);
 
-  			const precompiledLetter = await this.govNotify.sendPrecompiledLetter("george_precompiled_letter", mergedPdf)
+  			await this.govNotify.sendPrecompiledLetter(`${message.referenceId}-letter`, mergedPdf)
 				  .then((res: any) => {
-					  console.log("PRECOMPILED LETTER RES", res);
-					  console.log("PRECOMPILED LETTER RES DATA", res.data);
 					  return res;
 			  		})
-			  		.catch((err: any) => console.log("LETTER ERROR MESSAAGE", err.response.data.errors));
-		  
-			  	console.log("SUCCESS?", precompiledLetter);
-			  
+			  		.catch((err: any) => this.logger.error("sendYotiPdfEmail - Cannot send Email", err.response.data.errors));
 			  }
-
 		
-  		console.log("STRINGIFIED_MESSAGE", message);
-
-  		const instructionsPdf = await this.fetchYotiPdf(yotiSessionId, message.sessionId);
-  		console.log("INSTRUCTIONS PDF", instructionsPdf);
+  		const instructionsPdf = await this.fetchYotiPdf(message.sessionId);
 
   		if (instructionsPdf) {
   			this.logger.debug("sendEmail", SendToGovNotifyService.name);
   			this.logger.info("Sending Yoti PDF email");
-  			console.log("--------------------LINE 149");
+
   			const { GOV_NOTIFY_OPTIONS } = Constants;
-  			console.log("--------------------LINE 151");
+
   			const options = {
   				personalisation: {
   					[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
@@ -194,16 +174,15 @@ export class SendToGovNotifyService {
   				},
   				reference: message.referenceId,
   			};
-  			console.log("--------------------LINE 164");
+
   			const emailResponse = await this.sendGovNotification(
   				this.environmentVariables.getPdfEmailTemplateId(this.logger),
   				message,
   				options,
   				clientConfig.GovNotifyApi,
   			);
-			  console.log("--------------------LINE 171");
+
   			await this.sendF2FYotiEmailedEvent(message);
-  			console.log("EMAIL SENT SUCCESSFULLY", emailResponse);
   			return emailResponse;
   		} else {
   			this.logger.error("Failed to fetch the Instructions pdf", {
@@ -225,23 +204,7 @@ export class SendToGovNotifyService {
   	}
   }
 
-  //   async sendPrintedCustomerLetter(message: Email, yotiSessionId: string): Promise<any> {
-
-  //   	  await this.sendYotiPdfEmail(message, yotiSessionId);
-
-  // 	  const precompiledLetter = await this.govNotify.sendPrecompiledLetter("george_precompiled_letter", convertedGovNotifyLetter)
-  // 	  .then((res: any) => {
-  // 		  console.log("PRECOMPILED LETTER RES", res);
-  // 		  console.log("PRECOMPILED LETTER RES DATA", res.data);
-  // 		  return res;
-  //   		})
-  //   		.catch((err: any) => console.log("LETTER ERROR MESSAAGE FROG", err.response.data.errors));
-
-  //   	console.log("SUCCESS?", precompiledLetter);
-	
-  //   }
-
-  async fetchYotiPdf(yotiSessionId: string, sessionId: string): Promise<any> {
+  async fetchYotiPdf(sessionId: string): Promise<any> {
   	
   		const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
 
@@ -251,15 +214,7 @@ export class SendToGovNotifyService {
   			});
   			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION table");
   		}
-  		console.log(yotiSessionId);
-  	///YOTI PDF FOR EMAIL
-  		const yotiPdfBucket = "f2f-cri-api-982b-yotiletter-f2f-dev";
-  		const yotiPdfFolder = "yotiPdf";
-  		const yotiPdfKey = `${yotiPdfFolder}/yotiPdf.pdf`;
 
-  		// const bucket = process.env.YOTI_LETTER_BUCKET;
-  		// const folder = process.env.YOTI_PDF_BUCKET_FOLDER;
-  		//const key = `${folder}-${f2fSessionInfo.yotiSessionId}`;
 
   	const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
   		return new Promise((resolve, reject) => {
@@ -280,44 +235,37 @@ export class SendToGovNotifyService {
   			}),
   		});
 
+  		const bucket = this.environmentVariables.yotiLetterBucket();
+  		const folder = this.environmentVariables.yotiPdfBucketFolder();
+  		const key = `${folder}/${f2fSessionInfo.yotiSessionId}`;
+
   		const pdfParams = {
-  			Bucket: yotiPdfBucket,
-  			Key: yotiPdfKey,
+  			Bucket: bucket,
+  			Key: key,
   		};
 
-  		this.logger.info("Fetching object from bucket");
+  		this.logger.info("Fetching Yoti PDF from bucket");
   	try {
-  		const s3Item = await s3Client.send(new GetObjectCommand(pdfParams));
-  		console.log("S3 ITEM", s3Item);
-		  if (s3Item.Body instanceof Readable) {
-  			const body = await streamToBuffer(s3Item.Body);
+  		const yotiPdf = await s3Client.send(new GetObjectCommand(pdfParams));
+		  if (yotiPdf.Body instanceof Readable) {
+  			const body = await streamToBuffer(yotiPdf.Body);
   			const encoded = body.toString("base64");
   			return encoded;
 		  }
   	} catch (error) {
-  		this.logger.error({ message: "Error fetching object from S3 bucket", error });
+  		this.logger.error({ message: "Error fetching Yoti PDF from S3 bucket", error });
   	}	
   }
 
-  async fetchMergedPdf(yotiSessionId: string, sessionId: string): Promise<any> {
+  async fetchMergedPdf(sessionId: string): Promise<any> {
   	const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
-  	console.log("-------------------LINE 298");
   		if (!f2fSessionInfo) {
   			this.logger.warn("Missing details in SESSION table", {
   				messageCode: MessageCodes.SESSION_NOT_FOUND,
   			});
   			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION table");
   		}
-  		console.log(yotiSessionId);
-		  console.log("-------------------LINE 306");
-  	/// MERGED PDF FOR POST
-	  const mergedPdfBucket = "f2f-cri-api-982b-yotiletter-f2f-dev";
-	  const mergedPdfFolder = "mergedPdf";
-	  const mergedPdfKey = `${mergedPdfFolder}/mergedPdf.pdf`;
-	  console.log("-------------------LINE 311");
-  		// const bucket = process.env.YOTI_LETTER_BUCKET;
-  		// const folder = process.env.MERGED_PDF_BUCKET_FOLDER;
-  		//const key = `${folder}-${f2fSessionInfo.yotiSessionId}`;
+  		
 
   	const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
   		return new Promise((resolve, reject) => {
@@ -327,8 +275,7 @@ export class SendToGovNotifyService {
   			stream.on("error", reject);
   		});
   	};
-	  console.log("-------------------LINE 324");
-
+	 
   		const s3Client = new S3Client({
   			region: process.env.REGION,
   			maxAttempts: 2,
@@ -337,28 +284,27 @@ export class SendToGovNotifyService {
   				socketTimeout: 29000,
   			}),
   		});
-		  console.log("-------------------LINE 334");
+
+  	const bucket = this.environmentVariables.yotiLetterBucket();
+  	const folder = this.environmentVariables.mergedPdfBucketFolder();
+  	const key = `${folder}/${f2fSessionInfo.yotiSessionId}`;
+		
   	const pdfParams = {
-  		Bucket: mergedPdfBucket,
-  		Key: mergedPdfKey,
+  		Bucket: bucket,
+  		Key: key,
   	};
-	  console.log("-------------------LINE 339");
-  		this.logger.info("Fetching MERGE PDF from bucket");
+	  
+  		this.logger.info("Fetching merged PDF from bucket");
+
   	try {
-  		console.log("-------------------LINE 342");
-  		const s3Item = await s3Client.send(new GetObjectCommand(pdfParams));
-		  console.log("-------------------LINE 344");
-  		console.log("S3 MERGE PDF", s3Item);
-		  if (s3Item.Body instanceof Readable) {
-  			console.log("-------------------LINE 347");
-  			const body = await streamToBuffer(s3Item.Body);
-			  console.log("-------------------LINE 349");
+  		const mergedPdf = await s3Client.send(new GetObjectCommand(pdfParams));
+		  if (mergedPdf.Body instanceof Readable) {
+  			const body = await streamToBuffer(mergedPdf.Body);
   			const encoded = body.toString("base64");
-			  console.log("-------------------LINE 351");
   			return encoded;
 		  }
   	} catch (error) {
-  		this.logger.error({ message: "Error fetching object from S3 bucket", error });
+  		this.logger.error({ message: "Error fetching merged PDF from S3 bucket", error });
   	}	
   }
 
@@ -470,7 +416,6 @@ export class SendToGovNotifyService {
   	options: any,
   	GovNotifyApi: string,
   ): Promise<EmailResponse> {
-  	console.log("--------------------LINE 467");
   	let retryCount = 0;
   	//retry for maxRetry count configured value if fails
   	while (retryCount <= this.environmentVariables.maxRetries()) {
@@ -481,26 +426,22 @@ export class SendToGovNotifyService {
   			referenceId: message.referenceId,
   			retryCount,
   		});
-		  console.log("--------------------LINE 478");
   		try {
   			this.govNotify = new NotifyClient(
   				GovNotifyApi,
   				this.GOV_NOTIFY_SERVICE_ID,
   				this.GOVUKNOTIFY_API_KEY,
   			);
-			  console.log("--------------------LINE 485");
   			const emailResponse = await this.govNotify.sendEmail(
   				templateId,
   				message.emailAddress,
   				options,
   			);
-			  console.log("--------------------LINE 491");
   			this.logger.debug(
   				"sendEmail - response status after sending Email",
   				SendToGovNotifyService.name,
   				emailResponse.status,
   			);
-			  console.log("--------------------LINE 497");
   			return new EmailResponse(
   				new Date().toISOString(),
   				"",
@@ -548,73 +489,6 @@ export class SendToGovNotifyService {
   	throw new AppError(
   		HttpCodesEnum.SERVER_ERROR,
   		`sendEmail - Cannot send Email after ${this.environmentVariables.maxRetries()} retries`,
-  	);
-  }
-
-  async fetchInstructionsPdf(
-  	message: Email,
-  	yotiBaseUrl: string,
-  ): Promise<string> {
-  	if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
-  	let yotiInstructionsPdfRetryCount = 0;
-  	//retry for maxRetry count configured value if fails
-  	while (
-  		yotiInstructionsPdfRetryCount <=
-      this.environmentVariables.yotiInstructionsPdfMaxRetries()
-  	) {
-  		this.logger.debug(
-  			"Fetching the Instructions Pdf from yoti for sessionId: ",
-  			message.yotiSessionId,
-  		);
-  		try {
-  			this.logger.info("BASE_URL", yotiBaseUrl);
-  			this.yotiService = YotiService.getInstance(
-  				this.logger,
-  				this.YOTI_PRIVATE_KEY,
-  				yotiBaseUrl,
-  			);
-  			const instructionsPdf = await this.yotiService.fetchInstructionsPdf(
-  				message.yotiSessionId,
-  			);
-  			if (instructionsPdf) {
-  				const encoded = Buffer.from(instructionsPdf, "binary").toString(
-  					"base64",
-  				);
-  				return encoded;
-  			}
-  		} catch (err: any) {
-  			this.logger.error(
-  				"Error while fetching Instructions pfd or encoding the pdf.",
-  				{ err },
-  			);
-  			if (
-  				(err.statusCode === 500 || err.statusCode === 429) &&
-          yotiInstructionsPdfRetryCount <
-            this.environmentVariables.yotiInstructionsPdfMaxRetries()
-  			) {
-  				this.logger.error(
-  					`sendEmail - Retrying to fetch the Instructions Pdf from yoti for sessionId : ${
-  						message.yotiSessionId
-  					}. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${
-  						SendToGovNotifyService.name
-  					} ${new Date().toISOString()}`,
-  					{ yotiInstructionsPdfRetryCount },
-  				);
-  				await sleep(
-  					this.environmentVariables.yotiInstructionsPdfBackoffPeriod(),
-  				);
-  				yotiInstructionsPdfRetryCount++;
-  			} else {
-  				throw err;
-  			}
-  		}
-  	}
-  	this.logger.error(
-  		`sendEmail - Could not fetch Instructions pdf after ${this.environmentVariables.yotiInstructionsPdfMaxRetries()} retries`,
-  	);
-  	throw new AppError(
-  		HttpCodesEnum.SERVER_ERROR,
-  		`sendEmail - Could not fetch Instructions pdf after ${this.environmentVariables.yotiInstructionsPdfMaxRetries()} retries`,
   	);
   }
 }

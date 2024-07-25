@@ -23,7 +23,6 @@ import { ValidationHelper } from "../utils/ValidationHelper";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { getClientConfig } from "../utils/ClientConfig";
 import { Constants } from "../utils/Constants";
-//import { SendToGovNotifyProcessor } from "./TO_BE_SCRAPPED";
 
 export class DocumentSelectionRequestProcessor {
 
@@ -43,8 +42,6 @@ export class DocumentSelectionRequestProcessor {
 
 	private readonly YOTI_PRIVATE_KEY: string;
 
-	//private readonly sendToGovNotifyProcessor: SendToGovNotifyProcessor;
-
 	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
 		this.logger = logger;
 		this.metrics = metrics;
@@ -52,7 +49,6 @@ export class DocumentSelectionRequestProcessor {
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
-		//this.sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(logger, metrics);
 	}
 
 	static getInstance(
@@ -164,9 +160,6 @@ export class DocumentSelectionRequestProcessor {
 				);
 				if (yotiSessionId) {
 					await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
-					// console.log("982 BEFORE SENDTOGOVNOTIFYPROC");
-					// await this.sendToGovNotifyProcessor.processRequest(sessionId);
-					// console.log("982 AFTER SENDTOGOVNOTIFYPROC");
 					await this.f2fService.updateSessionWithYotiIdAndStatus(
 						f2fSessionInfo.sessionId,
 						yotiSessionId,
@@ -283,7 +276,7 @@ export class DocumentSelectionRequestProcessor {
 			}
 
 
-			return Response(HttpCodesEnum.OK, "Instructions PDF Generated!");
+			return Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 
 		} else {
 			this.logger.warn(`Yoti session already exists for this authorization session or Session is in the wrong state: ${f2fSessionInfo.authSessionState}`, {

@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import { Context, SQSBatchResponse, SQSEvent, SQSRecord } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -23,6 +24,8 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 
 let YOTI_PRIVATE_KEY: string;
 let GOVUKNOTIFY_API_KEY: string;
+
+
 class SendToGovNotifyHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
 
@@ -39,7 +42,6 @@ class SendToGovNotifyHandler implements LambdaInterface {
 
 			try {
 				const body = JSON.parse(record.body);
-				console.log("SQS BODY", body)
 				logger.debug("Parsed SQS event body");
 				if (!YOTI_PRIVATE_KEY) {
 					logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });

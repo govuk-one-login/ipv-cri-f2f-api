@@ -70,8 +70,6 @@ export class Constants {
 	
 	static readonly REMINDER_EMAIL_DYNAMIC = "REMINDER_EMAIL_DYNAMIC";
 
-	static readonly POSTED_CUSTOMER_LETTER = "POSTED_CUSTOMER_LETTER";
-
 	static readonly EMAIL_DISABLED = "EMAIL_DISABLED";
 
 	static readonly EMAIL_METRICS_SVC_NAME = "SendEmailHandler";
