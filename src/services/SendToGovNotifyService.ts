@@ -138,21 +138,25 @@ export class SendToGovNotifyService {
   			});
   			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Bad Request");
   		}
-  		if (pdfPreference === "PRINTED_LETTER") {
-  			const mergedPdf = await this.fetchMergedPdf(message.sessionId);
 
-			  this.govNotify = new NotifyClient(
+  		if (pdfPreference === "PRINTED_LETTER") {
+
+			const mergedPdf = await this.fetchMergedPdf(message.sessionId);
+
+  			if (mergedPdf) {
+  				this.logger.debug("sendLetter", SendToGovNotifyService.name);
+  				this.logger.info("Sending precomplied letter");
+
+  			const letterResponse = await this.sendGovNotificationLetter(
+  				mergedPdf,
+  				message,
   				clientConfig.GovNotifyApi,
-  				this.GOV_NOTIFY_SERVICE_ID,
-  				this.GOVUKNOTIFY_API_KEY,
   			);
 
-  			await this.govNotify.sendPrecompiledLetter(`${message.referenceId}-letter`, mergedPdf)
-				  .then((res: any) => {
-					  return res;
-			  		})
-			  		.catch((err: any) => this.logger.error("sendYotiPdfEmail - Cannot send Email", err.response.data.errors));
-			  }
+  			await this.sendF2FYotiEmailedEvent(message);
+  			return letterResponse;
+  			}
+  		}
 		
   		const instructionsPdf = await this.fetchYotiPdf(message.sessionId);
 
@@ -175,7 +179,7 @@ export class SendToGovNotifyService {
   				reference: message.referenceId,
   			};
 
-  			const emailResponse = await this.sendGovNotification(
+  			const emailResponse = await this.sendGovNotificationEmail(
   				this.environmentVariables.getPdfEmailTemplateId(this.logger),
   				message,
   				options,
@@ -186,20 +190,20 @@ export class SendToGovNotifyService {
   			return emailResponse;
   		} else {
   			this.logger.error("Failed to fetch the Instructions pdf", {
-  				messageCode: MessageCodes.FAILED_FETHCING_YOTI_PDF,
+  				messageCode: MessageCodes.FAILED_FETCHING_YOTI_PDF,
   			});
   			throw new AppError(
   				HttpCodesEnum.SERVER_ERROR,
-  				"sendYotiPdfEmail - Failed to fetch the Instructions pdf",
+  				"sendYotiInstructions - Failed to fetch the Instructions pdf",
   			);
   		}
   	} catch (err: any) {
-  		this.logger.error("sendYotiPdfEmail - Cannot send Email", {
+  		this.logger.error("sendYotiInstructions - Cannot send Email", {
   			messageCode: MessageCodes.FAILED_TO_SEND_PDF_EMAIL,
   		});
   		throw new AppError(
   			HttpCodesEnum.SERVER_ERROR,
-  			"sendYotiPdfEmail - Cannot send Email",
+  			"sendYotiInstructions - Cannot send Email",
   		);
   	}
   }
@@ -317,7 +321,7 @@ export class SendToGovNotifyService {
   			reference: message.referenceId,
   		};
 
-  		const emailResponse = await this.sendGovNotification(
+  		const emailResponse = await this.sendGovNotificationEmail(
   			this.environmentVariables.getReminderEmailTemplateId(this.logger),
   			message,
   			options,
@@ -352,7 +356,7 @@ export class SendToGovNotifyService {
   			reference: message.referenceId,
   		};
 
-  		const emailResponse = await this.sendGovNotification(
+  		const emailResponse = await this.sendGovNotificationEmail(
   			this.environmentVariables.getDynamicReminderEmailTemplateId(
   				this.logger,
   			),
@@ -410,7 +414,45 @@ export class SendToGovNotifyService {
   	}
   }
 
-  async sendGovNotification(
+  async sendF2FLetterSentEvent(message: Email): Promise<void> {
+  	const session = await this.f2fService.getSessionById(message.sessionId);
+  	if (session != null) {
+  		const coreEventFields = buildCoreEventFields(
+  			session,
+  			this.environmentVariables.issuer(),
+  			session.clientIpAddress,
+  		);
+  		try {
+  			await this.f2fService.sendToTXMA({
+  				event_name: TxmaEventNames.F2F_YOTI_PDF_LETTER_POSTED,
+  				...coreEventFields,
+  				extensions: {
+  					evidence: [
+  						{
+  							txn: session.yotiSessionId || "",
+  						},
+  					],
+  				},
+  				user: {
+  					...coreEventFields.user,
+  					email: message.emailAddress,
+  					govuk_signin_journey_id: session.clientSessionId,
+  				},
+  			});
+  		} catch (error) {
+  			this.logger.error(
+  				"Failed to write TXMA event F2F_YOTI_PDF_LETTER_POSTED to SQS queue.",
+  			);
+  		}
+  	} else {
+  		this.logger.error(
+  			"Failed to write TXMA event F2F_YOTI_PDF_LETTER_POSTED to SQS queue, session not found for sessionId: ",
+  			message.sessionId,
+  		);
+  	}
+  }
+
+  async sendGovNotificationEmail(
   	templateId: string,
   	message: Email | ReminderEmail,
   	options: any,
@@ -489,6 +531,82 @@ export class SendToGovNotifyService {
   	throw new AppError(
   		HttpCodesEnum.SERVER_ERROR,
   		`sendEmail - Cannot send Email after ${this.environmentVariables.maxRetries()} retries`,
+  	);
+  }
+
+  async sendGovNotificationLetter(
+  	pdf: any,
+  	message: Email | ReminderEmail,
+  	GovNotifyApi: string,
+  ): Promise<any> {
+  	let retryCount = 0;
+  	//retry for maxRetry count configured value if fails
+  	while (retryCount <= this.environmentVariables.maxRetries()) {
+  		this.logger.debug("sendletter - trying to send letter message", {
+  			referenceId: `${message.referenceId}-letter`,
+  			retryCount,
+  		});
+
+  		try {
+  			this.govNotify = new NotifyClient(
+  				GovNotifyApi,
+  				this.GOV_NOTIFY_SERVICE_ID,
+  				this.GOVUKNOTIFY_API_KEY,
+  			);
+  			const letterResponse = await this.govNotify.sendPrecompiledLetter(`${message.referenceId}-letter`, pdf)
+			  .then((res: any) => {
+				  return res;
+				  })
+				  .catch((err: any) => this.logger.error("sendYotiInstructions - Cannot send letter", err.response.data.errors));
+
+  			this.logger.debug(
+  				"sendLetter - response status after sending letter",
+  				SendToGovNotifyService.name,
+  				letterResponse.status,
+  			);
+  			return letterResponse.status;
+  		} catch (err: any) {
+  			this.logger.error("sendLetter- GOV UK Notify threw an error");
+
+  			if (err.response) {
+  				this.logger.error(`GOV UK Notify error ${SendToGovNotifyService.name}`, {
+  					statusCode: err.response.data.status_code,
+  					errors: err.response.data.errors,
+  				});
+  			}
+
+  			const appError: any = this.govNotifyErrorMapper.map(
+  				err.response.data.status_code,
+  				err.response.data.errors[0].message,
+  			);
+
+  			if (
+  				appError.obj!.shouldRetry &&
+          retryCount < this.environmentVariables.maxRetries()
+  			) {
+  				this.logger.error(
+  					`sendLetter - Mapped error ${SendToGovNotifyService.name}`,
+  					{ appError },
+  				);
+  				this.logger.error(
+  					`sendLetter- Retrying to send the letter. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${
+  						SendToGovNotifyService.name
+  					} ${new Date().toISOString()}`,
+  					{ retryCount },
+  				);
+  				await sleep(this.environmentVariables.backoffPeriod());
+  				retryCount++;
+  			} else {
+  				throw appError;
+  			}
+  		}
+  	}
+  	this.logger.error(
+  		`sendLetter - Cannot send Letter after ${this.environmentVariables.maxRetries()} retries`,
+  	);
+  	throw new AppError(
+  		HttpCodesEnum.SERVER_ERROR,
+  		`sendLetter - Cannot send Letter after ${this.environmentVariables.maxRetries()} retries`,
   	);
   }
 }
