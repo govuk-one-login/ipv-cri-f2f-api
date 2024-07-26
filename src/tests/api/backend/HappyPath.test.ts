@@ -13,8 +13,13 @@ import {
 	sessionConfigurationGet,
 	postAbortSession,
 	getPersonIdentityRecordById,
+	updateDynamoDbRecord,
+	getEpochTimestampXDaysAgo,
+	personInfoGet,
+	personInfoKeyGet,
+	validatePersonInfoResponse,
 } from "../ApiTestSteps";
-import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";
+import { getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
 import thinFilePayload from "../../data/thinFilePayload.json";
 import abortPayload from "../../data/abortPayload.json";
@@ -42,6 +47,28 @@ describe("/session endpoint", () => {
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 1);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
 	});
+});
+
+describe("/personInfo endpoint", () => {
+
+	it("Successful Request Tests - Postal Address Found", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		expect(postRequest.status).toBe(200);
+		const sessionId = postRequest.data.session_id;
+		
+		const personInfoResponse = await personInfoGet(sessionId);
+		expect(personInfoResponse.status).toBe(200);
+
+		const personInfoKey = await personInfoKeyGet();
+		const address_line1 = f2fStubPayload.shared_claims.address[0].subBuildingName + " " + f2fStubPayload.shared_claims.address[0].buildingName;
+		const address_line2 = f2fStubPayload.shared_claims.address[0].buildingNumber + " " + f2fStubPayload.shared_claims.address[0].streetName;
+		const town_city = f2fStubPayload.shared_claims.address[0].addressLocality;
+		const postalCode = f2fStubPayload.shared_claims.address[0].postalCode;
+
+		validatePersonInfoResponse(personInfoKey.data.key, personInfoResponse.data, address_line1, address_line2, town_city, postalCode);
+	});
+
 });
 
 describe("/documentSelection Endpoint", () => {
@@ -256,6 +283,7 @@ describe("/sessionConfiguration endpoint", () => {
 		const sessionConfigurationResponse = await sessionConfigurationGet(sessionId);
 
 		expect(sessionConfigurationResponse.status).toBe(200);
+		expect(sessionConfigurationResponse.data.pcl_enabled).toBe("true");
 		expect(sessionConfigurationResponse.data.evidence_requested.strengthScore).toEqual(strengthScore);
 	});
 
@@ -267,7 +295,7 @@ describe("/sessionConfiguration endpoint", () => {
 		const sessionConfigurationResponse = await sessionConfigurationGet(sessionId);
 
 		expect(sessionConfigurationResponse.status).toBe(200);
-		expect(sessionConfigurationResponse.data).toStrictEqual({});
+		expect(sessionConfigurationResponse.data).not.toHaveProperty("evidence_requested");
 	});
 });
 
@@ -328,3 +356,20 @@ describe("/abort endpoint", () => {
 	});
 });
 
+describe("Expired User Sessions", () => {
+
+	it("Session is Expired and Expired Notification Flag Updated", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		const sessionId = postRequest.data.session_id;		
+		console.log(sessionId);
+		await postDocumentSelection(dataUkDrivingLicence, sessionId);
+
+		const newCreatedDateTimestamp = getEpochTimestampXDaysAgo(12);
+		await updateDynamoDbRecord(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "createdDate", newCreatedDateTimestamp, "N");
+		await invokeLambdaFunction(constants.DEV_EXPIRED_SESSIONS_LAMBDA_NAME, {});
+
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_SESSION_EXPIRED");
+		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "expiredNotificationSent", true);
+	});
+});

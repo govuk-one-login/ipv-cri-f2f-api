@@ -1,8 +1,8 @@
 import { createSsmClient, GetParameterCommand } from "./SSMClient";
 
-export async function getParameter(path: string): Promise<string> {
+export async function getParameter(path: string, withDecryption = false): Promise<string> {
 	const client = createSsmClient();
-	const command = new GetParameterCommand({ Name: path });
+	const command = new GetParameterCommand({ Name: path, WithDecryption: withDecryption });
 	const response = await client.send(command);
 
 	if (response.Parameter == null) { throw new Error("Parameter not found"); }
