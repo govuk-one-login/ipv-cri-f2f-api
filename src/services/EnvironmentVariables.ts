@@ -37,6 +37,8 @@ export class EnvironmentVariables {
 
 	private readonly MERGED_PDF_BUCKET_FOLDER = process.env.MERGED_PDF_BUCKET_FOLDER;
 
+	private readonly PRIVATE_KEY_SSM_PATH = process.env.PRIVATE_KEY_SSM_PATH;
+
 	private readonly GOVUKNOTIFY_API_KEY_SSM_PATH = process.env.GOVUKNOTIFY_API_KEY_SSM_PATH;
 
 	private readonly GOV_NOTIFY_QUEUE_URL = process.env.GOV_NOTIFY_QUEUE_URL;
@@ -63,8 +65,6 @@ export class EnvironmentVariables {
 
 	private readonly YOTICALLBACKURL = process.env.YOTICALLBACKURL;
 
-	private readonly PRIVATE_KEY_SSM_PATH = process.env.PRIVATE_KEY_SSM_PATH;
-
 	private YOTI_SESSION_TTL_DAYS = +process.env.YOTI_SESSION_TTL_DAYS!;
 
 	private RESOURCES_TTL_SECS = +process.env.RESOURCES_TTL_SECS!;
@@ -76,6 +76,9 @@ export class EnvironmentVariables {
 	private FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS = process.env.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
 
 	private FETCH_YOTI_SESSION_MAX_RETRIES = process.env.FETCH_YOTI_SESSION_MAX_RETRIES;
+
+	private readonly PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH = process.env.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH;
+
 
 	/*
 	 * This function performs validation on env variable values.
@@ -291,8 +294,9 @@ export class EnvironmentVariables {
 				break;
 			}
 			case ServicesEnum.SESSION_CONFIG_SERVICE: {
-				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ) {
-					logger.error("Environment variable SESSION_TABLE is not configured");
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+				!this.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH || this.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH.trim().length === 0 ) {
+					logger.error("Environment variable SESSION_TABLE  or PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "SessionConfig Service incorrectly configured");
 				}
 				break;
@@ -466,6 +470,10 @@ export class EnvironmentVariables {
 
 	reminderEmailsGovNotifyUrl(): any {
 		return this.REMINDER_EMAIL_GOVUKNOTIFY_API;
+	}
+
+	printedCustomerLetterEnabledSsmPath(): any {
+		return this.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH;
 	}
 
 	privateKeySsmPath(): any {

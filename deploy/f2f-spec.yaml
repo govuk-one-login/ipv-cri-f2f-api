@@ -1010,6 +1010,90 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
+  /person-info-key:
+    get:
+      operationId: getPersonInfoKey
+      summary: Return the key required for decrypting response from the person-info endpoint
+      tags:
+        - Backend - Common CRI Lambda
+      responses:
+        "200":
+          description: "Return key"
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonInfoKeyResponse"
+        "401":
+          description: "Unauthorized"
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthErrorResponse"
+        "500":
+          description: "500 response"
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthErrorResponse"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PersonInfoKeyFunction.Arn}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
 
 components:
   schemas:
@@ -1391,6 +1475,11 @@ components:
               type: number
               description: if supplied, minimum strength score required
               example: 4
+        pcl_enabled:
+          type: string
+          example: true
+          description: >-
+            returns the printed customer letter enabled flag- true/false
     OAuthErrorResponse:
       type: object
       additionalProperties: true

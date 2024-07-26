@@ -5,7 +5,7 @@ import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
 import { PersonIdentityItem } from "../../models/PersonIdentityItem";
-
+import NodeRSA = require("node-rsa");
 import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";
@@ -94,6 +94,26 @@ export async function personInfoGet(sessionId: string): Promise<AxiosResponse<st
 		console.log(`Error response from ${path} endpoint: ${error}`);
 		return error.response;
 	}
+}
+
+export async function personInfoKeyGet(): Promise<AxiosResponse<{ key: string }>> {
+	const path = "/person-info-key";
+	try {
+		const getRequest = await API_INSTANCE.get(path);
+		expect(getRequest.status).toBe(200);
+		return getRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}.`);
+		return error.response;
+	}
+}
+export function validatePersonInfoResponse(personInfoKey: string, personInfoResponse: string, address_line1: string, address_line2: string, town_city: string, postalCode: string): void {
+	const privateKey = new NodeRSA(personInfoKey);
+	const encryptedValue = personInfoResponse;
+	const decryptedValue = privateKey.decrypt(encryptedValue, "utf8");
+	console.log(decryptedValue);
+	expect(decryptedValue).toBe("{\"address_line1\":\"" + address_line1 +  "\",\"address_line2\":\"" + address_line2  + "\",\"town_city\":\"" + town_city + "\",\"postal_code\":\"" + postalCode + "\"}");
+	
 }
 
 
@@ -230,25 +250,37 @@ export function generateRandomAlphanumeric(substringStart: number, substringEnd:
 
 export async function getSessionById(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
 	interface OriginalValue {
-		N?: string;
-		S?: string;
+	  N?: string;
+	  S?: string;
+	  BOOL?: boolean;
 	}
-
+  
 	interface OriginalSessionItem {
-		[key: string]: OriginalValue;
+	  [key: string]: OriginalValue;
 	}
-
+  
 	let session: ISessionItem | undefined;
 	try {
-		const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
-		const originalSession = response.data.Item;
-		session = Object.fromEntries(
-			Object.entries(originalSession).map(([key, value]) => [key, value.N ?? value.S]),
-		) as unknown as ISessionItem;
+	  const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
+	  const originalSession = response.data.Item;
+  
+	  session = Object.fromEntries(
+			Object.entries(originalSession).map(([key, value]) => {
+		  if (value.N !== undefined) {
+					return [key, Number(value.N)];
+		  } else if (value.S !== undefined) {
+					return [key, value.S];
+		  } else if (value.BOOL !== undefined) {
+					return [key, value.BOOL];
+		  } else {
+					return [key, undefined];
+		  }
+			}),
+	  ) as unknown as ISessionItem;
 	} catch (e: any) {
-		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
+	  console.error({ message: "getSessionById - failed getting session from Dynamo", e });
 	}
-
+  
 	return session;
 }
 
@@ -323,6 +355,28 @@ export async function getSessionByAuthCode(sessionId: string, tableName: string)
 
 	console.log("getSessionByAuthCode Response", session.Items[0]);
 	return session.Items[0] as ISessionItem;
+}
+
+export async function updateDynamoDbRecord(sessionId: string, tableName: string, attributeName: string, newValue: any, newValueType: any): Promise<void> {
+	try {
+		const requestBody = {
+			attributeName,
+			newValue,
+			newValueType,
+		};
+
+		const url = `updateRecord/${tableName}`;
+		const queryParams = { sessionId };
+
+		await HARNESS_API_INSTANCE.patch(url, requestBody, {
+			params: queryParams,
+		});
+
+		console.log(`Record updated successfully for table ${tableName}`);
+
+	} catch (e: any) {
+		console.error({ message: "updateDynamoDbRecord - failed updating record in DynamoDB", e });
+	}
 }
 
 /**
@@ -510,11 +564,19 @@ export async function initiateUserInfo(docSelectionData: DocSelectionData, sessi
 	expect(userInfoResponse.status).toBe(202);
 
 }
-export async function getSessionAndVerifyKey(sessionId: string, tableName: string, key: string, expectedValue: string): Promise<void> {
+
+export async function getSessionAndVerifyKey(sessionId: string, tableName: string, key: string, expectedValue: string | boolean | number): Promise<void> {
 	const sessionInfo = await getSessionById(sessionId, tableName);
 	try {
 		expect(sessionInfo![key as keyof ISessionItem]).toBe(expectedValue);
 	} catch (error: any) {
 		throw new Error("getSessionAndVerifyKey - Failed to verify " + key + " value: " + error);
 	}
+}
+
+export function getEpochTimestampXDaysAgo(days: number): string {
+	const now = new Date();
+	const pastDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+	const epochTimestampInSeconds = Math.floor(pastDate.getTime() / 1000);
+	return epochTimestampInSeconds.toString();
 }

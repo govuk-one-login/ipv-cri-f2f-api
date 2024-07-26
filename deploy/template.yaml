@@ -305,6 +305,9 @@ Conditions:
   ApplyReservedConcurrency: !Or
     - Condition: IsNotDevelopment
     - !Equals [!Ref ApplyReservedConcurrencyInDev, true]
+  AddExpiredSessionFunctionTestRolePermissions: !And
+    - Condition: IsNotProdLikeEnvironment
+    - !Not [ !Equals [ !Ref TestRoleArn, none ]]
 
 Globals:
   Function:
@@ -1054,9 +1057,12 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: SessionConfigHandler
+          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${Environment}/f2f/printedCustomerLetter/enabled"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/f2f/printedCustomerLetter/enabled"
         - DynamoDBWritePolicy:
             TableName:
               Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
@@ -1842,7 +1848,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref AbortFunction
       Principal: apigateway.amazonaws.com
-  
+
   ## PersonInfoHandler
   PersonInfoFunction:
     Type: AWS::Serverless::Function
@@ -2014,7 +2020,7 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
-  
+
   PersonInfo5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
@@ -2048,7 +2054,7 @@ Resources:
                 - Name: Method
                   Value: GET
                 - Name: ApiName
-                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -2069,7 +2075,7 @@ Resources:
                 - Name: Method
                   Value: GET
                 - Name: ApiName
-                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -2110,7 +2116,7 @@ Resources:
                 - Name: Method
                   Value: GET
                 - Name: ApiName
-                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -2131,7 +2137,7 @@ Resources:
                 - Name: Method
                   Value: GET
                 - Name: ApiName
-                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Stage
                   Value: !Ref Environment
                 - Name: Resource
@@ -2170,7 +2176,7 @@ Resources:
               MetricName: Count
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /person-info
                 - Name: Stage
@@ -2191,7 +2197,7 @@ Resources:
               MetricName: 4XXError
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub "${AWS::StackName} - BAV Credential Issuer Private API"
+                  Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
                 - Name: Resource
                   Value: /person-info
                 - Name: Stage
@@ -2200,6 +2206,150 @@ Resources:
                   Value: GET
             Period: 60
             Stat: Sum
+
+  ## PersonInfoKeyHandler
+  PersonInfoKeyFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: PersonInfoKeyFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-person-info-key-${AWS::StackName}"
+      Handler: PersonInfoKeyHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: PersonInfoKeyHandler
+          PRIVATE_KEY_SSM_PATH: !Sub "/${Environment}/person-info/PRIVATE_KEY"
+          KMS_KEY_ARN:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/person-info/PRIVATE_KEY"
+      Events:
+        personInfoKey:
+          Type: Api
+          Properties:
+            Path: /person-info-key
+            Method: get
+            RestApiId: !Ref F2FRestApi
+
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false
+        EntryPoints:
+          - PersonInfoKeyHandler.ts
+
+  PersonInfoKeyFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-person-info-key-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  PersonInfoKeyFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PersonInfoKeyFunction
+      Principal: apigateway.amazonaws.com
+
+  PersonInfoKeyFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref PersonInfoKeyFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "PersonInfoKeyFunction-Fatalerror"
+
+  PersonInfoKeyFunctionFatalErrorAlarm:
+    DependsOn:
+      - "PersonInfoKeyFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: PersonInfoKeyFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  PersonInfoKeyConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "ApplyReservedConcurrency"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of PersonInfoKey is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PersonInfoKeyFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PersonInfoKeyThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${PersonInfoKeyFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PersonInfoKeyFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
 
   ## TXMA SQS Queue
   TxMASQSQueue:
@@ -2470,7 +2620,7 @@ Resources:
           GOVUKNOTIFY_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]
           GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
-          GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
+          GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY_ENCRYPTED"
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
           YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
       Policies:
@@ -2479,7 +2629,7 @@ Resources:
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
         - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
+            ParameterName: !Sub "${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY_ENCRYPTED"
         - DynamoDBWritePolicy:
             TableName:
               Fn::ImportValue:
@@ -3085,13 +3235,13 @@ Resources:
       FunctionName: !Ref ExpiredSessionsFunction
       Principal: apigateway.amazonaws.com
 
-  # ExpiredSessionFunctionTestRolePermission:
-  #   Type: AWS::Lambda::Permission
-  #   Condition: IsNotProdLikeEnvironment
-  #   Properties:
-  #     Action: lambda:InvokeFunction
-  #     FunctionName: !Ref ExpiredSessionsFunction
-  #     Principal: !Ref TestRoleArn
+  ExpiredSessionFunctionTestRolePermission:
+    Type: AWS::Lambda::Permission
+    Condition: AddExpiredSessionFunctionTestRolePermissions
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ExpiredSessionsFunction
+      Principal: !Ref TestRoleArn
 
   ExpiredSessionsFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
@@ -3772,6 +3922,42 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+  
+  MissingPclEnabledFeatureFlagErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref SessionConfigFunctionLogGroup
+      FilterPattern: '{ $.level = "ERROR" && $.messageCode = "MISSING_PRINTED_CUSTOMER_LETTER_ENABLED_CONFIGURATION" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "Missing-printedCustomerLetterEnabled-featureFlag-error"
+
+  MissingPclEnabledFeatureFlagErrorAlarm:
+    DependsOn:
+      - "MissingPclEnabledFeatureFlagErrorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-MissingPclEnabledFeatureFlagErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when we are unable to fetch the printedCustomerLetter enabled SSM param. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: Missing-printedCustomerLetterEnabled-featureFlag-error
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
 ####################################################################
 #                                                                  #
@@ -7152,3 +7338,7 @@ Outputs:
     Description: "Signing Key used to sign VC"
     Value:
       Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key-id"
+  ExpiredSessionsLambdaName:
+    Condition: IsNotProdLikeEnvironment
+    Description: "Lambda Service to process expired user sessions"
+    Value: !Ref ExpiredSessionsFunction

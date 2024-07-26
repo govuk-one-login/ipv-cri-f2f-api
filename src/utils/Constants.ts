@@ -30,6 +30,8 @@ export class Constants {
 
 	static readonly EXPIRED_SESSIONS_LOGGER_SVC_NAME : "ExpiredSessions";
 
+	static readonly PERSON_INFO_KEY_LOGGER_SVC_NAME : "PersonInfoKeyHandler";
+
 	static readonly DEBUG = "DEBUG";
 
 	static readonly INFO = "INFO";
