@@ -59,6 +59,7 @@ interface AllTxmaEvents {
 	"F2F_CRI_START"?: TxmaEvent;
 	"F2F_CRI_AUTH_CODE_ISSUED"?: TxmaEvent;
 	"F2F_YOTI_PDF_EMAILED"?: TxmaEvent;
+	"F2F_YOTI_PDF_LETTER_POSTED"?: TxmaEvent;
 	"F2F_YOTI_START"?: TxmaEvent;
 	"F2F_YOTI_RESPONSE_RECEIVED"?: TxmaEvent;
 	"F2F_CRI_VC_ISSUED"?: TxmaEvent;
