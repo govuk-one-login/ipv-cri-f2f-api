@@ -1,0 +1,34 @@
+plugins {
+	id "java"
+	id "jacoco"
+	id 'io.freefair.aspectj.post-compile-weaving' version '6.3.0'
+}
+
+dependencies {
+	implementation configurations.cri_common_lib,
+			project(":lib"),
+			configurations.aws,
+			configurations.lambda,
+			configurations.nimbus,
+			configurations.jackson,
+			configurations.dynamodb,
+			configurations.sqs
+
+	aspect configurations.powertools
+
+	testImplementation configurations.tests
+
+	testRuntimeOnly configurations.test_runtime
+}
+
+test {
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required.set(true)
+	}
+}
