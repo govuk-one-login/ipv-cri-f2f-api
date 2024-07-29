@@ -12,7 +12,8 @@ dependencies {
 			configurations.nimbus,
 			configurations.jackson,
 			configurations.dynamodb,
-			configurations.sqs
+			configurations.sqs,
+			configurations.itextpdf
 
 	aspect configurations.powertools
 
