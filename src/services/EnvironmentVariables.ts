@@ -309,7 +309,7 @@ export class EnvironmentVariables {
 			case ServicesEnum.GENERATE_YOTI_LETTER_SERVICE: {
 				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
-					!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 || 
+					!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 ||
 					!this.YOTI_LETTER_BUCKET || this.YOTI_LETTER_BUCKET.trim().length === 0) {
 					logger.error("Environment variable SESSION_TABLE or YOTI_KEY_SSM_PATH is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "GenerateYotiLetter Service incorrectly configured");

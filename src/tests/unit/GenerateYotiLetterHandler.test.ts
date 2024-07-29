@@ -1,13 +1,24 @@
-/* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { mock } from "jest-mock-extended";
 import { lambdaHandler, logger } from "../../GenerateYotiLetterHandler";
 import { GenerateYotiLetterProcessor } from "../../services/GenerateYotiLetterProcessor";
-import { VALID_REQUEST, INVALID_SESSION_ID, MISSING_SESSION_ID } from "./data/abort-events";
-import { Constants } from "../../utils/Constants";
+import { mock } from "jest-mock-extended";
+import { CONTEXT } from "./data/context";
+import { Response } from "../../utils/Response";
+import { getParameter } from "../../utils/Config";
 import { MessageCodes } from "../../models/enums/MessageCodes";
 
-const mockGenerateYotiLetterProcessor = mock<GenerateYotiLetterProcessor>();
+const mockedGenerateYotiLetterProcessor = mock<GenerateYotiLetterProcessor>();
+
+jest.mock("../../services/GenerateYotiLetterProcessor", () => {
+	return {
+		GenerateYotiLetterProcessor: jest.fn(() => mockedGenerateYotiLetterProcessor),
+	};
+});
+
+jest.mock("../../utils/Config", () => ({
+	getParameter: jest.fn(),
+}));
+
 
 describe("GenerateYotiLetterHandler", () => {
 	let loggerSpy: jest.SpyInstance;
@@ -16,30 +27,31 @@ describe("GenerateYotiLetterHandler", () => {
 		loggerSpy = jest.spyOn(logger, "error");
 	});
 
-	it("return Unauthorized when x-govuk-signin-session-id header is missing", async () => {
-		const message = `Missing header: ${Constants.X_SESSION_ID} is required`;
-		GenerateYotiLetterProcessor.getInstance = jest.fn().mockReturnValue(mockGenerateYotiLetterProcessor);
-		const response = await lambdaHandler(MISSING_SESSION_ID, "");
+	it("calls GenerateYotiLetterProcessor if Yoti SSM key is present", async () => {
+		const key = "YOTI/PRIVATE_KEY";
+		(getParameter as jest.Mock).mockResolvedValueOnce(key);
+		GenerateYotiLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
 
-		expect(response.statusCode).toBe(401);
-		expect(response.body).toBe(message);
-		expect(loggerSpy).toHaveBeenCalledWith({ message, messageCode: MessageCodes.INVALID_SESSION_ID });
+		await lambdaHandler({"sessionId":"randomSessionId"}, CONTEXT);
+
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(mockedGenerateYotiLetterProcessor.processRequest).toHaveBeenCalledTimes(1);
+		expect(mockedGenerateYotiLetterProcessor.processRequest).toHaveBeenCalledWith({"sessionId":"randomSessionId"})
 	});
 
-	it("return Unauthorized when x-govuk-signin-session-id header is invalid", async () => {
-		const message = `${Constants.X_SESSION_ID} header does not contain a valid uuid`;
-		GenerateYotiLetterProcessor.getInstance = jest.fn().mockReturnValue(mockGenerateYotiLetterProcessor);
+	it("fails to call GenerateYotiLetterProcessor if there is an error retrieving Yoti SSM key", async () => {
+		GenerateYotiLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
+		(getParameter as jest.Mock).mockRejectedValueOnce("Error");
+		
+		const result = await lambdaHandler({"sessionId":"randomSessionId"}, CONTEXT);
 
-		const response = await lambdaHandler(INVALID_SESSION_ID, "");
-		expect(response.statusCode).toBe(401);
-		expect(response.body).toBe(message);
-		expect(loggerSpy).toHaveBeenCalledWith({ message, messageCode: MessageCodes.INVALID_SESSION_ID });
-	});
+		expect(loggerSpy).toHaveBeenCalledWith({
+			message: "Error fetching key",
+			error: "Error",
+			messageCode: MessageCodes.SERVER_ERROR,
+		});
+		expect(mockedGenerateYotiLetterProcessor.processRequest).toHaveBeenCalledTimes(0);
+		expect(result.statusCode).toBe(500);
 
-	it("return success for valid request", async () => {
-		GenerateYotiLetterProcessor.getInstance = jest.fn().mockReturnValue(mockGenerateYotiLetterProcessor);
-
-		await lambdaHandler(VALID_REQUEST, "");
-		expect(mockGenerateYotiLetterProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
 });
