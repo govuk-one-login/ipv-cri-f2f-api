@@ -3,7 +3,6 @@ import { lambdaHandler, logger } from "../../GenerateYotiLetterHandler";
 import { GenerateYotiLetterProcessor } from "../../services/GenerateYotiLetterProcessor";
 import { mock } from "jest-mock-extended";
 import { CONTEXT } from "./data/context";
-import { Response } from "../../utils/Response";
 import { getParameter } from "../../utils/Config";
 import { MessageCodes } from "../../models/enums/MessageCodes";
 
@@ -46,7 +45,7 @@ describe("GenerateYotiLetterHandler", () => {
 		const result = await lambdaHandler({ "sessionId":"randomSessionId" }, CONTEXT);
 
 		expect(loggerSpy).toHaveBeenCalledWith({
-			message: "Error fetching key",
+			message: "Error fetching Yoti private key",
 			error: "Error",
 			messageCode: MessageCodes.SERVER_ERROR,
 		});

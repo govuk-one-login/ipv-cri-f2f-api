@@ -28,7 +28,7 @@ let yotiPrivateKey: string;
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 
 export class GenerateYotiLetterHandler implements LambdaInterface {
-	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.PERSON_INFO_KEY_SERVICE);
+	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_YOTI_LETTER_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: any, context: any): Promise<any> {
@@ -38,11 +38,11 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 		try {
 			try {
 				const yotiPrivateKeyPath = this.environmentVariables.yotiKeySsmPath();
-				logger.info({ message: "Fetching key", yotiPrivateKeyPath });
+				logger.info({ message: "Fetching Yoti private key", yotiPrivateKeyPath });
 				yotiPrivateKey = await getParameter(yotiPrivateKeyPath);
 
 			} catch (error: any) {
-				logger.error({ message: "Error fetching key", error, messageCode: MessageCodes.SERVER_ERROR });
+				logger.error({ message: "Error fetching Yoti private key", error, messageCode: MessageCodes.SERVER_ERROR });
 				return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 			}
 

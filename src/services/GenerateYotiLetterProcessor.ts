@@ -92,7 +92,7 @@ export class GenerateYotiLetterProcessor {
 			this.logger.error("An error occurred when generating Yoti instructions pdf", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when generating Yoti instructions pdf");
 		}
-		const bucket = process.env.YOTI_LETTER_BUCKET;
+		const bucket = this.environmentVariables.yotiLetterBucketName();
 		const folder = process.env.YOTI_PDF_BUCKET_FOLDER;
 		const key = `${folder}-${f2fSessionInfo.yotiSessionId}`;
 
@@ -116,7 +116,8 @@ export class GenerateYotiLetterProcessor {
 			this.logger.info(`Uploading object with key ${key} to bucket ${bucket}`);
 			await s3Client.send(new PutObjectCommand(uploadParams));
 		} catch (error) {
-			this.logger.error({ message: "Error uploading Yoti PDF to S3 bucket", error });
+			this.logger.error("Error uploading Yoti PDF to S3 bucket", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when generating Yoti instructions pdf");
 		}
 
 		return {

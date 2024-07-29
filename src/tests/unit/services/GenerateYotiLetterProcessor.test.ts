@@ -14,6 +14,7 @@ const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 const logger = mock<Logger>();
 
+
 let generateYotiLetterProcessor: GenerateYotiLetterProcessor;
 const metrics = new Metrics({ namespace: "F2F" });
 const sessionId = "RandomF2FSessionID";
@@ -48,6 +49,7 @@ describe("GenerateYotiLetterProcessor", () => {
     		// @ts-ignore
 		generateYotiLetterProcessor.f2fService = mockF2fService;
 		YotiService.getInstance = jest.fn(() => mockYotiService);
+
 	});
 
 	beforeEach(() => {
