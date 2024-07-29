@@ -29,7 +29,7 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 	private readonly YOTI_KEY_SSM_PATH = process.env.YOTI_KEY_SSM_PATH;
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: any, context: any): any {
+	async handler(event: any, context: any): Promise<any> {
 
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);

@@ -2,24 +2,14 @@ import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
-import { buildCoreEventFields } from "../utils/TxmaEvent";
-import { absoluteTimeNow } from "../utils/DateTimeUtils";
-import { buildGovNotifyEventFields } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
-import { AuthSessionState } from "../models/enums/AuthSessionState";
-import { ISessionItem } from "../models/ISessionItem";
-import { PersonIdentityAddress, PersonIdentityItem } from "../models/PersonIdentityItem";
-import { PostOfficeInfo } from "../models/YotiPayloads";
 import { MessageCodes } from "../models/enums/MessageCodes";
-import { AllDocumentTypes, DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { ValidationHelper } from "../utils/ValidationHelper";
-import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { getClientConfig } from "../utils/ClientConfig";
 import { Constants } from "../utils/Constants";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -46,7 +36,7 @@ export class GenerateYotiLetterProcessor {
 	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
 		this.logger = logger;
 		this.metrics = metrics;
-		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
+		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_YOTI_LETTER_SERVICE);
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
@@ -92,6 +82,10 @@ export class GenerateYotiLetterProcessor {
 
 		this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
 
+		this.logger.info(
+			"Fetching the Instructions Pdf from yoti for sessionId: ",
+			f2fSessionInfo.yotiSessionId!,
+		);
 		const encoded = await this.yotiService.fetchInstructionsPdf(f2fSessionInfo.yotiSessionId!);
 		const bucket = process.env.YOTI_LETTER_BUCKET;
 		const folder = process.env.YOTI_PDF_BUCKET_FOLDER;
@@ -110,7 +104,7 @@ export class GenerateYotiLetterProcessor {
 			Bucket: bucket,
 			Key: key,
 			Body: encoded,
-			ContentType: 'application/octet-stream',
+			ContentType: "application/octet-stream",
 		};
 
 		try {
