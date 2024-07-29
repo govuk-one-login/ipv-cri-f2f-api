@@ -9,16 +9,25 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { YotiService } from "../../../services/YotiService";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 const logger = mock<Logger>();
+jest.mock("@aws-sdk/client-s3", () => ({
+	S3Client: jest.fn().mockImplementation(() => ({
+		send: jest.fn(),
+	})),
+	PutObjectCommand: jest.fn().mockImplementation((args) => args),
+}));
 
+const mockS3Client = mock<S3Client>();
 
 let generateYotiLetterProcessor: GenerateYotiLetterProcessor;
 const metrics = new Metrics({ namespace: "F2F" });
 const sessionId = "RandomF2FSessionID";
 const yotiPrivateKey = "privateKey";
+const pdf_preference = "post";
 
 function getMockSessionItem(): ISessionItem {
 	const sessionInfo: ISessionItem = {
@@ -46,9 +55,11 @@ function getMockSessionItem(): ISessionItem {
 describe("GenerateYotiLetterProcessor", () => {
 	beforeAll(() => {
 		generateYotiLetterProcessor = new GenerateYotiLetterProcessor(logger, metrics, yotiPrivateKey );
-    		// @ts-ignore
+		// @ts-ignore
 		generateYotiLetterProcessor.f2fService = mockF2fService;
 		YotiService.getInstance = jest.fn(() => mockYotiService);
+		// @ts-ignore
+		generateYotiLetterProcessor.s3Client = mockS3Client;
 
 	});
 
@@ -59,7 +70,7 @@ describe("GenerateYotiLetterProcessor", () => {
 	it("throws error if session cannot be found", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(undefined);
 
-		await expect(generateYotiLetterProcessor.processRequest(sessionId)).rejects.toThrow(expect.objectContaining({
+		await expect(generateYotiLetterProcessor.processRequest({ sessionId, pdf_preference })).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.BAD_REQUEST,
 			message: "Missing details in SESSION table",
 		}));
@@ -74,7 +85,7 @@ describe("GenerateYotiLetterProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockYotiService.fetchInstructionsPdf.mockResolvedValueOnce(undefined);
 
-		await expect(generateYotiLetterProcessor.processRequest(sessionId)).rejects.toThrow(expect.objectContaining({
+		await expect(generateYotiLetterProcessor.processRequest({ sessionId, pdf_preference })).rejects.toThrow(expect.objectContaining({
 			name: "Error",
 			message: "An error occurred when generating Yoti instructions pdf",
 		}));
@@ -82,6 +93,39 @@ describe("GenerateYotiLetterProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith("An error occurred when generating Yoti instructions pdf", {
 			messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS,
 		});
+	});
+
+	it("S3 success case", async () => {
+		const f2fSessionItem = getMockSessionItem();
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+		mockYotiService.fetchInstructionsPdf.mockResolvedValueOnce("test-data");
+		const response =  await generateYotiLetterProcessor.processRequest({ sessionId, pdf_preference });
+        
+		// @ts-ignore
+		expect(mockS3Client.send).toHaveBeenCalledWith({
+			Bucket: "YOTI_LETTER_BUCKET",
+			Key: "pdf-undefined",
+			Body: "test-data",
+			ContentType: "application/octet-stream",
+		});
+
+		expect(response).toMatchObject({
+			sessionId: "RandomF2FSessionID",
+			pdf_preference: "post",
+		});
+	});
+
+	it("S3 fail case", async () => {
+		const f2fSessionItem = getMockSessionItem();
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+		mockYotiService.fetchInstructionsPdf.mockResolvedValueOnce("test-data");
+		jest.spyOn(mockS3Client, "send").mockImplementationOnce(() => {
+			throw new Error("error");
+		});
+		await expect(generateYotiLetterProcessor.processRequest({ sessionId, pdf_preference })).rejects.toThrow(expect.objectContaining({
+			name: "Error",
+			message: "Error uploading Yoti PDF to S3 bucket",
+		}));
 	});
 
 });

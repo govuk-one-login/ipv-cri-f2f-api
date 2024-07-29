@@ -25,6 +25,8 @@ export class GenerateYotiLetterProcessor {
 
 	private yotiService!: YotiService;
 
+	private s3Client: S3Client;
+
 	private readonly f2fService: F2fService;
 
 	private readonly environmentVariables: EnvironmentVariables;
@@ -40,6 +42,14 @@ export class GenerateYotiLetterProcessor {
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
+		this.s3Client = new S3Client({
+			region: process.env.REGION,
+			maxAttempts: 2,
+			requestHandler: new NodeHttpHandler({
+				connectionTimeout: 29000,
+				socketTimeout: 29000,
+			}),
+		});
 	}
 
 	static getInstance(
@@ -93,17 +103,8 @@ export class GenerateYotiLetterProcessor {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when generating Yoti instructions pdf");
 		}
 		const bucket = this.environmentVariables.yotiLetterBucketName();
-		const folder = process.env.YOTI_PDF_BUCKET_FOLDER;
+		const folder = this.environmentVariables.yotiLetterBucketPDFFolder();
 		const key = `${folder}-${f2fSessionInfo.yotiSessionId}`;
-
-		const s3Client = new S3Client({
-			region: process.env.REGION,
-			maxAttempts: 2,
-			requestHandler: new NodeHttpHandler({
-				connectionTimeout: 29000,
-				socketTimeout: 29000,
-			}),
-		});
 
 		const uploadParams = {
 			Bucket: bucket,
@@ -114,10 +115,10 @@ export class GenerateYotiLetterProcessor {
 
 		try {
 			this.logger.info(`Uploading object with key ${key} to bucket ${bucket}`);
-			await s3Client.send(new PutObjectCommand(uploadParams));
+			await this.s3Client.send(new PutObjectCommand(uploadParams));
 		} catch (error) {
 			this.logger.error("Error uploading Yoti PDF to S3 bucket", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when generating Yoti instructions pdf");
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error uploading Yoti PDF to S3 bucket");
 		}
 
 		return {
