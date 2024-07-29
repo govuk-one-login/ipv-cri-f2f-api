@@ -32,18 +32,18 @@ describe("GenerateYotiLetterHandler", () => {
 		(getParameter as jest.Mock).mockResolvedValueOnce(key);
 		GenerateYotiLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
 
-		await lambdaHandler({"sessionId":"randomSessionId"}, CONTEXT);
+		await lambdaHandler({ "sessionId":"randomSessionId" }, CONTEXT);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockedGenerateYotiLetterProcessor.processRequest).toHaveBeenCalledTimes(1);
-		expect(mockedGenerateYotiLetterProcessor.processRequest).toHaveBeenCalledWith({"sessionId":"randomSessionId"})
+		expect(mockedGenerateYotiLetterProcessor.processRequest).toHaveBeenCalledWith({ "sessionId":"randomSessionId" });
 	});
 
 	it("fails to call GenerateYotiLetterProcessor if there is an error retrieving Yoti SSM key", async () => {
 		GenerateYotiLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
 		(getParameter as jest.Mock).mockRejectedValueOnce("Error");
 		
-		const result = await lambdaHandler({"sessionId":"randomSessionId"}, CONTEXT);
+		const result = await lambdaHandler({ "sessionId":"randomSessionId" }, CONTEXT);
 
 		expect(loggerSpy).toHaveBeenCalledWith({
 			message: "Error fetching key",

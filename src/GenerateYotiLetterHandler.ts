@@ -46,7 +46,7 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 				return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 			}
 
-		return await GenerateYotiLetterProcessor.getInstance(logger, metrics, yotiPrivateKey).processRequest(event);
+			return await GenerateYotiLetterProcessor.getInstance(logger, metrics, yotiPrivateKey).processRequest(event);
 
 		} catch (error: any) {
 			logger.error({ message: "An error has occurred",
