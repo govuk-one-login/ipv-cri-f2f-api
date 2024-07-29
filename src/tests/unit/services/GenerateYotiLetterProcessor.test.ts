@@ -80,7 +80,7 @@ describe("GenerateYotiLetterProcessor", () => {
 			name: "Error",
 			message: "An error occurred when generating Yoti instructions pdf",
 		}));
-
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith("An error occurred when generating Yoti instructions pdf", {
 			messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS,
 		});
@@ -101,8 +101,7 @@ describe("GenerateYotiLetterProcessor", () => {
 		mockS3Client.send.mockResolvedValueOnce("success");
 	  
 		await expect(generateYotiLetterProcessor.processRequest(sessionId));
-
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockS3Client.send).toHaveBeenCalledWith, (uploadParams);
 	  });
-	  
 });
