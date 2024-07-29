@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -8,15 +9,10 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { YotiService } from "../../../services/YotiService";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-
 
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 const logger = mock<Logger>();
-const mockS3Client = {
-	send: jest.fn(),
-};
 
 let generateYotiLetterProcessor: GenerateYotiLetterProcessor;
 const metrics = new Metrics({ namespace: "F2F" });
@@ -65,7 +61,7 @@ describe("GenerateYotiLetterProcessor", () => {
 			statusCode: HttpCodesEnum.BAD_REQUEST,
 			message: "Missing details in SESSION table",
 		}));
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+
 		expect(logger.error).toHaveBeenCalledWith("Missing details in SESSION table", {
 			messageCode: MessageCodes.SESSION_NOT_FOUND,
 		});
@@ -80,28 +76,10 @@ describe("GenerateYotiLetterProcessor", () => {
 			name: "Error",
 			message: "An error occurred when generating Yoti instructions pdf",
 		}));
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+
 		expect(logger.error).toHaveBeenCalledWith("An error occurred when generating Yoti instructions pdf", {
 			messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS,
 		});
 	});
 
-	it("should upload object to S3 bucket", async () => {
-		const f2fSessionItem = getMockSessionItem();
-		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		mockYotiService.fetchInstructionsPdf.mockResolvedValueOnce("200");
-
-		const uploadParams = {
-		  Bucket: "mockBucket",
-		  Key: "mockKey",
-		  Body: "mockEncodedBody",
-		  ContentType: "application/octet-stream",
-		};
-	  
-		mockS3Client.send.mockResolvedValueOnce("success");
-	  
-		await expect(generateYotiLetterProcessor.processRequest(sessionId));
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		expect(mockS3Client.send).toHaveBeenCalledWith, (uploadParams);
-	  });
 });
