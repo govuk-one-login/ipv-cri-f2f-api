@@ -1,7 +1,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { mock } from "jest-mock-extended";
-import { lambdaHandler, logger } from "../../AbortHandler";
+import { lambdaHandler, logger } from "../../GenerateYotiLetterHandler";
 import { GenerateYotiLetterProcessor } from "../../services/GenerateYotiLetterProcessor";
 import { VALID_REQUEST, INVALID_SESSION_ID, MISSING_SESSION_ID } from "./data/abort-events";
 import { Constants } from "../../utils/Constants";
@@ -9,7 +9,7 @@ import { MessageCodes } from "../../models/enums/MessageCodes";
 
 const mockGenerateYotiLetterProcessor = mock<GenerateYotiLetterProcessor>();
 
-describe("AbortHandler", () => {
+describe("GenerateYotiLetterHandler", () => {
 	let loggerSpy: jest.SpyInstance;
 
 	beforeEach(() => {
