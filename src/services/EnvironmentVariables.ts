@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
@@ -30,6 +31,12 @@ export class EnvironmentVariables {
 
 	private readonly YOTI_KEY_SSM_PATH = process.env.YOTI_KEY_SSM_PATH;
 	
+	private readonly YOTI_LETTER_BUCKET = process.env.YOTI_LETTER_BUCKET;
+
+	private readonly YOTI_PDF_BUCKET_FOLDER = process.env.YOTI_PDF_BUCKET_FOLDER;
+
+	private readonly MERGED_PDF_BUCKET_FOLDER = process.env.MERGED_PDF_BUCKET_FOLDER;
+
 	private readonly PRIVATE_KEY_SSM_PATH = process.env.PRIVATE_KEY_SSM_PATH;
 
 	private readonly GOVUKNOTIFY_API_KEY_SSM_PATH = process.env.GOVUKNOTIFY_API_KEY_SSM_PATH;
@@ -87,6 +94,7 @@ export class EnvironmentVariables {
 				if (!this.ISSUER || this.ISSUER.trim().length === 0 ||
 					!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
+					!this.YOTI_LETTER_BUCKET || this.YOTI_LETTER_BUCKET.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
 					!this.GOVUKNOTIFY_API_KEY_SSM_PATH || this.GOVUKNOTIFY_API_KEY_SSM_PATH.trim().length === 0 ||
 					!this.REMINDER_EMAIL_GOVUKNOTIFY_API || this.REMINDER_EMAIL_GOVUKNOTIFY_API.trim().length === 0) {
@@ -386,6 +394,18 @@ export class EnvironmentVariables {
 
 	yotiKeySsmPath(): any {
 		return this.YOTI_KEY_SSM_PATH;
+	}
+
+	yotiLetterBucket(): any {
+		return this.YOTI_LETTER_BUCKET;
+	}
+
+	yotiPdfBucketFolder(): any {
+		return this.YOTI_PDF_BUCKET_FOLDER;
+	}
+
+	mergedPdfBucketFolder(): any {
+		return this.MERGED_PDF_BUCKET_FOLDER;
 	}
 
 	getGovNotifyQueueURL(logger: Logger): string {

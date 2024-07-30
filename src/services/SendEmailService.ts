@@ -170,7 +170,7 @@ export class SendEmailService {
   			return emailResponse;
   		} else {
   			this.logger.error("Failed to fetch the Instructions pdf", {
-  				messageCode: MessageCodes.FAILED_FETHCING_YOTI_PDF,
+  				messageCode: MessageCodes.FAILED_FETCHING_YOTI_PDF,
   			});
   			throw new AppError(
   				HttpCodesEnum.SERVER_ERROR,

@@ -12,12 +12,12 @@
       "Choices": [
         {
           "Variable": "$.body.pdf_preference",
-          "StringEquals": "email",
+          "StringEquals": "EMAIL_ONLY",
           "Next": "SendToGovNotify"
         },
         {
           "Variable": "$.body.pdf_preference",
-          "StringEquals": "post",
+          "StringEquals": "PRINTED_LETTER",
           "Next": "GeneratePrintedLetter"
         }
       ]

@@ -5,6 +5,7 @@ export type TxmaEventName =
 	"F2F_CRI_START"
 	| "F2F_CRI_AUTH_CODE_ISSUED"
 	| "F2F_YOTI_PDF_EMAILED"
+	| "F2F_YOTI_PDF_LETTER_POSTED"
 	| "F2F_YOTI_START"
 	| "F2F_YOTI_RESPONSE_RECEIVED"
 	| "F2F_CRI_VC_ISSUED"
@@ -39,6 +40,7 @@ export interface RestrictedObject {
 	"drivingPermit"?: DrivingPermit;
 	"residencePermit"?: ResidencePermit;
 	"idCard"?: IdentityCard;
+	"postalAddress"?: object;
 	device_information?: {
 		encoded: string;
 	};
