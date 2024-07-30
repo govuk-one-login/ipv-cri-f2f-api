@@ -1,10 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { SendToGovNotifyService } from "./SendToGovNotifyService";
-import { Constants } from "../utils/Constants";
-import { Email } from "../models/Email";
-import { ReminderEmail } from "../models/ReminderEmail";
-import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
+import { PdfPreferenceEmail } from "../models/PdfPreferenceEmail";
 import { EmailResponse } from "../models/EmailResponse";
 import { ValidationHelper } from "../utils/ValidationHelper";
 
@@ -24,31 +21,11 @@ export class SendToGovNotifyProcessor {
   	return this.instance || (this.instance = new SendToGovNotifyProcessor(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, sendToGovNotifyServiceId));
   }
 
-  async processRequest(event: any): Promise<EmailResponse | undefined> {
-  	const messageType = event.Message.messageType;
-  	const pdfPreference = event.Message.pdfPreference;
-	const postalAddress = event.Message.postalAddress;
-  	let dynamicReminderEmail: DynamicReminderEmail;
-  	let reminderEmail: ReminderEmail;
-  	let email: Email;
+  async processRequest(event: any): Promise<EmailResponse | undefined> {  	
+  	let pdfPreferenceEmail: PdfPreferenceEmail;
 
-  	switch (messageType) {
-  		case Constants.REMINDER_EMAIL_DYNAMIC:
-  			dynamicReminderEmail = DynamicReminderEmail.parseRequest(JSON.stringify(event.Message), this.logger);
-  			await this.validationHelper.validateModel(dynamicReminderEmail, this.logger);
-  			return this.sendToGovNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);
-				
-  		case Constants.REMINDER_EMAIL:
-  			reminderEmail = ReminderEmail.parseRequest(JSON.stringify(event.Message), this.logger);
-  			await this.validationHelper.validateModel(reminderEmail, this.logger);
-  			return this.sendToGovNotifyService.sendReminderEmail(reminderEmail);
-
-  		case Constants.PDF_EMAIL:
-  			email = Email.parseRequest(JSON.stringify(event.Message), this.logger);
-  			await this.validationHelper.validateModel(email, this.logger);
-  			return this.sendToGovNotifyService.sendYotiInstructions(email, pdfPreference, postalAddress);
-  	}
-
-  	return undefined;
+  	pdfPreferenceEmail = PdfPreferenceEmail.parseRequest(JSON.stringify(event), this.logger);
+  	await this.validationHelper.validateModel(pdfPreferenceEmail, this.logger);
+  	return this.sendToGovNotifyService.sendYotiInstructions(pdfPreferenceEmail);
   }
 }

@@ -104,5 +104,9 @@ export class Constants {
 	static readonly X_FORWARDED_FOR = "x-forwarded-for";
 
 	static readonly ENCODED_AUDIT_HEADER = "txma-audit-encoded";
+
+	static readonly PDF_PREFERENCE_PRINTED_LETTER = "PRINTED_LETTER";
+
+	static readonly PDF_PREFERENCE_EMAIL_ONLY = "EMAIL_ONLY";
   
 }
