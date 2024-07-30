@@ -84,15 +84,21 @@ export class Constants {
 
 	static readonly W3_BASE_CONTEXT = "https://www.w3.org/2018/credentials/v1";
 
-  static readonly DI_CONTEXT = "https://vocab.account.gov.uk/contexts/identity-v1.jsonld";
+  	static readonly DI_CONTEXT = "https://vocab.account.gov.uk/contexts/identity-v1.jsonld";
 
-  static readonly VERIFIABLE_CREDENTIAL = "VerifiableCredential";
+  	static readonly VERIFIABLE_CREDENTIAL = "VerifiableCredential";
 
-  static readonly IDENTITY_CHECK_CREDENTIAL = "IdentityCheckCredential";
+  	static readonly IDENTITY_CHECK_CREDENTIAL = "IdentityCheckCredential";
 
-  static readonly URN_UUID_PREFIX = "urn:uuid:";
+  	static readonly URN_UUID_PREFIX = "urn:uuid:";
 
 	static readonly FIRST_NAME = "first name";
+	
+	// Printed Customer Letter
+	static readonly PCL_PREFERENCE_EMAIL = "EMAIL";
+
+	static readonly PCL_PREFERENCE_LETTER = "LETTER";
+
 
 	static readonly GOV_NOTIFY_OPTIONS = {
 		FIRST_NAME: "first name",

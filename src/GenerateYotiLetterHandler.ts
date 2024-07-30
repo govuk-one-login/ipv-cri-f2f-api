@@ -31,10 +31,11 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_YOTI_LETTER_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: any, context: any): Promise<any> {
+	async handler(event: { sessionId: string; pdfPreference: string }, context: any): Promise<any> {
 
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
+		this.validateEvent(event);
 		try {
 			try {
 				const yotiPrivateKeyPath = this.environmentVariables.yotiKeySsmPath();
@@ -57,6 +58,22 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 				return Response(error.statusCode, error.message);
 			}
 			return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+		}
+	}
+
+	validateEvent(event: { sessionId: string; pdfPreference: string }):void {
+		if (!event.pdfPreference) {			
+			const message = "Invalid request: missing pdfPreference";
+			logger.error({ message, messageCode: MessageCodes.MISSING_PCL_PREFERENCE });
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, message);
+		} else if (!event.sessionId) {
+			const message = "Invalid request: missing sessionId";
+			logger.error({ message, messageCode: MessageCodes.MISSING_SESSION_ID });
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, message);
+		} else if (!Constants.REGEX_UUID.test(event.sessionId)) {
+			const message = "Invalid request: sessionId is not a valid uuid";
+			logger.error({ message, messageCode: MessageCodes.INVALID_SESSION_ID });
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, message);
 		}
 	}
 }
