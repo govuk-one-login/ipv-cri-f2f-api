@@ -20,4 +20,6 @@ process.env.REMINDER_EMAIL_GOVUKNOTIFY_API = "https://test-govnotify-stub";
 process.env.USE_MOCKED = "true";
 process.env.PRIVATE_KEY_SSM_PATH = "dev/person-info/PRIVATE_KEY"
 process.env.YOTI_SESSION_TTL_DAYS = "10";
-process.env.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH = "/dev/f2f/printedCustomerLetter/enabled"
+process.env.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH = "/dev/f2f/printedCustomerLetter/enabled";
+process.env.YOTI_LETTER_BUCKET = "YOTI_LETTER_BUCKET";
+process.env.YOTI_PDF_BUCKET_FOLDER = "pdf";

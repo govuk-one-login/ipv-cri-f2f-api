@@ -3237,7 +3237,7 @@ Resources:
 
   ExpiredSessionFunctionTestRolePermission:
     Type: AWS::Lambda::Permission
-    Condition: AddExpiredSessionFunctionTestRolePermissions
+    Condition: IsNotProdLikeEnvironment
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ExpiredSessionsFunction
@@ -3979,9 +3979,25 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: GenerateYotiLetterHandler
+          YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
+          YOTI_PDF_BUCKET_FOLDER: pdf
+          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - DynamoDBReadPolicy:
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-name"
+        - S3WritePolicy:
+            BucketName: !Ref YotiLetterBucket
+        - S3ReadPolicy:
+            BucketName: !Ref YotiLetterBucket
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-key-id"
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
