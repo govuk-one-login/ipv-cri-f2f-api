@@ -4,7 +4,7 @@ import { Readable } from "stream";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 
-export async function fetchEncodedFile(bucket: string, key: string): Promise<any> {
+export async function fetchEncodedFileFromS3Bucket(bucket: string, key: string): Promise<any> {
 	const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
 		return new Promise((resolve, reject) => {
 			const chunks: Uint8Array[] = [];
@@ -27,9 +27,6 @@ export async function fetchEncodedFile(bucket: string, key: string): Promise<any
 		Key: key,
 	};
 
-	this.logger.info("Fetching the file from the S3 bucket. " { bucket });  
-
-		
 	try {
 		const file = await s3Client.send(new GetObjectCommand(pdfParams));
 		if (file.Body instanceof Readable) {
@@ -38,7 +35,6 @@ export async function fetchEncodedFile(bucket: string, key: string): Promise<any
 			return encoded;
 		}
 	} catch (error) {
-		this.logger.error({ message: "Error fetching the file from S3 bucket", error });
 		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching the file from S3 bucket");
 	}	
 }

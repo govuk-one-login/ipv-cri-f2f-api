@@ -17,7 +17,7 @@ import { Constants } from "../utils/Constants";
 import { getClientConfig } from "../utils/ClientConfig";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { PdfPreferenceEmail } from "../models/PdfPreferenceEmail";
-import { fetchEncodedFile } from "../utils/S3Client";
+import { fetchEncodedFileFromS3Bucket } from "../utils/S3Client";
 
 /**
  * Class to send emails using gov notify service
@@ -110,7 +110,7 @@ export class SendToGovNotifyService {
 
   		if (pdfPreferenceDetails.pdfPreference === Constants.PDF_PREFERENCE_PRINTED_LETTER) {
 
-  			const mergedPdf = await this.fetchMergedPdf(pdfPreferenceDetails);
+  			const mergedPdf = await this.fetchPdfFile(pdfPreferenceDetails, this.environmentVariables.mergedPdfBucketFolder());
 
   			if (mergedPdf) {
   				this.logger.debug("sendLetter", SendToGovNotifyService.name);
@@ -126,7 +126,7 @@ export class SendToGovNotifyService {
   			}
   		}
 		
-  		const instructionsPdf = await this.fetchYotiPdf(pdfPreferenceDetails);
+  		const instructionsPdf = await this.fetchPdfFile(pdfPreferenceDetails, this.environmentVariables.yotiPdfBucketFolder());
 
   		if (instructionsPdf) {
   			this.logger.debug("sendEmail", SendToGovNotifyService.name);
@@ -176,40 +176,29 @@ export class SendToGovNotifyService {
   	}
   }
 
-  async fetchYotiPdf(pdfPreferenceDetails: PdfPreferenceEmail): Promise<any> {
+  async fetchPdfFile(pdfPreferenceDetails: PdfPreferenceEmail, folderName: string): Promise<any> {
 	const f2fSessionInfo = await this.f2fService.getSessionById(pdfPreferenceDetails.sessionId);
 
 	if (!f2fSessionInfo) {
-		this.logger.warn("Missing details in SESSION table", {
+		this.logger.warn("Session not found", {
 			messageCode: MessageCodes.SESSION_NOT_FOUND,
 		});
-		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION table");
+		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Session not found");
 	}  		
 		
 	const bucket = this.environmentVariables.yotiLetterBucket();
-	const folder = this.environmentVariables.yotiPdfBucketFolder();
+	const folder = folderName;
 	const key = `${folder}/${pdfPreferenceDetails.yotiSessionId}`; 
+
+	this.logger.info("Fetching the pdf file from the S3 bucket. ", { bucket, key }); 
+	try{
+		return await fetchEncodedFileFromS3Bucket(bucket, key);
+	} catch(error){
+		this.logger.error({ message: "Error fetching the pdf file from S3 bucket", error, messageCode: MessageCodes.ERROR_FETCHING_PDF_FILE_FROM_S3_BUCKET });
+		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching the pdf file from S3 bucket");
+	}	
 	
-	return await fetchEncodedFile(bucket, key);
   }
-
-  async fetchMergedPdf(pdfPreferenceDetails: PdfPreferenceEmail): Promise<any> {
-  	const f2fSessionInfo = await this.f2fService.getSessionById(pdfPreferenceDetails.sessionId);
-	if (!f2fSessionInfo) {
-		this.logger.warn("Missing details in SESSION table", {
-			messageCode: MessageCodes.SESSION_NOT_FOUND,
-		});
-		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION table");
-	} 		 		
-
-
-  	const bucket = this.environmentVariables.yotiLetterBucket();
-  	const folder = this.environmentVariables.mergedPdfBucketFolder();
-  	const key = `${folder}/${pdfPreferenceDetails.yotiSessionId}`;
-		
-  	return await fetchEncodedFile(bucket, key);
-  }
-
 
   async sendF2FYotiEmailedEvent(pdfPreferenceDetails: PdfPreferenceEmail): Promise<void> {
   	const session = await this.f2fService.getSessionById(pdfPreferenceDetails.sessionId);
