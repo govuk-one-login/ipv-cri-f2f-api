@@ -80,11 +80,11 @@ export class AbortRequestProcessor {
   	}
 
   	try {
-		const coreEventFields = buildCoreEventFields(
-			f2fSessionInfo,
-			this.environmentVariables.issuer() as string,
-			f2fSessionInfo.clientIpAddress,
-		);
+  		const coreEventFields = buildCoreEventFields(
+  			f2fSessionInfo,
+  			this.environmentVariables.issuer() as string,
+  			f2fSessionInfo.clientIpAddress,
+  		);
   		await this.f2fService.sendToTXMA({
   			event_name: TxmaEventNames.F2F_CRI_SESSION_ABORTED,
   			...coreEventFields,
