@@ -80,9 +80,18 @@ export class AbortRequestProcessor {
   	}
 
   	try {
+		const coreEventFields = buildCoreEventFields(
+			f2fSessionInfo,
+			this.environmentVariables.issuer(),
+			f2fSessionInfo.clientIpAddress,
+		);
   		await this.f2fService.sendToTXMA({
   			event_name: TxmaEventNames.F2F_CRI_SESSION_ABORTED,
-  			...buildCoreEventFields(f2fSessionInfo, this.environmentVariables.issuer() as string, f2fSessionInfo.clientIpAddress),
+			...coreEventFields,
+			user: {
+				...coreEventFields.user,
+				govuk_signin_journey_id: f2fSessionInfo.clientSessionId,
+			},
   		}, encodedHeader);
   	} catch (error) {
   		this.logger.error("Auth session successfully aborted. Failed to send F2F_CRI_SESSION_ABORTED event to TXMA", {
