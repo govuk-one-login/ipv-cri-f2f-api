@@ -15,12 +15,16 @@
         },
         "ip_address": {
           "type": "string"
+        },
+        "govuk_signin_journey_id": {
+            "type": "string"
         }
       },
       "required": [
         "user_id",
         "session_id",
-        "ip_address"
+        "ip_address",
+        "govuk_signin_journey_id"
       ]
     },
     "timestamp": {
