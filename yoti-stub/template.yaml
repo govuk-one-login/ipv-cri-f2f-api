@@ -144,7 +144,7 @@ Resources:
         Fn::Transform:
           Name: AWS::Include
           Parameters:
-            Location: './yoti-spec.yaml'
+            Location: "./yoti-spec.yaml"
 
       TracingEnabled: true
       Tags:
