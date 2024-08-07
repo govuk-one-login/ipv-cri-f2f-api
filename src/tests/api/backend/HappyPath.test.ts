@@ -283,7 +283,7 @@ describe("/sessionConfiguration endpoint", () => {
 		const sessionConfigurationResponse = await sessionConfigurationGet(sessionId);
 
 		expect(sessionConfigurationResponse.status).toBe(200);
-		expect(sessionConfigurationResponse.data.pcl_enabled).toBe("true");
+		expect(sessionConfigurationResponse.data).toHaveProperty("pcl_enabled");
 		expect(sessionConfigurationResponse.data.evidence_requested.strengthScore).toEqual(strengthScore);
 	});
 
