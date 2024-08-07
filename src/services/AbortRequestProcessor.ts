@@ -82,7 +82,7 @@ export class AbortRequestProcessor {
   	try {
   		const coreEventFields = buildCoreEventFields(
   			f2fSessionInfo,
-  			this.environmentVariables.issuer(),
+  			this.environmentVariables.issuer() as string,
   			f2fSessionInfo.clientIpAddress,
   		);
   		await this.f2fService.sendToTXMA({
