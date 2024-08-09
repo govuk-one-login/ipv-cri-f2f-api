@@ -3237,7 +3237,7 @@ Resources:
 
   ExpiredSessionFunctionTestRolePermission:
     Type: AWS::Lambda::Permission
-    Condition: IsNotProdLikeEnvironment
+    Condition: AddExpiredSessionFunctionTestRolePermissions
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ExpiredSessionsFunction
