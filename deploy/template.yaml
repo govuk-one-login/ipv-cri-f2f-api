@@ -6320,6 +6320,8 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger the alarm if any lambda in the account timesout 5 times within 5 minutes. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-LambdaTimeoutAlarm"
