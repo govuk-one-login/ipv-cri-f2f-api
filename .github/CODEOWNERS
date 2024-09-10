@@ -1,7 +1,7 @@
 # This is the CODEOWNERS file. These owners will be the default owners for everything in the di-ipv-cri-f2f-api repository
 # The following below will be requested for review when someone opens a pull request.
 
-* @govuk-one-login/kiwi-api-codeowners
+* @govuk-one-login/kiwi-api-codeowners @govuk-one-login/kiwi-admins
 
 # The following allows QA to review changes to /tests directory
 
