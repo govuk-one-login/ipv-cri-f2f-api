@@ -4104,7 +4104,7 @@ Resources:
       AutoPublishAlias: live
       DeploymentPreference:
         Type: !Ref StepFunctionsCanaryDeployment
-        Interval: 10
+        Interval: 1
         Percentage: 10
         Alarms:
           - !Ref YotiCallbackStateMachineFailedCanary
@@ -4152,9 +4152,9 @@ Resources:
       Unit: Count
       Period: 60
       EvaluationPeriods: 1
-      Threshold: 1
+      Threshold: 0
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
+      TreatMissingData: breaching
 
   TriggerYotiCallbackStateMachine:
     Type: AWS::Serverless::Function
@@ -5227,7 +5227,7 @@ Resources:
       AutoPublishAlias: live
       DeploymentPreference:
         Type: !Ref StepFunctionsCanaryDeployment
-        Interval: 10
+        Interval: 1
         Percentage: 10
         Alarms:
           - !Ref SendYotiLetterStateMachineFailedCanary
