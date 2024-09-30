@@ -4152,9 +4152,9 @@ Resources:
       Unit: Count
       Period: 60
       EvaluationPeriods: 2
-      Threshold: 1
+      Threshold: 0
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
+      TreatMissingData: breaching
 
   TriggerYotiCallbackStateMachine:
     Type: AWS::Serverless::Function
