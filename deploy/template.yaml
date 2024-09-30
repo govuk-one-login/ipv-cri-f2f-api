@@ -5240,9 +5240,10 @@ Resources:
         StateMachineVersionArn: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:F2F-SendYotiLetter-stepfunction-${AWS::StackName}"
       DefinitionUri: ../src/stepFunctions/sendYotiLetter.asl.json
       DefinitionSubstitutions:
-        GenerateYotiLetterFunctionArn: !Ref GenerateYotiLetterFunction.Version
-        GeneratePrintedLetterFunctionArn: !Ref GeneratePrintedLetterFunction.Version
-        SendToGovNotifyFunctionArn: !Ref SendToGovNotifyFunction.Version
+      #   GenerateYotiLetterFunctionArn: !Ref GenerateYotiLetterFunction.Version
+      #   GeneratePrintedLetterFunctionArn: !Ref GeneratePrintedLetterFunction.Version
+      #   SendToGovNotifyFunctionArn: !Ref SendToGovNotifyFunction.Version
+        StackName: !Ref AWS::StackName
       Policies:
         - AWSXrayWriteOnlyAccess
         - LambdaInvokePolicy:
