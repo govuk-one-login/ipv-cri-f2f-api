@@ -1,0 +1,151 @@
+plugins {
+	id "java"
+	id "org.sonarqube" version "4.4.+"
+	id "com.diffplug.spotless" version "6.23.+"
+}
+
+defaultTasks 'clean', 'spotlessApply', 'build'
+
+ext {
+	dependencyVersions = [
+		jackson_version          : "2.13.1",
+		aws_lambda_events_version: "3.11.0",
+		nimbusds_oauth_version   :  "11.2",
+		nimbusds_jwt_version	 : 	"9.40",
+		protobuf_version         : "3.19.4",
+		junit                    : "5.10.2",
+		mockito                  : "4.3.1",
+		glassfish_version        : "3.0.3",
+		powertools_version       : "1.12.3",
+		cri_common_lib           : "2.1.0",
+		itextpdf_version		 : "8.0.4",
+	]
+}
+
+repositories {
+	maven {
+		url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
+	}
+}
+
+subprojects {
+	apply plugin: 'java'
+	java {
+		sourceCompatibility = JavaVersion.VERSION_11
+		targetCompatibility = JavaVersion.VERSION_11
+	}
+
+	repositories {
+		maven {
+			url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
+		}
+	}
+
+	configurations {
+		aws
+		dynamodb
+		jackson
+		lambda
+		sqs
+		kms
+		lambda_tests
+		lettuce
+		nimbus
+		ssm
+		tests
+		test_runtime
+		gson
+		powertools
+		mockito
+		cri_common_lib
+		itextpdf
+	}
+
+	// The dynamodb enhanced package loads the apache-client as well as the spi-client, so
+	// we need to add the apache-client to the dependencies exclusion to not get a mismatch
+	configurations.all {
+		exclude group: "software.amazon.awssdk", module: "apache-client"
+	}
+
+	dependencies {
+		aws platform('software.amazon.awssdk:bom:2.26.20')
+
+		dynamodb "software.amazon.awssdk:dynamodb",
+				"software.amazon.awssdk:dynamodb-enhanced"
+
+		lambda "software.amazon.awssdk:lambda",
+				"com.amazonaws:aws-lambda-java-events:${dependencyVersions.aws_lambda_events_version}"
+
+		cri_common_lib "uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib}"
+
+		sqs "software.amazon.awssdk:sqs"
+
+		kms "software.amazon.awssdk:kms"
+
+		lambda_tests "software.amazon.awssdk:aws-lambda-java-tests:1.1.1"
+
+		jackson "com.fasterxml.jackson.core:jackson-core:${dependencyVersions.jackson_version}",
+				"com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}",
+				"com.fasterxml.jackson.core:jackson-annotations:${dependencyVersions.jackson_version}",
+				"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
+				"com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${dependencyVersions.jackson_version}"
+
+		powertools "software.amazon.lambda:powertools-logging:${dependencyVersions.powertools_version}",
+				"software.amazon.lambda:powertools-metrics:${dependencyVersions.powertools_version}",
+				"software.amazon.lambda:powertools-tracing:${dependencyVersions.powertools_version}",
+				"software.amazon.lambda:powertools-parameters:${dependencyVersions.powertools_version}"
+
+		nimbus "com.nimbusds:oauth2-oidc-sdk:${dependencyVersions.nimbusds_oauth_version}",
+				"com.nimbusds:nimbus-jose-jwt:${dependencyVersions.nimbusds_jwt_version}"
+
+		tests "org.junit.jupiter:junit-jupiter-api:${dependencyVersions.junit}",
+				"org.junit.jupiter:junit-jupiter-params:${dependencyVersions.junit}",
+				"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito}",
+				"org.mockito:mockito-inline:${dependencyVersions.mockito}",
+				"org.hamcrest:hamcrest:2.2"
+
+		test_runtime "org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit}"
+
+		itextpdf "com.itextpdf:itext-core:${dependencyVersions.itextpdf_version}"
+	}
+
+	test {
+		// Configures environment variable to avoid initialization of AWS X-Ray segments for each tests
+		environment "LAMBDA_TASK_ROOT", "handler"
+	}
+}
+
+sonar {
+	properties {
+		property "sonar.projectName", "ipv-cri-f2f-api-java"
+		property "sonar.projectKey", "ipv-cri-f2f-api-java"
+		property "sonar.organization", "govuk-one-login"
+		property "sonar.host.url", "https://sonarcloud.io"
+	}
+}
+
+spotless {
+	java {
+		target "**/src/**/*.java"
+		googleJavaFormat("1.13.0").aosp()
+		importOrder "", "javax", "java", "\\#"
+		endWithNewline()
+	}
+	groovyGradle {
+		target '**/*.gradle'
+		greclipse()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+}
+
+clean.doFirst {
+	delete "${rootDir}/dist/"
+	delete "${rootDir}/.aws-sam"
+}
+
+gradle.projectsEvaluated {
+	tasks.withType(JavaCompile) {
+		options.compilerArgs << "-Xlint:unchecked"
+	}
+}
