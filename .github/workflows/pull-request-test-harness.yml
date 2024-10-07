@@ -99,7 +99,7 @@ jobs:
           key: sam-oauth
 
       - name: SAM Validate
-        run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml
+        run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml --lint
 
       - name: SAM Build
         run: sam build -t template.yaml
