@@ -96,9 +96,9 @@ jobs:
         run: npm run test:infra
 
       - name: Run Contract tests
-        run: npm run test:contract:ci   
-      
-      - name: Kill DynamoDB 
+        run: npm run test:contract:ci
+
+      - name: Kill DynamoDB
         run: npm run kill:dynamodblocal
 
   sam-validate:
@@ -135,7 +135,7 @@ jobs:
           key: sam-oauth
 
       - name: SAM Validate
-        run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml
+        run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml --lint
 
       - name: SAM Build
         run: sam build -t template.yaml

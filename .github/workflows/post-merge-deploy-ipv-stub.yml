@@ -68,7 +68,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: SAM Validate
-        run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml
+        run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml --lint
 
       - name: Install Nodejs Npm Esbuild Builder
         run: npm -g install esbuild
