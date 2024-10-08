@@ -66,7 +66,10 @@ Parameters:
     Description: "ARN of the role used during pipeline test stage, allowing Lambda invocations. Injected by the deployment pipeline"
     Type: String
     Default: none
-
+  StepFunctionsDeploymentPreference:
+    Description: "Specifies the configuration to enable gradual StepFunction deployments"
+    Type: String
+    Default: "ALL_AT_ONCE"
 
 Mappings:
   EnvironmentConfiguration: # This is where you store per-environment settings.
@@ -3356,10 +3359,23 @@ Resources:
     Type: AWS::Serverless::StateMachine
     Properties:
       Name: !Sub "F2F-YotiCallback-stepfunction-${AWS::StackName}"
+      AutoPublishAlias: live
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: !Ref StepFunctionsDeploymentPreference
+        Interval: 10
+        Percentage: 10
+        Alarms:
+          - !Ref YotiCallbackStateMachineFailedCanary
+          - !Ref YotiCallbackFunctionFatalErrorAlarm
+          # - !Ref YotiCallbackFunctionCanary5xxErrors
+          - !Ref ThankYouEmailFatalErrorAlarm
+          # - !Ref ThankYouEmailFunctionCanary5xxErrors
+        StateMachineVersionArn: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:F2F-YotiCallback-stepfunction-${AWS::StackName}:live"
       DefinitionUri: ../src/stepFunctions/yotiCallback.asl.json
       DefinitionSubstitutions:
-        YotiSessionCompletionFunctionArn: !GetAtt YotiCallbackFunction.Arn
-        ThankYouEmailFunctionArn: !GetAtt ThankYouEmailFunction.Arn
+        YotiSessionCompletionFunctionArn: !Ref YotiCallbackFunction.Version
+        ThankYouEmailFunctionArn: !Ref ThankYouEmailFunction.Version
       Policies:
         - AWSXrayWriteOnlyAccess
         - LambdaInvokePolicy:
@@ -3372,6 +3388,32 @@ Resources:
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
+
+  YotiCallbackStateMachineFailedCanary:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-YotiCallbackStateMachineFailedCanary"
+      AlarmDescription: !Sub "Errors returned from the PSendYotiLetterStateMachine"
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      MetricName: ExecutionsFailed
+      Dimensions:
+        - Name: StateMachineArn
+          Value: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:F2F-YotiCallback-stepfunction-${AWS::StackName}"
+        - Name: Alias
+          Value: 'live'
+      Namespace: AWS/States
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   TriggerYotiCallbackStateMachine:
     Type: AWS::Serverless::Function
@@ -3802,7 +3844,6 @@ Resources:
 
   ThankYouEmailFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref ThankYouEmailFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3816,7 +3857,6 @@ Resources:
     DependsOn:
       - "ThankYouEmailFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ThankYouEmail-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -4035,7 +4075,6 @@ Resources:
 
   GenerateYotiLetterFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref GenerateYotiLetterFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -4049,7 +4088,6 @@ Resources:
     DependsOn:
       - "GenerateYotiLetterFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GenerateYotiLetter-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -4180,7 +4218,6 @@ Resources:
 
   GeneratePrintedLetterFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref GeneratePrintedLetterFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -4194,7 +4231,6 @@ Resources:
     DependsOn:
       - "GeneratePrintedLetterFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GeneratePrintedLetter-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -4325,7 +4361,6 @@ Resources:
 
   SendToGovNotifyFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref SendToGovNotifyFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -4339,7 +4374,6 @@ Resources:
     DependsOn:
       - "SendToGovNotifyFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SendToGovNotify-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -4420,11 +4454,25 @@ Resources:
     Type: AWS::Serverless::StateMachine
     Properties:
       Name: !Sub "F2F-SendYotiLetter-stepfunction-${AWS::StackName}"
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: !Ref StepFunctionsDeploymentPreference
+        Interval: 10
+        Percentage: 10
+        Alarms:
+          - !Ref SendYotiLetterStateMachineFailedCanary
+          - !Ref GenerateYotiLetterFatalErrorAlarm
+          # - !Ref GenerateYotiLetterFunctionCanary5xxErrors
+          - !Ref GeneratePrintedLetterFatalErrorAlarm
+          # - !Ref GeneratePrintedLetterFunctionCanary5xxErrors
+          - !Ref SendToGovNotifyFatalErrorAlarm
+          # - !Ref SendToGovNotifyFunctionCanary5xxErrors
+        StateMachineVersionArn: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:F2F-SendYotiLetter-stepfunction-${AWS::StackName}:live"
       DefinitionUri: ../src/stepFunctions/sendYotiLetter.asl.json
       DefinitionSubstitutions:
-        GenerateYotiLetterFunctionArn: !GetAtt GenerateYotiLetterFunction.Arn
-        GeneratePrintedLetterFunctionArn: !GetAtt GeneratePrintedLetterFunction.Arn
-        SendToGovNotifyFunctionArn: !GetAtt SendToGovNotifyFunction.Arn
+        GenerateYotiLetterFunctionArn: !Ref GenerateYotiLetterFunction.Version
+        GeneratePrintedLetterFunctionArn: !Ref GeneratePrintedLetterFunction.Version
+        SendToGovNotifyFunctionArn: !Ref SendToGovNotifyFunction.Version
       Policies:
         - AWSXrayWriteOnlyAccess
         - LambdaInvokePolicy:
@@ -4439,6 +4487,32 @@ Resources:
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
+
+  SendYotiLetterStateMachineFailedCanary:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-SendYotiLetterStateMachine"
+      AlarmDescription: !Sub "Errors returned from the PSendYotiLetterStateMachine"
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      MetricName: ExecutionsFailed
+      Dimensions:
+        - Name: StateMachineArn
+          Value: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:F2F-SendYotiLetter-stepfunction-${AWS::StackName}"
+        - Name: Alias
+          Value: 'live'
+      Namespace: AWS/States
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   YotiCallbackQueueDeadLetterQueue:
     Type: "AWS::SQS::Queue"
@@ -4514,7 +4588,6 @@ Resources:
 
   YotiCallbackFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref YotiCallbackFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -4528,7 +4601,6 @@ Resources:
     DependsOn:
       - "YotiCallbackFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
