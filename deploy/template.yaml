@@ -70,6 +70,12 @@ Parameters:
     Description: "Specifies the configuration to enable gradual Lambda deployments. This value is picked up from the LambdaCanaryDeployment on the pipeline "
     Type: String
     Default: AllAtOnce
+    AllowedValues:
+      - AllAtOnce
+      - Canary10Percent5Minutes
+      - Canary10Percent10Minutes
+      - Canary10Percent15Minutes
+      - Canary10Percent30Minutes
 
 
 Mappings:
@@ -312,6 +318,7 @@ Conditions:
   AddExpiredSessionFunctionTestRolePermissions: !And
     - Condition: IsNotProdLikeEnvironment
     - !Not [ !Equals [ !Ref TestRoleArn, none ]]
+  UseCanaryDeploymentAlarms: !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
 
 Globals:
   Function:
@@ -802,10 +809,10 @@ Resources:
     Properties:
       FunctionName: !Sub "F2F-Session-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref SessionFunctionFatalErrorAlarm
-          - !Ref SessionFunctionLambdaErrors
-          - !Ref SessionFunctionCanary5xxErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref SessionFunctionFatalErrorAlarm, !Ref SessionFunctionLambdaErrors, !Ref SessionFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: SessionHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1135,10 +1142,10 @@ Resources:
     Properties:
       FunctionName: !Sub "F2F-SessionConfig-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref SessionConfigFunctionFatalErrorAlarm
-          - !Ref SessionConfigFunctionLambdaErrors
-          - !Ref SessionConfigFunctionCanary5xxErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref SessionConfigFunctionFatalErrorAlarm, !Ref SessionConfigFunctionLambdaErrors, !Ref SessionConfigFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: SessionConfigHandler.lambdaHandler
       CodeUri: ../src/
       Environment:
@@ -1357,10 +1364,10 @@ Resources:
     Properties:
       FunctionName: !Sub "Access-Token-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref TokenFunctionFatalErrorAlarm
-          - !Ref TokenFunctionCanary5xxErrors
-          - !Ref TokenFunctionLambdaErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref TokenFunctionFatalErrorAlarm, !Ref TokenFunctionCanary5xxErrors, !Ref TokenFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: AccessTokenHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1588,10 +1595,10 @@ Resources:
     Properties:
       FunctionName: !Sub "F2F-Authorization-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref AuthorizationFunctionFatalErrorAlarm
-          - !Ref AuthorizationFunctionCanary5xxErrors
-          - !Ref AuthorizationFunctionLambdaErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref AuthorizationFunctionFatalErrorAlarm, !Ref AuthorizationFunctionCanary5xxErrors, !Ref AuthorizationFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: AuthorizationCodeHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1826,10 +1833,10 @@ Resources:
     Properties:
       FunctionName: !Sub "Document-Selection-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref DocumentSelectionFatalErrorAlarm
-          - !Ref DocumentSelectionFunctionLambdaErrors
-          - !Ref DocumentSelectionFunctionCanary5xxErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref DocumentSelectionFatalErrorAlarm, !Ref DocumentSelectionFunctionLambdaErrors, !Ref DocumentSelectionFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: DocumentSelectionHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -2095,10 +2102,10 @@ Resources:
     Properties:
       FunctionName: !Sub "Abort-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref AbortFunctionFatalErrorAlarm
-          - !Ref AbortFunctionLambdaErrors
-          - !Ref AbortFunctionCanary5xxErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref AbortFunctionFatalErrorAlarm, !Ref AbortFunctionLambdaErrors, !Ref AbortFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: AbortHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -2272,10 +2279,10 @@ Resources:
     Properties:
       FunctionName: !Sub "F2F-person-info-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref PersonInfoFunctionFatalErrorAlarm
-          - !Ref PersonInfoFunctionLambdaErrors
-          - !Ref PersonInfoFunctionCanary5xxErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref PersonInfoFunctionFatalErrorAlarm, !Ref PersonInfoFunctionLambdaErrors, !Ref PersonInfoFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: PersonInfoHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -2690,10 +2697,10 @@ Resources:
     Properties:
       FunctionName: !Sub "F2F-person-info-key-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref PersonInfoKeyFunctionFatalErrorAlarm
-          - !Ref PersonInfoKeyFunctionLambdaErrors
-          - !Ref PersonInfoKeyFunctionCanary5xxErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref PersonInfoKeyFunctionFatalErrorAlarm, !Ref PersonInfoKeyFunctionLambdaErrors, !Ref PersonInfoKeyFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: PersonInfoKeyHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -2988,10 +2995,10 @@ Resources:
     Properties:
       FunctionName: !Sub "JsonWebKeys-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref JsonWebKeysFunctionFatalErrorAlarm
-          - !Ref JsonWebKeysFunctionLambdaErrors
-          - !Ref JsonWebKeysFunctionCanary5xxErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref JsonWebKeysFunctionFatalErrorAlarm, !Ref JsonWebKeysFunctionLambdaErrors, !Ref JsonWebKeysFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       CodeUri: ../src/
       Handler: JwksHandler.lambdaHandler
       ReservedConcurrentExecutions: !If
@@ -3200,9 +3207,10 @@ Resources:
     Properties:
       FunctionName: !Sub "F2F-GovNotify-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref GovNotifyFunctionFatalErrorAlarm
-          - !Ref GovNotifyFunctionLambdaErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref GovNotifyFunctionFatalErrorAlarm, !Ref GovNotifyFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: GovNotifyHandler.lambdaHandler
       CodeUri: ../src/
       Timeout: 300
@@ -3400,10 +3408,10 @@ Resources:
     Properties:
       FunctionName: !Sub "User-Info-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref UserInfoFunctionFatalErrorAlarm
-          - !Ref UserInfoFunctionCanary5xxErrors
-          - !Ref UserInfoFunctionLambdaErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref UserInfoFunctionFatalErrorAlarm, !Ref UserInfoFunctionCanary5xxErrors, !Ref UserInfoFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: UserInfoHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -3643,9 +3651,10 @@ Resources:
     Properties:
       FunctionName: !Sub "F2F-ReminderEmail-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref ReminderEmailFunctionFatalErrorAlarm
-          - !Ref ReminderEmailFunctionLambdaErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref ReminderEmailFunctionFatalErrorAlarm, !Ref ReminderEmailFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: ReminderEmailHandler.lambdaHandler
       CodeUri: ../src/
       Timeout: 900
@@ -3864,9 +3873,10 @@ Resources:
     Properties:
       FunctionName: !Sub "F2F-ExpiredSessions-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref ExpiredSessionsFunctionFatalErrorAlarm
-          - !Ref ExpiredSessionsFunctionLambdaErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref ExpiredSessionsFunctionFatalErrorAlarm, !Ref ExpiredSessionsFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: ExpiredSessionsHandler.lambdaHandler
       CodeUri: ../src/
       Timeout: 900
@@ -4122,9 +4132,10 @@ Resources:
     Properties:
       FunctionName: !Sub "F2F-TriggerYotiCallbackStateMachine-${AWS::StackName}"
       DeploymentPreference:
-        Alarms:
-          - !Ref TriggerYotiCallbackStateMachineFatalErrorAlarm
-          - !Ref TriggerYotiCallbackStateMachineLambdaErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref TriggerYotiCallbackStateMachineFatalErrorAlarm, !Ref TriggerYotiCallbackStateMachineLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: TriggerYotiCallbackStateMachineHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
