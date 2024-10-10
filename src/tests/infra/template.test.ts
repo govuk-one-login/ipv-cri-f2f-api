@@ -241,9 +241,9 @@ describe("Infra", () => {
   describe("Log group retention", () => {
     it.each`
       environment      | retention
-      ${"dev"}         | ${3}
-      ${"build"}       | ${3}
-      ${"staging"}     | ${3}
+      ${"dev"}         | ${30}
+      ${"build"}       | ${30}
+      ${"staging"}     | ${30}
       ${"integration"} | ${30}
       ${"production"}  | ${30}
     `(
