@@ -4397,7 +4397,7 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: TriggerYotiCallbackStateMachineHandler
-          STATE_MACHINE_ARN: !GetAtt YotiCallbackStateMachine.Arn
+          STATE_MACHINE_ARN: !Sub ${YotiCallbackStateMachine}:live
       Policies:
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
