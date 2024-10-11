@@ -78,6 +78,10 @@ Parameters:
     Description: "Specifies the configuration to enable gradual StepFunction deployments"
     Type: String
     Default: "ALL_AT_ONCE"
+    AllowedValues:
+      - ALL_AT_ONCE
+      - CANARY
+      - LINEAR
 
 Mappings:
   EnvironmentConfiguration: # This is where you store per-environment settings.
@@ -359,6 +363,7 @@ Conditions:
   AddExpiredSessionFunctionTrafficTestRolePermissions: !And
     - Condition: IsNotProdLikeEnvironment
     - !Not [ !Equals [ !Ref TrafficTestRoleArn, none ]]
+  UseStepCanaryDeploymentAlarms: !Not [ !Equals [ !Ref StepFunctionsDeploymentPreference, ALL_AT_ONCE ]]
 
   UseCanaryDeploymentAlarms: !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
   PclEnabled: !Equals [ !FindInMap [ EnvironmentVariables, !Ref Environment, PCLENABLED ], "true" ]
@@ -4321,17 +4326,16 @@ Resources:
     Properties:
       Name: !Sub "F2F-YotiCallback-stepfunction-${AWS::StackName}"
       AutoPublishAlias: live
-      AutoPublishAlias: live
       DeploymentPreference:
         Type: !Ref StepFunctionsDeploymentPreference
         Interval: 10
         Percentage: 10
-        Alarms:
-          - !Ref YotiCallbackStateMachineFailedCanary
-          - !Ref YotiCallbackFunctionFatalErrorAlarm
-          # - !Ref YotiCallbackFunctionCanary5xxErrors
-          - !Ref ThankYouEmailFatalErrorAlarm
-          # - !Ref ThankYouEmailFunctionCanary5xxErrors
+        Alarms: !If
+          -UseStepCanaryDeploymentAlarms
+          - - !Ref YotiCallbackStateMachineFailedCanary
+            - !Ref YotiCallbackFunctionFatalErrorAlarm
+            - !Ref ThankYouEmailFatalErrorAlarm
+          - !Ref AWS::NoValue
         StateMachineVersionArn: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:F2F-YotiCallback-stepfunction-${AWS::StackName}:live"
       DefinitionUri: ../src/stepFunctions/yotiCallback.asl.json
       DefinitionSubstitutions:
@@ -4352,6 +4356,7 @@ Resources:
 
   YotiCallbackStateMachineFailedCanary:
     Type: AWS::CloudWatch::Alarm
+    Condition: UseStepCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackStateMachineFailedCanary"
       AlarmDescription: !Sub "Errors returned from the PSendYotiLetterStateMachine"
@@ -5535,14 +5540,13 @@ Resources:
         Type: !Ref StepFunctionsDeploymentPreference
         Interval: 10
         Percentage: 10
-        Alarms:
-          - !Ref SendYotiLetterStateMachineFailedCanary
-          - !Ref GenerateYotiLetterFatalErrorAlarm
-          # - !Ref GenerateYotiLetterFunctionCanary5xxErrors
-          - !Ref GeneratePrintedLetterFatalErrorAlarm
-          # - !Ref GeneratePrintedLetterFunctionCanary5xxErrors
-          - !Ref SendToGovNotifyFatalErrorAlarm
-          # - !Ref SendToGovNotifyFunctionCanary5xxErrors
+        Alarms: !If
+          -UseStepCanaryDeploymentAlarms
+          - - !Ref SendYotiLetterStateMachineFailedCanary
+            - !Ref GenerateYotiLetterFatalErrorAlarm
+            - !Ref GeneratePrintedLetterFatalErrorAlarm
+            - !Ref SendToGovNotifyFatalErrorAlarm
+          - !Ref AWS::NoValue
         StateMachineVersionArn: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:F2F-SendYotiLetter-stepfunction-${AWS::StackName}:live"
       DefinitionUri: ../src/stepFunctions/sendYotiLetter.asl.json
       DefinitionSubstitutions:
@@ -5566,6 +5570,7 @@ Resources:
 
   SendYotiLetterStateMachineFailedCanary:
     Type: AWS::CloudWatch::Alarm
+    Condition: UseStepCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SendYotiLetterStateMachine"
       AlarmDescription: !Sub "Errors returned from the PSendYotiLetterStateMachine"
