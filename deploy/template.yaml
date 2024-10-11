@@ -4067,7 +4067,7 @@ Resources:
     Condition: UseStepCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackStateMachineFailedCanary"
-      AlarmDescription: !Sub "Errors returned from the PSendYotiLetterStateMachine"
+      AlarmDescription: !Sub "Errors returned from the YotiCallbackStateMachine ${SupportManualURL}"
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-critical-alert
@@ -4084,7 +4084,7 @@ Resources:
       Statistic: Sum
       Unit: Count
       Period: 60
-      EvaluationPeriods: 2
+      EvaluationPeriods: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
@@ -5197,7 +5197,7 @@ Resources:
     Condition: UseStepCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SendYotiLetterStateMachine"
-      AlarmDescription: !Sub "Errors returned from the PSendYotiLetterStateMachine"
+      AlarmDescription: !Sub "Errors returned from the SendYotiLetterStateMachine ${SupportManualURL}"
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-critical-alert
