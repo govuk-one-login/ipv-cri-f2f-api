@@ -4334,7 +4334,9 @@ Resources:
           -UseStepCanaryDeploymentAlarms
           - - !Ref YotiCallbackStateMachineFailedCanary
             - !Ref YotiCallbackFunctionFatalErrorAlarm
+            - !Ref YotiCallbackFunctionLambdaErrors
             - !Ref ThankYouEmailFatalErrorAlarm
+            - !Ref ThankYouEmailFunctionLambdaErrors
           - !Ref AWS::NoValue
         StateMachineVersionArn: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:F2F-YotiCallback-stepfunction-${AWS::StackName}:live"
       DefinitionUri: ../src/stepFunctions/yotiCallback.asl.json
@@ -4877,6 +4879,32 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
+  ThankYouEmailFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseStepCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-ThankYouEmailFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-ThankYouEmailFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub ThankYouEmailFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
   ThankYouEmailRetriesExceededErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
@@ -5108,6 +5136,32 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
+  GenerateYotiLetterFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseStepCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-GenerateYotiLetterFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-GenerateYotiLetterFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub GenerateYotiLetterFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
   GenerateYotiLetterConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "ApplyReservedConcurrency"
@@ -5276,6 +5330,32 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  GeneratePrintedLetterFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseStepCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-GeneratePrintedLetterFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-GeneratePrintedLetterFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub GeneratePrintedLetterFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
   GeneratePrintedLetterConcurrency80Alarm:
@@ -5475,6 +5555,32 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
+  SendToGovNotifyFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseStepCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-SendToGovNotifyFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-SendToGovNotifyFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub SendToGovNotifyFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
   SendToGovNotifyConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "ApplyReservedConcurrency"
@@ -5544,8 +5650,11 @@ Resources:
           -UseStepCanaryDeploymentAlarms
           - - !Ref SendYotiLetterStateMachineFailedCanary
             - !Ref GenerateYotiLetterFatalErrorAlarm
+            - !Ref GenerateYotiLetterFunctionLambdaErrors
             - !Ref GeneratePrintedLetterFatalErrorAlarm
+            - !Ref GeneratePrintedLetterFunctionLambdaErrors
             - !Ref SendToGovNotifyFatalErrorAlarm
+            - !Ref SendToGovNotifyFunctionLambdaErrors
           - !Ref AWS::NoValue
         StateMachineVersionArn: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:F2F-SendYotiLetter-stepfunction-${AWS::StackName}:live"
       DefinitionUri: ../src/stepFunctions/sendYotiLetter.asl.json
@@ -5700,6 +5809,32 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  YotiCallbackFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseStepCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-YotiCallbackFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub YotiCallbackFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
   YotiCallbackRetriesExceededErrorMetricFilter:
