@@ -981,7 +981,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-SessionFunctionCanary5xxErrors"
-      AlarmDescription: !Sub "SessionFunction Lambda returning 5xx response."
+      AlarmDescription: !Sub SessionFunction Lambda returning 5xx response. ${SupportManualURL}
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -1210,7 +1210,7 @@ Resources:
       FunctionName: !Ref SessionConfigFunction
       Principal: apigateway.amazonaws.com
 
-  SessionConfigFunctionFatalErorMetricFilter:
+  SessionConfigFunctionFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref SessionConfigFunctionLogGroup
@@ -1223,7 +1223,7 @@ Resources:
 
   SessionConfigFunctionFatalErrorAlarm:
     DependsOn:
-      - "SessionConfigFunctionFatalErorMetricFilter"
+      - "SessionConfigFunctionFatalErrorMetricFilter"
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SessionConfigFunction-FatalErrorAlarm"
@@ -1281,7 +1281,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-SessionConfigFunctionCanary5xxErrors"
-      AlarmDescription: !Sub "SessionConfigFunction Lambda returning 5xx response."
+      AlarmDescription:  !Sub SessionConfigFunction Lambda returning 5xx response. ${SupportManualURL}
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -1513,7 +1513,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-TokenFunctionCanary5xxErrors"
-      AlarmDescription: !Sub "TokenFunction Lambda returning 5xx response."
+      AlarmDescription:  !Sub TokenFunction Lambda returning 5xx response. ${SupportManualURL}
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -1751,7 +1751,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunctionCanary5xxErrors"
-      AlarmDescription: !Sub "AuthorizationFunction Lambda returning 5xx response."
+      AlarmDescription:  !Sub AuthorizationFunction Lambda returning 5xx response. ${SupportManualURL}
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -2020,7 +2020,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunctionCanary5xxErrors"
-      AlarmDescription: !Sub "AuthorizationFunction Lambda returning 5xx response."
+      AlarmDescription: !Sub DocumentSelectionFunction Lambda returning 5xx response. ${SupportManualURL}
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -2244,7 +2244,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-AbortFunctionCanary5xxErrors"
-      AlarmDescription: !Sub "AuthorizationFunction Lambda returning 5xx response."
+      AlarmDescription: !Sub AbortFunction Lambda returning 5xx response. ${SupportManualURL}
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -2433,7 +2433,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-PersonInfoFunctionCanary5xxErrors"
-      AlarmDescription: !Sub "PersonInfoFunction Lambda returning 5xx response."
+      AlarmDescription: !Sub PersonInfoFunction Lambda returning 5xx response. ${SupportManualURL}
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -2824,7 +2824,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunctionCanary5xxErrors"
-      AlarmDescription: !Sub "PersonInfoKeyFunction Lambda returning 5xx response."
+      AlarmDescription: !Sub PersonInfoKeyFunction Lambda returning 5xx response. ${SupportManualURL}
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -3125,7 +3125,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunctionCanary5xxErrors"
-      AlarmDescription: !Sub "JsonWebKeysFunction Lambda returning 5xx response."
+      AlarmDescription: !Sub JsonWebKeysFunction Lambda returning 5xx response. ${SupportManualURL}
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -3567,7 +3567,7 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-UserInfoFunctionCanary5xxErrors"
-      AlarmDescription: !Sub "UserInfoFunction Lambda returning 5xx response."
+      AlarmDescription: !Sub UserInfoFunction Lambda returning 5xx response. ${SupportManualURL}
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -3986,7 +3986,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ExpiredSessionsFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
