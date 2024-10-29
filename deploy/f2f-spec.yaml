@@ -1284,6 +1284,7 @@ components:
               type: string
               description: Fad code of post office
               example: "004010X"
+              maxLength: 60
         pdf_preference:
           type: string
           additionalProperties: false
@@ -1321,6 +1322,7 @@ components:
               type: string
               description: Name of street
               example: "Boing Street"
+              maxLength: 60
             dependentStreetName:
               type: string
               description: Dependent thoroughfare
