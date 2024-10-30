@@ -1268,12 +1268,16 @@ components:
                   type: number
                   description: latitude for the Post Office location
                   example: 0.34322
-                  maxLength: 60
+                  minimum: -90
+                  maximum: 90
+                  multipleOf: 0.0000000001
                 longitude:
                   type: number
                   description: longitude for the Post Office location
                   example: -42.48372
-                  maxLength: 60
+                  minimum: -180
+                  maximum: 180
+                  multipleOf: 0.0000000001
             post_code:
               type: string
               description: Post code of post office
