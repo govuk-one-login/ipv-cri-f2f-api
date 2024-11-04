@@ -3,3 +3,8 @@
 .env
 .idea/
 cf-output.txt
+
+.gradle
+build/
+lambdas/
+lib/

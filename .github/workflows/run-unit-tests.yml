@@ -1,0 +1,58 @@
+name: Unit tests
+
+on:
+  workflow_call:
+    inputs:
+      coverage-report: { type: boolean, required: false, default: false }
+      coverage-artifact: { type: string, required: false, default: coverage }
+    outputs:
+      coverage-artifact:
+        value: ${{ inputs.coverage-artifact }}
+
+concurrency:
+  group: unit-tests-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./src/
+
+permissions: {}
+
+jobs:
+  run-tests:
+    name: Unit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Set offline mirror path
+        id: offline-mirror-path
+        run: echo "mirror-dir=${GITHUB_WORKSPACE}/npm-packages-offline-cache" >> $GITHUB_OUTPUT
+
+      - name: Cache npm offline-mirror
+        uses: actions/cache@v4
+        with:
+         path: ${{ steps.offline-mirror-path.outputs.mirror-dir }}
+         key: offline-mirror-oauth
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Unit tests
+        run: npm run test:unit
+
+      - name: Archive coverage results
+        if: ${{ inputs.coverage-report }}
+        uses: actions/upload-artifact@v3
+        with:
+         name: ${{ inputs.coverage-artifact }}
+         retention-days: 3
+         path: src/coverage/lcov.info
