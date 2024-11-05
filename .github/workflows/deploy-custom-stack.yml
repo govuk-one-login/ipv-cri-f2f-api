@@ -34,8 +34,11 @@ jobs:
       - name: Change to Deployment Directory
         run: cd ./deploy
 
+      - name: SAM Validate
+        run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml
+
       - name: SAM Build
-        run: sam build --parallel
+        run: sam build -t template.yaml
 
       - name: Deploy Custom Stack to DEV
         env:
