@@ -46,7 +46,7 @@ jobs:
           sam deploy \
             --resolve-s3 \
             --stack-name "${GITHUB_HEAD_REF}" \
-            --s3-prefix $S3_PREFIX \
+            --s3-prefix "${GITHUB_HEAD_REF}" \
             --confirm-changeset \
             --config-env dev \
             --parameter-overrides \
