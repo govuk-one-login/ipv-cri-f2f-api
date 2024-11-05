@@ -16,6 +16,7 @@ jobs:
   deploy-dev:
     name: Deploy Custom DEV Stack for PR
     runs-on: ubuntu-latest
+    environment: di-ipv-cri-dev
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -28,9 +29,9 @@ jobs:
       - name: Assume temporary AWS role for DEV
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.DEV_CRI_F2F_GH_ACTIONS_ROLE_ARN }}
+          role-to-assume: ${{ secrets[format('{0}_F2F_DDB_GH_ACTIONS_ROLE_ARN', env.environment)] }}
           aws-region: ${{ env.AWS_REGION }}
-
+          
       - name: SAM Validate
         run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml
         working-directory: ./deploy  # Set the working directory
