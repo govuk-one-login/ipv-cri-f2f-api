@@ -31,14 +31,13 @@ jobs:
           role-to-assume: ${{ secrets.DEV_CRI_F2F_GH_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Change to Deployment Directory
-        run: cd ./deploy
-
       - name: SAM Validate
-        run: sam validate --region ${{ env.AWS_REGION }} -t ./template.yaml  # Correct path
+        run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml
+        working-directory: ./deploy  # Set the working directory
 
       - name: SAM Build
-        run: sam build -t ./template.yaml  # Correct path
+        run: sam build -t template.yaml
+        working-directory: ./deploy  # Set the working directory
 
       - name: Deploy Custom Stack to DEV
         env:
@@ -58,3 +57,4 @@ jobs:
               VpcStackName="vpc-cri" \
               L2DynamoStackName="f2f-cri-ddb" \
               L2KMSStackName="f2f-cri-kms"
+        working-directory: ./deploy  # Set the working directory
