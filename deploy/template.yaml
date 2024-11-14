@@ -4036,8 +4036,8 @@ Resources:
       AutoPublishAlias: live
       DeploymentPreference:
         Type: !Ref StepFunctionsDeploymentPreference
-        Interval: 10
-        Percentage: 10
+        Interval: !If [IsProdEnvironment, 15, 5]
+        Percentage: !If [IsProdEnvironment, 10, 50]
         Alarms: !If
           -UseStepCanaryDeploymentAlarms
           - - !Ref YotiCallbackStateMachineFailedCanary
@@ -5268,8 +5268,8 @@ Resources:
       AutoPublishAlias: live
       DeploymentPreference:
         Type: !Ref StepFunctionsDeploymentPreference
-        Interval: 10
-        Percentage: 10
+        Interval: !If [IsProdEnvironment, 15, 5]
+        Percentage: !If [IsProdEnvironment, 10, 50]
         Alarms: !If
           -UseStepCanaryDeploymentAlarms
           - - !Ref SendYotiLetterStateMachineFailedCanary
