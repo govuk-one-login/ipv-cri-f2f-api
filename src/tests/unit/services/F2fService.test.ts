@@ -17,7 +17,6 @@ import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
 
-process.env.USE_MOCKED = "true";
 const logger = mock<Logger>();
 let f2fService: F2fService;
 const tableName = "SESSIONTABLE";

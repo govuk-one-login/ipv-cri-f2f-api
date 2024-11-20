@@ -5,17 +5,6 @@ import { Constants } from "../../../utils/Constants";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { jwtUtils } from "../../../utils/JwtUtils";
 
-jest.mock("@aws-sdk/client-kms", () => ({
-	KMS: jest.fn().mockImplementation(() => ({
-		sign: jest.fn().mockImplementation(() => ({
-			Signature: "signature",
-		})),
-		verify: jest.fn().mockImplementation(() => ({
-			SignatureValid: true,
-		})),
-	})),
-}));
-
 jest.mock("ecdsa-sig-formatter", () => ({
 	derToJose: jest.fn().mockImplementation(() => "JOSE-formatted signature"),
 	joseToDer: jest.fn().mockImplementation(() => "DER-formatted signature"),
@@ -35,6 +24,12 @@ describe("KmsJwtAdapter utils", () => {
 
 	beforeEach(() => {
 		kmsJwtAdapter = new KmsJwtAdapter(process.env.KMS_KEY_ARN!);
+		jest.spyOn(kmsJwtAdapter.kms, "sign").mockImplementation(() => ({
+			Signature: "signature",
+		}));
+		jest.spyOn(kmsJwtAdapter.kms, "verify").mockImplementation(() => ({
+			SignatureValid: true,
+		}));
 	});
 
 	describe("#sign", () => {
