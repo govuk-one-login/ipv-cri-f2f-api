@@ -3,7 +3,7 @@ const dummySignArr = [48, 69, 2, 32, 40, 41, 115, 198, 65, 212, 223, 151, 36, 22
 //const randomIntArrayInRange  =  Array.from( { length: 71 }, () => Math.floor(Math.random() * (238 - 2 + 1)) + 2 );
 
 
-export const mockKmsCient = {
+export const mockKmsClient = {
 	send: () => "Success",
 	sign: () => { return { Signature: new Uint8Array(dummySignArr) }; },	
 	verify: () => { return { SignatureValid: true }; },
