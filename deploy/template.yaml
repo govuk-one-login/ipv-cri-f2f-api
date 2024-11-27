@@ -70,6 +70,10 @@ Parameters:
     Description: "ARN of the role used during pipeline traffic test stage, allowing Lambda invocations. Injected by the deployment pipeline"
     Type: String
     Default: none
+  LambdaDeploymentPreference:
+    Description: "Specifies the configuration to enable gradual Lambda deployments. This value is picked up from the LambdaCanaryDeployment on the pipeline "
+    Type: String
+    Default: AllAtOnce
 
 Mappings:
   EnvironmentConfiguration: # This is where you store per-environment settings.
@@ -315,6 +319,8 @@ Conditions:
     - Condition: IsNotProdLikeEnvironment
     - !Not [ !Equals [ !Ref TrafficTestRoleArn, none ]]
 
+  UseCanaryDeploymentAlarms: !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
+
 Globals:
   Function:
     Runtime: nodejs18.x
@@ -378,7 +384,6 @@ Globals:
         ] # What is this? @TODO
         #  SQS_AUDIT_EVENT_PREFIX: CIC-F2F # The prefix to add to TxMA event messages
     AutoPublishAlias: live
-
 
 Resources:
 
@@ -771,6 +776,22 @@ Resources:
 
   ### End of API Gateway Custom Domain definition
 
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+
   ### Function Definition
 
 ####################################################################
@@ -784,6 +805,13 @@ Resources:
     DependsOn: SessionFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-Session-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref SessionFunctionFatalErrorAlarm, !Ref SessionFunctionLambdaErrors, !Ref SessionFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: SessionHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -883,7 +911,6 @@ Resources:
 
   SessionFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -897,7 +924,6 @@ Resources:
     DependsOn:
       - "SessionFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SessionFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -914,6 +940,63 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  SessionFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-SessionFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-SessionFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub SessionFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  SessionFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-SessionFunctionCanary5xxErrors"
+      AlarmDescription: !Sub SessionFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: POST
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /session
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
@@ -1058,6 +1141,13 @@ Resources:
     DependsOn: SessionConfigFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-SessionConfig-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref SessionConfigFunctionFatalErrorAlarm, !Ref SessionConfigFunctionLambdaErrors, !Ref SessionConfigFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: SessionConfigHandler.lambdaHandler
       CodeUri: ../src/
       Environment:
@@ -1122,6 +1212,99 @@ Resources:
       FunctionName: !Ref SessionConfigFunction
       Principal: apigateway.amazonaws.com
 
+  SessionConfigFunctionFatalErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref SessionConfigFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "SessionConfigFunction-Fatalerror"
+
+  SessionConfigFunctionFatalErrorAlarm:
+    DependsOn:
+      - "SessionConfigFunctionFatalErrorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-SessionConfigFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: false
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: SessionConfigFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  SessionConfigFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-SessionConfigFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-SessionConfigFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub SessionConfigFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  SessionConfigFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-SessionConfigFunctionCanary5xxErrors"
+      AlarmDescription:  !Sub SessionConfigFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: GET
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /sessionConfiguration
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+
   SessionConfigConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
@@ -1183,6 +1366,13 @@ Resources:
     DependsOn: TokenFunctionLogGroup
     Properties:
       FunctionName: !Sub "Access-Token-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref TokenFunctionFatalErrorAlarm, !Ref TokenFunctionCanary5xxErrors, !Ref TokenFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: AccessTokenHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1259,7 +1449,6 @@ Resources:
 
   TokenFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref TokenFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1273,7 +1462,6 @@ Resources:
     DependsOn:
       - "TokenFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TokenFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1290,6 +1478,63 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  TokenFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-TokenFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-TokenFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub TokenFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  TokenFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-TokenFunctionCanary5xxErrors"
+      AlarmDescription:  !Sub TokenFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: POST
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /token
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
@@ -1355,6 +1600,13 @@ Resources:
     DependsOn: AuthorizationFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-Authorization-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref AuthorizationFunctionFatalErrorAlarm, !Ref AuthorizationFunctionCanary5xxErrors, !Ref AuthorizationFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: AuthorizationCodeHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1438,7 +1690,6 @@ Resources:
 
   AuthorizationFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref AuthorizationFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1452,7 +1703,6 @@ Resources:
     DependsOn:
       - "AuthorizationFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1469,6 +1719,63 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  AuthorizationFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-AuthorizationFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-AuthorizationFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub AuthorizationFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AuthorizationFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-AuthorizationFunctionCanary5xxErrors"
+      AlarmDescription:  !Sub AuthorizationFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: GET
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /authorization
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
@@ -1534,6 +1841,13 @@ Resources:
     DependsOn: DocumentSelectionLogGroup
     Properties:
       FunctionName: !Sub "Document-Selection-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref DocumentSelectionFatalErrorAlarm, !Ref DocumentSelectionFunctionLambdaErrors, !Ref DocumentSelectionFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: DocumentSelectionHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1648,7 +1962,6 @@ Resources:
 
   DocumentSelectionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref DocumentSelectionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1662,7 +1975,6 @@ Resources:
     DependsOn:
       - "DocumentSelectionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DocumentSelection-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1679,6 +1991,63 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  DocumentSelectionFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-DocumentSelectionFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub DocumentSelectionFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  DocumentSelectionFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunctionCanary5xxErrors"
+      AlarmDescription: !Sub DocumentSelectionFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: POST
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /documentSelection
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
@@ -1744,6 +2113,13 @@ Resources:
     DependsOn: AbortLogGroup
     Properties:
       FunctionName: !Sub "Abort-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref AbortFunctionFatalErrorAlarm, !Ref AbortFunctionLambdaErrors, !Ref AbortFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: AbortHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1813,7 +2189,6 @@ Resources:
 
   AbortFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref AbortLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1827,7 +2202,6 @@ Resources:
     DependsOn:
       - "AbortFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AbortFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1848,6 +2222,64 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
+  AbortFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-AbortFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-AbortFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub AbortFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AbortFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-AbortFunctionCanary5xxErrors"
+      AlarmDescription: !Sub AbortFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: POST
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /abort
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+
   AbortPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -1861,6 +2293,13 @@ Resources:
     DependsOn: PersonInfoFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-person-info-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref PersonInfoFunctionFatalErrorAlarm, !Ref PersonInfoFunctionLambdaErrors, !Ref PersonInfoFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: PersonInfoHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1942,7 +2381,6 @@ Resources:
 
   PersonInfoFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref PersonInfoFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1956,7 +2394,6 @@ Resources:
     DependsOn:
       - "PersonInfoFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PersonInfoFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1976,6 +2413,64 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
+
+  PersonInfoFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-PersonInfoFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub PersonInfoFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PersonInfoFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoFunctionCanary5xxErrors"
+      AlarmDescription: !Sub PersonInfoFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: GET
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /person-info
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
 
   PersonInfoConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
@@ -2219,6 +2714,13 @@ Resources:
     DependsOn: PersonInfoKeyFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-person-info-key-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref PersonInfoKeyFunctionFatalErrorAlarm, !Ref PersonInfoKeyFunctionLambdaErrors, !Ref PersonInfoKeyFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: PersonInfoKeyHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -2286,7 +2788,6 @@ Resources:
     DependsOn:
       - "PersonInfoKeyFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2306,6 +2807,64 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
+
+  PersonInfoKeyFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-PersonInfoKeyFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub PersonInfoKeyFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PersonInfoKeyFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunctionCanary5xxErrors"
+      AlarmDescription: !Sub PersonInfoKeyFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: GET
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /person-info-key
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
 
   PersonInfoKeyConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
@@ -2513,7 +3072,6 @@ Resources:
 
   JsonWebKeysFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref JsonWebKeysLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2527,7 +3085,6 @@ Resources:
     DependsOn:
       - "JsonWebKeysFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2609,6 +3166,13 @@ Resources:
     DependsOn: GovNotifyFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-GovNotify-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref GovNotifyFunctionFatalErrorAlarm, !Ref GovNotifyFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: GovNotifyHandler.lambdaHandler
       CodeUri: ../src/
       Timeout: 300
@@ -2707,9 +3271,15 @@ Resources:
       FunctionName: !Ref GovNotifyFunction
       Principal: apigateway.amazonaws.com
 
+  GovNotifyFunctionPermissionAlias:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GovNotifyFunction.Alias
+      Principal: apigateway.amazonaws.com
+
   GovNotifyFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref GovNotifyFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2723,7 +3293,6 @@ Resources:
     DependsOn:
       - "GovNotifyFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2742,6 +3311,32 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  GovNotifyFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-GovNotifyFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-GovNotifyFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub GovNotifyFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
   GovNotifyConcurrency80Alarm:
@@ -2780,6 +3375,13 @@ Resources:
     DependsOn: UserInfoFunctionLogGroup
     Properties:
       FunctionName: !Sub "User-Info-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref UserInfoFunctionFatalErrorAlarm, !Ref UserInfoFunctionCanary5xxErrors, !Ref UserInfoFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: UserInfoHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -2867,7 +3469,6 @@ Resources:
 
   UserInfoFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref UserInfoFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2881,7 +3482,6 @@ Resources:
     DependsOn:
       - "UserInfoFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-UserInfoFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2901,6 +3501,64 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
+
+  UserInfoFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-UserInfoFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-UserInfoFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub UserInfoFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  UserInfoFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-UserInfoFunctionCanary5xxErrors"
+      AlarmDescription: !Sub UserInfoFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: POST
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /userinfo
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
 
   UserInfoConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
@@ -3059,7 +3717,6 @@ Resources:
 
   ReminderEmailFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref ReminderEmailFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3073,7 +3730,6 @@ Resources:
     DependsOn:
       - "ReminderEmailFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ReminderEmailFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -3259,7 +3915,6 @@ Resources:
 
   ExpiredSessionsFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref ExpiredSessionsFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3273,10 +3928,9 @@ Resources:
     DependsOn:
       - "ExpiredSessionsFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ExpiredSessionsFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -3392,6 +4046,13 @@ Resources:
     DependsOn: TriggerYotiCallbackStateMachineLogGroup
     Properties:
       FunctionName: !Sub "F2F-TriggerYotiCallbackStateMachine-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref TriggerYotiCallbackStateMachineFatalErrorAlarm, !Ref TriggerYotiCallbackStateMachineLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: TriggerYotiCallbackStateMachineHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -3476,7 +4137,6 @@ Resources:
 
   TriggerYotiCallbackSMFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref TriggerYotiCallbackStateMachineLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3488,9 +4148,8 @@ Resources:
 
   TriggerYotiCallbackStateMachineFatalErrorAlarm:
     DependsOn:
-      - "YotiCallbackFunctionFatalErorMetricFilter"
+      - "TriggerYotiCallbackSMFatalErrorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackStateMachineFatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -3509,6 +4168,32 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  TriggerYotiCallbackStateMachineLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackStateMachineLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-TriggerYotiCallbackStateMachine:live"
+        - Name: ExecutedVersion
+          Value: !Sub TriggerYotiCallbackStateMachine.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
   TriggerYotiConcurrency80Alarm:
