@@ -1,6 +1,6 @@
 import * as AWS from "@aws-sdk/client-kms";
 import AWSXRay from "aws-xray-sdk-core";
-import { mockKmsCient } from "../tests/contract/mocks/kmsClient";
+import { mockKmsClient } from "../tests/contract/mocks/kmsClient";
 import { Logger } from "@aws-lambda-powertools/logger";
 
 const logger = new Logger({
@@ -14,7 +14,7 @@ const createKmsClient = () => {
 
 	if (process.env.USE_MOCKED) {
 		logger.info("KMSClient: USING MOCKED");
-		kmsClient = mockKmsCient as unknown as AWS.KMS;
+		kmsClient = mockKmsClient as unknown as AWS.KMS;
 	} else {
 
 		AWSXRay.setContextMissingStrategy("LOG_ERROR");
