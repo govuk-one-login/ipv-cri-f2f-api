@@ -765,23 +765,6 @@ Resources:
 
   ### End of API Gateway Custom Domain definition
 
-  ####################################################################
-#                                                                  #
-# Custom Lambda canary deployment strategy                         #
-#                                                                  #
-####################################################################
-  # Deployment config
-  LambdaCanary50Percent5Minutes:
-    Type: AWS::CodeDeploy::DeploymentConfig
-    Condition: IsNotProdLikeEnvironment
-    Properties:
-      ComputePlatform: Lambda
-      DeploymentConfigName: LambdaCanary50Percent5Minutes
-      TrafficRoutingConfig:
-        TimeBasedCanary:
-          CanaryPercentage: 50
-          CanaryInterval: 5
-        Type: TimeBasedCanary
 
   ### Function Definition
 
