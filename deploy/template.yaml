@@ -66,7 +66,10 @@ Parameters:
     Description: "ARN of the role used during pipeline test stage, allowing Lambda invocations. Injected by the deployment pipeline"
     Type: String
     Default: none
-
+  TrafficTestRoleArn:
+    Description: "ARN of the role used during pipeline traffic test stage, allowing Lambda invocations. Injected by the deployment pipeline"
+    Type: String
+    Default: none
 
 Mappings:
   EnvironmentConfiguration: # This is where you store per-environment settings.
@@ -308,6 +311,9 @@ Conditions:
   AddExpiredSessionFunctionTestRolePermissions: !And
     - Condition: IsNotProdLikeEnvironment
     - !Not [ !Equals [ !Ref TestRoleArn, none ]]
+  AddExpiredSessionFunctionTrafficTestRolePermissions: !And
+    - Condition: IsNotProdLikeEnvironment
+    - !Not [ !Equals [ !Ref TrafficTestRoleArn, none ]]
 
 Globals:
   Function:
@@ -3242,6 +3248,14 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ExpiredSessionsFunction
       Principal: !Ref TestRoleArn
+
+  ExpiredSessionFunctionTrafficTestRolePermission:
+    Type: AWS::Lambda::Permission
+    Condition: AddExpiredSessionFunctionTrafficTestRolePermissions
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ExpiredSessionsFunction
+      Principal: !Ref TrafficTestRoleArn
 
   ExpiredSessionsFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter

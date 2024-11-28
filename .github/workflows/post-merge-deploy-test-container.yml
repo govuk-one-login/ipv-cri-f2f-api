@@ -77,8 +77,21 @@ jobs:
           CONTAINER_SIGN_KMS_KEY: ${{ secrets[format('{0}_CONTAINER_SIGN_KMS_KEY', matrix.environment)] }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           TEST_ECR_REPOSITORY: ${{ secrets[format('{0}_TEST_ECR_REPOSITORY', matrix.environment)] }}
+          TRAFFIC_TEST_ECR_REPOSITORY: ${{ secrets[format('{0}_TRAFFIC_TEST_ECR_REPOSITORY', matrix.environment)] }}
           IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$TEST_ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$TEST_ECR_REPOSITORY:$IMAGE_TAG
           cosign sign --key awskms:///${CONTAINER_SIGN_KMS_KEY} $ECR_REGISTRY/$TEST_ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Build, push traffic test image to ECR
+        uses: govuk-one-login/devplatform-upload-action-ecr@5431bcea6158b6c12776a96e067b1e02bf91b13d # pin@1.3.0
+        with:
+          artifact-bucket-name: ""
+          container-sign-kms-key-arn: ${{ secrets[format('{0}_CONTAINER_SIGN_KMS_KEY', matrix.environment)] }}
+          role-to-assume-arn: ${{ secrets[format('{0}_CRI_F2F_GH_ACTIONS_ROLE_ARN', matrix.environment)] }}
+          ecr-repo-name: ${{ secrets[format('{0}_TRAFFIC_TEST_ECR_REPOSITORY', matrix.environment)] }}
+          dockerfile: traffic-tests/Dockerfile
+          build-and-push-image-only: true
+          push-latest-tag: true
+
