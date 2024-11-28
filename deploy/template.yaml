@@ -776,6 +776,7 @@ Resources:
     Condition: IsNotProdLikeEnvironment
     Properties:
       ComputePlatform: Lambda
+      DeploymentConfigName: LambdaCanary50Percent5Minutes
       TrafficRoutingConfig:
         TimeBasedCanary:
           CanaryPercentage: 50
