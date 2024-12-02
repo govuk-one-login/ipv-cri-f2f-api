@@ -5,7 +5,7 @@ import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
 import { PersonIdentityItem } from "../../models/PersonIdentityItem";
-import NodeRSA = require("node-rsa");
+import * as NodeRSA  from "node-rsa";
 import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";
@@ -108,7 +108,7 @@ export async function personInfoKeyGet(): Promise<AxiosResponse<{ key: string }>
 	}
 }
 export function validatePersonInfoResponse(personInfoKey: string, personInfoResponse: string, address_line1: string, address_line2: string, town_city: string, postalCode: string): void {
-	const privateKey = new NodeRSA(personInfoKey);
+	const privateKey = new NodeRSA.default(personInfoKey);
 	const encryptedValue = personInfoResponse;
 	const decryptedValue = privateKey.decrypt(encryptedValue, "utf8");
 	console.log(decryptedValue);

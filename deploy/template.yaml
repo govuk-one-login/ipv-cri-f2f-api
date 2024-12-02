@@ -616,6 +616,23 @@ Resources:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
 
+  PrintedLetterBucket:
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-printedletter-f2f-${Environment}
+      VersioningConfiguration:
+        Status: "Enabled"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
   ### Start of API Gateway definition.
 
   F2FRestApi:
@@ -4847,13 +4864,42 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue:
+              Fn::Sub: ${L2DynamoStackName}-person-identity-table-name
+          YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-printedletter-f2f-${Environment}
+          YOTI_PDF_BUCKET_FOLDER: pdf
           POWERTOOLS_SERVICE_NAME: GeneratePrintedLetterHandler
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-key-id"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt TxMASQSQueue.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:GenerateDataKey"
+              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+        - S3WritePolicy:
+            BucketName: !Ref PrintedLetterBucket
+        - S3ReadPolicy:
+            BucketName: !Ref PrintedLetterBucket
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
+        Loader:
+          - .ttf=file
+          - .png=file
         Minify: true
         Target: "es2020"
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build

@@ -8,7 +8,8 @@ dotenv.config();
 
 export default {
   transform: {
-    '^.+\\.ts?$': 'ts-jest'
+    '^.+\\.ts?$': 'ts-jest',
+    '\\.(png|ttf)$':'<rootDir>/tests/unit/utils/fileMapper.cjs',
   },
   testTimeout: 30000,
   clearMocks: true,
@@ -34,5 +35,7 @@ export default {
       "pageTitle": "F2F Test Report",
       "outputPath": "results/test-report.html"
     }]
-  ]
+  ],
+  moduleDirectories: ['node_modules', 'static'],
+  moduleFileExtensions: ["js", "mjs", "cjs", "jsx", "ts", "mts", "cts", "tsx", "json", "node"]
 }

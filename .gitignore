@@ -1,3 +1,4 @@
+.DS_Store
 **/node_modules/
 .aws-sam/
 .env
@@ -8,3 +9,6 @@ cf-output.txt
 build/
 lambdas/
 lib/
+letter.pdf
+**/.vscode/settings.json
+**/.vscode/launch.json
