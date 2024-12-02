@@ -70,15 +70,6 @@ Parameters:
     Description: "Specifies the configuration to enable gradual Lambda deployments. This value is picked up from the LambdaCanaryDeployment on the pipeline "
     Type: String
     Default: AllAtOnce
-    AllowedValues:
-      - AllAtOnce
-      - Canary10Percent5Minutes
-      - Canary10Percent10Minutes
-      - Canary10Percent15Minutes
-      - Canary10Percent30Minutes
-      - LambdaCanary50Percent5Minutes
-
-
 Mappings:
   EnvironmentConfiguration: # This is where you store per-environment settings.
     dev:
