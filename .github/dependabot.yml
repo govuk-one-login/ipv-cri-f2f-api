@@ -13,6 +13,10 @@ updates:
         versions: ["17.x","18.x"]
     commit-message:
       prefix: BAU
+    groups:
+        aws-sdk:
+          patterns:
+            - "@aws-sdk/*"
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
