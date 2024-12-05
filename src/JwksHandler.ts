@@ -3,7 +3,7 @@ import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
 import { Jwk, JWKSBody, Algorithm } from "./utils/IVeriCredential";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 import crypto from "crypto";
 import * as AWS from "@aws-sdk/client-kms";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
