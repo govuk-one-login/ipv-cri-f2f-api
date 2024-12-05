@@ -758,6 +758,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		});	
 
 		it("Should use name casing from documentFields when using getNamesFromPersonIdentity", async () => {
+			documentFields = getDocumentFields();
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 			mockYotiService.getMediaContent.mockResolvedValueOnce({ 
 				...documentFields,
@@ -812,8 +813,8 @@ describe("YotiSessionCompletionProcessor", () => {
 							],
 							"passport":[
 								 {
-									"documentNumber":"RF9082242",
-									"expiryDate":"2024-11-11",
+									"documentNumber":"533401372",
+									"expiryDate":"2025-09-28",
 									"icaoIssuerCode":"GBR",
 								 },
 							],
