@@ -59,12 +59,6 @@ describe("ReminderEmailProcessor", () => {
 			documentUsed: "NATIONAL_ID",
 		},
 		{
-			createdDate: 1695302248,
-			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a4h",
-			authSessionState: "F2F_YOTI_SESSION_CREATED",
-			documentUsed: "RESIDENCE_PERMIT",
-		},
-		{
 			createdDate: 1091008,
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a47",
 			reminderEmailSent: false,

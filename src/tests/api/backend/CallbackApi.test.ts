@@ -3,7 +3,6 @@ import dataPassport from "../../data/docSelectionPayloadPassportValid.json";
 import dataUkDrivingLicence from "../../data/docSelectionPayloadDriversLicenceValid.json";
 import dataEuDrivingLicence from "../../data/docSelectionPayloadEuDriversLicenceValid.json";
 import dataNonUkPassport from "../../data/docSelectionPayloadNonUkPassportValid.json";
-import dataBrp from "../../data/docSelectionPayloadBrpValid.json";
 import dataEeaIdCard from "../../data/docSelectionPayloadEeaIdCardValid.json";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
 import vcResponseData from "../../data/vcValidationData.json";
@@ -55,10 +54,6 @@ describe("/callback endpoint", () => {
 		{ yotiMockId: "0202", docSelectionData: dataNonUkPassport },
 		{ yotiMockId: "0203", docSelectionData: dataNonUkPassport },
 		{ yotiMockId: "0204", docSelectionData: dataNonUkPassport },
-		{ yotiMockId: "0300", docSelectionData: dataBrp },
-		{ yotiMockId: "0301", docSelectionData: dataBrp },
-		{ yotiMockId: "0302", docSelectionData: dataBrp },
-		{ yotiMockId: "0303", docSelectionData: dataBrp },
 		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence },
 		{ yotiMockId: "0401", docSelectionData: dataEuDrivingLicence },
 		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard },
@@ -158,7 +153,6 @@ describe("/callback endpoint", () => {
 		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_SCHEMA" },
 		{ yotiMockId: "0101", docSelectionData: dataPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_01_SCHEMA" },
 		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_01_SCHEMA" },
-		{ yotiMockId: "0300", docSelectionData: dataBrp, yotiStartSchema: "F2F_YOTI_START_03_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_03_SCHEMA" },
 		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_04_SCHEMA" },
 		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard, yotiStartSchema: "F2F_YOTI_START_05_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_05_SCHEMA" },
 	])("TxMA event Validation $yotiMockId", async ({ yotiMockId, docSelectionData, yotiStartSchema, vcIssuedSchema }: { yotiMockId: string; docSelectionData: DocSelectionData; yotiStartSchema: string; vcIssuedSchema: string }) => {
