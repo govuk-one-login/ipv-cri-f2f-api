@@ -1,7 +1,7 @@
-const PDFDocument = require('pdfkit');
-const fs = require('fs');
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import PDFMerger from 'pdf-merger-js'; 
 
-const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 // Specify page size and 1 inch margins
 const doc = new PDFDocument({
     size: 'A4',
@@ -16,6 +16,7 @@ doc.pipe(fs.createWriteStream('./letter.pdf'));
 
 // These variables will be populated dynamically
 const addresseeName = 'Fred Flintstone';
+const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 const addressLines = [
         "123 Fake Street",
         "Room 101",
@@ -56,3 +57,35 @@ doc.addPage();
 doc.text('This is on the second page.', 50, 50);
 
 doc.end();
+
+const doc2 = new PDFDocument({
+  size: 'A4',
+  margins: {
+    top: 72, 
+    bottom: 72, 
+    left: 72,  
+    right: 72  
+  }
+});
+doc2.pipe(fs.createWriteStream('./letter2.pdf')); 
+doc2.text('This is a second pdf.', 50, 50);
+doc2.end();
+
+var merger = new PDFMerger();
+
+const inputPDFs = ['./letter.pdf', './letter2.pdf'];
+const outputPDF = 'merged.pdf';
+
+
+async function mergePDFs(inputPaths, outputPath) {
+  try{
+    for (const path of inputPaths) {
+      await merger.add(path); 
+    }
+    await merger.save(outputPath);
+  } catch (error) {
+    console.error('Error merging PDFs:', error);
+  }
+}
+
+  mergePDFs(inputPDFs, outputPDF);
