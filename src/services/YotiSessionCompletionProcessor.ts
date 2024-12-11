@@ -17,7 +17,7 @@ import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
 import { YotiSessionDocument, ID_DOCUMENT_TEXT_DATA_EXTRACTION } from "../utils/YotiPayloadEnums";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
-import { DrivingPermit, IdentityCard, Passport, Name } from "../utils/IVeriCredential";
+import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "../utils/IVeriCredential";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 import { YotiCallbackPayload } from "../type/YotiCallbackPayload";
 import { ISessionItem } from "../models/ISessionItem";
@@ -345,8 +345,8 @@ export class YotiSessionCompletionProcessor {
 	async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any, rejectionReasons: [{ ci: string; reason: string }]): Promise<any> {
 	  // Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
-	  let docName: DocumentNames.PASSPORT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
-	  let documentInfo: Passport | DrivingPermit | IdentityCard;
+	  let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
+	  let documentInfo: Passport | ResidencePermit | DrivingPermit | IdentityCard;
 	  switch (documentFields.document_type) {
 		  case DocumentTypes.PASSPORT:
 			  docName = DocumentNames.PASSPORT;
@@ -354,6 +354,16 @@ export class YotiSessionCompletionProcessor {
 				  documentType: documentFields.document_type,
 				  documentNumber: documentFields.document_number,
 				  expiryDate: documentFields.expiration_date,
+				  icaoIssuerCode: documentFields.issuing_country,
+			  };
+			  break;
+		  case DocumentTypes.RESIDENCE_PERMIT:
+			  docName = DocumentNames.RESIDENCE_PERMIT;
+			  documentInfo = {
+				  documentType: documentFields.document_type,
+				  documentNumber: documentFields.document_number,
+				  expiryDate: documentFields.expiration_date,
+				  issueDate: documentFields.date_of_issue,
 				  icaoIssuerCode: documentFields.issuing_country,
 			  };
 			  break;

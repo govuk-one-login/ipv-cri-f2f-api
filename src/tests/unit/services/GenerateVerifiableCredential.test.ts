@@ -91,6 +91,8 @@ describe("GenerateVerifiableCredential", () => {
 			{ documentType: "PASSPORT", documentContainsValidChip: false, country: "ALB", score: 3 },
 			{ documentType: "PASSPORT", documentContainsValidChip: true, country: "ALB", score: 4 },
 			{ documentType: "DRIVING_LICENCE", documentContainsValidChip: false, country: "ALB", score: 3 },
+			{ documentType: "RESIDENCE_PERMIT", documentContainsValidChip: false, country: "ALB", score: 3 },
+			{ documentType: "RESIDENCE_PERMIT", documentContainsValidChip: true, country: "ALB", score: 4 },
 			{ documentType: "NATIONAL_ID", documentContainsValidChip: true, country: "ALB", score: 4 },
 			{ documentType: "NATIONAL_ID", documentContainsValidChip: false, country: "ALB", score: 3 },
 		])(

@@ -2,6 +2,7 @@ export enum DocumentMapping {
 	UK_DL = "00",
 	UK_PASSPORT = "01",
 	NON_UK_PASSPORT = "02",
+	BRP = "03",
 	EU_DL = "04",
 	EEA_ID = "05",
 }
@@ -32,6 +33,8 @@ export const NON_UK_PASSPORT_MEDIA_ID: string = '0200'
 
 export const NON_UK_PASSPORT_WRONG_SPLIT_SURNAME: string = '0206'
 
+export const BRP_MEDIA_ID: string = "0300"
+
 export const EU_DL_MEDIA_ID: string = "0400"
 
 export const EU_DL_INCORRECT_NAME_SEQUENCE: string = '0402'
@@ -41,7 +44,7 @@ export const EEA_ID_MEDIA_ID: string = "0500"
 export const UK_DL_MISSING_FORMATTED_ADDRESS_MEDIA_ID = "0003"
 
 export const SUPPORTED_DOCUMENTS: string[] = [DocumentMapping.UK_DL, DocumentMapping.UK_PASSPORT, DocumentMapping.NON_UK_PASSPORT,
-                                              DocumentMapping.EU_DL, DocumentMapping.EEA_ID] // <-- Update this Array when introducing new document types
+                                              DocumentMapping.BRP, DocumentMapping.EU_DL, DocumentMapping.EEA_ID] // <-- Update this Array when introducing new doucment types
 
 export const IPV_INTEG_FULL_NAME_HAPPY = "Kenneth Decerqueira"
 export const IPV_INTEG_FULL_NAME_JOYCE = "JOYCE BASU"

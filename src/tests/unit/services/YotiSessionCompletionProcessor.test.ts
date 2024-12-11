@@ -18,8 +18,8 @@ import { VerifiableCredentialService } from "../../../services/VerifiableCredent
 import { AppError } from "../../../utils/AppError";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
-import { TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_DL_VC_ISSUED_WITHOUT_FULL_ADDRESS, TXMA_EEA_VC_ISSUED, TXMA_EU_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
-import { getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getDrivingPermitFieldsWithoutFormattedAddress, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
+import { TXMA_BRP_VC_ISSUED, TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_DL_VC_ISSUED_WITHOUT_FULL_ADDRESS, TXMA_EEA_VC_ISSUED, TXMA_EU_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
+import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getDrivingPermitFieldsWithoutFormattedAddress, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
 import { APIGatewayProxyResult } from "aws-lambda";
 
 let mockCompletedSessionProcessor: YotiSessionCompletionProcessor;
@@ -728,6 +728,103 @@ describe("YotiSessionCompletionProcessor", () => {
 		expect(out.body).toBe("OK");
 	});
 
+	it("Return successful response with 200 OK when YOTI session created with BRP", async () => {
+		documentFields = getBrpFields();
+		const brpYotiSession = getCompletedYotiSession();
+		brpYotiSession.resources.id_documents[0].document_type = "RESIDENCE_PERMIT";
+		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(brpYotiSession);
+		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+		// @ts-ignore
+		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+		const brpCoreFields = TXMA_CORE_FIELDS;
+		brpCoreFields.timestamp = 1585695600;
+		brpCoreFields.event_timestamp_ms = 1585695600000;
+
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, brpCoreFields);
+		const brpVcIssued =  TXMA_BRP_VC_ISSUED;
+		brpVcIssued.event_name = "F2F_CRI_VC_ISSUED";
+		brpVcIssued.timestamp = 1585695600;
+		brpVcIssued.event_timestamp_ms = 1585695600000;
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, brpVcIssued);
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
+		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+			sub: "testsub",
+			state: "Y@atr",
+			"https://vocab.account.gov.uk/v1/credentialJWT": [JSON.stringify({
+				"sub":"testsub",
+				"nbf":absoluteTimeNow(),
+				"iss":"https://XXX-c.env.account.gov.uk",
+				"iat":absoluteTimeNow(),
+				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
+				"vc":{
+					"@context":[
+					 Constants.W3_BASE_CONTEXT,
+					 Constants.DI_CONTEXT,
+					],
+					"type": [Constants.VERIFIABLE_CREDENTIAL, Constants.IDENTITY_CHECK_CREDENTIAL],
+					 "credentialSubject":{
+						"name":[
+								 {
+								"nameParts":[
+											 {
+										"value":"TECH",
+										"type":"GivenName",
+											 },
+											 {
+										"value":"REFRESH",
+										"type":"GivenName",
+											 },
+											 {
+										"value":"ICTHREEMALE",
+										"type":"FamilyName",
+											 },
+								],
+								 },
+						],
+						"birthDate":[
+								 {
+								"value":"1988-12-04",
+								 },
+						],
+						"residencePermit":[
+								 {
+								"documentNumber": "RF9082242",
+								"expiryDate": "2024-11-11",
+								"issueDate": "2015-05-19",
+								"icaoIssuerCode": "GBR",
+								 },
+						],
+					 },
+					 "evidence":[
+						{
+								 "type":"IdentityCheck",
+							      "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+								 "strengthScore":3,
+								 "validityScore":2,
+								 "verificationScore":3,
+								 "checkDetails":[
+								{
+											 "checkMethod":"vri",
+											 "identityCheckPolicy":"published",
+								},
+								{
+											 "checkMethod":"pvr",
+											 "photoVerificationProcessLevel":3,
+								},
+								 ],
+						},
+					 ],
+				},
+		 })],
+		});
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+		expect(out.body).toBe("OK");
+	});
+
 	describe("name checks", () => {
 		it("Should call getNamesFromYoti if DocumentFields contains both given_name and family_name fields", async () => {
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
@@ -758,7 +855,6 @@ describe("YotiSessionCompletionProcessor", () => {
 		});	
 
 		it("Should use name casing from documentFields when using getNamesFromPersonIdentity", async () => {
-			documentFields = getDocumentFields();
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 			mockYotiService.getMediaContent.mockResolvedValueOnce({ 
 				...documentFields,
@@ -813,8 +909,8 @@ describe("YotiSessionCompletionProcessor", () => {
 							],
 							"passport":[
 								 {
-									"documentNumber":"533401372",
-									"expiryDate":"2025-09-28",
+									"documentNumber":"RF9082242",
+									"expiryDate":"2024-11-11",
 									"icaoIssuerCode":"GBR",
 								 },
 							],

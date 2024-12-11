@@ -189,6 +189,34 @@ export const TXMA_EEA_VC_ISSUED = {
 	},
 };
 
+export const TXMA_BRP_VC_ISSUED = {
+	...TXMA_CORE_FIELDS,
+	...TXMA_EXTENSION,
+	restricted: {
+		"name": [{
+			"nameParts": [
+				{ "value": "TECH", "type": "GivenName" },
+				{ "value": "REFRESH", "type": "GivenName" },
+				{ "value": "ICTHREEMALE", "type": "FamilyName" },
+			],
+		}],
+		"birthDate": [
+			{
+				"value": "1988-12-04",
+			},
+		],
+		"residencePermit": [
+			{
+				"documentType": "RESIDENCE_PERMIT",
+				"documentNumber": "RF9082242",
+				"expiryDate": "2024-11-11",
+				"issueDate": "2015-05-19",
+				"icaoIssuerCode": "GBR",
+			},
+		],
+	},
+};
+
 const TXMA_YOTI_START_EXTENSION = {
 	extensions: {
 		"evidence": [

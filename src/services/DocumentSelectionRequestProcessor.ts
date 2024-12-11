@@ -182,8 +182,8 @@ export class DocumentSelectionRequestProcessor {
 				}
 			}
 
-			let docName: DocumentNames.PASSPORT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
-			let docType: DocumentTypes.PASSPORT | DocumentTypes.DRIVING_LICENCE | DocumentTypes.NATIONAL_ID;
+			let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
+			let docType: DocumentTypes.PASSPORT | DocumentTypes.DRIVING_LICENCE | DocumentTypes.RESIDENCE_PERMIT | DocumentTypes.NATIONAL_ID;
 			switch (selectedDocument) {
 				case AllDocumentTypes.UK_PASSPORT:
 					docName = DocumentNames.PASSPORT;
@@ -192,6 +192,10 @@ export class DocumentSelectionRequestProcessor {
 				case AllDocumentTypes.NON_UK_PASSPORT:
 					docName = DocumentNames.PASSPORT;
 					docType = DocumentTypes.PASSPORT;
+					break;
+				case AllDocumentTypes.BRP:
+					docName = DocumentNames.RESIDENCE_PERMIT;
+					docType = DocumentTypes.RESIDENCE_PERMIT;
 					break;
 				case AllDocumentTypes.UK_PHOTOCARD_DL:
 					docName = DocumentNames.DRIVING_LICENCE;

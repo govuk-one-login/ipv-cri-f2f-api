@@ -65,6 +65,8 @@ export class GenerateVerifiableCredential {
   		switch (documentType) {
   			case "PASSPORT":
   				return documentContainsValidChip ? 4 : 3;
+  			case "RESIDENCE_PERMIT":
+  				return documentContainsValidChip ? 4 : 3;
   			case "DRIVING_LICENCE":
   				return 3;
   			default:
@@ -79,6 +81,8 @@ export class GenerateVerifiableCredential {
   			case "DRIVING_LICENCE":
   				return 3;
   			case "NATIONAL_ID":
+  				return documentContainsValidChip ? 4 : 3;
+  			case "RESIDENCE_PERMIT":
   				return documentContainsValidChip ? 4 : 3;
   			default:
   				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
@@ -255,6 +259,16 @@ export class GenerateVerifiableCredential {
   						issueDate: documentFields.date_of_issue,
   						issuedBy: documentFields.issuing_authority,
   						fullAddress: documentFields.formatted_address,
+  					},
+  				];
+  				break;
+  			case "RESIDENCE_PERMIT":
+  				credentialSubject.residencePermit = [
+  					{
+  						documentNumber: documentFields.document_number,
+  						expiryDate: documentFields.expiration_date,
+  						issueDate: documentFields.date_of_issue,
+  						icaoIssuerCode: documentFields.issuing_country,
   					},
   				];
   				break;
