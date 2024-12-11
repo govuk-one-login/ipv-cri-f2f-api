@@ -22,14 +22,3 @@ WORKDIR /
 RUN chmod +x run-tests.sh
 RUN cd /src && npm ci
 ENTRYPOINT ["/run-tests.sh"]
-
-# COPY ../ /
-# RUN pwd & ls -al
-# WORKDIR /traffic-tests
-# RUN pwd & ls -al
-# RUN chmod +x run-tests.sh
-
-# RUN cd ../src && ls -al
-# RUN cd ../src && npm ci
-
-# ENTRYPOINT ["/run-tests.sh"]

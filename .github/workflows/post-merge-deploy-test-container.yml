@@ -77,7 +77,6 @@ jobs:
           CONTAINER_SIGN_KMS_KEY: ${{ secrets[format('{0}_CONTAINER_SIGN_KMS_KEY', matrix.environment)] }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           TEST_ECR_REPOSITORY: ${{ secrets[format('{0}_TEST_ECR_REPOSITORY', matrix.environment)] }}
-          TRAFFIC_TEST_ECR_REPOSITORY: ${{ secrets[format('{0}_TRAFFIC_TEST_ECR_REPOSITORY', matrix.environment)] }}
           IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$TEST_ECR_REPOSITORY:$IMAGE_TAG .
