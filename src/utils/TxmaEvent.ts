@@ -1,4 +1,4 @@
-import { IdentityCard, DrivingPermit, Passport, VerifiedCredentialSubject } from "./IVeriCredential";
+import { ResidencePermit, IdentityCard, DrivingPermit, Passport, VerifiedCredentialSubject } from "./IVeriCredential";
 import { ISessionItem } from "../models/ISessionItem";
 
 export type TxmaEventName =
@@ -37,6 +37,7 @@ export interface RestrictedObject {
 	"issuingCountry"?: string;
 	"passport"?: Passport;
 	"drivingPermit"?: DrivingPermit;
+	"residencePermit"?: ResidencePermit;
 	"idCard"?: IdentityCard;
 	device_information?: {
 		encoded: string;
