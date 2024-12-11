@@ -63,7 +63,7 @@ describe("Infra", () => {
 
   it("There are 19 lambdas defined, all with at least one specific permission:", () => {
     const lambdaCount = 19;
-    const lambdaPermissionCount = 20;
+    const lambdaPermissionCount = 21;
     template.resourceCountIs("AWS::Serverless::Function", lambdaCount);
     template.resourceCountIs("AWS::Lambda::Permission", lambdaPermissionCount);
     expect(lambdaPermissionCount > lambdaCount);
