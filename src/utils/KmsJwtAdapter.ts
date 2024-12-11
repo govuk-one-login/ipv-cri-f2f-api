@@ -12,7 +12,7 @@ import * as AWS from "@aws-sdk/client-kms";
 export class KmsJwtAdapter {
 	readonly kid: string;	
 
-	private kms: AWS.KMS;
+	readonly kms: AWS.KMS;
 
 	/**
 	 * An implemention the JWS standard using KMS to sign Jwts
