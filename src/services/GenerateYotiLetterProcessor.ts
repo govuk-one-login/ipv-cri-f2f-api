@@ -13,7 +13,7 @@ import { ValidationHelper } from "../utils/ValidationHelper";
 import { getClientConfig } from "../utils/ClientConfig";
 import { Constants } from "../utils/Constants";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 
 export class GenerateYotiLetterProcessor {
 
