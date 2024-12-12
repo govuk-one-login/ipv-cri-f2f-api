@@ -29,7 +29,6 @@ import dataUkDrivingLicence from "../../data/docSelectionPayloadDriversLicenceVa
 // import dataUkDrivingLicencePreferredAddress from "../../data/docSelectionPayloadDriversLicenceValidPreferredAddress.json";
 import dataEuDrivingLicence from "../../data/docSelectionPayloadEuDriversLicenceValid.json";
 import dataNonUkPassport from "../../data/docSelectionPayloadNonUkPassportValid.json";
-import dataBrp from "../../data/docSelectionPayloadBrpValid.json";
 import dataEeaIdCard from "../../data/docSelectionPayloadEeaIdCardValid.json";
 import { constants } from "../ApiConstants";
 import { DocSelectionData } from "../types";
@@ -76,7 +75,6 @@ describe("/documentSelection Endpoint", () => {
 		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 		{ yotiMockId: "0100", docSelectionData: dataPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA" },
 		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA" },
-		{ yotiMockId: "0300", docSelectionData: dataBrp, yotiStartSchema: "F2F_YOTI_START_03_SCHEMA" },
 		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard, yotiStartSchema: "F2F_YOTI_START_05_SCHEMA" },
 	])("Successful Request Tests - $yotiMockId", async ({ yotiMockId, docSelectionData, yotiStartSchema }: { yotiMockId: string; docSelectionData: DocSelectionData; yotiStartSchema: string }) => {
@@ -198,7 +196,6 @@ describe("/authorization endpoint", () => {
 		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 		{ yotiMockId: "0100", docSelectionData: dataPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA" },
 		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA" },
-		{ yotiMockId: "0300", docSelectionData: dataBrp, yotiStartSchema: "F2F_YOTI_START_03_SCHEMA" },
 		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard, yotiStartSchema: "F2F_YOTI_START_05_SCHEMA" },
 	])("Successful Request Tests - $yotiMockId", async ({ yotiMockId, docSelectionData, yotiStartSchema }: { yotiMockId: string; docSelectionData: DocSelectionData; yotiStartSchema: string }) => {
@@ -229,7 +226,6 @@ describe("/token endpoint", () => {
 		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence },
 		{ yotiMockId: "0100", docSelectionData: dataPassport },
 		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport },
-		{ yotiMockId: "0300", docSelectionData: dataBrp },
 		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence },
 		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard },
 	])("Successful Request Tests - $yotiMockId", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; docSelectionData: DocSelectionData }) => {
@@ -254,7 +250,6 @@ describe("/userinfo endpoint", () => {
 		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence },
 		{ yotiMockId: "0100", docSelectionData: dataPassport },
 		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport },
-		{ yotiMockId: "0300", docSelectionData: dataBrp },
 		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence },
 		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard },
 	])("Successful Request Tests - $yotiMockId", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; docSelectionData: DocSelectionData }) => {
