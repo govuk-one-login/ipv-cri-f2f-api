@@ -72,7 +72,7 @@
     "@types/node": "^18.11.18",
     "@types/node-jose": "^1.1.10",
     "@types/node-rsa": "^1.1.4",
-    "@typescript-eslint/eslint-plugin": "^5.50.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.1",
     "@typescript-eslint/eslint-plugin-tslint": "^5.50.0",
     "ajv": "^8.12.0",
     "aws-cdk-lib": "^2.147.3",
