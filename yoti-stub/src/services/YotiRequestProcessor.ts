@@ -12,7 +12,6 @@ import {
     SUPPORTED_DOCUMENTS,
     IPV_INTEG_FULL_NAME_HAPPY,
     IPV_INTEG_FULL_NAME_UNHAPPY,
-    BRP_MEDIA_ID,
     EU_DL_MEDIA_ID,
     EEA_ID_MEDIA_ID,
     IPV_INTEG_FULL_NAME_PAUL_BUTTIVANT_UNHAPPY,
@@ -39,17 +38,13 @@ import {YotiSessionRequest} from "../models/YotiSessionRequest";
 import {VALID_RESPONSE} from "../data/getSessions/responses";
 import {VALID_RESPONSE_NFC} from "../data/getSessions/nfcResponse";
 import {VALID_DL_RESPONSE} from "../data/getSessions/driversLicenseResponse";
-import {VALID_BRP_RESPONSE} from "../data/getSessions/brpResponse";
 import {EXPIRED_PASSPORT_RESPONSE} from "../data/getSessions/expiredPassport";
-import {VALID_BRP_RESPONSE_NFC} from "../data/getSessions/nfcBrpResponse";
 import {TAMPERED_DOCUMENT_RESPONSE} from "../data/getSessions/tamperedDocumentResponse";
 import {AI_FAIL_MANUAL_FAIL} from "../data/getSessions/aiFailManualFail";
 import {AI_FAIL_MANUAL_PASS} from "../data/getSessions/aiFailManualPass";
 import {AI_PASS} from "../data/getSessions/aiPass";
 import { DOCUMENT_FIELDS_SECOND } from "../data/getSessions/documentFieldsSecond";
 import { MULTIPLE_DOCUMENT_FIELDS } from "../data/getSessions/multipleDocumentFields";
-import {BRP_AI_FAIL_MANUAL_PASS_NFC} from "../data/getSessions/brpAiFailManualPass";
-import {BRP_MANUAL_PASS_AI_FAIL} from "../data/getSessions/brpManualPass";
 import {EEA_VALID_RESPONSE_NFC} from "../data/getSessions/nfcEeaValidResponse";
 import {EEA_AI_MATCH_NO_CHIP} from "../data/getSessions/eeaAiMatchNoChip";
 import {EEA_AI_FAIL_MANUAL_PASS} from "../data/getSessions/eeaAiFailManualPass";
@@ -89,7 +84,6 @@ import {GBR_PASSPORT} from "../data/getMediaContent/gbPassportResponse";
 import {GBR_DRIVING_LICENCE} from "../data/getMediaContent/gbDriversLicenseResponse";
 import {DEU_DRIVING_LICENCE} from "../data/getMediaContent/euDriversLicenseResponse";
 import {GET_MEDIA_CONTENT_400} from "../data/getMediaContent/getMediaContent400";
-import {BRP} from "../data/getMediaContent/gbBrp";
 import {GET_MEDIA_CONTENT_401} from "../data/getMediaContent/getMediaContent401";
 import {GET_MEDIA_CONTENT_404} from "../data/getMediaContent/getMediaContent404";
 import {sleep} from "../utils/Sleep";
@@ -1039,49 +1033,6 @@ export class YotiRequestProcessor {
                 }
             }
 
-            if (firstTwoChars === DocumentMapping.BRP) { // UK - BRP Scenarios
-                switch (lastUuidChars) {
-                    case '0300': // BRP Success - Chip readable & Face Match automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
-                        const VALID_BRP_RESPONSE_NFC_0300 = JSON.parse(JSON.stringify(VALID_BRP_RESPONSE_NFC));
-
-                        VALID_BRP_RESPONSE_NFC_0300.session_id = sessionId;
-                        VALID_BRP_RESPONSE_NFC_0300.resources.id_documents[0].document_fields.media.id = sessionId;
-                        VALID_BRP_RESPONSE_NFC_0300.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_BRP_RESPONSE_NFC_0300.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
-                        return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_BRP_RESPONSE_NFC_0300));
-
-                    case '0301': // BRP Success - Chip NOT readable & Face Match automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
-                        const VALID_BRP_RESPONSE_0301 = JSON.parse(JSON.stringify(VALID_BRP_RESPONSE));
-
-                        VALID_BRP_RESPONSE_0301.session_id = sessionId;
-                        VALID_BRP_RESPONSE_0301.resources.id_documents[0].document_fields.media.id = sessionId;
-                        VALID_BRP_RESPONSE_0301.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_BRP_RESPONSE_0301.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
-                        return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_BRP_RESPONSE_0301));
-
-                    case '0302': // BRP Success - Chip readable & Face Match NOT automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
-                        const BRP_AI_FAIL_MANUAL_PASS_NFC_0302 = JSON.parse(JSON.stringify(BRP_AI_FAIL_MANUAL_PASS_NFC));
-
-                        BRP_AI_FAIL_MANUAL_PASS_NFC_0302.session_id = sessionId;
-                        BRP_AI_FAIL_MANUAL_PASS_NFC_0302.resources.id_documents[0].document_fields.media.id = sessionId;
-                        BRP_AI_FAIL_MANUAL_PASS_NFC_0302.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(BRP_AI_FAIL_MANUAL_PASS_NFC_0302.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
-                        return new Response(HttpCodesEnum.OK, JSON.stringify(BRP_AI_FAIL_MANUAL_PASS_NFC_0302));
-
-                    case '0303': // BRP Success - Chip NOT readable & Face Match NOT automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
-                        const BRP_MANUAL_PASS_AI_FAIL_0303 = JSON.parse(JSON.stringify(BRP_MANUAL_PASS_AI_FAIL));
-
-                        BRP_MANUAL_PASS_AI_FAIL_0303.session_id = sessionId;
-                        BRP_MANUAL_PASS_AI_FAIL_0303.resources.id_documents[0].document_fields.media.id = sessionId;
-                        BRP_MANUAL_PASS_AI_FAIL_0303.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(BRP_MANUAL_PASS_AI_FAIL_0303.resources.id_documents[0].document_fields.media.id, BRP_MEDIA_ID);
-                        return new Response(HttpCodesEnum.OK, JSON.stringify(BRP_MANUAL_PASS_AI_FAIL_0303));
-
-                    default:
-                        return undefined;
-                }
-            }
-
             if (firstTwoChars === DocumentMapping.EU_DL) { // EU - Driving Licence Scenarios
                 switch (lastUuidChars) {
                     case '0400': // EU Driving Licence Success - Face Match Automated
@@ -1449,9 +1400,6 @@ export class YotiRequestProcessor {
 
             case NON_UK_PASSPORT_WRONG_SPLIT_SURNAME:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(ESP_PASSPORT_WRONG_SPLIT_SURNAMES));
-
-            case BRP_MEDIA_ID:
-                return new Response(HttpCodesEnum.OK, JSON.stringify(BRP));
 
             case EU_DL_MEDIA_ID:
                 return new Response(HttpCodesEnum.OK, JSON.stringify(DEU_DRIVING_LICENCE));
