@@ -19,8 +19,6 @@ export class KmsJwtAdapter {
 	 *
 	 * kid: The key Id of the KMS key
 	 */
-	ALG = "ECDSA_SHA_256";
-
 	constructor(kid: string) {
 		this.kid = kid;
 		this.kms = createKmsClient();
@@ -40,8 +38,8 @@ export class KmsJwtAdapter {
 		const params = {
 			Message: Buffer.from(`${tokenComponents.header}.${tokenComponents.payload}`),
 			KeyId: this.kid,
-			SigningAlgorithm: this.ALG,
-			MessageType: "RAW",
+			SigningAlgorithm: AWS.SigningAlgorithmSpec.ECDSA_SHA_256,
+			MessageType: AWS.MessageType.RAW,
 		};
 		const res = await this.kms.sign(params);
 		if (res.Signature == null) {
@@ -61,7 +59,7 @@ export class KmsJwtAdapter {
 				Message: message,
 				MessageType: "RAW",
 				Signature: derSignature,
-				SigningAlgorithm: this.ALG,
+				SigningAlgorithm: AWS.SigningAlgorithmSpec.ECDSA_SHA_256,
 			});
 			return result.SignatureValid ?? false;
 		} catch (error) {
