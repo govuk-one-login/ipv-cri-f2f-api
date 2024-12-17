@@ -5,6 +5,7 @@
   "repository": "https://github.com/alphagov/di-ipv-cri-f2f-api",
   "author": "GDS",
   "license": "MIT",
+  "type": "module", 
   "dependencies": {
     "@aws-lambda-powertools/logger": "1.5.1",
     "@aws-lambda-powertools/metrics": "1.5.1",
@@ -33,7 +34,9 @@
     "node-jose": "^2.1.1",
     "node-rsa": "^1.1.1",
     "notifications-node-client": "^7.0.0",
-    "npm-run-all": "^4.1.5"
+    "npm-run-all": "^4.1.5",
+    "pdf-merger-js": "^5.1.2",
+    "pdfkit": "0.15.1"
   },
   "scripts": {
     "unit": "./node_modules/.bin/jest --testPathPattern=tests/unit --coverage",
