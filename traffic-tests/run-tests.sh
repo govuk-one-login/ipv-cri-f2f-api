@@ -48,13 +48,13 @@ case "$SAM_STACK_NAME" in
 
         export DEV_F2F_PERSON_IDENTITY_TABLE_NAME=$(remove_quotes "$CFN_PersonIdentityTableName")
 
-        run_tests "test:api-happy" "test:api-third-party" &
+        run_tests "test:api-traffic" "test:api-third-party" &
         sleep 10
-        run_tests "test:api-happy" "test:api-third-party" &
+        run_tests "test:api-traffic" "test:api-third-party" &
         sleep 10
-        run_tests "test:api-happy" "test:api-third-party" &
+        run_tests "test:api-traffic" "test:api-third-party" &
         sleep 10
-        run_tests "test:api-happy" "test:api-third-party" &
+        run_tests "test:api-traffic" "test:api-third-party" &
         wait
 
         error_code=$?
