@@ -49,6 +49,8 @@
     "test:api-traffic": "npm run compile && npm run api-traffic",
     "api-third-party": "THIRD_PARTY_CLIENT_ID=SandboxJourneyFlow JEST_JUNIT_OUTPUT_NAME=third-party-api-report.xml ./node_modules/.bin/jest --testMatch '**/tests/api/backend/**/*Path.test.ts'",
     "test:api-third-party": "npm run compile && npm run api-third-party",
+    "api-third-party-traffic": "THIRD_PARTY_CLIENT_ID=SandboxJourneyFlow JEST_JUNIT_OUTPUT_NAME=third-party-api-report.xml ./node_modules/.bin/jest --testPathPattern='tests/api/backend/(HappyPath|CallbackApi)\\.test\\.ts$'",
+    "test:api-third-party-traffic": "npm run compile && npm run api-third-party-traffic",
     "yoti": "JEST_JUNIT_OUTPUT_NAME=api-report.xml ./node_modules/.bin/jest --runInBand --testPathPattern=tests/api/stub/YotiStub.test.ts",
     "test:yoti": "npm run compile && npm run yoti",
     "postoffice": "JEST_JUNIT_OUTPUT_NAME=api-report.xml ./node_modules/.bin/jest --runInBand --testPathPattern=tests/api/stub/PostOfficeStub.test.ts",
