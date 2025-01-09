@@ -48,17 +48,14 @@ case "$SAM_STACK_NAME" in
 
         export DEV_F2F_PERSON_IDENTITY_TABLE_NAME=$(remove_quotes "$CFN_PersonIdentityTableName")
 
-        npm run "test:api-traffic" &
         npm run "test:api-third-party-traffic" &
+        npm run "test:api-traffic" &
         sleep 10
         npm run "test:api-traffic" &
-        npm run "test:api-third-party-traffic" &
         sleep 10
         npm run "test:api-traffic" &
-        npm run "test:api-third-party-traffic" &
         sleep 10
         npm run "test:api-traffic" &
-        npm run "test:api-third-party-traffic" &
         wait
 
         error_code=$?
