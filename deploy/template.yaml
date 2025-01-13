@@ -1877,6 +1877,7 @@ Resources:
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
           YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_LETTER_STATE_MACHINE_ARN: !GetAtt SendYotiLetterStateMachine.Arn
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -1922,6 +1923,11 @@ Resources:
                 - "kms:Decrypt"
                 - "kms:GenerateDataKey"
               Resource: !GetAtt [GovNotifyEncryptionKey, Arn]
+        -  Statement:
+              - Effect: Allow
+                Action:
+                  - "states:StartExecution"
+                Resource: !GetAtt SendYotiLetterStateMachine.Arn
       Events:
         documentSelection:
           Type: Api

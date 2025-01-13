@@ -23,6 +23,11 @@ import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { getClientConfig } from "../utils/ClientConfig";
 import { Constants } from "../utils/Constants";
 
+////////////
+
+import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
+import { fromEnv } from "@aws-sdk/credential-providers";
+
 export class DocumentSelectionRequestProcessor {
 
 	private static instance: DocumentSelectionRequestProcessor;
@@ -41,6 +46,11 @@ export class DocumentSelectionRequestProcessor {
 
 	private readonly YOTI_PRIVATE_KEY: string;
 
+	//////////////
+
+	private readonly stepFunctionsClient: SFNClient;
+
+
 	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
 		this.logger = logger;
 		this.metrics = metrics;
@@ -48,6 +58,8 @@ export class DocumentSelectionRequestProcessor {
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
+		//////////////
+		this.stepFunctionsClient = new SFNClient({ region: process.env.REGION, credentials: fromEnv() });
 	}
 
 	static getInstance(
@@ -158,6 +170,7 @@ export class DocumentSelectionRequestProcessor {
 					countryCode,
 				);
 				if (yotiSessionId) {
+					await this.startStateMachine(sessionId, yotiSessionId, f2fSessionInfo?.clientSessionId, pdfPreference);
 					await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
 					await this.f2fService.updateSessionWithYotiIdAndStatus(
 						f2fSessionInfo.sessionId,
@@ -351,6 +364,7 @@ export class DocumentSelectionRequestProcessor {
 		return yotiSessionId;
 	}
 
+
 	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
 		this.logger.info({ message: "Posting message to Gov Notify" });
 		try {
@@ -361,6 +375,27 @@ export class DocumentSelectionRequestProcessor {
 				messageCode: MessageCodes.FAILED_TO_WRITE_GOV_NOTIFY,
 			});
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when sending message to GovNotify handler");
+		}
+	}
+	
+	async startStateMachine(sessionId: string, yotiSessionID: string, govuk_signin_journey_id: string, pdfPreference: string) {
+		console.log("STARTING YOTI LETTER STATE MACHINE")
+		const params = {
+			input: JSON.stringify({ sessionId: sessionId, pdfPreference: pdfPreference }),
+			name: `${sessionId}-${Date.now()}`,
+			yotiSessionID: yotiSessionID,
+			govuk_signin_journey_id: govuk_signin_journey_id,
+			stateMachineArn: process.env.YOTI_LETTER_STATE_MACHINE_ARN,
+	 };
+	 console.log("PARAMS", params)
+
+		try {
+			const invokeCommand: StartExecutionCommand = new StartExecutionCommand(params);
+			await this.stepFunctionsClient.send(invokeCommand);
+			console.log("YOTI LETTER STATE MACHINE FUNCTION COMPLETE")
+		} catch (error) {
+			this.logger.error({ message: "There was an error executing the yoti letter step function", error });
+			throw error;
 		}
 	}
 }
