@@ -699,7 +699,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 		await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
 
 		// @ts-ignore
-		expect(mockDocumentSelectionRequestProcessor.stepFunctionsClient.send).toHaveBeenCalled();
+		expect(mockDocumentSelectionRequestProcessor.stepFunctionsClient.send).toHaveBeenCalledWith(
+			{ "input": "{\"sessionId\":\"RandomF2FSessionID\",\"pdfPreference\":\"PRINTED_LETTER\",\"yotiSessionID\":\"b83d54ce-1565-42ee-987a-97a1f48f27dg\",\"govuk_signin_journey_id\":\"sdfssg\"}", "name": "RandomF2FSessionID-1585695600000", "stateMachineArn": "MockSendYotiLetterStateMachine.Arn" },
+		);
 		expect(logger.info).toHaveBeenNthCalledWith(5, { message: "Starting Yoti letter state machine" });
 	});
 });

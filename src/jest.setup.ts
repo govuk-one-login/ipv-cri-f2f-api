@@ -23,3 +23,4 @@ process.env.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH = "/dev/f2f/printedCustomer
 process.env.YOTI_LETTER_BUCKET = "YOTI_LETTER_BUCKET";
 process.env.YOTI_PDF_BUCKET_FOLDER = "pdf";
 process.env.USE_MOCKED = "true";
+process.env.YOTI_LETTER_STATE_MACHINE_ARN = "MockSendYotiLetterStateMachine.Arn"

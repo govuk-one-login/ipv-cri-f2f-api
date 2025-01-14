@@ -24,8 +24,6 @@ class GeneratePrintedLetterHandler implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
-		console.log("STATE MACHINE TRIGGER WORKED", event);
-
 		return {
 			statusCode: 200,
 			body: "OK",
