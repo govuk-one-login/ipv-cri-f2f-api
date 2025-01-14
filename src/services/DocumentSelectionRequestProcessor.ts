@@ -160,7 +160,6 @@ export class DocumentSelectionRequestProcessor {
 		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
 
 			const PRINTED_CUSTOMER_LETTER_ENABLED = await getParameter(this.environmentVariables.printedCustomerLetterEnabledSsmPath());
-		
 			try {
 				yotiSessionId = await this.createSessionGenerateInstructions(
 					personDetails,
@@ -172,17 +171,18 @@ export class DocumentSelectionRequestProcessor {
 				if (yotiSessionId) {
 					if (PRINTED_CUSTOMER_LETTER_ENABLED === "true") {
 						await this.startStateMachine(sessionId, yotiSessionId, f2fSessionInfo?.clientSessionId, pdfPreference);
-					} else {
-						await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
-						await this.f2fService.updateSessionWithYotiIdAndStatus(
-							f2fSessionInfo.sessionId,
-							yotiSessionId,
-							AuthSessionState.F2F_YOTI_SESSION_CREATED,
-						);
-						const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
-						await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
-						await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
 					}
+					
+					await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
+					
+					await this.f2fService.updateSessionWithYotiIdAndStatus(
+						f2fSessionInfo.sessionId,
+						yotiSessionId,
+						AuthSessionState.F2F_YOTI_SESSION_CREATED,
+					);
+					const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
+					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
+					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
 				} else {
 					this.logger.error(`No session found with yotiSessionId ${yotiSessionId}`);
 					throw new AppError(HttpCodesEnum.BAD_REQUEST, `No session found with yotiSessionId ${yotiSessionId}`);

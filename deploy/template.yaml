@@ -1878,11 +1878,14 @@ Resources:
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
           YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
           YOTI_LETTER_STATE_MACHINE_ARN: !GetAtt SendYotiLetterStateMachine.Arn
+          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${Environment}/f2f/printedCustomerLetter/enabled"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/f2f/printedCustomerLetter/enabled"
         - DynamoDBReadPolicy:
             TableName: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
