@@ -4839,9 +4839,21 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: GeneratePrintedLetterHandler
+          YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
+          YOTI_PDF_BUCKET_FOLDER: pdf
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - DynamoDBReadPolicy:
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-name"
+        - S3WritePolicy:
+            BucketName: !Ref YotiLetterBucket
+        - S3ReadPolicy:
+            BucketName: !Ref YotiLetterBucket
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-key-id"
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:

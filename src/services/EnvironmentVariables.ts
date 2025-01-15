@@ -320,6 +320,17 @@ export class EnvironmentVariables {
 				}
 				break;
 			}
+
+			case ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE: {
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+					!this.YOTI_LETTER_BUCKET || this.YOTI_LETTER_BUCKET.trim().length === 0 ||
+					!this.YOTI_PDF_BUCKET_FOLDER || this.YOTI_PDF_BUCKET_FOLDER.trim().length === 0
+				) {
+					logger.error("Environment variable SESSION_TABLE or YOTI_LETTER_BUCKET or YOTI_PDF_BUCKET_FOLDER is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "GenerateYotiLetter Service incorrectly configured");
+				}
+				break;
+			}
 			default:
 				break;
 		}
