@@ -35,7 +35,7 @@ export class GeneratePrintedLetterHandler implements LambdaInterface {
 
 		try {
 			logger.info("Starting GeneratePrintedLetterProcessor");
-			return await GeneratePrintedLetterProcessor.getInstance(logger, metrics).processRequest(event);
+			return await GeneratePrintedLetterProcessor.getInstance(logger).processRequest(event);
 
 		} catch (error: any) {
 			logger.error({ message: "An error has occurred",
