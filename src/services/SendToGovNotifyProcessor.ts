@@ -14,7 +14,7 @@ export class SendToGovNotifyProcessor {
 
   constructor(private readonly logger: Logger, private readonly metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, sendToGovNotifyServiceId: string) {
   	this.validationHelper = new ValidationHelper();
-  	this.sendToGovNotifyService = SendToGovNotifyService.getInstance(this.logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, sendToGovNotifyServiceId);
+  	this.sendToGovNotifyService = SendToGovNotifyService.getInstance(this.logger, GOVUKNOTIFY_API_KEY, sendToGovNotifyServiceId);
   }
 
   static getInstance(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, sendToGovNotifyServiceId: string): SendToGovNotifyProcessor {

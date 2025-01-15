@@ -17,6 +17,8 @@ export class PdfPreferenceEmail {
 		this.firstName = data.firstName!;
 		this.lastName = data.lastName!;
 		this.referenceId = randomUUID();
+		this.pdfPreference = data.pdfPreference!;
+		this.postalAddress = data.postalAddress!;
 	}
 
 	static parseRequest(data: any, logger: Logger): PdfPreferenceEmail {

@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // @ts-ignore
 import { NotifyClient } from "notifications-node-client";
 import { EmailResponse } from "../models/EmailResponse";
@@ -84,7 +83,7 @@ export class SendToGovNotifyService {
   	// Fetch the instructions pdf from Yoti
   	try {
   		const f2fSessionInfo = await this.f2fService.getSessionById(
-			pdfPreferenceDetails.sessionId,
+  			pdfPreferenceDetails.sessionId,
   		);
   		if (!f2fSessionInfo) {
   			this.logger.warn("Missing details in SESSION table", {
@@ -109,20 +108,26 @@ export class SendToGovNotifyService {
   		}
 
   		if (pdfPreferenceDetails.pdfPreference === Constants.PDF_PREFERENCE_PRINTED_LETTER) {
+  			try {
+  				const mergedPdf = await this.fetchPdfFile(pdfPreferenceDetails, this.environmentVariables.mergedPdfBucketFolder());
+  
+  				if (mergedPdf) {
+  					this.logger.debug("sendLetter", SendToGovNotifyService.name);
+  					this.logger.info("Sending precomplied letter");
+  
+  					await this.sendGovNotificationLetter(
+  						mergedPdf,
+  						pdfPreferenceDetails,
+  						clientConfig.GovNotifyApi,
+  					);
+  
+  					await this.sendF2FLetterSentEvent(pdfPreferenceDetails);
+  				}
 
-  			const mergedPdf = await this.fetchPdfFile(pdfPreferenceDetails, this.environmentVariables.mergedPdfBucketFolder());
-
-  			if (mergedPdf) {
-  				this.logger.debug("sendLetter", SendToGovNotifyService.name);
-  				this.logger.info("Sending precomplied letter");
-
-  			await this.sendGovNotificationLetter(
-  				mergedPdf,
-  				pdfPreferenceDetails,
-  				clientConfig.GovNotifyApi,
-  			);
-
-  			await this.sendF2FLetterSentEvent(pdfPreferenceDetails);
+  			} catch (err: any) {
+  				this.logger.error("sendYotiInstructions - Cannot send letter", {
+  					messageCode: MessageCodes.FAILED_TO_SEND_PDF_LETTER,
+  				});
   			}
   		}
 		
@@ -177,26 +182,26 @@ export class SendToGovNotifyService {
   }
 
   async fetchPdfFile(pdfPreferenceDetails: PdfPreferenceEmail, folderName: string): Promise<any> {
-	const f2fSessionInfo = await this.f2fService.getSessionById(pdfPreferenceDetails.sessionId);
+  	const f2fSessionInfo = await this.f2fService.getSessionById(pdfPreferenceDetails.sessionId);
 
-	if (!f2fSessionInfo) {
-		this.logger.warn("Session not found", {
-			messageCode: MessageCodes.SESSION_NOT_FOUND,
-		});
-		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Session not found");
-	}  		
+  	if (!f2fSessionInfo) {
+  		this.logger.warn("Session not found", {
+  			messageCode: MessageCodes.SESSION_NOT_FOUND,
+  		});
+  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Session not found");
+  	}  		
 		
-	const bucket = this.environmentVariables.yotiLetterBucket();
-	const folder = folderName;
-	const key = `${folder}/${pdfPreferenceDetails.yotiSessionId}`; 
+  	const bucket = this.environmentVariables.yotiLetterBucket();
+  	const folder = folderName;
+  	const key = `${folder}/${pdfPreferenceDetails.yotiSessionId}`; 
 
-	this.logger.info("Fetching the pdf file from the S3 bucket. ", { bucket, key }); 
-	try{
-		return await fetchEncodedFileFromS3Bucket(bucket, key);
-	} catch(error){
-		this.logger.error({ message: "Error fetching the pdf file from S3 bucket", error, messageCode: MessageCodes.ERROR_FETCHING_PDF_FILE_FROM_S3_BUCKET });
-		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching the pdf file from S3 bucket");
-	}	
+  	this.logger.info("Fetching the pdf file from the S3 bucket. ", { bucket, key }); 
+  	try {
+  		return await fetchEncodedFileFromS3Bucket(bucket, key);
+  	} catch (error) {
+  		this.logger.error({ message: "Error fetching the pdf file from S3 bucket", error, messageCode: MessageCodes.ERROR_FETCHING_PDF_FILE_FROM_S3_BUCKET });
+  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching the pdf file from S3 bucket");
+  	}	
 	
   }
 
@@ -263,7 +268,7 @@ export class SendToGovNotifyService {
   					govuk_signin_journey_id: session.clientSessionId,
   				},
 				  restricted: {
-					postalAddress: pdfPreferenceDetails.postalAddress,
+  					postalAddress: pdfPreferenceDetails.postalAddress,
   				},
   			});
   		} catch (error) {
@@ -373,7 +378,7 @@ export class SendToGovNotifyService {
   	);
   }
 
-   /**
+  /**
    * Method to compose send printed letter to govNotify 
    * This method receive object containing the data to compose the PrecompiledLetter and retrieves needed field based on object type (PdfPreferenceEmail)
    * it attempts to send the PrecompiledLetter.
