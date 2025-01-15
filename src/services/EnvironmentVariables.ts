@@ -55,8 +55,6 @@ export class EnvironmentVariables {
 	private readonly YOTI_LETTER_BUCKET = process.env.YOTI_LETTER_BUCKET;
 
 	private readonly YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER = process.env.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER;
-
-	private readonly YOTI_PDF_BUCKET_COVER_LETTER_FOLDER = process.env.YOTI_PDF_BUCKET_COVER_LETTER_FOLDER;
 	
 	private readonly YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER = process.env.YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER;
 	
@@ -328,11 +326,10 @@ export class EnvironmentVariables {
 			case ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE: {
 				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 					!this.YOTI_LETTER_BUCKET || this.YOTI_LETTER_BUCKET.trim().length === 0 ||
-					!this.YOTI_PDF_BUCKET_COVER_LETTER_FOLDER || this.YOTI_PDF_BUCKET_COVER_LETTER_FOLDER.trim().length === 0 ||
 					!this.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER || this.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER.trim().length === 0 ||
 					!this.YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER || this.YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER.trim().length === 0
 				) {
-					logger.error("Environment variable SESSION_TABLE, YOTI_LETTER_BUCKET, YOTI_PDF_BUCKET_COVER_LETTER_FOLDER, YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER or YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER is not configured");
+					logger.error("Environment variable SESSION_TABLE, YOTI_LETTER_BUCKET, YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER or YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "GenerateYotiLetter Service incorrectly configured");
 				}
 				break;
@@ -455,10 +452,6 @@ export class EnvironmentVariables {
 
 	yotiLetterBucketPDFFolder(): string | undefined {
 		return this.YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER;
-	}
-
-	coverLetterBucketPDFFolder(): string | undefined {
-		return this.YOTI_PDF_BUCKET_COVER_LETTER_FOLDER;
 	}
 
 	mergedLetterBucketPDFFolder(): string | undefined {

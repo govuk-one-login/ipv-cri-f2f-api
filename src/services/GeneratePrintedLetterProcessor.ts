@@ -1,5 +1,4 @@
 import { F2fService } from "./F2fService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -7,10 +6,12 @@ import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
-import { ValidationHelper } from "../utils/ValidationHelper";
+
 import { PutObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import PDFMerger from "pdf-merger-js";
+import { PDFService } from "./PdfService";
+import { PDFDocument } from "pdf-lib";
 
 export class GeneratePrintedLetterProcessor {
 
@@ -18,22 +19,19 @@ export class GeneratePrintedLetterProcessor {
 
 	private readonly logger: Logger;
 
-	private readonly metrics: Metrics;
-
 	private s3Client: S3Client;
 
 	private readonly f2fService: F2fService;
 
 	private readonly environmentVariables: EnvironmentVariables;
 
-	private readonly validationHelper: ValidationHelper;
+	private readonly pdfService: PDFService;
 
-	constructor(logger: Logger, metrics: Metrics) {
+	constructor(logger: Logger) {
 		this.logger = logger;
-		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
-		this.validationHelper = new ValidationHelper();
+		this.pdfService = PDFService.getInstance(logger);
 		this.s3Client = new S3Client({
 			region: process.env.REGION,
 			maxAttempts: 2,
@@ -46,11 +44,10 @@ export class GeneratePrintedLetterProcessor {
 
 	static getInstance(
 		logger: Logger,
-		metrics: Metrics,
 	): GeneratePrintedLetterProcessor {
 		if (!GeneratePrintedLetterProcessor.instance) {
 			GeneratePrintedLetterProcessor.instance =
-				new GeneratePrintedLetterProcessor(logger, metrics);
+				new GeneratePrintedLetterProcessor(logger);
 		}
 		return GeneratePrintedLetterProcessor.instance;
 	}
@@ -71,15 +68,13 @@ export class GeneratePrintedLetterProcessor {
 
 		const bucket = this.environmentVariables.yotiLetterBucketName();
 		const yotiPdfFolder = this.environmentVariables.yotiLetterBucketPDFFolder();
-		const coverLetterFolder = this.environmentVariables.coverLetterBucketPDFFolder();
+
 		const mergedLetterFolder = this.environmentVariables.mergedLetterBucketPDFFolder();
 
 		const yotiInstructionskey = `${yotiPdfFolder}-${f2fSessionInfo.yotiSessionId}`;
-		const coverLetterKey = `${coverLetterFolder}-${f2fSessionInfo.yotiSessionId}`;
 		const mergedLetterKey = `${mergedLetterFolder}-${f2fSessionInfo.yotiSessionId}`;
 
 		let yotiPdfBuffer = null;
-		let coverLetterPdfBuffer = null;
 		let mergedPdfBuffer = null;
 
 		// Retrieve Yoti PDF
@@ -110,31 +105,7 @@ export class GeneratePrintedLetterProcessor {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Yoti PDF from S3 bucket");
 		}
 
-		const coverLetterSearchParams = {
-			Bucket: bucket,
-			Key: coverLetterKey, 
-		};
-
-		try {
-			this.logger.info(`Retrieving cover letter pdf with key ${coverLetterKey} from bucket ${bucket}`);
-			const coverLetterData = await this.s3Client.send(new GetObjectCommand(coverLetterSearchParams));
-
-			if (coverLetterData.Body) {
-				const chunks = [];
-				for await (const chunk of coverLetterData.Body as AsyncIterable<Uint8Array>) {
-				  chunks.push(chunk);
-				}
-				coverLetterPdfBuffer = Buffer.concat(chunks);
-			
-				this.logger.info("Cover letter PDF file downloaded successfully."); 
-			  } else {
-				this.logger.error("Error: No data found in the response.");
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Yoti PDF from S3 bucket. No data found");
-			}
-		} catch (error) {
-			this.logger.error("Error retrieving Cover Letter PDF from S3 bucket", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Cover Letter PDF from S3 bucket");
-		}
+		const coverLetterPdfBuffer = await this.pdfService.createPdf(f2fSessionInfo.sessionId);
 
 		// Merge retrieved PDF's
 		try {
@@ -151,11 +122,14 @@ export class GeneratePrintedLetterProcessor {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error merging PDFs");
 		}
 
+
+		const resizedMergedPdf = await this.resizePdf(mergedPdfBuffer);
+		
 		// Upload merged PDF
 		const mergedUploadParams = {
 			Bucket: bucket,
 			Key: mergedLetterKey,
-			Body: mergedPdfBuffer,
+			Body: resizedMergedPdf,
 			ContentType: "application/octet-stream",
 		};
 		try {
@@ -172,4 +146,33 @@ export class GeneratePrintedLetterProcessor {
 		};
 
 	}
+
+	async resizePdf(pdf: Uint8Array): Promise<Uint8Array> {
+		const pdfDoc = await PDFDocument.load(pdf);
+		const pages = pdfDoc.getPages();
+	
+		const a4Width = 595.28;
+		const a4Height = 841.89;
+		const scaling = 0.90;
+	
+		if (pages.length > 4) {
+			const targetPage = pages[4]; 
+			const { width, height } = targetPage.getSize();
+	
+			const scaledWidth = width * scaling;
+			const scaledHeight = height * scaling;
+	
+			targetPage.setSize(a4Width, a4Height);
+	
+			const xOffset = (a4Width - scaledWidth) / 2; 
+			const yOffset = (a4Height - scaledHeight) / 2; 
+	
+			targetPage.translateContent(xOffset, yOffset);
+			targetPage.scaleContent(scaling, scaling);
+		}
+	
+		const resizedPdf = await pdfDoc.save();
+		return resizedPdf;
+	}
+
 }

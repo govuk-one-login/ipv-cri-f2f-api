@@ -22,7 +22,6 @@ process.env.YOTI_SESSION_TTL_DAYS = "10";
 process.env.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH = "/dev/f2f/printedCustomerLetter/enabled";
 process.env.YOTI_LETTER_BUCKET = "YOTI_LETTER_BUCKET";
 process.env.YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER = "pdf";
-process.env.YOTI_PDF_BUCKET_COVER_LETTER_FOLDER = "cover-pdf";
 process.env.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER = "merged-pdf";
 process.env.USE_MOCKED = "true";
 process.env.YOTI_LETTER_STATE_MACHINE_ARN = "MockSendYotiLetterStateMachine.Arn"
