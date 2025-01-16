@@ -10,7 +10,7 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 import { ValidationHelper } from "../utils/ValidationHelper";
 import { PutObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
-const PDFMerger = require('pdf-merger-js');
+const PDFMerger = require("pdf-merger-js");
 
 export class GeneratePrintedLetterProcessor {
 
@@ -105,7 +105,7 @@ export class GeneratePrintedLetterProcessor {
 		// Retrieve Cover Letter PDF - This will be replaced with the code to dynamically generate the cover letter
 		const downloadParams2 = {
 			Bucket: bucket,
-			Key: 'coverLetterPdf', 
+			Key: "coverLetterPdf", 
 		};
 
 		try {
@@ -130,12 +130,12 @@ export class GeneratePrintedLetterProcessor {
 
 		// Merge retrieved PDF's
 		try {
-		this.logger.info("Attempting to merge PDF's"); 
-		const merger = new PDFMerger();
-		await merger.add(coverLetterPdfBuffer);
-		await merger.add(yotiPdfBuffer);
-		mergedPdfBuffer = await merger.saveAsBuffer(); 
-		this.logger.info("PDF's merged succesfully"); 
+			this.logger.info("Attempting to merge PDF's"); 
+			const merger = new PDFMerger();
+			await merger.add(coverLetterPdfBuffer);
+			await merger.add(yotiPdfBuffer);
+			mergedPdfBuffer = await merger.saveAsBuffer(); 
+			this.logger.info("PDF's merged succesfully"); 
 		} catch (error) {
 			this.logger.error("Error merging PDFs", { messageCode: MessageCodes.FAILED_PDF_MERGE });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error merging PDFs");
