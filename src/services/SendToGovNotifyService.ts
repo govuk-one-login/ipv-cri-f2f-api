@@ -132,7 +132,7 @@ export class SendToGovNotifyService {
   					// this.logger.info("Sending precompiled letter");
 
 					  const bucket = this.environmentVariables.yotiLetterBucket();
-					  const folder = "mergedPdf";
+					  const folder = this.environmentVariables.mergedPdfBucketFolder();
 
 					  const uploadParams = {
   						Bucket: bucket,
