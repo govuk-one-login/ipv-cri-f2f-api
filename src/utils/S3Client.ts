@@ -31,10 +31,9 @@ export async function fetchEncodedFileFromS3Bucket(bucket: string, key: string):
 		const file = await s3Client.send(new GetObjectCommand(pdfParams));
 		if (file.Body instanceof Readable) {
 			const body = await streamToBuffer(file.Body);
-			const encoded = body.toString("base64");
-			return encoded;
+			return body;
 		}
 	} catch (error) {
 		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching the file from S3 bucket");
-	}	
+	}		
 }

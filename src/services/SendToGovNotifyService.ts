@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 // @ts-ignore
 import { NotifyClient } from "notifications-node-client";
 import { EmailResponse } from "../models/EmailResponse";
@@ -17,6 +18,9 @@ import { getClientConfig } from "../utils/ClientConfig";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { PdfPreferenceEmail } from "../models/PdfPreferenceEmail";
 import { fetchEncodedFileFromS3Bucket } from "../utils/S3Client";
+import { PDFDocument, rgb } from "pdf-lib";
+import { PutObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 
 /**
  * Class to send emails using gov notify service
@@ -37,6 +41,8 @@ export class SendToGovNotifyService {
   private readonly GOV_NOTIFY_SERVICE_ID: string;
 
   private readonly GOVUKNOTIFY_API_KEY: string;
+
+  private s3Client: S3Client;
 
   /**
    * Constructor sets up the client needed to use gov notify service with API key read from env var
@@ -62,6 +68,14 @@ export class SendToGovNotifyService {
   		this.logger,
   		createDynamoDbClient(),
   	);
+	  this.s3Client = new S3Client({
+		region: process.env.REGION,
+		maxAttempts: 2,
+		requestHandler: new NodeHttpHandler({
+			connectionTimeout: 29000,
+			socketTimeout: 29000,
+		}),
+	});
   }
 
   static getInstance(
@@ -80,7 +94,7 @@ export class SendToGovNotifyService {
   }
 
   async sendYotiInstructions(pdfPreferenceDetails: PdfPreferenceEmail): Promise<EmailResponse> {
-  	// Fetch the instructions pdf from Yoti
+  	// Fetch the Yoti PDF from S3
   	try {
   		const f2fSessionInfo = await this.f2fService.getSessionById(
   			pdfPreferenceDetails.sessionId,
@@ -110,23 +124,42 @@ export class SendToGovNotifyService {
   		if (pdfPreferenceDetails.pdfPreference === Constants.PDF_PREFERENCE_PRINTED_LETTER) {
   			try {
   				const mergedPdf = await this.fetchPdfFile(pdfPreferenceDetails, this.environmentVariables.mergedPdfBucketFolder());
+				
+  				const resizedPDF = await this.increasePdfMargins(mergedPdf); 
+				
+  				if (resizedPDF) {
+  					// this.logger.debug("sendLetter", SendToGovNotifyService.name);
+  					// this.logger.info("Sending precompiled letter");
+
+					  const bucket = this.environmentVariables.yotiLetterBucket();
+					  const folder = "mergedPdf";
+
+					  const uploadParams = {
+  						Bucket: bucket,
+  						Key: `${folder}-resize-${f2fSessionInfo.yotiSessionId}`,
+  						Body: resizedPDF,
+  						ContentType: "application/pdf",
+  					};
+  					try {
+  						this.logger.info(`Uploading merged PDF: ${uploadParams.Key}`);
+  						await this.s3Client.send(new PutObjectCommand(uploadParams));
+  					} catch (error) {
+  						this.logger.error("Error uploading merged PDF", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
+  						throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error uploading merged PDF");
+  					}
+					
+  					// await this.sendGovNotificationLetter(
+  					// 	resizedPDF,
+  					// 	pdfPreferenceDetails,
+  					// 	clientConfig.GovNotifyApi,
+  					// );
   
-  				if (mergedPdf) {
-  					this.logger.debug("sendLetter", SendToGovNotifyService.name);
-  					this.logger.info("Sending precomplied letter");
-  
-  					await this.sendGovNotificationLetter(
-  						mergedPdf,
-  						pdfPreferenceDetails,
-  						clientConfig.GovNotifyApi,
-  					);
-  
-  					await this.sendF2FLetterSentEvent(pdfPreferenceDetails);
+  					//await this.sendF2FLetterSentEvent(pdfPreferenceDetails);
   				}
 
   			} catch (err: any) {
   				this.logger.error("sendYotiInstructions - Cannot send letter", {
-  					messageCode: MessageCodes.FAILED_TO_SEND_PDF_LETTER,
+  					message: err, messageCode: MessageCodes.FAILED_TO_SEND_PDF_LETTER,
   				});
   			}
   		}
@@ -172,7 +205,7 @@ export class SendToGovNotifyService {
   		}
   	} catch (err: any) {
   		this.logger.error("sendYotiInstructions - Cannot send Email", {
-  			messageCode: MessageCodes.FAILED_TO_SEND_PDF_EMAIL,
+  			message: err, messageCode: MessageCodes.FAILED_TO_SEND_PDF_EMAIL,
   		});
   		throw new AppError(
   			HttpCodesEnum.SERVER_ERROR,
@@ -193,7 +226,7 @@ export class SendToGovNotifyService {
 		
   	const bucket = this.environmentVariables.yotiLetterBucket();
   	const folder = folderName;
-  	const key = `${folder}/${pdfPreferenceDetails.yotiSessionId}`; 
+  	const key = `${folder}/${pdfPreferenceDetails.yotiSessionId}.pdf`; 
 
   	this.logger.info("Fetching the pdf file from the S3 bucket. ", { bucket, key }); 
   	try {
@@ -203,6 +236,20 @@ export class SendToGovNotifyService {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching the pdf file from S3 bucket");
   	}	
 	
+  }
+
+  async increasePdfMargins(pdf: any): Promise<any> {
+  	const pdfDoc = await PDFDocument.load(pdf);
+
+  	const pages = pdfDoc.getPages();
+  	for (const page of pages) {
+  		const { width, height } = page.getSize();
+  		const newMargins = { top: 100, left: 100, bottom: 100, right: 100 }; // Adjust as needed
+  		page.setCropBox(newMargins.left, newMargins.bottom, width - newMargins.right, height - newMargins.top);
+  	}
+
+  	const modifiedPdfBytes = await pdfDoc.save();
+  	return modifiedPdfBytes;
   }
 
   async sendF2FYotiEmailedEvent(pdfPreferenceDetails: PdfPreferenceEmail): Promise<void> {
