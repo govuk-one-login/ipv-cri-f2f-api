@@ -4303,6 +4303,8 @@ Resources:
                 !Sub "${L2DynamoStackName}-session-table-key-id"
         - S3ReadPolicy:
             BucketName: !Sub "${AWS::StackName}-yotiletter-f2f-${Environment}"
+        - S3WritePolicy:
+            BucketName: !Sub "${AWS::StackName}-yotiletter-f2f-${Environment}"
         - Statement:
             - Effect: Allow
               Action:

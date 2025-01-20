@@ -1,3 +1,4 @@
+/* eslint-disable max-depth */
 /* eslint-disable max-lines */
 // @ts-ignore
 import { NotifyClient } from "notifications-node-client";
@@ -18,7 +19,7 @@ import { getClientConfig } from "../utils/ClientConfig";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { PdfPreferenceEmail } from "../models/PdfPreferenceEmail";
 import { fetchEncodedFileFromS3Bucket } from "../utils/S3Client";
-import { PDFDocument, rgb } from "pdf-lib";
+import { PDFDocument } from "pdf-lib";
 import { PutObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 
@@ -69,13 +70,13 @@ export class SendToGovNotifyService {
   		createDynamoDbClient(),
   	);
 	  this.s3Client = new S3Client({
-		region: process.env.REGION,
-		maxAttempts: 2,
-		requestHandler: new NodeHttpHandler({
-			connectionTimeout: 29000,
-			socketTimeout: 29000,
-		}),
-	});
+  		region: process.env.REGION,
+  		maxAttempts: 2,
+  		requestHandler: new NodeHttpHandler({
+  			connectionTimeout: 29000,
+  			socketTimeout: 29000,
+  		}),
+  	});
   }
 
   static getInstance(
@@ -125,18 +126,18 @@ export class SendToGovNotifyService {
   			try {
   				const mergedPdf = await this.fetchPdfFile(pdfPreferenceDetails, this.environmentVariables.mergedPdfBucketFolder());
 				
-  				const resizedPDF = await this.increasePdfMargins(mergedPdf); 
+  				const resizedPDF = await this.resizePdf(mergedPdf); 
 				
   				if (resizedPDF) {
-  					// this.logger.debug("sendLetter", SendToGovNotifyService.name);
-  					// this.logger.info("Sending precompiled letter");
+  					this.logger.debug("sendLetter", SendToGovNotifyService.name);
+  					this.logger.info("Sending precompiled letter");
 
 					  const bucket = this.environmentVariables.yotiLetterBucket();
 					  const folder = this.environmentVariables.mergedPdfBucketFolder();
 
 					  const uploadParams = {
   						Bucket: bucket,
-  						Key: `${folder}-resize-${f2fSessionInfo.yotiSessionId}`,
+  						Key: `${folder}/${pdfPreferenceDetails.yotiSessionId}.pdf`,
   						Body: resizedPDF,
   						ContentType: "application/pdf",
   					};
@@ -144,17 +145,19 @@ export class SendToGovNotifyService {
   						this.logger.info(`Uploading merged PDF: ${uploadParams.Key}`);
   						await this.s3Client.send(new PutObjectCommand(uploadParams));
   					} catch (error) {
-  						this.logger.error("Error uploading merged PDF", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
+  						this.logger.error("Error uploading merged PDF", { message: error, messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
   						throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error uploading merged PDF");
   					}
 					
-  					// await this.sendGovNotificationLetter(
-  					// 	resizedPDF,
-  					// 	pdfPreferenceDetails,
-  					// 	clientConfig.GovNotifyApi,
-  					// );
+					  const retrievedPDF = await this.fetchPdfFile(pdfPreferenceDetails, this.environmentVariables.mergedPdfBucketFolder());
+
+  					await this.sendGovNotificationLetter(
+  						retrievedPDF,
+  						pdfPreferenceDetails,
+  						clientConfig.GovNotifyApi,
+  					);
   
-  					//await this.sendF2FLetterSentEvent(pdfPreferenceDetails);
+  					await this.sendF2FLetterSentEvent(pdfPreferenceDetails);
   				}
 
   			} catch (err: any) {
@@ -238,19 +241,34 @@ export class SendToGovNotifyService {
 	
   }
 
-  async increasePdfMargins(pdf: any): Promise<any> {
+  async resizePdf(pdf: Uint8Array): Promise<Uint8Array> {
   	const pdfDoc = await PDFDocument.load(pdf);
-
   	const pages = pdfDoc.getPages();
-  	for (const page of pages) {
-  		const { width, height } = page.getSize();
-  		const newMargins = { top: 100, left: 100, bottom: 100, right: 100 }; // Adjust as needed
-  		page.setCropBox(newMargins.left, newMargins.bottom, width - newMargins.right, height - newMargins.top);
+  
+  	const a4Width = 595.28;
+  	const a4Height = 841.89;
+  	const scaling = 0.90;
+  
+  	if (pages.length > 4) {
+	  const targetPage = pages[4]; 
+	  const { width, height } = targetPage.getSize();
+  
+	  const scaledWidth = width * scaling;
+	  const scaledHeight = height * scaling;
+  
+	  targetPage.setSize(a4Width, a4Height);
+  
+	  const xOffset = (a4Width - scaledWidth) / 2; 
+	  const yOffset = (a4Height - scaledHeight) / 2; 
+  
+	  targetPage.translateContent(xOffset, yOffset);
+	  targetPage.scaleContent(scaling, scaling);
   	}
-
-  	const modifiedPdfBytes = await pdfDoc.save();
-  	return modifiedPdfBytes;
+  
+  	const resizedPdf = await pdfDoc.save();
+  	return resizedPdf;
   }
+  
 
   async sendF2FYotiEmailedEvent(pdfPreferenceDetails: PdfPreferenceEmail): Promise<void> {
   	const session = await this.f2fService.getSessionById(pdfPreferenceDetails.sessionId);
