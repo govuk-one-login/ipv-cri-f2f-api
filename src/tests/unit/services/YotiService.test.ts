@@ -314,7 +314,7 @@ describe("YotiService", () => {
 		const expectedResponse = {
 			body: JSON.stringify({
 				session_id: "4757f8f5-1670-4978-b6a2-fe3e401fb999",
-				client_session_token_ttl: 1209600,
+				client_session_token_ttl: 1814400,
 				requested_checks: [
 					"ID_DOCUMENT_AUTHENTICITY",
 					"ID_DOCUMENT_FACE_MATCH",
@@ -460,7 +460,7 @@ describe("YotiService", () => {
 						},
 					],
 				},
-				client_session_token_ttl: 1209600,
+				client_session_token_ttl: 1814400,
 				requested_checks: [
 					"ID_DOCUMENT_AUTHENTICITY",
 					"ID_DOCUMENT_FACE_MATCH",

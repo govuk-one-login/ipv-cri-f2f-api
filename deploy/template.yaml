@@ -123,8 +123,8 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
-      YOTISESSIONTTLDAYS: 10 # Default 10 days
-      RESOURCETTLSECS: 1209600 # Default 14 days
+      YOTISESSIONTTLDAYS: 15 # Default 15 days
+      RESOURCETTLSECS: 1555200 # Default 18 days
       CLIENTS:
         '[
           {
@@ -142,7 +142,7 @@ Mappings:
               "GovNotifyApi": "https://api.notifications.service.gov.uk"
           }
         ]'
-      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
     build:
@@ -157,8 +157,8 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
-      YOTISESSIONTTLDAYS: 10 # Default 10 days
-      RESOURCETTLSECS: 1209600 # Default 14 days
+      YOTISESSIONTTLDAYS: 15 # Default 15 days
+      RESOURCETTLSECS: 1555200 # Default 18 days
       CLIENTS:
         '[
           {
@@ -176,7 +176,7 @@ Mappings:
               "GovNotifyApi": "https://api.notifications.service.gov.uk"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
     staging:
@@ -189,8 +189,8 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
-      YOTISESSIONTTLDAYS: 10 # Default 10 days
-      RESOURCETTLSECS: 1209600 # Default 14 days
+      YOTISESSIONTTLDAYS: 15 # Default 15 days
+      RESOURCETTLSECS: 1555200 # Default 18 days
       CLIENTS:
         '[
           {
@@ -201,7 +201,7 @@ Mappings:
               "GovNotifyApi": "https://api.notifications.service.gov.uk"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
@@ -213,8 +213,8 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
-      YOTISESSIONTTLDAYS: 10 # Default 10 days
-      RESOURCETTLSECS: 1209600 # Default 14 days
+      YOTISESSIONTTLDAYS: 15 # Default 15 days
+      RESOURCETTLSECS: 1555200 # Default 18 days
       CLIENTS:
         '[
           {
@@ -225,7 +225,7 @@ Mappings:
               "GovNotifyApi": "https://api.notifications.service.gov.uk"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
@@ -237,8 +237,8 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "ccba5634-33e9-4e0d-96c1-57067db941af"
       GOVUKNOTIFYREMINDERTEMPLATEID: "0d0d2aab-3c31-46da-8462-1af0f5f456f0"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0d3b9cb6-2c54-4316-865a-933f0f0dfb53"
-      YOTISESSIONTTLDAYS: 10 # Default 10 days
-      RESOURCETTLSECS: 1209600 # Default 14 days
+      YOTISESSIONTTLDAYS: 15 # Default 15 days
+      RESOURCETTLSECS: 1555200 # Default 18 days
       CLIENTS:
         '[
           {
@@ -249,7 +249,7 @@ Mappings:
               "GovNotifyApi": "https://api.notifications.service.gov.uk"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.

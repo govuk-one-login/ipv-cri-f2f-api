@@ -113,7 +113,7 @@ function getPersonIdentityItem(): PersonIdentityItem {
 function getYotiSessionInfo(): YotiSessionInfo {
 	const yotiSessionInfo: YotiSessionInfo = {
 		"session_id":"RandomYotiSessionID",
-		"client_session_token_ttl":1382400,
+		"client_session_token_ttl":1814400,
 		"requested_checks":[
 			 "IBV_VISUAL_REVIEW_CHECK",
 			 "DOCUMENT_SCHEME_VALIDITY_CHECK",
