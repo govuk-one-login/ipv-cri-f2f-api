@@ -348,6 +348,7 @@ export class F2fService {
 		try {
 			await this.dynamo.send(updateAccessTokenDetailsCommand);
 			this.logger.info({ message: "updated Access token details in dynamodb" });
+		// eslint-disable-next-line max-lines
 		} catch (error) {
 			this.logger.error({ message: "got error updating Access token details", error }, { messageCode: MessageCodes.FAILED_UPDATING_SESSION });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error updating Access token details");

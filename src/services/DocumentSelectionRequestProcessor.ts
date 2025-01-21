@@ -62,6 +62,7 @@ export class DocumentSelectionRequestProcessor {
 		return DocumentSelectionRequestProcessor.instance;
 	}
 
+	// eslint-disable-next-line complexity
 	async processRequest(event: APIGatewayProxyEvent, sessionId: string, encodedHeader: string): Promise<APIGatewayProxyResult> {
 
 		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -131,14 +132,20 @@ export class DocumentSelectionRequestProcessor {
 		//Initialise Yoti Service base on session client_id
 		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSessionInfo.clientId, this.logger);
 
+		this.logger.info("Client config returned");
 		if (!clientConfig) {
 			this.logger.error("Unrecognised client in request", {
 				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
 			});
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
+		this.logger.info("Client config present");
+
 
 		this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
+
+		this.logger.info("Yoti connection created");
+		this.logger.info("Validation starting");
 
 		// Reject the request when session store does not contain email, familyName or GivenName fields
 		const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);
@@ -146,10 +153,18 @@ export class DocumentSelectionRequestProcessor {
 			this.logger.error(data.errorMessage + " in the PERSON IDENTITY table", { messageCode: data.errorMessageCode });
 			return Response(HttpCodesEnum.SERVER_ERROR, data.errorMessage + " in the PERSON IDENTITY table");
 		}
+		this.logger.info("Validation finished");
+
 
 		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
+			this.logger.info("Getting yoti instructions");
 
 			try {
+				this.logger.info("Trying to create sessions with ", personDetails,
+					f2fSessionInfo,
+					postOfficeSelection,
+					selectedDocument,
+					countryCode );
 				yotiSessionId = await this.createSessionGenerateInstructions(
 					personDetails,
 					f2fSessionInfo,
@@ -158,12 +173,18 @@ export class DocumentSelectionRequestProcessor {
 					countryCode,
 				);
 				if (yotiSessionId) {
+					this.logger.info("Yoti session created");
+
 					await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
+					this.logger.info("Posted to gov notify");
+
 					await this.f2fService.updateSessionWithYotiIdAndStatus(
 						f2fSessionInfo.sessionId,
 						yotiSessionId,
 						AuthSessionState.F2F_YOTI_SESSION_CREATED,
 					);
+					this.logger.info("Session updated");
+
 					const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
 					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
 					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());

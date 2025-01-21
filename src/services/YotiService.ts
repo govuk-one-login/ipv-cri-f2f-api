@@ -152,7 +152,7 @@ export class YotiService {
 	): Promise<string | undefined> {
     	const sessionDeadlineDate = new Date(new Date().getTime() + this.YOTI_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000);
     	sessionDeadlineDate.setUTCHours(22, 0, 0, 0);
-    	const payloadJSON: CreateSessionPayload = {
+    	const payloadJSON: any = {
     		session_deadline: sessionDeadlineDate,
     		resources_ttl: this.RESOURCES_TTL_SECS,
     		ibv_options: {
@@ -197,6 +197,7 @@ export class YotiService {
     		endpoint: "/sessions",
     	});
     	try {
+			this.logger.info("hitting yoti stub with " + yotiRequest.url, payloadJSON, JSON.stringify(yotiRequest.config));
     		const { data } = await axios.post(
     			yotiRequest.url,
     			payloadJSON,
