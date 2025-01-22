@@ -9,6 +9,9 @@ import { getParameter } from "./utils/Config";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 import { MessageCodes } from "./models/enums/MessageCodes";
+import { AppError } from "./utils/AppError";
+import { HttpCodesEnum } from "./utils/HttpCodesEnum";
+
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.EMAIL_METRICS_NAMESPACE;
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
@@ -35,29 +38,37 @@ class SendToGovNotifyHandler implements LambdaInterface {
 		
 		try {
 			if (!GOVUKNOTIFY_API_KEY) {
+
 				logger.info({ message: "Fetching GOVUKNOTIFY_API_KEY from SSM" });
 				try {
+
 					GOVUKNOTIFY_API_KEY = await getParameter(this.environmentVariables.govNotifyApiKeySsmPath());
 				} catch (error) {
-					logger.error(`failed to get param from ssm at ${this.environmentVariables.govNotifyApiKeySsmPath()}`, {
+
+					const message = `failed to get param from ssm at ${this.environmentVariables.govNotifyApiKeySsmPath()}`;
+					logger.error(message, {
 						messageCode: MessageCodes.MISSING_CONFIGURATION,
 						error,
 					});
-					throw error;
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, message);
 				}
 			}
 			let govnotifyServiceId;
 			try {
+
 				govnotifyServiceId = GOVUKNOTIFY_API_KEY.substring(GOVUKNOTIFY_API_KEY.length - 73, GOVUKNOTIFY_API_KEY.length - 37);
 			} catch (error) {
-				logger.error("failed to extract govnotifyServiceId from the GOVUKNOTIFY_API_KEY", { error });
-				throw error;
+				const message = "failed to extract govnotifyServiceId from the GOVUKNOTIFY_API_KEY";
+				logger.error(message, { error });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, message);
 			}
 			return await SendToGovNotifyProcessor.getInstance(logger, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(event);
 
 		} catch (error) {
-			logger.error({ message: "Email could not be sent. Returning failed message", error } );
-			throw error;
+			const message = "Email could not be sent. Returning failed message";
+			logger.error({ message, error } );
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, message);
+		
 		}
 
 	}

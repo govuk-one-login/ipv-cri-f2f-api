@@ -11,15 +11,38 @@ import { randomUUID } from "crypto";
 export class PdfPreferenceEmail {
 
 	constructor(data: Partial<PdfPreferenceEmail>) {
-		this.sessionId = data.sessionId!;
-		this.yotiSessionId = data.yotiSessionId!;
-		this.emailAddress = data.emailAddress!;
-		this.firstName = data.firstName!;
-		this.lastName = data.lastName!;
+		if (!data.sessionId) {
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "sessionId is required");
+		}
+		if (!data.yotiSessionId) {
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "yotiSessionId is required");
+		}
+		if (!data.emailAddress) {
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "emailAddress is required");
+		}
+		if (!data.firstName) {
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "firstName is required");
+		}
+		if (!data.lastName) {
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "lastName is required");
+		}
+		if (!data.pdfPreference) {
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "pdfPreference is required");
+		}
+		if (!data.postalAddress) {
+			throw new AppError(HttpCodesEnum.BAD_REQUEST, "postalAddress is required");
+		}
+	
+		this.sessionId = data.sessionId;
+		this.yotiSessionId = data.yotiSessionId;
+		this.emailAddress = data.emailAddress;
+		this.firstName = data.firstName;
+		this.lastName = data.lastName;
 		this.referenceId = randomUUID();
-		this.pdfPreference = data.pdfPreference!;
-		this.postalAddress = data.postalAddress!;
+		this.pdfPreference = data.pdfPreference;
+		this.postalAddress = data.postalAddress;
 	}
+	
 
 	static parseRequest(data: any, logger: Logger): PdfPreferenceEmail {
 		try {
@@ -34,7 +57,7 @@ export class PdfPreferenceEmail {
 
 	@IsString()
 	@IsNotEmpty()
-	sessionId!: string;
+	sessionId: string;
 
     @IsString()
     @IsNotEmpty()
@@ -43,25 +66,25 @@ export class PdfPreferenceEmail {
     @IsString()
     @IsNotEmpty()
     @IsEmail()
-    emailAddress!: string;
+    emailAddress: string;
 
     @IsString()
     @IsNotEmpty()
-    firstName!: string;
+    firstName: string;
 
 	@IsString()
 	@IsNotEmpty()
-	lastName!: string;
+	lastName: string;
 
 	@IsString()
     @IsNotEmpty()
-    referenceId!: string;
+    referenceId: string;
 
 	@IsString()
 	@IsNotEmpty()
-	pdfPreference!: string;
+	pdfPreference: string;
 
 	@IsNotEmpty()
-	postalAddress!: object;
+	postalAddress: object;
 
 }

@@ -1,7 +1,6 @@
 /* eslint-disable max-len */
 /* eslint-disable max-params */
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
 import { SendToGovNotifyService } from "./SendToGovNotifyService";
 import { PdfPreferenceEmail } from "../models/PdfPreferenceEmail";
 import { EmailResponse } from "../models/EmailResponse";

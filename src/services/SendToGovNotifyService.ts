@@ -20,7 +20,7 @@ import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { PdfPreferenceEmail } from "../models/PdfPreferenceEmail";
 import { fetchEncodedFileFromS3Bucket } from "../utils/S3Client";
 import { PDFDocument } from "pdf-lib";
-import { PutObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 
 /**
