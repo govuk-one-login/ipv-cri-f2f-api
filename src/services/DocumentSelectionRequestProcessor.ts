@@ -171,9 +171,9 @@ export class DocumentSelectionRequestProcessor {
 				if (yotiSessionId) {
 					if (PRINTED_CUSTOMER_LETTER_ENABLED === "true") {
 						await this.startStateMachine(sessionId, yotiSessionId, f2fSessionInfo?.clientSessionId, pdfPreference);
-					} else {
-						await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
 					}
+					
+					await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
 					
 					await this.f2fService.updateSessionWithYotiIdAndStatus(
 						f2fSessionInfo.sessionId,
