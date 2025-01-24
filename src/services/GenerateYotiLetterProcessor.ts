@@ -123,7 +123,7 @@ export class GenerateYotiLetterProcessor {
 
 		return {
 			sessionId: event.sessionId,
-			pdf_preference: event.pdf_preference,
+			pdfPreference: event.pdfPreference,
 		};
 
 	}

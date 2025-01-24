@@ -6,7 +6,7 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
-import { Response } from "../../../utils/Response";
+import { getParameter } from "../../../utils/Config";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "../../../services/DocumentSelectionRequestProcessor";
 import {
@@ -185,6 +185,17 @@ function getYotiSessionInfo(): YotiSessionInfo {
 	};
 	return yotiSessionInfo;
 }
+
+jest.mock("@aws-sdk/client-sfn", () => ({
+	SFNClient: jest.fn().mockImplementation(() => ({
+		send: jest.fn(),
+	})),
+	StartExecutionCommand: jest.fn().mockImplementation((params) => params),
+}));
+
+jest.mock("../../../utils/Config", () => ({
+	getParameter: jest.fn(),
+}));
 
 describe("DocumentSelectionRequestProcessor", () => {
 	let personIdentityItem: PersonIdentityItem, f2fSessionItem: ISessionItem, yotiSessionInfo: YotiSessionInfo;
@@ -670,5 +681,27 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");
+	});
+
+	it("invokes step function if PRINTED_CUSTOMER_LETTER_ENABLED set to true", async () => {
+		(getParameter as jest.Mock).mockResolvedValueOnce("true");
+
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
+
+		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
+
+		mockYotiService.fetchSessionInfo.mockResolvedValueOnce(yotiSessionInfo);
+
+		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
+
+		await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
+
+		// @ts-ignore
+		expect(mockDocumentSelectionRequestProcessor.stepFunctionsClient.send).toHaveBeenCalledWith(
+			{ "input": "{\"sessionId\":\"RandomF2FSessionID\",\"pdfPreference\":\"PRINTED_LETTER\",\"yotiSessionID\":\"b83d54ce-1565-42ee-987a-97a1f48f27dg\",\"govuk_signin_journey_id\":\"sdfssg\"}", "name": "RandomF2FSessionID-1585695600000", "stateMachineArn": "MockSendYotiLetterStateMachine.Arn" },
+		);
+		expect(logger.info).toHaveBeenNthCalledWith(5, { message: "Starting Yoti letter state machine" });
 	});
 });
