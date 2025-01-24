@@ -17,11 +17,13 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 import { Constants } from "../utils/Constants";
 import { getClientConfig } from "../utils/ClientConfig";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
-import { PdfPreferenceEmail } from "../models/PdfPreferenceEmail";
 import { fetchEncodedFileFromS3Bucket } from "../utils/S3Client";
 import { PDFDocument } from "pdf-lib";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
+import { ISessionItem } from "../models/ISessionItem";
+import { PersonIdentityItem } from "../models/PersonIdentityItem";
+import { randomUUID } from "crypto";
 
 /**
  * Class to send emails using gov notify service
@@ -94,12 +96,13 @@ export class SendToGovNotifyService {
   	return this.instance;
   }
 
-  async sendYotiInstructions(pdfPreferenceDetails: PdfPreferenceEmail): Promise<EmailResponse> {
+  async sendYotiInstructions(sessionId: string): Promise<EmailResponse> {
   	// Fetch the Yoti PDF from S3
   	try {
   		const f2fSessionInfo = await this.f2fService.getSessionById(
-  			pdfPreferenceDetails.sessionId,
+  			sessionId,
   		);
+
   		if (!f2fSessionInfo) {
   			this.logger.warn("Missing details in SESSION table", {
   				messageCode: MessageCodes.SESSION_NOT_FOUND,
@@ -122,9 +125,23 @@ export class SendToGovNotifyService {
   			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Bad Request");
   		}
 
-  		if (pdfPreferenceDetails.pdfPreference === Constants.PDF_PREFERENCE_PRINTED_LETTER) {
+  		const f2fPersonInfo = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
+		
+		  if (!f2fPersonInfo) {
+  			this.logger.warn("Missing details in PERSON table", {
+  				messageCode: MessageCodes.PERSON_NOT_FOUND,
+  			});
+  			throw new AppError(
+  				HttpCodesEnum.BAD_REQUEST,
+  				"Missing details in PERSON table",
+  			);
+  		}
+
+  		const referenceId = randomUUID();
+
+  		if (f2fPersonInfo.pdfPreference === Constants.PDF_PREFERENCE_PRINTED_LETTER) {
   			try {
-  				const mergedPdf = await this.fetchPdfFile(pdfPreferenceDetails, this.environmentVariables.mergedPdfBucketFolder());
+  				const mergedPdf = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.mergedPdfBucketFolder());
 				
   				const resizedPDF = await this.resizePdf(mergedPdf); 
 				
@@ -137,7 +154,7 @@ export class SendToGovNotifyService {
 
 					  const uploadParams = {
   						Bucket: bucket,
-  						Key: `${folder}/${pdfPreferenceDetails.yotiSessionId}.pdf`,
+  						Key: `${folder}/${f2fSessionInfo.yotiSessionId}.pdf`,
   						Body: resizedPDF,
   						ContentType: "application/pdf",
   					};
@@ -149,15 +166,15 @@ export class SendToGovNotifyService {
   						throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error uploading merged PDF");
   					}
 					
-					  const retrievedPDF = await this.fetchPdfFile(pdfPreferenceDetails, this.environmentVariables.mergedPdfBucketFolder());
+					  const retrievedPDF = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.mergedPdfBucketFolder());
 
   					await this.sendGovNotificationLetter(
   						retrievedPDF,
-  						pdfPreferenceDetails,
+  						referenceId,
   						clientConfig.GovNotifyApi,
   					);
   
-  					await this.sendF2FLetterSentEvent(pdfPreferenceDetails);
+  					await this.sendF2FLetterSentEvent(f2fSessionInfo, f2fPersonInfo);
   				}
 
   			} catch (err: any) {
@@ -167,35 +184,41 @@ export class SendToGovNotifyService {
   			}
   		}
 		
-  		const instructionsPdf = await this.fetchPdfFile(pdfPreferenceDetails, this.environmentVariables.yotiPdfBucketFolder());
+  		const instructionsPdf = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.yotiPdfBucketFolder());
 
   		if (instructionsPdf) {
   			this.logger.debug("sendEmail", SendToGovNotifyService.name);
   			this.logger.info("Sending Yoti PDF email");
 
+			  const encoded = Buffer.from(instructionsPdf, "binary").toString(
+  				"base64",
+  			);
+
   			const { GOV_NOTIFY_OPTIONS } = Constants;
+
+  			const lastNameIndex = f2fPersonInfo.name[0].nameParts.length - 1;
 
   			const options = {
   				personalisation: {
-  					[GOV_NOTIFY_OPTIONS.FIRST_NAME]: pdfPreferenceDetails.firstName,
-  					[GOV_NOTIFY_OPTIONS.LAST_NAME]: pdfPreferenceDetails.lastName,
+  					[GOV_NOTIFY_OPTIONS.FIRST_NAME]: f2fPersonInfo.name[0].nameParts[0].value,
+  					[GOV_NOTIFY_OPTIONS.LAST_NAME]: f2fPersonInfo.name[0].nameParts[lastNameIndex].value,
   					[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
-  						file: instructionsPdf,
+  						file: encoded,
   						confirm_email_before_download: true,
   						retention_period: "2 weeks",
   					},
   				},
-  				reference: pdfPreferenceDetails.referenceId,
+  				reference: referenceId,
   			};
 
   			const emailResponse = await this.sendGovNotificationEmail(
   				this.environmentVariables.getPdfEmailTemplateId(this.logger),
-  				pdfPreferenceDetails,
+  				f2fPersonInfo,
   				options,
   				clientConfig.GovNotifyApi,
   			);
 
-  			await this.sendF2FYotiEmailedEvent(pdfPreferenceDetails);
+  			await this.sendF2FYotiEmailedEvent(f2fSessionInfo, f2fPersonInfo);
   			return emailResponse;
   		} else {
   			this.logger.error("Failed to fetch the Instructions pdf", {
@@ -217,19 +240,10 @@ export class SendToGovNotifyService {
   	}
   }
 
-  async fetchPdfFile(pdfPreferenceDetails: PdfPreferenceEmail, folderName: string): Promise<any> {
-  	const f2fSessionInfo = await this.f2fService.getSessionById(pdfPreferenceDetails.sessionId);
-
-  	if (!f2fSessionInfo) {
-  		this.logger.warn("Session not found", {
-  			messageCode: MessageCodes.SESSION_NOT_FOUND,
-  		});
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Session not found");
-  	}  		
-		
+  async fetchPdfFile(f2fSessionInfo: ISessionItem, folderName: string): Promise<any> {
   	const bucket = this.environmentVariables.yotiLetterBucket();
   	const folder = folderName;
-  	const key = `${folder}/${pdfPreferenceDetails.yotiSessionId}.pdf`; 
+  	const key = `${folder}/${f2fSessionInfo.yotiSessionId}.pdf`; 
 
   	this.logger.info("Fetching the pdf file from the S3 bucket. ", { bucket, key }); 
   	try {
@@ -270,13 +284,11 @@ export class SendToGovNotifyService {
   }
   
 
-  async sendF2FYotiEmailedEvent(pdfPreferenceDetails: PdfPreferenceEmail): Promise<void> {
-  	const session = await this.f2fService.getSessionById(pdfPreferenceDetails.sessionId);
-  	if (session != null) {
+  async sendF2FYotiEmailedEvent(f2fSessionInfo: ISessionItem, f2fPersonInfo: PersonIdentityItem): Promise<void> {
   		const coreEventFields = buildCoreEventFields(
-  			session,
+  			f2fSessionInfo,
   			this.environmentVariables.issuer(),
-  			session.clientIpAddress,
+  			f2fSessionInfo.clientIpAddress,
   		);
   		try {
   			await this.f2fService.sendToTXMA({
@@ -285,14 +297,14 @@ export class SendToGovNotifyService {
   				extensions: {
   					evidence: [
   						{
-  							txn: session.yotiSessionId || "",
+  							txn: f2fSessionInfo.yotiSessionId || "",
   						},
   					],
   				},
   				user: {
   					...coreEventFields.user,
-  					email: pdfPreferenceDetails.emailAddress,
-  					govuk_signin_journey_id: session.clientSessionId,
+  					email: f2fPersonInfo.emailAddress,
+  					govuk_signin_journey_id: f2fSessionInfo.clientSessionId,
   				},
   			});
   		} catch (error) {
@@ -300,21 +312,13 @@ export class SendToGovNotifyService {
   				"Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.",
   			);
   		}
-  	} else {
-  		this.logger.error(
-  			"Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue, session not found for sessionId: ",
-  			pdfPreferenceDetails.sessionId,
-  		);
-  	}
   }
 
-  async sendF2FLetterSentEvent(pdfPreferenceDetails: PdfPreferenceEmail): Promise<void> {
-  	const session = await this.f2fService.getSessionById(pdfPreferenceDetails.sessionId);
-  	if (session != null) {
+  async sendF2FLetterSentEvent(f2fSessionInfo: ISessionItem, f2fPersonInfo: PersonIdentityItem): Promise<void> {
   		const coreEventFields = buildCoreEventFields(
-  			session,
+  			f2fSessionInfo,
   			this.environmentVariables.issuer(),
-  			session.clientIpAddress,
+  			f2fSessionInfo.clientIpAddress,
   		);
   		try {
   			await this.f2fService.sendToTXMA({
@@ -323,31 +327,28 @@ export class SendToGovNotifyService {
   				extensions: {
   					evidence: [
   						{
-  							txn: session.yotiSessionId || "",
+  							txn: f2fSessionInfo.yotiSessionId || "",
   						},
   					],
   				},
   				user: {
   					...coreEventFields.user,
-  					email: pdfPreferenceDetails.emailAddress,
-  					govuk_signin_journey_id: session.clientSessionId,
+  					email: f2fPersonInfo.emailAddress,
+  					govuk_signin_journey_id: f2fSessionInfo.clientSessionId,
   				},
 				  restricted: {
-  					postalAddress: pdfPreferenceDetails.postalAddress,
+  					postalAddress: f2fPersonInfo.addresses.filter(address => address.preferredAddress === true),
   				},
   			});
   		} catch (error) {
   			this.logger.error(
-  				"Failed to write TXMA event F2F_YOTI_PDF_LETTER_POSTED to SQS queue.",
+  				"Failed to write TXMA event F2F_YOTI_PDF_LETTER_POSTED to SQS queue, session not found for sessionId: ",
+  			f2fSessionInfo.sessionId,
   			);
   		}
-  	} else {
-  		this.logger.error(
-  			"Failed to write TXMA event F2F_YOTI_PDF_LETTER_POSTED to SQS queue, session not found for sessionId: ",
-  			pdfPreferenceDetails.sessionId,
-  		);
-  	}
   }
+
+  /////////////// I GOT TO HERE 22/01/25
 
   /**
    * Method to compose send email request
@@ -363,7 +364,7 @@ export class SendToGovNotifyService {
    */
   async sendGovNotificationEmail(
   	templateId: string,
-  	pdfPreferenceDetails: PdfPreferenceEmail,
+  	f2fPersonInfo: PersonIdentityItem,
   	options: any,
   	GovNotifyApi: string,
   ): Promise<EmailResponse> {
@@ -374,7 +375,7 @@ export class SendToGovNotifyService {
   			templateId: this.environmentVariables.getPdfEmailTemplateId(
   				this.logger,
   			),
-  			referenceId: pdfPreferenceDetails.referenceId,
+  			referenceId: options.reference,
   			retryCount,
   		});
   		try {
@@ -385,7 +386,7 @@ export class SendToGovNotifyService {
   			);
   			const emailResponse = await this.govNotify.sendEmail(
   				templateId,
-  				pdfPreferenceDetails.emailAddress,
+  				f2fPersonInfo.emailAddress,
   				options,
   			);
   			this.logger.debug(
@@ -399,10 +400,10 @@ export class SendToGovNotifyService {
   				emailResponse.status,
   			);
   		} catch (err: any) {
-  			this.logger.error("sendEmail - GOV UK Notify threw an error");
+  			this.logger.error("sendEmail - GOV UK Notify threw an error", err);
 
   			if (err.response) {
-  				this.logger.error(`GOV UK Notify error ${SendToGovNotifyService.name}`, {
+  				this.logger.error(`GOV UK Notify error: ${err}`, {
   					statusCode: err.response.data.status_code,
   					errors: err.response.data.errors,
   				});
@@ -458,14 +459,14 @@ export class SendToGovNotifyService {
 
   async sendGovNotificationLetter(
   	pdf: any,
-  	message: PdfPreferenceEmail,
+  	referenceId: string,
   	GovNotifyApi: string,
   ): Promise<any> {
   	let retryCount = 0;
   	//retry for maxRetry count configured value if fails
   	while (retryCount <= this.environmentVariables.maxRetries()) {
-  		this.logger.debug("sendletter - trying to send letter message", {
-  			referenceId: `${message.referenceId}-letter`,
+  		this.logger.info("sendletter - trying to send letter message", {
+  			referenceId: `${referenceId}-letter`,
   			retryCount,
   		});
 
@@ -475,13 +476,12 @@ export class SendToGovNotifyService {
   				this.GOV_NOTIFY_SERVICE_ID,
   				this.GOVUKNOTIFY_API_KEY,
   			);
-  			const letterResponse = await this.govNotify.sendPrecompiledLetter(`${message.referenceId}-letter`, pdf)
+  			const letterResponse = await this.govNotify.sendPrecompiledLetter(`${referenceId}-letter`, pdf)
 			  .then((res: any) => {
 				  return res;
 				  })
 				  .catch((err: any) => this.logger.error("sendYotiInstructions - Cannot send letter", err.response.data.errors));
-
-  			this.logger.debug(
+  			this.logger.info(
   				"sendLetter - response status after sending letter",
   				SendToGovNotifyService.name,
   				letterResponse.status,

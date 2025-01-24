@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 // @ts-ignore
 import { NotifyClient } from "notifications-node-client";
 

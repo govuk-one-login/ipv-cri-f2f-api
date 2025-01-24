@@ -31,7 +31,6 @@ class SendToGovNotifyHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: any, context: Context): Promise<any> {
-
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
@@ -55,14 +54,14 @@ class SendToGovNotifyHandler implements LambdaInterface {
 			}
 			let govnotifyServiceId;
 			try {
-
 				govnotifyServiceId = GOVUKNOTIFY_API_KEY.substring(GOVUKNOTIFY_API_KEY.length - 73, GOVUKNOTIFY_API_KEY.length - 37);
 			} catch (error) {
 				const message = "failed to extract govnotifyServiceId from the GOVUKNOTIFY_API_KEY";
 				logger.error(message, { error });
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, message);
 			}
-			return await SendToGovNotifyProcessor.getInstance(logger, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(event);
+			const sessionId = event.sessionId;
+			return await SendToGovNotifyProcessor.getInstance(logger, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(sessionId);
 
 		} catch (error) {
 			const message = "Email could not be sent. Returning failed message";

@@ -4282,6 +4282,8 @@ Resources:
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
           YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -4297,10 +4299,16 @@ Resources:
             TableName:
               Fn::ImportValue:
                 !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
         - KMSDecryptPolicy:
             KeyId:
               Fn::ImportValue:
                 !Sub "${L2DynamoStackName}-session-table-key-id"
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-key-id"
         - S3ReadPolicy:
             BucketName: !Sub "${AWS::StackName}-yotiletter-f2f-${Environment}"
         - S3WritePolicy:
