@@ -32,6 +32,8 @@ export class EnvironmentVariables {
 	
 	private readonly PRIVATE_KEY_SSM_PATH = process.env.PRIVATE_KEY_SSM_PATH;
 
+	private readonly OS_API_KEY_SSM_PATH = process.env.OS_API_KEY_SSM_PATH;
+
 	private readonly GOVUKNOTIFY_API_KEY_SSM_PATH = process.env.GOVUKNOTIFY_API_KEY_SSM_PATH;
 
 	private readonly GOV_NOTIFY_QUEUE_URL = process.env.GOV_NOTIFY_QUEUE_URL;
@@ -482,6 +484,10 @@ export class EnvironmentVariables {
 
 	privateKeySsmPath(): any {
 		return this.PRIVATE_KEY_SSM_PATH;
+	}
+
+	oSAPIKeySsmPath(): any {
+		return this.OS_API_KEY_SSM_PATH;
 	}
 
 }
