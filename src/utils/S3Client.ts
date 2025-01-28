@@ -2,7 +2,6 @@ import { HttpCodesEnum } from "./HttpCodesEnum";
 import { AppError } from "./AppError";
 import { Readable } from "stream";
 import { GetObjectCommand, S3Client, S3ClientConfig } from "@aws-sdk/client-s3";
-import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 
 export async function fetchEncodedFileFromS3Bucket(bucket: string, key: string): Promise<any> {
 	const streamToBuffer = async (stream: Readable): Promise<Buffer> => {

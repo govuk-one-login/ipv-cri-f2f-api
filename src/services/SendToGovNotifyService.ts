@@ -18,7 +18,6 @@ import { Constants } from "../utils/Constants";
 import { getClientConfig } from "../utils/ClientConfig";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { fetchEncodedFileFromS3Bucket } from "../utils/S3Client";
-import { PDFDocument } from "pdf-lib";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { ISessionItem } from "../models/ISessionItem";
@@ -31,7 +30,7 @@ import { randomUUID } from "crypto";
 export class SendToGovNotifyService {
   private govNotify: NotifyClient;
 
-  private govNotifyErrorMapper: GovNotifyErrorMapper;
+  private readonly govNotifyErrorMapper: GovNotifyErrorMapper;
 
   private static instance: SendToGovNotifyService;
 
@@ -45,7 +44,7 @@ export class SendToGovNotifyService {
 
   private readonly GOVUKNOTIFY_API_KEY: string;
 
-  private s3Client: S3Client;
+  private readonly s3Client: S3Client;
 
   /**
    * Constructor sets up the client needed to use gov notify service with API key read from env var
@@ -264,7 +263,7 @@ export class SendToGovNotifyService {
   				extensions: {
   					evidence: [
   						{
-  							txn: f2fSessionInfo.yotiSessionId || "",
+  							txn: f2fSessionInfo.yotiSessionId ?? "",
   						},
   					],
   				},
@@ -294,7 +293,7 @@ export class SendToGovNotifyService {
   				extensions: {
   					evidence: [
   						{
-  							txn: f2fSessionInfo.yotiSessionId || "",
+  							txn: f2fSessionInfo.yotiSessionId ?? "",
   						},
   					],
   				},
