@@ -1,4 +1,5 @@
 /* eslint-disable complexity */
+/* eslint-disable max-lines */
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -23,6 +24,10 @@ import { ValidationHelper } from "../utils/ValidationHelper";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { getClientConfig } from "../utils/ClientConfig";
 import { Constants } from "../utils/Constants";
+import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
+import { fromEnv } from "@aws-sdk/credential-providers";
+import { getParameter } from "../utils/Config";
+
 
 export class DocumentSelectionRequestProcessor {
 
@@ -42,6 +47,9 @@ export class DocumentSelectionRequestProcessor {
 
 	private readonly YOTI_PRIVATE_KEY: string;
 
+	private readonly stepFunctionsClient: SFNClient;
+
+
 	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
 		this.logger = logger;
 		this.metrics = metrics;
@@ -49,6 +57,7 @@ export class DocumentSelectionRequestProcessor {
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
+		this.stepFunctionsClient = new SFNClient({ region: process.env.REGION, credentials: fromEnv() });
 	}
 
 	static getInstance(
@@ -150,6 +159,7 @@ export class DocumentSelectionRequestProcessor {
 
 		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
 
+			const PRINTED_CUSTOMER_LETTER_ENABLED = await getParameter(this.environmentVariables.printedCustomerLetterEnabledSsmPath());
 			try {
 				yotiSessionId = await this.createSessionGenerateInstructions(
 					personDetails,
@@ -159,7 +169,12 @@ export class DocumentSelectionRequestProcessor {
 					countryCode,
 				);
 				if (yotiSessionId) {
+					if (PRINTED_CUSTOMER_LETTER_ENABLED === "true") {
+						await this.startStateMachine(sessionId, yotiSessionId, f2fSessionInfo?.clientSessionId, pdfPreference);
+					}
+					
 					await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
+					
 					await this.f2fService.updateSessionWithYotiIdAndStatus(
 						f2fSessionInfo.sessionId,
 						yotiSessionId,
@@ -183,8 +198,8 @@ export class DocumentSelectionRequestProcessor {
 				}
 			}
 
-			let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
-			let docType: DocumentTypes.PASSPORT | DocumentTypes.DRIVING_LICENCE | DocumentTypes.RESIDENCE_PERMIT | DocumentTypes.NATIONAL_ID;
+			let docName: DocumentNames.PASSPORT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
+			let docType: DocumentTypes.PASSPORT | DocumentTypes.DRIVING_LICENCE | DocumentTypes.NATIONAL_ID;
 			switch (selectedDocument) {
 				case AllDocumentTypes.UK_PASSPORT:
 					docName = DocumentNames.PASSPORT;
@@ -193,10 +208,6 @@ export class DocumentSelectionRequestProcessor {
 				case AllDocumentTypes.NON_UK_PASSPORT:
 					docName = DocumentNames.PASSPORT;
 					docType = DocumentTypes.PASSPORT;
-					break;
-				case AllDocumentTypes.BRP:
-					docName = DocumentNames.RESIDENCE_PERMIT;
-					docType = DocumentTypes.RESIDENCE_PERMIT;
 					break;
 				case AllDocumentTypes.UK_PHOTOCARD_DL:
 					docName = DocumentNames.DRIVING_LICENCE;
@@ -356,6 +367,7 @@ export class DocumentSelectionRequestProcessor {
 		return yotiSessionId;
 	}
 
+
 	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
 		this.logger.info({ message: "Posting message to Gov Notify" });
 		try {
@@ -366,6 +378,22 @@ export class DocumentSelectionRequestProcessor {
 				messageCode: MessageCodes.FAILED_TO_WRITE_GOV_NOTIFY,
 			});
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when sending message to GovNotify handler");
+		}
+	}
+	
+	async startStateMachine(sessionId: string, yotiSessionID: string, govuk_signin_journey_id: string, pdfPreference: string): Promise<any> {
+		this.logger.info({ message: "Starting Yoti letter state machine" });
+		const params = {
+			input: JSON.stringify({ sessionId, pdfPreference, yotiSessionID, govuk_signin_journey_id }),
+			name: `${sessionId}-${Date.now()}`,
+			stateMachineArn: process.env.YOTI_LETTER_STATE_MACHINE_ARN,
+	 };
+		try {
+			const invokeCommand: StartExecutionCommand = new StartExecutionCommand(params);
+			await this.stepFunctionsClient.send(invokeCommand);
+		} catch (error) {
+			this.logger.error({ message: "There was an error executing the yoti letter step function", error });
+			throw error;
 		}
 	}
 }

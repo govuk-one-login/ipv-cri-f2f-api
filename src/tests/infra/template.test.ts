@@ -63,7 +63,7 @@ describe("Infra", () => {
 
   it("There are 19 lambdas defined, all with at least one specific permission:", () => {
     const lambdaCount = 19;
-    const lambdaPermissionCount = 20;
+    const lambdaPermissionCount = 22;
     template.resourceCountIs("AWS::Serverless::Function", lambdaCount);
     template.resourceCountIs("AWS::Lambda::Permission", lambdaPermissionCount);
     expect(lambdaPermissionCount > lambdaCount);
@@ -161,12 +161,89 @@ describe("Infra", () => {
     });
   });
 
+  it("should define CloudWatch alarms", () => {
+		const alarms = template.findResources("AWS::CloudWatch::Alarm");
+		expect(Object.keys(alarms).length).toBeGreaterThan(0);
+	});
+
+	it("Each CloudWatch alarm should have an AlarmName defined", () => {
+		const alarms = template.findResources("AWS::CloudWatch::Alarm");
+		const alarmList = Object.keys(alarms);
+		alarmList.forEach((alarmId) => {
+			expect(alarms[alarmId].Properties.AlarmName).toBeTruthy();
+		});
+	});
+
+	it("Each CloudWatch alarm should have Metrics defined if TreatMissingData is not 'notBreaching'", () => {
+		const alarms = template.findResources("AWS::CloudWatch::Alarm");
+		const alarmList = Object.keys(alarms);
+
+		alarmList.forEach((alarmId) => {
+			const properties = alarms[alarmId].Properties;
+			if (properties.TreatMissingData !== "notBreaching") {
+				expect(properties.Metrics).toBeTruthy();
+			}
+		});
+	});
+
+	it("Each CloudWatch alarm should have a ComparisonOperator defined", () => {
+		const alarms = template.findResources("AWS::CloudWatch::Alarm");
+		const alarmList = Object.keys(alarms);
+		alarmList.forEach((alarmId) => {
+			expect(alarms[alarmId].Properties.ComparisonOperator).toBeTruthy();
+		});
+	});
+
+	it("Each CloudWatch alarm should have a Threshold defined", () => {
+		const alarms = template.findResources("AWS::CloudWatch::Alarm");
+		const alarmList = Object.keys(alarms);
+		alarmList.forEach((alarmId) => {
+			expect(alarms[alarmId].Properties.Threshold).toBeTruthy();
+		});
+	});
+
+	it("Each CloudWatch alarm should have an EvaluationPeriods defined", () => {
+		const alarms = template.findResources("AWS::CloudWatch::Alarm");
+		const alarmList = Object.keys(alarms);
+		alarmList.forEach((alarmId) => {
+			expect(alarms[alarmId].Properties.EvaluationPeriods).toBeTruthy();
+		});
+	});
+
+	it("Each CloudWatch alarm should have an AlarmActions defined", () => {
+		const alarms = template.findResources("AWS::CloudWatch::Alarm");
+		const alarmList = Object.keys(alarms);
+		alarmList.forEach((alarmId) => {
+			expect(alarms[alarmId].Properties.AlarmActions).toBeTruthy();
+		});
+	});
+
+	it("Each CloudWatch alarm should have OKActions defined", () => {
+		const alarms = template.findResources("AWS::CloudWatch::Alarm");
+		const alarmList = Object.keys(alarms);
+		alarmList.forEach((alarmId) => {
+			expect(alarms[alarmId].Properties.OKActions).toBeTruthy();
+		});
+	});
+
+
+	it("All CloudWatch alarms should have InsufficientDataActions and DatapointsToAlarm if TreatMissingData is not 'notBreaching'", () => {
+		const alarms = template.findResources("AWS::CloudWatch::Alarm");
+		Object.keys(alarms).forEach((alarmKey) => {
+			const alarm = alarms[alarmKey];
+			if (alarm.Properties.TreatMissingData !== "notBreaching") {
+				expect(alarm.Properties.InsufficientDataActions).toBeDefined();
+				expect(alarm.Properties.DatapointsToAlarm).toBeDefined();
+			}
+		});
+	});
+
   describe("Log group retention", () => {
     it.each`
       environment      | retention
-      ${"dev"}         | ${3}
-      ${"build"}       | ${3}
-      ${"staging"}     | ${3}
+      ${"dev"}         | ${30}
+      ${"build"}       | ${30}
+      ${"staging"}     | ${30}
       ${"integration"} | ${30}
       ${"production"}  | ${30}
     `(

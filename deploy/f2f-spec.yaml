@@ -1221,14 +1221,13 @@ components:
               description: 3-letter country iso code
             document_selected:
               type: string
-              example: driversPermit
+              example: ukPhotocardDl
               description: >-
                 specifies which of the available supported document types the user elected to present for offline
                 verification
               enum:
                 - ukPassport
                 - ukPhotocardDl
-                - brp
                 - nonUkPassport
                 - euPhotocardDl
                 - eeaIdentityCard
@@ -1250,11 +1249,13 @@ components:
               description: >-
                 display name of the post office, to be displayed literally in the instructions PDF
               example: "Post Office"
+              maxLength: 60
             address:
               type: string
               description: >-
                 full address without the postcode on a single line, to be displayed literally in the instructions PDF
               example: "1 The Street, Funkytown"
+              maxLength: 60
             location:
               type: object
               required:
@@ -1266,22 +1267,29 @@ components:
                   type: number
                   description: latitude for the Post Office location
                   example: 0.34322
+                  minimum: -90
+                  maximum: 90
                 longitude:
                   type: number
                   description: longitude for the Post Office location
                   example: -42.48372
+                  minimum: -180
+                  maximum: 180
             post_code:
               type: string
               description: Post code of post office
               example: "N1 2AA"
               pattern: ^[A-Za-z]{1,2}\d[A-Za-z\d]?\ ?\d[a-zA-Z]{2}$|^[Gg][Ii][Rr]\s?0[Aa]{2}$|^[Bb][Ff][Pp][Oo]\ ?\d{1,4}$
+              maxLength: 30
             fad_code:
               type: string
               description: Fad code of post office
               example: "004010X"
+              maxLength: 60
         pdf_preference:
           type: string
           additionalProperties: false
+          maxLength: 60
         postal_address:
           type: object
           additionalProperties: false
@@ -1290,62 +1298,77 @@ components:
               type: number
               description: Unique Property Reference Number
               example: 123456789
+              maxLength: 60
             organisationName:
               type: string
               description: Name of organisation registered at address
               example: "Greggs"
+              maxLength: 60
             buildingNumber:
               type: string
               description: Number of building on street
               example: "32"
+              maxLength: 30
             buildingName:
               type: string
               description: Name of building
               example: "Krelboyne Mansions"
+              maxLength: 60
             subBuildingName:
               type: string
               description: Name of residential sub unit
               example: "Flat 20"
+              maxLength: 60
             streetName:
               type: string
               description: Name of street
               example: "Boing Street"
+              maxLength: 60
             dependentStreetName:
               type: string
               description: Dependent thoroughfare
               example: "Hazelnut Street"
+              maxLength: 60
             addressLocality:
               type: string
               description: Name of conurbation
               example: "London"
+              maxLength: 60
             dependentAddressLocality:
               type: string
               description: Smaller area in or near locality
               example: "Southwark"
+              maxLength: 60
             doubleDependentAddressLocality:
               type: string
               description: Even smaller area in or near locality
               example: "Delbridge industial estate"
+              maxLength: 60
             addressCountry:
               type: string
               description: Country name
               example: "UK"
+              maxLength: 60
             postalCode:
               type: string
               description: Postcode
               example: "SW1A1AA"
+              maxLength: 30
             validFrom:
               type: string
               description: Address valid from
               example: "1/1/2000"
+              maxLength: 30
             validUntil:
               type: string
               description: Address valid until
               example: "1/1/2030"
+              maxLength: 30
             preferredAddress:
               type: boolean
               description: Indicates user's preferred address for postal correspondence 
               example: true
+              maxLength: 60
     JWKSFile:
       type: object
       required:
