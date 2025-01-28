@@ -70,6 +70,7 @@ async generatePDF(
 				left: this.mmToPt(15),
 				right: this.mmToPt(50),
 			},
+			font: gdsLightFont,
 		});
 		doc.registerFont("GDS bold", gdsBoldFont);
 		doc.registerFont("GDS light", gdsLightFont);
@@ -86,7 +87,7 @@ async generatePDF(
 
 		doc.image(govUkLogo, this.mmToPt(15), this.mmToPt(15), { fit: [200, 70.5] });
 
-		let addressLinesYPos = this.mmToPt(47);
+		let addressLinesYPos = this.mmToPt(40);
 		const lineHeight = 12;
             
 		const nameParts = personIdentityUtils.getNames(person);
@@ -136,7 +137,7 @@ async generatePDF(
 				.fontSize(10)
 				.text(
 					`Page ${i + 1} of ${pages.count}`,
-					doc.page.width - this.mmToPt(30),
+					doc.page.width - this.mmToPt(40),
 					doc.page.height - (oldBottomMargin / 2) - 5,
 					{ align: "right" });
 			doc.page.margins.bottom = oldBottomMargin;
