@@ -142,10 +142,8 @@ export class SendToGovNotifyService {
   		if (f2fPersonInfo.pdfPreference === Constants.PDF_PREFERENCE_PRINTED_LETTER) {
   			try {
   				const mergedPdf = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.mergedPdfBucketFolder());
-				
-  				const resizedPDF = await this.resizePdf(mergedPdf); 
-				
-  				if (resizedPDF) {
+				 
+  				if (mergedPdf) {
   					this.logger.debug("sendLetter", SendToGovNotifyService.name);
   					this.logger.info("Sending precompiled letter");
 
@@ -155,7 +153,7 @@ export class SendToGovNotifyService {
 					  const uploadParams = {
   						Bucket: bucket,
   						Key: `${folder}/${f2fSessionInfo.yotiSessionId}.pdf`,
-  						Body: resizedPDF,
+  						Body: mergedPdf,
   						ContentType: "application/pdf",
   					};
   					try {
@@ -167,13 +165,11 @@ export class SendToGovNotifyService {
   					}
 					
 					  const retrievedPDF = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.mergedPdfBucketFolder());
-
   					await this.sendGovNotificationLetter(
   						retrievedPDF,
   						referenceId,
   						clientConfig.GovNotifyApi,
   					);
-  
   					await this.sendF2FLetterSentEvent(f2fSessionInfo, f2fPersonInfo);
   				}
 
@@ -255,35 +251,6 @@ export class SendToGovNotifyService {
 	
   }
 
-  async resizePdf(pdf: Uint8Array): Promise<Uint8Array> {
-  	const pdfDoc = await PDFDocument.load(pdf);
-  	const pages = pdfDoc.getPages();
-  
-  	const a4Width = 595.28;
-  	const a4Height = 841.89;
-  	const scaling = 0.90;
-  
-  	if (pages.length > 4) {
-	  const targetPage = pages[4]; 
-	  const { width, height } = targetPage.getSize();
-  
-	  const scaledWidth = width * scaling;
-	  const scaledHeight = height * scaling;
-  
-	  targetPage.setSize(a4Width, a4Height);
-  
-	  const xOffset = (a4Width - scaledWidth) / 2; 
-	  const yOffset = (a4Height - scaledHeight) / 2; 
-  
-	  targetPage.translateContent(xOffset, yOffset);
-	  targetPage.scaleContent(scaling, scaling);
-  	}
-  
-  	const resizedPdf = await pdfDoc.save();
-  	return resizedPdf;
-  }
-  
-
   async sendF2FYotiEmailedEvent(f2fSessionInfo: ISessionItem, f2fPersonInfo: PersonIdentityItem): Promise<void> {
   		const coreEventFields = buildCoreEventFields(
   			f2fSessionInfo,
@@ -348,20 +315,6 @@ export class SendToGovNotifyService {
   		}
   }
 
-  /////////////// I GOT TO HERE 22/01/25
-
-  /**
-   * Method to compose send email request
-   * This method receive object containing the data to compose the email and retrieves needed field based on object type (PdfPreferenceEmail)
-   * it attempts to send the email.
-   * If there is a failure, it checks if the error is retryable. If it is, it retries for the configured max number of times with a cool off period after each try.
-   * If the error is not retryable, an AppError is thrown
-   * If max number of retries is exceeded an AppError is thrown
-   *
-   * @param pdfPreferenceDetails
-   * @returns EmailResponse
-   * @throws AppError
-   */
   async sendGovNotificationEmail(
   	templateId: string,
   	f2fPersonInfo: PersonIdentityItem,
@@ -444,19 +397,6 @@ export class SendToGovNotifyService {
   	);
   }
 
-  /**
-   * Method to compose send printed letter to govNotify 
-   * This method receive object containing the data to compose the PrecompiledLetter and retrieves needed field based on object type (PdfPreferenceEmail)
-   * it attempts to send the PrecompiledLetter.
-   * If there is a failure, it checks if the error is retryable. If it is, it retries for the configured max number of times with a cool off period after each try.
-   * If the error is not retryable, an AppError is thrown
-   * If max number of retries is exceeded an AppError is thrown
-   *
-   * @param pdfPreferenceDetails
-   * @returns EmailResponse
-   * @throws AppError
-   */
-
   async sendGovNotificationLetter(
   	pdf: any,
   	referenceId: string,
@@ -476,11 +416,14 @@ export class SendToGovNotifyService {
   				this.GOV_NOTIFY_SERVICE_ID,
   				this.GOVUKNOTIFY_API_KEY,
   			);
+
   			const letterResponse = await this.govNotify.sendPrecompiledLetter(`${referenceId}-letter`, pdf)
 			  .then((res: any) => {
 				  return res;
 				  })
 				  .catch((err: any) => this.logger.error("sendYotiInstructions - Cannot send letter", err.response.data.errors));
+				  
+
   			this.logger.info(
   				"sendLetter - response status after sending letter",
   				SendToGovNotifyService.name,

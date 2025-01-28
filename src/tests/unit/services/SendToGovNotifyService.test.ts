@@ -63,7 +63,6 @@ function getMockSessionItem(): ISessionItem {
 }
 
 function getMockPersonItem(userPdfPreference: string): PersonIdentityItem {
-	console.log(`!!running get person, pdfpref = ${userPdfPreference}`);
 	const personEmail: PersonIdentityItem = {
 		addresses: [
 			{
@@ -74,7 +73,7 @@ function getMockPersonItem(userPdfPreference: string): PersonIdentityItem {
 				streetName: "Wallaby Way",
 				postalCode: "F1 1SH",
 				buildingNumber: "32",
-				addressLocality: "Sidney",
+				addressLocality: "Sydney",
 				preferredAddress: true,
 			},
 		],
@@ -125,9 +124,7 @@ const mockSendPrecompiledLetter = jest.fn();
 
 describe("SendToGovNotifyService", () => {
 	beforeAll(() => {
-		console.log("!!!");
 		sendToGovNotifyServiceTest = SendToGovNotifyService.getInstance(logger, GOVUKNOTIFY_API_KEY, "serviceId");
-		console.log("???");
 		// @ts-ignore
 		sendToGovNotifyServiceTest.f2fService = mockF2fService;
 
@@ -187,7 +184,7 @@ describe("SendToGovNotifyService", () => {
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 
-	it("SendToGovNotifyService fails and doesn't retry when GovNotify throws an error", async () => {
+	it("SendToGovNotifyService fails and doesn't retry when GovNotify throws a 400 error", async () => {
 		mockSendEmail.mockRejectedValue( {
 			"response": {
 				"data": {
@@ -208,12 +205,13 @@ describe("SendToGovNotifyService", () => {
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
 		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValueOnce(encoded);
-        
-		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow();
+
+		
+		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow("sendYotiInstructions - Cannot send Email");
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
 	});
     
-	it("SendEmailService retries when GovNotify throws a 500 error", async () => {
+	it("SendToGovNotifyService retries when GovNotify throws a 500 error", async () => {
 		jest.useRealTimers();
 		const session = getMockSessionItem();
 		const person = getMockPersonItem("EMAIL_ONLY");
@@ -234,12 +232,12 @@ describe("SendToGovNotifyService", () => {
 				},
 			},
 		});
-    
-		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow();
+        
+		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow("sendYotiInstructions - Cannot send Email");
 		expect(mockSendEmail).toHaveBeenCalledTimes(4);
 	});
     
-	it("SendEmailService retries when GovNotify throws a 429 error", async () => {
+	it("SendToGovNotifyService retries when GovNotify throws a 429 error", async () => {
 		jest.useRealTimers();
 		const session = getMockSessionItem();
 		const person = getMockPersonItem("EMAIL_ONLY");
@@ -261,7 +259,7 @@ describe("SendToGovNotifyService", () => {
 			},
 		});
     
-		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow();
+		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow("sendYotiInstructions - Cannot send Email");
 		expect(mockSendEmail).toHaveBeenCalledTimes(4);
 	});
     
@@ -285,7 +283,7 @@ describe("SendToGovNotifyService", () => {
 		expect(emailResponse?.emailFailureMessage).toBe("");
 	});
 
-	it.only("sends letter", async () => {
+	it("Returns EmailResponse when posted customer letter & YOTI PDF email is sent successfully", async () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "test", 201);
 		const session = getMockSessionItem();
 		const person = getMockPersonItem("PRINTED_LETTER");
@@ -293,22 +291,108 @@ describe("SendToGovNotifyService", () => {
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
 		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
-		// const mockPdf = new Uint8Array([1, 2, 3]);
-		// const mockResizedPdf = new Uint8Array([4, 5, 6]);
-        jest.spyOn(SendToGovNotifyService.prototype, "resizePdf").mockResolvedValue(Buffer.from("mocked PDF data") as unknown as Uint8Array);
-        //jest.spyOn(SendToGovNotifyService.prototype, "sendGovNotificationLetter")
+		
 
-        mockSendPrecompiledLetter.mockResolvedValue("success");
+		mockSendPrecompiledLetter.mockResolvedValue("success");
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
         
-        (fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
 
-        
-        /////////////
-		const emailResponse = await sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId);
+    	const emailResponse = await sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId);
     
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, {
+			event_name: TxmaEventNames.F2F_YOTI_PDF_EMAILED,
+			component_id: "https://XXX-c.env.account.gov.uk",
+			timestamp,
+			event_timestamp_ms: timestamp * 1000,
+			extensions: {
+				evidence: [
+					{
+						txn: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+					},
+				],
+			},
+			user: {
+				email: person.emailAddress,
+				govuk_signin_journey_id: session.clientSessionId,
+				ip_address: session.clientIpAddress,
+				persistent_session_id: session.persistentSessionId,
+				session_id: session.sessionId,
+				user_id: session.subject,
+			},
+		});
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {
+			event_name: TxmaEventNames.F2F_YOTI_PDF_LETTER_POSTED,
+			component_id: "https://XXX-c.env.account.gov.uk",
+			timestamp,
+			event_timestamp_ms: timestamp * 1000,
+			extensions: {
+				evidence: [
+					{
+						txn: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+					},
+				],
+			},
+			user: {
+				email: person.emailAddress,
+				govuk_signin_journey_id: session.clientSessionId,
+				ip_address: session.clientIpAddress,
+				persistent_session_id: session.persistentSessionId,
+				session_id: session.sessionId,
+				user_id: session.subject,
+			},
+			restricted: {
+				postalAddress: [
+					{
+						addressCountry: person.addresses[0].addressCountry,
+						addressLocality: person.addresses[0].addressLocality,
+						buildingName: person.addresses[0].buildingName,
+						buildingNumber: person.addresses[0].buildingNumber,
+						postalCode: person.addresses[0].postalCode,
+						preferredAddress: person.addresses[0].preferredAddress,
+						streetName: person.addresses[0].streetName,
+						subBuildingName: person.addresses[0].subBuildingName,
+						uprn: person.addresses[0].uprn,
+					},
+				],
+			},
+		});
+		expect(emailResponse.emailFailureMessage).toBe("");
+	});
+
+	it("Returns EmailResponse when posted customer letter fails but YOTI PDF email is sent successfully", async () => {
+		const session = getMockSessionItem();
+		const person = getMockPersonItem("PRINTED_LETTER");
+		const encoded = "gwegwtb";
+		mockF2fService.getSessionById.mockResolvedValue(session);
+		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
+		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+		
+
+		mockSendPrecompiledLetter.mockResolvedValue("success");
+		mockSendPrecompiledLetter.mockRejectedValue( {
+			"response": {
+				"data": {
+					"errors": [
+						{
+							"error": "BadRequestError",
+							"message": "Can't send letters with a team-only API key",
+						},
+					],
+					"status_code": 400,
+				},
+    
+			},
+		});
+        
+		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+
+    	const emailResponse = await sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId);
+    
+		expect(mockSendEmail).toHaveBeenCalledTimes(1);
+		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({
 			event_name: TxmaEventNames.F2F_YOTI_PDF_EMAILED,
 			component_id: "https://XXX-c.env.account.gov.uk",
