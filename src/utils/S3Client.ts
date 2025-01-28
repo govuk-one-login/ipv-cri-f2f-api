@@ -17,10 +17,6 @@ export async function fetchEncodedFileFromS3Bucket(bucket: string, key: string):
 	const s3Config: S3ClientConfig = {
 		region: process.env.REGION,
 		maxAttempts: 2,
-		requestHandler: new NodeHttpHandler({
-			connectionTimeout: 29000,
-			socketTimeout: 29000,
-		}),
 	};
 
 	const s3Client = new S3Client(s3Config);
