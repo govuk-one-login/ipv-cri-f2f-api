@@ -2925,7 +2925,7 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  ## OSAPIKeyHandler
+  ## OsApiKeyHandler
   OsApiKeyFunction:
     Type: AWS::Serverless::Function
     DependsOn: OsApiKeyFunctionLogGroup
