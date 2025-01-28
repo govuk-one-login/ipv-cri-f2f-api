@@ -58,10 +58,6 @@ export class EnvironmentVariables {
 	private readonly SIGNING_KEY_IDS = process.env.SIGNING_KEY_IDS;
 
 	private readonly JWKS_BUCKET_NAME = process.env.JWKS_BUCKET_NAME;
-
-	private readonly YOTI_LETTER_BUCKET = process.env.YOTI_LETTER_BUCKET;
-
-	private readonly YOTI_PDF_BUCKET_FOLDER = process.env.YOTI_PDF_BUCKET_FOLDER;
 	
 	private readonly TXMA_QUEUE_URL = process.env.TXMA_QUEUE_URL;
 
