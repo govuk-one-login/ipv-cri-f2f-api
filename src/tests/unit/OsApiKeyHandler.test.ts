@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { lambdaHandler, logger } from "../../OsApiKeyHandler";
+import { lambdaHandler, logger } from "../../OsApiKeyHandler2";
 import { VALID_AUTHCODE } from "./data/auth-events";
 import { CONTEXT } from "./data/context";
 import { HttpCodesEnum } from "../../models/enums/HttpCodesEnum";
