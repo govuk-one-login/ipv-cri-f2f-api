@@ -1,7 +1,7 @@
 import { HttpCodesEnum } from "./HttpCodesEnum";
 import { AppError } from "./AppError";
 import { Readable } from "stream";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, S3Client, S3ClientConfig } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 
 export async function fetchEncodedFileFromS3Bucket(bucket: string, key: string): Promise<any> {
@@ -13,14 +13,17 @@ export async function fetchEncodedFileFromS3Bucket(bucket: string, key: string):
 			stream.on("error", reject);
 		});
 	};
-	const s3Client = new S3Client({
+
+	const s3Config: S3ClientConfig = {
 		region: process.env.REGION,
 		maxAttempts: 2,
 		requestHandler: new NodeHttpHandler({
 			connectionTimeout: 29000,
 			socketTimeout: 29000,
 		}),
-	});
+	};
+
+	const s3Client = new S3Client(s3Config);
   
 	const pdfParams = {
 		Bucket: bucket,
