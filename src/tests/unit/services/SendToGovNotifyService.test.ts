@@ -12,9 +12,7 @@ import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { SendToGovNotifyService } from "../../../services/SendToGovNotifyService";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { fetchEncodedFileFromS3Bucket } from "../../../utils/S3Client";
-import { PDFDocument } from "pdf-lib";
 
 jest.mock("notifications-node-client", () => {
 	return {
@@ -110,9 +108,28 @@ function getMockPersonItem(userPdfPreference: string): PersonIdentityItem {
 		...personEmail,
 		pdfPreference: "PRINTED_LETTER",
 	};
+	const personPostDifferentAddress = {
+		...personPost,
+		addresses: [
+			...personPost.addresses,
+			{
+				addressCountry: "United Kingdom",
+				buildingName: "Baker",
+				subBuildingName: "Flat 12",
+				uprn: 987654321,
+				streetName: "Downing Street",
+				postalCode: "SW1A 1AA",
+				buildingNumber: "10",
+				addressLocality: "London",
+				preferredAddress: false,
+			},
+		],
+	};
 
 	if (userPdfPreference === "PRINTED_LETTER") {
 		return personPost;
+	} else if (userPdfPreference === "PRINTED_LETTER_DIFFERENT_ADDRESS") {
+		return personPostDifferentAddress;
 	} else {
 		return personEmail;
 	}
@@ -361,6 +378,59 @@ describe("SendToGovNotifyService", () => {
 			},
 		});
 		expect(emailResponse.emailFailureMessage).toBe("");
+	});
+
+	it("send F2F_YOTI_PDF_LETTER_POSTED TxMA event with differentPostalAddress set to true if the user has a second postal address", async () => {
+		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "test", 201);
+		const session = getMockSessionItem();
+		const person = getMockPersonItem("PRINTED_LETTER_DIFFERENT_ADDRESS");
+		const encoded = "gwegwtb";
+		mockF2fService.getSessionById.mockResolvedValue(session);
+		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
+		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+		mockSendPrecompiledLetter.mockResolvedValue("success");
+		mockSendEmail.mockResolvedValue(mockEmailResponse);
+		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+		
+		await sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId);
+    
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {
+			event_name: TxmaEventNames.F2F_YOTI_PDF_LETTER_POSTED,
+			component_id: "https://XXX-c.env.account.gov.uk",
+			timestamp,
+			event_timestamp_ms: timestamp * 1000,
+			extensions: {
+				differentPostalAddress: "true",
+				evidence: [
+					{
+						txn: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+					},
+				],
+			},
+			user: {
+				email: person.emailAddress,
+				govuk_signin_journey_id: session.clientSessionId,
+				ip_address: session.clientIpAddress,
+				persistent_session_id: session.persistentSessionId,
+				session_id: session.sessionId,
+				user_id: session.subject,
+			},
+			restricted: {
+				postalAddress: [
+					{
+						addressCountry: person.addresses[0].addressCountry,
+						addressLocality: person.addresses[0].addressLocality,
+						buildingName: person.addresses[0].buildingName,
+						buildingNumber: person.addresses[0].buildingNumber,
+						postalCode: person.addresses[0].postalCode,
+						preferredAddress: person.addresses[0].preferredAddress,
+						streetName: person.addresses[0].streetName,
+						subBuildingName: person.addresses[0].subBuildingName,
+						uprn: person.addresses[0].uprn,
+					},
+				],
+			},
+		});
 	});
 
 	it("Returns EmailResponse when posted customer letter fails but YOTI PDF email is sent successfully", async () => {
