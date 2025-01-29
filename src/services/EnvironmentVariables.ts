@@ -322,6 +322,16 @@ export class EnvironmentVariables {
 				}
 				break;
 			}
+
+			case ServicesEnum.ADDRESS_LOCATIONS_SERVICE: {
+				if (!this.OS_API_KEY_SSM_PATH || this.OS_API_KEY_SSM_PATH.trim().length === 0 ||
+					!this.CLIENT_CONFIG || this.CLIENT_CONFIG.trim().length === 0
+				) {
+					logger.error("Environment variable OS_API_KEY_SSM_PATH or CLIENT_CONFIG is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "AddressLocations Service incorrectly configured");
+				}
+				break;
+			}
 			default:
 				break;
 		}

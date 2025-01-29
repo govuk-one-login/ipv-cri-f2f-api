@@ -132,14 +132,16 @@ Mappings:
               "clientId":"5C584572",
               "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk",
-              "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify"
+              "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
           },
           {
               "jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
               "clientId":"SandboxJourneyFlow",
               "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://f2f-cri-outbound-proxy-proxy.review-o.dev.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
           }
         ]'
       AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
@@ -166,14 +168,16 @@ Mappings:
               "clientId":"BD7B2A5D",
               "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://yotistub.review-o.build.account.gov.uk",
-              "GovNotifyApi": "https://govnotifystub.review-o.build.account.gov.uk/govnotify"
+              "GovNotifyApi": "https://govnotifystub.review-o.build.account.gov.uk/govnotify",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
           },
           {
               "jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json",
               "clientId":"SandboxJourneyFlow",
               "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.build.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
           }
         ]'
       AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
@@ -198,7 +202,8 @@ Mappings:
               "clientId":"03A5A659-17AA-453F-B905-95D2804823D1",
               "redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://yotistub.review-o.staging.account.gov.uk",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
           }
         ]'
       AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
@@ -222,7 +227,8 @@ Mappings:
               "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F",
               "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.integration.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
           }
         ]'
       AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
@@ -246,7 +252,8 @@ Mappings:
               "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342",
               "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
           }
         ]'
       AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
@@ -2925,20 +2932,20 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  ## OsApiKeyHandler
-  OsApiKeyFunction:
+  ## AddressLocationsHandler
+  AddressLocationsFunction:
     Type: AWS::Serverless::Function
-    DependsOn: OsApiKeyFunctionLogGroup
+    DependsOn: AddressLocationsFunctionLogGroup
     Properties:
-      FunctionName: !Sub "F2F-os-api-key-${AWS::StackName}"
+      FunctionName: !Sub "F2F-address-locations-${AWS::StackName}"
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
         Role: !GetAtt CodeDeployServiceRole.Arn
         Alarms: !If
           - UseCanaryDeploymentAlarms
-          - [!Ref OsApiKeyFunctionFatalErrorAlarm, !Ref OsApiKeyFunctionLambdaErrors, !Ref OsApiKeyFunctionCanary5xxErrors]
+          - [!Ref AddressLocationsFunctionFatalErrorAlarm, !Ref AddressLocationsFunctionLambdaErrors, !Ref AddressLocationsFunctionCanary5xxErrors]
           - [!Ref AWS::NoValue]
-      Handler: OsApiKeyHandler.lambdaHandler
+      Handler: AddressLocationsHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
         - ApplyReservedConcurrency
@@ -2946,20 +2953,18 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: OsApiKeyHandler
+          POWERTOOLS_SERVICE_NAME: AddressLocationsHandler
           OS_API_KEY_SSM_PATH: !Sub "/${Environment}/ordnance-survey/API_KEY"
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/ordnance-survey/API_KEY"
       Events:
-        OSAPIKey:
+        AddressLocations:
           Type: Api
           Properties:
-            Path: /os-api-key
+            Path: /address-locations
             Method: get
             RestApiId: !Ref F2FRestApi
 
@@ -2970,12 +2975,12 @@ Resources:
         Target: "es2020"
         Sourcemap: false
         EntryPoints:
-          - OsApiKeyHandler.ts
+          - AddressLocationsHandler.ts
 
-  OsApiKeyFunctionLogGroup:
+  AddressLocationsFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/F2F-os-api-key-${AWS::StackName}"
+      LogGroupName: !Sub "/aws/lambda/F2F-address-locations-${AWS::StackName}"
       RetentionInDays:
         !FindInMap [
           EnvironmentConfiguration,
@@ -2983,30 +2988,30 @@ Resources:
           logretentionindays,
         ]
 
-  OsApiKeyFunctionPermission:
+  AddressLocationsFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref OsApiKeyFunction
+      FunctionName: !Ref AddressLocationsFunction
       Principal: apigateway.amazonaws.com
 
-  OsApiKeyFunctionFatalErorMetricFilter:
+  AddressLocationsFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
-      LogGroupName: !Ref OsApiKeyFunctionLogGroup
+      LogGroupName: !Ref AddressLocationsFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
       MetricTransformations:
         -
           MetricValue: "1"
           MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
-          MetricName: "OsApiKeyFunction-Fatalerror"
+          MetricName: "AddressLocationsFunction-Fatalerror"
 
-  OsApiKeyFunctionFatalErrorAlarm:
+  AddressLocationsFunctionFatalErrorAlarm:
     DependsOn:
-      - "OsApiKeyFunctionFatalErorMetricFilter"
+      - "AddressLocationsFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-OsApiKeyFunction-FatalErrorAlarm"
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
@@ -3014,7 +3019,7 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: [ ]
-      MetricName: OsApiKeyFunction-Fatalerror
+      MetricName: AddressLocationsFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
       Dimensions: [ ]
@@ -3025,11 +3030,11 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  OsApiKeyFunctionLambdaErrors:
+  AddressLocationsFunctionLambdaErrors:
     Type: AWS::CloudWatch::Alarm
     Condition: UseCanaryDeploymentAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-OsApiKeyFunctionLambdaErrors"
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunctionLambdaErrors"
       AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
       ActionsEnabled: false
       AlarmActions:
@@ -3042,16 +3047,16 @@ Resources:
       Statistic: Sum
       Dimensions:
         - Name: Resource
-          Value: !Sub "${AWS::StackName}-OsApiKeyFunction:live"
+          Value: !Sub "${AWS::StackName}-AddressLocationsFunction:live"
         - Name: ExecutedVersion
-          Value: !Sub OsApiKeyFunction.Version.Version
+          Value: !Sub AddressLocationsFunction.Version.Version
       Period: 60
       EvaluationPeriods: 1
       Threshold: 1
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
-  OsApiKeyFunctionCanary5xxErrors:
+  AddressLocationsFunctionCanary5xxErrors:
     Type: AWS::CloudWatch::Alarm
     Condition: UseCanaryDeploymentAlarms
     Properties:
@@ -3060,8 +3065,8 @@ Resources:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
-      AlarmName: !Sub "${AWS::StackName}-OsApiKeyFunctionCanary5xxErrors"
-      AlarmDescription: !Sub OsApiKeyFunction Lambda returning 5xx response. ${SupportManualURL}
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunctionCanary5xxErrors"
+      AlarmDescription: !Sub AddressLocationsFunction Lambda returning 5xx response. ${SupportManualURL}
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -3072,7 +3077,7 @@ Resources:
         - Name: Stage
           Value: !Ref Environment
         - Name: Resource
-          Value: /os-api-key
+          Value: /address-locations
       Statistic: Sum
       Unit: Count
       Period: 60
@@ -3082,7 +3087,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  OsApiKeyFunctionConcurrency80Alarm:
+  AddressLocationsFunctionConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "ApplyReservedConcurrency"
     Properties:
@@ -3092,13 +3097,13 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of OSAPIKeyKey is used. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-OsApiKeyFunction-concurrency"
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of AddressLocations is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
       Dimensions:
         - Name: FunctionName
-          Value: !Ref OsApiKeyFunction
+          Value: !Ref AddressLocationsFunction
       Statistic: Maximum
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
@@ -3107,7 +3112,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
-  OsApiKeyFunctionThrottleAlarm:
+  AddressLocationsFunctionThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
     Properties:
@@ -3117,14 +3122,14 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${OsApiKeyFunction} lambda throttles. ${SupportManualURL}"
-      AlarmName: !Sub "${AWS::StackName}-OsApiKeyFunction-throttles"
+      AlarmDescription: !Sub "Trigger if the ${AddressLocationsFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
       Dimensions:
         - Name: FunctionName
-          Value: !Ref OsApiKeyFunction
+          Value: !Ref AddressLocationsFunction
       TreatMissingData: notBreaching
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1

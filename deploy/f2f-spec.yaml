@@ -1094,15 +1094,18 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
-  /os-api-key:
+  /addressLocations:
     get:
-      operationId: getOsApiKey
-      summary: Return the key required for making calls to the Ordnance Survey API
+      operationId: getOsPlacesData
+      summary: Query the Ordnance Survey API for address locations based on postcode
       tags:
         - Backend - Common CRI Lambda
+      parameters:
+        - $ref: '#/components/parameters/PostCode'
       responses:
         "200":
-          description: "Return key"
+          description: >-
+            OK - address location data returned
           headers:
             Cache-Control:
               schema:
@@ -1122,7 +1125,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OsApiKeyResponse"
+                $ref: "#/components/schemas/OsLocationsResponse"
         "401":
           description: "Unauthorized"
           headers:
@@ -1171,7 +1174,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: "POST"
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OsApiKeyFunction.Arn}:live/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressLocationsFunction.Arn}:live/invocations
         responses:
           default:
             statusCode: "200"
@@ -1675,6 +1678,9 @@ components:
     PersonInfoResponse:
         type: string
         description: encrypted string containing person info
+    OsLocationsResponse:
+        type: string
+        description: JSON string containing list of address info
   parameters:
     SessionHeader:
       name: session-id
@@ -1735,6 +1741,17 @@ components:
       required: false
       schema:
         type: string
+    PostCode:
+      in: header
+      name: postcode
+      required: true
+      schema:
+        type: string
+        format: 
+      example: SW1A 2AA
+      description: >-
+        A postcode used in the call to the Ordnance Survey API
+      required: true
 
 x-amazon-apigateway-request-validators:
     both:

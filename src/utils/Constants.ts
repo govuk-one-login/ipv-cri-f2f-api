@@ -32,7 +32,7 @@ export class Constants {
 
 	static readonly PERSON_INFO_KEY_LOGGER_SVC_NAME : "PersonInfoKeyHandler";
 
-	static readonly OS_API_KEY_LOGGER_SVC_NAME : "OSApiKeyHandler";
+	static readonly ADDRESS_LOCATIONS_LOGGER_SVC_NAME : "AddressLocationsHandler";
 
 	static readonly DEBUG = "DEBUG";
 
