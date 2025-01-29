@@ -5,7 +5,7 @@ import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
 import { PersonIdentityItem } from "../../models/PersonIdentityItem";
-import NodeRSA = require("node-rsa");
+import NodeRSA from "node-rsa";
 import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";

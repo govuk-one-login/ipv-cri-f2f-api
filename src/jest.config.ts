@@ -3,13 +3,17 @@
  * https://jestjs.io/docs/configuration
  */
 
+
 const dotenv = require('dotenv');
 dotenv.config();
 
 export default {
+  verbose: true,
   transform: {
-    '^.+\\.ts?$': 'ts-jest'
+    '^.+\\.tsx?$': 'ts-jest',
+    '^.+\\.m?[tj]sx?$': ['babel-jest', { presets: ['@babel/preset-env'] }],
   },
+  transformIgnorePatterns: ['/node_modules/(?!(pdf-merger-js)/)'],
   testTimeout: 30000,
   clearMocks: true,
   collectCoverage: true,

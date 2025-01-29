@@ -54,7 +54,11 @@ export class EnvironmentVariables {
 
 	private readonly YOTI_LETTER_BUCKET = process.env.YOTI_LETTER_BUCKET;
 
-	private readonly YOTI_PDF_BUCKET_FOLDER = process.env.YOTI_PDF_BUCKET_FOLDER;
+	private readonly YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER = process.env.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER;
+
+	private readonly YOTI_PDF_BUCKET_COVER_LETTER_FOLDER = process.env.YOTI_PDF_BUCKET_COVER_LETTER_FOLDER;
+	
+	private readonly YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER = process.env.YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER;
 	
 	private readonly TXMA_QUEUE_URL = process.env.TXMA_QUEUE_URL;
 
@@ -313,9 +317,22 @@ export class EnvironmentVariables {
 					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
 					!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 ||
 					!this.YOTI_LETTER_BUCKET || this.YOTI_LETTER_BUCKET.trim().length === 0 ||
-					!this.YOTI_PDF_BUCKET_FOLDER || this.YOTI_PDF_BUCKET_FOLDER.trim().length === 0
+					!this.YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER || this.YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER.trim().length === 0
 				) {
 					logger.error("Environment variable SESSION_TABLE or YOTI_KEY_SSM_PATH or YOTI_SDK or YOTI_LETTER_BUCKET or YOTI_PDF_BUCKET_FOLDER is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "GenerateYotiLetter Service incorrectly configured");
+				}
+				break;
+			}
+
+			case ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE: {
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+					!this.YOTI_LETTER_BUCKET || this.YOTI_LETTER_BUCKET.trim().length === 0 ||
+					!this.YOTI_PDF_BUCKET_COVER_LETTER_FOLDER || this.YOTI_PDF_BUCKET_COVER_LETTER_FOLDER.trim().length === 0 ||
+					!this.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER || this.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER.trim().length === 0 ||
+					!this.YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER || this.YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER.trim().length === 0
+				) {
+					logger.error("Environment variable SESSION_TABLE, YOTI_LETTER_BUCKET, YOTI_PDF_BUCKET_COVER_LETTER_FOLDER, YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER or YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "GenerateYotiLetter Service incorrectly configured");
 				}
 				break;
@@ -432,12 +449,20 @@ export class EnvironmentVariables {
 		return this.JWKS_BUCKET_NAME;
 	}
 
-	yotiLetterBucketName(): any {
+	yotiLetterBucketName(): string | undefined {
 		return this.YOTI_LETTER_BUCKET;
 	}
 
-	yotiLetterBucketPDFFolder(): any {
-		return this.YOTI_PDF_BUCKET_FOLDER;
+	yotiLetterBucketPDFFolder(): string | undefined {
+		return this.YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER;
+	}
+
+	coverLetterBucketPDFFolder(): string | undefined {
+		return this.YOTI_PDF_BUCKET_COVER_LETTER_FOLDER;
+	}
+
+	mergedLetterBucketPDFFolder(): string | undefined {
+		return this.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER;
 	}
 
 	yotiCallbackUrl(): any {

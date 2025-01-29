@@ -1,0 +1,160 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+import { captor, mock } from "jest-mock-extended";
+import { Logger } from "@aws-lambda-powertools/logger";
+import { Metrics } from "@aws-lambda-powertools/metrics";
+import { GeneratePrintedLetterProcessor } from "../../../services/GeneratePrintedLetterProcessor";
+import { F2fService } from "../../../services/F2fService";
+import { MessageCodes } from "../../../models/enums/MessageCodes";
+import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
+import { ISessionItem } from "../../../models/ISessionItem";
+import { AuthSessionState } from "../../../models/enums/AuthSessionState";
+import { S3Client } from "@aws-sdk/client-s3";
+import { readFile } from "fs/promises";
+import fs from "fs";
+
+
+const mockF2fService = mock<F2fService>();
+const logger = mock<Logger>();
+jest.mock("@aws-sdk/client-s3", () => ({
+	S3Client: jest.fn().mockImplementation(() => ({
+		send: jest.fn(),
+	})),
+	PutObjectCommand: jest.fn().mockImplementation((args) => args),
+	GetObjectCommand: jest.fn().mockImplementation((args) => args),
+}));
+
+const mockS3Client = mock<S3Client>();
+
+let generatePrintedLetterProcessor: GeneratePrintedLetterProcessor;
+const metrics = new Metrics({ namespace: "F2F" });
+const sessionId = "RandomF2FSessionID";
+const pdf_preference = "post";
+
+function getMockSessionItem(): ISessionItem {
+	const sessionInfo: ISessionItem = {
+		sessionId: "RandomF2FSessionID",
+		clientId: "ipv-core-stub",
+		// pragma: allowlist nextline secret
+		accessToken: "AbCdEf123456",
+		clientSessionId: "sdfssg",
+		authorizationCode: "",
+		authorizationCodeExpiryDate: 0,
+		redirectUri: "http://localhost:8085/callback",
+		accessTokenExpiryDate: 0,
+		expiryDate: 221848913376,
+		createdDate: 1675443004,
+		state: "Y@atr",
+		subject: "sub",
+		persistentSessionId: "sdgsdg",
+		clientIpAddress: "127.0.0.1",
+		attemptCount: 1,
+		yotiSessionId: "1234",
+		authSessionState: AuthSessionState.F2F_SESSION_CREATED,
+	};
+	return sessionInfo;
+}
+
+describe("GenerateYotiLetterProcessor", () => {
+	beforeAll(() => {
+		generatePrintedLetterProcessor = new GeneratePrintedLetterProcessor(logger, metrics );
+		// @ts-ignore
+		generatePrintedLetterProcessor.f2fService = mockF2fService;
+		// @ts-ignore
+		generatePrintedLetterProcessor.s3Client = mockS3Client;
+
+	});
+
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
+
+	it("throws error if session cannot be found", async () => {
+		mockF2fService.getSessionById.mockResolvedValueOnce(undefined);
+
+		await expect(generatePrintedLetterProcessor.processRequest({ sessionId, pdf_preference })).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.BAD_REQUEST,
+			message: "Missing details in SESSION table",
+		}));
+
+		expect(logger.error).toHaveBeenCalledWith("Missing details in SESSION table", {
+			messageCode: MessageCodes.SESSION_NOT_FOUND,
+		});
+	});
+
+	it("PDFs merged and uploaded to S3", async () => {
+		const f2fSessionItem = getMockSessionItem();
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+
+		jest.spyOn(mockS3Client, "send").mockImplementation(() => {
+			return {
+				"Body": fileToAsyncIterable("tests/unit/resources/letter.pdf"),
+			};
+		});
+		const response =  await generatePrintedLetterProcessor.processRequest({ sessionId, pdf_preference });
+
+		// @ts-ignore
+		const myCaptor = captor();
+
+		expect(mockS3Client.send).toHaveBeenNthCalledWith(1, expect.objectContaining({
+			Bucket: "YOTI_LETTER_BUCKET",
+			Key: "pdf-1234",
+		}));
+		expect(mockS3Client.send).toHaveBeenNthCalledWith(2, expect.objectContaining({
+			Bucket: "YOTI_LETTER_BUCKET",
+			Key: "cover-pdf-1234",
+		}));
+		expect(mockS3Client.send).toHaveBeenNthCalledWith(3, expect.objectContaining({
+			Bucket: "YOTI_LETTER_BUCKET",
+			Key: "merged-pdf-1234",
+			ContentType: "application/octet-stream",
+			Body: myCaptor,
+		}));
+		
+		const mergedPdf = myCaptor.value;
+
+		fs.writeFileSync("tests/unit/resources/merged.pdf", mergedPdf);
+
+		let mergedSize = 0;
+		let originalSize = 0;
+		try {
+			const mergedStats = fs.statSync("tests/unit/resources/merged.pdf");
+			const originalStats = fs.statSync("tests/unit/resources/letter.pdf");
+			mergedSize = mergedStats.size / 1000;
+			originalSize = originalStats.size / 1000;
+		} catch (err) {
+			console.log(err);
+		}
+
+		const tolerance = 0.1 * mergedSize; // Calculate 10% tolerance
+
+		expect(mergedSize).toBeGreaterThanOrEqual(originalSize * 2 - tolerance);
+		expect(mergedSize).toBeLessThanOrEqual(originalSize * 2 + tolerance);
+		expect(response).toMatchObject({
+			sessionId: "RandomF2FSessionID",
+			pdf_preference: "post",
+		});
+	});
+
+	it("When error retreving from S3 assert service throws error", async () => {
+		const f2fSessionItem = getMockSessionItem();
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+		jest.spyOn(mockS3Client, "send").mockImplementationOnce(() => {
+			throw new Error("error");
+		});
+		await expect(generatePrintedLetterProcessor.processRequest({ sessionId, pdf_preference })).rejects.toThrow(expect.objectContaining({
+			name: "Error",
+			message: "Error retrieving Yoti PDF from S3 bucket",
+		}));
+	});
+
+});
+
+async function* fileToAsyncIterable(filePath: string): AsyncIterable<Uint8Array> {
+	const bufferSize = 4096; // Define your desired buffer size here
+	const fileHandle = await readFile(filePath);
+  
+	for (let i = 0; i < fileHandle.length; i += bufferSize) {
+	  const chunk = fileHandle.slice(i, i + bufferSize);
+	  yield chunk;
+	}
+}

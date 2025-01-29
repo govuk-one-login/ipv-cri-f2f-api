@@ -8,3 +8,6 @@ cf-output.txt
 build/
 lambdas/
 lib/
+
+letter.pdf
+merged.pdf

@@ -37,6 +37,7 @@ describe("GenerateVerifiableCredential", () => {
 
 	afterEach(() => {
 		jest.resetAllMocks();
+		jest.restoreAllMocks();
 	});
 
 	describe("doesDocumentContainValidChip", () => {
