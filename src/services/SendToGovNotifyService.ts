@@ -291,6 +291,7 @@ export class SendToGovNotifyService {
   				event_name: TxmaEventNames.F2F_YOTI_PDF_LETTER_POSTED,
   				...coreEventFields,
   				extensions: {
+  					differentPostalAddress: f2fPersonInfo.addresses.length > 1 ? "true" : "false",
   					evidence: [
   						{
   							txn: f2fSessionInfo.yotiSessionId ?? "",

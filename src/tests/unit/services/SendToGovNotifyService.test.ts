@@ -329,6 +329,7 @@ describe("SendToGovNotifyService", () => {
 			timestamp,
 			event_timestamp_ms: timestamp * 1000,
 			extensions: {
+				differentPostalAddress: "false",
 				evidence: [
 					{
 						txn: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
