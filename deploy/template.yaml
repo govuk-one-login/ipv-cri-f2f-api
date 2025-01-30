@@ -141,7 +141,7 @@ Mappings:
               "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://f2f-cri-outbound-proxy-proxy.review-o.dev.account.gov.uk/yoti",
               "GovNotifyApi": "https://api.notifications.service.gov.uk",
-              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
       AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
@@ -169,7 +169,7 @@ Mappings:
               "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://yotistub.review-o.build.account.gov.uk",
               "GovNotifyApi": "https://govnotifystub.review-o.build.account.gov.uk/govnotify",
-              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           },
           {
               "jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json",
@@ -177,7 +177,7 @@ Mappings:
               "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.build.account.gov.uk/yoti",
               "GovNotifyApi": "https://api.notifications.service.gov.uk",
-              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
       AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
@@ -203,7 +203,7 @@ Mappings:
               "redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://yotistub.review-o.staging.account.gov.uk",
               "GovNotifyApi": "https://api.notifications.service.gov.uk",
-              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
       AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
@@ -228,7 +228,7 @@ Mappings:
               "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.integration.account.gov.uk/yoti",
               "GovNotifyApi": "https://api.notifications.service.gov.uk",
-              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
       AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
@@ -253,7 +253,7 @@ Mappings:
               "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.account.gov.uk/yoti",
               "GovNotifyApi": "https://api.notifications.service.gov.uk",
-              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode?"
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
       AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds

@@ -116,7 +116,7 @@ paths:
         returns a signed access_token which can be used directly in API calls as a Bearer token. Note
         the service will only issue an access token once for any given session.
       tags:
-        - Backend - Common CRI Lambda
+        Backend - F2F CRI specific
       requestBody:
         required: true
         content:
@@ -213,7 +213,7 @@ paths:
         response to a `GET /authorize` call. This service will only work if the vendor data is recorded as being
         received for that session; and this service can only be used once for each session.
       tags:
-        - Backend - Common CRI Lambda
+        Backend - F2F CRI specific
       parameters:
         - $ref: "#/components/parameters/SessionHeader"
       responses:
@@ -305,7 +305,7 @@ paths:
         section 5.1). If verified, a new session will be created and a `session_id` will be returned to the
         caller.
       tags:
-        - Backend - Common CRI Lambda
+        Backend - F2F CRI specific
       requestBody:
         required: true
         content:
@@ -789,7 +789,7 @@ paths:
         - $ref: '#/components/parameters/SessionId'
         - $ref: '#/components/parameters/AuditHeader'
       tags:
-        - Backend - CI CRI specific
+        - Backend - F2F CRI specific
       responses:
         "200":
           description: OK
@@ -903,7 +903,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/SessionId'
       tags:
-        - Backend - CI CRI specific
+        - Backend - F2F CRI specific
       responses:
         "200":
           description: OK
@@ -1015,7 +1015,7 @@ paths:
       operationId: getPersonInfoKey
       summary: Return the key required for decrypting response from the person-info endpoint
       tags:
-        - Backend - Common CRI Lambda
+        Backend - F2F CRI specific
       responses:
         "200":
           description: "Return key"
@@ -1099,7 +1099,7 @@ paths:
       operationId: getOsPlacesData
       summary: Query the Ordnance Survey API for address locations based on postcode
       tags:
-        - Backend - Common CRI Lambda
+        Backend - F2F CRI specific
       parameters:
         - $ref: '#/components/parameters/SessionId'
         - $ref: '#/components/parameters/PostCode'
