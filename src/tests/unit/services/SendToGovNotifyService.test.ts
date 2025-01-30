@@ -380,7 +380,7 @@ describe("SendToGovNotifyService", () => {
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 
-	it("send F2F_YOTI_PDF_LETTER_POSTED TxMA event with differentPostalAddress set to true if the user has a second postal address", async () => {
+	it("send F2F_YOTI_PDF_LETTER_POSTED TxMA event with differentPostalAddress set to true if the user has selected a different postal address", async () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "test", 201);
 		const session = getMockSessionItem();
 		const person = getMockPersonItem("PRINTED_LETTER_DIFFERENT_ADDRESS");
