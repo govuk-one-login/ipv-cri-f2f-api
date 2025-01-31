@@ -172,6 +172,9 @@ export class SendToGovNotifyService {
   				"base64",
   			);
 
+  			const dateObject = new Date(f2fSessionInfo.expiryDate);
+  			const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
+
   			const { GOV_NOTIFY_OPTIONS } = Constants;
 
   			const lastNameIndex = f2fPersonInfo.name[0].nameParts.length - 1;
@@ -180,6 +183,7 @@ export class SendToGovNotifyService {
   				personalisation: {
   					[GOV_NOTIFY_OPTIONS.FIRST_NAME]: f2fPersonInfo.name[0].nameParts[0].value,
   					[GOV_NOTIFY_OPTIONS.LAST_NAME]: f2fPersonInfo.name[0].nameParts[lastNameIndex].value,
+  					[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
   					[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   						file: encoded,
   						confirm_email_before_download: true,

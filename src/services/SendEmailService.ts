@@ -146,12 +146,16 @@ export class SendEmailService {
   			this.logger.debug("sendEmail", SendEmailService.name);
   			this.logger.info("Sending Yoti PDF email");
 
+  			const dateObject = new Date(f2fSessionInfo.expiryDate);
+  			const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
+
   			const { GOV_NOTIFY_OPTIONS } = Constants;
 
   			const options = {
   				personalisation: {
   					[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
   					[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
+  					[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
   					[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   						file: encoded,
   						confirm_email_before_download: true,
