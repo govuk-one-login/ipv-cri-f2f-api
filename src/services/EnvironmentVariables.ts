@@ -80,6 +80,7 @@ export class EnvironmentVariables {
 
 	private readonly PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH = process.env.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH;
 
+	private readonly OS_API_KEY_SSM_PATH = process.env.OS_API_KEY_SSM_PATH;
 
 	/*
 	 * This function performs validation on env variable values.
@@ -337,6 +338,18 @@ export class EnvironmentVariables {
 				}
 				break;
 			}
+			
+			case ServicesEnum.ADDRESS_LOCATIONS_SERVICE: {
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+					!this.OS_API_KEY_SSM_PATH || this.OS_API_KEY_SSM_PATH.trim().length === 0 ||
+					!this.CLIENT_CONFIG || this.CLIENT_CONFIG.trim().length === 0
+				) {
+					logger.error("Environment variable OS_API_KEY_SSM_PATH or CLIENT_CONFIG is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "AddressLocations Service incorrectly configured");
+				}
+				break;
+			}
+			
 			default:
 				break;
 		}
@@ -507,6 +520,10 @@ export class EnvironmentVariables {
 
 	privateKeySsmPath(): any {
 		return this.PRIVATE_KEY_SSM_PATH;
+	}
+
+	oSAPIKeySsmPath(): any {
+		return this.OS_API_KEY_SSM_PATH;
 	}
 
 }
