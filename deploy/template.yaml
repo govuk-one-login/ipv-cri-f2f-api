@@ -5071,10 +5071,12 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue:
+              Fn::Sub: ${L2DynamoStackName}-person-identity-table-name
           POWERTOOLS_SERVICE_NAME: GeneratePrintedLetterHandler
           YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
           YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER: merged-pdf
-          YOTI_PDF_BUCKET_COVER_LETTER_FOLDER: cover-pdf
           YOTI_PDF_BUCKET_YOTI_LETTER_FOLDER: pdf
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -5082,6 +5084,9 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
         - S3WritePolicy:
             BucketName: !Ref YotiLetterBucket
         - S3ReadPolicy:
@@ -5089,9 +5094,26 @@ Resources:
         - KMSDecryptPolicy:
             KeyId: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-session-table-key-id"
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-key-id"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt TxMASQSQueue.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:GenerateDataKey"
+              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
+        Loader:
+          - .ttf=file
+          - .png=file
         Minify: true
         Target: "es2020"
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build

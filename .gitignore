@@ -1,3 +1,4 @@
+.DS_Store
 **/node_modules/
 .aws-sam/
 .env
@@ -11,3 +12,7 @@ lib/
 
 letter.pdf
 merged.pdf
+
+**/.vscode/settings.json
+**/.vscode/launch.json
+

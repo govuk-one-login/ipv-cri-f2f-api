@@ -11,9 +11,10 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { S3Client } from "@aws-sdk/client-s3";
 import { readFile } from "fs/promises";
 import fs from "fs";
-
+import { PDFService } from "../../../services/PdfService";
 
 const mockF2fService = mock<F2fService>();
+const mockPdfService = mock<PDFService>();
 const logger = mock<Logger>();
 jest.mock("@aws-sdk/client-s3", () => ({
 	S3Client: jest.fn().mockImplementation(() => ({
@@ -56,11 +57,13 @@ function getMockSessionItem(): ISessionItem {
 
 describe("GenerateYotiLetterProcessor", () => {
 	beforeAll(() => {
-		generatePrintedLetterProcessor = new GeneratePrintedLetterProcessor(logger, metrics );
+		generatePrintedLetterProcessor = new GeneratePrintedLetterProcessor(logger);
 		// @ts-ignore
 		generatePrintedLetterProcessor.f2fService = mockF2fService;
 		// @ts-ignore
 		generatePrintedLetterProcessor.s3Client = mockS3Client;
+		// @ts-ignore
+		generatePrintedLetterProcessor.pdfService = mockPdfService;
 
 	});
 
@@ -85,6 +88,8 @@ describe("GenerateYotiLetterProcessor", () => {
 		const f2fSessionItem = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 
+		mockPdfService.createPdf.mockResolvedValueOnce(await asyncIterableToBuffer(fileToAsyncIterable("tests/unit/resources/letter.pdf")));
+
 		jest.spyOn(mockS3Client, "send").mockImplementation(() => {
 			return {
 				"Body": fileToAsyncIterable("tests/unit/resources/letter.pdf"),
@@ -99,11 +104,8 @@ describe("GenerateYotiLetterProcessor", () => {
 			Bucket: "YOTI_LETTER_BUCKET",
 			Key: "pdf-1234",
 		}));
+
 		expect(mockS3Client.send).toHaveBeenNthCalledWith(2, expect.objectContaining({
-			Bucket: "YOTI_LETTER_BUCKET",
-			Key: "cover-pdf-1234",
-		}));
-		expect(mockS3Client.send).toHaveBeenNthCalledWith(3, expect.objectContaining({
 			Bucket: "YOTI_LETTER_BUCKET",
 			Key: "merged-pdf-1234",
 			ContentType: "application/octet-stream",
@@ -157,4 +159,12 @@ async function* fileToAsyncIterable(filePath: string): AsyncIterable<Uint8Array>
 	  const chunk = fileHandle.slice(i, i + bufferSize);
 	  yield chunk;
 	}
+}
+
+async function asyncIterableToBuffer(iterable: AsyncIterable<Uint8Array>): Promise<Buffer> {
+	const chunks = [];
+	for await (const chunk of iterable) {
+	  chunks.push(chunk);
+	}
+	return Buffer.concat(chunks);
 }

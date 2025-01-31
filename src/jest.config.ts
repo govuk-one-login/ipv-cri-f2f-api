@@ -12,6 +12,7 @@ export default {
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
     '^.+\\.m?[tj]sx?$': ['babel-jest', { presets: ['@babel/preset-env'] }],
+    '\\.(png|ttf)$':'<rootDir>/tests/unit/utils/fileMapper.cjs',
   },
   transformIgnorePatterns: ['/node_modules/(?!(pdf-merger-js)/)'],
   testTimeout: 30000,
@@ -38,5 +39,7 @@ export default {
       "pageTitle": "F2F Test Report",
       "outputPath": "results/test-report.html"
     }]
-  ]
+  ],
+  moduleDirectories: ['node_modules', 'static'],
+  moduleFileExtensions: ["js", "mjs", "cjs", "jsx", "ts", "mts", "cts", "tsx", "json", "node"]
 }
