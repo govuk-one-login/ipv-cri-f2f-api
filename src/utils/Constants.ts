@@ -114,5 +114,8 @@ export class Constants {
 	static readonly ENCODED_AUDIT_HEADER = "txma-audit-encoded";
 	
 	static readonly POSTCODE_HEADER = "postcode";
-  
+
+	static readonly PDF_PREFERENCE_PRINTED_LETTER = "PRINTED_LETTER";
+
+	static readonly PDF_PREFERENCE_EMAIL_ONLY = "EMAIL_ONLY";  
 }
