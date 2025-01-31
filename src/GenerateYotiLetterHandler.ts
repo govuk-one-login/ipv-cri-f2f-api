@@ -32,7 +32,6 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: { sessionId: string; pdfPreference: string }, context: any): Promise<any> {
-
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 		this.validateEvent(event);
@@ -47,6 +46,7 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 				return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 			}
 
+			logger.info("Starting GenerateYotiLetterProcessor");
 			return await GenerateYotiLetterProcessor.getInstance(logger, metrics, yotiPrivateKey).processRequest(event);
 
 		} catch (error: any) {

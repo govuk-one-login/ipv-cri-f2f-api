@@ -11,17 +11,16 @@
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.body.pdf_preference",
-          "StringEquals": "email",
+          "Variable": "$.pdfPreference",
+          "StringEquals": "EMAIL_ONLY",
           "Next": "SendToGovNotify"
         },
         {
-          "Variable": "$.body.pdf_preference",
-          "StringEquals": "post",
+          "Variable": "$.pdfPreference",
+          "StringEquals": "PRINTED_LETTER",
           "Next": "GeneratePrintedLetter"
         }
-      ]
-    },
+      ]    },
     "GeneratePrintedLetter": {
       "Type": "Task",
       "Resource": "${GeneratePrintedLetterFunctionArn}",
