@@ -623,6 +623,7 @@ Resources:
     Properties:
       StageName: !Ref Environment
       OpenApiVersion: 3.0.1
+      AlwaysDeploy: true
       AccessLogSetting:
         Format: >-
           {
@@ -667,6 +668,8 @@ Resources:
         Service: backend
         Name: F2FRestApi
         Source: alphagov/di-devplatform-demo-sam-app/sam-app/template.yaml
+        FMSRegionalPolicy: false
+        CustomPolicy: true
 
   F2FAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4621,7 +4624,7 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
-  
+
   MissingPclEnabledFeatureFlagErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
