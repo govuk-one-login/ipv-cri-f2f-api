@@ -360,7 +360,7 @@ describe("Expired User Sessions", () => {
 		console.log(sessionId);
 		await postDocumentSelection(dataUkDrivingLicence, sessionId);
 
-		const newCreatedDateTimestamp = getEpochTimestampXDaysAgo(12);
+		const newCreatedDateTimestamp = getEpochTimestampXDaysAgo(22);
 		await updateDynamoDbRecord(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "createdDate", newCreatedDateTimestamp, "N");
 		await invokeLambdaFunction(constants.DEV_EXPIRED_SESSIONS_LAMBDA_NAME, {});
 
