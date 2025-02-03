@@ -112,6 +112,7 @@ Mappings:
 
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
+      PCLENABLED: "true"
       YOTIBASEURL: "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.dev.account.gov.uk'
@@ -124,7 +125,9 @@ Mappings:
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1555200 # Default 14 days
       CLIENTS:
         '[
           {
@@ -145,9 +148,11 @@ Mappings:
           }
         ]'
       AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
     build:
+      PCLENABLED: "true"
       YOTIBASEURL: "https://yotistub.review-o.build.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.build.account.gov.uk'
@@ -160,7 +165,9 @@ Mappings:
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1814400 # Default 18 days
       CLIENTS:
         '[
           {
@@ -180,10 +187,12 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
     staging:
+      PCLENABLED: "true"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
       ISSUER: 'https://review-o.staging.account.gov.uk'
       DNSSUFFIX: review-o.staging.account.gov.uk
@@ -194,7 +203,9 @@ Mappings:
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1814400 # Default 18 days
       CLIENTS:
         '[
           {
@@ -206,9 +217,11 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
+      PCLENABLED: "false"
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
       ISSUER: 'https://review-o.integration.account.gov.uk'
       DNSSUFFIX: review-o.integration.account.gov.uk
@@ -219,7 +232,9 @@ Mappings:
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1814400 # Default 18 days
       CLIENTS:
         '[
           {
@@ -231,9 +246,11 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
+      PCLENABLED: "false"
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
       ISSUER: 'https://review-o.account.gov.uk'
       DNSSUFFIX: review-o.account.gov.uk
@@ -244,7 +261,9 @@ Mappings:
       GOVUKNOTIFYREMINDERTEMPLATEID: "0d0d2aab-3c31-46da-8462-1af0f5f456f0"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0d3b9cb6-2c54-4316-865a-933f0f0dfb53"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1814400 # Default 18 days
       CLIENTS:
         '[
           {
@@ -256,7 +275,8 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
@@ -327,6 +347,7 @@ Conditions:
     - !Not [ !Equals [ !Ref TrafficTestRoleArn, none ]]
 
   UseCanaryDeploymentAlarms: !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
+  PclEnabled: !Equals [ !FindInMap [ EnvironmentVariables, !Ref Environment, PCLENABLED ], "true" ]
 
 Globals:
   Function:
@@ -379,7 +400,10 @@ Globals:
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
         POWERTOOLS_LOG_LEVEL: !If [IsNotProdLikeEnvironment, "DEBUG", "INFO"] # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
-        RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
+        RESOURCES_TTL_SECS: !If 
+            - PclEnabled
+            - !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDRESOURCETTLSECS]
+            - !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
         SESSION_TABLE:
           Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
         CLIENT_CONFIG:
@@ -828,7 +852,10 @@ Resources:
       Environment:
         Variables:
           AUTH_SESSION_TTL_SECS:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
+            !If 
+              - PclEnabled
+              - !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDAUTHSESSIONTTLSECS] 
+              - !FindInMap [EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS]
           POWERTOOLS_SERVICE_NAME: SessionHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           PERSON_IDENTITY_TABLE_NAME:
@@ -1160,12 +1187,12 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: SessionConfigHandler
-          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${Environment}/f2f/printedCustomerLetter/enabled"
+          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${AWS::StackName}/f2f/printedCustomerLetter/enabled"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/f2f/printedCustomerLetter/enabled"
+            ParameterName: !Sub "${AWS::StackName}/f2f/printedCustomerLetter/enabled"
         - DynamoDBWritePolicy:
             TableName:
               Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
@@ -1865,8 +1892,10 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-          AUTH_SESSION_TTL_SECS:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
+          AUTH_SESSION_TTL_SECS: !If 
+              - PclEnabled
+              - !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDAUTHSESSIONTTLSECS]
+              - !FindInMap [EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
           YOTICALLBACKURL: !If
@@ -1883,16 +1912,20 @@ Resources:
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_SESSION_TTL_DAYS:
+            !If 
+              - PclEnabled
+              - !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS] 
+              - !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
           YOTI_LETTER_STATE_MACHINE_ARN: !GetAtt SendYotiLetterStateMachine.Arn
-          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${Environment}/f2f/printedCustomerLetter/enabled"
+          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${AWS::StackName}/f2f/printedCustomerLetter/enabled"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
         - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/f2f/printedCustomerLetter/enabled"
+            ParameterName: !Sub "${AWS::StackName}/f2f/printedCustomerLetter/enabled"
         - DynamoDBReadPolicy:
             TableName: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
@@ -3425,7 +3458,10 @@ Resources:
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY_ENCRYPTED"
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_SESSION_TTL_DAYS:             
+            !If [PclEnabled, 
+              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS], 
+              !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -4059,8 +4095,13 @@ Resources:
           ENCRYPTION_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
           AUTH_SESSION_TTL_SECS:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+            !If [PclEnabled, 
+              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDAUTHSESSIONTTLSECS], 
+              !FindInMap [EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS]]
+          YOTI_SESSION_TTL_DAYS:             
+            !If [PclEnabled, 
+              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS], 
+              !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]]
           IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -4526,7 +4567,10 @@ Resources:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
           IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_SESSION_TTL_DAYS:             
+            !If [PclEnabled, 
+              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS], 
+              !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -7393,6 +7437,15 @@ Resources:
               MetricName: IssueAccessTokenLambdaTimeOut
             Period: 60
             Stat: Sum
+
+  ParameterPclEnabledToggle:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/f2f/printedCustomerLetter/enabled"
+      Value: !FindInMap [ EnvironmentVariables, !Ref Environment, PCLENABLED ]
+      Type: String
+      Description: PCL Enabled Parameter
+
 
   ConcurrencyAlarmDashboard:
     Type: AWS::CloudWatch::Dashboard
