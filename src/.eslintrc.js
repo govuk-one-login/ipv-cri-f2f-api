@@ -390,7 +390,7 @@ module.exports = {
     'jest',
     'security'
   ],
-  ignorePatterns: ['**/*.js', '/dist', '**/*.d.ts', '/**/*.config.ts', '/**/*.setup.ts', '/__tests__'],
+  ignorePatterns: ['**/*.js', '**/*.cjs', '/dist', '**/*.d.ts', '/**/*.config.ts', '/**/*.setup.ts', '/__tests__'],
   rules: {
     ...CODE_COMPLEXITY_RULES,
     ...CODE_STYLING_RULES,

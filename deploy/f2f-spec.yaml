@@ -116,7 +116,7 @@ paths:
         returns a signed access_token which can be used directly in API calls as a Bearer token. Note
         the service will only issue an access token once for any given session.
       tags:
-        - Backend - Common CRI Lambda
+        - Backend - F2F CRI specific
       requestBody:
         required: true
         content:
@@ -213,7 +213,7 @@ paths:
         response to a `GET /authorize` call. This service will only work if the vendor data is recorded as being
         received for that session; and this service can only be used once for each session.
       tags:
-        - Backend - Common CRI Lambda
+        - Backend - F2F CRI specific
       parameters:
         - $ref: "#/components/parameters/SessionHeader"
       responses:
@@ -305,7 +305,7 @@ paths:
         section 5.1). If verified, a new session will be created and a `session_id` will be returned to the
         caller.
       tags:
-        - Backend - Common CRI Lambda
+        - Backend - F2F CRI specific
       requestBody:
         required: true
         content:
@@ -789,7 +789,7 @@ paths:
         - $ref: '#/components/parameters/SessionId'
         - $ref: '#/components/parameters/AuditHeader'
       tags:
-        - Backend - CI CRI specific
+        - Backend - F2F CRI specific
       responses:
         "200":
           description: OK
@@ -903,7 +903,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/SessionId'
       tags:
-        - Backend - CI CRI specific
+        - Backend - F2F CRI specific
       responses:
         "200":
           description: OK
@@ -1015,7 +1015,7 @@ paths:
       operationId: getPersonInfoKey
       summary: Return the key required for decrypting response from the person-info endpoint
       tags:
-        - Backend - Common CRI Lambda
+        - Backend - F2F CRI specific
       responses:
         "200":
           description: "Return key"
@@ -1088,6 +1088,94 @@ paths:
         httpMethod: "POST"
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PersonInfoKeyFunction.Arn}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+  /addressLocations:
+    post:
+      operationId: getOsPlacesData
+      summary: Query the Ordnance Survey API for address locations based on postcode
+      tags:
+        Backend - F2F CRI specific
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+        - $ref: '#/components/parameters/PostCode'
+      responses:
+        "200":
+          description: >-
+            OK - address location data returned
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OsLocationsResponse"
+        "401":
+          description: "Unauthorized"
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthErrorResponse"
+        "500":
+          description: "500 response"
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthErrorResponse"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressLocationsFunction.Arn}:live/invocations
         responses:
           default:
             statusCode: "200"
@@ -1591,6 +1679,9 @@ components:
     PersonInfoResponse:
         type: string
         description: encrypted string containing person info
+    OsLocationsResponse:
+        type: string
+        description: JSON string containing list of address info
   parameters:
     SessionHeader:
       name: session-id
@@ -1651,6 +1742,16 @@ components:
       required: false
       schema:
         type: string
+    PostCode:
+      in: header
+      name: postcode
+      required: true
+      schema:
+        type: string
+      example: SW1A 2AA
+      description: >-
+        A postcode used in the call to the Ordnance Survey API
+      required: true
 
 x-amazon-apigateway-request-validators:
     both:

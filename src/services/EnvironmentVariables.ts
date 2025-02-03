@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
@@ -29,7 +30,7 @@ export class EnvironmentVariables {
 	private readonly SESSION_TABLE = process.env.SESSION_TABLE;
 
 	private readonly YOTI_KEY_SSM_PATH = process.env.YOTI_KEY_SSM_PATH;
-	
+
 	private readonly PRIVATE_KEY_SSM_PATH = process.env.PRIVATE_KEY_SSM_PATH;
 
 	private readonly GOVUKNOTIFY_API_KEY_SSM_PATH = process.env.GOVUKNOTIFY_API_KEY_SSM_PATH;
@@ -54,8 +55,10 @@ export class EnvironmentVariables {
 
 	private readonly YOTI_LETTER_BUCKET = process.env.YOTI_LETTER_BUCKET;
 
-	private readonly YOTI_PDF_BUCKET_FOLDER = process.env.YOTI_PDF_BUCKET_FOLDER;
+	private readonly YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER = process.env.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER;
 	
+	private readonly YOTI_PDF_BUCKET_LETTER_FOLDER = process.env.YOTI_PDF_BUCKET_LETTER_FOLDER;
+
 	private readonly TXMA_QUEUE_URL = process.env.TXMA_QUEUE_URL;
 
 	private readonly PERSON_IDENTITY_TABLE_NAME = process.env.PERSON_IDENTITY_TABLE_NAME;
@@ -76,6 +79,7 @@ export class EnvironmentVariables {
 
 	private readonly PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH = process.env.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH;
 
+	private readonly OS_API_KEY_SSM_PATH = process.env.OS_API_KEY_SSM_PATH;
 
 	/*
 	 * This function performs validation on env variable values.
@@ -313,13 +317,38 @@ export class EnvironmentVariables {
 					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
 					!this.YOTI_SDK || this.YOTI_SDK.trim().length === 0 ||
 					!this.YOTI_LETTER_BUCKET || this.YOTI_LETTER_BUCKET.trim().length === 0 ||
-					!this.YOTI_PDF_BUCKET_FOLDER || this.YOTI_PDF_BUCKET_FOLDER.trim().length === 0
+					!this.YOTI_PDF_BUCKET_LETTER_FOLDER || this.YOTI_PDF_BUCKET_LETTER_FOLDER.trim().length === 0
+
 				) {
-					logger.error("Environment variable SESSION_TABLE or YOTI_KEY_SSM_PATH or YOTI_SDK or YOTI_LETTER_BUCKET or YOTI_PDF_BUCKET_FOLDER is not configured");
+					logger.error("Environment variable SESSION_TABLE or YOTI_KEY_SSM_PATH or YOTI_SDK or YOTI_LETTER_BUCKET is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "GenerateYotiLetter Service incorrectly configured");
 				}
 				break;
 			}
+
+			case ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE: {
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+					!this.YOTI_LETTER_BUCKET || this.YOTI_LETTER_BUCKET.trim().length === 0 ||
+					!this.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER || this.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER.trim().length === 0 ||
+					!this.YOTI_PDF_BUCKET_LETTER_FOLDER || this.YOTI_PDF_BUCKET_LETTER_FOLDER.trim().length === 0
+				) {
+					logger.error("Environment variable SESSION_TABLE, YOTI_LETTER_BUCKET, YOTI_PDF_BUCKET_COVER_LETTER_FOLDER, YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER or YOTI_PDF_BUCKET_LETTER_FOLDER is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "GenerateYotiLetter Service incorrectly configured");
+				}
+				break;
+			}
+			
+			case ServicesEnum.ADDRESS_LOCATIONS_SERVICE: {
+				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
+					!this.OS_API_KEY_SSM_PATH || this.OS_API_KEY_SSM_PATH.trim().length === 0 ||
+					!this.CLIENT_CONFIG || this.CLIENT_CONFIG.trim().length === 0
+				) {
+					logger.error("Environment variable OS_API_KEY_SSM_PATH or CLIENT_CONFIG is not configured");
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "AddressLocations Service incorrectly configured");
+				}
+				break;
+			}
+			
 			default:
 				break;
 		}
@@ -432,12 +461,16 @@ export class EnvironmentVariables {
 		return this.JWKS_BUCKET_NAME;
 	}
 
-	yotiLetterBucketName(): any {
+	yotiLetterBucketName(): string | undefined {
 		return this.YOTI_LETTER_BUCKET;
 	}
 
-	yotiLetterBucketPDFFolder(): any {
-		return this.YOTI_PDF_BUCKET_FOLDER;
+	yotiLetterBucketPDFFolder(): string | undefined {
+		return this.YOTI_PDF_BUCKET_LETTER_FOLDER;
+	}
+
+	mergedLetterBucketPDFFolder(): string | undefined {
+		return this.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER;
 	}
 
 	yotiCallbackUrl(): any {
@@ -482,6 +515,10 @@ export class EnvironmentVariables {
 
 	privateKeySsmPath(): any {
 		return this.PRIVATE_KEY_SSM_PATH;
+	}
+
+	oSAPIKeySsmPath(): any {
+		return this.OS_API_KEY_SSM_PATH;
 	}
 
 }
