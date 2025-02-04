@@ -146,7 +146,7 @@ export class SendEmailService {
   			this.logger.debug("sendEmail", SendEmailService.name);
   			this.logger.info("Sending Yoti PDF email");
 
-  			const dateObject = new Date(f2fSessionInfo.expiryDate);
+  			const dateObject = new Date(f2fSessionInfo.expiryDate * 1000);
   			const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
 
   			const { GOV_NOTIFY_OPTIONS } = Constants;

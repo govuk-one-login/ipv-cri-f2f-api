@@ -172,7 +172,7 @@ export class SendToGovNotifyService {
   				"base64",
   			);
 
-  			const dateObject = new Date(f2fSessionInfo.expiryDate);
+  			const dateObject = new Date(f2fSessionInfo.expiryDate * 1000);
   			const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
 
   			const { GOV_NOTIFY_OPTIONS } = Constants;
