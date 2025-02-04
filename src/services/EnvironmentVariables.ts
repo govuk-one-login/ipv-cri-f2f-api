@@ -91,7 +91,6 @@ export class EnvironmentVariables {
 				if (!this.ISSUER || this.ISSUER.trim().length === 0 ||
 					!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
-					!this.YOTI_LETTER_BUCKET || this.YOTI_LETTER_BUCKET.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
 					!this.GOVUKNOTIFY_API_KEY_SSM_PATH || this.GOVUKNOTIFY_API_KEY_SSM_PATH.trim().length === 0 ||
 					!this.REMINDER_EMAIL_GOVUKNOTIFY_API || this.REMINDER_EMAIL_GOVUKNOTIFY_API.trim().length === 0) {
