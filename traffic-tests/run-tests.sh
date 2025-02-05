@@ -49,7 +49,7 @@ case "$SAM_STACK_NAME" in
         export DEV_F2F_PERSON_IDENTITY_TABLE_NAME=$(remove_quotes "$CFN_PersonIdentityTableName")
 
         run_tests "test:api-traffic" "test:api-third-party-traffic"
-        sleep 300
+        sleep 90
         run_tests "test:api-traffic" "test:api-third-party-traffic"
 
         error_code=$?
