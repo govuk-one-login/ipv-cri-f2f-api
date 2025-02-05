@@ -15,6 +15,7 @@ import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { fetchEncodedFileFromS3Bucket } from "../../../utils/S3Client";
 import { PDFDocument } from "pdf-lib";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 
 jest.mock("notifications-node-client", () => {
 	return {
@@ -38,6 +39,7 @@ let sendToGovNotifyServiceTest: SendToGovNotifyService;
 // pragma: allowlist nextline secret
 const GOVUKNOTIFY_API_KEY = "sdhohofsdf";
 const logger = mock<Logger>();
+const metrics = new Metrics({ namespace: "F2F" });
 const mockF2fService = mock<F2fService>();
 function getMockSessionItem(): ISessionItem {
 	const session: ISessionItem = {
@@ -124,7 +126,7 @@ const mockSendPrecompiledLetter = jest.fn();
 
 describe("SendToGovNotifyService", () => {
 	beforeAll(() => {
-		sendToGovNotifyServiceTest = SendToGovNotifyService.getInstance(logger, GOVUKNOTIFY_API_KEY, "serviceId");
+		sendToGovNotifyServiceTest = SendToGovNotifyService.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-ignore
 		sendToGovNotifyServiceTest.f2fService = mockF2fService;
 
@@ -147,7 +149,7 @@ describe("SendToGovNotifyService", () => {
 	});
 
 	it("Returns EmailResponse when YOTI PDF email is sent successfully", async () => {
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "test", 201);
+		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "test", 201, "1008") };
 		const session = getMockSessionItem();
 		const person = getMockPersonItem("EMAIL_ONLY");
 		const encoded = "gwegwtb";
@@ -272,7 +274,8 @@ describe("SendToGovNotifyService", () => {
 		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValueOnce(encoded);
 		mockF2fService.sendToTXMA.mockRejectedValue({});
     
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
+		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "", 201, "1009") };
+
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
 		
 		const emailResponse = await sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId);
@@ -284,7 +287,8 @@ describe("SendToGovNotifyService", () => {
 	});
 
 	it("Returns EmailResponse when posted customer letter & YOTI PDF email is sent successfully", async () => {
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "test", 201);
+		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "test", 201, "1010") };
+
 		const session = getMockSessionItem();
 		const person = getMockPersonItem("PRINTED_LETTER");
 		const encoded = "gwegwtb";
@@ -293,7 +297,7 @@ describe("SendToGovNotifyService", () => {
 		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
 		
 
-		mockSendPrecompiledLetter.mockResolvedValue("success");
+		mockSendPrecompiledLetter.mockResolvedValue(mockEmailResponse);
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
         
 		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);

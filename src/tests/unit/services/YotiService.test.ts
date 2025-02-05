@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/dot-notation */
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { YotiService } from "../../../services/YotiService";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
@@ -8,6 +8,7 @@ import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { mock } from "jest-mock-extended";
 import { sleep } from "../../../utils/Sleep";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 
 jest.mock("@aws-lambda-powertools/logger");
 jest.mock("axios");
@@ -176,8 +177,11 @@ const generateInstructionsPayload = {
 	},
 };
 
+// eslint-disable-next-line max-lines-per-function
 describe("YotiService", () => {
-	const logger = mock<Logger>();	
+	const logger = mock<Logger>();
+	const metrics = new Metrics({ namespace: "F2F" });
+	
 	let axiosMock: jest.Mocked<typeof axios>;
 	let yotiService: YotiService;
 
@@ -186,6 +190,7 @@ describe("YotiService", () => {
 
 		yotiService = new YotiService(
 			logger,
+			metrics,
 			"CLIENT_SDK_ID",
 			1209600,
 			10,
@@ -258,7 +263,7 @@ describe("YotiService", () => {
 				config: {},
 			});
 
-			axiosMock.post.mockResolvedValue({ data: { session_id: "session123" } });
+			axiosMock.post.mockResolvedValue({ status: 201, data: { session_id: "session123" } });
 			jest.useFakeTimers();
 			const fakeTime = 1684933200.123;
 			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
@@ -276,7 +281,7 @@ describe("YotiService", () => {
 				config: {},
 			});
 
-			axiosMock.post.mockResolvedValue({ data: { session_id: "session123" } });
+			axiosMock.post.mockResolvedValue({ status:201, data: { session_id: "session123" } });
 			jest.useFakeTimers();
 			const fakeTime = 1684933200.123;
 			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
@@ -295,7 +300,13 @@ describe("YotiService", () => {
 				config: {},
 			});
 
-			axiosMock.post.mockRejectedValueOnce(new Error("Failed to create session"));
+			axiosMock.post.mockRejectedValueOnce({ 
+				message: "Failed to create session",
+				response: { 
+				  status: 401,
+				  headers: {},
+				  data: { message: "failed to create session" },
+			  } });
 
 			await expect(yotiService.createSession(personDetails, selectedDocument, "GBR", YOTICALLBACKURL)).rejects.toThrow(
 				new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session"),
@@ -480,7 +491,7 @@ describe("YotiService", () => {
 				config: {},
 			});
 
-			axiosMock.get.mockResolvedValueOnce({ data: expectedResponse });
+			axiosMock.get.mockResolvedValueOnce({ status:201, data: expectedResponse });
 
 			const sessionInfo = await yotiService.fetchSessionInfo(sessionId);
 
@@ -539,7 +550,7 @@ describe("YotiService", () => {
 				config: {},
 			});
 
-			axiosMock.put.mockResolvedValueOnce({});
+			axiosMock.put.mockResolvedValueOnce({ status: 200 });
 
 			const statusCode = await yotiService.generateInstructions(sessionID, personDetails, requirements, PostOfficeSelection);
 
@@ -593,7 +604,7 @@ describe("YotiService", () => {
 			});
 
 			const pdfData = "mocked-pdf-data";
-			axiosMock.get.mockResolvedValueOnce({ data: pdfData });
+			axiosMock.get.mockResolvedValueOnce({ status:200, data: pdfData });
 
 			const fetchedPdf = await yotiService.fetchInstructionsPdf(sessionId);
 
@@ -642,7 +653,7 @@ describe("YotiService", () => {
 				config: {},
 			});
 
-			axiosMock.get.mockResolvedValueOnce({ data: {} });
+			axiosMock.get.mockResolvedValueOnce({ status:200, data: {} });
 
 			const completedSessionInfo = await yotiService.getCompletedSessionInfo(sessionId, 2000, 3);
 

@@ -57,7 +57,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("GenerateYotiLetterProcessor", () => {
 	beforeAll(() => {
-		generatePrintedLetterProcessor = new GeneratePrintedLetterProcessor(logger);
+		generatePrintedLetterProcessor = new GeneratePrintedLetterProcessor(logger, metrics);
 		// @ts-ignore
 		generatePrintedLetterProcessor.f2fService = mockF2fService;
 		// @ts-ignore

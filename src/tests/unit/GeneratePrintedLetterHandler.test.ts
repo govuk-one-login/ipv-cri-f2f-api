@@ -28,7 +28,7 @@ describe("GeneratePrintedLetterHandler", () => {
 
 		GeneratePrintedLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
 
-		await expect(lambdaHandler(({ "sessionId":"", "pdfPreference":"POST" }), CONTEXT)).rejects.toThrow();
+		await lambdaHandler(({ "sessionId":"", "pdfPreference":"POST" }), CONTEXT);
 
 		expect(logger.error).toHaveBeenCalledWith({ message: "Invalid request: missing sessionId", messageCode: MessageCodes.MISSING_SESSION_ID });
 	});
@@ -37,7 +37,7 @@ describe("GeneratePrintedLetterHandler", () => {
 
 		GeneratePrintedLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
 
-		await expect(lambdaHandler(({ "sessionId":"abcdefgh", "pdfPreference":"POST" }), CONTEXT)).rejects.toThrow();
+		await lambdaHandler(({ "sessionId":"abcdefgh", "pdfPreference":"POST" }), CONTEXT);
 
 		expect(logger.error).toHaveBeenCalledWith({ message: "Invalid request: sessionId is not a valid uuid", messageCode: MessageCodes.INVALID_SESSION_ID });
 	});
@@ -46,7 +46,7 @@ describe("GeneratePrintedLetterHandler", () => {
 
 		GeneratePrintedLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
 
-		await expect(lambdaHandler(({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"" }), CONTEXT)).rejects.toThrow();
+		await lambdaHandler(({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"" }), CONTEXT);
 
 		expect(logger.error).toHaveBeenCalledWith({ message: "Invalid request: missing pdfPreference", messageCode: MessageCodes.MISSING_PCL_PREFERENCE });
 	});

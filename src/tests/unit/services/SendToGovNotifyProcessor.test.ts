@@ -5,6 +5,7 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { AppError } from "../../../utils/AppError";
 import { SendToGovNotifyProcessor } from "../../../services/SendToGovNotifyProcessor";
 import { mock } from "jest-mock-extended";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 
 
 let sendToGovNotifyProcessor: SendToGovNotifyProcessor;
@@ -15,10 +16,11 @@ const logger = new Logger({
 	logLevel: "DEBUG",
 	serviceName: "F2F",
 });
+const metrics = new Metrics({ namespace: "F2F" });
 
 describe("SendToGovNotify processor", () => {
 	beforeAll(() => {
-		sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(logger, GOVUKNOTIFY_API_KEY, "serviceId");
+		sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-ignore
 		sendToGovNotifyProcessor.sendToGovNotifyService = mockSendToGovNotifyService;
 	});

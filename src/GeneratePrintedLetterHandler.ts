@@ -1,5 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
@@ -31,17 +31,21 @@ export class GeneratePrintedLetterHandler implements LambdaInterface {
 
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
-		this.validateEvent(event);
 
 		try {
 			logger.info("Starting GeneratePrintedLetterProcessor");
-			return await GeneratePrintedLetterProcessor.getInstance(logger).processRequest(event);
+
+			this.validateEvent(event);
+			return await GeneratePrintedLetterProcessor.getInstance(logger, metrics).processRequest(event);
 
 		} catch (error: any) {
 			logger.error({ message: "An error has occurred",
 				error,
 				messageCode: MessageCodes.SERVER_ERROR,
 			});
+
+			metrics.addMetric("GeneratePrintedLetter_error_generating_printed_letter", MetricUnits.Count, 1);
+
 			if (error instanceof AppError) {
 				return Response(error.statusCode, error.message);
 			}

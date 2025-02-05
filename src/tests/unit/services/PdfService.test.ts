@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { mock } from "jest-mock-extended";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { F2fService } from "../../../services/F2fService";
@@ -21,12 +22,13 @@ const mockS3Client = mock<S3Client>();
 let pdfServiceTest: PDFService;
 const mockPdfGenerationService = mock<PDFGenerationService>();
 
+const metrics = new Metrics({ namespace: "F2F" });
 const logger = mock<Logger>();
 const sessionId = "sessionId";
 
 describe("PdfServiceTest", () => {
 	beforeAll(() => {
-		pdfServiceTest = PDFService.getInstance(logger);
+		pdfServiceTest = PDFService.getInstance(logger, metrics);
 		// @ts-ignore
 		pdfServiceTest.pdfGenerationService = mockPdfGenerationService;
 		// @ts-ignore

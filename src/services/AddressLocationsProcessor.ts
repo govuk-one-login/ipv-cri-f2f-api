@@ -1,4 +1,4 @@
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "./F2fService";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
@@ -55,7 +55,7 @@ export class AddressLocationsProcessor {
 		});
 		
 		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), session.clientId, this.logger);
-		this.logger.info("CLIENTS!:", { clientConfig });
+		this.logger.info("CLIENTS:", { clientConfig });
 
 		if (!clientConfig) {
 			this.logger.error("Unrecognised client in request", {
@@ -78,10 +78,21 @@ export class AddressLocationsProcessor {
 						key: apiKey,
 					},
 				});
-			this.logger.info("DATA!:", response.data, response.config);
-			return JSON.stringify(response.data.results);
+			const { data } = response;	
+			const singleMetric = this.metrics.singleMetric();
+			singleMetric.addDimension("status_code", response.status.toString());
+			singleMetric.addMetric("OS_response", MetricUnits.Count, 1);
+			this.metrics.addMetric("OSAddress_success", MetricUnits.Count, 1);
+
+			return JSON.stringify(data.results);
 		} catch (error: any) {
 			if (axios.isAxiosError(error)) {
+				if (error.response && error.response.status) {
+					const singleMetric = this.metrics.singleMetric();
+					singleMetric.addDimension("status_code", error.response.status.toString());
+					singleMetric.addMetric("OS_response", MetricUnits.Count, 1);
+				}
+
 				this.logger.error("Axios error:", error);
 				this.logger.error("Error response data:", error.response?.data);
 			  } else {

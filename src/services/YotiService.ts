@@ -1,4 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import crypto, { randomUUID } from "crypto";
 import axios, { AxiosRequestConfig } from "axios";
 import { AppError } from "../utils/AppError";
@@ -16,6 +17,8 @@ import { Constants } from "../utils/Constants";
 export class YotiService {
 	readonly logger: Logger;
 
+	readonly metrics: Metrics;
+
 	private static instance: YotiService;
 
 	readonly CLIENT_SDK_ID: string;
@@ -30,21 +33,23 @@ export class YotiService {
 
 	readonly validationHelper: ValidationHelper;
 
-	constructor(logger: Logger, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number, PEM_KEY: string, YOTI_BASE_URL: string) {
+	constructor(logger: Logger, metrics: Metrics, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number, PEM_KEY: string, YOTI_BASE_URL: string) {
     	this.RESOURCES_TTL_SECS = RESOURCES_TTL_SECS;
     	this.YOTI_SESSION_TTL_DAYS = YOTI_SESSION_TTL_DAYS;
     	this.logger = logger;
+		this.metrics = metrics;
     	this.CLIENT_SDK_ID = CLIENT_SDK_ID;
     	this.PEM_KEY = PEM_KEY;
     	this.YOTI_BASE_URL = YOTI_BASE_URL;
     	this.validationHelper = new ValidationHelper();
 	}
 
-	static getInstance(logger: Logger, PEM_KEY: string, YOTI_BASE_URL: string): YotiService {
+	static getInstance(logger: Logger, metrics:Metrics, PEM_KEY: string, YOTI_BASE_URL: string): YotiService {
 		if (!YotiService.instance) {
 			const { YOTISDK, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS } = process.env;
 			YotiService.instance = new YotiService(
 				logger,
+				metrics,
 				YOTISDK!,
 				Number(RESOURCES_TTL_SECS),
 				Number(YOTI_SESSION_TTL_DAYS),
@@ -197,15 +202,28 @@ export class YotiService {
     		endpoint: "/sessions",
     	});
     	try {
-    		const { data } = await axios.post(
+    		const response = await axios.post(
     			yotiRequest.url,
     			payloadJSON,
     			yotiRequest.config,
     		);
+			const { data } = response;
     		this.logger.appendKeys({ yotiSessionId: data.session_id });
+
     		this.logger.info("Received response from Yoti for create /sessions");
+
+			const singleMetric = this.metrics.singleMetric();
+			singleMetric.addDimension("status_code", response.status.toString());
+			singleMetric.addMetric("YotiService_session_creation_response", MetricUnits.Count, 1);
+
     		return data.session_id;
     	} catch (error: any) {
+			if (error.status) {
+				const singleMetric = this.metrics.singleMetric();
+				singleMetric.addDimension("status_code", error.status.toString());
+				singleMetric.addMetric("YotiService_session_creation_response", MetricUnits.Count, 1);
+			}
+
     		const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
     		this.logger.error({ message: "An error occurred when creating Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION, xRequestId });
     		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session");
@@ -219,10 +237,20 @@ export class YotiService {
     	});
 		
     	try {
-    		const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
+    		const response = await axios.get(yotiRequest.url, yotiRequest.config);
+			const { data } = response;
 
+			const singleMetric = this.metrics.singleMetric();
+			singleMetric.addDimension("status_code", response.status.toString());
+			singleMetric.addMetric("YotiService_fetch_session_response", MetricUnits.Count, 1);
     		return data;
     	} catch (error: any) {
+			if (error.status) {
+				const singleMetric = this.metrics.singleMetric();
+				singleMetric.addDimension("status_code", error.status.toString());
+				singleMetric.addMetric("YotiService_fetch_session_response", MetricUnits.Count, 1);
+			}
+
     		const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
     		this.logger.error({ message: "Error fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, xRequestId });
     		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
@@ -259,14 +287,24 @@ export class YotiService {
     	});
 
     	try {
-    		await axios.put(
+    		const response = await axios.put(
     			yotiRequest.url,
     			payloadJSON,
     			yotiRequest.config,
     		);
+			const { data } = response;
 
+			const singleMetric = this.metrics.singleMetric();
+			singleMetric.addDimension("status_code", response.status.toString());
+			singleMetric.addMetric("YotiService_generate_instructions_response", MetricUnits.Count, 1);
     		return HttpCodesEnum.OK;
     	} catch (error: any) {
+			if (error.status) {
+				const singleMetric = this.metrics.singleMetric();
+				singleMetric.addDimension("status_code", error.status.toString());
+				singleMetric.addMetric("YotiService_generate_instructions_response", MetricUnits.Count, 1);
+			}
+
     		const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
     		this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, xRequestId });
     		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF");
@@ -286,14 +324,27 @@ export class YotiService {
     		try {
     			const yotiRequestConfig =  yotiRequest.config;
     			this.logger.debug("getPdf - Yoti", { yotiRequestConfig });
-    			return (await axios.get(yotiRequest.url, yotiRequest.config)).data;
+    			const response = await axios.get(yotiRequest.url, yotiRequest.config);
+				const { data } = response;
+
+				const singleMetric = this.metrics.singleMetric();
+				singleMetric.addDimension("status_code", response.status.toString());
+				singleMetric.addMetric("YotiService_fetch_instructions_response", MetricUnits.Count, 1);
+				return data;
 
     		} catch (error: any) {
+				if (error.status) {
+					const singleMetric = this.metrics.singleMetric();
+					singleMetric.addDimension("status_code", error.status.toString());
+					singleMetric.addMetric("YotiService_fetch_instructions_response", MetricUnits.Count, 1);
+				}
+
     			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
     			this.logger.error({ message: "An error occurred when fetching Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS, xRequestId });
     			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF");
     		}
     	} else {
+    		// eslint-disable-next-line max-lines
     		this.logger.error({ message: "Missing Yoti request config ", yotiRequest });
     	}
 	}
@@ -303,19 +354,32 @@ export class YotiService {
     		method: HttpVerbsEnum.GET,
     		endpoint: `/sessions/${sessionId}`,
     	});
+
     	let retryCount = 0;
     	while (retryCount <= maxRetries) {
-    		this.logger.debug({
+    		this.logger.info({
     			message: "getCompletedSessionInfo - trying to fetch Yoti session", 
+    			// eslint-disable-next-line max-lines
     			yotiSessionId: sessionId,
     			retryCount,
     		});
 			
     		try {
-    			const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
+    			const response = await axios.get(yotiRequest.url, yotiRequest.config);
 
+				const { data } = response;
+
+				const singleMetric = this.metrics.singleMetric();
+				singleMetric.addDimension("status_code", response.status.toString());
+				singleMetric.addMetric("YotiService_get_completed_session_response", MetricUnits.Count, 1);
     			return data;
     		} catch (error: any) {
+				if (error.status) {
+					const singleMetric = this.metrics.singleMetric();
+					singleMetric.addDimension("status_code", error.status.toString());
+					singleMetric.addMetric("YotiService_get_completed_session_response", MetricUnits.Count, 1);
+				}
+				
     			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
 				
     			if (((error.response?.status >= 500 && error.response?.status < 600) || error.response?.status === 429) && retryCount < maxRetries) {
@@ -342,7 +406,8 @@ export class YotiService {
     	});
 
     	try {
-    		const { data } = await axios.get(yotiRequest.url, yotiRequest.config);
+    		const response = await axios.get(yotiRequest.url, yotiRequest.config);
+			const { data } = response;
 
     		return data;
     	} catch (error: any) {
