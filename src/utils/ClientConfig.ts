@@ -9,6 +9,7 @@ type ClientConfig = {
 	redirectUri: string;
 	YotiBaseUrl: string;
 	GovNotifyApi: string;
+	OsLocationsApi: string;
 };
 
 export function getClientConfig(clientConfig: string, sessionClientId: string, logger: Logger): ClientConfig | undefined {

@@ -112,6 +112,7 @@ Mappings:
 
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
+      PCLENABLED: "true"
       YOTIBASEURL: "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.dev.account.gov.uk'
@@ -124,7 +125,9 @@ Mappings:
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1555200 # Default 14 days
       CLIENTS:
         '[
           {
@@ -132,20 +135,24 @@ Mappings:
               "clientId":"5C584572",
               "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk",
-              "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify"
+              "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           },
           {
               "jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
               "clientId":"SandboxJourneyFlow",
               "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://f2f-cri-outbound-proxy-proxy.review-o.dev.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
       AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
     build:
+      PCLENABLED: "true"
       YOTIBASEURL: "https://yotistub.review-o.build.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.build.account.gov.uk'
@@ -158,7 +165,9 @@ Mappings:
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1814400 # Default 18 days
       CLIENTS:
         '[
           {
@@ -166,20 +175,24 @@ Mappings:
               "clientId":"BD7B2A5D",
               "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://yotistub.review-o.build.account.gov.uk",
-              "GovNotifyApi": "https://govnotifystub.review-o.build.account.gov.uk/govnotify"
+              "GovNotifyApi": "https://govnotifystub.review-o.build.account.gov.uk/govnotify",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           },
           {
               "jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json",
               "clientId":"SandboxJourneyFlow",
               "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.build.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
     staging:
+      PCLENABLED: "true"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
       ISSUER: 'https://review-o.staging.account.gov.uk'
       DNSSUFFIX: review-o.staging.account.gov.uk
@@ -190,7 +203,9 @@ Mappings:
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1814400 # Default 18 days
       CLIENTS:
         '[
           {
@@ -198,12 +213,15 @@ Mappings:
               "clientId":"03A5A659-17AA-453F-B905-95D2804823D1",
               "redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://yotistub.review-o.staging.account.gov.uk",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
+      PCLENABLED: "false"
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
       ISSUER: 'https://review-o.integration.account.gov.uk'
       DNSSUFFIX: review-o.integration.account.gov.uk
@@ -214,7 +232,9 @@ Mappings:
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1814400 # Default 18 days
       CLIENTS:
         '[
           {
@@ -222,12 +242,15 @@ Mappings:
               "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F",
               "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.integration.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
+      PCLENABLED: "false"
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
       ISSUER: 'https://review-o.account.gov.uk'
       DNSSUFFIX: review-o.account.gov.uk
@@ -238,7 +261,9 @@ Mappings:
       GOVUKNOTIFYREMINDERTEMPLATEID: "0d0d2aab-3c31-46da-8462-1af0f5f456f0"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0d3b9cb6-2c54-4316-865a-933f0f0dfb53"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1814400 # Default 18 days
       CLIENTS:
         '[
           {
@@ -246,10 +271,12 @@ Mappings:
               "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342",
               "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
@@ -320,6 +347,7 @@ Conditions:
     - !Not [ !Equals [ !Ref TrafficTestRoleArn, none ]]
 
   UseCanaryDeploymentAlarms: !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
+  PclEnabled: !Equals [ !FindInMap [ EnvironmentVariables, !Ref Environment, PCLENABLED ], "true" ]
 
 Globals:
   Function:
@@ -372,7 +400,10 @@ Globals:
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
         POWERTOOLS_LOG_LEVEL: !If [IsNotProdLikeEnvironment, "DEBUG", "INFO"] # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
-        RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
+        RESOURCES_TTL_SECS: !If 
+            - PclEnabled
+            - !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDRESOURCETTLSECS]
+            - !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
         SESSION_TABLE:
           Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
         CLIENT_CONFIG:
@@ -825,7 +856,10 @@ Resources:
       Environment:
         Variables:
           AUTH_SESSION_TTL_SECS:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
+            !If 
+              - PclEnabled
+              - !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDAUTHSESSIONTTLSECS] 
+              - !FindInMap [EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS]
           POWERTOOLS_SERVICE_NAME: SessionHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           PERSON_IDENTITY_TABLE_NAME:
@@ -1157,12 +1191,12 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: SessionConfigHandler
-          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${Environment}/f2f/printedCustomerLetter/enabled"
+          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${AWS::StackName}/f2f/printedCustomerLetter/enabled"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/f2f/printedCustomerLetter/enabled"
+            ParameterName: !Sub "${AWS::StackName}/f2f/printedCustomerLetter/enabled"
         - DynamoDBWritePolicy:
             TableName:
               Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
@@ -1862,8 +1896,10 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-          AUTH_SESSION_TTL_SECS:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
+          AUTH_SESSION_TTL_SECS: !If 
+              - PclEnabled
+              - !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDAUTHSESSIONTTLSECS]
+              - !FindInMap [EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
           YOTICALLBACKURL: !If
@@ -1880,12 +1916,20 @@ Resources:
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_SESSION_TTL_DAYS:
+            !If 
+              - PclEnabled
+              - !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS] 
+              - !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_LETTER_STATE_MACHINE_ARN: !GetAtt SendYotiLetterStateMachine.Arn
+          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${AWS::StackName}/f2f/printedCustomerLetter/enabled"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${AWS::StackName}/f2f/printedCustomerLetter/enabled"
         - DynamoDBReadPolicy:
             TableName: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
@@ -1926,6 +1970,11 @@ Resources:
                 - "kms:Decrypt"
                 - "kms:GenerateDataKey"
               Resource: !GetAtt [GovNotifyEncryptionKey, Arn]
+        -  Statement:
+              - Effect: Allow
+                Action:
+                  - "states:StartExecution"
+                Resource: !GetAtt SendYotiLetterStateMachine.Arn
       Events:
         documentSelection:
           Type: Api
@@ -2869,7 +2918,6 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-
   PersonInfoKeyConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "ApplyReservedConcurrency"
@@ -2913,6 +2961,224 @@ Resources:
       Dimensions:
         - Name: FunctionName
           Value: !Ref PersonInfoKeyFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+  ## AddressLocationsHandler
+  AddressLocationsFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: AddressLocationsFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-addressLocations-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref AddressLocationsFunctionFatalErrorAlarm, !Ref AddressLocationsFunctionLambdaErrors, !Ref AddressLocationsFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
+      Handler: AddressLocationsHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: AddressLocationsHandler
+          OS_API_KEY_SSM_PATH: !Sub "/${Environment}/ordnance-survey/API_KEY"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/ordnance-survey/API_KEY"
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-key-id"
+        - Statement:
+            - Sid: KMSPolicy
+              Effect: Allow
+              Action:
+                - kms:*
+              Resource:
+                "*"
+      Events:
+        AddressLocations:
+          Type: Api
+          Properties:
+            Path: /addressLocations
+            Method: post
+            RestApiId: !Ref F2FRestApi
+
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false
+        EntryPoints:
+          - AddressLocationsHandler.ts
+
+  AddressLocationsFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-addressLocations-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  AddressLocationsFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref AddressLocationsFunction
+      Principal: apigateway.amazonaws.com
+
+  AddressLocationsFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref AddressLocationsFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "AddressLocationsFunction-Fatalerror"
+
+  AddressLocationsFunctionFatalErrorAlarm:
+    DependsOn:
+      - "AddressLocationsFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: AddressLocationsFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  AddressLocationsFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-AddressLocationsFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub AddressLocationsFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AddressLocationsFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunctionCanary5xxErrors"
+      AlarmDescription: !Sub AddressLocationsFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: GET
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /addressLocations
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  AddressLocationsFunctionConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "ApplyReservedConcurrency"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of AddressLocations is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AddressLocationsFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AddressLocationsFunctionThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${AddressLocationsFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AddressLocationsFunction
       TreatMissingData: notBreaching
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
@@ -3196,7 +3462,10 @@ Resources:
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY_ENCRYPTED"
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_SESSION_TTL_DAYS:             
+            !If [PclEnabled, 
+              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS], 
+              !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -3830,8 +4099,13 @@ Resources:
           ENCRYPTION_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
           AUTH_SESSION_TTL_SECS:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+            !If [PclEnabled, 
+              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDAUTHSESSIONTTLSECS], 
+              !FindInMap [EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS]]
+          YOTI_SESSION_TTL_DAYS:             
+            !If [PclEnabled, 
+              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS], 
+              !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]]
           IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -3900,6 +4174,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ExpiredSessionsFunction
       Principal: apigateway.amazonaws.com
+
 
   ExpiredSessionFunctionTestRolePermission:
     Type: AWS::Lambda::Permission
@@ -4296,7 +4571,10 @@ Resources:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
           IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_SESSION_TTL_DAYS:             
+            !If [PclEnabled, 
+              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS], 
+              !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -4683,7 +4961,7 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: GenerateYotiLetterHandler
           YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
-          YOTI_PDF_BUCKET_FOLDER: pdf
+          YOTI_PDF_BUCKET_LETTER_FOLDER: pdf
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
       Policies:
@@ -4842,13 +5120,39 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue:
+              Fn::Sub: ${L2DynamoStackName}-person-identity-table-name
           POWERTOOLS_SERVICE_NAME: GeneratePrintedLetterHandler
+          YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
+          YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER: merged-pdf
+          YOTI_PDF_BUCKET_COVER_LETTER_FOLDER: cover-pdf
+          YOTI_PDF_BUCKET_LETTER_FOLDER: pdf
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - DynamoDBReadPolicy:
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
+        - S3WritePolicy:
+            BucketName: !Ref YotiLetterBucket
+        - S3ReadPolicy:
+            BucketName: !Ref YotiLetterBucket
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-key-id"
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-key-id"
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
+        Loader:
+          - .ttf=file
+          - .png=file
         Minify: true
         Target: "es2020"
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
@@ -4988,9 +5292,66 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: SendToGovNotifyHandler
+          YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
+          YOTI_PDF_BUCKET_LETTER_FOLDER: pdf
+          YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER: merged-pdf
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+          REMINDER_EMAIL_GOVUKNOTIFY_API: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI ]
+          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
+          GOVUKNOTIFY_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]
+          GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]
+          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
+          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-key-id"
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-key-id"
+        - S3ReadPolicy:
+            BucketName: !Sub "${AWS::StackName}-yotiletter-f2f-${Environment}"
+        - S3WritePolicy:
+            BucketName: !Sub "${AWS::StackName}-yotiletter-f2f-${Environment}"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt TxMASQSQueue.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:GenerateDataKey"
+              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Decrypt"
+              Resource: !GetAtt GovNotifyEncryptionKey.Arn
+      
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -7080,6 +7441,15 @@ Resources:
               MetricName: IssueAccessTokenLambdaTimeOut
             Period: 60
             Stat: Sum
+
+  ParameterPclEnabledToggle:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/f2f/printedCustomerLetter/enabled"
+      Value: !FindInMap [ EnvironmentVariables, !Ref Environment, PCLENABLED ]
+      Type: String
+      Description: PCL Enabled Parameter
+
 
   ConcurrencyAlarmDashboard:
     Type: AWS::CloudWatch::Dashboard
