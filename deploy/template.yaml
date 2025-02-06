@@ -726,7 +726,6 @@ Resources:
   ### End of API Gateway definition.
 
   WAFv2ACLAssociation:
-    Condition: IsNotDevelopment
     Type: AWS::WAFv2::WebACLAssociation
     Properties:
       ResourceArn: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${F2FRestApi}/stages/${F2FRestApi.Stage}"
