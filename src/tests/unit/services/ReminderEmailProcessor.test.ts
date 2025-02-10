@@ -9,6 +9,7 @@ import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 
 describe("ReminderEmailProcessor", () => {
+	let mockSessionItem: ISessionItem;
 	let personIdentityItem: PersonIdentityItem;
 	let reminderEmailProcessor: ReminderEmailProcessor;
 	const mockF2fService = mock<F2fService>();
@@ -155,6 +156,8 @@ describe("ReminderEmailProcessor", () => {
 		// @ts-ignore
 		reminderEmailProcessor.f2fService = mockF2fService;
 
+		mockSessionItem = getMockSessionItem();
+
 		personIdentityItem = getPersonIdentityItem();
 	});
 
@@ -171,6 +174,7 @@ describe("ReminderEmailProcessor", () => {
 	describe("Should process request successfully", () => {
 		beforeEach(() => {
 			mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(F2FSessionsWithYotiSession);
+			mockF2fService.getSessionById.mockResolvedValue(mockSessionItem);
 			mockF2fService.getPersonIdentityById.mockResolvedValue(personIdentityItem);
 			mockF2fService.sendToGovNotify.mockResolvedValue();
 			mockF2fService.updateReminderEmailFlag.mockResolvedValue();
@@ -266,6 +270,7 @@ describe("ReminderEmailProcessor", () => {
 
 	it("should log an error if not able to send to GovNotify", async () => {
 		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(F2FSessionsWithYotiSession);
+		mockF2fService.getSessionById.mockResolvedValue(mockSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(personIdentityItem);
 		mockF2fService.sendToGovNotify.mockRejectedValueOnce("Unable to send to GovNotify");
 
@@ -276,6 +281,7 @@ describe("ReminderEmailProcessor", () => {
 
 	it("should log an error if not able to set the reminded flag", async () => {
 		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(F2FSessionsWithYotiSession);
+		mockF2fService.getSessionById.mockResolvedValue(mockSessionItem);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(personIdentityItem);
 		mockF2fService.sendToGovNotify.mockResolvedValue();
 		mockF2fService.updateReminderEmailFlag.mockRejectedValueOnce("Unable to set reminded flag");

@@ -50,13 +50,14 @@ export class ReminderEmailProcessor {
   		this.logger.info("Total num. of users to send reminder emails to:", { numOfUsers: filteredSessions.length });
 
   		const usersToRemind = await Promise.all(
-  			filteredSessions.map(async ({ sessionId, yotiSessionId, documentUsed }) => {
+  			filteredSessions.map(async ({ sessionId, documentUsed }) => {
   				try {
   					const envVariables = new EnvironmentVariables(this.logger, ServicesEnum.REMINDER_SERVICE);
+  					const sessionItem = await this.f2fService.getSessionById(sessionId);
   					const personIdentityItem = await this.f2fService.getPersonIdentityById(sessionId, envVariables.personIdentityTableName());
-  					if ( personIdentityItem ) {
+  					if ( sessionItem && personIdentityItem ) {
   						const nameParts = personIdentityUtils.getNames(personIdentityItem);
-  						return { sessionId, yotiSessionId, emailAddress: personIdentityItem.emailAddress, firstName: nameParts.givenNames[0], lastName: nameParts.familyNames[0], documentUsed };
+  						return { sessionId, yotiSessionId: sessionItem.yotiSessionId, emailAddress: personIdentityItem.emailAddress, firstName: nameParts.givenNames[0], lastName: nameParts.familyNames[0], documentUsed };
   					} else {
   						this.logger.warn("No records returned from Person Identity Table");
   						return null;
