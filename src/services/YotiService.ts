@@ -289,7 +289,7 @@ export class YotiService {
 
     		} catch (error: any) {
     			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;			
-    			this.logger.error({ message: "An error occurred when fetching Yoti instructions PDF!", 
+    			this.logger.error({ message: "An error occurred when fetching Yoti instructions PDF", 
 					yotiErrorMessage: error.message, 
 					yotiErrorCode: error.code,
 					messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS, 

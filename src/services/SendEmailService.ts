@@ -365,7 +365,6 @@ export class SendEmailService {
   				message.emailAddress,
   				options,
   			);
-  			console.log("EMAIL RES!", emailResponse);
   			this.logger.debug(
   				"sendEmail - response status after sending Email",
   				SendEmailService.name,

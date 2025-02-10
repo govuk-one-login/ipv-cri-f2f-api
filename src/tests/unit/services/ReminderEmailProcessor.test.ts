@@ -5,10 +5,11 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
+import { ISessionItem } from "../../../models/ISessionItem";
+import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 
 describe("ReminderEmailProcessor", () => {
 	let personIdentityItem: PersonIdentityItem;
-	
 	let reminderEmailProcessor: ReminderEmailProcessor;
 	const mockF2fService = mock<F2fService>();
 	const mockLogger = mock<Logger>();
@@ -20,27 +21,32 @@ describe("ReminderEmailProcessor", () => {
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a4e",
 			reminderEmailSent: true,
 			authSessionState: "F2F_YOTI_SESSION_CREATED",
+			yotiSessionId: "6l9eerge43-475e-48c1-b2bf-df98e53501336",
 		},
 		{
 			createdDate: 1177408,
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a48",
 			authSessionState: "F2F_YOTI_SESSION_CREATED",
+			yotiSessionId: "6l9eerge43-475e-48c1-b2bf-df98e53501336",
 		},
 		{
 			createdDate: 1695302248,
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a4h",
 			authSessionState: "F2F_YOTI_SESSION_CREATED",
+			yotiSessionId: "6l9eerge43-475e-48c1-b2bf-df98e53501336",
 		},
 		{
 			createdDate: 1091008,
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a47",
 			reminderEmailSent: false,
 			authSessionState: "F2F_YOTI_SESSION_CREATED",
+			yotiSessionId: "6l9eerge43-475e-48c1-b2bf-df98e53501336",
 		},
 		{
 			createdDate: 1695284750,
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a43",
 			authSessionState: "F2F_YOTI_SESSION_CREATED",
+			yotiSessionId: "6l9eerge43-475e-48c1-b2bf-df98e53501336",
 		},
 	];
 
@@ -51,12 +57,14 @@ describe("ReminderEmailProcessor", () => {
 			reminderEmailSent: true,
 			authSessionState: "F2F_YOTI_SESSION_CREATED",
 			documentUsed: "PASSPORT",
+			yotiSessionId: "6l9eerge43-475e-48c1-b2bf-df98e53501336",
 		},
 		{
 			createdDate: 1177408,
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a48",
 			authSessionState: "F2F_YOTI_SESSION_CREATED",
 			documentUsed: "NATIONAL_ID",
+			yotiSessionId: "6l9eerge43-475e-48c1-b2bf-df98e53501336",
 		},
 		{
 			createdDate: 1091008,
@@ -64,14 +72,40 @@ describe("ReminderEmailProcessor", () => {
 			reminderEmailSent: false,
 			authSessionState: "F2F_YOTI_SESSION_CREATED",
 			documentUsed: "DRIVING_LICENCE",
+			yotiSessionId: "6l9eerge43-475e-48c1-b2bf-df98e53501336",
 		},
 		{
 			createdDate: 1695284750,
 			sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a43",
 			authSessionState: "F2F_YOTI_SESSION_CREATED",
 			documentUsed: "PASSPORT",
+			yotiSessionId: "6l9eerge43-475e-48c1-b2bf-df98e53501336",
 		},
 	];
+
+	function getMockSessionItem(): ISessionItem {
+		const sessionInfo: ISessionItem = {
+			sessionId: "RandomF2FSessionID",
+			yotiSessionId: "6l9eerge43-475e-48c1-b2bf-df98e53501336",
+			clientId: "ipv-core-stub",
+			// pragma: allowlist nextline secret
+			accessToken: "AbCdEf123456",
+			clientSessionId: "sdfssg",
+			authorizationCode: "",
+			authorizationCodeExpiryDate: 0,
+			redirectUri: "http://localhost:8085/callback",
+			accessTokenExpiryDate: 0,
+			expiryDate: 221848913376,
+			createdDate: 1675443004,
+			state: "Y@atr",
+			subject: "sub",
+			persistentSessionId: "sdgsdg",
+			clientIpAddress: "127.0.0.1",
+			attemptCount: 1,
+			authSessionState: AuthSessionState.F2F_YOTI_SESSION_CREATED,
+		};
+		return sessionInfo;
+	}
 
 	const getPersonIdentityItem = (): PersonIdentityItem => ({
 		"addresses": [
@@ -170,8 +204,8 @@ describe("ReminderEmailProcessor", () => {
 			expect(mockF2fService.getSessionsByAuthSessionStates).toHaveBeenCalledWith(["F2F_YOTI_SESSION_CREATED", "F2F_AUTH_CODE_ISSUED", "F2F_ACCESS_TOKEN_ISSUED"]);
 			expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(1, "b2ba545c-18a9-4b7e-8bc1-38a05b214a48", "PERSONIDENTITYTABLE");
 			expect(mockF2fService.getPersonIdentityById).toHaveBeenNthCalledWith(2, "b2ba545c-18a9-4b7e-8bc1-38a05b214a47", "PERSONIDENTITYTABLE");
-			expect(mockF2fService.sendToGovNotify).toHaveBeenNthCalledWith(1, { "Message": { "documentUsed": "NATIONAL_ID", "emailAddress": "testReminder@test.com", "firstName": "Frederick", "lastName": "Flintstone", "messageType": "REMINDER_EMAIL_DYNAMIC" } });
-			expect(mockF2fService.sendToGovNotify).toHaveBeenNthCalledWith(2, { "Message": { "documentUsed": "DRIVING_LICENCE", "emailAddress": "testReminder@test.com", "firstName": "Frederick", "lastName": "Flintstone", "messageType": "REMINDER_EMAIL_DYNAMIC" } });
+			expect(mockF2fService.sendToGovNotify).toHaveBeenNthCalledWith(1, { "Message": { "documentUsed": "NATIONAL_ID", "emailAddress": "testReminder@test.com", "firstName": "Frederick", "lastName": "Flintstone", "messageType": "REMINDER_EMAIL_DYNAMIC", "sessionId": "b2ba545c-18a9-4b7e-8bc1-38a05b214a48", "yotiSessionId": "6l9eerge43-475e-48c1-b2bf-df98e53501336" } });
+			expect(mockF2fService.sendToGovNotify).toHaveBeenNthCalledWith(2, { "Message": { "documentUsed": "DRIVING_LICENCE", "emailAddress": "testReminder@test.com", "firstName": "Frederick", "lastName": "Flintstone", "messageType": "REMINDER_EMAIL_DYNAMIC", "sessionId": "b2ba545c-18a9-4b7e-8bc1-38a05b214a47", "yotiSessionId": "6l9eerge43-475e-48c1-b2bf-df98e53501336" } });
 			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith("b2ba545c-18a9-4b7e-8bc1-38a05b214a48", true);
 			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith("b2ba545c-18a9-4b7e-8bc1-38a05b214a47", true);
 		});

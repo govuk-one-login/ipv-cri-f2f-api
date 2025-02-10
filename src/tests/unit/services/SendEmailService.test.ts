@@ -230,7 +230,17 @@ describe("SendEmailProcessor", () => {
 		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
-		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { "chosen photo ID": "PASSPORT", "first name": "Frederick", "last name": "Flintstone" }, "reference": expect.any(String) });
+		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
+			"chosen photo ID": "PASSPORT", 
+			"date": "10 February", 
+			"first name": "Frederick", 
+			"last name": "Flintstone",
+			"link_to_file": { 
+				"confirm_email_before_download": true, 
+				"file": "Z2tpaWhv", 
+				"retention_period": "2 weeks",
+			} },
+		"reference": expect.any(String) });
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 

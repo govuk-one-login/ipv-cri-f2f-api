@@ -27,7 +27,7 @@ export const VALID_DYNAMIC_REMINDER_SQS_EVENT = {
 			"messageId": "6e67a34a-94f1-493f-b9eb-3d421aa701a8",
 			// pragma: allowlist nextline secret
 			"receiptHandle": "AQEBDzpW+TMqnd6I8zcqmrq8g8BTsuDjI745ci0bJ46g0Ej",
-			"body": "{\"Message\":{\"documentUsed\":\"PASSPORT\",\"emailAddress\":\"bhavana.hemanth@digital.cabinet-office.gov.uk\",\"firstName\":\"Frederick\",\"lastName\":\"Flintstone\",\"messageType\":\"REMINDER_EMAIL_DYNAMIC\"}}",
+			"body": "{\"Message\":{\"sessionId\":\"eb26c8e0-397b-4f5e-b7a5-62cd0c6e510b\",\"yotiSessionId\":\"8fbbe7bf-3ce6-4dc0-b4f3-b36d4684c6bc\",\"documentUsed\":\"PASSPORT\",\"emailAddress\":\"bhavana.hemanth@digital.cabinet-office.gov.uk\",\"firstName\":\"Frederick\",\"lastName\":\"Flintstone\",\"messageType\":\"REMINDER_EMAIL_DYNAMIC\"}}",
 			"attributes": {
 				"ApproximateReceiveCount": "1",
 				"SentTimestamp": "1588867971441",
