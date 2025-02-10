@@ -11,6 +11,8 @@ import { Logger } from "@aws-lambda-powertools/logger";
 export class DynamicReminderEmail {
 
 	constructor(data: Partial<DynamicReminderEmail>) {
+		this.sessionId = data.sessionId!;
+		this.yotiSessionId = data.yotiSessionId!;
 		this.emailAddress = data.emailAddress!;
 		this.firstName = data.firstName!;
 		this.lastName = data.lastName!;
@@ -26,6 +28,14 @@ export class DynamicReminderEmail {
 			throw new AppError( HttpCodesEnum.BAD_REQUEST, "Cannot parse ReminderEmail data");
 		}
 	}
+
+	@IsString()
+	@IsNotEmpty()
+	sessionId!: string;
+
+	@IsString()
+    @IsNotEmpty()
+    yotiSessionId!: string;
 
 	@IsString()
 	@IsNotEmpty()

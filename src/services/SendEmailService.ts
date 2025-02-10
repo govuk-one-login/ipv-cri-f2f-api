@@ -224,14 +224,57 @@ export class SendEmailService {
   ): Promise<EmailResponse> {
   	this.logger.info("Sending dynamic reminder email");
 
+	  const f2fSessionInfo = await this.f2fService.getSessionById(
+  		message.sessionId,
+  	);
+
+	  if (!f2fSessionInfo) {
+  		this.logger.warn("Missing details in SESSION table", {
+  			messageCode: MessageCodes.SESSION_NOT_FOUND,
+  		});
+  		throw new AppError(
+  			HttpCodesEnum.BAD_REQUEST,
+  			"Missing details in SESSION or table",
+  		);
+  	}
+	
+
+  	//Initialise Yoti Service base on SessionClientID
+  	const clientConfig = getClientConfig(
+  		this.environmentVariables.clientConfig(),
+  		f2fSessionInfo.clientId,
+  		this.logger,
+  	);
+	  
+  	if (!clientConfig) {
+  		this.logger.error("Unrecognised client in request", {
+  			messageCode: MessageCodes.UNRECOGNISED_CLIENT,
+  		});
+  		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+  	}
+
+  	  const encoded = await this.fetchInstructionsPdf(
+  		message,
+  		clientConfig.YotiBaseUrl,
+  	);
+
   	const { GOV_NOTIFY_OPTIONS } = Constants;
+
+	  const dateObject = new Date(f2fSessionInfo.expiryDate * 1000);
+	  const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
 
   	try {
   		const options = {
   			personalisation: {
   				[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
   				[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
+  				[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
   				[GOV_NOTIFY_OPTIONS.CHOSEN_PHOTO_ID]: message.documentUsed,
+				  [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
+  					file: encoded,
+  					confirm_email_before_download: true,
+  					retention_period: "2 weeks",
+  				},
   			},
   			reference: message.referenceId,
   		};
@@ -242,7 +285,7 @@ export class SendEmailService {
   			),
   			message,
   			options,
-  			this.environmentVariables.reminderEmailsGovNotifyUrl(),
+  			clientConfig.GovNotifyApi,
   		);
   		return emailResponse;
   	} catch (err: any) {
@@ -322,6 +365,7 @@ export class SendEmailService {
   				message.emailAddress,
   				options,
   			);
+  			console.log("EMAIL RES!", emailResponse);
   			this.logger.debug(
   				"sendEmail - response status after sending Email",
   				SendEmailService.name,
@@ -410,7 +454,7 @@ export class SendEmailService {
   			}
   		} catch (err: any) {
   			this.logger.error(
-  				"Error while fetching Instructions pfd or encoding the pdf.",
+  				"Error while fetching Instructions pdf or encoding the pdf.",
   				{ err },
   			);
   			if (

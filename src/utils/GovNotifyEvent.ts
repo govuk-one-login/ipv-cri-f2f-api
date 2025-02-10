@@ -24,6 +24,8 @@ export interface ReminderEmailEvent {
 }
 export interface ReminderEmailEventDynamic {
 	"Message": {
+		"sessionId": string;
+		"yotiSessionId": string;
 		"firstName": string;
 		"lastName": string;
 		"documentUsed": string;
@@ -92,6 +94,8 @@ export const buildReminderEmailEventFields = (emailAddress: string): ReminderEma
 };
 
 export const buildDynamicReminderEmailEventFields = (
+	sessionId: string, 
+	yotiSessionId: string,
 	emailAddress: string,
 	firstName: string,
 	lastName: string,
@@ -100,6 +104,8 @@ export const buildDynamicReminderEmailEventFields = (
 
 	return {
 		Message : {
+			sessionId, 
+			yotiSessionId,
 			emailAddress,
 			firstName,
 			lastName,
