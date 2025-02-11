@@ -434,7 +434,10 @@ export class SendEmailService {
   }
 
   formatExpiryDate(f2fSessionInfo: ISessionItem): string {
-  	const dateObject = new Date(f2fSessionInfo.expiryDate * 1000);
+  	const createdDate = f2fSessionInfo.createdDate;
+  	const expiryDate = createdDate + 15 * 86400;
+	  
+  	const dateObject = new Date(expiryDate * 1000);
   	const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
   	return formattedDate;
   }

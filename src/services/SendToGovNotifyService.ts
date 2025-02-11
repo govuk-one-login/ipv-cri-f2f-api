@@ -172,8 +172,7 @@ export class SendToGovNotifyService {
   				"base64",
   			);
 
-  			const dateObject = new Date(f2fSessionInfo.expiryDate * 1000);
-  			const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
+  			const formattedDate = this.formatExpiryDate(f2fSessionInfo);
 
   			const { GOV_NOTIFY_OPTIONS } = Constants;
 
@@ -459,5 +458,14 @@ export class SendToGovNotifyService {
   		HttpCodesEnum.SERVER_ERROR,
   		`sendLetter - Cannot send Letter after ${this.environmentVariables.maxRetries()} retries`,
   	);
+  }
+
+  formatExpiryDate(f2fSessionInfo: ISessionItem): string {
+  	const createdDate = f2fSessionInfo.createdDate;
+  	const expiryDate = createdDate + 15 * 86400;
+	
+  	const dateObject = new Date(expiryDate * 1000);
+  	const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
+  	return formattedDate;
   }
 }
