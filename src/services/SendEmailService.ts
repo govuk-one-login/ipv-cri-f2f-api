@@ -16,7 +16,6 @@ import { F2fService } from "./F2fService";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { ReminderEmail } from "../models/ReminderEmail";
-import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { Constants } from "../utils/Constants";
 import { getClientConfig } from "../utils/ClientConfig";
@@ -220,7 +219,7 @@ export class SendEmailService {
   }
 
   async sendDynamicReminderEmail(
-  	message: DynamicReminderEmail,
+  	message: Email,
   ): Promise<EmailResponse> {
   	this.logger.info("Sending dynamic reminder email");
 
@@ -419,7 +418,7 @@ export class SendEmailService {
   }
 
   async fetchInstructionsPdf(
-  	message: Email | DynamicReminderEmail,
+  	message: Email,
   	yotiBaseUrl: string,
   ): Promise<string> {
   	if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);

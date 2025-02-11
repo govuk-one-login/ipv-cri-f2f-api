@@ -14,7 +14,6 @@ import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { ReminderEmail } from "../../../models/ReminderEmail";
-import { DynamicReminderEmail } from "../../../models/DynamicReminderEmail";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 
 jest.mock("notifications-node-client", () => {
@@ -227,7 +226,7 @@ describe("SendEmailProcessor", () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
 		const eventBody = JSON.parse(dynamicEmailEvent.Records[0].body);
-		const email = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
 		email.referenceId = mockReference;
 		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(email);
 
