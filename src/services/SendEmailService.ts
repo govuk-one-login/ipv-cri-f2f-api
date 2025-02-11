@@ -4,6 +4,7 @@ import { NotifyClient } from "notifications-node-client";
 
 import { EmailResponse } from "../models/EmailResponse";
 import { Email } from "../models/Email";
+import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -219,7 +220,7 @@ export class SendEmailService {
   }
 
   async sendDynamicReminderEmail(
-  	message: Email,
+  	message: DynamicReminderEmail,
   ): Promise<EmailResponse> {
   	this.logger.info("Sending dynamic reminder email");
 
@@ -267,6 +268,7 @@ export class SendEmailService {
   				[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
   				[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
   				[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
+  				[GOV_NOTIFY_OPTIONS.CHOSEN_PHOTO_ID]: message.documentUsed,
 				  [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   					file: encoded,
   					confirm_email_before_download: true,
@@ -418,7 +420,7 @@ export class SendEmailService {
   }
 
   async fetchInstructionsPdf(
-  	message: Email,
+  	message: Email | DynamicReminderEmail,
   	yotiBaseUrl: string,
   ): Promise<string> {
   	if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);

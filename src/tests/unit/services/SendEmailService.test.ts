@@ -15,6 +15,7 @@ import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { ReminderEmail } from "../../../models/ReminderEmail";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
+import { DynamicReminderEmail } from "../../../models/DynamicReminderEmail";
 
 jest.mock("notifications-node-client", () => {
 	return {
@@ -226,12 +227,13 @@ describe("SendEmailProcessor", () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
 		const eventBody = JSON.parse(dynamicEmailEvent.Records[0].body);
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
+		const email = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
 		email.referenceId = mockReference;
 		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
 		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
+			"chosen photo ID": "PASSPORT",
 			"date": "10 February", 
 			"first name": "Frederick", 
 			"last name": "Flintstone",
