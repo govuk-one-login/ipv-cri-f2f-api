@@ -22,6 +22,7 @@ import { Constants } from "../utils/Constants";
 import { getClientConfig } from "../utils/ClientConfig";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { ValidationHelper } from "../utils/ValidationHelper";
+import { ISessionItem } from "../models/ISessionItem";
 
 /**
  * Class to send emails using gov notify service
@@ -146,8 +147,7 @@ export class SendEmailService {
   			this.logger.debug("sendEmail", SendEmailService.name);
   			this.logger.info("Sending Yoti PDF email");
 
-  			const dateObject = new Date(f2fSessionInfo.expiryDate * 1000);
-  			const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
+  			const formattedDate = this.formatExpiryDate(f2fSessionInfo);
 
   			const { GOV_NOTIFY_OPTIONS } = Constants;
 
@@ -260,8 +260,7 @@ export class SendEmailService {
 
   	const { GOV_NOTIFY_OPTIONS } = Constants;
 
-	  const dateObject = new Date(f2fSessionInfo.expiryDate * 1000);
-	  const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
+  	const formattedDate = this.formatExpiryDate(f2fSessionInfo);
 
   	try {
   		const options = {
@@ -269,7 +268,6 @@ export class SendEmailService {
   				[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
   				[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
   				[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
-  				[GOV_NOTIFY_OPTIONS.CHOSEN_PHOTO_ID]: message.documentUsed,
 				  [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   					file: encoded,
   					confirm_email_before_download: true,
@@ -421,7 +419,7 @@ export class SendEmailService {
   }
 
   async fetchInstructionsPdf(
-  	message: Email,
+  	message: Email | DynamicReminderEmail,
   	yotiBaseUrl: string,
   ): Promise<string> {
   	if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -485,5 +483,11 @@ export class SendEmailService {
   		HttpCodesEnum.SERVER_ERROR,
   		`sendEmail - Could not fetch Instructions pdf after ${this.environmentVariables.yotiInstructionsPdfMaxRetries()} retries`,
   	);
+  }
+
+  formatExpiryDate(f2fSessionInfo: ISessionItem): string {
+  	const dateObject = new Date(f2fSessionInfo.expiryDate * 1000);
+  	const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
+  	return formattedDate;
   }
 }

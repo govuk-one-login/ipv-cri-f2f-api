@@ -33,30 +33,19 @@ export class DynamicReminderEmail {
 	@IsNotEmpty()
 	sessionId!: string;
 
-	@IsString()
-    @IsNotEmpty()
-    yotiSessionId!: string;
+	yotiSessionId!: string;
 
+	firstName!: string;
+
+	lastName!: string;
+
+	documentUsed!: string;
+
+	referenceId!: string;
+	
 	@IsString()
 	@IsNotEmpty()
 	@IsEmail()
 	emailAddress!: string;
-
-	@IsString()
-    @IsNotEmpty()
-    firstName!: string;
-
-	@IsString()
-	@IsNotEmpty()
-	lastName!: string;
-
-	@IsString()
-	@IsNotEmpty()
-	documentUsed!: string;
-
-
-	@IsString()
-	@IsNotEmpty()
-	referenceId!: string;
 
 }
