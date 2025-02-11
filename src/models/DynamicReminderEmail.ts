@@ -1,8 +1,13 @@
+import { applyDecorators } from "@nestjs/common";
 import { IsString, IsNotEmpty, IsEmail } from "class-validator";
 import { randomUUID } from "crypto";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "./enums/HttpCodesEnum";
 import { Logger } from "@aws-lambda-powertools/logger";
+
+function IsRequiredString(): any {
+	return applyDecorators(IsString(), IsNotEmpty());
+}
 
 /**
  * Object to represent data contained in email messages sent by this lambda
@@ -28,34 +33,26 @@ export class DynamicReminderEmail {
 		}
 	}
 
-	@IsString()
-	@IsNotEmpty()
+	@IsRequiredString()
 	sessionId!: string;
 
-	@IsString()
-    @IsNotEmpty()
+	@IsRequiredString()
     yotiSessionId!: string;
 
-	@IsString()
-	@IsNotEmpty()
+	@IsRequiredString()
 	@IsEmail()
 	emailAddress!: string;
 
-	@IsString()
-    @IsNotEmpty()
+	@IsRequiredString()
     firstName!: string;
 
-	@IsString()
-	@IsNotEmpty()
+	@IsRequiredString()
 	lastName!: string;
 
-	@IsString()
-	@IsNotEmpty()
+	@IsRequiredString()
 	documentUsed!: string;
 
-
-	@IsString()
-	@IsNotEmpty()
+	@IsRequiredString()
 	referenceId!: string;
 
 }
