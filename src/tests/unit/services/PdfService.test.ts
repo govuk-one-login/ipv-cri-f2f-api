@@ -2,10 +2,8 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { mock } from "jest-mock-extended";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
-import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
-import { F2fService } from "../../../services/F2fService";
 import { PDFService } from "../../../services/PdfService";
 import { S3Client } from "@aws-sdk/client-s3";
 import { PDFGenerationService } from "../../../services/pdfGenerationService";
@@ -22,7 +20,7 @@ const mockS3Client = mock<S3Client>();
 let pdfServiceTest: PDFService;
 const mockPdfGenerationService = mock<PDFGenerationService>();
 
-const metrics = new Metrics({ namespace: "F2F" });
+const metrics = mock<Metrics>();
 const logger = mock<Logger>();
 const sessionId = "sessionId";
 
@@ -33,6 +31,8 @@ describe("PdfServiceTest", () => {
 		pdfServiceTest.pdfGenerationService = mockPdfGenerationService;
 		// @ts-ignore
 		pdfServiceTest.s3Client = mockS3Client;
+
+		metrics.singleMetric.mockReturnValue(metrics);
 	});
 
 	describe("#processRequest", () => {
@@ -45,6 +45,24 @@ describe("PdfServiceTest", () => {
 			
 			expect(mockPdfGenerationService.generatePDF).toHaveBeenCalledTimes(1);
 			expect(response).toEqual(Buffer.alloc(123));
+		});
+
+		it("Calls the pdf service and throws an error when generating pdf", async () => {
+			mockPdfGenerationService.generatePDF.mockImplementation(() => {
+				throw new Error();
+			});
+
+			let response = undefined;
+			try {
+				response = await pdfServiceTest.createPdf(sessionId);
+			} catch (error:any) {
+				// eslint-disable-next-line jest/no-conditional-expect
+				expect(mockPdfGenerationService.generatePDF).toHaveBeenCalledTimes(1);
+				// eslint-disable-next-line jest/no-conditional-expect
+				expect(metrics.addDimension).toHaveBeenCalledWith("error", "unable_to_create_cover_letter");
+				// eslint-disable-next-line jest/no-conditional-expect
+				expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error", MetricUnits.Count, 1);
+			}
 		});
 	});
 });

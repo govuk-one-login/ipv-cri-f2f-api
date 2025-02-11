@@ -25,4 +25,6 @@ process.env.YOTI_PDF_BUCKET_LETTER_FOLDER = "pdf";
 process.env.YOTI_PDF_BUCKET_COVER_LETTER_FOLDER = "cover-pdf";
 process.env.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER = "merged-pdf";
 process.env.USE_MOCKED = "true";
-process.env.YOTI_LETTER_STATE_MACHINE_ARN = "MockSendYotiLetterStateMachine.Arn"
+process.env.YOTI_LETTER_STATE_MACHINE_ARN = "MockSendYotiLetterStateMachine.Arn";
+process.env.OS_API_KEY_SSM_PATH = "Test/String";
+

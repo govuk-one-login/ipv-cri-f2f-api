@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { GenerateYotiLetterProcessor } from "../../../services/GenerateYotiLetterProcessor";
 import { F2fService } from "../../../services/F2fService";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
@@ -14,6 +14,8 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 const logger = mock<Logger>();
+const metrics = mock<Metrics>();
+
 jest.mock("@aws-sdk/client-s3", () => ({
 	S3Client: jest.fn().mockImplementation(() => ({
 		send: jest.fn(),
@@ -24,7 +26,6 @@ jest.mock("@aws-sdk/client-s3", () => ({
 const mockS3Client = mock<S3Client>();
 
 let generateYotiLetterProcessor: GenerateYotiLetterProcessor;
-const metrics = new Metrics({ namespace: "F2F" });
 const sessionId = "RandomF2FSessionID";
 const yotiPrivateKey = "privateKey";
 const pdfPreference = "post";
@@ -113,6 +114,8 @@ describe("GenerateYotiLetterProcessor", () => {
 			sessionId: "RandomF2FSessionID",
 			pdfPreference: "post",
 		});
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GenerateYotiLetter_instructions_saved", MetricUnits.Count, 1);
+
 	});
 
 	it("S3 fail case", async () => {

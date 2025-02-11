@@ -126,7 +126,7 @@ export class DocumentSelectionRequestProcessor {
 				this.logger.error("Postal address missing mandatory fields in postal address", {
 					messageCode: MessageCodes.MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS,
 				});
-				this.metrics.addMetric("DocSelect_missing_postal_address", MetricUnits.Count, 1);
+				this.metrics.addMetric("DocSelect_missing_mandatory_fields_in_postal_address", MetricUnits.Count, 1);
 				return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in postal address");
 			} 
   	} catch (error) {

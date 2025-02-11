@@ -394,15 +394,16 @@ export class SendToGovNotifyService {
   				await sleep(this.environmentVariables.backoffPeriod());
   				retryCount++;
   			} else {
+  				this.logger.error(
+  					`sendEmail - Cannot send Email after ${this.environmentVariables.maxRetries()} retries`,
+  				);
+  				this.metrics.addMetric("SendToGovNotify_email_sent_failed_all_attempts", MetricUnits.Count, 1);
   				throw appError;
   			}
   		}
   	}
-  	this.logger.error(
-  		`sendEmail - Cannot send Email after ${this.environmentVariables.maxRetries()} retries`,
-  	);
-	  this.metrics.addMetric("SendToGovNotify_email_sent_failed_all_attempts", MetricUnits.Count, 1);
 
+  	// Never gets hit unless while is broken
   	throw new AppError(
   		HttpCodesEnum.SERVER_ERROR,
   		`sendEmail - Cannot send Email after ${this.environmentVariables.maxRetries()} retries`,

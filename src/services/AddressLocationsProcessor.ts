@@ -87,16 +87,15 @@ export class AddressLocationsProcessor {
 			return JSON.stringify(data.results);
 		} catch (error: any) {
 			if (axios.isAxiosError(error)) {
-				if (error.response && error.response.status) {
+				if (error?.response?.status) {
 					const singleMetric = this.metrics.singleMetric();
 					singleMetric.addDimension("status_code", error.response.status.toString());
 					singleMetric.addMetric("OS_response", MetricUnits.Count, 1);
 				}
 
-				this.logger.error("Axios error:", error);
 				this.logger.error("Error response data:", error.response?.data);
 			  } else {
-				this.logger.error("Error retrieving OS locations data:", error);
+				this.logger.error("Error retrieving OS locations data");
 			  }
     		const message = "Error retrieving OS locations data";
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, message);

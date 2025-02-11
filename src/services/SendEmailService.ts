@@ -7,7 +7,7 @@ import { Email } from "../models/Email";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
