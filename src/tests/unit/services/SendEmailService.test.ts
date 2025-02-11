@@ -223,15 +223,16 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("Returns EmailResponse when Dynamic Reminder email is sent successfully", async () => {
+		const mockReference = "1234";
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
 		const eventBody = JSON.parse(dynamicEmailEvent.Records[0].body);
 		const email = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
+		email.referenceId = mockReference;
 		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
 		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
-			"chosen photo ID": "PASSPORT", 
 			"date": "10 February", 
 			"first name": "Frederick", 
 			"last name": "Flintstone",
@@ -240,7 +241,7 @@ describe("SendEmailProcessor", () => {
 				"file": "Z2tpaWhv", 
 				"retention_period": "2 weeks",
 			} },
-		"reference": expect.any(String) });
+		"reference": "1234" });
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 

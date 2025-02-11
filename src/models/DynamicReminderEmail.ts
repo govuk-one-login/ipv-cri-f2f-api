@@ -1,6 +1,5 @@
 import { IsString, IsNotEmpty, IsEmail } from "class-validator";
 import { randomUUID } from "crypto";
-
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "./enums/HttpCodesEnum";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -33,19 +32,30 @@ export class DynamicReminderEmail {
 	@IsNotEmpty()
 	sessionId!: string;
 
-	yotiSessionId!: string;
+	@IsString()
+    @IsNotEmpty()
+    yotiSessionId!: string;
 
-	firstName!: string;
-
-	lastName!: string;
-
-	documentUsed!: string;
-
-	referenceId!: string;
-	
 	@IsString()
 	@IsNotEmpty()
 	@IsEmail()
 	emailAddress!: string;
+
+	@IsString()
+    @IsNotEmpty()
+    firstName!: string;
+
+	@IsString()
+	@IsNotEmpty()
+	lastName!: string;
+
+	@IsString()
+	@IsNotEmpty()
+	documentUsed!: string;
+
+
+	@IsString()
+	@IsNotEmpty()
+	referenceId!: string;
 
 }
