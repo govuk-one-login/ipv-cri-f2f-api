@@ -109,45 +109,18 @@ export class SendEmailService {
    * @throws AppError
    */
   async sendYotiPdfEmail(message: Email): Promise<EmailResponse> {
-  	// Fetch the instructions pdf from Yoti
   	try {
-  		const f2fSessionInfo = await this.f2fService.getSessionById(
-  			message.sessionId,
-  		);
-
-  		if (!f2fSessionInfo) {
-  			this.logger.warn("Missing details in SESSION table", {
-  				messageCode: MessageCodes.SESSION_NOT_FOUND,
-  			});
-  			throw new AppError(
-  				HttpCodesEnum.BAD_REQUEST,
-  				"Missing details in SESSION or table",
-  			);
-  		}
-
-  		//Initialise Yoti Service base on SessionClietID
-  		const clientConfig = getClientConfig(
-  			this.environmentVariables.clientConfig(),
-  			f2fSessionInfo.clientId,
-  			this.logger,
-  		);
-			
-  		if (!clientConfig) {
-  			this.logger.error("Unrecognised client in request", {
-  				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
-  			});
-  			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Bad Request");
-  		}
+  		const sessionConfigObject = await this.fetchSessionAndConfigInfo(message.sessionId);
 
   		const encoded = await this.fetchInstructionsPdf(
   			message,
-  			clientConfig.YotiBaseUrl,
+  			sessionConfigObject.clientConfig.YotiBaseUrl,
   		);
   		if (encoded) {
   			this.logger.debug("sendEmail", SendEmailService.name);
   			this.logger.info("Sending Yoti PDF email");
 
-  			const formattedDate = this.formatExpiryDate(f2fSessionInfo);
+  			const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
 
   			const { GOV_NOTIFY_OPTIONS } = Constants;
 
@@ -169,7 +142,7 @@ export class SendEmailService {
   				this.environmentVariables.getPdfEmailTemplateId(this.logger),
   				message,
   				options,
-  				clientConfig.GovNotifyApi,
+  				sessionConfigObject.clientConfig.GovNotifyApi,
   			);
   			await this.sendF2FYotiEmailedEvent(message);
   			return emailResponse;
@@ -224,45 +197,19 @@ export class SendEmailService {
   ): Promise<EmailResponse> {
   	this.logger.info("Sending dynamic reminder email");
 
-	  const f2fSessionInfo = await this.f2fService.getSessionById(
-  		message.sessionId,
-  	);
-
-	  if (!f2fSessionInfo) {
-  		this.logger.warn("Missing details in SESSION table", {
-  			messageCode: MessageCodes.SESSION_NOT_FOUND,
-  		});
-  		throw new AppError(
-  			HttpCodesEnum.BAD_REQUEST,
-  			"Missing details in SESSION or table",
-  		);
-  	}
-	
-
-  	//Initialise Yoti Service base on SessionClientID
-  	const clientConfig = getClientConfig(
-  		this.environmentVariables.clientConfig(),
-  		f2fSessionInfo.clientId,
-  		this.logger,
-  	);
-	  
-  	if (!clientConfig) {
-  		this.logger.error("Unrecognised client in request", {
-  			messageCode: MessageCodes.UNRECOGNISED_CLIENT,
-  		});
-  		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Bad Request");
-  	}
-
-  	  const encoded = await this.fetchInstructionsPdf(
-  		message,
-  		clientConfig.YotiBaseUrl,
-  	);
-
-  	const { GOV_NOTIFY_OPTIONS } = Constants;
-
-  	const formattedDate = this.formatExpiryDate(f2fSessionInfo);
-
   	try {
+  		const sessionConfigObject = await this.fetchSessionAndConfigInfo(message.sessionId);
+
+  		const encoded = await this.fetchInstructionsPdf(
+  			message,
+  			sessionConfigObject.clientConfig.YotiBaseUrl,
+  		);
+
+  		const { GOV_NOTIFY_OPTIONS } = Constants;
+
+  		const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
+
+  	
   		const options = {
   			personalisation: {
   				[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
@@ -284,7 +231,7 @@ export class SendEmailService {
   			),
   			message,
   			options,
-  			clientConfig.GovNotifyApi,
+  			sessionConfigObject.clientConfig.GovNotifyApi,
   		);
   		return emailResponse;
   	} catch (err: any) {
@@ -490,5 +437,40 @@ export class SendEmailService {
   	const dateObject = new Date(f2fSessionInfo.expiryDate * 1000);
   	const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
   	return formattedDate;
+  }
+
+  async fetchSessionAndConfigInfo(sessionId: string): Promise<any> {
+  	const f2fSessionInfo = await this.f2fService.getSessionById(
+  		sessionId,
+  	);
+
+  	if (!f2fSessionInfo) {
+  		this.logger.warn("Missing details in SESSION table", {
+  			messageCode: MessageCodes.SESSION_NOT_FOUND,
+  		});
+  		throw new AppError(
+  			HttpCodesEnum.BAD_REQUEST,
+  			"Missing details in SESSION or table",
+  		);
+  	}
+  	const clientConfig = getClientConfig(
+  		this.environmentVariables.clientConfig(),
+  		f2fSessionInfo.clientId,
+  		this.logger,
+  	);
+	
+  	if (!clientConfig) {
+  		this.logger.error("Unrecognised client in request", {
+  			messageCode: MessageCodes.UNRECOGNISED_CLIENT,
+  		});
+  		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+  	}
+
+  	const sessionConfigObject = {
+  		f2fSessionInfo,
+  		clientConfig,
+  	};
+
+  	return sessionConfigObject;
   }
 }
