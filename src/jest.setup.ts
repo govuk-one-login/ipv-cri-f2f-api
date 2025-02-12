@@ -16,7 +16,6 @@ process.env.GOVUKNOTIFY_API_KEY_SSM_PATH = "/dev/f2f-gov-notify/lsdkgl"
 process.env.PERSON_IDENTITY_TABLE_NAME = "PERSONIDENTITYTABLE"
 process.env.YOTICALLBACKURL = "www.test.com/callback";
 process.env.GOVUKNOTIFY_BACKOFF_PERIOD_MS = "10";
-process.env.REMINDER_EMAIL_GOVUKNOTIFY_API = "https://test-govnotify-stub";
 process.env.PRIVATE_KEY_SSM_PATH = "dev/person-info/PRIVATE_KEY"
 process.env.YOTI_SESSION_TTL_DAYS = "10";
 process.env.PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH = "/dev/f2f/printedCustomerLetter/enabled";

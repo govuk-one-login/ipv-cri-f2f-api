@@ -119,7 +119,6 @@ Mappings:
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify"
       POSTOFFICESTUBAPI: "https://f2f-post-office-stub-postofficestub.review-o.dev.account.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
       GOVUKNOTIFYREMINDERTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
@@ -159,7 +158,6 @@ Mappings:
       DNSSUFFIX: review-o.build.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://govnotifystub.review-o.build.account.gov.uk/govnotify"
       POSTOFFICESTUBAPI: "https://postofficestub.review-o.build.account.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
       GOVUKNOTIFYREMINDERTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
@@ -198,7 +196,6 @@ Mappings:
       DNSSUFFIX: review-o.staging.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
       GOVUKNOTIFYREMINDERTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
@@ -227,7 +224,6 @@ Mappings:
       DNSSUFFIX: review-o.integration.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
       GOVUKNOTIFYREMINDERTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
@@ -256,7 +252,6 @@ Mappings:
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "ccba5634-33e9-4e0d-96c1-57067db941af"
       GOVUKNOTIFYREMINDERTEMPLATEID: "0d0d2aab-3c31-46da-8462-1af0f5f456f0"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0d3b9cb6-2c54-4316-865a-933f0f0dfb53"
@@ -3454,7 +3449,6 @@ Resources:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          REMINDER_EMAIL_GOVUKNOTIFY_API: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI ]
           GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
           GOVUKNOTIFY_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]
           GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]
@@ -5296,7 +5290,6 @@ Resources:
           YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER: merged-pdf
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          REMINDER_EMAIL_GOVUKNOTIFY_API: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI ]
           GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
           GOVUKNOTIFY_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]
           GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]
@@ -8378,10 +8371,6 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F DNS Suffix"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
-  F2FGovNotifyURL:
-    Condition: IsNotProdLikeEnvironment
-    Description: "F2F Gov Notify API"
-    Value: !FindInMap [EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI]
   F2FPostOfficeStubURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Post Office Stub API"
