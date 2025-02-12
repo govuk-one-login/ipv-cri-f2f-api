@@ -2,7 +2,7 @@
 /* eslint-disable max-lines */
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -102,6 +102,18 @@ export class DocumentSelectionRequestProcessor {
   			this.logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", {
   				messageCode: MessageCodes.MISSING_MANDATORY_FIELDS,
   			});
+				const singleMetric = this.metrics.singleMetric();
+				if (!postOfficeSelection) {
+					singleMetric.addDimension("validation_failure", "missingPostOfficeSelection");
+				}
+				if (!selectedDocument) {
+					singleMetric.addDimension("validation_failure", "missingDocumentInfo");
+				}
+				if (!pdfPreference) {
+					singleMetric.addDimension("validation_failure", "missingPdfPreference");
+				}
+				singleMetric.addMetric("DocSelect_validation_failed", MetricUnits.Count, 1);
+
   			return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
   		} else if (postalAddress && !postalAddress.uprn ||
 			postalAddress && !postalAddress.buildingNumber && !postalAddress.buildingName ||
@@ -114,6 +126,7 @@ export class DocumentSelectionRequestProcessor {
 				this.logger.error("Postal address missing mandatory fields in postal address", {
 					messageCode: MessageCodes.MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS,
 				});
+				this.metrics.addMetric("DocSelect_missing_mandatory_fields_in_postal_address", MetricUnits.Count, 1);
 				return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in postal address");
 			} 
   	} catch (error) {
@@ -148,7 +161,7 @@ export class DocumentSelectionRequestProcessor {
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
+		this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
 
 		// Reject the request when session store does not contain email, familyName or GivenName fields
 		const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);
@@ -170,11 +183,13 @@ export class DocumentSelectionRequestProcessor {
 				);
 				if (yotiSessionId) {
 					if (PRINTED_CUSTOMER_LETTER_ENABLED === "true") {
+						const singleMetric = this.metrics.singleMetric();
+						singleMetric.addDimension("pdf_preference", pdfPreference);
+						singleMetric.addMetric("DocSelect_comms_choice", MetricUnits.Count, 1);
 						await this.startStateMachine(sessionId, yotiSessionId, f2fSessionInfo?.clientSessionId, pdfPreference);
+					} else {
+						await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
 					}
-					
-					await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
-					
 					await this.f2fService.updateSessionWithYotiIdAndStatus(
 						f2fSessionInfo.sessionId,
 						yotiSessionId,
@@ -185,6 +200,7 @@ export class DocumentSelectionRequestProcessor {
 					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
 				} else {
 					this.logger.error(`No session found with yotiSessionId ${yotiSessionId}`);
+					this.metrics.addMetric("DocSelect_error_yoti_session_does_not_exist", MetricUnits.Count, 1);
 					throw new AppError(HttpCodesEnum.BAD_REQUEST, `No session found with yotiSessionId ${yotiSessionId}`);
 				}
 
@@ -225,6 +241,10 @@ export class DocumentSelectionRequestProcessor {
 					this.logger.error({ message: `Unable to find document type ${selectedDocument}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
 			}
+
+			const singleMetric = this.metrics.singleMetric();
+			singleMetric.addDimension("document_type", selectedDocument);
+			singleMetric.addMetric("DocSelect_document_selected", MetricUnits.Count, 1);
 
 			try {
 				this.logger.info("Updating documentUsed in Session Table: ", { documentUsed: docType });
@@ -286,13 +306,14 @@ export class DocumentSelectionRequestProcessor {
 				this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
 			}
 
-
+			this.metrics.addMetric("DocSelect_doc_select_complete", MetricUnits.Count, 1);
 			return Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 
 		} else {
 			this.logger.warn(`Yoti session already exists for this authorization session or Session is in the wrong state: ${f2fSessionInfo.authSessionState}`, {
 				messageCode: MessageCodes.STATE_MISMATCH,
 			});
+			this.metrics.addMetric("DocSelect_error_user_state_incorrect", MetricUnits.Count, 1);
 			return Response(HttpCodesEnum.UNAUTHORIZED, "Yoti session already exists for this authorization session or Session is in the wrong state");
 		}
 	}
@@ -307,6 +328,7 @@ export class DocumentSelectionRequestProcessor {
 		this.logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
 
 		const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
+		this.metrics.addMetric("DocSelect_yoti_session_created", MetricUnits.Count, 1);
 
 		if (!yotiSessionId) {
 			this.logger.error("An error occurred when creating Yoti Session", { messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });

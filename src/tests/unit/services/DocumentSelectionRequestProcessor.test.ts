@@ -2,7 +2,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/dot-notation */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
@@ -38,7 +38,7 @@ const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 
 const logger = mock<Logger>();
-const metrics = new Metrics({ namespace: "F2F" });
+const metrics = mock<Metrics>();
 const encodedHeader = "ENCHEADER";
 
 function getMockSessionItem(): ISessionItem {
@@ -208,6 +208,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		yotiSessionInfo = getYotiSessionInfo();
 		f2fSessionItem = getMockSessionItem();
+		metrics.singleMetric.mockReturnValue(metrics);
 	});
 
 	beforeEach(() => {
@@ -320,6 +321,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", { messageCode: "MISSING_MANDATORY_FIELDS" },
 		);
+		expect(metrics.addDimension).toHaveBeenCalledWith("validation_failure", "missingPdfPreference");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "DocSelect_validation_failed", MetricUnits.Count, 1);
 	});
 
 	it.each([
@@ -338,6 +341,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			"Postal address missing mandatory fields in postal address", { messageCode: "MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS" },
 		);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "DocSelect_missing_mandatory_fields_in_postal_address", MetricUnits.Count, 1);
 	});
 
 	it("Should update the TTL on both Session & Person Identity Tables", async () => {
@@ -394,6 +398,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.warn).toHaveBeenCalledWith(
 			"Yoti session already exists for this authorization session or Session is in the wrong state: F2F_YOTI_SESSION_CREATED", { messageCode: "STATE_MISMATCH" },
 		);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "DocSelect_error_user_state_incorrect", MetricUnits.Count, 1);
 	});
 
 	it("Returns server error if PersonIdentity table is missing emailAddress", async () => {
@@ -703,5 +708,13 @@ describe("DocumentSelectionRequestProcessor", () => {
 			{ "input": "{\"sessionId\":\"RandomF2FSessionID\",\"pdfPreference\":\"PRINTED_LETTER\",\"yotiSessionID\":\"b83d54ce-1565-42ee-987a-97a1f48f27dg\",\"govuk_signin_journey_id\":\"sdfssg\"}", "name": "RandomF2FSessionID-1585695600000", "stateMachineArn": "MockSendYotiLetterStateMachine.Arn" },
 		);
 		expect(logger.info).toHaveBeenNthCalledWith(5, { message: "Starting Yoti letter state machine" });
+		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "pdf_preference", "PRINTED_LETTER");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "DocSelect_yoti_session_created", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "DocSelect_comms_choice", MetricUnits.Count, 1);
+	
+		expect(metrics.addDimension).toHaveBeenNthCalledWith(2, "document_type", "ukPassport");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "DocSelect_document_selected", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(4, "DocSelect_doc_select_complete", MetricUnits.Count, 1);
+
 	});
 });

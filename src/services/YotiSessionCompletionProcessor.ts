@@ -93,6 +93,7 @@ export class YotiSessionCompletionProcessor {
   	return YotiSessionCompletionProcessor.instance;
 	}
 
+	// eslint-disable-next-line complexity
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
 		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		
@@ -124,10 +125,11 @@ export class YotiSessionCompletionProcessor {
 				return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 			}
 
-			this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
+			this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
 
 
 		  this.logger.info({ message: "Fetching status for Yoti SessionID" });
+		  // eslint-disable-next-line max-len
 		  const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries());
 
 		  if (!completedYotiSessionInfo) {

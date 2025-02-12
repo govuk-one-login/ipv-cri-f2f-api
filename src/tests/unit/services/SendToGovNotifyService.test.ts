@@ -12,9 +12,8 @@ import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { SendToGovNotifyService } from "../../../services/SendToGovNotifyService";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { fetchEncodedFileFromS3Bucket } from "../../../utils/S3Client";
-import { PDFDocument } from "pdf-lib";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
 jest.mock("notifications-node-client", () => {
 	return {
@@ -38,6 +37,7 @@ let sendToGovNotifyServiceTest: SendToGovNotifyService;
 // pragma: allowlist nextline secret
 const GOVUKNOTIFY_API_KEY = "sdhohofsdf";
 const logger = mock<Logger>();
+const metrics = mock<Metrics>();
 const mockF2fService = mock<F2fService>();
 function getMockSessionItem(): ISessionItem {
 	const session: ISessionItem = {
@@ -124,7 +124,7 @@ const mockSendPrecompiledLetter = jest.fn();
 
 describe("SendToGovNotifyService", () => {
 	beforeAll(() => {
-		sendToGovNotifyServiceTest = SendToGovNotifyService.getInstance(logger, GOVUKNOTIFY_API_KEY, "serviceId");
+		sendToGovNotifyServiceTest = SendToGovNotifyService.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-ignore
 		sendToGovNotifyServiceTest.f2fService = mockF2fService;
 
@@ -134,6 +134,7 @@ describe("SendToGovNotifyService", () => {
 				sendPrecompiledLetter: mockSendPrecompiledLetter,
 			};
 		});
+		metrics.singleMetric.mockReturnValue(metrics);
 	});
 
 	beforeEach(() => {
@@ -147,7 +148,7 @@ describe("SendToGovNotifyService", () => {
 	});
 
 	it("Returns EmailResponse when YOTI PDF email is sent successfully", async () => {
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "test", 201);
+		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "test", 201, "1008") };
 		const session = getMockSessionItem();
 		const person = getMockPersonItem("EMAIL_ONLY");
 		const encoded = "gwegwtb";
@@ -182,6 +183,11 @@ describe("SendToGovNotifyService", () => {
 			},
 		});
 		expect(emailResponse.emailFailureMessage).toBe("");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_pdf_instructions_retreived", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_email_sent_successfully", MetricUnits.Count, 1);
+		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "201");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SendToGovNotify_notify_email_response", MetricUnits.Count, 1);
+
 	});
 
 	it("SendToGovNotifyService fails and doesn't retry when GovNotify throws a 400 error", async () => {
@@ -209,6 +215,9 @@ describe("SendToGovNotifyService", () => {
 		
 		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow("sendYotiInstructions - Cannot send Email");
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_pdf_instructions_retreived", MetricUnits.Count, 1);
+		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "status_code", "400");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_notify_email_response", MetricUnits.Count, 1);
 	});
     
 	it("SendToGovNotifyService retries when GovNotify throws a 500 error", async () => {
@@ -235,6 +244,10 @@ describe("SendToGovNotifyService", () => {
         
 		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow("sendYotiInstructions - Cannot send Email");
 		expect(mockSendEmail).toHaveBeenCalledTimes(4);
+		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "500");
+		expect(metrics.addMetric).toHaveBeenCalledWith("SendToGovNotify_notify_email_response", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(6, "SendToGovNotify_email_sent_failed_all_attempts", MetricUnits.Count, 1);
+
 	});
     
 	it("SendToGovNotifyService retries when GovNotify throws a 429 error", async () => {
@@ -261,6 +274,10 @@ describe("SendToGovNotifyService", () => {
     
 		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow("sendYotiInstructions - Cannot send Email");
 		expect(mockSendEmail).toHaveBeenCalledTimes(4);
+		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "429");
+		expect(metrics.addMetric).toHaveBeenCalledWith("SendToGovNotify_notify_email_response", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(6, "SendToGovNotify_email_sent_failed_all_attempts", MetricUnits.Count, 1);
+
 	});
     
 	it("Returns EmailResponse when email is sent successfully and write to TxMA fails", async () => {
@@ -272,7 +289,8 @@ describe("SendToGovNotifyService", () => {
 		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValueOnce(encoded);
 		mockF2fService.sendToTXMA.mockRejectedValue({});
     
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
+		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "", 201, "1009") };
+
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
 		
 		const emailResponse = await sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId);
@@ -281,10 +299,17 @@ describe("SendToGovNotifyService", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.");
 		expect(emailResponse?.emailFailureMessage).toBe("");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_pdf_instructions_retreived", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_email_sent_successfully", MetricUnits.Count, 1);
+		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "201");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SendToGovNotify_notify_email_response", MetricUnits.Count, 1);
+
+
 	});
 
 	it("Returns EmailResponse when posted customer letter & YOTI PDF email is sent successfully", async () => {
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "test", 201);
+		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "test", 201, "1010") };
+
 		const session = getMockSessionItem();
 		const person = getMockPersonItem("PRINTED_LETTER");
 		const encoded = "gwegwtb";
@@ -293,7 +318,7 @@ describe("SendToGovNotifyService", () => {
 		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
 		
 
-		mockSendPrecompiledLetter.mockResolvedValue("success");
+		mockSendPrecompiledLetter.mockResolvedValue(mockEmailResponse);
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
         
 		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
@@ -360,6 +385,18 @@ describe("SendToGovNotifyService", () => {
 			},
 		});
 		expect(emailResponse.emailFailureMessage).toBe("");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_opted_for_printed_letter", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_fetched_merged_pdf", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SendToGovNotify_notify_letter_response", MetricUnits.Count, 1);
+		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "201");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(4, "SendToGovNotify_letter_sent_successfully", MetricUnits.Count, 1);
+
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(5, "SendToGovNotify_pdf_instructions_retreived", MetricUnits.Count, 1);
+		expect(metrics.addDimension).toHaveBeenNthCalledWith(2, "status_code", "201");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(6, "SendToGovNotify_email_sent_successfully", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(7, "SendToGovNotify_notify_email_response", MetricUnits.Count, 1);
+
+
 	});
 
 	it("Returns EmailResponse when posted customer letter fails but YOTI PDF email is sent successfully", async () => {
@@ -415,5 +452,16 @@ describe("SendToGovNotifyService", () => {
 			},
 		});
 		expect(emailResponse.emailFailureMessage).toBe("");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_opted_for_printed_letter", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_fetched_merged_pdf", MetricUnits.Count, 1);
+		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "status_code", "400");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SendToGovNotify_notify_letter_response", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(4, "SendToGovNotify_notify_letter_failed_generic_error", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(5, "SendToGovNotify_pdf_instructions_retreived", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(6, "SendToGovNotify_email_sent_successfully", MetricUnits.Count, 1);
+		expect(metrics.addDimension).toHaveBeenNthCalledWith(2, "status_code", "201");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(7, "SendToGovNotify_notify_email_response", MetricUnits.Count, 1);
+
+
 	});
 });

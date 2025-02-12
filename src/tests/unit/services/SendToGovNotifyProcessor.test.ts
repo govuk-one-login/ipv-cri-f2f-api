@@ -5,6 +5,7 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { AppError } from "../../../utils/AppError";
 import { SendToGovNotifyProcessor } from "../../../services/SendToGovNotifyProcessor";
 import { mock } from "jest-mock-extended";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
 
 let sendToGovNotifyProcessor: SendToGovNotifyProcessor;
@@ -15,10 +16,11 @@ const logger = new Logger({
 	logLevel: "DEBUG",
 	serviceName: "F2F",
 });
+const metrics = mock<Metrics>();
 
 describe("SendToGovNotify processor", () => {
 	beforeAll(() => {
-		sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(logger, GOVUKNOTIFY_API_KEY, "serviceId");
+		sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-ignore
 		sendToGovNotifyProcessor.sendToGovNotifyService = mockSendToGovNotifyService;
 	});
@@ -38,6 +40,9 @@ describe("SendToGovNotify processor", () => {
 		mockSendToGovNotifyService.sendYotiInstructions.mockRejectedValueOnce("sendYotiInstructions - Cannot send Email");
 
 		await expect(sendToGovNotifyProcessor.processRequest("sessionId")).rejects.toThrow("sendYotiInstructions - Cannot send Email");
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_failed_to_send_instructions", MetricUnits.Count, 1);
+
 	});
 
 });

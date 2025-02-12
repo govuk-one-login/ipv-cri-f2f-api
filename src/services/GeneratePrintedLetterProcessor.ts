@@ -1,6 +1,7 @@
 import { F2fService } from "./F2fService";
 import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { EnvironmentVariables } from "./EnvironmentVariables";
@@ -19,7 +20,7 @@ export class GeneratePrintedLetterProcessor {
 
 	private readonly logger: Logger;
 
-	private s3Client: S3Client;
+	private readonly metrics: Metrics;
 
 	private readonly f2fService: F2fService;
 
@@ -27,11 +28,14 @@ export class GeneratePrintedLetterProcessor {
 
 	private readonly pdfService: PDFService;
 
-	constructor(logger: Logger) {
+	private s3Client: S3Client;
+
+	constructor(logger: Logger, metrics: Metrics) {
 		this.logger = logger;
+		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
-		this.pdfService = PDFService.getInstance(logger);
+		this.pdfService = PDFService.getInstance(logger, metrics);
 		this.s3Client = new S3Client({
 			region: process.env.REGION,
 			maxAttempts: 2,
@@ -44,10 +48,11 @@ export class GeneratePrintedLetterProcessor {
 
 	static getInstance(
 		logger: Logger,
+		metrics: Metrics,
 	): GeneratePrintedLetterProcessor {
 		if (!GeneratePrintedLetterProcessor.instance) {
 			GeneratePrintedLetterProcessor.instance =
-				new GeneratePrintedLetterProcessor(logger);
+				new GeneratePrintedLetterProcessor(logger, metrics);
 		}
 		return GeneratePrintedLetterProcessor.instance;
 	}
@@ -102,6 +107,11 @@ export class GeneratePrintedLetterProcessor {
 			}
 		} catch (error) {
 			this.logger.error("Error retrieving Yoti PDF from S3 bucket", { messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS });
+
+			const singleMetric = this.metrics.singleMetric();
+			singleMetric.addDimension("error", "unable_to_retrieve_yoti_instructions");
+			singleMetric.addMetric("GeneratePrintedLetter_error", MetricUnits.Count, 1);
+
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Yoti PDF from S3 bucket");
 		}
 
@@ -123,20 +133,26 @@ export class GeneratePrintedLetterProcessor {
 		}
 
 
-		const resizedMergedPdf = await this.resizePdf(mergedPdfBuffer);
-		
-		// Upload merged PDF
-		const mergedUploadParams = {
-			Bucket: bucket,
-			Key: mergedLetterKey,
-			Body: resizedMergedPdf,
-			ContentType: "application/octet-stream",
-		};
 		try {
+			const resizedMergedPdf = await this.resizePdf(mergedPdfBuffer);
+			
+			// Upload merged PDF
+			const mergedUploadParams = {
+				Bucket: bucket,
+				Key: mergedLetterKey,
+				Body: resizedMergedPdf,
+				ContentType: "application/octet-stream",
+			};
+
 			this.logger.info(`Uploading merged PDF: ${mergedUploadParams.Key}`);
 			await this.s3Client.send(new PutObjectCommand(mergedUploadParams));
 		} catch (error) {
-			this.logger.error("Error uploading merged PDF", { messageCode: MessageCodes.FAILED_MERGED_PDF_PUT });
+			this.logger.error("Error uploading merged or resizing PDF", { messageCode: MessageCodes.FAILED_MERGED_PDF_PUT });
+
+			const singleMetric = this.metrics.singleMetric();
+			singleMetric.addDimension("error", "unable_to_save_merged_pdf");
+			singleMetric.addMetric("GeneratePrintedLetter_error", MetricUnits.Count, 1);
+
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error uploading merged PDF");
 		}
 
