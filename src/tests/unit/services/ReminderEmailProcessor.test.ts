@@ -192,6 +192,8 @@ describe("ReminderEmailProcessor", () => {
 				Message: {
 					emailAddress: "testReminder@test.com",
 					messageType: "REMINDER_EMAIL",
+					sessionId: "b2ba545c-18a9-4b7e-8bc1-38a05b214a48",
+					yotiSessionId: "6l9eerge43-475e-48c1-b2bf-df98e53501336",
 				},
 			});
 			expect(mockF2fService.updateReminderEmailFlag).toHaveBeenCalledWith("b2ba545c-18a9-4b7e-8bc1-38a05b214a48", true);

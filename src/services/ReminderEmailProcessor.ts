@@ -81,7 +81,7 @@ export class ReminderEmailProcessor {
   						await this.f2fService.sendToGovNotify(buildDynamicReminderEmailEventFields(sessionId, yotiSessionId, emailAddress, firstName, lastName, documentUsed));
   					} else { 
   						this.logger.info("Sending Static Reminder Email", { sessionId });
-  						await this.f2fService.sendToGovNotify(buildReminderEmailEventFields(emailAddress));
+  						await this.f2fService.sendToGovNotify(buildReminderEmailEventFields(sessionId, emailAddress, yotiSessionId));
   					}
   					await this.f2fService.updateReminderEmailFlag(sessionId, true);
   					this.logger.info("Reminder email sent to user: ", { sessionId });

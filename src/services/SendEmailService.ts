@@ -170,7 +170,26 @@ export class SendEmailService {
   	this.logger.info("Sending reminder email");
 
   	try {
+  		const sessionConfigObject = await this.fetchSessionAndConfigInfo(message.sessionId);
+
+  		const encoded = await this.fetchInstructionsPdf(
+  			message,
+  			sessionConfigObject.clientConfig.YotiBaseUrl,
+  		);
+
+  		const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
+
+  		const { GOV_NOTIFY_OPTIONS } = Constants;
+
   		const options = {
+  			personalisation: {
+  				[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
+  				[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
+  					file: encoded,
+  					confirm_email_before_download: true,
+  					retention_period: "2 weeks",
+  				},
+  			},
   			reference: message.referenceId,
   		};
 
@@ -178,7 +197,7 @@ export class SendEmailService {
   			this.environmentVariables.getReminderEmailTemplateId(this.logger),
   			message,
   			options,
-  			this.environmentVariables.reminderEmailsGovNotifyUrl(),
+  			sessionConfigObject.clientConfig.GovNotifyApi,
   		);
   		return emailResponse;
   	} catch (err: any) {
@@ -285,7 +304,7 @@ export class SendEmailService {
 
   async sendGovNotification(
   	templateId: string,
-  	message: Email | ReminderEmail,
+  	message: Email | DynamicReminderEmail | ReminderEmail,
   	options: any,
   	GovNotifyApi: string,
   ): Promise<EmailResponse> {
@@ -367,7 +386,7 @@ export class SendEmailService {
   }
 
   async fetchInstructionsPdf(
-  	message: Email | DynamicReminderEmail,
+  	message: Email | DynamicReminderEmail | ReminderEmail,
   	yotiBaseUrl: string,
   ): Promise<string> {
   	if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);

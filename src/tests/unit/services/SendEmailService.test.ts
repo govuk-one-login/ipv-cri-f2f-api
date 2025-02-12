@@ -211,14 +211,23 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("Returns EmailResponse when Reminder email is sent successfully", async () => {
+		const mockReference = "1234";
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
 		const eventBody = JSON.parse(reminderEmailEvent.Records[0].body);
 		const email = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
+		email.referenceId = mockReference;
 		const emailResponse = await sendEmailServiceTest.sendReminderEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
-		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837115", "example@test.com", { "reference": expect.any(String) });
+		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837115", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
+			"date": "18 February", 
+			"link_to_file": { 
+				"confirm_email_before_download": true, 
+				"file": "Z2tpaWhv", 
+				"retention_period": "2 weeks",
+			} },
+		"reference": "1234" });
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 
