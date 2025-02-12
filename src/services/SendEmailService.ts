@@ -8,6 +8,7 @@ import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { Logger } from "@aws-lambda-powertools/logger";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
@@ -28,7 +29,6 @@ import { ISessionItem } from "../models/ISessionItem";
  * Class to send emails using gov notify service
  */
 export class SendEmailService {
-  private govNotify: NotifyClient;
 
   private govNotifyErrorMapper: GovNotifyErrorMapper;
 
@@ -37,6 +37,8 @@ export class SendEmailService {
   private readonly environmentVariables: EnvironmentVariables;
 
   private readonly logger: Logger;
+
+  private readonly metrics: Metrics;
 
 	private readonly validationHelper: ValidationHelper;
 
@@ -58,11 +60,13 @@ export class SendEmailService {
    */
   private constructor(
   	logger: Logger,
+  	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
   ) {
   	this.logger = logger;
+  	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(
   		logger,
   		ServicesEnum.GOV_NOTIFY_SERVICE,
@@ -81,6 +85,7 @@ export class SendEmailService {
 
   static getInstance(
   	logger: Logger,
+  	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
@@ -88,6 +93,7 @@ export class SendEmailService {
   	if (!this.instance) {
   		this.instance = new SendEmailService(
   			logger,
+  			metrics,
   			YOTI_PRIVATE_KEY,
   			GOVUKNOTIFY_API_KEY,
   			govnotifyServiceId,
@@ -311,7 +317,7 @@ export class SendEmailService {
   	let retryCount = 0;
   	//retry for maxRetry count configured value if fails
   	while (retryCount <= this.environmentVariables.maxRetries()) {
-  		this.logger.debug("sendEmail - trying to send email message", {
+  		this.logger.info("sendEmail - trying to send email message", {
   			templateId: this.environmentVariables.getPdfEmailTemplateId(
   				this.logger,
   			),
@@ -320,12 +326,12 @@ export class SendEmailService {
   		});
 
   		try {
-  			this.govNotify = new NotifyClient(
+  			const govNotify = new NotifyClient(
   				GovNotifyApi,
   				this.GOV_NOTIFY_SERVICE_ID,
   				this.GOVUKNOTIFY_API_KEY,
   			);
-  			const emailResponse = await this.govNotify.sendEmail(
+  			const emailResponse = await govNotify.sendEmail(
   				templateId,
   				message.emailAddress,
   				options,
@@ -339,6 +345,7 @@ export class SendEmailService {
   				new Date().toISOString(),
   				"",
   				emailResponse.status,
+  				emailResponse.data.id,
   			);
   		} catch (err: any) {
   			this.logger.error("sendEmail - GOV UK Notify threw an error");
@@ -396,7 +403,7 @@ export class SendEmailService {
   		yotiInstructionsPdfRetryCount <=
       this.environmentVariables.yotiInstructionsPdfMaxRetries()
   	) {
-  		this.logger.debug(
+  		this.logger.info(
   			"Fetching the Instructions Pdf from yoti for sessionId: ",
   			message.yotiSessionId,
   		);
@@ -404,6 +411,7 @@ export class SendEmailService {
   			this.logger.info("BASE_URL", yotiBaseUrl);
   			this.yotiService = YotiService.getInstance(
   				this.logger,
+  				this.metrics,
   				this.YOTI_PRIVATE_KEY,
   				yotiBaseUrl,
   			);

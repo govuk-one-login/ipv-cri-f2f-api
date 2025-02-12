@@ -61,7 +61,7 @@ class SendToGovNotifyHandler implements LambdaInterface {
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, message);
 			}
 			const sessionId = event.sessionId;
-			return await SendToGovNotifyProcessor.getInstance(logger, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(sessionId);
+			return await SendToGovNotifyProcessor.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(sessionId);
 
 		} catch (error) {
 			const message = "Email could not be sent. Returning failed message";

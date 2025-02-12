@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
@@ -90,7 +90,7 @@ export class GenerateYotiLetterProcessor {
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
+		this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
 
 		this.logger.info(
 			"Fetching the Instructions Pdf from yoti for sessionId: ",
@@ -121,6 +121,7 @@ export class GenerateYotiLetterProcessor {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error uploading Yoti PDF to S3 bucket");
 		}
 
+		this.metrics.addMetric("GenerateYotiLetter_instructions_saved", MetricUnits.Count, 1);
 		return {
 			sessionId: event.sessionId,
 			pdfPreference: event.pdfPreference,

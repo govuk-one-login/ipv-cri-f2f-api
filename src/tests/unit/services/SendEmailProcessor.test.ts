@@ -41,7 +41,7 @@ describe("SendEmailProcessor", () => {
 	describe("PDF_EMAIL", () => {
 		it("Returns success response when all required Email attributes exists", async () => {
 			const expectedDateTime = new Date().toISOString();
-			const mockEmailResponse = new EmailResponse(expectedDateTime, "", 201);
+			const mockEmailResponse = new EmailResponse(expectedDateTime, "", 201, "1001");
 			mockGovNotifyService.sendYotiPdfEmail.mockResolvedValue(mockEmailResponse);
 			const eventBody = JSON.parse(sqsEvent.Records[0].body);
 			const emailResponse = await sendEmailProcessorTest.processRequest(eventBody);
@@ -66,7 +66,7 @@ describe("SendEmailProcessor", () => {
 	describe("REMINDER_EMAIL", () => {
 		it("Returns success response when all required Email attributes exists", async () => {
 			const expectedDateTime = new Date().toISOString();
-			const mockEmailResponse = new EmailResponse(expectedDateTime, "", 201);
+			const mockEmailResponse = new EmailResponse(expectedDateTime, "", 201, "1002");
 			mockGovNotifyService.sendReminderEmail.mockResolvedValue(mockEmailResponse);
 			const eventBody = JSON.parse(reminderEmailEvent.Records[0].body);
 			const emailResponse = await sendEmailProcessorTest.processRequest(eventBody);
@@ -89,7 +89,7 @@ describe("SendEmailProcessor", () => {
 	describe("REMINDER_EMAIL_DYNAMIC", () => {
 		it("Returns success response when all required Email attributes exists", async () => {
 			const expectedDateTime = new Date().toISOString();
-			const mockEmailResponse = new EmailResponse(expectedDateTime, "", 201);
+			const mockEmailResponse = new EmailResponse(expectedDateTime, "", 201, "1003");
 			mockGovNotifyService.sendDynamicReminderEmail.mockResolvedValue(mockEmailResponse);
 			const eventBody = JSON.parse(dynamicEmailEvent.Records[0].body);
 			const emailResponse = await sendEmailProcessorTest.processRequest(eventBody);

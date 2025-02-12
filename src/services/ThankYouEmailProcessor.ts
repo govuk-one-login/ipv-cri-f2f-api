@@ -95,7 +95,7 @@ export class ThankYouEmailProcessor {
 				return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 			}
 
-			this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
+			this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
 
   		this.logger.info({ message: "Fetching yoti session" });
 		  const yotiSessionInfo: YotiCompletedSession | undefined = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries());

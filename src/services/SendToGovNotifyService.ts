@@ -6,6 +6,7 @@ import { EmailResponse } from "../models/EmailResponse";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { Logger } from "@aws-lambda-powertools/logger";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
@@ -28,7 +29,6 @@ import { randomUUID } from "crypto";
  * Class to send emails using gov notify service
  */
 export class SendToGovNotifyService {
-  private govNotify: NotifyClient;
 
   private readonly govNotifyErrorMapper: GovNotifyErrorMapper;
 
@@ -37,6 +37,8 @@ export class SendToGovNotifyService {
   private readonly environmentVariables: EnvironmentVariables;
 
   private readonly logger: Logger;
+
+  private readonly metrics: Metrics;
 
   private readonly f2fService: F2fService;
 
@@ -54,10 +56,12 @@ export class SendToGovNotifyService {
    */
   private constructor(
   	logger: Logger,
+  	metrics: Metrics,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
   ) {
   	this.logger = logger;
+  	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(
   		logger,
   		ServicesEnum.GOV_NOTIFY_SERVICE,
@@ -82,12 +86,14 @@ export class SendToGovNotifyService {
 
   static getInstance(
   	logger: Logger,
+  	metrics: Metrics,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
   ): SendToGovNotifyService {
   	if (!this.instance) {
   		this.instance = new SendToGovNotifyService(
   			logger,
+  			metrics,
   			GOVUKNOTIFY_API_KEY,
   			govnotifyServiceId,
   		);
@@ -137,11 +143,20 @@ export class SendToGovNotifyService {
   		}
 
   		const referenceId = randomUUID();
+		
+  		const govNotify = new NotifyClient(
+  			clientConfig.GovNotifyApi,
+  			this.GOV_NOTIFY_SERVICE_ID,
+  			this.GOVUKNOTIFY_API_KEY,
+  		);
 
   		if (f2fPersonInfo.pdfPreference === Constants.PDF_PREFERENCE_PRINTED_LETTER) {
+  			this.metrics.addMetric("SendToGovNotify_opted_for_printed_letter", MetricUnits.Count, 1);
+
   			try {
   				const mergedPdf = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.mergedLetterBucketPDFFolder());
-				 
+				  this.metrics.addMetric("SendToGovNotify_fetched_merged_pdf", MetricUnits.Count, 1);
+
   				if (mergedPdf) {
   					this.logger.debug("sendLetter", SendToGovNotifyService.name);
   					this.logger.info("Sending precompiled letter");
@@ -150,7 +165,7 @@ export class SendToGovNotifyService {
   					await this.sendGovNotificationLetter(
   						mergedPdf,
   						referenceId,
-  						clientConfig.GovNotifyApi,
+  						govNotify,
   					);
   					await this.sendF2FLetterSentEvent(f2fSessionInfo, f2fPersonInfo);
   				}
@@ -159,12 +174,15 @@ export class SendToGovNotifyService {
   				this.logger.error("sendYotiInstructions - Cannot send letter", {
   					message: err, messageCode: MessageCodes.FAILED_TO_SEND_PDF_LETTER,
   				});
+  				this.metrics.addMetric("SendToGovNotify_notify_letter_failed_generic_error", MetricUnits.Count, 1);
   			}
   		}
 		
   		const instructionsPdf = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.yotiLetterBucketPDFFolder());
 
   		if (instructionsPdf) {
+  			this.metrics.addMetric("SendToGovNotify_pdf_instructions_retreived", MetricUnits.Count, 1);
+
   			this.logger.debug("sendEmail", SendToGovNotifyService.name);
   			this.logger.info("Sending Yoti PDF email");
 
@@ -195,8 +213,8 @@ export class SendToGovNotifyService {
   			const emailResponse = await this.sendGovNotificationEmail(
   				this.environmentVariables.getPdfEmailTemplateId(this.logger),
   				f2fPersonInfo,
+  				govNotify,
   				options,
-  				clientConfig.GovNotifyApi,
   			);
 
   			await this.sendF2FYotiEmailedEvent(f2fSessionInfo, f2fPersonInfo);
@@ -303,13 +321,13 @@ export class SendToGovNotifyService {
   async sendGovNotificationEmail(
   	templateId: string,
   	f2fPersonInfo: PersonIdentityItem,
+  	govNotify: NotifyClient,
   	options: any,
-  	GovNotifyApi: string,
   ): Promise<EmailResponse> {
   	let retryCount = 0;
   	//retry for maxRetry count configured value if fails
   	while (retryCount <= this.environmentVariables.maxRetries()) {
-  		this.logger.debug("sendEmail - trying to send email message", {
+  		this.logger.info("sendEmail - trying to send email message", {
   			templateId: this.environmentVariables.getPdfEmailTemplateId(
   				this.logger,
   			),
@@ -317,34 +335,44 @@ export class SendToGovNotifyService {
   			retryCount,
   		});
   		try {
-  			this.govNotify = new NotifyClient(
-  				GovNotifyApi,
-  				this.GOV_NOTIFY_SERVICE_ID,
-  				this.GOVUKNOTIFY_API_KEY,
-  			);
-  			const emailResponse = await this.govNotify.sendEmail(
+  			const emailResponse = await govNotify.sendEmail(
   				templateId,
   				f2fPersonInfo.emailAddress,
   				options,
   			);
-  			this.logger.debug(
+
+  			const { data } = emailResponse;
+
+  			this.logger.info(
   				"sendEmail - response status after sending Email",
   				SendToGovNotifyService.name,
   				emailResponse.status,
   			);
-  			return new EmailResponse(
+  			this.logger.info("Email notification_id = " + data.id);
+
+  			this.metrics.addMetric("SendToGovNotify_email_sent_successfully", MetricUnits.Count, 1);
+
+  			const singleMetric = this.metrics.singleMetric();
+  			singleMetric.addDimension("status_code", emailResponse.status.toString());
+  			singleMetric.addMetric("SendToGovNotify_notify_email_response", MetricUnits.Count, 1);
+  			const serviceResponse = new EmailResponse(
   				new Date().toISOString(),
   				"",
   				emailResponse.status,
+  				emailResponse.data.id,
   			);
+  			return serviceResponse;
   		} catch (err: any) {
-  			this.logger.error("sendEmail - GOV UK Notify threw an error", err);
+  			this.logger.error("sendEmail - GOV UK Notify threw an error");
 
   			if (err.response) {
   				this.logger.error(`GOV UK Notify error: ${err}`, {
   					statusCode: err.response.data.status_code,
   					errors: err.response.data.errors,
   				});
+  				const singleMetric = this.metrics.singleMetric();
+  				singleMetric.addDimension("status_code", err.response.data.status_code.toString());
+  				singleMetric.addMetric("SendToGovNotify_notify_email_response", MetricUnits.Count, 1);
   			}
 
   			const appError: any = this.govNotifyErrorMapper.map(
@@ -369,13 +397,16 @@ export class SendToGovNotifyService {
   				await sleep(this.environmentVariables.backoffPeriod());
   				retryCount++;
   			} else {
+  				this.logger.error(
+  					`sendEmail - Cannot send Email after ${this.environmentVariables.maxRetries()} retries`,
+  				);
+  				this.metrics.addMetric("SendToGovNotify_email_sent_failed_all_attempts", MetricUnits.Count, 1);
   				throw appError;
   			}
   		}
   	}
-  	this.logger.error(
-  		`sendEmail - Cannot send Email after ${this.environmentVariables.maxRetries()} retries`,
-  	);
+
+  	// Never gets hit unless while is broken
   	throw new AppError(
   		HttpCodesEnum.SERVER_ERROR,
   		`sendEmail - Cannot send Email after ${this.environmentVariables.maxRetries()} retries`,
@@ -385,7 +416,7 @@ export class SendToGovNotifyService {
   async sendGovNotificationLetter(
   	pdf: any,
   	referenceId: string,
-  	GovNotifyApi: string,
+  	govNotify: NotifyClient,
   ): Promise<any> {
   	let retryCount = 0;
   	//retry for maxRetry count configured value if fails
@@ -396,18 +427,18 @@ export class SendToGovNotifyService {
   		});
 
   		try {
-  			this.govNotify = new NotifyClient(
-  				GovNotifyApi,
-  				this.GOV_NOTIFY_SERVICE_ID,
-  				this.GOVUKNOTIFY_API_KEY,
-  			);
 
-  			const letterResponse = await this.govNotify.sendPrecompiledLetter(`${referenceId}-letter`, pdf)
-			  .then((res: any) => {
-				  return res;
-				  })
-				  .catch((err: any) => this.logger.error("sendYotiInstructions - Cannot send letter", err.response.data.errors));
-				  
+  			const letterResponse = await govNotify.sendPrecompiledLetter(`${referenceId}-letter`, pdf);
+
+  			const { data } = letterResponse;
+
+			
+  			this.logger.info("Letter notification_id = " + data.id);
+  			const singleMetric = this.metrics.singleMetric();
+  			singleMetric.addDimension("status_code", letterResponse.status.toString());
+  			singleMetric.addMetric("SendToGovNotify_notify_letter_response", MetricUnits.Count, 1);
+
+  			this.metrics.addMetric("SendToGovNotify_letter_sent_successfully", MetricUnits.Count, 1);
 
   			this.logger.info(
   				"sendLetter - response status after sending letter",
@@ -423,6 +454,11 @@ export class SendToGovNotifyService {
   					statusCode: err.response.data.status_code,
   					errors: err.response.data.errors,
   				});
+
+				  this.logger.error("sendYotiInstructions - Cannot send letter", err.response.data.errors);
+				  const singleMetric = this.metrics.singleMetric();
+				  singleMetric.addDimension("status_code", err.response.data.status_code.toString());
+				  singleMetric.addMetric("SendToGovNotify_notify_letter_response", MetricUnits.Count, 1);
   			}
 
   			const appError: any = this.govNotifyErrorMapper.map(
@@ -454,6 +490,7 @@ export class SendToGovNotifyService {
   	this.logger.error(
   		`sendLetter - Cannot send Letter after ${this.environmentVariables.maxRetries()} retries`,
   	);
+
   	throw new AppError(
   		HttpCodesEnum.SERVER_ERROR,
   		`sendLetter - Cannot send Letter after ${this.environmentVariables.maxRetries()} retries`,

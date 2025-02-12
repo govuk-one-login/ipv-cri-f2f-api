@@ -1,6 +1,6 @@
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { AddressLocationsProcessor } from "./services/AddressLocationsProcessor";
 import { HttpCodesEnum } from "./models/enums/HttpCodesEnum";
@@ -28,7 +28,6 @@ export class AddressLocationsHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.ADDRESS_LOCATIONS_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
@@ -42,6 +41,8 @@ export class AddressLocationsHandler implements LambdaInterface {
 			return await AddressLocationsProcessor.getInstance(logger, metrics, OS_API_KEY).processRequest(sessionId, postcode);
 		} catch (error: any) {
 			logger.error({ message: "AddressLocationsProcessor encountered an error.", error, messageCode: MessageCodes.SERVER_ERROR });
+			metrics.addMetric("AddressLocations_failed_to_retrieve_address", MetricUnits.Count, 1);
+
 			if (error instanceof AppError) {
 				return Response(error.statusCode, error.message);
 			}

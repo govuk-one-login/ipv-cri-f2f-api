@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { captor, mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { GeneratePrintedLetterProcessor } from "../../../services/GeneratePrintedLetterProcessor";
 import { F2fService } from "../../../services/F2fService";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
@@ -16,6 +16,8 @@ import { PDFService } from "../../../services/PdfService";
 const mockF2fService = mock<F2fService>();
 const mockPdfService = mock<PDFService>();
 const logger = mock<Logger>();
+const metrics = mock<Metrics>();
+
 jest.mock("@aws-sdk/client-s3", () => ({
 	S3Client: jest.fn().mockImplementation(() => ({
 		send: jest.fn(),
@@ -27,7 +29,6 @@ jest.mock("@aws-sdk/client-s3", () => ({
 const mockS3Client = mock<S3Client>();
 
 let generatePrintedLetterProcessor: GeneratePrintedLetterProcessor;
-const metrics = new Metrics({ namespace: "F2F" });
 const sessionId = "RandomF2FSessionID";
 const pdf_preference = "post";
 
@@ -57,7 +58,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("GenerateYotiLetterProcessor", () => {
 	beforeAll(() => {
-		generatePrintedLetterProcessor = new GeneratePrintedLetterProcessor(logger);
+		generatePrintedLetterProcessor = new GeneratePrintedLetterProcessor(logger, metrics);
 		// @ts-ignore
 		generatePrintedLetterProcessor.f2fService = mockF2fService;
 		// @ts-ignore
@@ -65,6 +66,7 @@ describe("GenerateYotiLetterProcessor", () => {
 		// @ts-ignore
 		generatePrintedLetterProcessor.pdfService = mockPdfService;
 
+		metrics.singleMetric.mockReturnValue(metrics);
 	});
 
 	beforeEach(() => {
@@ -147,6 +149,8 @@ describe("GenerateYotiLetterProcessor", () => {
 			name: "Error",
 			message: "Error retrieving Yoti PDF from S3 bucket",
 		}));
+		expect(metrics.addDimension).toHaveBeenCalledWith("error", "unable_to_retrieve_yoti_instructions");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error", MetricUnits.Count, 1);
 	});
 
 });
