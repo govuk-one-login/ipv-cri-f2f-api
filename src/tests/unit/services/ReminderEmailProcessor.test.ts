@@ -267,7 +267,7 @@ describe("ReminderEmailProcessor", () => {
 
 		await reminderEmailProcessor.processRequest();
 
-		expect(mockLogger.warn).toHaveBeenNthCalledWith(1, "No records returned from Person Identity Table");
+		expect(mockLogger.warn).toHaveBeenNthCalledWith(1, "No records returned from Person Identity or Session Table");
 	});
 
 	it("should log an error if not able to send to GovNotify", async () => {
