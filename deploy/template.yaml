@@ -3464,10 +3464,7 @@ Resources:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          GOVUKNOTIFY_PDF_TEMPLATE_ID: 
-            !If [PclEnabled,
-              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID ],
-              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]]
+          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
           GOVUKNOTIFY_REMINDER_TEMPLATE_ID: 
             !If [PclEnabled,
               !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID ],
@@ -3481,8 +3478,8 @@ Resources:
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
           YOTI_SESSION_TTL_DAYS:             
             !If [PclEnabled, 
-              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS], 
-              !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]]
+              !FindInMap [ EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS ], 
+              !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS ]]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -3922,10 +3919,6 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: ReminderEmailHandler
           GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
-          GOVUKNOTIFY_PDF_TEMPLATE_ID: 
-            !If [PclEnabled,
-              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID ],
-              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
           KMS_KEY_ARN:
@@ -5317,22 +5310,14 @@ Resources:
           YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER: merged-pdf
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          GOVUKNOTIFY_PDF_TEMPLATE_ID: 
-            !If [PclEnabled,
-              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID ],
-              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]]
-          GOVUKNOTIFY_REMINDER_TEMPLATE_ID: 
-            !If [PclEnabled,
-              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID ],
-              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]]
-          GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID:
-            !If [PclEnabled,
-              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID ],
-              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]]
+          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID ]
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_SESSION_TTL_DAYS:             
+            !If [PclEnabled, 
+              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS], 
+              !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
       Policies:

@@ -104,6 +104,7 @@ export class SendToGovNotifyService {
   async sendYotiInstructions(sessionId: string): Promise<EmailResponse> {
   	// Fetch the Yoti PDF from S3
   	try {
+  		this.logger.info("checking service has redeployed");
   		const f2fSessionInfo = await this.f2fService.getSessionById(
   			sessionId,
   		);

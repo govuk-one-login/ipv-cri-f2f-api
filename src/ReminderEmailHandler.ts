@@ -26,6 +26,7 @@ class Session implements LambdaInterface {
 
 		try {
 			logger.info("Starting ReminderEmailProcessor");
+			logger.info("checking service has redeployed");
 			return await ReminderEmailProcessor.getInstance(logger, metrics).processRequest();
 		} catch (error: any) {
 			const statusCode = error instanceof AppError ? error.statusCode : HttpCodesEnum.SERVER_ERROR;
