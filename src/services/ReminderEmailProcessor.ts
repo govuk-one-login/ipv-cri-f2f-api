@@ -59,7 +59,7 @@ export class ReminderEmailProcessor {
   						const nameParts = personIdentityUtils.getNames(personIdentityItem);
   						return { sessionId, yotiSessionId: sessionItem.yotiSessionId, emailAddress: personIdentityItem.emailAddress, firstName: nameParts.givenNames[0], lastName: nameParts.familyNames[0], documentUsed };
   					} else {
-  						this.logger.warn("No records returned from Person Identity Table");
+  						this.logger.warn("No records returned from Person Identity or Session Table");
   						return null;
   					}
   				} catch (error) {
