@@ -5314,10 +5314,7 @@ Resources:
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          YOTI_SESSION_TTL_DAYS:             
-            !If [PclEnabled, 
-              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS], 
-              !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]]
+          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
       Policies:
