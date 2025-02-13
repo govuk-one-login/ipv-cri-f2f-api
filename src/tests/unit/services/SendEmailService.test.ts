@@ -14,9 +14,10 @@ import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { ReminderEmail } from "../../../models/ReminderEmail";
-import { DynamicReminderEmail } from "../../../models/DynamicReminderEmail";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
+import { DynamicReminderEmail } from "../../../models/DynamicReminderEmail";
 import { Metrics } from "@aws-lambda-powertools/metrics";
+
 
 jest.mock("notifications-node-client", () => {
 	return {
@@ -214,26 +215,47 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("Returns EmailResponse when Reminder email is sent successfully", async () => {
+		const mockReference = "1234";
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201, "1006");
 		mockSendEmail.mockResolvedValue({ status: 201, data: mockEmailResponse });
 		const eventBody = JSON.parse(reminderEmailEvent.Records[0].body);
 		const email = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
+		email.referenceId = mockReference;
 		const emailResponse = await sendEmailServiceTest.sendReminderEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
-		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837115", "example@test.com", { "reference": expect.any(String) });
+		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837115", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
+			"date": "18 February", 
+			"link_to_file": { 
+				"confirm_email_before_download": true, 
+				"file": "Z2tpaWhv", 
+				"retention_period": "2 weeks",
+			} },
+		"reference": "1234" });
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 
 	it("Returns EmailResponse when Dynamic Reminder email is sent successfully", async () => {
+		const mockReference = "1234";
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201, "1007");
 		mockSendEmail.mockResolvedValue({ status: 201, data: mockEmailResponse });
 		const eventBody = JSON.parse(dynamicEmailEvent.Records[0].body);
 		const email = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
+		email.referenceId = mockReference;
 		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
-		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { "chosen photo ID": "PASSPORT", "first name": "Frederick", "last name": "Flintstone" }, "reference": expect.any(String) });
+		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
+			"chosen photo ID": "PASSPORT",
+			"date": "18 February", 
+			"first name": "Frederick", 
+			"last name": "Flintstone",
+			"link_to_file": { 
+				"confirm_email_before_download": true, 
+				"file": "Z2tpaWhv", 
+				"retention_period": "2 weeks",
+			} },
+		"reference": "1234" });
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 

@@ -103,6 +103,7 @@ export class Constants {
 	static readonly GOV_NOTIFY_OPTIONS = {
 		FIRST_NAME: "first name",
 		LAST_NAME: "last name",
+		DATE: "date",
 		LINK_TO_FILE: "link_to_file",
 		CHOSEN_PHOTO_ID: "chosen photo ID",
 	};

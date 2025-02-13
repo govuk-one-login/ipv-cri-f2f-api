@@ -155,11 +155,11 @@ export class YotiService {
     	countryCode: string,
     	yotiCallbackUrl: string,
 	): Promise<string | undefined> {
-    	const sessionDeadlineDate = new Date(new Date().getTime() + this.YOTI_SESSION_TTL_DAYS * 24 * 60 * 60 * 1000);
+    	const sessionDeadlineDate = new Date(new Date().getTime() + Number(process.env.YOTI_SESSION_TTL_DAYS) * 24 * 60 * 60 * 1000);
     	sessionDeadlineDate.setUTCHours(22, 0, 0, 0);
     	const payloadJSON: CreateSessionPayload = {
     		session_deadline: sessionDeadlineDate,
-    		resources_ttl: this.RESOURCES_TTL_SECS,
+    		resources_ttl: Number(process.env.RESOURCES_TTL_SECS),
     		ibv_options: {
     			support: "MANDATORY",
     		},
@@ -321,7 +321,6 @@ export class YotiService {
     	});
 
     	if (yotiRequest && yotiRequest.config && yotiRequest.url) {
-
     		try {
     			const yotiRequestConfig =  yotiRequest.config;
     			this.logger.debug("getPdf - Yoti", { yotiRequestConfig });

@@ -11,8 +11,6 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
  */
 export class EnvironmentVariables {
 
-	private readonly REMINDER_EMAIL_GOVUKNOTIFY_API = process.env.REMINDER_EMAIL_GOVUKNOTIFY_API;
-
 	private readonly GOVUKNOTIFY_PDF_TEMPLATE_ID = process.env.GOVUKNOTIFY_PDF_TEMPLATE_ID;
 
 	private readonly GOVUKNOTIFY_REMINDER_TEMPLATE_ID = process.env.GOVUKNOTIFY_REMINDER_TEMPLATE_ID;
@@ -92,8 +90,7 @@ export class EnvironmentVariables {
 					!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 					!this.YOTI_KEY_SSM_PATH || this.YOTI_KEY_SSM_PATH.trim().length === 0 ||
 					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
-					!this.GOVUKNOTIFY_API_KEY_SSM_PATH || this.GOVUKNOTIFY_API_KEY_SSM_PATH.trim().length === 0 ||
-					!this.REMINDER_EMAIL_GOVUKNOTIFY_API || this.REMINDER_EMAIL_GOVUKNOTIFY_API.trim().length === 0) {
+					!this.GOVUKNOTIFY_API_KEY_SSM_PATH || this.GOVUKNOTIFY_API_KEY_SSM_PATH.trim().length === 0) {
 					logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 				}
@@ -503,10 +500,6 @@ export class EnvironmentVariables {
 
 	fetchYotiSessionBackoffPeriod(): number {
 		return +this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS!;
-	}
-
-	reminderEmailsGovNotifyUrl(): any {
-		return this.REMINDER_EMAIL_GOVUKNOTIFY_API;
 	}
 
 	printedCustomerLetterEnabledSsmPath(): any {

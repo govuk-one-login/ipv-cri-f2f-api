@@ -169,7 +169,7 @@ export class DocumentSelectionRequestProcessor {
 			this.logger.error(data.errorMessage + " in the PERSON IDENTITY table", { messageCode: data.errorMessageCode });
 			return Response(HttpCodesEnum.SERVER_ERROR, data.errorMessage + " in the PERSON IDENTITY table");
 		}
-
+		this.logger.info("checking service has redeployed");
 		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
 
 			const PRINTED_CUSTOMER_LETTER_ENABLED = await getParameter(this.environmentVariables.printedCustomerLetterEnabledSsmPath());

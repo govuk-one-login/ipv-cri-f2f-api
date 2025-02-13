@@ -11,7 +11,9 @@ import { Logger } from "@aws-lambda-powertools/logger";
 export class ReminderEmail {
 
 	constructor(data: Partial<ReminderEmail>) {
+		this.sessionId = data.sessionId!;
 		this.emailAddress = data.emailAddress!;
+		this.yotiSessionId = data.yotiSessionId!;
 		this.referenceId = randomUUID();
 	}
 
@@ -26,8 +28,16 @@ export class ReminderEmail {
 
 	@IsString()
 	@IsNotEmpty()
+	sessionId!: string;
+
+	@IsString()
+	@IsNotEmpty()
 	@IsEmail()
 	emailAddress!: string;
+
+	@IsString()
+	@IsNotEmpty()
+	yotiSessionId!: string;
 
 	@IsString()
 	@IsNotEmpty()

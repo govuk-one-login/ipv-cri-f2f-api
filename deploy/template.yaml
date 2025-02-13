@@ -119,11 +119,13 @@ Mappings:
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify"
       POSTOFFICESTUBAPI: "https://f2f-post-office-stub-postofficestub.review-o.dev.account.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
+      GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
+      GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
+      GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
@@ -159,11 +161,13 @@ Mappings:
       DNSSUFFIX: review-o.build.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://govnotifystub.review-o.build.account.gov.uk/govnotify"
       POSTOFFICESTUBAPI: "https://postofficestub.review-o.build.account.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
+      GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
+      GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
+      GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
@@ -198,10 +202,12 @@ Mappings:
       DNSSUFFIX: review-o.staging.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
+      GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
+      GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
+      GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
@@ -227,10 +233,12 @@ Mappings:
       DNSSUFFIX: review-o.integration.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
+      GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
+      GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
+      GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
@@ -256,10 +264,12 @@ Mappings:
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "ccba5634-33e9-4e0d-96c1-57067db941af"
       GOVUKNOTIFYREMINDERTEMPLATEID: "0d0d2aab-3c31-46da-8462-1af0f5f456f0"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0d3b9cb6-2c54-4316-865a-933f0f0dfb53"
+      GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID: "a1b28aba-2abe-4201-b255-cfd977c9f633"
+      GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID: "9af55561-e797-41b1-8a0c-6723bfba6c9b"
+      GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID: "a675cb71-6300-4d7f-a006-a92be6a5c4c1"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
       EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
@@ -3454,17 +3464,22 @@ Resources:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          REMINDER_EMAIL_GOVUKNOTIFY_API: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI ]
           GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
-          GOVUKNOTIFY_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]
-          GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]
+          GOVUKNOTIFY_REMINDER_TEMPLATE_ID: 
+            !If [PclEnabled,
+              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID ],
+              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]]
+          GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID:
+            !If [PclEnabled,
+              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID ],
+              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]]
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY_ENCRYPTED"
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
           YOTI_SESSION_TTL_DAYS:             
             !If [PclEnabled, 
-              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS], 
-              !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]]
+              !FindInMap [ EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS ], 
+              !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS ]]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -3904,7 +3919,6 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: ReminderEmailHandler
           GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
-          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
           KMS_KEY_ARN:
@@ -5296,14 +5310,11 @@ Resources:
           YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER: merged-pdf
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          REMINDER_EMAIL_GOVUKNOTIFY_API: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI ]
-          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
-          GOVUKNOTIFY_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]
-          GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]
+          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID ]
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
       Policies:
@@ -8378,10 +8389,6 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F DNS Suffix"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
-  F2FGovNotifyURL:
-    Condition: IsNotProdLikeEnvironment
-    Description: "F2F Gov Notify API"
-    Value: !FindInMap [EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI]
   F2FPostOfficeStubURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Post Office Stub API"

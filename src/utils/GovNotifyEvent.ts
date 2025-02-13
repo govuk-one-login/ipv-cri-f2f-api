@@ -18,12 +18,17 @@ export interface GovNotifyEvent {
 
 export interface ReminderEmailEvent {
 	"Message": {
+		"sessionId": string;
 		"emailAddress": string;
+		"yotiSessionId": string;
 		"messageType": string;
 	};
 }
+
 export interface ReminderEmailEventDynamic {
 	"Message": {
+		"sessionId": string;
+		"yotiSessionId": string;
 		"firstName": string;
 		"lastName": string;
 		"documentUsed": string;
@@ -81,17 +86,21 @@ export const buildGovNotifyEventFields = (sessionId: string, yotiSessionId: stri
 	}
 };
 
-export const buildReminderEmailEventFields = (emailAddress: string): ReminderEmailEvent => {
+export const buildReminderEmailEventFields = (sessionId: string, emailAddress: string, yotiSessionId: string): ReminderEmailEvent => {
 
 	return {
 		Message : {
+			sessionId,
 			emailAddress,
+			yotiSessionId,
 			messageType: Constants.REMINDER_EMAIL,
 		},
 	};
 };
 
 export const buildDynamicReminderEmailEventFields = (
+	sessionId: string, 
+	yotiSessionId: string,
 	emailAddress: string,
 	firstName: string,
 	lastName: string,
@@ -100,6 +109,8 @@ export const buildDynamicReminderEmailEventFields = (
 
 	return {
 		Message : {
+			sessionId, 
+			yotiSessionId,
 			emailAddress,
 			firstName,
 			lastName,
