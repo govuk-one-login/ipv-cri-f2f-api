@@ -27,8 +27,6 @@ class UserInfo implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
-		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());
-
 		try {
 			logger.info("Received userInfo request:", { requestId: event.requestContext.requestId });
 			logger.info("Starting UserInfoRequestProcessor");

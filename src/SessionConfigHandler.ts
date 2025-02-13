@@ -28,8 +28,6 @@ class SessionConfigHandler implements LambdaInterface {
 		try {
 			logger.setPersistentLogAttributes({});
 			logger.addContext(context);
-
-			logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());
 	
 			const { requestId } = event.requestContext;
 			logger.info("Received session configuration request", { requestId });

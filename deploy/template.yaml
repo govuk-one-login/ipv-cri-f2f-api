@@ -227,7 +227,7 @@ Mappings:
       EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
-      PCLENABLED: "true"
+      PCLENABLED: "false"
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
       ISSUER: 'https://review-o.integration.account.gov.uk'
       DNSSUFFIX: review-o.integration.account.gov.uk
@@ -258,7 +258,7 @@ Mappings:
       EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
-      PCLENABLED: "true"
+      PCLENABLED: "false"
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
       ISSUER: 'https://review-o.account.gov.uk'
       DNSSUFFIX: review-o.account.gov.uk

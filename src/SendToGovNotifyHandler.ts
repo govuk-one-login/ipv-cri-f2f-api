@@ -34,8 +34,6 @@ class SendToGovNotifyHandler implements LambdaInterface {
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
-
-		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());
 		
 		try {
 			if (!GOVUKNOTIFY_API_KEY) {
