@@ -35,8 +35,6 @@ class ThankYouEmailHandler implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
-		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());
-
 		try {
 			logger.appendKeys({	yotiSessionId: event.session_id });
 

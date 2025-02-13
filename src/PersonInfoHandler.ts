@@ -33,8 +33,6 @@ export class PersonInfoHandler implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
-		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());
-
 		try {
 			const sessionId = this.validateEvent(event);
 			const privateKeyPath = this.environmentVariables.privateKeySsmPath();

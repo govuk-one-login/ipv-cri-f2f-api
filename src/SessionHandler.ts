@@ -29,8 +29,6 @@ class Session implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
-		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());
-
 		try {
 			logger.info("Starting SessionRequestProcessor");
 			return await SessionRequestProcessor.getInstance(logger, metrics).processRequest(event);

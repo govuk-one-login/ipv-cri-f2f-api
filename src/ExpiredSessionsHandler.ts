@@ -24,8 +24,6 @@ class Session implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
-		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());
-
 		try {
 			logger.info("Starting ExpiredSessionsProcessor");
 			return await ExpiredSessionsProcessor.getInstance(logger, metrics).processRequest();
