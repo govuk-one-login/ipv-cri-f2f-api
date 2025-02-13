@@ -26,4 +26,5 @@ process.env.YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER = "merged-pdf";
 process.env.USE_MOCKED = "true";
 process.env.YOTI_LETTER_STATE_MACHINE_ARN = "MockSendYotiLetterStateMachine.Arn";
 process.env.OS_API_KEY_SSM_PATH = "Test/String";
+process.env.RESOURCES_TTL_SECS = "1209600";
 
