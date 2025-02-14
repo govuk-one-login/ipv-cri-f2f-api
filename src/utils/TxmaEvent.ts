@@ -78,7 +78,7 @@ export interface ExtensionObject {
 	"previous_govuk_signin_journey_id"?: string;
 	"post_office_details"?: PostOfficeDetails;
 	"post_office_visit_details"?: PostOfficeVisitDetails;
-	"differentPostalAddress"?: string;
+	"differentPostalAddress"?: boolean;
 }
 
 export interface TxmaEvent extends BaseTxmaEvent {
