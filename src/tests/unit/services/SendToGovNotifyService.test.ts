@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable max-depth */
 /* eslint-disable max-lines */
@@ -62,7 +63,7 @@ function getMockSessionItem(): ISessionItem {
 	return session;
 }
 
-function getMockPersonItem(userPdfPreference: string): PersonIdentityItem {
+function getMockPersonItem(communicationPreference: string): PersonIdentityItem {
 	const personEmail: PersonIdentityItem = {
 		addresses: [
 			{
@@ -111,8 +112,28 @@ function getMockPersonItem(userPdfPreference: string): PersonIdentityItem {
 		pdfPreference: "PRINTED_LETTER",
 	};
 
-	if (userPdfPreference === "PRINTED_LETTER") {
+	const personPostDifferentAddress = {
+		...personPost,
+		addresses: [
+			...personPost.addresses,
+			{
+				addressCountry: "United Kingdom",
+				buildingName: "Baker",
+				subBuildingName: "Flat 12",
+				uprn: 987654321,
+				streetName: "Downing Street",
+				postalCode: "SW1A 1AA",
+				buildingNumber: "10",
+				addressLocality: "London",
+				preferredAddress: false,
+			},
+		],
+	};
+
+	if (communicationPreference === "letter") {
 		return personPost;
+	} else if (communicationPreference === "letterDifferentAddress") {
+		return personPostDifferentAddress;
 	} else {
 		return personEmail;
 	}
@@ -150,7 +171,8 @@ describe("SendToGovNotifyService", () => {
 	it("Returns EmailResponse when YOTI PDF email is sent successfully", async () => {
 		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "test", 201, "1008") };
 		const session = getMockSessionItem();
-		const person = getMockPersonItem("EMAIL_ONLY");
+	
+		const person = getMockPersonItem("email");
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
@@ -206,7 +228,7 @@ describe("SendToGovNotifyService", () => {
 			},
 		});
 		const session = getMockSessionItem();
-		const person = getMockPersonItem("EMAIL_ONLY");
+		const person = getMockPersonItem("email");
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
@@ -223,7 +245,7 @@ describe("SendToGovNotifyService", () => {
 	it("SendToGovNotifyService retries when GovNotify throws a 500 error", async () => {
 		jest.useRealTimers();
 		const session = getMockSessionItem();
-		const person = getMockPersonItem("EMAIL_ONLY");
+		const person = getMockPersonItem("email");
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
@@ -253,7 +275,7 @@ describe("SendToGovNotifyService", () => {
 	it("SendToGovNotifyService retries when GovNotify throws a 429 error", async () => {
 		jest.useRealTimers();
 		const session = getMockSessionItem();
-		const person = getMockPersonItem("EMAIL_ONLY");
+		const person = getMockPersonItem("email");
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
@@ -282,7 +304,7 @@ describe("SendToGovNotifyService", () => {
     
 	it("Returns EmailResponse when email is sent successfully and write to TxMA fails", async () => {
 		const session = getMockSessionItem();
-		const person = getMockPersonItem("EMAIL_ONLY");
+		const person = getMockPersonItem("email");
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
@@ -311,7 +333,7 @@ describe("SendToGovNotifyService", () => {
 		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "test", 201, "1010") };
 
 		const session = getMockSessionItem();
-		const person = getMockPersonItem("PRINTED_LETTER");
+		const person = getMockPersonItem("letter");
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
@@ -354,6 +376,7 @@ describe("SendToGovNotifyService", () => {
 			timestamp,
 			event_timestamp_ms: timestamp * 1000,
 			extensions: {
+				differentPostalAddress: false,
 				evidence: [
 					{
 						txn: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
@@ -399,9 +422,62 @@ describe("SendToGovNotifyService", () => {
 
 	});
 
+	it("send F2F_YOTI_PDF_LETTER_POSTED TxMA event with differentPostalAddress set to true if the user has selected a different postal address", async () => {
+		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "test", 201, "1020") };
+		const session = getMockSessionItem();
+		const person = getMockPersonItem("letterDifferentAddress");
+		const encoded = "gwegwtb";
+		mockF2fService.getSessionById.mockResolvedValue(session);
+		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
+		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+		mockSendPrecompiledLetter.mockResolvedValue({ id: 1, message: "success", status: 201 });
+		mockSendEmail.mockResolvedValue(mockEmailResponse);
+		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+
+		await sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId);
+
+		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, {
+			event_name: TxmaEventNames.F2F_YOTI_PDF_LETTER_POSTED,
+			component_id: "https://XXX-c.env.account.gov.uk",
+			timestamp,
+			event_timestamp_ms: timestamp * 1000,
+			extensions: {
+				differentPostalAddress: true,
+				evidence: [
+					{
+						txn: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+					},
+				],
+			},
+			user: {
+				email: person.emailAddress,
+				govuk_signin_journey_id: session.clientSessionId,
+				ip_address: session.clientIpAddress,
+				persistent_session_id: session.persistentSessionId,
+				session_id: session.sessionId,
+				user_id: session.subject,
+			},
+			restricted: {
+				postalAddress: [
+					{
+						addressCountry: person.addresses[0].addressCountry,
+						addressLocality: person.addresses[0].addressLocality,
+						buildingName: person.addresses[0].buildingName,
+						buildingNumber: person.addresses[0].buildingNumber,
+						postalCode: person.addresses[0].postalCode,
+						preferredAddress: person.addresses[0].preferredAddress,
+						streetName: person.addresses[0].streetName,
+						subBuildingName: person.addresses[0].subBuildingName,
+						uprn: person.addresses[0].uprn,
+					},
+				],
+			},
+		});
+	});
+
 	it("Returns EmailResponse when posted customer letter fails but YOTI PDF email is sent successfully", async () => {
 		const session = getMockSessionItem();
-		const person = getMockPersonItem("PRINTED_LETTER");
+		const person = getMockPersonItem("letter");
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
