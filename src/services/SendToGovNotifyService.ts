@@ -442,10 +442,9 @@ export class SendToGovNotifyService {
   			this.logger.info(
   				"sendLetter - response status after sending letter",
   				SendToGovNotifyService.name,
-  				letterResponse.status,
+  				data.status,
   			);
-
-  			return letterResponse.status;
+  			return data.status;
   		} catch (err: any) {
   			this.logger.error("sendLetter- GOV UK Notify threw an error");
 

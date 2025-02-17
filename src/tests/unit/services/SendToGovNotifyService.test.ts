@@ -130,13 +130,14 @@ function getMockPersonItem(communicationPreference: string): PersonIdentityItem 
 		],
 	};
 
+	let person = personEmail;
+
 	if (communicationPreference === "letter") {
-		return personPost;
+		person = personPost;
 	} else if (communicationPreference === "letterDifferentAddress") {
-		return personPostDifferentAddress;
-	} else {
-		return personEmail;
+		person = personPostDifferentAddress;
 	}
+	return person;
 }
 
 const timestamp = 1689952318;
