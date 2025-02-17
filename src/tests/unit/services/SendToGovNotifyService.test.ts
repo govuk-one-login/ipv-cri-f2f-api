@@ -331,7 +331,7 @@ describe("SendToGovNotifyService", () => {
 
 	it("Returns EmailResponse when posted customer letter & YOTI PDF email is sent successfully", async () => {
 		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "test", 201, "1010") };
-
+		const mockLetterResponse = { data: { id: 1, message: "success", status: 201 } };
 		const session = getMockSessionItem();
 		const person = getMockPersonItem("letter");
 		const encoded = "gwegwtb";
@@ -340,7 +340,7 @@ describe("SendToGovNotifyService", () => {
 		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
 		
 
-		mockSendPrecompiledLetter.mockResolvedValue(mockEmailResponse);
+		mockSendPrecompiledLetter.mockResolvedValue(mockLetterResponse);
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
         
 		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
@@ -423,6 +423,7 @@ describe("SendToGovNotifyService", () => {
 	});
 
 	it("send F2F_YOTI_PDF_LETTER_POSTED TxMA event with differentPostalAddress set to true if the user has selected a different postal address", async () => {
+		const mockLetterResponse = { data: { id: 1, message: "success", status: 201 } };
 		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "test", 201, "1020") };
 		const session = getMockSessionItem();
 		const person = getMockPersonItem("letterDifferentAddress");
@@ -430,7 +431,7 @@ describe("SendToGovNotifyService", () => {
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
 		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
-		mockSendPrecompiledLetter.mockResolvedValue({ id: 1, message: "success", status: 201 });
+		mockSendPrecompiledLetter.mockResolvedValue(mockLetterResponse);
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
 		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
 
