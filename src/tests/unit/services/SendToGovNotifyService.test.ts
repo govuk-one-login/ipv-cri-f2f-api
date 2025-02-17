@@ -63,7 +63,7 @@ function getMockSessionItem(): ISessionItem {
 	return session;
 }
 
-function getMockPersonItem(communicationPreference: string): PersonIdentityItem {
+function getMockPersonItem(communicationPreference?: string): PersonIdentityItem {
 	const personEmail: PersonIdentityItem = {
 		addresses: [
 			{
@@ -130,14 +130,12 @@ function getMockPersonItem(communicationPreference: string): PersonIdentityItem 
 		],
 	};
 
-	let person = personEmail;
-
 	if (communicationPreference === "letter") {
-		person = personPost;
+		return personPost;
 	} else if (communicationPreference === "letterDifferentAddress") {
-		person = personPostDifferentAddress;
+		return personPostDifferentAddress;
 	}
-	return person;
+	return personEmail; // default value
 }
 
 const timestamp = 1689952318;
@@ -173,7 +171,7 @@ describe("SendToGovNotifyService", () => {
 		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "test", 201, "1008") };
 		const session = getMockSessionItem();
 	
-		const person = getMockPersonItem("email");
+		const person = getMockPersonItem();
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
@@ -229,7 +227,7 @@ describe("SendToGovNotifyService", () => {
 			},
 		});
 		const session = getMockSessionItem();
-		const person = getMockPersonItem("email");
+		const person = getMockPersonItem();
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
@@ -246,7 +244,7 @@ describe("SendToGovNotifyService", () => {
 	it("SendToGovNotifyService retries when GovNotify throws a 500 error", async () => {
 		jest.useRealTimers();
 		const session = getMockSessionItem();
-		const person = getMockPersonItem("email");
+		const person = getMockPersonItem();
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
@@ -276,7 +274,7 @@ describe("SendToGovNotifyService", () => {
 	it("SendToGovNotifyService retries when GovNotify throws a 429 error", async () => {
 		jest.useRealTimers();
 		const session = getMockSessionItem();
-		const person = getMockPersonItem("email");
+		const person = getMockPersonItem();
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
@@ -305,7 +303,7 @@ describe("SendToGovNotifyService", () => {
     
 	it("Returns EmailResponse when email is sent successfully and write to TxMA fails", async () => {
 		const session = getMockSessionItem();
-		const person = getMockPersonItem("email");
+		const person = getMockPersonItem();
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
@@ -331,8 +329,8 @@ describe("SendToGovNotifyService", () => {
 	});
 
 	it("Returns EmailResponse when posted customer letter & YOTI PDF email is sent successfully", async () => {
+		const mockLetterResponse = { status: 201, data: { id: "12345" } };
 		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "test", 201, "1010") };
-		const mockLetterResponse = { data: { id: 1, message: "success", status: 201 } };
 		const session = getMockSessionItem();
 		const person = getMockPersonItem("letter");
 		const encoded = "gwegwtb";
@@ -424,7 +422,7 @@ describe("SendToGovNotifyService", () => {
 	});
 
 	it("send F2F_YOTI_PDF_LETTER_POSTED TxMA event with differentPostalAddress set to true if the user has selected a different postal address", async () => {
-		const mockLetterResponse = { data: { id: 1, message: "success", status: 201 } };
+		const mockLetterResponse = { status: 201, data: { id: "12345" } };
 		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "test", 201, "1020") };
 		const session = getMockSessionItem();
 		const person = getMockPersonItem("letterDifferentAddress");

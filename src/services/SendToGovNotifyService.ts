@@ -428,13 +428,12 @@ export class SendToGovNotifyService {
 
   		try {
   			const letterResponse = await govNotify.sendPrecompiledLetter(`${referenceId}-letter`, pdf);
-
   			const { data } = letterResponse;
 
   			this.logger.info("Letter notification_id = " + data.id);
 
   			const singleMetric = this.metrics.singleMetric();
-  			singleMetric.addDimension("status_code", data.status.toString());
+  			singleMetric.addDimension("status_code", letterResponse.status.toString());
   			singleMetric.addMetric("SendToGovNotify_notify_letter_response", MetricUnits.Count, 1);
 
   			this.metrics.addMetric("SendToGovNotify_letter_sent_successfully", MetricUnits.Count, 1);
@@ -442,9 +441,9 @@ export class SendToGovNotifyService {
   			this.logger.info(
   				"sendLetter - response status after sending letter",
   				SendToGovNotifyService.name,
-  				data.status,
+  				letterResponse.status,
   			);
-  			return data.status;
+  			return letterResponse.status;
   		} catch (err: any) {
   			this.logger.error("sendLetter- GOV UK Notify threw an error");
 
