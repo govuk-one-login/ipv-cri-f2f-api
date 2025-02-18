@@ -123,7 +123,7 @@ export class SendToGovNotifyService {
   			f2fSessionInfo.clientId,
   			this.logger,
   		);
-			
+
   		if (!clientConfig) {
   			this.logger.error("Unrecognised client in request", {
   				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
@@ -132,7 +132,7 @@ export class SendToGovNotifyService {
   		}
 
   		const f2fPersonInfo = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
-		
+
 		  if (!f2fPersonInfo) {
   			this.logger.warn("Missing details in PERSON table", {
   				messageCode: MessageCodes.PERSON_NOT_FOUND,
@@ -153,7 +153,6 @@ export class SendToGovNotifyService {
 
   		if (f2fPersonInfo.pdfPreference === Constants.PDF_PREFERENCE_PRINTED_LETTER) {
   			this.metrics.addMetric("SendToGovNotify_opted_for_printed_letter", MetricUnits.Count, 1);
-
   			try {
   				const mergedPdf = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.mergedLetterBucketPDFFolder());
 				  this.metrics.addMetric("SendToGovNotify_fetched_merged_pdf", MetricUnits.Count, 1);
@@ -162,15 +161,14 @@ export class SendToGovNotifyService {
   					this.logger.debug("sendLetter", SendToGovNotifyService.name);
   					this.logger.info("Sending precompiled letter");
 
-					
   					await this.sendGovNotificationLetter(
   						mergedPdf,
   						referenceId,
   						govNotify,
   					);
+
   					await this.sendF2FLetterSentEvent(f2fSessionInfo, f2fPersonInfo);
   				}
-
   			} catch (err: any) {
   				this.logger.error("sendYotiInstructions - Cannot send letter", {
   					message: err, messageCode: MessageCodes.FAILED_TO_SEND_PDF_LETTER,
@@ -296,6 +294,7 @@ export class SendToGovNotifyService {
   				event_name: TxmaEventNames.F2F_YOTI_PDF_LETTER_POSTED,
   				...coreEventFields,
   				extensions: {
+  				differentPostalAddress: f2fPersonInfo.addresses.length > 1,
   					evidence: [
   						{
   							txn: f2fSessionInfo.yotiSessionId ?? "",
@@ -428,13 +427,11 @@ export class SendToGovNotifyService {
   		});
 
   		try {
-
   			const letterResponse = await govNotify.sendPrecompiledLetter(`${referenceId}-letter`, pdf);
-
   			const { data } = letterResponse;
 
-			
   			this.logger.info("Letter notification_id = " + data.id);
+
   			const singleMetric = this.metrics.singleMetric();
   			singleMetric.addDimension("status_code", letterResponse.status.toString());
   			singleMetric.addMetric("SendToGovNotify_notify_letter_response", MetricUnits.Count, 1);

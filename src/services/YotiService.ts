@@ -12,7 +12,6 @@ import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { ValidationHelper } from "../utils/ValidationHelper";
 import { sleep } from "../utils/Sleep";
-import { Constants } from "../utils/Constants";
 
 export class YotiService {
 	readonly logger: Logger;
