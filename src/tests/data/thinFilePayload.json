@@ -29,7 +29,7 @@
         ],
         "address": [
             {
-                "uprn": "123456789",
+                "uprn": 123456789,
                 "buildingNumber": "32",
                 "buildingName": "London",
                 "subBuildingName": "Flat 20",

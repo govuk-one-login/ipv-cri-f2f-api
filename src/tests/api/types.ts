@@ -25,6 +25,7 @@ export interface DocSelectionData {
 		addressLocality?: string;
 		addressCountry?: string;
 		preferredAddress?: boolean;
+		subBuildingName?: string;
 
 	};
 }
