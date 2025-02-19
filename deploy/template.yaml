@@ -149,7 +149,7 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
       EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
@@ -191,7 +191,7 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
       EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
@@ -223,7 +223,7 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
       EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
@@ -254,7 +254,7 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
       EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
@@ -285,7 +285,7 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
       EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
   TxMAAccounts:
