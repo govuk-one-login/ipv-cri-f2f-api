@@ -151,7 +151,7 @@ describe("/documentSelection Endpoint", () => {
 		expect(postResponse.status).toBe(200);
 
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
-		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference), `Expected PDF preference to be ${docSelectionData.pdf_preference} but got ${personIdentityRecord?.pdfPreference}`;
+		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
 
@@ -171,11 +171,11 @@ describe("/documentSelection Endpoint", () => {
 
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
 
-		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference), `Expected PDF preference to be ${docSelectionData.pdf_preference}, but got ${personIdentityRecord?.pdfPreference}`;
+		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
 		const preferredAddress = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
-		expect(preferredAddress).toBeDefined(), "No preferred address found in personIdentityRecord";
-		expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode), `Expected postal code to be ${docSelectionData.postal_address.postalCode}, but got ${preferredAddress?.postalCode}`;
-		expect(preferredAddress?.preferredAddress).toBe(true), `Expected preferredAddress flag to be true, but got ${preferredAddress?.preferredAddress}`;
+		expect(preferredAddress).toBeDefined();
+		expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
+		expect(preferredAddress?.preferredAddress).toBe(true);
 
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
