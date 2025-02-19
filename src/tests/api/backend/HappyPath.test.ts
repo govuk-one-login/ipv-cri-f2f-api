@@ -157,7 +157,7 @@ describe("/documentSelection Endpoint", () => {
 
 	});
 
-	it.only.each([
+	it.each([
 		{ docSelectionData: dataUkDrivingLicencePreferredAddress },
 	])("Successful Request Tests - $PreferredAddress", async ({ docSelectionData }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
