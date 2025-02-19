@@ -136,7 +136,7 @@ export interface BirthDate {
 }
 
 export interface Address {
-	uprn?: string;
+	uprn?: number;
 	organisationName?: any;
 	subBuildingName?: any;
 	buildingNumber: string;

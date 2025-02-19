@@ -16,13 +16,14 @@
    "pdf_preference": "PRINTED_LETTER",
    "postal_address": 
             {
+               "addressCountry": "CARTOONLAND",
+               "preferredAddress": true,
                "uprn": 1235,
-               "buildingNumber": "2",
                "buildingName": "The Cave",
                "streetName": "Rocky Road",
-               "addressLocality": "Bedrock",
                "postalCode": "R1 0CK",
-               "addressCountry": "CARTOONLAND",
-               "preferredAddress": true
+               "buildingNumber": "2",
+               "addressLocality": "Bedrock",
+               "subBuildingName": "Flat 1"
             }
 }
