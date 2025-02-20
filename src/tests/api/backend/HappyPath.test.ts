@@ -18,6 +18,7 @@ import {
 	personInfoGet,
 	personInfoKeyGet,
 	validatePersonInfoResponse,
+	initiateUserInfo,
 } from "../ApiTestSteps";
 import { getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
@@ -146,9 +147,7 @@ describe("/documentSelection Endpoint", () => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
-
-		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
-		expect(postResponse.status).toBe(200);
+		await initiateUserInfo(docSelectionData, sessionId);
 
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
 		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
@@ -163,11 +162,10 @@ describe("/documentSelection Endpoint", () => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
-
 		const docSelect = structuredClone(docSelectionData);
 		docSelect.postal_address.preferredAddress = true;
-		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
-		expect(postResponse.status).toBe(200);
+
+		await initiateUserInfo(docSelectionData, sessionId);
 
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
 
@@ -179,7 +177,6 @@ describe("/documentSelection Endpoint", () => {
 
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
-
 	});
 });
 
