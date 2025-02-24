@@ -203,7 +203,7 @@ export class SendToGovNotifyService {
   					[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   						file: encoded,
   						confirm_email_before_download: true,
-  						retention_period: "2 weeks",
+  						retention_period: "3 weeks",
   					},
   				},
   				reference: referenceId,
