@@ -115,20 +115,16 @@ export class DocumentSelectionRequestProcessor {
 				singleMetric.addMetric("DocSelect_validation_failed", MetricUnits.Count, 1);
 
   			return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
-  		} else if (postalAddress && !postalAddress.uprn ||
-			postalAddress && !postalAddress.buildingNumber && !postalAddress.buildingName ||
-			postalAddress && !postalAddress.streetName ||
-			postalAddress && !postalAddress.addressLocality ||
-			postalAddress && !postalAddress.postalCode ||
-			postalAddress && !postalAddress.addressCountry ||
-			postalAddress && !postalAddress.preferredAddress
-			) {
-				this.logger.error("Postal address missing mandatory fields in postal address", {
-					messageCode: MessageCodes.MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS,
-				});
-				this.metrics.addMetric("DocSelect_missing_mandatory_fields_in_postal_address", MetricUnits.Count, 1);
-				return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in postal address");
-			} 
+  		} else if (postalAddress) {
+				if ((!postalAddress.buildingNumber || !postalAddress.buildingName ) &&
+				 !postalAddress.postalCode) {
+					this.logger.error("Postal address missing mandatory fields in postal address", {
+						messageCode: MessageCodes.MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS,
+					});
+					this.metrics.addMetric("DocSelect_missing_mandatory_fields_in_postal_address", MetricUnits.Count, 1);
+					return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in postal address");
+				} 
+			}
   	} catch (error) {
   		this.logger.error("Error parsing the payload", {
   			messageCode: MessageCodes.ERROR_PARSING_PAYLOAD,
