@@ -25,6 +25,7 @@ import * as F2F_YOTI_START_02_SCHEMA from "../data/F2F_YOTI_START_02_SCHEMA.json
 import * as F2F_YOTI_START_04_SCHEMA from "../data/F2F_YOTI_START_04_SCHEMA.json";
 import * as F2F_YOTI_START_05_SCHEMA from "../data/F2F_YOTI_START_05_SCHEMA.json";
 import * as F2F_CRI_SESSION_ABORTED_SCHEMA from "../data/F2F_CRI_SESSION_ABORTED_SCHEMA.json";
+import { constants } from "../api/ApiConstants";
 import { PostalAddress } from "../api/types";
 
 const ajv = new Ajv({ strictTuples: false });
@@ -79,7 +80,7 @@ const getTxMAS3FileNames = async (prefix: string): Promise<any> => {
 };
 
 const getAllTxMAS3FileContents = async (fileNames: any[]): Promise<AllTxmaEvents> => {
-	const allContents  = await fileNames.reduce(
+	const allContents = await fileNames.reduce(
 		async (accumulator: Promise<AllTxmaEvents>, fileName: any) => {
 			const resolvedAccumulator = await accumulator;
 
@@ -119,10 +120,10 @@ export async function getTxmaEventsFromTestHarness(sessionId: string, numberOfTx
 		objectList = { ...objectList, ...additionalObjectList };
 	}
 	return objectList;
-}
+};
 
 export function validateTxMAEventData(
-	{ eventName, schemaName }: { eventName: TxmaEventName; schemaName: string }, allTxmaEventBodies: AllTxmaEvents = {}, 
+	{ eventName, schemaName }: { eventName: TxmaEventName; schemaName: string }, allTxmaEventBodies: AllTxmaEvents = {},
 ): void {
 	const currentEventBody: TxmaEvent | undefined = allTxmaEventBodies[eventName];
 
@@ -140,6 +141,41 @@ export function validateTxMAEventData(
 		}
 	} else {
 		throw new Error(`No event found in the test harness for ${eventName} event`);
+	}
+};
+
+const getYotiLetterPdfS3FileName = async (yotiSessionId: string, prefix: string = ""): Promise<string | undefined> => {
+	try {
+		const encodedPrefix = encodeURIComponent(prefix);
+		const response = await HARNESS_API_INSTANCE.get(`/yotiletterbucket/`, {
+			params: { prefix: `${encodedPrefix}${yotiSessionId}` },
+		});
+
+		return response.data?.Key;
+
+	} catch (error) {
+		console.error(`Error fetching PDF file name:`, error);
+		return undefined;
+	}
+};
+
+export async function getYotiLetterPdfFromTestHarness(yotiSessionId?: string, prefix: string = ""): Promise<TestHarnessReponse | undefined> {
+	if (!yotiSessionId) throw new Error("no yoti session ID provided");
+
+	try {
+		const fileName = await getYotiLetterPdfS3FileName(yotiSessionId, prefix);
+
+		if (!fileName) {
+			console.log(`No PDF file found for session ID ${yotiSessionId} with prefix "${prefix}"`);
+			return undefined;
+		}
+
+		const response = await HARNESS_API_INSTANCE.get(`/yotiletterbucket/${fileName}`);
+		return response.data;
+
+	} catch (error) {
+		console.error(`Error fetching PDF file:`, error);
+		return undefined;
 	}
 }
 
@@ -187,18 +223,21 @@ export function buildExpectedPostalAddress(data: { postal_address: PostalAddress
 	};
 }
 
+
 export async function invokeLambdaFunction(lambdaName: string, payload: object): Promise<void> {
-  
+
 	const command = new InvokeCommand({
-	  FunctionName: lambdaName,
-	  Payload: new TextEncoder().encode(JSON.stringify(payload)),
+		FunctionName: lambdaName,
+		Payload: new TextEncoder().encode(JSON.stringify(payload)),
 	});
-  
+
 	try {
-	  await client.send(command);
+		await client.send(command);
 	} catch (error) {
-	  console.error("Error invoking Lambda function", error);
-	  throw new Error(`Failed to invoke Lambda function: ${error}`);
+		console.error("Error invoking Lambda function", error);
+		throw new Error(`Failed to invoke Lambda function: ${error}`);
 	}
-}
+};
+
+
 

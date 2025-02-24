@@ -18,8 +18,9 @@ import {
 	personInfoGet,
 	personInfoKeyGet,
 	validatePersonInfoResponse,
+	initiateUserInfo,
 } from "../ApiTestSteps";
-import { getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
+import { getYotiLetterPdfFromTestHarness, getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
 import thinFilePayload from "../../data/thinFilePayload.json";
 import abortPayload from "../../data/abortPayload.json";
@@ -410,5 +411,27 @@ describe("Expired User Sessions", () => {
 
 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_SESSION_EXPIRED");
 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "expiredNotificationSent", true);
+	});
+});
+
+describe("Yoti Letter Validation Tests", () => {
+
+	it.only("Email only - Happy Path Test", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		const sessionId = postRequest.data.session_id;
+		console.log(sessionId);
+
+		await initiateUserInfo(dataUkDrivingLicence, sessionId);
+
+
+		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const yotiSessionId = session?.yotiSessionId;
+		expect(yotiSessionId).toBeTruthy();
+		
+		const yotiPdfFile = await getYotiLetterPdfFromTestHarness(yotiSessionId, "pdf-");
+		console.log(yotiPdfFile);
+
+
 	});
 });

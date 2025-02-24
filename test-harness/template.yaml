@@ -257,6 +257,16 @@ Resources:
                   - !Sub "arn:aws:s3:::${EventTestBucket}"
                   - !Sub "arn:aws:s3:::${EventTestBucket}/txma/*"
                   - !Sub "arn:aws:s3:::${EventTestBucket}/ipv-core/*"
+        - PolicyName: AccessYotiLetterBucket
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:GetObject"
+                  - "s3:ListBucket"
+                Resource:
+                  - Fn::ImportValue: !Sub "${BackendStack}-YotiLetterBucketArn"
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
