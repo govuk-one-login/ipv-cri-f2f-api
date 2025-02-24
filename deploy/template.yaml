@@ -8402,3 +8402,9 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "Lambda Service to process expired user sessions"
     Value: !Ref ExpiredSessionsFunction
+  YotiLetterBucketArn:
+    Condition: IsNotProdLikeEnvironment
+    Description: "ARN of the Yoti Letter Bucket"
+    Value: !GetAtt YotiLetterBucket.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-YotiLetterBucketArn

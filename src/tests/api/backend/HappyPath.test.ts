@@ -18,8 +18,9 @@ import {
 	personInfoGet,
 	personInfoKeyGet,
 	validatePersonInfoResponse,
+	initiateUserInfo,
 } from "../ApiTestSteps";
-import { getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
+import { getYotiLetterFileContents, getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
 import thinFilePayload from "../../data/thinFilePayload.json";
 import abortPayload from "../../data/abortPayload.json";
@@ -187,6 +188,7 @@ describe("/documentSelection Endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 
 		// Check that F2F_YOTI_PDF_LETTER_POSTED event matches the Schema and contains correct values for differentPostalAddress and postalAddress
+		await new Promise(f => setTimeout(f, 5000));
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.extensions.differentPostalAddress", expectedValue: false }, allTxmaEventBodies);
@@ -229,6 +231,7 @@ describe("/documentSelection Endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 
 		// Check that F2F_YOTI_PDF_LETTER_POSTED event matches the Schema and contains correct values for differentPostalAddress and postalAddress
+		await new Promise(f => setTimeout(f, 5000));
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.extensions.differentPostalAddress", expectedValue: true }, allTxmaEventBodies);
@@ -415,3 +418,48 @@ describe("Expired User Sessions", () => {
 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "expiredNotificationSent", true);
 	});
 });
+
+describe("Yoti Letter Validation Tests", () => {
+
+	it("Email only - Happy Path Test", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		const sessionId = postRequest.data.session_id;
+		console.log(sessionId);
+
+		await initiateUserInfo(dataUkDrivingLicence, sessionId);
+
+		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const yotiSessionId = session?.yotiSessionId;
+		expect(yotiSessionId).toBeTruthy();
+		if (!yotiSessionId) throw new Error("no Yoti Session ID provided");
+
+		const pdfFileContent = await getYotiLetterFileContents("pdf-", yotiSessionId); 
+		expect(pdfFileContent.length).toBeGreaterThan(1000);
+	});
+
+	it("Email and Posted Letter - Happy Path Test", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		const sessionId = postRequest.data.session_id;
+		console.log(sessionId);
+
+		await initiateUserInfo(dataUkDrivingLicencePrintedLetter, sessionId);
+
+		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const yotiSessionId = session?.yotiSessionId;
+		expect(yotiSessionId).toBeTruthy();
+		if (!yotiSessionId) throw new Error("no Yoti Session ID provided");
+
+		await new Promise(f => setTimeout(f, 5000));
+
+		const pdfFileContent = await getYotiLetterFileContents("pdf-", yotiSessionId); 
+		expect(pdfFileContent.length).toBeGreaterThan(1000);
+
+	  
+		const mergedPdfFileContent = await getYotiLetterFileContents("merged-pdf-", yotiSessionId);
+		expect(mergedPdfFileContent.length).toBeGreaterThan(1000);
+
+	});
+});
+
