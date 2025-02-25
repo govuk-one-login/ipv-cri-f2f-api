@@ -20,7 +20,7 @@ import {
 	validatePersonInfoResponse,
 	initiateUserInfo,
 } from "../ApiTestSteps";
-import { getYotiLetterPdfFromTestHarness, getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
+import { testYotiLetterFileExists, getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
 import thinFilePayload from "../../data/thinFilePayload.json";
 import abortPayload from "../../data/abortPayload.json";
@@ -33,6 +33,7 @@ import dataNonUkPassport from "../../data/docSelectionPayloadNonUkPassportValid.
 import dataEeaIdCard from "../../data/docSelectionPayloadEeaIdCardValid.json";
 import { constants } from "../ApiConstants";
 import { DocSelectionData } from "../types";
+import { sleep } from "../../../utils/Sleep";
 
 describe("/session endpoint", () => {
 
@@ -416,7 +417,7 @@ describe("Expired User Sessions", () => {
 
 describe("Yoti Letter Validation Tests", () => {
 
-	it.only("Email only - Happy Path Test", async () => {
+	it("Email only - Happy Path Test", async () => {
 		const stubResponse = await stubStartPost(f2fStubPayload);
 		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		const sessionId = postRequest.data.session_id;
@@ -424,14 +425,34 @@ describe("Yoti Letter Validation Tests", () => {
 
 		await initiateUserInfo(dataUkDrivingLicence, sessionId);
 
+		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const yotiSessionId = session?.yotiSessionId;
+		expect(yotiSessionId).toBeTruthy();
+		if (!yotiSessionId) throw new Error("no Yoti Session ID provided");
+
+		await testYotiLetterFileExists("pdf-", yotiSessionId);
+
+	});
+
+	it("Email and Posted Letter - Happy Path Test", async () => {
+		const stubResponse = await stubStartPost(f2fStubPayload);
+		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		const sessionId = postRequest.data.session_id;
+		console.log(sessionId);
+
+		await initiateUserInfo(dataUkDrivingLicencePrintedLetter, sessionId);
 
 		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
-		
-		const yotiPdfFile = await getYotiLetterPdfFromTestHarness(yotiSessionId, "pdf-");
-		console.log(yotiPdfFile);
+		if (!yotiSessionId) throw new Error("no Yoti Session ID provided");
 
+		await sleep(5000);
+
+		await testYotiLetterFileExists("pdf-", yotiSessionId);
+		await testYotiLetterFileExists("merged-pdf-", yotiSessionId);
 
 	});
 });
+
+

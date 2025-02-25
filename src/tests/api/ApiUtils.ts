@@ -144,40 +144,44 @@ export function validateTxMAEventData(
 	}
 };
 
-const getYotiLetterPdfS3FileName = async (yotiSessionId: string, prefix: string = ""): Promise<string | undefined> => {
-	try {
-		const encodedPrefix = encodeURIComponent(prefix);
-		const response = await HARNESS_API_INSTANCE.get(`/yotiletterbucket/`, {
-			params: { prefix: `${encodedPrefix}${yotiSessionId}` },
-		});
+const getYotiLetterS3FileName = async (prefix: string, yotiSessionId?: string): Promise<string | undefined> => {
+	const listObjectsResponse = await HARNESS_API_INSTANCE.get("/yotiletterbucket/", {
+		params: {
+			prefix: `${prefix}${yotiSessionId}`,
+		},
+	});
 
-		return response.data?.Key;
+	const listObjectsParsedResponse = xmlParser.parse(listObjectsResponse.data);
+	const file = listObjectsParsedResponse?.ListBucketResult?.Contents;
 
-	} catch (error) {
-		console.error(`Error fetching PDF file name:`, error);
+	// Ensure we only return one expected file
+	if (!file || !file.Key) {
+		console.log(`No Yoti Letter file found for session ID ${yotiSessionId} with prefix ${prefix}`);
 		return undefined;
 	}
+
+	return file.Key;
 };
 
-export async function getYotiLetterPdfFromTestHarness(yotiSessionId?: string, prefix: string = ""): Promise<TestHarnessReponse | undefined> {
-	if (!yotiSessionId) throw new Error("no yoti session ID provided");
+export const getYotiLetterFileContents = async (prefix: string, yotiSessionId: string): Promise<any> => {
 
-	try {
-		const fileName = await getYotiLetterPdfS3FileName(yotiSessionId, prefix);
+	const fileName = await getYotiLetterS3FileName(prefix, yotiSessionId);
+	if (!fileName) return undefined;
 
-		if (!fileName) {
-			console.log(`No PDF file found for session ID ${yotiSessionId} with prefix "${prefix}"`);
-			return undefined;
-		}
+	const fileContentsResponse = await HARNESS_API_INSTANCE.get(`/yotiletterbucket/${fileName}`, {});
 
-		const response = await HARNESS_API_INSTANCE.get(`/yotiletterbucket/${fileName}`);
-		return response.data;
+	return fileContentsResponse.data;
+};
 
-	} catch (error) {
-		console.error(`Error fetching PDF file:`, error);
-		return undefined;
+export const testYotiLetterFileExists = async (prefix: string, yotiSessionId: string) => {
+	const fileContents = await getYotiLetterFileContents(prefix, yotiSessionId);
+
+	if (fileContents) {
+		console.log(`✅ File with prefix "${prefix}" and session ID "${yotiSessionId}" exists.`);
+	} else {
+		console.error(`❌ File with prefix "${prefix}" and session ID "${yotiSessionId}" NOT found!`);
 	}
-}
+};
 
 export function validateTxMAEventField(
 	{
@@ -238,6 +242,7 @@ export async function invokeLambdaFunction(lambdaName: string, payload: object):
 		throw new Error(`Failed to invoke Lambda function: ${error}`);
 	}
 };
+
 
 
 

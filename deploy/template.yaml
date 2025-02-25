@@ -8408,8 +8408,3 @@ Outputs:
     Value: !GetAtt YotiLetterBucket.Arn
     Export:
       Name: !Sub ${AWS::StackName}-YotiLetterBucketArn
-  YotiLetterBucketName:
-    Description: Name of the Yoti Letter Bucket
-    Value: !Ref YotiLetterBucket
-    Export:
-      Name: YotiLetterBucketNameExport
