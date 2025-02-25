@@ -363,6 +363,22 @@ export async function getSessionByYotiId(sessionId: string, tableName: string): 
 	return session.Items[0] as ISessionItem;
 }
 
+export async function getMergedYotiPdf(yotiSessionId: string | undefined): Promise<any> {
+	let pdfData;
+	try {
+		// Wait for  pdf to appear tin S3
+		await new Promise(f => setTimeout(f, 5000));
+
+		const response = await HARNESS_API_INSTANCE.get(`yotiletterbucket/merged-pdf-${yotiSessionId}`, {
+			responseType: "arraybuffer" });
+		pdfData = response;
+	} catch (e: any) {
+		console.error({ message: "getMergedYotiPdf - failed getting pdf from bucket", e });
+	}
+
+	return pdfData;
+}
+
 export async function getSessionByAuthCode(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
 	let session;
 	try {

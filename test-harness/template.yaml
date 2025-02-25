@@ -350,6 +350,9 @@ Resources:
   TestHarnessRestApi:
     Type: AWS::Serverless::Api
     Properties:
+      BinaryMediaTypes:
+        - "application/pdf"
+        - "application/octet-stream"
       AlwaysDeploy: true
       StageName: !Ref Environment
       OpenApiVersion: 3.0.1
