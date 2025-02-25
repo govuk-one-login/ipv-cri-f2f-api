@@ -18,6 +18,7 @@ import {
 	personInfoGet,
 	personInfoKeyGet,
 	validatePersonInfoResponse,
+	getMergedYotiPdf,
 } from "../ApiTestSteps";
 import { getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
@@ -32,6 +33,9 @@ import dataNonUkPassport from "../../data/docSelectionPayloadNonUkPassportValid.
 import dataEeaIdCard from "../../data/docSelectionPayloadEeaIdCardValid.json";
 import { constants } from "../ApiConstants";
 import { DocSelectionData } from "../types";
+import fs from "fs";
+import { convertPdfToImages } from "../../visual/helpers";
+import { toMatchImageSnapshot } from "jest-image-snapshot";
 
 describe("/session endpoint", () => {
 
@@ -140,47 +144,82 @@ describe("/documentSelection Endpoint", () => {
 		}
 	});
 
-	it.each([
-		{ docSelectionData: dataUkDrivingLicencePrintedLetter },
-	])("Successful Request Tests - $PrintedLetter", async ({ docSelectionData }) => {
-		const newf2fStubPayload = structuredClone(f2fStubPayload);
-		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+	 it.each([
+	 	{ docSelectionData: dataUkDrivingLicencePrintedLetter },
+	 ])("Successful Request Tests - $PrintedLetter", async ({ docSelectionData }) => {
+		expect.extend({ toMatchImageSnapshot });
+
+	 	const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = "0100";
+	 	const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+
+	 	const postResponse = await postDocumentSelection(docSelectionData, sessionId);
+	 	expect(postResponse.status).toBe(200);
+
+	 	const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
+		const sessionRecord = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+	 	try {
+	 		expect(personIdentityRecord?.pdfPreference).toBe(dataUkDrivingLicencePrintedLetter.pdf_preference);
+			 await new Promise(f => setTimeout(f, 5000));
+
+			const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
+			validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
+
+			const pdfData = await getMergedYotiPdf(sessionRecord?.yotiSessionId);
+			const pdfImagesLocation = "./generated_images";
+
+			try {
+				const pdfBuffer = convertPdfToBuffer(pdfData);
+
+				await convertPdfToImages(pdfBuffer, pdfImagesLocation);
+
+				const files = fs.readdirSync(pdfImagesLocation);
+				files.forEach(fileName => {
+					const imagePath = pdfImagesLocation + "/" + fileName;
+					const image = fs.readFileSync(imagePath);
+					expect(image).toMatchImageSnapshot({
+						runInProcess: true,
+						customDiffDir: "tests/visual/__snapshots-diff__",
+						customSnapshotsDir: "tests/visual/__snapshots__",
+					});
+				});
+			} finally {
+				//remove temp files
+				fs.rmSync(pdfImagesLocation, { recursive: true });
+			}
+
+		} catch (error) {
+	 		console.error("Error validating PDF Preference from Person Identity Table", error);
+	 		throw error;
+	 	}
+	 });
+
+	 it.each([
+	 	{ docSelectionData: dataUkDrivingLicencePreferredAddress },
+	 ])("Successful Request Tests - $PreferredAddress", async ({ docSelectionData }) => {
+	 	const newf2fStubPayload = structuredClone(f2fStubPayload);
+	 	const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
 
-		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
-		expect(postResponse.status).toBe(200);
+	 	const docSelect = structuredClone(docSelectionData);
+	 	docSelect.postal_address.preferredAddress = true;
+	 	const postResponse = await postDocumentSelection(docSelectionData, sessionId);
+	 	expect(postResponse.status).toBe(200);
 
-		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
-		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
-		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
-		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
+	 	const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
 
-	});
+	 	try {
+	 		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
+	 		const preferredAddress = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
+	 		expect(preferredAddress).toBeDefined();
+	 		expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
+	 		expect(preferredAddress?.preferredAddress).toBe(true);
+	 	} catch (error) {
+	 		console.error("Error validating PDF and Address Preference from Person Identity Table", error);
+	 		throw error;
+	 	}
 
-	it.each([
-		{ docSelectionData: dataUkDrivingLicencePreferredAddress },
-	])("Successful Request Tests - $PreferredAddress", async ({ docSelectionData }) => {
-		const newf2fStubPayload = structuredClone(f2fStubPayload);
-		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
-
-
-		const docSelect = structuredClone(docSelectionData);
-		docSelect.postal_address.preferredAddress = true;
-		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
-		expect(postResponse.status).toBe(200);
-
-		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
-
-		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
-		const preferredAddress = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
-		expect(preferredAddress).toBeDefined();
-		expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
-		expect(preferredAddress?.preferredAddress).toBe(true);
-
-		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
-		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
-
-	});
+	 });
 });
 
 
@@ -361,3 +400,12 @@ describe("Expired User Sessions", () => {
 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "expiredNotificationSent", true);
 	});
 });
+function convertPdfToBuffer(pdfData: any): Buffer {
+	const response = pdfData === undefined ? Buffer.alloc(0) : pdfData;
+	const binaryPdf = Buffer.from(response.data.toString(), "base64");
+
+	fs.writeFileSync("./api-letter.pdf", binaryPdf, "base64");
+	const pdfBuffer = fs.readFileSync("./api-letter.pdf");
+	return pdfBuffer;
+}
+
