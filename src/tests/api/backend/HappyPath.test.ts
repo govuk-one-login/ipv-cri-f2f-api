@@ -430,7 +430,8 @@ describe("Yoti Letter Validation Tests", () => {
 		expect(yotiSessionId).toBeTruthy();
 		if (!yotiSessionId) throw new Error("no Yoti Session ID provided");
 
-		await testYotiLetterFileExists("pdf-", yotiSessionId);
+		await expect(testYotiLetterFileExists("pdf-", yotiSessionId)).resolves.toBeUndefined();
+
 
 	});
 
@@ -449,10 +450,9 @@ describe("Yoti Letter Validation Tests", () => {
 
 		await sleep(5000);
 
-		await testYotiLetterFileExists("pdf-", yotiSessionId);
-		await testYotiLetterFileExists("merged-pdf-", yotiSessionId);
+		await expect(testYotiLetterFileExists("pdf-", yotiSessionId)).resolves.toBeUndefined();
+		await expect(testYotiLetterFileExists("merged-pdf-", yotiSessionId)).resolves.toBeUndefined();
 
 	});
 });
-
 

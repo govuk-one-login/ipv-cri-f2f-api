@@ -25,7 +25,6 @@ import * as F2F_YOTI_START_02_SCHEMA from "../data/F2F_YOTI_START_02_SCHEMA.json
 import * as F2F_YOTI_START_04_SCHEMA from "../data/F2F_YOTI_START_04_SCHEMA.json";
 import * as F2F_YOTI_START_05_SCHEMA from "../data/F2F_YOTI_START_05_SCHEMA.json";
 import * as F2F_CRI_SESSION_ABORTED_SCHEMA from "../data/F2F_CRI_SESSION_ABORTED_SCHEMA.json";
-import { constants } from "../api/ApiConstants";
 import { PostalAddress } from "../api/types";
 
 const ajv = new Ajv({ strictTuples: false });
@@ -120,7 +119,7 @@ export async function getTxmaEventsFromTestHarness(sessionId: string, numberOfTx
 		objectList = { ...objectList, ...additionalObjectList };
 	}
 	return objectList;
-};
+}
 
 export function validateTxMAEventData(
 	{ eventName, schemaName }: { eventName: TxmaEventName; schemaName: string }, allTxmaEventBodies: AllTxmaEvents = {},
@@ -142,7 +141,7 @@ export function validateTxMAEventData(
 	} else {
 		throw new Error(`No event found in the test harness for ${eventName} event`);
 	}
-};
+}
 
 const getYotiLetterS3FileName = async (prefix: string, yotiSessionId?: string): Promise<string | undefined> => {
 	const listObjectsResponse = await HARNESS_API_INSTANCE.get("/yotiletterbucket/", {
@@ -176,10 +175,8 @@ export const getYotiLetterFileContents = async (prefix: string, yotiSessionId: s
 export const testYotiLetterFileExists = async (prefix: string, yotiSessionId: string) => {
 	const fileContents = await getYotiLetterFileContents(prefix, yotiSessionId);
 
-	if (fileContents) {
-		console.log(`✅ File with prefix "${prefix}" and session ID "${yotiSessionId}" exists.`);
-	} else {
-		console.error(`❌ File with prefix "${prefix}" and session ID "${yotiSessionId}" NOT found!`);
+	if (!fileContents) {
+		throw new Error(`File with prefix "${prefix}" and session ID "${yotiSessionId}" NOT found!`);
 	}
 };
 
@@ -241,8 +238,5 @@ export async function invokeLambdaFunction(lambdaName: string, payload: object):
 		console.error("Error invoking Lambda function", error);
 		throw new Error(`Failed to invoke Lambda function: ${error}`);
 	}
-};
-
-
-
+}
 
