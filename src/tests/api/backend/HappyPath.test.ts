@@ -20,7 +20,7 @@ import {
 	validatePersonInfoResponse,
 	initiateUserInfo,
 } from "../ApiTestSteps";
-import { testYotiLetterFileExists, getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
+import { getYotiLetterFileContents, getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
 import thinFilePayload from "../../data/thinFilePayload.json";
 import abortPayload from "../../data/abortPayload.json";
@@ -430,9 +430,8 @@ describe("Yoti Letter Validation Tests", () => {
 		expect(yotiSessionId).toBeTruthy();
 		if (!yotiSessionId) throw new Error("no Yoti Session ID provided");
 
-		await expect(testYotiLetterFileExists("pdf-", yotiSessionId)).resolves.toBeUndefined();
-
-
+		const pdfFileContent = await getYotiLetterFileContents("pdf-", yotiSessionId); 
+		expect(pdfFileContent.length).toBeGreaterThan(0);
 	});
 
 	it("Email and Posted Letter - Happy Path Test", async () => {
@@ -450,9 +449,11 @@ describe("Yoti Letter Validation Tests", () => {
 
 		await new Promise(f => setTimeout(f, 5000));
 
-		await expect(testYotiLetterFileExists("pdf-", yotiSessionId)).resolves.toBeUndefined();
-		await expect(testYotiLetterFileExists("merged-pdf-", yotiSessionId)).resolves.toBeUndefined();
-
+		const pdfFileContent = await getYotiLetterFileContents("pdf-", yotiSessionId); 
+		expect(pdfFileContent.length).toBeGreaterThan(0);
+	  
+		const mergedPdfFileContent = await getYotiLetterFileContents("merged-pdf-", yotiSessionId);
+		expect(mergedPdfFileContent.length).toBeGreaterThan(0);
 	});
 });
 
