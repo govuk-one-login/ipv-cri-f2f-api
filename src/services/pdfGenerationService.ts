@@ -293,7 +293,7 @@ private getLongDate(today: Date, locale: string):string {
 	});
 }
 
-private mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
+mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 	const address = [];
 	if (postalAddress.departmentName) {
 		address.push(postalAddress.departmentName);

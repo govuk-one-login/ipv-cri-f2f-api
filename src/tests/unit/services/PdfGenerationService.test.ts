@@ -5,7 +5,7 @@ import fs from "fs";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { mock } from "jest-mock-extended";
 
-import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
+import { PersonIdentityAddress, PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { F2fService } from "../../../services/F2fService";
 import { PDFGenerationService } from "../../../services/pdfGenerationService";
 
@@ -19,6 +19,8 @@ const person: PersonIdentityItem = {
 	"addresses": [
 		{
 			"addressCountry": "GB",
+			"organisationName": "Test org",
+			"departmentName": "Test dept",
 			"buildingName": "Sherman",
 			"subBuildingName": "Flat 5",
 			"uprn": 123456789,
@@ -91,5 +93,33 @@ describe("PdfGenerationServiceTest", () => {
 				expect(fs.existsSync("./letter.pdf")).toBe(true);
 			});
 		});
+	});
+
+	describe("#mapToAddressLines", () => {
+		it("should map all fields correctly when present", async () => {
+			const postalAddress: PersonIdentityAddress = person.addresses[0];
+			const result = pdfGenerationService.mapToAddressLines(postalAddress);
+			expect(result).toEqual([
+				"Test dept",
+				"Test org",
+				"Flat 5",
+				"Sherman",
+				"32 Wallaby Way",
+				"Sidney",
+				"F1 1SH",
+			]);
+		});
+	});
+
+	it("should omit missing fields from mapped address", async () => {
+		const { organisationName, departmentName, ...postalAddress }: PersonIdentityAddress = person.addresses[0];
+		const result = pdfGenerationService.mapToAddressLines(postalAddress);
+		expect(result).toEqual([
+			"Flat 5",
+			"Sherman",
+			"32 Wallaby Way",
+			"Sidney",
+			"F1 1SH",
+		]);
 	});
 });
