@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
@@ -229,6 +229,7 @@ export class YotiSessionCompletionProcessor {
 				  });
 			  }
 				
+  			this.metrics.addMetric("SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
   			const { given_names, family_name, full_name } = documentFields;
 
   			const missingGivenName = this.checkMissingField(given_names, "given_names");
@@ -321,6 +322,8 @@ export class YotiSessionCompletionProcessor {
 				  f2fSession.sessionId,
 				  AuthSessionState.F2F_CREDENTIAL_ISSUED,
 			  );
+			  
+			  this.metrics.addMetric("SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 
 			  return Response(HttpCodesEnum.OK, "OK");
 		  } else {
