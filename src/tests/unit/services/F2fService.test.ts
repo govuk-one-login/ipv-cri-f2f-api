@@ -519,7 +519,7 @@ describe("F2f Service", () => {
 
 	it("should throw an error when update fails for pdfPreference", async () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce({ Item: personIdentityOutputRecord }).mockRejectedValue({});
-		await expect (f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressSameInputRecord, personTableName)).rejects.toThrow(expect.objectContaining({
+		await expect(f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressSameInputRecord, personTableName)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "updateItem - failed: got error updating pdfPreference in PERSONTABLE",
 		}));
@@ -527,7 +527,7 @@ describe("F2f Service", () => {
 
 	it("should throw an error when update fails for pdfPreference or postal address", async () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce({ Item: personIdentityOutputRecordTwoAddresses }).mockRejectedValue({});
-		await expect (f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressDifferentInputRecord, personTableName)).rejects.toThrow(expect.objectContaining({
+		await expect(f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressDifferentInputRecord, personTableName)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "updateItem - failed: got error updating pdfPreference or postal address details in PERSONTABLE",
 		}));
