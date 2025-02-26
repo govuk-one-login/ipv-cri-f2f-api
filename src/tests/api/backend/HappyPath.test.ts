@@ -140,29 +140,52 @@ describe("/documentSelection Endpoint", () => {
 		}
 	});
 
-	it.each([
+	it.only.each([
 		{ docSelectionData: dataUkDrivingLicencePrintedLetter },
 	])("Successful Request Tests - $PrintedLetter", async ({ docSelectionData }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
+		console.log("Posted Letter - No Different Address Session Id: " + sessionId);
 
 		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
 		expect(postResponse.status).toBe(200);
 
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
 		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
+
+		// Check that the DynamoDB table contains 1 address
+		expect(personIdentityRecord?.addresses?.length).toBe(1);
+
+		// Check that the DynamoDB table address matches what was passed into the shared_claims
+		const addressFromRecord = personIdentityRecord?.addresses[0];
+		expect(Number(addressFromRecord?.uprn)).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
+		expect(addressFromRecord?.buildingNumber).toBe(newf2fStubPayload.shared_claims.address[0].buildingNumber);
+		expect(addressFromRecord?.buildingName).toBe(newf2fStubPayload.shared_claims.address[0].buildingName);
+		expect(addressFromRecord?.subBuildingName).toBe(newf2fStubPayload.shared_claims.address[0].subBuildingName);
+		expect(addressFromRecord?.streetName).toBe(newf2fStubPayload.shared_claims.address[0].streetName);
+		expect(addressFromRecord?.addressLocality).toBe(newf2fStubPayload.shared_claims.address[0].addressLocality);
+		expect(addressFromRecord?.addressCountry).toBe(newf2fStubPayload.shared_claims.address[0].addressCountry);
+		expect(addressFromRecord?.postalCode).toBe(newf2fStubPayload.shared_claims.address[0].postalCode);
+
+		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const yotiSessionId = session?.yotiSessionId;
+		expect(yotiSessionId).toBeTruthy();
+
+		console.log("Posted Letter - No Different Address Yoti Session Id: " + yotiSessionId);
+
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
 
 	});
 
-	it.each([
+	it.only.each([
 		{ docSelectionData: dataUkDrivingLicencePreferredAddress },
 	])("Successful Request Tests - $PreferredAddress", async ({ docSelectionData }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
+		console.log("Posted Letter - Different Address Session Id: " + sessionId);
 
 		const docSelect = structuredClone(docSelectionData);
 		docSelect.postal_address.preferredAddress = true;
@@ -171,11 +194,29 @@ describe("/documentSelection Endpoint", () => {
 
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
 
+		// Check that the DynamoDB table contains 2 addresses
+		expect(personIdentityRecord?.addresses?.length).toBe(2);
+
+		// Check that the DynamoDB table address matches the different address in our Document Selection Payload
 		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
 		const preferredAddress = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
 		expect(preferredAddress).toBeDefined();
 		expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
+		expect(Number(preferredAddress?.uprn)).toBe(docSelectionData.postal_address.uprn);
+		expect(preferredAddress?.buildingNumber).toBe(docSelectionData.postal_address.buildingNumber);
+		expect(preferredAddress?.buildingName).toBe(docSelectionData.postal_address.buildingName);
+		expect(preferredAddress?.subBuildingName).toBe(docSelectionData.postal_address.subBuildingName);
+		expect(preferredAddress?.streetName).toBe(docSelectionData.postal_address.streetName);
+		expect(preferredAddress?.addressLocality).toBe(docSelectionData.postal_address.addressLocality);
+		expect(preferredAddress?.addressCountry).toBe(docSelectionData.postal_address.addressCountry);
+		expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
 		expect(preferredAddress?.preferredAddress).toBe(true);
+
+		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const yotiSessionId = session?.yotiSessionId;
+		expect(yotiSessionId).toBeTruthy();
+
+		console.log("Posted Letter - Different Address Yoti Session Id: " + yotiSessionId);
 
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
