@@ -448,7 +448,7 @@ describe("Yoti Letter Validation Tests", () => {
 		expect(yotiSessionId).toBeTruthy();
 		if (!yotiSessionId) throw new Error("no Yoti Session ID provided");
 
-		await sleep(5000);
+		await new Promise(f => setTimeout(f, 5000));
 
 		await expect(testYotiLetterFileExists("pdf-", yotiSessionId)).resolves.toBeUndefined();
 		await expect(testYotiLetterFileExists("merged-pdf-", yotiSessionId)).resolves.toBeUndefined();
