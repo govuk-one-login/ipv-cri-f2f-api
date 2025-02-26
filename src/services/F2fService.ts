@@ -488,8 +488,8 @@ export class F2fService {
 				await this.dynamo.send(updateUserDetails);
 				this.logger.info({ message: "Updated postal address and pdfPreference details in dynamodb" });
 			} catch (error) {
-				this.logger.error({ message: "Got error saving pdfPreference or postal address details", error });
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving pdfPreference or postal address details");
+				this.logger.error({ message: `Got error updating pdfPreference or postal address details in ${tableName}`, error });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating pdfPreference or postal address details in ${tableName}`);
 			}
 		} else {
 			const updateUserPreference = new UpdateCommand({
@@ -506,7 +506,7 @@ export class F2fService {
 				this.logger.info({ message: `Updated ${tableName} with pdfPreference` });
 			} catch (error) {
 				this.logger.error({ message: `Got error updating pdfPreference in ${tableName}`, error });
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating pdfPreference in ${tableName}`);
 			}
 		}
 		const personIdentityItem = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
