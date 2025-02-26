@@ -700,7 +700,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		await mockDocumentSelectionRequestProcessor.processRequest(payload, "RandomF2FSessionID", encodedHeader);
+		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(payload, "RandomF2FSessionID", encodedHeader);
 
 		// @ts-ignore
 		expect(mockDocumentSelectionRequestProcessor.stepFunctionsClient.send).toHaveBeenCalledWith(
@@ -714,6 +714,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(2, "document_type", "ukPassport");
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "DocSelect_document_selected", MetricUnits.Count, 1);
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(4, "DocSelect_doc_select_complete", MetricUnits.Count, 1);
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 
 	});
 });

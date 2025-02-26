@@ -1412,9 +1412,9 @@ components:
               description: Number of building on street
               example: "32"
               maxLength: 30
-            thoroughfareName:
+            streetName:
               type: string
-              description: Dependent thoroughfare
+              description: Street name
               example: "Hazelnut Street"
               maxLength: 60
             addressLocality:
