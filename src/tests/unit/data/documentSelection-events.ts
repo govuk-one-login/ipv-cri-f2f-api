@@ -185,7 +185,7 @@ export const PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS = {
             	"uprn": 1235,
             	"buildingName": "The Cave",
             	"buildingNumber": "2",
-            	"postalCode": "R1 0CK",
+            	"postalCode": "BA2 5AA",
             	"streetName": "Rocky Road",
             	"addressLocality": "Bedrock",
             	"addressCountry": "CARTOONLAND",
