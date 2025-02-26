@@ -24,7 +24,6 @@ export interface PersonIdentityAddress {
 	validFrom?: string;
 	validUntil?: string;
 	preferredAddress: boolean;
-	thoroughfareName?: string;
 }
 
 export interface PersonIdentityDateOfBirth {
