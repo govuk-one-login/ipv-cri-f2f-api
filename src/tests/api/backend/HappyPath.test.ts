@@ -84,13 +84,16 @@ describe("/documentSelection Endpoint", () => {
 
 		await postDocumentSelection(docSelectionData, sessionId);
 
-		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_YOTI_SESSION_CREATED");
+		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		expect(session?.authSessionState).toBe("F2F_YOTI_SESSION_CREATED");
 
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 3);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: yotiStartSchema }, allTxmaEventBodies);
 		if (!constants.THIRD_PARTY_CLIENT_ID) {
 			validateTxMAEventData({ eventName: "F2F_YOTI_PDF_EMAILED", schemaName: "F2F_YOTI_PDF_EMAILED_SCHEMA" }, allTxmaEventBodies);
+			// eslint-disable-next-line jest/no-conditional-expect
+			expect(session?.yotiSessionId).toContain(yotiMockId);
 		}
 	});
 
