@@ -1380,7 +1380,63 @@ components:
           maxLength: 60
         postal_address:
           type: object
-          additionalProperties: true
+          additionalProperties: false
+          properties:
+            uprn:
+              type: string
+              description: Unique Property Reference Number
+              example: "123456789"
+              maxLength: 60
+            departmentName:
+              type: string
+              description: Name of department registered at organisation address
+              example: "Greggs 1"
+              maxLength: 60
+            organisationName:
+              type: string
+              description: Name of organisation registered at address
+              example: "Greggs"
+              maxLength: 60
+            subBuildingName:
+              type: string
+              description: Name of residential sub unit
+              example: "Flat 20"
+              maxLength: 60
+            buildingName:
+              type: string
+              description: Name of building
+              example: "Krelboyne Mansions"
+              maxLength: 60
+            buildingNumber:
+              type: string
+              description: Number of building on street
+              example: "32"
+              maxLength: 30
+            thoroughfareName:
+              type: string
+              description: Dependent thoroughfare
+              example: "Hazelnut Street"
+              maxLength: 60
+            addressLocality:
+              type: string
+              description: Name of locality
+              example: "London"
+              maxLength: 60
+            doubleLocality:
+              type: string
+              description: To distinguish between similar thoroughfares within a dependent locality.
+              example: "London"
+              maxLength: 60
+            postalCode:
+              type: string
+              description: Postal code
+              example: "SW1A1AA"
+              maxLength: 30
+            preferredAddress:
+              type: boolean
+              description: Indicates user's preferred address for postal correspondence 
+              example: true
+              maxLength: 60
     JWKSFile:
       type: object
       required:
