@@ -96,9 +96,9 @@ describe("PdfGenerationServiceTest", () => {
 	});
 
 	describe("#mapToAddressLines", () => {
-		it("should map all fields correctly when present", async () => {
+		it("should map all fields correctly when present", () => {
 			const postalAddress: PersonIdentityAddress = person.addresses[0];
-			const result = await pdfGenerationService.mapToAddressLines(postalAddress);
+			const result = pdfGenerationService.mapToAddressLines(postalAddress);
 			expect(result).toEqual([
 				"Test dept",
 				"Test org",
@@ -111,9 +111,9 @@ describe("PdfGenerationServiceTest", () => {
 		});
 	});
 
-	it("should omit missing fields from mapped address", async () => {
+	it("should omit missing fields from mapped address", () => {
 		const { organisationName, departmentName, ...postalAddress }: PersonIdentityAddress = person.addresses[0];
-		const result = await pdfGenerationService.mapToAddressLines(postalAddress);
+		const result = pdfGenerationService.mapToAddressLines(postalAddress);
 		expect(result).toEqual([
 			"Flat 5",
 			"Sherman",
