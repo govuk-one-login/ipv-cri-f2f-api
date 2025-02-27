@@ -3,6 +3,7 @@ import { XMLParser } from "fast-xml-parser";
 import { HARNESS_API_INSTANCE } from "./ApiTestSteps";
 import { TxmaEvent, TxmaEventName } from "../../utils/TxmaEvent";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import jp from "jsonpath";
 const client = new LambdaClient({ region: process.env.REGION });
 import * as F2F_CRI_AUTH_CODE_ISSUED_SCHEMA from "../data/F2F_CRI_AUTH_CODE_ISSUED_SCHEMA.json";
 import * as F2F_CRI_END_SCHEMA from "../data/F2F_CRI_END_SCHEMA.json";
@@ -24,6 +25,7 @@ import * as F2F_YOTI_START_02_SCHEMA from "../data/F2F_YOTI_START_02_SCHEMA.json
 import * as F2F_YOTI_START_04_SCHEMA from "../data/F2F_YOTI_START_04_SCHEMA.json";
 import * as F2F_YOTI_START_05_SCHEMA from "../data/F2F_YOTI_START_05_SCHEMA.json";
 import * as F2F_CRI_SESSION_ABORTED_SCHEMA from "../data/F2F_CRI_SESSION_ABORTED_SCHEMA.json";
+import { PostalAddress } from "../api/types";
 
 const ajv = new Ajv({ strictTuples: false });
 ajv.addSchema(F2F_CRI_AUTH_CODE_ISSUED_SCHEMA, "F2F_CRI_AUTH_CODE_ISSUED_SCHEMA");
@@ -139,6 +141,51 @@ export function validateTxMAEventData(
 	} else {
 		throw new Error(`No event found in the test harness for ${eventName} event`);
 	}
+}
+
+export function validateTxMAEventField(
+	{
+		eventName,
+		jsonPath,
+		expectedValue,
+	}: {
+		eventName: TxmaEventName;
+		jsonPath: string;
+		expectedValue: unknown;
+	},
+	allTxmaEventBodies: AllTxmaEvents = {},
+): void {
+	const currentEventBody: TxmaEvent | undefined = allTxmaEventBodies[eventName];
+
+	if (!currentEventBody) {
+		throw new Error(`No event found in the test harness for ${eventName} event`);
+	}
+
+	try {
+		const results = jp.query(currentEventBody, jsonPath);
+		if (results.length === 0) {
+			throw new Error(`No value found for JSONPath ${jsonPath} in event ${eventName}`);
+		}
+		
+		expect(results[0]).toEqual(expectedValue);
+	} catch (error) {
+		console.error("Error validating event field", error);
+		throw error;
+	}
+}
+
+export function buildExpectedPostalAddress(data: { postal_address: PostalAddress }): PostalAddress {
+	return {
+		addressCountry: data.postal_address.addressCountry,
+		preferredAddress: data.postal_address.preferredAddress,
+		uprn: data.postal_address.uprn,
+		buildingName: data.postal_address.buildingName,
+		streetName: data.postal_address.streetName,
+		postalCode: data.postal_address.postalCode,
+		buildingNumber: data.postal_address.buildingNumber,
+		addressLocality: data.postal_address.addressLocality,
+		subBuildingName: data.postal_address.subBuildingName,
+	};
 }
 
 export async function invokeLambdaFunction(lambdaName: string, payload: object): Promise<void> {
