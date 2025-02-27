@@ -147,7 +147,7 @@ export function validateTxMAEventField(
 	{
 		eventName,
 		jsonPath,
-		expectedValue
+		expectedValue,
 	}: {
 		eventName: TxmaEventName;
 		jsonPath: string;

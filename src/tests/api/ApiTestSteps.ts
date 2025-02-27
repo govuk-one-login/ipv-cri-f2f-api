@@ -286,7 +286,7 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 
 export async function getPersonIdentityRecordById(
 	sessionId: string,
-	tableName: string
+	tableName: string,
 ): Promise<PersonIdentityItem | undefined> {
 	interface OriginalValue {
 		N?: number;
@@ -304,7 +304,7 @@ export async function getPersonIdentityRecordById(
 
 	const unwrapValue = (key: string, value: OriginalValue): any => {
 		// Check for 'uprn' FIRST
-		if (key === 'uprn' && value.S !== undefined) {
+		if (key === "uprn" && value.S !== undefined) {
 			const num = parseInt(value.S, 10);
 			if (!isNaN(num)) {
 				return num;
@@ -326,7 +326,7 @@ export async function getPersonIdentityRecordById(
 		}
 		if (value.M !== undefined) {
 			return Object.fromEntries(
-				Object.entries(value.M).map(([k, v]) => [k, unwrapValue(k, v)])
+				Object.entries(value.M).map(([k, v]) => [k, unwrapValue(k, v)]),
 			);
 		}
 		return value;
@@ -335,14 +335,14 @@ export async function getPersonIdentityRecordById(
 	try {
 		const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(
 			`getRecordBySessionId/${tableName}/${sessionId}`,
-			{}
+			{},
 		);
 		const originalSession = response.data.Item;
 		session = Object.fromEntries(
-			Object.entries(originalSession).map(([key, value]) => [key, unwrapValue(key, value)])
+			Object.entries(originalSession).map(([key, value]) => [key, unwrapValue(key, value)]),
 		) as unknown as PersonIdentityItem;
 	} catch (e: any) {
-		console.error({ message: 'getSessionById - failed getting session from Dynamo', e });
+		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
 	}
 
 	return session;
