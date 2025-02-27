@@ -16,7 +16,7 @@ export class SendEmailProcessor {
   private readonly govNotifyService: SendEmailService;
 
   constructor(private readonly logger: Logger, private readonly metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, govnotifyServiceId: string) {
-  	this.validationHelper = new ValidationHelper();
+  	this.validationHelper = new ValidationHgelper();
   	this.govNotifyService = SendEmailService.getInstance(this.logger, this.metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId);
   }
 
@@ -37,7 +37,7 @@ export class SendEmailProcessor {
   			const pdfEmailResult = await this.govNotifyService.sendYotiPdfEmail(email);
   			const pdfMetric = this.metrics.singleMetric();
   			pdfMetric.addDimension("emailType", "Pdf");
-  			pdfMetric.addMetric("GovNotify_PDF_email_sent", MetricUnits.Count, 1);
+  			pdfMetric.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
   			return pdfEmailResult;
   		}
   		case Constants.REMINDER_EMAIL_DYNAMIC: {
@@ -46,7 +46,7 @@ export class SendEmailProcessor {
   			const dynamicResult = await this.govNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);
   			const dynamicMetric = this.metrics.singleMetric();
   			dynamicMetric.addDimension("emailType", "dynamic_reminder");
-  			dynamicMetric.addMetric("GovNotify_PDF_email_sent", MetricUnits.Count, 1);
+  			dynamicMetric.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
   			return dynamicResult;
   		}
   		case Constants.REMINDER_EMAIL: {
@@ -55,7 +55,7 @@ export class SendEmailProcessor {
   			const reminderResult = await this.govNotifyService.sendReminderEmail(reminderEmail);
   			const reminderMetric = this.metrics.singleMetric();
   			reminderMetric.addDimension("emailType", "reminder");
-  			reminderMetric.addMetric("GovNotify_PDF_email_sent", MetricUnits.Count, 1);
+  			reminderMetric.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
   			return reminderResult;
   		}
   	}
