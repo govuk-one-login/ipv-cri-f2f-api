@@ -2,8 +2,6 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
-import { EnvironmentVariables } from "./services/EnvironmentVariables";
-import { ServicesEnum } from "./models/enums/ServicesEnum";
 import { AppError } from "./utils/AppError";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { MessageCodes } from "./models/enums/MessageCodes";
