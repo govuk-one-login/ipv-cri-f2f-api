@@ -332,11 +332,6 @@ export class EnvironmentVariables {
 					logger.error("Environment variable SESSION_TABLE, YOTI_LETTER_BUCKET, YOTI_PDF_BUCKET_COVER_LETTER_FOLDER, YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER or YOTI_PDF_BUCKET_LETTER_FOLDER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "GenerateYotiLetter Service incorrectly configured");
 				}
-
-				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS < 15) { 
-					this.YOTI_SESSION_TTL_DAYS = 10;
-					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set or below 15 days. Setting to minimum - 15 days.");
-				}
 				break;
 			}
 			

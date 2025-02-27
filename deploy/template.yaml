@@ -5141,7 +5141,6 @@ Resources:
           YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER: merged-pdf
           YOTI_PDF_BUCKET_COVER_LETTER_FOLDER: cover-pdf
           YOTI_PDF_BUCKET_LETTER_FOLDER: pdf
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
