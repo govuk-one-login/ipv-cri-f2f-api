@@ -334,7 +334,7 @@ export class EnvironmentVariables {
 				}
 
 				if (!this.YOTI_SESSION_TTL_DAYS || this.YOTI_SESSION_TTL_DAYS < 15) { 
-					this.YOTI_SESSION_TTL_DAYS = 10;
+					this.YOTI_SESSION_TTL_DAYS = 15;
 					logger.warn("YOTI_SESSION_TTL_DAYS env var is not set or below 15 days. Setting to minimum - 15 days.");
 				}
 				break;
