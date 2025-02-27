@@ -284,9 +284,12 @@ export async function getSessionById(sessionId: string, tableName: string): Prom
 	return session;
 }
 
-export async function getPersonIdentityRecordById(sessionId: string, tableName: string): Promise<PersonIdentityItem | undefined> {
+export async function getPersonIdentityRecordById(
+	sessionId: string,
+	tableName: string
+): Promise<PersonIdentityItem | undefined> {
 	interface OriginalValue {
-		N?: string;
+		N?: number;
 		S?: string;
 		BOOL?: boolean;
 		L?: OriginalValue[];
@@ -299,7 +302,16 @@ export async function getPersonIdentityRecordById(sessionId: string, tableName: 
 
 	let session: PersonIdentityItem | undefined;
 
-	const unwrapValue = (value: OriginalValue): any => {
+	const unwrapValue = (key: string, value: OriginalValue): any => {
+		// Check for 'uprn' FIRST
+		if (key === 'uprn' && value.S !== undefined) {
+			const num = parseInt(value.S, 10);
+			if (!isNaN(num)) {
+				return num;
+			}
+		}
+
+		// Then handle other types
 		if (value.N !== undefined) {
 			return value.N;
 		}
@@ -310,22 +322,27 @@ export async function getPersonIdentityRecordById(sessionId: string, tableName: 
 			return value.BOOL;
 		}
 		if (value.L !== undefined) {
-			return value.L.map(unwrapValue);
+			return value.L.map((v) => unwrapValue(key, v));
 		}
 		if (value.M !== undefined) {
-			return Object.fromEntries(Object.entries(value.M).map(([k, v]) => [k, unwrapValue(v)]));
+			return Object.fromEntries(
+				Object.entries(value.M).map(([k, v]) => [k, unwrapValue(k, v)])
+			);
 		}
 		return value;
 	};
 
 	try {
-		const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
+		const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(
+			`getRecordBySessionId/${tableName}/${sessionId}`,
+			{}
+		);
 		const originalSession = response.data.Item;
 		session = Object.fromEntries(
-			Object.entries(originalSession).map(([key, value]) => [key, unwrapValue(value)]),
+			Object.entries(originalSession).map(([key, value]) => [key, unwrapValue(key, value)])
 		) as unknown as PersonIdentityItem;
 	} catch (e: any) {
-		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
+		console.error({ message: 'getSessionById - failed getting session from Dynamo', e });
 	}
 
 	return session;
