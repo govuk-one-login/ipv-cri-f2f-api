@@ -16,7 +16,7 @@ export class SendEmailProcessor {
   private readonly govNotifyService: SendEmailService;
 
   constructor(private readonly logger: Logger, private readonly metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, govnotifyServiceId: string) {
-  	this.validationHelper = new ValidationHgelper();
+  	this.validationHelper = new ValidationHelper();
   	this.govNotifyService = SendEmailService.getInstance(this.logger, this.metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId);
   }
 
