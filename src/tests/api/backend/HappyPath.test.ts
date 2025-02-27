@@ -187,7 +187,7 @@ describe("/documentSelection Endpoint", () => {
 		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.restricted.postalAddress[0]", expectedValue: addressFromRecord }, allTxmaEventBodies);
 	});
 
-	it.only.each([
+	it.each([
 		{ docSelectionData: dataUkDrivingLicencePreferredAddress },
 	])("Successful Request Tests - $PreferredAddress", async ({ docSelectionData }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
