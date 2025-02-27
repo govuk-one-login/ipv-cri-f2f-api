@@ -115,8 +115,7 @@ export class DocumentSelectionRequestProcessor {
 				singleMetric.addMetric("DocSelect_validation_failed", MetricUnits.Count, 1);
 
   			return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
-  		} else if (
-				(postalAddress && (!postalAddress.postalCode || !postalAddress.buildingName || !postalAddress.buildingNumber))
+  		} else if (postalAddress && (!postalAddress.postalCode || (!postalAddress.buildingNumber && !postalAddress.buildingName))
 			) {
 				this.logger.error("Postal address missing mandatory fields in postal address", {
 					messageCode: MessageCodes.MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS,

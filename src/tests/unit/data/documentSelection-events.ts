@@ -145,7 +145,6 @@ export const MISSING_PDF_PREFERENCE = {
 	}),
 };
 
-// User opts for Printed Customer Letter option
 export const PCL_VALID_REQUEST = {
 	...VALID_REQUEST,
 	body: JSON.stringify({
@@ -184,7 +183,36 @@ export const PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS = {
 		"postal_address": 
             {
             	"uprn": 1235,
+            	"buildingName": "The Cave",
             	"buildingNumber": "2",
+            	"postalCode": "BA2 5AA",
+            	"streetName": "Rocky Road",
+            	"addressLocality": "Bedrock",
+            	"addressCountry": "CARTOONLAND",
+            	"preferredAddress": true,
+            },
+	}),
+};
+
+export const PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NUMBER = {
+	...VALID_REQUEST,
+	body: JSON.stringify({
+		"document_selection":{
+			"document_selected":"ukPassport",
+			"date_of_expiry":"1970-01-01",
+		},
+		"post_office_selection":{
+			"address":"1 The Street, Funkytown",
+			"location":{
+				"latitude":0.34322,
+				"longitude":-42.48372,
+			},
+			"post_code":"SW19 4NS",
+		},
+		"pdf_preference": PdfPreferenceEnum.PRINTED_LETTER,
+		"postal_address": 
+            {
+            	"uprn": 1235,
             	"buildingName": "The Cave",
             	"postalCode": "R1 0CK",
             	"streetName": "Rocky Road",
@@ -195,7 +223,36 @@ export const PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS = {
 	}),
 };
 
-export const PCL_MISSING_POSTAL_CODE = {
+export const PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME = {
+	...VALID_REQUEST,
+	body: JSON.stringify({
+		"document_selection":{
+			"document_selected":"ukPassport",
+			"date_of_expiry":"1970-01-01",
+		},
+		"post_office_selection":{
+			"address":"1 The Street, Funkytown",
+			"location":{
+				"latitude":0.34322,
+				"longitude":-42.48372,
+			},
+			"post_code":"SW19 4NS",
+		},
+		"pdf_preference": PdfPreferenceEnum.PRINTED_LETTER,
+		"postal_address": 
+            {
+            	"uprn": 1235,
+            	"buildingNumber": "2",
+            	"streetName": "Rocky Road",
+            	"postalCode": "R1 0CK",
+            	"addressLocality": "Bedrock",
+            	"addressCountry": "CARTOONLAND",
+            	"preferredAddress": true,
+            },
+	}),
+};
+
+export const PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_POSTAL_CODE = {
 	...VALID_REQUEST,
 	body: JSON.stringify({
 		"document_selection":{
@@ -224,7 +281,7 @@ export const PCL_MISSING_POSTAL_CODE = {
 	}),
 };
 
-export const PCL_MISSING_BUILDING_NAME_AND_NUMBER = {
+export const PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME_AND_NUMBER = {
 	...VALID_REQUEST,
 	body: JSON.stringify({
 		"document_selection":{
@@ -250,4 +307,3 @@ export const PCL_MISSING_BUILDING_NAME_AND_NUMBER = {
             },
 	}),
 };
-

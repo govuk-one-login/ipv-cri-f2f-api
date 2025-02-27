@@ -16,8 +16,12 @@ import {
 	PCL_VALID_REQUEST,
 	PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS,
 	MISSING_PDF_PREFERENCE,
-	PCL_MISSING_BUILDING_NAME_AND_NUMBER,
-	PCL_MISSING_POSTAL_CODE,
+	PCL_VALID_REQUEST,
+	PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS,
+	PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NUMBER,
+	PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME,
+	PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME_AND_NUMBER,
+	PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_POSTAL_CODE,
 } from "../data/documentSelection-events";
 import { YotiService } from "../../../services/YotiService";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
@@ -323,8 +327,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 	});
 
 	it.each([
-		PCL_MISSING_POSTAL_CODE,
-		PCL_MISSING_BUILDING_NAME_AND_NUMBER,
+		PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_POSTAL_CODE,
+		PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME_AND_NUMBER,
 	])("Returns bad request response when printed letter and new postal address options are selected, but mandatory fields within postal_address are missing from FE payload", async (payload) => {
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(payload, "1234", encodedHeader);
 		
@@ -683,6 +687,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 	it.each([
 		PCL_VALID_REQUEST,
 		PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS,
+		PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NUMBER,
+		PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME,
 	])("invokes step function if PRINTED_CUSTOMER_LETTER_ENABLED set to true", async (payload) => {
 		(getParameter as jest.Mock).mockResolvedValueOnce("true");
 
@@ -696,7 +702,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		await mockDocumentSelectionRequestProcessor.processRequest(payload, "RandomF2FSessionID", encodedHeader);
+		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(payload, "RandomF2FSessionID", encodedHeader);
 
 		// @ts-ignore
 		expect(mockDocumentSelectionRequestProcessor.stepFunctionsClient.send).toHaveBeenCalledWith(
@@ -710,6 +716,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(2, "document_type", "ukPassport");
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "DocSelect_document_selected", MetricUnits.Count, 1);
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(4, "DocSelect_doc_select_complete", MetricUnits.Count, 1);
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 
 	});
 });

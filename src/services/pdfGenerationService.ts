@@ -293,7 +293,7 @@ private getLongDate(today: Date, locale: string):string {
 	});
 }
 
-private mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
+mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 	const address = [];
 	if (postalAddress.departmentName) {
 		address.push(postalAddress.departmentName);
@@ -310,9 +310,8 @@ private mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 	if (postalAddress.dependentStreetName) {
 		address.push(postalAddress.dependentStreetName);
 	}
-	if (postalAddress.thoroughfareName) {
-		address.push(postalAddress.buildingNumber + " " + postalAddress.thoroughfareName);
-	} else if (postalAddress.streetName) {
+
+	if (postalAddress.streetName) {
 		address.push(postalAddress.buildingNumber + " " + postalAddress.streetName);
 	}
 	if (postalAddress.addressLocality) {
