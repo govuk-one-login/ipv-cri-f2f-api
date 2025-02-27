@@ -305,7 +305,7 @@ export const MISSING_PREFERRED_ADDRESS = {
             	"streetName": "Demo",
             	"addressLocality": "London",
             	"addressCountry": "GB",
-            	"postalCode": "SW19",
+            	"postalCode": "BA2 5AA",
             },
 	}),
 };

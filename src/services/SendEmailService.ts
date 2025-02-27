@@ -413,10 +413,10 @@ export class SendEmailService {
   				this.logger,
   				this.metrics,
   				this.YOTI_PRIVATE_KEY,
-  				yotiBaseUrl,
   			);
   			const instructionsPdf = await this.yotiService.fetchInstructionsPdf(
   				message.yotiSessionId,
+  				yotiBaseUrl,
   			);
   			if (instructionsPdf) {
   				const encoded = Buffer.from(instructionsPdf, "binary").toString(
