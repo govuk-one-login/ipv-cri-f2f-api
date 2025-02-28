@@ -213,7 +213,7 @@ describe("/documentSelection Endpoint", () => {
 		const preferredAddress = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
 		expect(preferredAddress).toBeDefined();
 		expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
-		expect(preferredAddress?.uprn).toBe(docSelectionData.postal_address.uprn);
+		expect(Number(preferredAddress?.uprn)).toBe(docSelectionData.postal_address.uprn);
 		expect(preferredAddress?.buildingNumber).toBe(docSelectionData.postal_address.buildingNumber);
 		expect(preferredAddress?.buildingName).toBe(docSelectionData.postal_address.buildingName);
 		expect(preferredAddress?.subBuildingName).toBe(docSelectionData.postal_address.subBuildingName);
