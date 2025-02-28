@@ -29,6 +29,7 @@
     "express": "^4.18.2",
     "express-asyncify": "^2.1.2",
     "jose": "^5.2.1",
+    "jsonpath": "^1.1.1",
     "lodash": "^4.17.21",
     "node-jose": "^2.1.1",
     "node-rsa": "^1.1.1",

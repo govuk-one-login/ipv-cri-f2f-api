@@ -5,7 +5,7 @@ import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
 import { PersonIdentityItem } from "../../models/PersonIdentityItem";
-import * as NodeRSA  from "node-rsa";
+import * as NodeRSA from "node-rsa";
 import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";
@@ -112,9 +112,8 @@ export function validatePersonInfoResponse(personInfoKey: string, personInfoResp
 	const privateKey = new NodeRSA.default(personInfoKey);
 	const encryptedValue = personInfoResponse;
 	const decryptedValue = privateKey.decrypt(encryptedValue, "utf8");
-	console.log(decryptedValue);
-	expect(decryptedValue).toBe("{\"address_line1\":\"" + address_line1 +  "\",\"address_line2\":\"" + address_line2  + "\",\"town_city\":\"" + town_city + "\",\"postal_code\":\"" + postalCode + "\"}");
-	
+	expect(decryptedValue).toBe("{\"address_line1\":\"" + address_line1 + "\",\"address_line2\":\"" + address_line2 + "\",\"town_city\":\"" + town_city + "\",\"postal_code\":\"" + postalCode + "\"}");
+
 }
 
 
@@ -251,37 +250,37 @@ export function generateRandomAlphanumeric(substringStart: number, substringEnd:
 
 export async function getSessionById(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
 	interface OriginalValue {
-	  N?: string;
-	  S?: string;
-	  BOOL?: boolean;
+		N?: string;
+		S?: string;
+		BOOL?: boolean;
 	}
-  
+
 	interface OriginalSessionItem {
-	  [key: string]: OriginalValue;
+		[key: string]: OriginalValue;
 	}
-  
+
 	let session: ISessionItem | undefined;
 	try {
-	  const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
-	  const originalSession = response.data.Item;
-  
-	  session = Object.fromEntries(
+		const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
+		const originalSession = response.data.Item;
+
+		session = Object.fromEntries(
 			Object.entries(originalSession).map(([key, value]) => {
-		  if (value.N !== undefined) {
+				if (value.N !== undefined) {
 					return [key, Number(value.N)];
-		  } else if (value.S !== undefined) {
+				} else if (value.S !== undefined) {
 					return [key, value.S];
-		  } else if (value.BOOL !== undefined) {
+				} else if (value.BOOL !== undefined) {
 					return [key, value.BOOL];
-		  } else {
+				} else {
 					return [key, undefined];
-		  }
+				}
 			}),
-	  ) as unknown as ISessionItem;
+		) as unknown as ISessionItem;
 	} catch (e: any) {
-	  console.error({ message: "getSessionById - failed getting session from Dynamo", e });
+		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
 	}
-  
+
 	return session;
 }
 
@@ -306,8 +305,8 @@ export async function getPersonIdentityRecordById(
 	const unwrapValue = (key: string, value: OriginalValue): any => {
 		// Check for 'uprn' FIRST
 		if (key === "uprn" && value.S !== undefined) {
-			const num = parseInt(value.S, 10);
-			if (!isNaN(num)) {
+			const num = Number(value.S); 
+			if (Number.isInteger(num)) { 
 				return num;
 			}
 		}
