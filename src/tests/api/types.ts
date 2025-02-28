@@ -18,12 +18,11 @@ export interface DocSelectionData {
 	pdf_preference: string;
 	postal_address?: {
 
-		uprn?: number;
+		uprn?: string;
 		buildingNumber?: string;
 		buildingName?: string;
 		streetName?: string;
 		addressLocality?: string;
-		addressCountry?: string;
 		preferredAddress?: boolean;
 		subBuildingName?: string;
 
