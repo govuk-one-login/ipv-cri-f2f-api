@@ -61,6 +61,7 @@ export async function stubStartPost(stubPayload: StubStartRequest): Promise<Axio
 	const path = constants.DEV_IPV_F2F_STUB_URL;
 	if (constants.THIRD_PARTY_CLIENT_ID) {
 		stubPayload.clientId = constants.THIRD_PARTY_CLIENT_ID;
+		delete stubPayload.yotiMockID;
 	}
 	try {
 		const postRequest = await axios.post(`${path}`, stubPayload);
