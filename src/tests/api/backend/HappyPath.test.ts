@@ -165,7 +165,7 @@ describe("/documentSelection Endpoint", () => {
 			// eslint-disable-next-line jest/no-conditional-expect
 			expect(addressFromRecord.uprn).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
 		} else {
-			fail("Address not found in personIdentityRecord");
+			throw new Error("Address not found in personIdentityRecord");
 		}
 		
 		// Check that the DynamoDB table address matches what was passed into the shared_claims
