@@ -125,12 +125,12 @@ export class YotiSessionCompletionProcessor {
 				return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 			}
 
-			this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
+			this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY);
 
 
 		  this.logger.info({ message: "Fetching status for Yoti SessionID" });
 		  // eslint-disable-next-line max-len
-		  const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries());
+		  const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries(), clientConfig.YotiBaseUrl);
 
 		  if (!completedYotiSessionInfo) {
 			  this.logger.error({ message: "No YOTI Session found with ID:" }, {
@@ -190,7 +190,7 @@ export class YotiSessionCompletionProcessor {
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields media ID not found");
 		  }
 
-		  const documentFields = await this.yotiService.getMediaContent(yotiSessionID, documentFieldsId);
+		  const documentFields = await this.yotiService.getMediaContent(yotiSessionID, clientConfig.YotiBaseUrl, documentFieldsId);
 		  if (!documentFields) {
 			  this.logger.error({ message: "No document fields info found" }, {
 				  documentFieldsId,
