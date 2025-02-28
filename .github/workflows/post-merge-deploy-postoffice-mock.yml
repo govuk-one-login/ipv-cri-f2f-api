@@ -74,7 +74,7 @@ jobs:
         run: sam build -t template.yaml
 
       - name: Deploy SAM app
-        uses: govuk-one-login/devplatform-upload-action@v3.9.2
+        uses: govuk-one-login/devplatform-upload-action@v3.9.3
         with:
             artifact-bucket-name: ${{ secrets[format('{0}_PO_MOCK_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
             signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
