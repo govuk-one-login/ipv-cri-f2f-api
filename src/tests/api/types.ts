@@ -17,7 +17,7 @@ export interface DocSelectionData {
 	fad_code?: string;
 	pdf_preference: string;
 	postal_address?: {
-		
+
 		uprn?: number;
 		buildingNumber?: string;
 		buildingName?: string;
@@ -30,9 +30,22 @@ export interface DocSelectionData {
 	};
 }
 
+export interface PostalAddress {
+	addressCountry: string;
+	preferredAddress: boolean;
+	uprn: number;
+	buildingName: string;
+	streetName: string;
+	postalCode: string;
+	buildingNumber: string;
+	addressLocality: string;
+	subBuildingName: string;
+}
+
+
 export interface StubStartRequest {
 	clientId?: string;
-	yotiMockID: string;
+	yotiMockID?: string;
 	shared_claims: {
 		name: Name[];
 		birthDate: BirthDate[];

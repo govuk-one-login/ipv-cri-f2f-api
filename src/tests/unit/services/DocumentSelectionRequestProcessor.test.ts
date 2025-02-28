@@ -14,13 +14,12 @@ import {
 	VALID_NON_UK_PASSPORT_REQUEST,
 	VALID_REQUEST,
 	MISSING_PDF_PREFERENCE,
-	MISSING_UPRN,
-	MISSING_BUILDING_NUMBER_AND_BUILDING_NAME,
-	MISSING_STREET_NAME,
-	MISSING_ADDRESS_LOCALITY,
-	MISSING_ADDRESS_COUNTRY,
-	MISSING_POSTAL_CODE,
-	MISSING_PREFERRED_ADDRESS,
+	PCL_VALID_REQUEST,
+	PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS,
+	PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NUMBER,
+	PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME,
+	PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME_AND_NUMBER,
+	PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_POSTAL_CODE,
 } from "../data/documentSelection-events";
 import { YotiService } from "../../../services/YotiService";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
@@ -326,14 +325,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 	});
 
 	it.each([
-		MISSING_UPRN,
-		MISSING_BUILDING_NUMBER_AND_BUILDING_NAME,
-		MISSING_STREET_NAME,
-		MISSING_ADDRESS_LOCALITY,
-		MISSING_ADDRESS_COUNTRY,
-		MISSING_POSTAL_CODE,
-		MISSING_PREFERRED_ADDRESS,
-	])("Returns bad request response when postal_address is present but mandatory fields within postal_address are missing from FE payload", async (payload) => {
+		PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_POSTAL_CODE,
+		PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME_AND_NUMBER,
+	])("Returns bad request response when printed letter and new postal address options are selected, but mandatory fields within postal_address are missing from FE payload", async (payload) => {
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(payload, "1234", encodedHeader);
 		
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
@@ -688,7 +682,12 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.body).toBe("An error has occurred");
 	});
 
-	it("invokes step function if PRINTED_CUSTOMER_LETTER_ENABLED set to true", async () => {
+	it.each([
+		PCL_VALID_REQUEST,
+		PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS,
+		PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NUMBER,
+		PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME,
+	])("invokes step function if PRINTED_CUSTOMER_LETTER_ENABLED set to true", async (payload) => {
 		(getParameter as jest.Mock).mockResolvedValueOnce("true");
 
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
@@ -701,7 +700,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
+		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(payload, "RandomF2FSessionID", encodedHeader);
 
 		// @ts-ignore
 		expect(mockDocumentSelectionRequestProcessor.stepFunctionsClient.send).toHaveBeenCalledWith(
@@ -715,6 +714,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(2, "document_type", "ukPassport");
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "DocSelect_document_selected", MetricUnits.Count, 1);
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(4, "DocSelect_doc_select_complete", MetricUnits.Count, 1);
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 
 	});
 });

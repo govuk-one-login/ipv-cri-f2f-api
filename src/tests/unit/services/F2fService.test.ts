@@ -16,6 +16,7 @@ import { createSqsClient } from "../../../utils/SqsClient";
 import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
+import { AppError } from "../../../utils/AppError";
 
 const logger = mock<Logger>();
 let f2fService: F2fService;
@@ -514,6 +515,22 @@ describe("F2f Service", () => {
 			
 		}),
 		);
+	});
+
+	it("should throw an error when update fails for pdfPreference", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce({ Item: personIdentityOutputRecord }).mockRejectedValue({});
+		await expect(f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressSameInputRecord, personTableName)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+			message: "updateItem - failed: got error updating pdfPreference in PERSONTABLE",
+		}));
+	});
+
+	it("should throw an error when update fails for pdfPreference or postal address", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce({ Item: personIdentityOutputRecordTwoAddresses }).mockRejectedValue({});
+		await expect(f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressDifferentInputRecord, personTableName)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+			message: "updateItem - failed: got error updating pdfPreference or postal address details in PERSONTABLE",
+		}));
 	});
 
 	describe("obfuscateJSONValues", () => {
