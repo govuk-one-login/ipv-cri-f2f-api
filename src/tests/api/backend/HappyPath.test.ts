@@ -185,6 +185,7 @@ describe("/documentSelection Endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 
 		// Check that F2F_YOTI_PDF_LETTER_POSTED event matches the Schema and contains correct values for differentPostalAddress and postalAddress
+		await new Promise(f => setTimeout(f, 5000));
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.extensions.differentPostalAddress", expectedValue: false }, allTxmaEventBodies);
@@ -226,6 +227,7 @@ describe("/documentSelection Endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 
 		// Check that F2F_YOTI_PDF_LETTER_POSTED event matches the Schema and contains correct values for differentPostalAddress and postalAddress
+		await new Promise(f => setTimeout(f, 5000));
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.extensions.differentPostalAddress", expectedValue: true }, allTxmaEventBodies);
