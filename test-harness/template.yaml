@@ -257,16 +257,8 @@ Resources:
                   - !Sub "arn:aws:s3:::${EventTestBucket}"
                   - !Sub "arn:aws:s3:::${EventTestBucket}/txma/*"
                   - !Sub "arn:aws:s3:::${EventTestBucket}/ipv-core/*"
-        - PolicyName: AccessYotiLetterBucket
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:GetObject"
-                  - "s3:ListBucket"
-                Resource:
-                  - Fn::ImportValue: !Sub "${BackendStack}-YotiLetterBucketArn"
+                  - !Sub "arn:aws:s3:::${BackendStack}-yotiletter-f2f-${Environment}"
+                  - !Sub "arn:aws:s3:::${BackendStack}-yotiletter-f2f-${Environment}/*"
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
@@ -354,6 +346,9 @@ Resources:
   TestHarnessRestApi:
     Type: AWS::Serverless::Api
     Properties:
+      BinaryMediaTypes:
+        - "application/pdf"
+        - "application/octet-stream"
       AlwaysDeploy: true
       StageName: !Ref Environment
       OpenApiVersion: 3.0.1

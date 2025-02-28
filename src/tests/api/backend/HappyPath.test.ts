@@ -431,7 +431,7 @@ describe("Yoti Letter Validation Tests", () => {
 		if (!yotiSessionId) throw new Error("no Yoti Session ID provided");
 
 		const pdfFileContent = await getYotiLetterFileContents("pdf-", yotiSessionId); 
-		expect(pdfFileContent.length).toBeGreaterThan(500);
+		expect(pdfFileContent.length).toBeGreaterThan(1000);
 	});
 
 	it("Email and Posted Letter - Happy Path Test", async () => {
@@ -450,10 +450,12 @@ describe("Yoti Letter Validation Tests", () => {
 		await new Promise(f => setTimeout(f, 5000));
 
 		const pdfFileContent = await getYotiLetterFileContents("pdf-", yotiSessionId); 
-		expect(pdfFileContent.length).toBeGreaterThan(500);
+		expect(pdfFileContent.length).toBeGreaterThan(1000);
+
 	  
 		const mergedPdfFileContent = await getYotiLetterFileContents("merged-pdf-", yotiSessionId);
-		expect(mergedPdfFileContent.length).toBeGreaterThan(500);
+		expect(mergedPdfFileContent.length).toBeGreaterThan(1000);
+
 	});
 });
 
