@@ -16,9 +16,8 @@
    "pdf_preference": "PRINTED_LETTER",
    "postal_address": 
             {
-               "addressCountry": "CARTOONLAND",
                "preferredAddress": true,
-               "uprn": 1235,
+               "uprn": "1235",
                "buildingName": "The Cave",
                "streetName": "Rocky Road",
                "postalCode": "HR5 3QU",
