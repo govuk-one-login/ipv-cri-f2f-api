@@ -162,6 +162,7 @@ describe("/documentSelection Endpoint", () => {
 
 		if (addressFromRecord) {
 			addressFromRecord.uprn = Number(addressFromRecord.uprn);
+			// eslint-disable-next-line jest/no-conditional-expect
 			expect(addressFromRecord.uprn).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
 		} else {
 			fail("Address not found in personIdentityRecord");

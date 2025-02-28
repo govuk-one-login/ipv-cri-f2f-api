@@ -3,7 +3,6 @@ import { XMLParser } from "fast-xml-parser";
 import { HARNESS_API_INSTANCE } from "./ApiTestSteps";
 import { TxmaEvent, TxmaEventName } from "../../utils/TxmaEvent";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
-import jp from "jsonpath";
 const client = new LambdaClient({ region: process.env.REGION });
 import * as F2F_CRI_AUTH_CODE_ISSUED_SCHEMA from "../data/F2F_CRI_AUTH_CODE_ISSUED_SCHEMA.json";
 import * as F2F_CRI_END_SCHEMA from "../data/F2F_CRI_END_SCHEMA.json";
