@@ -239,6 +239,8 @@ export class SessionRequestProcessor {
   	}
 
   	this.logger.info("Session created successfully. Returning 200OK");
+  	
+  	this.metrics.addMetric("session_created", MetricUnits.Count, 1);
 
   	return {
   		statusCode: HttpCodesEnum.OK,
