@@ -161,6 +161,7 @@ describe("/documentSelection Endpoint", () => {
 		const addressFromRecord = personIdentityRecord?.addresses[0];
 
 		if (addressFromRecord) {
+			addressFromRecord.uprn = Number(addressFromRecord.uprn);
 			// eslint-disable-next-line jest/no-conditional-expect
 			expect(addressFromRecord.uprn).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
 		} else {
@@ -211,7 +212,7 @@ describe("/documentSelection Endpoint", () => {
 		const preferredAddress = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
 		expect(preferredAddress).toBeDefined();
 		expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
-		expect(preferredAddress?.uprn).toBe(docSelectionData.postal_address.uprn);
+		expect(Number(preferredAddress?.uprn)).toBe(docSelectionData.postal_address.uprn);
 		expect(preferredAddress?.buildingNumber).toBe(docSelectionData.postal_address.buildingNumber);
 		expect(preferredAddress?.buildingName).toBe(docSelectionData.postal_address.buildingName);
 		expect(preferredAddress?.subBuildingName).toBe(docSelectionData.postal_address.subBuildingName);
