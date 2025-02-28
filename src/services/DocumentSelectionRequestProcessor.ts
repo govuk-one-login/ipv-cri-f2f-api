@@ -155,7 +155,7 @@ export class DocumentSelectionRequestProcessor {
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
+		this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY);
 
 		// Reject the request when session store does not contain email, familyName or GivenName fields
 		const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);
@@ -169,6 +169,7 @@ export class DocumentSelectionRequestProcessor {
 			const PRINTED_CUSTOMER_LETTER_ENABLED = await getParameter(this.environmentVariables.printedCustomerLetterEnabledSsmPath());
 			try {
 				yotiSessionId = await this.createSessionGenerateInstructions(
+					clientConfig.YotiBaseUrl,
 					personDetails,
 					f2fSessionInfo,
 					postOfficeSelection,
@@ -313,6 +314,7 @@ export class DocumentSelectionRequestProcessor {
 	}
 
 	async createSessionGenerateInstructions(
+		yotiBaseUrl: string,
 		personDetails: PersonIdentityItem,
 		f2fSessionInfo: ISessionItem,
 		postOfficeSelection: PostOfficeInfo,
@@ -321,7 +323,7 @@ export class DocumentSelectionRequestProcessor {
 	): Promise<string> {
 		this.logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
 
-		const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
+		const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, yotiBaseUrl, this.environmentVariables.yotiCallbackUrl());
 		this.metrics.addMetric("DocSelect_yoti_session_created", MetricUnits.Count, 1);
 
 		if (!yotiSessionId) {
@@ -330,7 +332,7 @@ export class DocumentSelectionRequestProcessor {
 		}
 
 		this.logger.info("Fetching Session Info");
-		const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId);
+		const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId, yotiBaseUrl);
 
 		if (!yotiSessionInfo) {
 			this.logger.error("An error occurred when fetching Yoti Session", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
@@ -373,6 +375,7 @@ export class DocumentSelectionRequestProcessor {
 			personDetails,
 			requirements,
 			postOfficeSelection,
+			yotiBaseUrl,
 		);
 
 		if (generateInstructionsResponse !== HttpCodesEnum.OK) {

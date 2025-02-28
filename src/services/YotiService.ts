@@ -28,22 +28,19 @@ export class YotiService {
 
 	readonly RESOURCES_TTL_SECS:number;
 
-	readonly YOTI_BASE_URL: string;
-
 	readonly validationHelper: ValidationHelper;
 
-	constructor(logger: Logger, metrics: Metrics, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number, PEM_KEY: string, YOTI_BASE_URL: string) {
+	constructor(logger: Logger, metrics: Metrics, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number, PEM_KEY: string) {
     	this.RESOURCES_TTL_SECS = RESOURCES_TTL_SECS;
     	this.YOTI_SESSION_TTL_DAYS = YOTI_SESSION_TTL_DAYS;
     	this.logger = logger;
 		this.metrics = metrics;
     	this.CLIENT_SDK_ID = CLIENT_SDK_ID;
     	this.PEM_KEY = PEM_KEY;
-    	this.YOTI_BASE_URL = YOTI_BASE_URL;
     	this.validationHelper = new ValidationHelper();
 	}
 
-	static getInstance(logger: Logger, metrics:Metrics, PEM_KEY: string, YOTI_BASE_URL: string): YotiService {
+	static getInstance(logger: Logger, metrics:Metrics, PEM_KEY: string): YotiService {
 		if (!YotiService.instance) {
 			const { YOTISDK, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS } = process.env;
 			YotiService.instance = new YotiService(
@@ -53,7 +50,6 @@ export class YotiService {
 				Number(RESOURCES_TTL_SECS),
 				Number(YOTI_SESSION_TTL_DAYS),
 				PEM_KEY,
-				YOTI_BASE_URL,
 			);
 		}
 		return YotiService.instance;
@@ -90,15 +86,15 @@ export class YotiService {
 	private generateYotiRequest(generateYotiPayload: {
     	method: any;
     	payloadJSON?: string;
+		yotiBaseUrl: string;
     	endpoint: any;
     	configResponseType?: any;
     	configResponseEncoding?: any;
 	}): { url: string; config: AxiosRequestConfig<any> | undefined } {
-    	const { method, endpoint } = generateYotiPayload;
+    	const { method, endpoint, yotiBaseUrl } = generateYotiPayload;
 
     	const nonce = randomUUID();
     	const unixTimestamp = Date.now();
-
     	const queryString = `sdkId=${this.CLIENT_SDK_ID}&nonce=${nonce}&timestamp=${unixTimestamp}`;
 
     	const endpointPath = `${endpoint}?${queryString}`;
@@ -143,7 +139,7 @@ export class YotiService {
     	}
 
     	return {
-    		url: `${this.YOTI_BASE_URL}${endpointPath}`,
+    		url: `${yotiBaseUrl}${endpointPath}`,
     		config,
     	};
 	}
@@ -152,6 +148,7 @@ export class YotiService {
     	personDetails: PersonIdentityItem,
     	selectedDocument: string,
     	countryCode: string,
+		yotiBaseUrl: string,
     	yotiCallbackUrl: string,
 	): Promise<string | undefined> {
     	const sessionDeadlineDate = new Date(new Date().getTime() + Number(process.env.YOTI_SESSION_TTL_DAYS) * 24 * 60 * 60 * 1000);
@@ -198,6 +195,7 @@ export class YotiService {
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.POST,
     		payloadJSON: JSON.stringify(payloadJSON),
+			yotiBaseUrl,
     		endpoint: "/sessions",
     	});
     	try {
@@ -229,9 +227,10 @@ export class YotiService {
     	}
 	}
 
-	async fetchSessionInfo(sessionId: string): Promise<YotiSessionInfo | undefined> {
+	async fetchSessionInfo(sessionId: string, yotiBaseUrl: string): Promise<YotiSessionInfo | undefined> {
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.GET,
+			yotiBaseUrl,
     		endpoint: `/sessions/${sessionId}/configuration`,
     	});
 		
@@ -261,6 +260,7 @@ export class YotiService {
     	personDetails: PersonIdentityItem,
     	requirements: Array<{ requirement_id: string; document: { type: string; country_code: string; document_type: string } } | undefined>,
     	PostOfficeSelection: PostOfficeInfo,
+		yotiBaseUrl: string,
 	):Promise<number | undefined> {
     	const nameParts = personIdentityUtils.getNames(personDetails);
     	const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(" ") : nameParts.givenNames[0];
@@ -281,6 +281,7 @@ export class YotiService {
 
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.PUT,
+			yotiBaseUrl,
     		endpoint: `/sessions/${sessionID}/instructions`,
     		payloadJSON: JSON.stringify(payloadJSON),
     	});
@@ -311,9 +312,10 @@ export class YotiService {
     	}
 	}
 
-	async fetchInstructionsPdf(sessionId: string): Promise<string | undefined> {
+	async fetchInstructionsPdf(sessionId: string, yotiBaseUrl: string): Promise<string | undefined> {
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.GET,
+			yotiBaseUrl,
     		endpoint: `/sessions/${sessionId}/instructions/pdf`,
     		configResponseType: "arraybuffer",
     		configResponseEncoding: "binary",
@@ -348,9 +350,10 @@ export class YotiService {
     	}
 	}
 
-	async getCompletedSessionInfo(sessionId: string, backoffPeriodMs: number, maxRetries: number): Promise<YotiCompletedSession | undefined> {
+	async getCompletedSessionInfo(sessionId: string, backoffPeriodMs: number, maxRetries: number, yotiBaseUrl: string): Promise<YotiCompletedSession | undefined> {
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.GET,
+			yotiBaseUrl,
     		endpoint: `/sessions/${sessionId}`,
     	});
 
@@ -398,9 +401,10 @@ export class YotiService {
     	}
 	}
 
-	async getMediaContent(sessionId: string, mediaId: string): Promise<any | undefined> {
+	async getMediaContent(sessionId: string, yotiBaseUrl: string, mediaId: string): Promise<any> {
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.GET,
+			yotiBaseUrl,
     		endpoint: `/sessions/${sessionId}/media/${mediaId}/content`,
     	});
 
