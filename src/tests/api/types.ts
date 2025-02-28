@@ -30,9 +30,8 @@ export interface DocSelectionData {
 }
 
 export interface PostalAddress {
-	addressCountry: string;
 	preferredAddress: boolean;
-	uprn: number;
+	uprn: string;
 	buildingName: string;
 	streetName: string;
 	postalCode: string;

@@ -176,7 +176,6 @@ export function validateTxMAEventField(
 
 export function buildExpectedPostalAddress(data: { postal_address: PostalAddress }): PostalAddress {
 	return {
-		addressCountry: data.postal_address.addressCountry,
 		preferredAddress: data.postal_address.preferredAddress,
 		uprn: data.postal_address.uprn,
 		buildingName: data.postal_address.buildingName,
