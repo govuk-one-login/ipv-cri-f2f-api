@@ -181,6 +181,7 @@ export class DocumentSelectionRequestProcessor {
 						const singleMetric = this.metrics.singleMetric();
 						singleMetric.addDimension("pdf_preference", pdfPreference);
 						singleMetric.addMetric("DocSelect_comms_choice", MetricUnits.Count, 1);
+						singleMetric.addMetric("F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 						await this.startStateMachine(sessionId, yotiSessionId, f2fSessionInfo?.clientSessionId, pdfPreference);
 					} else {
 						await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);

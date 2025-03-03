@@ -78,6 +78,7 @@ export class SendEmailService {
   		this.environmentVariables.sessionTable(),
   		this.logger,
   		createDynamoDbClient(),
+  		this.metrics,
   	);
   	this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
   	this.validationHelper = new ValidationHelper();
@@ -234,14 +235,14 @@ export class SendEmailService {
 
   		const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
 
-  	
+  
   		const options = {
   			personalisation: {
   				[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
   				[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
   				[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
   				[GOV_NOTIFY_OPTIONS.CHOSEN_PHOTO_ID]: message.documentUsed,
-				  [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
+  				  [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   					file: encoded,
   					confirm_email_before_download: true,
   					retention_period: "2 weeks",

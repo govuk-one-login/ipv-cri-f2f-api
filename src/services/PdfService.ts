@@ -17,7 +17,7 @@ export class PDFService {
   private constructor(logger: Logger, metrics: Metrics) {
   	this.logger = logger;
   	this.metrics = metrics;
-  	this.pdfGenerationService = PDFGenerationService.getInstance(this.logger);
+  	this.pdfGenerationService = PDFGenerationService.getInstance(this.logger, this.metrics);
 	
   }
 

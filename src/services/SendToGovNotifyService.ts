@@ -73,6 +73,7 @@ export class SendToGovNotifyService {
   		this.environmentVariables.sessionTable(),
   		this.logger,
   		createDynamoDbClient(),
+  		metrics,
   	);
 	  this.s3Client = new S3Client({
   		region: process.env.REGION,

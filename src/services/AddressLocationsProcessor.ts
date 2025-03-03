@@ -30,7 +30,7 @@ export class AddressLocationsProcessor {
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.ADDRESS_LOCATIONS_SERVICE);
 		this.logger = logger;
   		this.metrics = metrics;
-  		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+  		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics, osApiKey: string): AddressLocationsProcessor {
