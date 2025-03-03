@@ -282,7 +282,7 @@ paths:
             statusCode: "200"
         type: aws
   
-  /bucket/:
+  bucket/:
     get:
       operationId: getBucket
       summary: List the contents of the test harness bucket
@@ -323,7 +323,7 @@ paths:
             statusCode: "200"
         type: aws
 
-  /object/{object-key+}:
+  object/{object-key+}:
     get:
       operationId: getTestObject
       summary: Get an object from the test bucket
@@ -380,7 +380,7 @@ paths:
             statusCode: "200"
         type: aws
     
-  /yotiletterbucket/:
+  yotiletterbucket/:
     get:
       operationId: getYotiLetterBucketContents
       summary: List the contents of the Yoti Letter bucket
@@ -420,7 +420,7 @@ paths:
             statusCode: "200"
         type: aws
 
-  /yotiletterbucket/{object-key+}:
+  yotiletterbucket/{object-key+}:
     get:
       operationId: getYotiLetterObject
       summary: Get an object from the Yoti Letter bucket
@@ -460,7 +460,7 @@ paths:
             statusCode: "200"
         type: aws
 
-  /updateRecord/{tableName}:
+  updateRecord/{tableName}:
     patch:
       operationId: updateRecord
       summary: Update a record in a DynamoDB table
