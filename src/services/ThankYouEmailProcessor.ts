@@ -44,7 +44,7 @@ export class ThankYouEmailProcessor {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.THANK_YOU_EMAIL_SERVICE);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.validationHelper = new ValidationHelper();
 	}

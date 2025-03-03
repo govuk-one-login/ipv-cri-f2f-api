@@ -31,10 +31,10 @@ export class UserInfoRequestProcessor {
 
 	constructor(logger: Logger, metrics: Metrics) {
 		this.logger = logger;
+		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.USERINFO_SERVICE);
 		this.validationHelper = new ValidationHelper();
-		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
 		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
 	}
 

@@ -1,5 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { F2fService } from "./F2fService";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -33,11 +33,11 @@ export class AccessTokenRequestProcessor {
 
 	constructor(logger: Logger, metrics: Metrics) {
 		this.logger = logger;
-		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
+		this.metrics = metrics;
+		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.ACCESS_TOKEN_SERVICE);
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
 		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
 		this.accessTokenRequestValidationHelper = new AccessTokenRequestValidationHelper();
-		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics): AccessTokenRequestProcessor {
@@ -104,6 +104,7 @@ export class AccessTokenRequestProcessor {
 				// Update the sessionTable with accessTokenExpiryDate and AuthSessionState.
 				await this.f2fService.updateSessionWithAccessTokenDetails(session.sessionId, jwtPayload.exp);
 
+				this.metrics.addMetric("F2F_ACCESS_TOKEN_ISSUED", MetricUnits.Count, 1);
 				this.logger.info({ message: "Access token generated successfully" });
 
 				return {
