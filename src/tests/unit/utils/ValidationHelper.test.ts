@@ -156,4 +156,12 @@ describe("ValidationHelper", () => {
 		expect(errorMessageCode).toStrictEqual(MessageCodes.MISSING_PERSON_IDENTITY_NAME);
 	});
 
+	it("getPreferredAddress function should return correct preferredAddress when multiple addresses are present in shared_claims", () => {
+
+	});
+
+	it("getPreferredAddress function should the value when only one address are present in shared_claims", () => {
+
+	});
+
 });

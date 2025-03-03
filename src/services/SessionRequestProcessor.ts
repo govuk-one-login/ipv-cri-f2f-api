@@ -20,7 +20,6 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { Constants } from "../utils/Constants";
 
-
 interface ClientConfig {
 	jwksEndpoint: string;
 	clientId: string;
@@ -163,6 +162,10 @@ export class SessionRequestProcessor {
   		this.logger.error( { message: errorMessage }, { messageCode : errorMessageCode });
   		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
+
+  	// If multiple addresses present, retrieve preferred address from shared_claims
+  	const preferredAddress = this.validationHelper.getPreferredAddress(jwtPayload.shared_claims.address);
+  	jwtPayload.shared_claims.address = [preferredAddress];
 
   	try {
   		if (await this.f2fService.getSessionById(sessionId)) {
