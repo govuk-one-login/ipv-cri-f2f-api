@@ -18,7 +18,7 @@ export interface DocSelectionData {
 	pdf_preference: string;
 	postal_address?: {
 
-		uprn?: string;
+		uprn?: number;
 		buildingNumber?: string;
 		buildingName?: string;
 		streetName?: string;
@@ -31,13 +31,14 @@ export interface DocSelectionData {
 
 export interface PostalAddress {
 	preferredAddress: boolean;
-	uprn: string;
+	uprn: number;
 	buildingName: string;
 	streetName: string;
 	postalCode: string;
 	buildingNumber: string;
 	addressLocality: string;
 	subBuildingName: string;
+	addressCountry: string;
 }
 
 

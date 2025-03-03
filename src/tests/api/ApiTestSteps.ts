@@ -59,7 +59,7 @@ export async function startStubServiceAndReturnSessionId(stubPayload: StubStartR
 
 export async function stubStartPost(stubPayload: StubStartRequest): Promise<AxiosResponse<StubStartResponse>> {
 	const path = constants.DEV_IPV_F2F_STUB_URL;
-	if (constants.THIRD_PARTY_CLIENT_ID) {
+	if (constants.THIRD_PARTY_CLIENT_ID === "SandboxJourneyFlow") {
 		stubPayload.clientId = constants.THIRD_PARTY_CLIENT_ID;
 		delete stubPayload.yotiMockID;
 	}
