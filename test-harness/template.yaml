@@ -257,6 +257,8 @@ Resources:
                   - !Sub "arn:aws:s3:::${EventTestBucket}"
                   - !Sub "arn:aws:s3:::${EventTestBucket}/txma/*"
                   - !Sub "arn:aws:s3:::${EventTestBucket}/ipv-core/*"
+                  - !Sub "arn:aws:s3:::${BackendStack}-yotiletter-f2f-${Environment}"
+                  - !Sub "arn:aws:s3:::${BackendStack}-yotiletter-f2f-${Environment}/*"
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
@@ -344,6 +346,9 @@ Resources:
   TestHarnessRestApi:
     Type: AWS::Serverless::Api
     Properties:
+      BinaryMediaTypes:
+        - "application/pdf"
+        - "application/octet-stream"
       AlwaysDeploy: true
       StageName: !Ref Environment
       OpenApiVersion: 3.0.1
@@ -444,3 +449,4 @@ Outputs:
     Value: !Sub
       - "https://${URL}/"
       - URL: !Ref TestHarnessCustomDomain
+      

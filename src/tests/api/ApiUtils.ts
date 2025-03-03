@@ -79,7 +79,7 @@ const getTxMAS3FileNames = async (prefix: string): Promise<any> => {
 };
 
 const getAllTxMAS3FileContents = async (fileNames: any[]): Promise<AllTxmaEvents> => {
-	const allContents  = await fileNames.reduce(
+	const allContents = await fileNames.reduce(
 		async (accumulator: Promise<AllTxmaEvents>, fileName: any) => {
 			const resolvedAccumulator = await accumulator;
 
@@ -122,7 +122,7 @@ export async function getTxmaEventsFromTestHarness(sessionId: string, numberOfTx
 }
 
 export function validateTxMAEventData(
-	{ eventName, schemaName }: { eventName: TxmaEventName; schemaName: string }, allTxmaEventBodies: AllTxmaEvents = {}, 
+	{ eventName, schemaName }: { eventName: TxmaEventName; schemaName: string }, allTxmaEventBodies: AllTxmaEvents = {},
 ): void {
 	const currentEventBody: TxmaEvent | undefined = allTxmaEventBodies[eventName];
 
@@ -146,6 +146,43 @@ export function validateTxMAEventData(
 		throw new Error(`No event found in the test harness for ${eventName} event`);
 	}
 }
+
+const getYotiLetterS3FileName = async (prefix: string, yotiSessionId?: string): Promise<string | undefined> => {
+	const listObjectsResponse = await HARNESS_API_INSTANCE.get("/yotiletterbucket/", {
+		params: {
+			prefix: `${prefix}${yotiSessionId}`,
+		},
+	});
+
+	const listObjectsParsedResponse = xmlParser.parse(listObjectsResponse.data);
+	const file = listObjectsParsedResponse?.ListBucketResult?.Contents;
+
+	// Ensure we only return one expected file
+	if (!file || !file.Key) {
+		console.log(`No Yoti Letter file found for session ID ${yotiSessionId} with prefix ${prefix}`);
+		return undefined;
+	}
+
+	return file.Key;
+};
+
+export const getYotiLetterFileContents = async (prefix: string, yotiSessionId: string): Promise<any> => {
+
+	const fileName = await getYotiLetterS3FileName(prefix, yotiSessionId);
+	if (!fileName) return undefined;
+
+	const fileContentsResponse = await HARNESS_API_INSTANCE.get(`/yotiletterbucket/${fileName}`, {});
+
+	return fileContentsResponse.data;
+};
+
+export const testYotiLetterFileExists = async (prefix: string, yotiSessionId: string) => {
+	const fileContents = await getYotiLetterFileContents(prefix, yotiSessionId);
+
+	if (!fileContents) {
+		throw new Error(`File with prefix "${prefix}" and session ID "${yotiSessionId}" NOT found!`);
+	}
+};
 
 export function validateTxMAEventField(
 	{
@@ -192,18 +229,19 @@ export function buildExpectedPostalAddress(data: { postal_address: PostalAddress
 	};
 }
 
+
 export async function invokeLambdaFunction(lambdaName: string, payload: object): Promise<void> {
-  
+
 	const command = new InvokeCommand({
-	  FunctionName: lambdaName,
-	  Payload: new TextEncoder().encode(JSON.stringify(payload)),
+		FunctionName: lambdaName,
+		Payload: new TextEncoder().encode(JSON.stringify(payload)),
 	});
-  
+
 	try {
-	  await client.send(command);
+		await client.send(command);
 	} catch (error) {
-	  console.error("Error invoking Lambda function", error);
-	  throw new Error(`Failed to invoke Lambda function: ${error}`);
+		console.error("Error invoking Lambda function", error);
+		throw new Error(`Failed to invoke Lambda function: ${error}`);
 	}
 }
 
