@@ -32,6 +32,7 @@ import dataNonUkPassport from "../../data/docSelectionPayloadNonUkPassportValid.
 import dataEeaIdCard from "../../data/docSelectionPayloadEeaIdCardValid.json";
 import { constants } from "../ApiConstants";
 import { DocSelectionData } from "../types";
+import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
 
 describe("/session endpoint", () => {
 
@@ -150,6 +151,7 @@ describe("/documentSelection Endpoint", () => {
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
 		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
+		await new Promise(f => setTimeout(f, 5000));
 		expect(postResponse.status).toBe(200);
 
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
@@ -200,6 +202,7 @@ describe("/documentSelection Endpoint", () => {
 		const docSelect = structuredClone(docSelectionData);
 		docSelect.postal_address.preferredAddress = true;
 		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
+		await new Promise(f => setTimeout(f, 5000));
 		expect(postResponse.status).toBe(200);
 
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
@@ -209,7 +212,7 @@ describe("/documentSelection Endpoint", () => {
 
 		// Check that the DynamoDB table address matches the different address in our Document Selection Payload
 		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
-		const preferredAddress = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
+		const preferredAddress : PersonIdentityAddress | undefined = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
 		expect(preferredAddress).toBeDefined();
 		expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
 		expect(Number(preferredAddress?.uprn)).toBe(docSelectionData.postal_address.uprn);

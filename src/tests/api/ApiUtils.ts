@@ -130,7 +130,11 @@ export function validateTxMAEventData(
 		try {
 			const validate = ajv.getSchema(schemaName);
 			if (validate) {
-				expect(validate(currentEventBody)).toBe(true);
+				const isSchemaValid = validate(currentEventBody);
+				if (validate.errors) {
+					console.log("Schema validation errors: " + JSON.stringify(validate.errors));
+				}
+				expect(isSchemaValid).toBe(true);
 			} else {
 				throw new Error(`Could not find schema ${schemaName}`);
 			}
@@ -184,6 +188,7 @@ export function buildExpectedPostalAddress(data: { postal_address: PostalAddress
 		buildingNumber: data.postal_address.buildingNumber,
 		addressLocality: data.postal_address.addressLocality,
 		subBuildingName: data.postal_address.subBuildingName,
+		addressCountry: data.postal_address.addressCountry,
 	};
 }
 

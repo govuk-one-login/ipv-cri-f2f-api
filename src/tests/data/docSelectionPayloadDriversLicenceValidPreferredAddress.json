@@ -17,12 +17,13 @@
    "postal_address": 
             {
                "preferredAddress": true,
-               "uprn": "1235",
+               "uprn": 1235,
                "buildingName": "The Cave",
                "streetName": "Rocky Road",
                "postalCode": "HR5 3QU",
                "buildingNumber": "2",
                "addressLocality": "Bedrock",
-               "subBuildingName": "Flat 1"
+               "subBuildingName": "Flat 1",
+               "addressCountry": "GB"
             }
 }
