@@ -1383,7 +1383,7 @@ components:
           additionalProperties: false
           properties:
             uprn:
-              type: string
+              type: number
               description: Unique Property Reference Number
               example: "123456789"
               maxLength: 60
@@ -1431,6 +1431,11 @@ components:
               type: string
               description: Postal code
               example: "SW1A1AA"
+              maxLength: 30
+            addressCountry:
+              type: string
+              description: Address country
+              example: "GB"
               maxLength: 30
             preferredAddress:
               type: boolean

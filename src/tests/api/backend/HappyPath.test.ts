@@ -230,9 +230,7 @@ describe("/documentSelection Endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 
 		// Check that F2F_YOTI_PDF_LETTER_POSTED event matches the Schema and contains correct values for differentPostalAddress and postalAddress
-		await new Promise(f => setTimeout(f, 5000));
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
-		console.log(JSON.stringify(allTxmaEventBodies));
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.extensions.differentPostalAddress", expectedValue: true }, allTxmaEventBodies);
 		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.restricted.postalAddress[0]", expectedValue: buildExpectedPostalAddress({ postal_address: docSelectionData.postal_address }) }, allTxmaEventBodies);
