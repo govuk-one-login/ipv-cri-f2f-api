@@ -3,6 +3,7 @@ import { XMLParser } from "fast-xml-parser";
 import { HARNESS_API_INSTANCE } from "./ApiTestSteps";
 import { TxmaEvent, TxmaEventName } from "../../utils/TxmaEvent";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import jp from "jsonpath";
 const client = new LambdaClient({ region: process.env.REGION });
 import * as F2F_CRI_AUTH_CODE_ISSUED_SCHEMA from "../data/F2F_CRI_AUTH_CODE_ISSUED_SCHEMA.json";
 import * as F2F_CRI_END_SCHEMA from "../data/F2F_CRI_END_SCHEMA.json";
@@ -24,6 +25,7 @@ import * as F2F_YOTI_START_02_SCHEMA from "../data/F2F_YOTI_START_02_SCHEMA.json
 import * as F2F_YOTI_START_04_SCHEMA from "../data/F2F_YOTI_START_04_SCHEMA.json";
 import * as F2F_YOTI_START_05_SCHEMA from "../data/F2F_YOTI_START_05_SCHEMA.json";
 import * as F2F_CRI_SESSION_ABORTED_SCHEMA from "../data/F2F_CRI_SESSION_ABORTED_SCHEMA.json";
+import { PostalAddress } from "../api/types";
 
 const ajv = new Ajv({ strictTuples: false });
 ajv.addSchema(F2F_CRI_AUTH_CODE_ISSUED_SCHEMA, "F2F_CRI_AUTH_CODE_ISSUED_SCHEMA");
@@ -77,7 +79,7 @@ const getTxMAS3FileNames = async (prefix: string): Promise<any> => {
 };
 
 const getAllTxMAS3FileContents = async (fileNames: any[]): Promise<AllTxmaEvents> => {
-	const allContents  = await fileNames.reduce(
+	const allContents = await fileNames.reduce(
 		async (accumulator: Promise<AllTxmaEvents>, fileName: any) => {
 			const resolvedAccumulator = await accumulator;
 
@@ -120,7 +122,7 @@ export async function getTxmaEventsFromTestHarness(sessionId: string, numberOfTx
 }
 
 export function validateTxMAEventData(
-	{ eventName, schemaName }: { eventName: TxmaEventName; schemaName: string }, allTxmaEventBodies: AllTxmaEvents = {}, 
+	{ eventName, schemaName }: { eventName: TxmaEventName; schemaName: string }, allTxmaEventBodies: AllTxmaEvents = {},
 ): void {
 	const currentEventBody: TxmaEvent | undefined = allTxmaEventBodies[eventName];
 
@@ -128,7 +130,11 @@ export function validateTxMAEventData(
 		try {
 			const validate = ajv.getSchema(schemaName);
 			if (validate) {
-				expect(validate(currentEventBody)).toBe(true);
+				const isSchemaValid = validate(currentEventBody);
+				if (validate.errors) {
+					console.log("Schema validation errors: " + JSON.stringify(validate.errors));
+				}
+				expect(isSchemaValid).toBe(true);
 			} else {
 				throw new Error(`Could not find schema ${schemaName}`);
 			}
@@ -141,18 +147,101 @@ export function validateTxMAEventData(
 	}
 }
 
-export async function invokeLambdaFunction(lambdaName: string, payload: object): Promise<void> {
-  
-	const command = new InvokeCommand({
-	  FunctionName: lambdaName,
-	  Payload: new TextEncoder().encode(JSON.stringify(payload)),
+const getYotiLetterS3FileName = async (prefix: string, yotiSessionId?: string): Promise<string | undefined> => {
+	const listObjectsResponse = await HARNESS_API_INSTANCE.get("/yotiletterbucket/", {
+		params: {
+			prefix: `${prefix}${yotiSessionId}`,
+		},
 	});
-  
+
+	const listObjectsParsedResponse = xmlParser.parse(listObjectsResponse.data);
+	const file = listObjectsParsedResponse?.ListBucketResult?.Contents;
+
+	// Ensure we only return one expected file
+	if (!file || !file.Key) {
+		console.log(`No Yoti Letter file found for session ID ${yotiSessionId} with prefix ${prefix}`);
+		return undefined;
+	}
+
+	return file.Key;
+};
+
+export const getYotiLetterFileContents = async (prefix: string, yotiSessionId: string): Promise<any> => {
+
+	const fileName = await getYotiLetterS3FileName(prefix, yotiSessionId);
+	if (!fileName) return undefined;
+
+	const fileContentsResponse = await HARNESS_API_INSTANCE.get(`/yotiletterbucket/${fileName}`, {});
+
+	return fileContentsResponse.data;
+};
+
+export const testYotiLetterFileExists = async (prefix: string, yotiSessionId: string) => {
+	const fileContents = await getYotiLetterFileContents(prefix, yotiSessionId);
+
+	if (!fileContents) {
+		throw new Error(`File with prefix "${prefix}" and session ID "${yotiSessionId}" NOT found!`);
+	}
+};
+
+export function validateTxMAEventField(
+	{
+		eventName,
+		jsonPath,
+		expectedValue,
+	}: {
+		eventName: TxmaEventName;
+		jsonPath: string;
+		expectedValue: unknown;
+	},
+	allTxmaEventBodies: AllTxmaEvents = {},
+): void {
+	const currentEventBody: TxmaEvent | undefined = allTxmaEventBodies[eventName];
+
+	if (!currentEventBody) {
+		throw new Error(`No event found in the test harness for ${eventName} event`);
+	}
+
 	try {
-	  await client.send(command);
+		const results = jp.query(currentEventBody, jsonPath);
+		if (results.length === 0) {
+			throw new Error(`No value found for JSONPath ${jsonPath} in event ${eventName}`);
+		}
+		
+		expect(results[0]).toEqual(expectedValue);
 	} catch (error) {
-	  console.error("Error invoking Lambda function", error);
-	  throw new Error(`Failed to invoke Lambda function: ${error}`);
+		console.error("Error validating event field", error);
+		throw error;
+	}
+}
+
+export function buildExpectedPostalAddress(data: { postal_address: PostalAddress }): PostalAddress {
+	return {
+		preferredAddress: data.postal_address.preferredAddress,
+		uprn: data.postal_address.uprn,
+		buildingName: data.postal_address.buildingName,
+		streetName: data.postal_address.streetName,
+		postalCode: data.postal_address.postalCode,
+		buildingNumber: data.postal_address.buildingNumber,
+		addressLocality: data.postal_address.addressLocality,
+		subBuildingName: data.postal_address.subBuildingName,
+		addressCountry: data.postal_address.addressCountry,
+	};
+}
+
+
+export async function invokeLambdaFunction(lambdaName: string, payload: object): Promise<void> {
+
+	const command = new InvokeCommand({
+		FunctionName: lambdaName,
+		Payload: new TextEncoder().encode(JSON.stringify(payload)),
+	});
+
+	try {
+		await client.send(command);
+	} catch (error) {
+		console.error("Error invoking Lambda function", error);
+		throw new Error(`Failed to invoke Lambda function: ${error}`);
 	}
 }
 

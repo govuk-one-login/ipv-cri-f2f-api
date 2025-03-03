@@ -90,13 +90,13 @@ export class GenerateYotiLetterProcessor {
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
+		this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY);
 
 		this.logger.info(
 			"Fetching the Instructions Pdf from yoti for sessionId: ",
 			f2fSessionInfo.yotiSessionId!,
 		);
-		const encoded = await this.yotiService.fetchInstructionsPdf(f2fSessionInfo.yotiSessionId!);
+		const encoded = await this.yotiService.fetchInstructionsPdf(f2fSessionInfo.yotiSessionId!, clientConfig.YotiBaseUrl);
 
 		if (!encoded) {
 			this.logger.error("An error occurred when generating Yoti instructions pdf", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
