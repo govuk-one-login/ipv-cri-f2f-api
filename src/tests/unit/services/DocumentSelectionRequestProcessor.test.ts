@@ -711,10 +711,11 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "pdf_preference", "PRINTED_LETTER");
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "DocSelect_yoti_session_created", MetricUnits.Count, 1);
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "DocSelect_comms_choice", MetricUnits.Count, 1);
-	
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
+
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(2, "document_type", "ukPassport");
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "DocSelect_document_selected", MetricUnits.Count, 1);
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(4, "DocSelect_doc_select_complete", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(4, "DocSelect_document_selected", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(5, "DocSelect_doc_select_complete", MetricUnits.Count, 1);
 
 	});
 });
