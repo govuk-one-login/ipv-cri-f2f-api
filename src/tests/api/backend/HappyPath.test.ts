@@ -428,6 +428,7 @@ describe("Yoti Letter Validation Tests", () => {
 		console.log(sessionId);
 
 		await initiateUserInfo(dataUkDrivingLicence, sessionId);
+		await new Promise(f => setTimeout(f, 5000));
 
 		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId = session?.yotiSessionId;
