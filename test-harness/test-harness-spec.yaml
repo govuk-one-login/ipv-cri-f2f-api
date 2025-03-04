@@ -380,7 +380,7 @@ paths:
             statusCode: "200"
         type: aws
     
-  yotiletterbucket/:
+  /yotiletterbucket/:
     get:
       operationId: getYotiLetterBucketContents
       summary: List the contents of the Yoti Letter bucket
@@ -403,6 +403,7 @@ paths:
           description: Internal Server Error
       security:
         - sigv4Reference: []
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: GET
         credentials:
@@ -420,7 +421,7 @@ paths:
             statusCode: "200"
         type: aws
 
-  yotiletterbucket/{object-key+}:
+  /yotiletterbucket/{object-key+}:
     get:
       operationId: getYotiLetterObject
       summary: Get an object from the Yoti Letter bucket
@@ -437,12 +438,29 @@ paths:
       responses:
         "200":
           description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+            Strict-Transport-Security:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+            X-Frame-Options:
+              schema:
+                type: string
         "401":
           description: Unauthorized
         "500":
           description: Internal Server Error
       security:
         - sigv4Reference: []
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
       x-amazon-apigateway-integration:
         httpMethod: GET
         credentials:
@@ -458,6 +476,7 @@ paths:
         responses:
           default:
             statusCode: "200"
+            ContentHandling: CONVERT_TO_BINARY
         type: aws
 
   updateRecord/{tableName}:

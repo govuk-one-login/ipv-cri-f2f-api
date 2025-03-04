@@ -11,8 +11,10 @@ lambdas/
 
 letter.pdf
 merged.pdf
+api-letter.pdf
 
 **/.vscode/settings.json
 **/.vscode/launch.json
 
 lib/
+src/tests/visual/__snapshots-diff__/

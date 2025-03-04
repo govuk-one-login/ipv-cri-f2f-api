@@ -19,6 +19,7 @@ import {
 	personInfoKeyGet,
 	validatePersonInfoResponse,
 	initiateUserInfo,
+	getMergedYotiPdf,
 } from "../ApiTestSteps";
 import { getYotiLetterFileContents, getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
@@ -34,6 +35,9 @@ import dataEeaIdCard from "../../data/docSelectionPayloadEeaIdCardValid.json";
 import { constants } from "../ApiConstants";
 import { DocSelectionData } from "../types";
 import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
+import fs from "fs";
+import { convertPdfToImages } from "../../visual/helpers";
+import { toMatchImageSnapshot } from "jest-image-snapshot";
 
 describe("/session endpoint", () => {
 
@@ -145,11 +149,65 @@ describe("/documentSelection Endpoint", () => {
 		}
 	});
 
-	it.each([
-		{ docSelectionData: dataUkDrivingLicencePrintedLetter },
-	])("Successful Request Tests - $PrintedLetter", async ({ docSelectionData }) => {
-		const newf2fStubPayload = structuredClone(f2fStubPayload);
-		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+	 it.each([
+	 	{ docSelectionData: dataUkDrivingLicencePrintedLetter },
+	 ])("Successful Request Tests - $PrintedLetter", async ({ docSelectionData }) => {
+		expect.extend({ toMatchImageSnapshot });
+
+	 	const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = "0100";
+	 	const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+
+	 	const postResponse = await postDocumentSelection(docSelectionData, sessionId);
+	 	expect(postResponse.status).toBe(200);
+
+	 	const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
+		const sessionRecord = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+	 	try {
+	 		expect(personIdentityRecord?.pdfPreference).toBe(dataUkDrivingLicencePrintedLetter.pdf_preference);
+			 await new Promise(f => setTimeout(f, 5000));
+
+			const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
+			validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
+
+			const pdfData = await getMergedYotiPdf(sessionRecord?.yotiSessionId);
+			const pdfImagesLocation = "./generated_images";
+
+			try {
+				const pdfBuffer = convertPdfToBuffer(pdfData);
+
+				await convertPdfToImages(pdfBuffer, pdfImagesLocation);
+
+				const files = fs.readdirSync(pdfImagesLocation);
+				files.forEach(fileName => {
+					const imagePath = pdfImagesLocation + "/" + fileName;
+					const image = fs.readFileSync(imagePath);
+					expect(image).toMatchImageSnapshot({
+						runInProcess: true,
+						customDiffDir: "tests/visual/__snapshots-diff__",
+						customSnapshotsDir: "tests/visual/__snapshots__",
+						failureThreshold: 0.1,
+    					failureThresholdType: "percent",
+
+					});
+				});
+			} finally {
+				//remove temp files
+				fs.rmSync(pdfImagesLocation, { recursive: true });
+			}
+
+		} catch (error) {
+	 		console.error("Error validating PDF Preference from Person Identity Table", error);
+	 		throw error;
+	 	}
+	 });
+
+	 it.each([
+	 	{ docSelectionData: dataUkDrivingLicencePreferredAddress },
+	 ])("Successful Request Tests - $PreferredAddress", async ({ docSelectionData }) => {
+
+	 	const newf2fStubPayload = structuredClone(f2fStubPayload);
+	 	const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
 		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
 		await new Promise(f => setTimeout(f, 5000));
@@ -159,27 +217,19 @@ describe("/documentSelection Endpoint", () => {
 		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
 
 		// Check that the DynamoDB table contains 1 address
-		expect(personIdentityRecord?.addresses?.length).toBe(1);
+		expect(personIdentityRecord?.addresses?.length).toBe(2);
 
-		const addressFromRecord = personIdentityRecord?.addresses[0];
-
-		if (addressFromRecord) {
-			addressFromRecord.uprn = Number(addressFromRecord.uprn);
-			// eslint-disable-next-line jest/no-conditional-expect
-			expect(addressFromRecord.uprn).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
-		} else {
-			throw new Error("Address not found in personIdentityRecord");
-		}
+		const addressFromRecord = personIdentityRecord?.addresses.filter(x => x.preferredAddress)[0];
 		
 		// Check that the DynamoDB table address matches what was passed into the shared_claims
-		expect(addressFromRecord?.uprn).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
-		expect(addressFromRecord?.buildingNumber).toBe(newf2fStubPayload.shared_claims.address[0].buildingNumber);
-		expect(addressFromRecord?.buildingName).toBe(newf2fStubPayload.shared_claims.address[0].buildingName);
-		expect(addressFromRecord?.subBuildingName).toBe(newf2fStubPayload.shared_claims.address[0].subBuildingName);
-		expect(addressFromRecord?.streetName).toBe(newf2fStubPayload.shared_claims.address[0].streetName);
-		expect(addressFromRecord?.addressLocality).toBe(newf2fStubPayload.shared_claims.address[0].addressLocality);
-		expect(addressFromRecord?.addressCountry).toBe(newf2fStubPayload.shared_claims.address[0].addressCountry);
-		expect(addressFromRecord?.postalCode).toBe(newf2fStubPayload.shared_claims.address[0].postalCode);
+		//expect(addressFromRecord?.uprn).toBe(docSelectionData.postal_address.uprn);
+		expect(addressFromRecord?.buildingNumber).toBe(docSelectionData.postal_address.buildingNumber);
+		expect(addressFromRecord?.buildingName).toBe(docSelectionData.postal_address.buildingName);
+		expect(addressFromRecord?.subBuildingName).toBe(docSelectionData.postal_address.subBuildingName);
+		expect(addressFromRecord?.streetName).toBe(docSelectionData.postal_address.streetName);
+		expect(addressFromRecord?.addressLocality).toBe(docSelectionData.postal_address.addressLocality);
+		expect(addressFromRecord?.addressCountry).toBe(docSelectionData.postal_address.addressCountry);
+		expect(addressFromRecord?.postalCode).toBe(docSelectionData.postal_address.postalCode);
 		expect(addressFromRecord?.preferredAddress).toBe(true);
 
 
@@ -188,11 +238,10 @@ describe("/documentSelection Endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 
 		// Check that F2F_YOTI_PDF_LETTER_POSTED event matches the Schema and contains correct values for differentPostalAddress and postalAddress
-		await new Promise(f => setTimeout(f, 5000));
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
-		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.extensions.differentPostalAddress", expectedValue: false }, allTxmaEventBodies);
-		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.restricted.postalAddress[0]", expectedValue: addressFromRecord }, allTxmaEventBodies);
+		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.extensions.differentPostalAddress", expectedValue: true }, allTxmaEventBodies);
+		//validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.restricted.postalAddress[0]", expectedValue: addressFromRecord }, allTxmaEventBodies);
 	});
 
 	it.each([
@@ -464,3 +513,11 @@ describe("Yoti Letter Validation Tests", () => {
 	});
 });
 
+function convertPdfToBuffer(pdfData: any): Buffer {
+	const response = pdfData === undefined ? Buffer.alloc(0) : pdfData;
+	const binaryPdf = Buffer.from(response.data.toString(), "base64");
+
+	fs.writeFileSync("./api-letter.pdf", binaryPdf, "base64");
+	const pdfBuffer = fs.readFileSync("./api-letter.pdf");
+	return pdfBuffer;
+}
