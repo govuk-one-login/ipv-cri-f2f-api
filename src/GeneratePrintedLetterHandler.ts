@@ -2,8 +2,6 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
-import { EnvironmentVariables } from "./services/EnvironmentVariables";
-import { ServicesEnum } from "./models/enums/ServicesEnum";
 import { AppError } from "./utils/AppError";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { MessageCodes } from "./models/enums/MessageCodes";
@@ -24,7 +22,6 @@ export const logger = new Logger({
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 export class GeneratePrintedLetterHandler implements LambdaInterface {
-	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: any, context: any): Promise<any> {
