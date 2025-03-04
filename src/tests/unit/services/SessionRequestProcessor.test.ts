@@ -29,7 +29,6 @@ jest.mock("crypto", () => ({
 	randomUUID: () => "session-id",
 }));
 
-// returns shared claims + header
 const decodedJwtFactory = ():Jwt => {
 	return {
 		header: {
