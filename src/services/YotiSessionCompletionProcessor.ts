@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
@@ -59,7 +59,7 @@ export class YotiSessionCompletionProcessor {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
   	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
   	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.logger, this.environmentVariables.dnsSuffix());
   	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger);
@@ -148,6 +148,7 @@ export class YotiSessionCompletionProcessor {
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not complete", { shouldThrow: true });
 		  }
 
+		  this.metrics.addMetric("F2F_YOTI_SESSION_COMPLETE", MetricUnits.Count, 1);
 		  this.logger.appendKeys({
 			  yotiUserTrackingId: completedYotiSessionInfo.user_tracking_id,
 		  });
@@ -229,6 +230,7 @@ export class YotiSessionCompletionProcessor {
 				  });
 			  }
 				
+  			this.metrics.addMetric("SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
   			const { given_names, family_name, full_name } = documentFields;
 
   			const missingGivenName = this.checkMissingField(given_names, "given_names");
@@ -321,6 +323,8 @@ export class YotiSessionCompletionProcessor {
 				  f2fSession.sessionId,
 				  AuthSessionState.F2F_CREDENTIAL_ISSUED,
 			  );
+			  
+			  this.metrics.addMetric("SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 
 			  return Response(HttpCodesEnum.OK, "OK");
 		  } else {

@@ -31,10 +31,10 @@ export class UserInfoRequestProcessor {
 
 	constructor(logger: Logger, metrics: Metrics) {
 		this.logger = logger;
+		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.USERINFO_SERVICE);
 		this.validationHelper = new ValidationHelper();
-		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
 		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
 	}
 
@@ -78,6 +78,7 @@ export class UserInfoRequestProcessor {
     	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
     	if (session.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED) {
 			this.logger.info("Returning success response");
+			this.metrics.addMetric("UserInfo_pending_VC_returned", MetricUnits.Count, 1);
 			return Response(HttpCodesEnum.ACCEPTED, JSON.stringify({
 				sub: session.subject,
 				"https://vocab.account.gov.uk/v1/credentialStatus": "pending",

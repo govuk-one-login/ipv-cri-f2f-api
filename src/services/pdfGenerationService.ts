@@ -5,6 +5,7 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 
 import { F2fService } from "./F2fService";
 
@@ -25,20 +26,25 @@ export class PDFGenerationService {
 
   private readonly logger: Logger;
 
-  private constructor(logger: Logger) {
+  private readonly metrics: Metrics;
+
+  private constructor(logger: Logger, metrics: Metrics) {
   	this.logger = logger;
+  	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.NA);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
   }
 
 mmToPt = (mm: number) => mm * 2.83465;
 
 static getInstance(
 	logger: Logger,
+	metrics: Metrics,
 ): PDFGenerationService {
 	if (!PDFGenerationService.instance) {
 		PDFGenerationService.instance = new PDFGenerationService(
 			logger,
+			metrics,
 		);
 	}
 	return PDFGenerationService.instance;
@@ -173,11 +179,11 @@ private populateEnglishPages(doc: PDFKit.PDFDocument, user: string, expiryString
 
 	this.addBullets(doc, ["check your customer letter", "scan your photo ID", "take a photo of you"]);
 
-	this.lightTextOnNewline(doc, "If you do not go to a Post Office by " + expiryString + ", you’ll need to start proving your identity again.");
+	this.lightTextOnNewline(doc, "If you do not go to a Post Office by " + expiryString + ", you'll need to start proving your identity again.");
 
-	this.boldTextOnNewline(doc, "After you’ve been to the Post Office");
+	this.boldTextOnNewline(doc, "After you've been to the Post Office");
 
-	this.lightTextOnNewline(doc, "You’ll get an email from GOV.UK One Login about the result of your identity check – usually within a day of going to the Post Office.");
+	this.lightTextOnNewline(doc, "You'll get an email from GOV.UK One Login about the result of your identity check – usually within a day of going to the Post Office.");
 
 	this.boldTextOnNewline(doc, "Which Post Office to go to");
  
@@ -205,7 +211,7 @@ private populateEnglishPages(doc: PDFKit.PDFDocument, user: string, expiryString
 }
 
 private populateWelshPages(doc: PDFKit.PDFDocument, user: string, expiryString: string):void {
-	const title = "Ewch i Swyddfa’r Post erbyn " + expiryString + " i orffen profi eich hunaniaeth gyda GOV.UK One Login";
+	const title = "Ewch i Swyddfa'r Post erbyn " + expiryString + " i orffen profi eich hunaniaeth gyda GOV.UK One Login";
 
 	doc.fontSize(22).font("GDS bold").text(title, 42.5, 25);
 
@@ -214,37 +220,37 @@ private populateWelshPages(doc: PDFKit.PDFDocument, user: string, expiryString: 
 		.moveDown(0.3)
 		.fontSize(14)
 		.text(
-			"Annwyl " + user + "\n\nI orffen profi eich hunaniaeth gyda GOV.UK One Login, mae angen i chi fynd i Swyddfa’r Post sy’n cynnig dilysu mewn canghennau erbyn " + expiryString + ".\n\nAnfonwyd llythyr cwsmer Swyddfa’r Post yn yr un amlen â’r llythyr eglurhaol hwn.",
+			"Annwyl " + user + "\n\nI orffen profi eich hunaniaeth gyda GOV.UK One Login, mae angen i chi fynd i Swyddfa'r Post sy'n cynnig dilysu mewn canghennau erbyn " + expiryString + ".\n\nAnfonwyd llythyr cwsmer Swyddfa'r Post yn yr un amlen â'r llythyr eglurhaol hwn.",
 		);
     
-	this.boldTextOnNewline(doc, "Beth sydd angen mynd gyda chi i Swyddfa’r Post");
+	this.boldTextOnNewline(doc, "Beth sydd angen mynd gyda chi i Swyddfa'r Post");
 
-	this.lightTextOnNewline(doc, "Pan fyddwch yn mynd i Swyddfa’r Post, mae’n rhaid i chi fynd â’r canlynol:");
+	this.lightTextOnNewline(doc, "Pan fyddwch yn mynd i Swyddfa'r Post, mae'n rhaid i chi fynd â'r canlynol:");
     
-	this.addBullets(doc, ["llythyr cwsmer Swyddfa’r Post", "yr ID gyda llun a ddangosir ar eich llythyr cwsmer"]);
+	this.addBullets(doc, ["llythyr cwsmer Swyddfa'r Post", "yr ID gyda llun a ddangosir ar eich llythyr cwsmer"]);
 
-	this.boldTextOnNewline(doc, "Yn Swyddfa’r Pos");
+	this.boldTextOnNewline(doc, "Yn Swyddfa'r Pos");
 
-	this.lightTextOnNewline(doc, "Bydd aelod o staff Swyddfa’r Post yn:");
+	this.lightTextOnNewline(doc, "Bydd aelod o staff Swyddfa'r Post yn:");
 
 	this.addBullets(doc, ["gwirio eich llythyr cwsmer", "sganio eich ID gyda llun", "tynnu llun ohonoch chi"]);
 
-	this.lightTextOnNewline(doc, "Os na fyddwch yn mynd i Swyddfa’r Post erbyn " + expiryString + ", bydd angen i chi ddechrau profi eich hunaniaeth eto.");
+	this.lightTextOnNewline(doc, "Os na fyddwch yn mynd i Swyddfa'r Post erbyn " + expiryString + ", bydd angen i chi ddechrau profi eich hunaniaeth eto.");
 	
-	this.boldTextOnNewline(doc, "Ar ôl i chi fod yn Swyddfa’r Post");
+	this.boldTextOnNewline(doc, "Ar ôl i chi fod yn Swyddfa'r Post");
 
-	this.lightTextOnNewline(doc, "Byddwch yn derbyn e-bost gan GOV.UK One Login am ganlyniad eich gwiriad hunaniaeth – fel arfer o fewn diwrnod o fynd i Swyddfa’r Post.");
+	this.lightTextOnNewline(doc, "Byddwch yn derbyn e-bost gan GOV.UK One Login am ganlyniad eich gwiriad hunaniaeth – fel arfer o fewn diwrnod o fynd i Swyddfa'r Post.");
 
-	this.boldTextOnNewline(doc, "Pa Swyddfa’r Post i fynd iddi");
+	this.boldTextOnNewline(doc, "Pa Swyddfa'r Post i fynd iddi");
 
-	this.lightTextOnNewline(doc, "Mae eich llythyr cwsmer yn dangos pa Swyddfa’r Post y gwnaethoch ddewis mynd iddi. \n\nGallwch fynd i Swyddfa’r Post gwahanol cyn belled â’i bod yn cynnig gwiriad mewn cangen: ");
+	this.lightTextOnNewline(doc, "Mae eich llythyr cwsmer yn dangos pa Swyddfa'r Post y gwnaethoch ddewis mynd iddi. \n\nGallwch fynd i Swyddfa'r Post gwahanol cyn belled â'i bod yn cynnig gwiriad mewn cangen: ");
 
 	doc
 		.font("GDS bold")
 		.fontSize(14)
 		.text("www.postoffice.co.uk/identity/in-branch-verification-service");
 
-	this.lightTextOnNewline(doc, "Nid oes angen i chi gysylltu â thîm GOV.UK One Login os ydych am fynd i Swyddfa’r Post gwahanol.");
+	this.lightTextOnNewline(doc, "Nid oes angen i chi gysylltu â thîm GOV.UK One Login os ydych am fynd i Swyddfa'r Post gwahanol.");
 
 	this.lightTextOnNewline(doc, "Os ydych angen help");
 

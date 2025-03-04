@@ -48,7 +48,7 @@ export class SessionRequestProcessor {
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.SESSION_SERVICE);
   	logger.debug("metrics is  " + JSON.stringify(this.metrics));
   	this.metrics.addMetric("Called", MetricUnits.Count, 1);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
   	this.kmsDecryptor = new KmsJwtAdapter(this.environmentVariables.encryptionKeyIds());
   	this.validationHelper = new ValidationHelper();
   }
@@ -239,6 +239,8 @@ export class SessionRequestProcessor {
   	}
 
   	this.logger.info("Session created successfully. Returning 200OK");
+  	
+  	this.metrics.addMetric("F2F_SESSION_CREATED", MetricUnits.Count, 1);
 
   	return {
   		statusCode: HttpCodesEnum.OK,

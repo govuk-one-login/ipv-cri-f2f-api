@@ -1,5 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { SendEmailService } from "./SendEmailService";
 import { Constants } from "../utils/Constants";
 import { Email } from "../models/Email";
@@ -31,18 +31,33 @@ export class SendEmailProcessor {
   	let reminderEmail: ReminderEmail;
 
   	switch (messageType) {
-  		case Constants.PDF_EMAIL:
+  		case Constants.PDF_EMAIL: {
   			email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(email, this.logger);
-  			return this.govNotifyService.sendYotiPdfEmail(email);
-  		case Constants.REMINDER_EMAIL_DYNAMIC:
+  			const pdfEmailResult = await this.govNotifyService.sendYotiPdfEmail(email);
+  			const pdfMetric = this.metrics.singleMetric();
+  			pdfMetric.addDimension("emailType", "Pdf");
+  			pdfMetric.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
+  			return pdfEmailResult;
+  		}
+  		case Constants.REMINDER_EMAIL_DYNAMIC: {
   			dynamicReminderEmail = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(dynamicReminderEmail, this.logger);
-  			return this.govNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);
-  		case Constants.REMINDER_EMAIL:
+  			const dynamicResult = await this.govNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);
+  			const dynamicMetric = this.metrics.singleMetric();
+  			dynamicMetric.addDimension("emailType", "dynamic_reminder");
+  			dynamicMetric.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
+  			return dynamicResult;
+  		}
+  		case Constants.REMINDER_EMAIL: {
   			reminderEmail = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(reminderEmail, this.logger);
-  			return this.govNotifyService.sendReminderEmail(reminderEmail);
+  			const reminderResult = await this.govNotifyService.sendReminderEmail(reminderEmail);
+  			const reminderMetric = this.metrics.singleMetric();
+  			reminderMetric.addDimension("emailType", "reminder");
+  			reminderMetric.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
+  			return reminderResult;
+  		}
   	}
   	return undefined;
   }

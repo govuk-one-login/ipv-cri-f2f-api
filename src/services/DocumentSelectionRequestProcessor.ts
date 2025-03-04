@@ -54,7 +54,7 @@ export class DocumentSelectionRequestProcessor {
 		this.logger = logger;
 		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.stepFunctionsClient = new SFNClient({ region: process.env.REGION, credentials: fromEnv() });
@@ -181,6 +181,7 @@ export class DocumentSelectionRequestProcessor {
 						const singleMetric = this.metrics.singleMetric();
 						singleMetric.addDimension("pdf_preference", pdfPreference);
 						singleMetric.addMetric("DocSelect_comms_choice", MetricUnits.Count, 1);
+						singleMetric.addMetric("F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 						await this.startStateMachine(sessionId, yotiSessionId, f2fSessionInfo?.clientSessionId, pdfPreference);
 					} else {
 						await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
@@ -391,6 +392,7 @@ export class DocumentSelectionRequestProcessor {
 		this.logger.info({ message: "Posting message to Gov Notify" });
 		try {
 			await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
+			this.metrics.addMetric("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1);
 		} catch (error) {
 			this.logger.error("Yoti session created, failed to post message to GovNotify SQS Queue", {
 				error,

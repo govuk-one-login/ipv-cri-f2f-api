@@ -27,9 +27,9 @@ export class AuthorizationRequestProcessor {
 
 	constructor(logger: Logger, metrics: Metrics) {
 		this.logger = logger;
-		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
 		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics): AuthorizationRequestProcessor {
@@ -62,7 +62,7 @@ export class AuthorizationRequestProcessor {
 
 				await this.f2fService.setAuthorizationCode(sessionId, authorizationCode);
 
-				this.metrics.addMetric("Set authorization code", MetricUnits.Count, 1);
+				this.metrics.addMetric("F2F_AUTH_CODE_ISSUED", MetricUnits.Count, 1);
 				try {
 					const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress);
 					await this.f2fService.sendToTXMA({
