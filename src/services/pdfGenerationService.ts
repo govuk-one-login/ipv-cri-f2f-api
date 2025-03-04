@@ -27,7 +27,7 @@ export class PDFGenerationService {
 
   private constructor(logger: Logger) {
   	this.logger = logger;
-  	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.NA);
+  	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   }
 
