@@ -44,7 +44,7 @@
                 "addressLocality": "London",
                 "addressCountry": "GB",
                 "postalCode": "NW9 1JP",
-                "validUntil": "SomeValue"
+                "validUntil": "2024-09-04"
             }
         ],
         "emailAddress": "test@domain.com"
