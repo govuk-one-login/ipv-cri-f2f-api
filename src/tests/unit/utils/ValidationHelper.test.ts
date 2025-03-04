@@ -156,12 +156,28 @@ describe("ValidationHelper", () => {
 		expect(errorMessageCode).toStrictEqual(MessageCodes.MISSING_PERSON_IDENTITY_NAME);
 	});
 
-	it("getPreferredAddress function should return correct preferredAddress when multiple addresses are present in shared_claims", () => {
-
+	it("getPreferredAddress function should the value when only one address are present in shared_claims", () => {
+		const result = validationHelper.getPreferredAddress(jwtPayload.shared_claims.address);
+		expect(result).toBe(jwtPayload.shared_claims.address[0]);
 	});
 
-	it("getPreferredAddress function should the value when only one address are present in shared_claims", () => {
-
+	it("getPreferredAddress function should return correct preferredAddress when multiple addresses are present in shared_claims", () => {
+		jwtPayload.shared_claims.address = [
+			{ ...jwtPayload.shared_claims.address[0], validUntil: "2024-12-31" }, // Updated first address with flag
+			// Add second address with no 'validUntil' flag
+			{
+				addressCountry: "GB",
+				buildingName: "Test",
+				subBuildingName: "Flat 1",
+				uprn: 987654321,
+				streetName: "Test Way",
+				postalCode: "TE1 1ST",
+				buildingNumber: "1",
+				addressLocality: "London",
+			},
+		   ];
+		const result = validationHelper.getPreferredAddress(jwtPayload.shared_claims.address);
+		expect(result).toBe(jwtPayload.shared_claims.address[1]);
 	});
 
 });

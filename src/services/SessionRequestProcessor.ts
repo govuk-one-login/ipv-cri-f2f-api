@@ -212,7 +212,6 @@ export class SessionRequestProcessor {
   			// If multiple addresses present, retrieve preferred address from shared_claims
   			const preferredAddress = this.validationHelper.getPreferredAddress(jwtPayload.shared_claims.address);
   			jwtPayload.shared_claims.address = [preferredAddress];
-			
   			await this.f2fService.savePersonIdentity(jwtPayload.shared_claims, sessionId);
   		} catch (error) {
   			this.logger.error("Failed to create session in person identity table", {

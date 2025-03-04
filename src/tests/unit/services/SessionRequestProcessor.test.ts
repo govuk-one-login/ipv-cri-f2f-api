@@ -480,8 +480,4 @@ describe("SessionRequestProcessor", () => {
 		expect(actualExpiryDate).toBeLessThan(10000000000);
 		jest.useRealTimers();
 	});	
-
-	it("should save the current address if there is a second address in shared_claims", async () => {
-
-	});
 });
