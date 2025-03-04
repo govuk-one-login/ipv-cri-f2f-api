@@ -70,8 +70,6 @@
     "test:provider": "./node_modules/.bin/jest --testMatch '**/contract/F2fCriProvider.test.ts' --coverage=false",
     "test:contract": "wait-on tcp:127.0.0.1:3000; cd tests/contract; npm run test:provider && npm run kill:dynamodblocal",
     "test:contract:ci": "dotenv -e.env.contract -- npm-run-all -p -r start:contract test:contract",
-    "test:visual:pdf": "jest visual/ -i --env=node",
-    "test:visual:update": "jest visual/ -i -u --env=node",
     "deploy": "cd ../deploy ; sam build && sam deploy --config-env dev --resolve-s3 ; cd src/"
   },
   "devDependencies": {
