@@ -311,7 +311,7 @@ mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 		address.push(postalAddress.dependentStreetName);
 	}
 	if (postalAddress.streetName) {
-		const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : '';
+		const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
 		address.push(buildingNumber + postalAddress.streetName);
 	}
 	if (postalAddress.dependentAddressLocality) {
