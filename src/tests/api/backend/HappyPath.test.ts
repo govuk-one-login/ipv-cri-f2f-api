@@ -53,6 +53,38 @@ describe("/session endpoint", () => {
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 1);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
 	});
+
+
+	it("Successful Request Tests - Shared Claims with 2 Addresses", async () => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload2Addresses);
+		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+
+		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
+
+		// Check that the DynamoDB table contains 1 address
+		expect(personIdentityRecord?.addresses?.length).toBe(1);
+
+		const addressFromRecord = personIdentityRecord?.addresses[0];
+
+		if (addressFromRecord) {
+			addressFromRecord.uprn = Number(addressFromRecord.uprn);
+			// eslint-disable-next-line jest/no-conditional-expect
+			expect(addressFromRecord.uprn).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
+		} else {
+			throw new Error("Address not found in personIdentityRecord");
+		}
+
+		// Check that the DynamoDB table address matches what was passed into the shared_claims
+		expect(addressFromRecord?.uprn).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
+		expect(addressFromRecord?.buildingNumber).toBe(newf2fStubPayload.shared_claims.address[0].buildingNumber);
+		expect(addressFromRecord?.buildingName).toBe(newf2fStubPayload.shared_claims.address[0].buildingName);
+		expect(addressFromRecord?.subBuildingName).toBe(newf2fStubPayload.shared_claims.address[0].subBuildingName);
+		expect(addressFromRecord?.streetName).toBe(newf2fStubPayload.shared_claims.address[0].streetName);
+		expect(addressFromRecord?.addressLocality).toBe(newf2fStubPayload.shared_claims.address[0].addressLocality);
+		expect(addressFromRecord?.addressCountry).toBe(newf2fStubPayload.shared_claims.address[0].addressCountry);
+		expect(addressFromRecord?.postalCode).toBe(newf2fStubPayload.shared_claims.address[0].postalCode);
+		expect(addressFromRecord?.preferredAddress).toBe(true);
+	});
 });
 
 describe("/personInfo endpoint", () => {
