@@ -22,7 +22,6 @@ import {
 } from "../ApiTestSteps";
 import { getYotiLetterFileContents, getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
-import f2fStubPayload2Addresses from "../../data/sharedClaimsPayload2Addresses.json";
 import thinFilePayload from "../../data/thinFilePayload.json";
 import abortPayload from "../../data/abortPayload.json";
 import dataPassport from "../../data/docSelectionPayloadPassportValid.json";
@@ -48,38 +47,6 @@ describe("/session endpoint", () => {
 
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 1);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
-	});
-
-
-	it("Successful Request Tests - Shared Claims with 2 Addresses", async () => {
-		const newf2fStubPayload = structuredClone(f2fStubPayload2Addresses);
-		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
-
-		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
-
-		// Check that the DynamoDB table contains 1 address
-		expect(personIdentityRecord?.addresses?.length).toBe(1);
-
-		const addressFromRecord = personIdentityRecord?.addresses[0];
-
-		if (addressFromRecord) {
-			addressFromRecord.uprn = Number(addressFromRecord.uprn);
-			// eslint-disable-next-line jest/no-conditional-expect
-			expect(addressFromRecord.uprn).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
-		} else {
-			throw new Error("Address not found in personIdentityRecord");
-		}
-
-		// Check that the DynamoDB table address matches what was passed into the shared_claims
-		expect(addressFromRecord?.uprn).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
-		expect(addressFromRecord?.buildingNumber).toBe(newf2fStubPayload.shared_claims.address[0].buildingNumber);
-		expect(addressFromRecord?.buildingName).toBe(newf2fStubPayload.shared_claims.address[0].buildingName);
-		expect(addressFromRecord?.subBuildingName).toBe(newf2fStubPayload.shared_claims.address[0].subBuildingName);
-		expect(addressFromRecord?.streetName).toBe(newf2fStubPayload.shared_claims.address[0].streetName);
-		expect(addressFromRecord?.addressLocality).toBe(newf2fStubPayload.shared_claims.address[0].addressLocality);
-		expect(addressFromRecord?.addressCountry).toBe(newf2fStubPayload.shared_claims.address[0].addressCountry);
-		expect(addressFromRecord?.postalCode).toBe(newf2fStubPayload.shared_claims.address[0].postalCode);
-		expect(addressFromRecord?.preferredAddress).toBe(true);
 	});
 });
 
@@ -179,18 +146,17 @@ describe("/documentSelection Endpoint", () => {
 	});
 
 	it.each([
-		{ f2fStubPayload: f2fStubPayload },
-		{ f2fStubPayload: f2fStubPayload2Addresses },
-	])("Successful Request Tests - Email + Posted Letter with Original Address", async ({ f2fStubPayload }) => {
+		{ docSelectionData: dataUkDrivingLicencePrintedLetter },
+	])("Successful Request Tests - $PrintedLetter", async ({ docSelectionData }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
-		const postResponse = await postDocumentSelection(dataUkDrivingLicencePrintedLetter, sessionId);
+		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
 		await new Promise(f => setTimeout(f, 5000));
 		expect(postResponse.status).toBe(200);
 
 		const personIdentityRecord = await getPersonIdentityRecordById(sessionId, constants.DEV_F2F_PERSON_IDENTITY_TABLE_NAME);
-		expect(personIdentityRecord?.pdfPreference).toBe(dataUkDrivingLicencePrintedLetter.pdf_preference);
+		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
 
 		// Check that the DynamoDB table contains 1 address
 		expect(personIdentityRecord?.addresses?.length).toBe(1);
@@ -204,7 +170,7 @@ describe("/documentSelection Endpoint", () => {
 		} else {
 			throw new Error("Address not found in personIdentityRecord");
 		}
-
+		
 		// Check that the DynamoDB table address matches what was passed into the shared_claims
 		expect(addressFromRecord?.uprn).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
 		expect(addressFromRecord?.buildingNumber).toBe(newf2fStubPayload.shared_claims.address[0].buildingNumber);
@@ -230,15 +196,14 @@ describe("/documentSelection Endpoint", () => {
 	});
 
 	it.each([
-		{ f2fStubPayload: f2fStubPayload },
-		{ f2fStubPayload: f2fStubPayload2Addresses },
-	])("Successful Request Tests - Email + Posted Letter with Different Address", async ({ f2fStubPayload }) => {
+		{ docSelectionData: dataUkDrivingLicencePreferredAddress },
+	])("Successful Request Tests - $PreferredAddress", async ({ docSelectionData }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
-		const docSelect = structuredClone(dataUkDrivingLicencePreferredAddress);
+		const docSelect = structuredClone(docSelectionData);
 		docSelect.postal_address.preferredAddress = true;
-		const postResponse = await postDocumentSelection(docSelect, sessionId);
+		const postResponse = await postDocumentSelection(docSelectionData, sessionId);
 		await new Promise(f => setTimeout(f, 5000));
 		expect(postResponse.status).toBe(200);
 
@@ -248,17 +213,17 @@ describe("/documentSelection Endpoint", () => {
 		expect(personIdentityRecord?.addresses?.length).toBe(2);
 
 		// Check that the DynamoDB table address matches the different address in our Document Selection Payload
-		expect(personIdentityRecord?.pdfPreference).toBe(docSelect.pdf_preference);
-		const preferredAddress: PersonIdentityAddress | undefined = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
+		expect(personIdentityRecord?.pdfPreference).toBe(docSelectionData.pdf_preference);
+		const preferredAddress : PersonIdentityAddress | undefined = personIdentityRecord?.addresses?.find(address => address.preferredAddress);
 		expect(preferredAddress).toBeDefined();
-		expect(preferredAddress?.postalCode).toBe(docSelect.postal_address.postalCode);
-		expect(Number(preferredAddress?.uprn)).toBe(docSelect.postal_address.uprn);
-		expect(preferredAddress?.buildingNumber).toBe(docSelect.postal_address.buildingNumber);
-		expect(preferredAddress?.buildingName).toBe(docSelect.postal_address.buildingName);
-		expect(preferredAddress?.subBuildingName).toBe(docSelect.postal_address.subBuildingName);
-		expect(preferredAddress?.streetName).toBe(docSelect.postal_address.streetName);
-		expect(preferredAddress?.addressLocality).toBe(docSelect.postal_address.addressLocality);
-		expect(preferredAddress?.postalCode).toBe(docSelect.postal_address.postalCode);
+		expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
+		expect(Number(preferredAddress?.uprn)).toBe(docSelectionData.postal_address.uprn);
+		expect(preferredAddress?.buildingNumber).toBe(docSelectionData.postal_address.buildingNumber);
+		expect(preferredAddress?.buildingName).toBe(docSelectionData.postal_address.buildingName);
+		expect(preferredAddress?.subBuildingName).toBe(docSelectionData.postal_address.subBuildingName);
+		expect(preferredAddress?.streetName).toBe(docSelectionData.postal_address.streetName);
+		expect(preferredAddress?.addressLocality).toBe(docSelectionData.postal_address.addressLocality);
+		expect(preferredAddress?.postalCode).toBe(docSelectionData.postal_address.postalCode);
 		expect(preferredAddress?.preferredAddress).toBe(true);
 
 		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
@@ -270,7 +235,7 @@ describe("/documentSelection Endpoint", () => {
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 4);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", schemaName: "F2F_YOTI_PDF_LETTER_POSTED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.extensions.differentPostalAddress", expectedValue: true }, allTxmaEventBodies);
-		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.restricted.postalAddress[0]", expectedValue: buildExpectedPostalAddress({ postal_address: docSelect.postal_address }) }, allTxmaEventBodies);
+		validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.restricted.postalAddress[0]", expectedValue: buildExpectedPostalAddress({ postal_address: docSelectionData.postal_address }) }, allTxmaEventBodies);
 
 	});
 });
