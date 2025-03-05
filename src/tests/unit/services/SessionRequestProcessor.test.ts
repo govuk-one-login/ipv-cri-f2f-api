@@ -151,7 +151,7 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: "UNRECOGNISED_CLIENT",
+				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
 			}),
 		);
 	});
@@ -166,7 +166,7 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: "FAILED_DECRYPTING_JWE",
+				messageCode: MessageCodes.FAILED_DECRYPTING_JWE,
 			}),
 		);
 	});
@@ -184,7 +184,7 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: "FAILED_DECODING_JWT",
+				messageCode: MessageCodes.FAILED_DECODING_JWT,
 			}),
 		);
 	});
@@ -312,7 +312,7 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: "SESSION_ALREADY_EXISTS",
+				messageCode: MessageCodes.SESSION_ALREADY_EXISTS,
 			}),
 		);
 		expect(response.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
@@ -338,7 +338,7 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: "FAILED_CREATING_SESSION",
+				messageCode: MessageCodes.FAILED_CREATING_SESSION,
 			}),
 		);
 		expect(response.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);

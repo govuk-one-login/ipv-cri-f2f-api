@@ -3,8 +3,6 @@ import { mock } from "jest-mock-extended";
 import { VALID_SESSION, RESOURCE_NOT_FOUND } from "./data/session-events";
 import { SessionRequestProcessor } from "../../services/SessionRequestProcessor";
 import { CONTEXT } from "./data/context";
-import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
-import { Response } from "../../utils/Response";
 
 const mockedSessionRequestProcessor = mock<SessionRequestProcessor>();
 
