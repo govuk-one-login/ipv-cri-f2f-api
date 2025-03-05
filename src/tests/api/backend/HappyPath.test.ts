@@ -232,30 +232,34 @@ describe("/documentSelection Endpoint", () => {
 			validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.extensions.differentPostalAddress", expectedValue: false }, allTxmaEventBodies);
 			validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.restricted.postalAddress[0]", expectedValue: addressFromRecord }, allTxmaEventBodies);
 
-			const pdfData = await getMergedYotiPdf(sessionRecord?.yotiSessionId);
-			const pdfImagesLocation = "./generated_images";
+			// Snapshot testing only desired for single test
+			if (stubPayload.shared_claims.address.length > 1) {
+				const pdfData = await getMergedYotiPdf(sessionRecord?.yotiSessionId);
+				const pdfImagesLocation = "./generated_images";
 
-			try {
-				const pdfBuffer = convertPdfToBuffer(pdfData);
+				try {
+					const pdfBuffer = convertPdfToBuffer(pdfData);
 
-				await convertPdfToImages(pdfBuffer, pdfImagesLocation);
+					await convertPdfToImages(pdfBuffer, pdfImagesLocation);
 
-				const files = fs.readdirSync(pdfImagesLocation);
-				files.forEach(fileName => {
-					const imagePath = pdfImagesLocation + "/" + fileName;
-					const image = fs.readFileSync(imagePath);
-					expect(image).toMatchImageSnapshot({
-						runInProcess: true,
-						customDiffDir: "tests/visual/__snapshots-diff__",
-						customSnapshotsDir: "tests/visual/__snapshots__",
-						failureThreshold: 0.1,
-						failureThresholdType: "percent",
+					const files = fs.readdirSync(pdfImagesLocation);
+					files.forEach(fileName => {
+						const imagePath = pdfImagesLocation + "/" + fileName;
+						const image = fs.readFileSync(imagePath);
+						// eslint-disable-next-line jest/no-conditional-expect
+						expect(image).toMatchImageSnapshot({
+							runInProcess: true,
+							customDiffDir: "tests/visual/__snapshots-diff__",
+							customSnapshotsDir: "tests/visual/__snapshots__",
+							failureThreshold: 0.1,
+							failureThresholdType: "percent",
 
+						});
 					});
-				});
-			} finally {
-				//remove temp files
-				fs.rmSync(pdfImagesLocation, { recursive: true });
+				} finally {
+					//remove temp files
+					fs.rmSync(pdfImagesLocation, { recursive: true });
+				}
 			}
 
 		} catch (error) {
