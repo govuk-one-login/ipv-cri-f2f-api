@@ -310,9 +310,12 @@ mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 	if (postalAddress.dependentStreetName) {
 		address.push(postalAddress.dependentStreetName);
 	}
-
 	if (postalAddress.streetName) {
-		address.push(postalAddress.buildingNumber + " " + postalAddress.streetName);
+		const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
+		address.push(buildingNumber + postalAddress.streetName);
+	}
+	if (postalAddress.dependentAddressLocality) {
+		address.push(postalAddress.dependentAddressLocality);
 	}
 	if (postalAddress.addressLocality) {
 		address.push(postalAddress.addressLocality);
