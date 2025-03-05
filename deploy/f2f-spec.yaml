@@ -1419,13 +1419,18 @@ components:
               maxLength: 60
             addressLocality:
               type: string
-              description: Name of locality
-              example: "London"
+              description: The town or city
+              example: "Leeds"
               maxLength: 60
-            doubleLocality:
+            dependentAddressLocality:
               type: string
-              description: To distinguish between similar thoroughfares within a dependent locality.
-              example: "London"
+              description: Dependent locality areas define an area within a town or city e.g. "Morley, Leeds"
+              example: "Morley"
+              maxLength: 60
+            doubleDependentAddressLocality:
+              type: string
+              description: Double dependent locality areas define an smaller area within a dependent locality e.g. "Churwell, Morley, Leeds"
+              example: "Churwell"
               maxLength: 60
             postalCode:
               type: string
@@ -1736,7 +1741,6 @@ components:
       example: SW1A 2AA
       description: >-
         A postcode used in the call to the Ordnance Survey API
-      required: true
 
 x-amazon-apigateway-request-validators:
     both:
