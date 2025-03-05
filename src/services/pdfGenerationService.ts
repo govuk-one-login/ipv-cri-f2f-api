@@ -294,7 +294,9 @@ private getLongDate(today: Date, locale: string):string {
 }
 
 mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
+
 	const address = [];
+
 	if (postalAddress.departmentName) {
 		address.push(postalAddress.departmentName);
 	}
@@ -310,9 +312,18 @@ mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 	if (postalAddress.dependentStreetName) {
 		address.push(postalAddress.dependentStreetName);
 	}
-
+	if (postalAddress.poBoxNumber) {
+		address.push(postalAddress.poBoxNumber);
+	}
 	if (postalAddress.streetName) {
-		address.push(postalAddress.buildingNumber + " " + postalAddress.streetName);
+		const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : '';
+		address.push(buildingNumber + postalAddress.streetName);
+	}
+	if (postalAddress.doubleDependentAddressLocality) {
+		address.push(postalAddress.addressLocality);
+	}
+	if (postalAddress.dependentAddressLocality) {
+		address.push(postalAddress.addressLocality);
 	}
 	if (postalAddress.addressLocality) {
 		address.push(postalAddress.addressLocality);
