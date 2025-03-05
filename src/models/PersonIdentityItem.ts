@@ -20,6 +20,7 @@ export interface PersonIdentityAddress {
 	dependentAddressLocality?: string;
 	addressLocality: string;
 	postalCode: string;
+	poBoxNumber?: string;
 	addressCountry: string;
 	validFrom?: string;
 	validUntil?: string;
