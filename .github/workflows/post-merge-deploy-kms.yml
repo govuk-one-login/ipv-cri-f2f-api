@@ -74,7 +74,7 @@ jobs:
         run: sam build -t template.yaml
 
       - name: Deploy SAM app
-        uses: govuk-one-login/devplatform-upload-action@v3.9.2
+        uses: govuk-one-login/devplatform-upload-action@v3.9.4
         with:
             artifact-bucket-name: ${{ secrets[format('{0}_F2F_KMS_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
             working-directory: infra-l2-kms
