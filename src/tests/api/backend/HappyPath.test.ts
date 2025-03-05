@@ -183,11 +183,11 @@ describe("/documentSelection Endpoint", () => {
 	});
 
 	it.each([
-		{ f2fStubPayload: f2fStubPayload },
-		{ f2fStubPayload: f2fStubPayload2Addresses },
-	])("Successful Request Tests - Email + Posted Letter with Original Address", async ({ f2fStubPayload }) => {
+		{ stubPayload: f2fStubPayload },
+		{ stubPayload: f2fStubPayload2Addresses },
+	])("Successful Request Tests - Email + Posted Letter with Original Address", async ({ stubPayload }) => {
 		expect.extend({ toMatchImageSnapshot });
-		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		const newf2fStubPayload = structuredClone(stubPayload);
 		newf2fStubPayload.yotiMockID = "0100";
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
@@ -308,10 +308,10 @@ describe("/documentSelection Endpoint", () => {
 	});
 
 	it.each([
-		{ f2fStubPayload: f2fStubPayload },
-		{ f2fStubPayload: f2fStubPayload2Addresses },
-	])("Successful Request Tests - Email + Posted Letter with Different Address", async ({ f2fStubPayload }) => {
-		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		{ stubPayload: f2fStubPayload },
+		{ stubPayload: f2fStubPayload2Addresses },
+	])("Successful Request Tests - Email + Posted Letter with Different Address", async ({ stubPayload }) => {
+		const newf2fStubPayload = structuredClone(stubPayload);
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
 		const docSelect = structuredClone(dataUkDrivingLicencePreferredAddress);
