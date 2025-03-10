@@ -30,6 +30,8 @@ export class SendToGovNotifyProcessor {
   async processRequest(sessionId: string): Promise<EmailResponse | undefined> {  	
   	try {
   		return await this.sendToGovNotifyService.sendYotiInstructions(sessionId);
+		// ignored so as not log PII
+		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (err: any) {
   		this.logger.error("sendYotiInstructions - Cannot send Email", {
   			messageCode: MessageCodes.FAILED_TO_SEND_PDF_EMAIL,

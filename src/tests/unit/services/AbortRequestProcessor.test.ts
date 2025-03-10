@@ -44,7 +44,7 @@ function getMockSessionItem(): ISessionItem {
 describe("AbortRequestProcessor", () => {
 	beforeAll(() => {
 		abortRequestProcessor = new AbortRequestProcessor(logger, metrics);
-    		// @ts-ignore
+    		// @ts-expect-error linting to be updated
 		abortRequestProcessor.f2fService = mockF2fService;
 		f2fSessionItem = getMockSessionItem();
 	});

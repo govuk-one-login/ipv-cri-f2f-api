@@ -16,8 +16,6 @@ import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 
 /* eslint @typescript-eslint/unbound-method: 0 */
-/* eslint jest/unbound-method: error */
-
 let sessionRequestProcessor: SessionRequestProcessor;
 const mockF2fService = mock<F2fService>();
 const mockKmsJwtAdapter = mock<KmsJwtAdapter>();
@@ -135,11 +133,11 @@ describe("SessionRequestProcessor", () => {
 
 	beforeAll(() => {
 		sessionRequestProcessor = new SessionRequestProcessor(logger, metrics);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		sessionRequestProcessor.f2fService = mockF2fService;
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		sessionRequestProcessor.kmsDecryptor = mockKmsJwtAdapter;
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		sessionRequestProcessor.validationHelper = mockValidationHelper;
 	});
 

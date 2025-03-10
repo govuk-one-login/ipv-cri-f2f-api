@@ -200,7 +200,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	let personIdentityItem: PersonIdentityItem, f2fSessionItem: ISessionItem, yotiSessionInfo: YotiSessionInfo;
 	beforeAll(() => {
 		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(logger, metrics, "YOTIPRIM");
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockDocumentSelectionRequestProcessor.f2fService = mockF2fService;
 
 		YotiService.getInstance = jest.fn(() => mockYotiService);
@@ -702,7 +702,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(payload, "RandomF2FSessionID", encodedHeader);
 
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		expect(mockDocumentSelectionRequestProcessor.stepFunctionsClient.send).toHaveBeenCalledWith(
 			{ "input": "{\"sessionId\":\"RandomF2FSessionID\",\"pdfPreference\":\"PRINTED_LETTER\",\"yotiSessionID\":\"b83d54ce-1565-42ee-987a-97a1f48f27dg\",\"govuk_signin_journey_id\":\"sdfssg\"}", "name": "RandomF2FSessionID-1585695600000", "stateMachineArn": "MockSendYotiLetterStateMachine.Arn" },
 		);

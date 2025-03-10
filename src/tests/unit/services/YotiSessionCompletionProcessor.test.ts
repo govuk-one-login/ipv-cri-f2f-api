@@ -113,7 +113,7 @@ describe("YotiSessionCompletionProcessor", () => {
 	let f2fSessionItem: ISessionItem, personIdentityItem: PersonIdentityItem, completedYotiSession: YotiCompletedSession, documentFields: any;
 	beforeAll(() => {
 		mockCompletedSessionProcessor = new YotiSessionCompletionProcessor(logger, metrics, "YOTIPRIM");
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.f2fService = mockF2fService;
 
 		YotiService.getInstance = jest.fn(() => mockYotiService);
@@ -129,7 +129,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		jest.clearAllMocks();
 		jest.useFakeTimers();
 		jest.setSystemTime(new Date(1585695600000));
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 	});
 
@@ -141,7 +141,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -237,7 +237,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(ukDLYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -340,7 +340,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(ukDLYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -444,7 +444,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(ukDLYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -540,7 +540,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -639,7 +639,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(eeaYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -733,7 +733,7 @@ describe("YotiSessionCompletionProcessor", () => {
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-			// @ts-ignore
+			// @ts-expect-error linting to be updated
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 			await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -749,7 +749,7 @@ describe("YotiSessionCompletionProcessor", () => {
 			});
 			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-			// @ts-ignore
+			// @ts-expect-error linting to be updated
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 			await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -767,7 +767,7 @@ describe("YotiSessionCompletionProcessor", () => {
 			});
 			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-			// @ts-ignore
+			// @ts-expect-error linting to be updated
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 			await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -852,7 +852,7 @@ describe("YotiSessionCompletionProcessor", () => {
 			});
 			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-			// @ts-ignore
+			// @ts-expect-error linting to be updated
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 			return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
@@ -1068,7 +1068,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.sendToTXMA.mockRejectedValue({});
 
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -1085,7 +1085,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		mockF2fService.sendToIPVCore.mockRejectedValueOnce("Failed to send to IPV Core");

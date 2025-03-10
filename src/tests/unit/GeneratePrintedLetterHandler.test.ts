@@ -19,6 +19,8 @@ jest.mock("../../utils/Config", () => ({
 }));
 
 describe("GeneratePrintedLetterHandler", () => {
+	// Used for testing
+	/* eslint-disable @typescript-eslint/no-unused-vars */
 	let loggerSpy: jest.SpyInstance;
 	let metricsSpy: jest.SpyInstance;
 

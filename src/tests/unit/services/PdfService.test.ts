@@ -27,9 +27,9 @@ const sessionId = "sessionId";
 describe("PdfServiceTest", () => {
 	beforeAll(() => {
 		pdfServiceTest = PDFService.getInstance(logger, metrics);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		pdfServiceTest.pdfGenerationService = mockPdfGenerationService;
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		pdfServiceTest.s3Client = mockS3Client;
 
 		metrics.singleMetric.mockReturnValue(metrics);
@@ -51,16 +51,16 @@ describe("PdfServiceTest", () => {
 			mockPdfGenerationService.generatePDF.mockImplementation(() => {
 				throw new Error();
 			});
-
-			let response = undefined;
 			try {
-				response = await pdfServiceTest.createPdf(sessionId);
+				await pdfServiceTest.createPdf(sessionId);
+				// ignored so as not log PII
+				/* eslint-disable @typescript-eslint/no-unused-vars */
 			} catch (error:any) {
-				// eslint-disable-next-line jest/no-conditional-expect
+				
 				expect(mockPdfGenerationService.generatePDF).toHaveBeenCalledTimes(1);
-				// eslint-disable-next-line jest/no-conditional-expect
+				
 				expect(metrics.addDimension).toHaveBeenCalledWith("error", "unable_to_create_cover_letter");
-				// eslint-disable-next-line jest/no-conditional-expect
+				
 				expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error", MetricUnits.Count, 1);
 			}
 		});

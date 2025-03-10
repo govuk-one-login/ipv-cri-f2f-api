@@ -48,13 +48,13 @@ describe("UserInfoRequestProcessor", () => {
 	beforeAll(() => {
 		mockSession = getMockSessionItem();
 		userInforequestProcessorTest = new UserInfoRequestProcessor(logger, metrics);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		userInforequestProcessorTest.f2fService = mockF2fService;
 	});
 
 	beforeEach(() => {
 		jest.clearAllMocks();
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		userInforequestProcessorTest.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 		mockSession = getMockSessionItem();
 	});
@@ -84,41 +84,33 @@ describe("UserInfoRequestProcessor", () => {
 	it("Return 401 when Authorization header is missing in the request", async () => {
 		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(MISSING_AUTH_HEADER_USERINFO);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		// @ts-ignore
 		expect(out.body).toBe("Failed to Validate - Authentication header: Missing header: Authorization header value is missing or invalid auth_scheme");
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});
 
 	it("Return 401 when access_token JWT validation fails", async () => {
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		userInforequestProcessorTest.kmsJwtAdapter = failingKmsJwtAdapterFactory();
 		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		// @ts-ignore
 		expect(out.body).toBe("Failed to Validate - Authentication header: Verification of JWT failed");
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});
 
 	it("Return 401 when sub is missing from JWT access_token", async () => {
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		userInforequestProcessorTest.kmsJwtAdapter.mockJwt.payload.sub = null;
 		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		// @ts-ignore
 		expect(out.body).toBe("Failed to Validate - Authentication header: sub missing");
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});
 
 	it("Return 401 when we receive expired JWT access_token", async () => {
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		userInforequestProcessorTest.kmsJwtAdapter.mockJwt.payload.exp = absoluteTimeNow() - 500;
 		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		// @ts-ignore
 		expect(out.body).toBe("Failed to Validate - Authentication header: Verification of exp failed");
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
 	});

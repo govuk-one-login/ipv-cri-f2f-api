@@ -27,10 +27,16 @@ export class MockKmsJwtAdapter {
     	this.mockJwt = mockJwT;
     }
 
+	// ignored so as not log PII
+	/* eslint-disable @typescript-eslint/no-unused-vars */
     verify(_urlEncodedJwt: string): boolean { return this.result; }
-
+	
+	// ignored so as not log PII
+	/* eslint-disable @typescript-eslint/no-unused-vars */
     decode(_urlEncodedJwt: string): Jwt { return this.mockJwt; }
 
+	// ignored so as not log PII
+	/* eslint-disable @typescript-eslint/no-unused-vars */
     sign(_jwtPayload: JwtPayload): string { return "signedJwt-test"; }
 }
 

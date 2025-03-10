@@ -63,7 +63,7 @@ const person: PersonIdentityItem = {
 describe("PdfGenerationServiceTest", () => {
 	beforeAll(() => {
 		pdfGenerationService = PDFGenerationService.getInstance(logger);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		pdfGenerationService.f2fService = mockF2fService;
 	});
 
@@ -112,9 +112,11 @@ describe("PdfGenerationServiceTest", () => {
 	});
 
 	it("should omit missing fields from mapped address", () => {
-		const { organisationName, departmentName, ...postalAddress }: PersonIdentityAddress = person.addresses[0];
+		const { ...postalAddress }: PersonIdentityAddress = person.addresses[0];
 		const result = pdfGenerationService.mapToAddressLines(postalAddress);
 		expect(result).toEqual([
+			"Test dept",
+			"Test org",
 			"Flat 5",
 			"Sherman",
 			"32 Wallaby Way",

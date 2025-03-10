@@ -5,7 +5,6 @@ import { mock } from "jest-mock-extended";
 import { CONTEXT } from "./data/context";
 import { getParameter } from "../../utils/Config";
 import { MessageCodes } from "../../models/enums/MessageCodes";
-import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 
 const mockedGenerateYotiLetterProcessor = mock<GenerateYotiLetterProcessor>();
 

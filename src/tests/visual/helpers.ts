@@ -1,4 +1,3 @@
-/* eslint-disable import/extensions */
 import * as fs from "fs";
 import * as path from "path";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.js";

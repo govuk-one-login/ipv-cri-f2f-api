@@ -56,7 +56,7 @@ function getMockYotiSessionItem(mockYotiSessionItem: YotiCompletedSession): Yoti
 describe("ThankYouEmailProcessor", () => {
 	beforeAll(() => {
 		thankYouEmailProcessor = new ThankYouEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		thankYouEmailProcessor.f2fService = mockF2fService;
 		
 		YotiService.getInstance = jest.fn(() => mockYotiService);

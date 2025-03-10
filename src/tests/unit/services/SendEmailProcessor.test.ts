@@ -26,7 +26,7 @@ describe("SendEmailProcessor", () => {
 	beforeAll(() => {
 
 		sendEmailProcessorTest = new SendEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		sendEmailProcessorTest.govNotifyService = mockGovNotifyService;
 		sqsEvent = VALID_SQS_EVENT;
 		reminderEmailEvent = VALID_REMINDER_SQS_EVENT;

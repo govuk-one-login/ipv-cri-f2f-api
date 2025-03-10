@@ -3,7 +3,6 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
-import { Response } from "../../../utils/Response";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { ISessionItem } from "../../../models/ISessionItem";
 import {
@@ -56,14 +55,14 @@ describe("AccessTokenRequestProcessor", () => {
 	beforeAll(() => {
 		mockSession = getMockSessionItem();
 		accessTokenRequestProcessorTest = new AccessTokenRequestProcessor(logger, metrics);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		accessTokenRequestProcessorTest.f2fService = mockF2fService;
 		request = VALID_ACCESSTOKEN;
 	});
 
 	beforeEach(() => {
 		jest.clearAllMocks();
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		accessTokenRequestProcessorTest.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 		// Setting the request body with a valid params
 		request.body = `code=${AUTHORIZATION_CODE}&grant_type=authorization_code&redirect_uri=${ENCODED_REDIRECT_URI}`;
@@ -152,7 +151,7 @@ describe("AccessTokenRequestProcessor", () => {
 	});
 
 	it("Return 500 Server Error when Failed to sign the access token Jwt", async () => {
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		accessTokenRequestProcessorTest.kmsJwtAdapter = failingKmsJwtSigningAdapterFactory();
 		const out: APIGatewayProxyResult = await accessTokenRequestProcessorTest.processRequest(request);
 
@@ -161,7 +160,6 @@ describe("AccessTokenRequestProcessor", () => {
 	});
 
 	it("Return 401 when getting session from dynamoDB errors", async () => {
-		// @ts-ignore
 		mockF2fService.getSessionByAuthorizationCode.mockImplementation(() => {
 			throw new Error("Error while retrieving the session");
 		});
@@ -172,7 +170,6 @@ describe("AccessTokenRequestProcessor", () => {
 	});
 
 	it("Return 500 when updating the session returns an error", async () => {
-		// @ts-ignore
 		mockF2fService.updateSessionWithAccessTokenDetails.mockImplementation(() => {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving Access token details");
 		});

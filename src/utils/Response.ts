@@ -28,7 +28,6 @@ export const Response = (
 	statusCode: number,
 	body: string,
 	headers?: { [header: string]: boolean | number | string } | undefined,
-	multiValueHeaders?: { [header: string]: Array<boolean | number | string> } | undefined,
 ) => {
 	const finalHeaders = mergeHeaders(SECURITY_HEADERS, headers);
 
