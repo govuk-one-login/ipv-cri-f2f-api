@@ -200,6 +200,7 @@ export class SessionRequestProcessor {
 
   	try {
   		await this.f2fService.createAuthSession(session);
+  		this.metrics.addMetric("session_created", MetricUnits.Count, 1);
   	} catch (error) {
   		this.logger.error("Failed to create session in session table", {
   			error,
@@ -228,7 +229,7 @@ export class SessionRequestProcessor {
   			user: {
   				...coreEventFields.user,
   				govuk_signin_journey_id: session.clientSessionId,
-  			},  			
+  			},
   		}, encodedHeader);
   	} catch (error) {
   		this.logger.error("Auth session successfully created. Failed to send CIC_CRI_START event to TXMA", {
@@ -239,8 +240,7 @@ export class SessionRequestProcessor {
   	}
 
   	this.logger.info("Session created successfully. Returning 200OK");
-  	
-  	this.metrics.addMetric("F2F_SESSION_CREATED", MetricUnits.Count, 1);
+
 
   	return {
   		statusCode: HttpCodesEnum.OK,

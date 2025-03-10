@@ -8,7 +8,7 @@ import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
@@ -151,6 +151,7 @@ export class SendEmailService {
   				options,
   				sessionConfigObject.clientConfig.GovNotifyApi,
   			);
+  			this.metrics.addMetric("GovNotify_PDF_email_sent", MetricUnits.Count, 1);
   			await this.sendF2FYotiEmailedEvent(message);
   			return emailResponse;
   		} else {

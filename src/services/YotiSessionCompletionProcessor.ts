@@ -324,6 +324,7 @@ export class YotiSessionCompletionProcessor {
 				  AuthSessionState.F2F_CREDENTIAL_ISSUED,
 			  );
 			  
+			  this.metrics.addMetric("F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
 			  this.metrics.addMetric("SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 
 			  return Response(HttpCodesEnum.OK, "OK");
