@@ -5648,7 +5648,7 @@ Resources:
         Interval: !If [IsProdEnvironment, 15, 5]
         Percentage: !If [IsProdEnvironment, 10, 50]
         Alarms: !If
-          -UseStepCanaryDeploymentAlarms
+          - UseStepCanaryDeploymentAlarms
           - - !Ref SendYotiLetterStateMachineFailedCanary
             - !Ref GenerateYotiLetterFatalErrorAlarm
             - !Ref GenerateYotiLetterFunctionLambdaErrors
