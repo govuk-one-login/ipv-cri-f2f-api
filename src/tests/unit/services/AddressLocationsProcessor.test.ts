@@ -51,7 +51,7 @@ describe("AddressLocationsProcessor", () => {
 		axiosMock = axios as jest.Mocked<typeof axios>;
 
 		addressLocationsProcessor = new AddressLocationsProcessor(logger, metrics, "osAPIKey" );
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		addressLocationsProcessor.f2fService = mockF2fService;
 	});
 

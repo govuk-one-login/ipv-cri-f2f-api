@@ -5,7 +5,6 @@ import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
-import { Response } from "../../../utils/Response";
 import { F2fResponse } from "../../../utils/F2fResponse";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
@@ -46,7 +45,7 @@ function getMockSessionItem(): ISessionItem {
 describe("AuthorizationRequestProcessor", () => {
 	beforeAll(() => {
 		authorizationRequestProcessorTest = new AuthorizationRequestProcessor(logger, metrics);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		authorizationRequestProcessorTest.f2fService = mockF2fService;
 	});
 

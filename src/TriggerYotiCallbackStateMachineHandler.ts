@@ -4,7 +4,6 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { fromEnv } from "@aws-sdk/credential-providers";
-import { randomUUID } from "crypto";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { YotiCallbackTopics } from "./models/enums/YotiCallbackTopics";
 import { Constants } from "./utils/Constants";

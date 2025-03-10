@@ -116,6 +116,8 @@ export class GenerateYotiLetterProcessor {
 		try {
 			this.logger.info(`Uploading object with key ${key} to bucket ${bucket}`);
 			await this.s3Client.send(new PutObjectCommand(uploadParams));
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error) {
 			this.logger.error("Error uploading Yoti PDF to S3 bucket", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error uploading Yoti PDF to S3 bucket");

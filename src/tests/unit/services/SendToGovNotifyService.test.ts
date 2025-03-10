@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable max-depth */
 /* eslint-disable max-lines */
-// @ts-ignore
+// @ts-expect-error linting to be updated
 import { NotifyClient } from "notifications-node-client";
 import { EmailResponse } from "../../../models/EmailResponse";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -145,7 +145,7 @@ const mockSendPrecompiledLetter = jest.fn();
 describe("SendToGovNotifyService", () => {
 	beforeAll(() => {
 		sendToGovNotifyServiceTest = SendToGovNotifyService.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, "serviceId");
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		sendToGovNotifyServiceTest.f2fService = mockF2fService;
 
 		NotifyClient.mockImplementation(() => {
