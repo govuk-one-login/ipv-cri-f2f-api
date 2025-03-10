@@ -32,7 +32,7 @@ const event = {
 		"buildingName": "London",
 		"streetName": "Demo",
 		"addressLocality": "London",
-		"postalCode": "SW19",
+		"postalCode": "BA2 5AA",
 		"addressCountry": "GB",
 		"preferredAddress": true,
 	},  
