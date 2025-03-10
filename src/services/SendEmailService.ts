@@ -8,7 +8,7 @@ import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
@@ -78,6 +78,7 @@ export class SendEmailService {
   		this.environmentVariables.sessionTable(),
   		this.logger,
   		createDynamoDbClient(),
+  		this.metrics,
   	);
   	this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
   	this.validationHelper = new ValidationHelper();
@@ -150,6 +151,7 @@ export class SendEmailService {
   				options,
   				sessionConfigObject.clientConfig.GovNotifyApi,
   			);
+  			this.metrics.addMetric("GovNotify_PDF_email_sent", MetricUnits.Count, 1);
   			await this.sendF2FYotiEmailedEvent(message);
   			return emailResponse;
   		} else {
@@ -234,14 +236,14 @@ export class SendEmailService {
 
   		const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
 
-  	
+  
   		const options = {
   			personalisation: {
   				[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
   				[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
   				[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
   				[GOV_NOTIFY_OPTIONS.CHOSEN_PHOTO_ID]: message.documentUsed,
-				  [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
+  				  [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   					file: encoded,
   					confirm_email_before_download: true,
   					retention_period: "2 weeks",

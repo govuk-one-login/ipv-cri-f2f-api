@@ -4,6 +4,7 @@
 import { mock } from "jest-mock-extended";
 import { F2fService } from "../../../services/F2fService";
 import { Logger } from "@aws-lambda-powertools/logger";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 import { randomUUID } from "crypto";
 import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
@@ -19,6 +20,7 @@ import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
 import { AppError } from "../../../utils/AppError";
 
 const logger = mock<Logger>();
+const metrics = mock<Metrics>();
 let f2fService: F2fService;
 const tableName = "SESSIONTABLE";
 const personTableName = "PERSONTABLE";
@@ -72,7 +74,7 @@ describe("F2f Service", () => {
 
 	beforeEach(() => {
 		jest.resetAllMocks();
-		f2fService = F2fService.getInstance(tableName, logger, mockDynamoDbClient);
+		f2fService = F2fService.getInstance(tableName, logger, mockDynamoDbClient, metrics);
 	});
 
 	it("Should return a session item when passed a valid session Id", async () => {

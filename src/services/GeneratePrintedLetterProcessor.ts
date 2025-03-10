@@ -34,7 +34,7 @@ export class GeneratePrintedLetterProcessor {
 		this.logger = logger;
 		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
 		this.pdfService = PDFService.getInstance(logger, metrics);
 		this.s3Client = new S3Client({
 			region: process.env.REGION,

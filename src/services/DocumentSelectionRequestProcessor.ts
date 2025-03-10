@@ -54,7 +54,7 @@ export class DocumentSelectionRequestProcessor {
 		this.logger = logger;
 		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.stepFunctionsClient = new SFNClient({ region: process.env.REGION, credentials: fromEnv() });
@@ -115,14 +115,20 @@ export class DocumentSelectionRequestProcessor {
 				singleMetric.addMetric("DocSelect_validation_failed", MetricUnits.Count, 1);
 
   			return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
-  		} else if (postalAddress && (!postalAddress.postalCode || (!postalAddress.buildingNumber && !postalAddress.buildingName))
+  		} else if (postalAddress && !postalAddress.uprn ||
+			postalAddress && !postalAddress.buildingNumber && !postalAddress.buildingName ||
+			postalAddress && !postalAddress.streetName ||
+			postalAddress && !postalAddress.addressLocality ||
+			postalAddress && !postalAddress.postalCode ||
+			postalAddress && !postalAddress.addressCountry ||
+			postalAddress && !postalAddress.preferredAddress
 			) {
 				this.logger.error("Postal address missing mandatory fields in postal address", {
 					messageCode: MessageCodes.MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS,
 				});
 				this.metrics.addMetric("DocSelect_missing_mandatory_fields_in_postal_address", MetricUnits.Count, 1);
 				return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in postal address");
-			}
+			} 
   	} catch (error) {
   		this.logger.error("Error parsing the payload", {
   			messageCode: MessageCodes.ERROR_PARSING_PAYLOAD,
@@ -155,7 +161,7 @@ export class DocumentSelectionRequestProcessor {
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY);
+		this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
 
 		// Reject the request when session store does not contain email, familyName or GivenName fields
 		const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);
@@ -169,7 +175,6 @@ export class DocumentSelectionRequestProcessor {
 			const PRINTED_CUSTOMER_LETTER_ENABLED = await getParameter(this.environmentVariables.printedCustomerLetterEnabledSsmPath());
 			try {
 				yotiSessionId = await this.createSessionGenerateInstructions(
-					clientConfig.YotiBaseUrl,
 					personDetails,
 					f2fSessionInfo,
 					postOfficeSelection,
@@ -181,6 +186,9 @@ export class DocumentSelectionRequestProcessor {
 						const singleMetric = this.metrics.singleMetric();
 						singleMetric.addDimension("pdf_preference", pdfPreference);
 						singleMetric.addMetric("DocSelect_comms_choice", MetricUnits.Count, 1);
+						this.metrics.addMetric("F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
+						this.metrics.addMetric("DocSelect_doc_select_complete", MetricUnits.Count, 1);
+						this.metrics.addMetric("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1);
 						await this.startStateMachine(sessionId, yotiSessionId, f2fSessionInfo?.clientSessionId, pdfPreference);
 					} else {
 						await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
@@ -314,7 +322,6 @@ export class DocumentSelectionRequestProcessor {
 	}
 
 	async createSessionGenerateInstructions(
-		yotiBaseUrl: string,
 		personDetails: PersonIdentityItem,
 		f2fSessionInfo: ISessionItem,
 		postOfficeSelection: PostOfficeInfo,
@@ -323,7 +330,7 @@ export class DocumentSelectionRequestProcessor {
 	): Promise<string> {
 		this.logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
 
-		const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, yotiBaseUrl, this.environmentVariables.yotiCallbackUrl());
+		const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, this.environmentVariables.yotiCallbackUrl());
 		this.metrics.addMetric("DocSelect_yoti_session_created", MetricUnits.Count, 1);
 
 		if (!yotiSessionId) {
@@ -332,7 +339,7 @@ export class DocumentSelectionRequestProcessor {
 		}
 
 		this.logger.info("Fetching Session Info");
-		const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId, yotiBaseUrl);
+		const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId);
 
 		if (!yotiSessionInfo) {
 			this.logger.error("An error occurred when fetching Yoti Session", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
@@ -375,7 +382,6 @@ export class DocumentSelectionRequestProcessor {
 			personDetails,
 			requirements,
 			postOfficeSelection,
-			yotiBaseUrl,
 		);
 
 		if (generateInstructionsResponse !== HttpCodesEnum.OK) {
@@ -391,6 +397,7 @@ export class DocumentSelectionRequestProcessor {
 		this.logger.info({ message: "Posting message to Gov Notify" });
 		try {
 			await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
+			this.metrics.addMetric("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1);
 		} catch (error) {
 			this.logger.error("Yoti session created, failed to post message to GovNotify SQS Queue", {
 				error,

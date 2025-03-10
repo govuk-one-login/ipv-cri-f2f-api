@@ -3,6 +3,7 @@
 import fs from "fs";
 
 import { Logger } from "@aws-lambda-powertools/logger";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 
 import { PersonIdentityAddress, PersonIdentityItem } from "../../../models/PersonIdentityItem";
@@ -11,6 +12,7 @@ import { PDFGenerationService } from "../../../services/pdfGenerationService";
 
 let pdfGenerationService: PDFGenerationService;
 const mockF2fService = mock<F2fService>();
+const metrics = mock<Metrics>();
 
 const logger = mock<Logger>();
 const sessionId = "sessionId";
@@ -62,7 +64,7 @@ const person: PersonIdentityItem = {
 
 describe("PdfGenerationServiceTest", () => {
 	beforeAll(() => {
-		pdfGenerationService = PDFGenerationService.getInstance(logger);
+		pdfGenerationService = PDFGenerationService.getInstance(logger, metrics);
 		// @ts-ignore
 		pdfGenerationService.f2fService = mockF2fService;
 	});
