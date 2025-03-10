@@ -32,6 +32,8 @@ export class AddressLocationsHandler implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
+		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());
+
 		try {
 			const { sessionId, postcode } = this.validateEvent(event);
 			const osApiKeyPath = this.environmentVariables.oSAPIKeySsmPath();

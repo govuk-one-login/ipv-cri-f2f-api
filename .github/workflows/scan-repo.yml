@@ -27,7 +27,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - name: Run SonarCloud scan
-          uses: govuk-one-login/github-actions/code-quality/sonarcloud@0739d7e7a19bae3177cf851ae51944bb4dd53565 #30th Jan 2024
+          uses: govuk-one-login/github-actions/code-quality/sonarcloud@5480cced560e896dea12c47ea33e548a4d093e65
           with:
             coverage-artifact: ${{ needs.unit-tests.outputs.coverage-artifact }}
             github-token: ${{ secrets.GITHUB_TOKEN }}

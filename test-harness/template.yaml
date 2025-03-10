@@ -63,6 +63,10 @@ Conditions:
           - "none"
 
 Globals:
+  Api:
+    BinaryMediaTypes:
+      - "application/pdf"
+      - "application/octet-stream"
   Function:
     Runtime: nodejs18.x
     VpcConfig:
@@ -346,9 +350,6 @@ Resources:
   TestHarnessRestApi:
     Type: AWS::Serverless::Api
     Properties:
-      BinaryMediaTypes:
-        - "application/pdf"
-        - "application/octet-stream"
       AlwaysDeploy: true
       StageName: !Ref Environment
       OpenApiVersion: 3.0.1
@@ -358,11 +359,18 @@ Resources:
       EndpointConfiguration:
         Type: REGIONAL
       DefinitionBody:
+        openapi: '3.0.2'
+        paths:
+          /myMethod:
+            post:
+              produces:
+                - "application/json"
+              responses: { }
+
         Fn::Transform:
           Name: AWS::Include
           Parameters:
             Location: './test-harness-spec.yaml'
-          OpenApiVersion: 3.0.1
       MethodSettings:
         - LoggingLevel: INFO
           MetricsEnabled: true

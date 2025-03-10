@@ -31,8 +31,8 @@ export class PDFGenerationService {
   private constructor(logger: Logger, metrics: Metrics) {
   	this.logger = logger;
   	this.metrics = metrics;
-  	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.NA);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient(), this.metrics);
+  	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
   }
 
 mmToPt = (mm: number) => mm * 2.83465;
@@ -316,9 +316,12 @@ mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 	if (postalAddress.dependentStreetName) {
 		address.push(postalAddress.dependentStreetName);
 	}
-
 	if (postalAddress.streetName) {
-		address.push(postalAddress.buildingNumber + " " + postalAddress.streetName);
+		const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
+		address.push(buildingNumber + postalAddress.streetName);
+	}
+	if (postalAddress.dependentAddressLocality) {
+		address.push(postalAddress.dependentAddressLocality);
 	}
 	if (postalAddress.addressLocality) {
 		address.push(postalAddress.addressLocality);

@@ -182,6 +182,16 @@ export class ValidationHelper {
 		}
 	}
 
+	// If >1 addresses in shared_claims, address{}.validUntil will not be present on the preferredAddress
+	getPreferredAddress(sharedClaimsAddress: PersonIdentityAddress[]): PersonIdentityAddress | undefined {
+		if (sharedClaimsAddress.length > 1) {
+		  // Find the address object that does not have the 'validUntil' property
+		  return sharedClaimsAddress.find((addr) => !addr.validUntil);
+		} else if (sharedClaimsAddress.length === 1) {
+		  return sharedClaimsAddress[0];
+		}
+	}
+
 	/**
 	 * Checks if the countryCode is 'GB'.
 	 *

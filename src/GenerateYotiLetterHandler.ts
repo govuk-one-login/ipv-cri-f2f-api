@@ -35,6 +35,9 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 		this.validateEvent(event);
+
+		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());
+
 		try {
 			try {
 				const yotiPrivateKeyPath = this.environmentVariables.yotiKeySsmPath();
