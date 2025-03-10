@@ -318,6 +318,7 @@ Conditions:
   CreateDevResources: !Equals
     - !Ref Environment
     - dev
+  IsProdEnvironment: !Equals [!Ref Environment, production]
   IsProdLikeEnvironment: !Or
     - !Equals [!Ref Environment, staging]
     - !Equals [!Ref Environment, integration]
