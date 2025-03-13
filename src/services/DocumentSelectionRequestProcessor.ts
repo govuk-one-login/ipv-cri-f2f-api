@@ -392,6 +392,7 @@ export class DocumentSelectionRequestProcessor {
 		this.logger.info({ message: "Posting message to Gov Notify" });
 		try {
 			await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
+			this.metrics.addMetric("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1);
 		} catch (error) {
 			this.logger.error("Yoti session created, failed to post message to GovNotify SQS Queue", {
 				error,

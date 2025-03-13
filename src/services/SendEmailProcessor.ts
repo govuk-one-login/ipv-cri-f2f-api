@@ -1,5 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { SendEmailService } from "./SendEmailService";
 import { Constants } from "../utils/Constants";
 import { Email } from "../models/Email";
@@ -34,14 +34,21 @@ export class SendEmailProcessor {
   		case Constants.PDF_EMAIL:
   			email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(email, this.logger);
+  			this.metrics.addMetric("GovNotify_PDF_email_sent", MetricUnits.Count, 1);
+  			this.metrics.addDimension("emailType", "Pdf");
+  			this.metrics.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
   			return this.govNotifyService.sendYotiPdfEmail(email);
   		case Constants.REMINDER_EMAIL_DYNAMIC:
   			dynamicReminderEmail = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(dynamicReminderEmail, this.logger);
+  			this.metrics.addDimension("emailType", "dynamic_reminder");
+  			this.metrics.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
   			return this.govNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);
   		case Constants.REMINDER_EMAIL:
   			reminderEmail = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(reminderEmail, this.logger);
+  			this.metrics.addDimension("emailType", "reminder");
+  			this.metrics.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
   			return this.govNotifyService.sendReminderEmail(reminderEmail);
   	}
   	return undefined;
