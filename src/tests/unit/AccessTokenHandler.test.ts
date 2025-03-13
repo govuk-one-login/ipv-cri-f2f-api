@@ -1,9 +1,7 @@
 import { mock } from "jest-mock-extended";
-import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { AccessTokenRequestProcessor } from "../../services/AccessTokenRequestProcessor";
 import { lambdaHandler } from "../../AccessTokenHandler";
-import { RESOURCE_NOT_FOUND, VALID_ACCESSTOKEN } from "./data/accessToken-events";
-import { Response } from "../../utils/Response";
+import { VALID_ACCESSTOKEN } from "./data/accessToken-events";
 
 const mockedAccessTokenRequestProcessor = mock<AccessTokenRequestProcessor>();
 
