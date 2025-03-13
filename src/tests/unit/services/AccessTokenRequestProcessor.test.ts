@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -74,7 +74,7 @@ describe("AccessTokenRequestProcessor", () => {
 		mockF2fService.getSessionByAuthorizationCode.mockResolvedValue(mockSession);
 
 		const out: APIGatewayProxyResult = await accessTokenRequestProcessorTest.processRequest(request);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockF2fService.getSessionByAuthorizationCode).toHaveBeenCalledTimes(1);
 
 		expect(out.body).toEqual(JSON.stringify({

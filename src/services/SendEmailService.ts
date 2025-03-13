@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+ 
 // @ts-expect-error linting to be updated
 import { NotifyClient } from "notifications-node-client";
 

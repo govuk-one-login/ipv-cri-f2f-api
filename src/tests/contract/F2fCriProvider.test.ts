@@ -1,4 +1,4 @@
-/* eslint-disable max-lines-per-function */
+ 
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Verifier, VerifierOptions } from "@pact-foundation/pact";
 import { Constants } from "./utils/Constants";

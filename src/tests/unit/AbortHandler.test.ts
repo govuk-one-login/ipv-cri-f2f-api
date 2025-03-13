@@ -1,5 +1,5 @@
-/* eslint-disable max-lines-per-function */
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
+ 
 import { mock } from "jest-mock-extended";
 import { lambdaHandler, logger } from "../../AbortHandler";
 import { AbortRequestProcessor } from "../../services/AbortRequestProcessor";

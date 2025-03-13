@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable max-lines */
-/* eslint-disable max-lines-per-function */
+ 
+ 
+ 
 import { mock } from "jest-mock-extended";
 import { F2fService } from "../../../services/F2fService";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -28,7 +28,7 @@ import SESSION_RECORD from "../data/db_record.json";
 import { ISessionItem } from "../../../models/ISessionItem";
 
 jest.mock("@aws-sdk/client-sqs", () => ({
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	 
 	SendMessageCommand: jest.fn().mockImplementation(() => {}),
 }));
 

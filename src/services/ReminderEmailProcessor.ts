@@ -1,4 +1,4 @@
-/* eslint-disable max-len */
+ 
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";

@@ -1,5 +1,5 @@
-/* eslint-disable max-depth */
-/* eslint-disable max-lines */
+ 
+ 
 // @ts-expect-error linting to be updated
 import { NotifyClient } from "notifications-node-client";
 import { EmailResponse } from "../models/EmailResponse";

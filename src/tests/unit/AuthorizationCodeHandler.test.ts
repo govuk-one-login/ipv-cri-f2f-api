@@ -18,7 +18,7 @@ describe("AuthorizationCodeHandler", () => {
 
 		await lambdaHandler(VALID_AUTHCODE, "AUTH_CODE");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockedAuthorizationRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
 });

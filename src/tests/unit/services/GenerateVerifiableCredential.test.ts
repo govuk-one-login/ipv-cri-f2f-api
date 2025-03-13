@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/dot-notation */
+ 
+ 
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { GenerateVerifiableCredential } from "../../../services/GenerateVerifiableCredential";

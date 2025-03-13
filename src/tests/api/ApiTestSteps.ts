@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+ 
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { aws4Interceptor } from "aws4-axios";

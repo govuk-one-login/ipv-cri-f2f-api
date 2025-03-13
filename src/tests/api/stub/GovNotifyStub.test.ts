@@ -1,4 +1,4 @@
-/* eslint-disable max-lines-per-function */
+ 
 import govNotifyRequestDataEmail from "../../data/govNotifyStubEmailPayload.json";
 import govNotifyRequestDataLetter from "../../data/govNotifyStubLetterPayload.json";
 
