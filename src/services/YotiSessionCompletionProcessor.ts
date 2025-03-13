@@ -98,7 +98,8 @@ export class YotiSessionCompletionProcessor {
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
 		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		
-  	this.metrics.addDimension("yoti_session_completion", "started");
+		const startMetric = this.metrics.singleMetric();
+		startMetric.addDimension("yoti_session_completion", "started");
   	
   	const yotiSessionID = eventBody.session_id;
 
@@ -150,6 +151,14 @@ export class YotiSessionCompletionProcessor {
 			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti Session not complete");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not complete", { shouldThrow: true });
 		  }
+
+		  await this.f2fService.updateSessionAuthState(
+			  f2fSession.sessionId,
+			  AuthSessionState.F2F_YOTI_SESSION_COMPLETE
+		  );
+
+		  const sessionCompleteMetric = this.metrics.singleMetric();
+		  sessionCompleteMetric.addMetric("F2F_YOTI_SESSION_COMPLETE", MetricUnits.Count, 1);
 
 		  this.logger.appendKeys({
 			  yotiUserTrackingId: completedYotiSessionInfo.user_tracking_id,
@@ -227,7 +236,8 @@ export class YotiSessionCompletionProcessor {
 
 				  });
 				  
-				  this.metrics.addMetric("SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+				  const responseMetric = this.metrics.singleMetric();
+				  responseMetric.addMetric("SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
 				  
 			  } catch (error) {
 				  this.logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", {
@@ -328,7 +338,9 @@ export class YotiSessionCompletionProcessor {
 				  AuthSessionState.F2F_CREDENTIAL_ISSUED,
 			  );
 
-			  this.metrics.addDimension("yoti_session_completion", "successful");
+			  const completionMetric = this.metrics.singleMetric();
+			  completionMetric.addDimension("yoti_session_completion", "successful");
+			  completionMetric.addMetric("SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 			  return Response(HttpCodesEnum.OK, "OK");
 		  } else {
 			  this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });

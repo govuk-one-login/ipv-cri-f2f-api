@@ -67,7 +67,8 @@ export class ThankYouEmailProcessor {
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
 		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		
-		this.metrics.addDimension("document_process_started", "true");
+		const startMetric = this.metrics.singleMetric();
+		startMetric.addDimension("document_process_started", "true");
 
 		const yotiSessionID = eventBody.session_id;
 
@@ -134,8 +135,9 @@ export class ThankYouEmailProcessor {
   			},
   		});
 
-	    this.metrics.addMetric("document_uploaded_at_PO", MetricUnits.Count, 1);
-			this.metrics.addDimension("document_uploaded", "true");
+			const uploadMetric = this.metrics.singleMetric();
+			uploadMetric.addDimension("document_uploaded", "true");
+			uploadMetric.addMetric("document_uploaded_at_PO", MetricUnits.Count, 1);
   		return Response(HttpCodesEnum.OK, "OK");
 
   	} else {

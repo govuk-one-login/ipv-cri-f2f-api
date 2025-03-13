@@ -22,6 +22,7 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { IPVCoreEvent } from "../utils/IPVCoreEvent";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { PdfPreferenceEnum } from "../utils/PdfPreferenceEnum";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
 export class F2fService {
 	readonly tableName: string;
@@ -32,6 +33,8 @@ export class F2fService {
 
 	private readonly environmentVariables: EnvironmentVariables;
 
+	private readonly metrics: Metrics;
+
 	private static instance: F2fService;
 
 	constructor(tableName: any, logger: Logger, dynamoDbClient: DynamoDBDocument) {
@@ -39,6 +42,7 @@ export class F2fService {
 		this.dynamo = dynamoDbClient;
 		this.logger = logger;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.NA);
+		this.metrics = new Metrics({ namespace: "F2F" });
 	}
 
 	static getInstance(tableName: string, logger: Logger, dynamoDbClient: DynamoDBDocument): F2fService {
@@ -527,6 +531,11 @@ export class F2fService {
 		try {
 			await this.dynamo.send(updateStateCommand);
 			this.logger.info({ message: "Updated auth state details in dynamodb" });
+
+			if (authSessionState === AuthSessionState.F2F_CRI_SESSION_ABORTED) {
+				this.metrics.addMetric("F2F_SESSION_ABORTED", MetricUnits.Count, 1);
+			}
+
 		} catch (error) {
 			this.logger.error({ message: "Got error saving auth state details", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving auth state details");
