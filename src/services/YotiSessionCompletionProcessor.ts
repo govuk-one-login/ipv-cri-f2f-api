@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
@@ -26,6 +26,7 @@ import { getClientConfig } from "../utils/ClientConfig";
 import { ValidationHelper } from "../utils/ValidationHelper";
 import { Constants } from "../utils/Constants";
 import { APIGatewayProxyResult } from "aws-lambda";
+
 
 export class YotiSessionCompletionProcessor {
 
@@ -97,6 +98,8 @@ export class YotiSessionCompletionProcessor {
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
 		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		
+  	this.metrics.addDimension("yoti_session_completion", "started");
+  	
   	const yotiSessionID = eventBody.session_id;
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
@@ -223,6 +226,9 @@ export class YotiSessionCompletionProcessor {
 					  },
 
 				  });
+				  
+				  this.metrics.addMetric("SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+				  
 			  } catch (error) {
 				  this.logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", {
 					  messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
@@ -322,6 +328,7 @@ export class YotiSessionCompletionProcessor {
 				  AuthSessionState.F2F_CREDENTIAL_ISSUED,
 			  );
 
+			  this.metrics.addDimension("yoti_session_completion", "successful");
 			  return Response(HttpCodesEnum.OK, "OK");
 		  } else {
 			  this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
