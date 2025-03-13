@@ -212,6 +212,10 @@ export class YotiSessionCompletionProcessor {
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
 		  }
 
+		  // Add metric after successfully parsing the Yoti response
+		  const responseMetric = this.metrics.singleMetric();
+		  responseMetric.addMetric("SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+
 		  // Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED" or "F2F_AUTH_CODE_ISSUED"
 		  if (
 			  f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
@@ -235,9 +239,6 @@ export class YotiSessionCompletionProcessor {
 					  },
 
 				  });
-				  
-				  const responseMetric = this.metrics.singleMetric();
-				  responseMetric.addMetric("SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
 				  
 			  } catch (error) {
 				  this.logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", {
