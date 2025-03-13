@@ -74,6 +74,8 @@ export class AuthorizationRequestProcessor {
 						},
 
 					});
+					// ignored so as not log PII
+					/* eslint-disable @typescript-eslint/no-unused-vars */
 				} catch (error) {
 					this.logger.error("Failed to write TXMA event F2F_CRI_AUTH_CODE_ISSUED to SQS queue.", {
 						messageCode: MessageCodes.ERROR_WRITING_TXMA,

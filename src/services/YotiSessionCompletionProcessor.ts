@@ -240,6 +240,10 @@ export class YotiSessionCompletionProcessor {
 
 				  });
 				  
+
+				// ignored so as not log PII
+				/* eslint-disable @typescript-eslint/no-unused-vars */
+
 			  } catch (error) {
 				  this.logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", {
 					  messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,

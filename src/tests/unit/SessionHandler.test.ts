@@ -1,6 +1,6 @@
 import { lambdaHandler } from "../../SessionHandler";
 import { mock } from "jest-mock-extended";
-import { VALID_SESSION, RESOURCE_NOT_FOUND } from "./data/session-events";
+import { VALID_SESSION } from "./data/session-events";
 import { SessionRequestProcessor } from "../../services/SessionRequestProcessor";
 import { CONTEXT } from "./data/context";
 

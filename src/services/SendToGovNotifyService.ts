@@ -1,6 +1,6 @@
 /* eslint-disable max-depth */
 /* eslint-disable max-lines */
-// @ts-ignore
+// @ts-expect-error linting to be updated
 import { NotifyClient } from "notifications-node-client";
 import { EmailResponse } from "../models/EmailResponse";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
@@ -276,6 +276,8 @@ export class SendToGovNotifyService {
   					govuk_signin_journey_id: f2fSessionInfo.clientSessionId,
   				},
   			});
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
   		} catch (error) {
   			this.logger.error(
   				"Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.",

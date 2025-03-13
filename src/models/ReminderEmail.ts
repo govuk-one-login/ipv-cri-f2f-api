@@ -20,6 +20,8 @@ export class ReminderEmail {
 	static parseRequest(data: any, logger: Logger): ReminderEmail {
 		try {
 			return new ReminderEmail(JSON.parse(data));
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error: any) {
 			logger.error("Cannot parse ReminderEmail data");
 			throw new AppError( HttpCodesEnum.BAD_REQUEST, "Cannot parse ReminderEmail data");

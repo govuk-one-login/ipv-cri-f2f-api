@@ -16,7 +16,6 @@ import { createSqsClient } from "../../../utils/SqsClient";
 import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
-import { AppError } from "../../../utils/AppError";
 
 const logger = mock<Logger>();
 let f2fService: F2fService;
@@ -25,9 +24,11 @@ const personTableName = "PERSONTABLE";
 const sessionId = "SESSID";
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
 const mockSqsClient = createSqsClient();
-const SESSION_RECORD = require("../data/db_record.json");
+import SESSION_RECORD from "../data/db_record.json";
+import { ISessionItem } from "../../../models/ISessionItem";
 
 jest.mock("@aws-sdk/client-sqs", () => ({
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	SendMessageCommand: jest.fn().mockImplementation(() => {}),
 }));
 
@@ -332,7 +333,7 @@ describe("F2f Service", () => {
 
 	it("should create auth session", async () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
-		await f2fService.createAuthSession(SESSION_RECORD);
+		await f2fService.createAuthSession(SESSION_RECORD as ISessionItem);
 		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
 			input: {
 				Item: {

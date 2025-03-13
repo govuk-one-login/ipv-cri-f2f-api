@@ -123,6 +123,8 @@ export class DocumentSelectionRequestProcessor {
 				this.metrics.addMetric("DocSelect_missing_mandatory_fields_in_postal_address", MetricUnits.Count, 1);
 				return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in postal address");
 			}
+		// ignored so as not log PII
+		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (error) {
   		this.logger.error("Error parsing the payload", {
   			messageCode: MessageCodes.ERROR_PARSING_PAYLOAD,
@@ -297,6 +299,8 @@ export class DocumentSelectionRequestProcessor {
 						],
 					},
 				}, encodedHeader);
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 			} catch (error) {
 				this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
 			}

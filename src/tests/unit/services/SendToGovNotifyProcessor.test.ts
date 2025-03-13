@@ -1,8 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { SendToGovNotifyService } from "../../../services/SendToGovNotifyService";
-import { ValidationHelper } from "../../../utils/ValidationHelper";
-import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-import { AppError } from "../../../utils/AppError";
 import { SendToGovNotifyProcessor } from "../../../services/SendToGovNotifyProcessor";
 import { mock } from "jest-mock-extended";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
@@ -21,7 +18,7 @@ const metrics = mock<Metrics>();
 describe("SendToGovNotify processor", () => {
 	beforeAll(() => {
 		sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, "serviceId");
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		sendToGovNotifyProcessor.sendToGovNotifyService = mockSendToGovNotifyService;
 	});
 

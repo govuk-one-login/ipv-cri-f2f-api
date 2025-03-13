@@ -96,7 +96,7 @@ function getMockSessionItem(): ISessionItem {
 describe("PersonInfoRequestProcessor", () => {
 	beforeAll(() => {
 		personInfoRequestProcessorTest = new PersonInfoRequestProcessor(logger, metrics, PRIVATE_KEY_SSM_PARAM);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		personInfoRequestProcessorTest.f2fService = mockF2fService;
 	});
 

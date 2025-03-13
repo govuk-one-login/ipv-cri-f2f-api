@@ -59,11 +59,11 @@ function getMockSessionItem(): ISessionItem {
 describe("GenerateYotiLetterProcessor", () => {
 	beforeAll(() => {
 		generatePrintedLetterProcessor = new GeneratePrintedLetterProcessor(logger, metrics);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		generatePrintedLetterProcessor.f2fService = mockF2fService;
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		generatePrintedLetterProcessor.s3Client = mockS3Client;
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		generatePrintedLetterProcessor.pdfService = mockPdfService;
 
 		metrics.singleMetric.mockReturnValue(metrics);
@@ -99,7 +99,6 @@ describe("GenerateYotiLetterProcessor", () => {
 		});
 		const response =  await generatePrintedLetterProcessor.processRequest({ sessionId, pdf_preference });
 
-		// @ts-ignore
 		const myCaptor = captor();
 
 		expect(mockS3Client.send).toHaveBeenNthCalledWith(1, expect.objectContaining({
