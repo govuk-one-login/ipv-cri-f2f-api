@@ -154,7 +154,7 @@ export class YotiSessionCompletionProcessor {
 
 		  await this.f2fService.updateSessionAuthState(
 			  f2fSession.sessionId,
-			  AuthSessionState.F2F_YOTI_SESSION_COMPLETE
+			  AuthSessionState.F2F_YOTI_SESSION_COMPLETE,
 		  );
 
 		  const sessionCompleteMetric = this.metrics.singleMetric();
