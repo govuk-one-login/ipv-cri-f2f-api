@@ -301,6 +301,7 @@ export class DocumentSelectionRequestProcessor {
 				this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
 			}
 
+			this.metrics.addDimension("completion_status", "completed");
 			this.metrics.addMetric("DocSelect_doc_select_complete", MetricUnits.Count, 1);
 			return Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 

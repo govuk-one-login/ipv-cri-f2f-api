@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Constants } from "./utils/Constants";
 import { Response } from "./utils/Response";
@@ -31,6 +31,10 @@ export class DocumentSelection implements LambdaInterface {
 		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
+
+		const startMetric = metrics.singleMetric();
+		startMetric.addDimension("completion_status", "started");
+		startMetric.addMetric("DocSelect_doc_select_complete", MetricUnits.Count, 1);
 
 		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());
 

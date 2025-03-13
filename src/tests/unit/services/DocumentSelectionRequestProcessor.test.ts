@@ -242,6 +242,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart, encodedHeader);
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
+		expect(metrics.addDimension).toHaveBeenCalledWith("completion_status", "completed");
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_doc_select_complete", MetricUnits.Count, 1);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
 	});
@@ -713,6 +715,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(2, "document_type", "ukPassport");
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "DocSelect_document_selected", MetricUnits.Count, 1);
+		expect(metrics.addDimension).toHaveBeenNthCalledWith(3, "completion_status", "completed");
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(4, "DocSelect_doc_select_complete", MetricUnits.Count, 1);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 
