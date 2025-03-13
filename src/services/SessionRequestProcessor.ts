@@ -241,6 +241,10 @@ export class SessionRequestProcessor {
 
   	this.logger.info("Session created successfully. Returning 200OK");
 
+  	this.metrics.addMetric("session_created", MetricUnits.Count, 1);
+  	this.metrics.addDimension("session_started", "true");
+  	this.metrics.addDimension("session_created", "true");
+
   	return {
   		statusCode: HttpCodesEnum.OK,
   		headers: SECURITY_HEADERS,
