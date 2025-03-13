@@ -135,9 +135,8 @@ export class ThankYouEmailProcessor {
   			},
   		});
 
-			const uploadMetric = this.metrics.singleMetric();
-			uploadMetric.addDimension("document_uploaded", "true");
-			uploadMetric.addMetric("document_uploaded_at_PO", MetricUnits.Count, 1);
+
+			this.metrics.addMetric("document_uploaded_at_PO", MetricUnits.Count, 1);
   		return Response(HttpCodesEnum.OK, "OK");
 
   	} else {
