@@ -8,11 +8,14 @@ import { mock } from "jest-mock-extended";
 import { PersonIdentityAddress, PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { F2fService } from "../../../services/F2fService";
 import { PDFGenerationService } from "../../../services/pdfGenerationService";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 
 let pdfGenerationService: PDFGenerationService;
 const mockF2fService = mock<F2fService>();
 
 const logger = mock<Logger>();
+const metrics = mock<Metrics>();
+
 const sessionId = "sessionId";
 
 const person: PersonIdentityItem = {
@@ -62,7 +65,7 @@ const person: PersonIdentityItem = {
 
 describe("PdfGenerationServiceTest", () => {
 	beforeAll(() => {
-		pdfGenerationService = PDFGenerationService.getInstance(logger);
+		pdfGenerationService = PDFGenerationService.getInstance(logger, metrics);
 		// @ts-expect-error linting to be updated
 		pdfGenerationService.f2fService = mockF2fService;
 	});

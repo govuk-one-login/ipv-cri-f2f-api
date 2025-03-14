@@ -72,6 +72,7 @@ export class SendToGovNotifyService {
   	this.f2fService = F2fService.getInstance(
   		this.environmentVariables.sessionTable(),
   		this.logger,
+		this.metrics,
   		createDynamoDbClient(),
   	);
 	  this.s3Client = new S3Client({

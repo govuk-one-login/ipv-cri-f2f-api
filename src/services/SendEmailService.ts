@@ -77,6 +77,7 @@ export class SendEmailService {
   	this.f2fService = F2fService.getInstance(
   		this.environmentVariables.sessionTable(),
   		this.logger,
+		this.metrics,
   		createDynamoDbClient(),
   	);
   	this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
