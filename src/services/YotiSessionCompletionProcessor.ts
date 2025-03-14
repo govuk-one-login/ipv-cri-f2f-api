@@ -98,8 +98,8 @@ export class YotiSessionCompletionProcessor {
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
 		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		
-		const startMetric = this.metrics.singleMetric();
-		startMetric.addDimension("yoti_session_completion", "started");
+		const metric = this.metrics.singleMetric();
+		metric.addDimension("yoti_session_completion", "started");
   	
   	const yotiSessionID = eventBody.session_id;
 
@@ -157,8 +157,8 @@ export class YotiSessionCompletionProcessor {
 			  AuthSessionState.F2F_YOTI_SESSION_COMPLETE
 		  );
 
-		  const sessionCompleteMetric = this.metrics.singleMetric();
-		  sessionCompleteMetric.addMetric("F2F_YOTI_SESSION_COMPLETE", MetricUnits.Count, 1);
+
+		  metric.addMetric("F2F_YOTI_SESSION_COMPLETE", MetricUnits.Count, 1);
 
 		  this.logger.appendKeys({
 			  yotiUserTrackingId: completedYotiSessionInfo.user_tracking_id,
@@ -213,8 +213,7 @@ export class YotiSessionCompletionProcessor {
 		  }
 
 		  // Add metric after successfully parsing the Yoti response
-		  const responseMetric = this.metrics.singleMetric();
-		  responseMetric.addMetric("SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+		  metric.addMetric("SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
 
 		  // Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED" or "F2F_AUTH_CODE_ISSUED"
 		  if (
@@ -343,9 +342,8 @@ export class YotiSessionCompletionProcessor {
 				  AuthSessionState.F2F_CREDENTIAL_ISSUED,
 			  );
 
-			  const completionMetric = this.metrics.singleMetric();
-			  completionMetric.addDimension("yoti_session_completion", "successful");
-			  completionMetric.addMetric("SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
+
+			  metric.addMetric("SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 			  return Response(HttpCodesEnum.OK, "OK");
 		  } else {
 			  this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
