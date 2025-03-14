@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -29,7 +29,7 @@ export class AbortRequestProcessor {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.ABORT_SERVICE);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
   }
 
   static getInstance(
@@ -67,6 +67,8 @@ export class AbortRequestProcessor {
 
   	try {
   	  await this.f2fService.updateSessionAuthState(f2fSessionInfo.sessionId, AuthSessionState.F2F_CRI_SESSION_ABORTED);
+	  this.metrics.addMetric("state-F2F_CRI_SESSION_ABORTED", MetricUnits.Count, 1);
+
   	} catch (error) {
   		this.logger.error("Error occurred while aborting the session", {
   			error,

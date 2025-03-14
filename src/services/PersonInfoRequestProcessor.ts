@@ -29,7 +29,7 @@ export class PersonInfoRequestProcessor {
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.PERSON_INFO_SERVICE);
 		this.logger = logger;
   		this.metrics = metrics;
-  		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+  		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics, publicKey: string): PersonInfoRequestProcessor {

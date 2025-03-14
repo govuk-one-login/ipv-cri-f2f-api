@@ -54,7 +54,7 @@ export class DocumentSelectionRequestProcessor {
 		this.logger = logger;
 		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.stepFunctionsClient = new SFNClient({ region: process.env.REGION, credentials: fromEnv() });
@@ -192,6 +192,8 @@ export class DocumentSelectionRequestProcessor {
 						yotiSessionId,
 						AuthSessionState.F2F_YOTI_SESSION_CREATED,
 					);
+					this.metrics.addMetric("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
+
 					const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
 					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
 					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
@@ -394,6 +396,7 @@ export class DocumentSelectionRequestProcessor {
 	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
 		this.logger.info({ message: "Posting message to Gov Notify" });
 		try {
+			this.metrics.addMetric("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1);
 			await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
 		} catch (error) {
 			this.logger.error("Yoti session created, failed to post message to GovNotify SQS Queue", {
