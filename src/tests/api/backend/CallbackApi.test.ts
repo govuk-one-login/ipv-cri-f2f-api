@@ -24,43 +24,43 @@ describe("/callback endpoint", () => {
 	jest.setTimeout(60000);
 
 	it.each([
-		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence },
-		{ yotiMockId: "0001", docSelectionData: dataUkDrivingLicence },
-		{ yotiMockId: "0003", docSelectionData: dataUkDrivingLicence },
-		{ yotiMockId: "0101", docSelectionData: dataPassport },
-		{ yotiMockId: "0102", docSelectionData: dataPassport },
-		{ yotiMockId: "0103", docSelectionData: dataPassport },
-		{ yotiMockId: "0108", docSelectionData: dataPassport },
-		{ yotiMockId: "0109", docSelectionData: dataPassport },
-		{ yotiMockId: "0110", docSelectionData: dataPassport },
-		{ yotiMockId: "0111", docSelectionData: dataPassport },
-		{ yotiMockId: "0112", docSelectionData: dataPassport },
-		{ yotiMockId: "0113", docSelectionData: dataPassport },
-		{ yotiMockId: "0114", docSelectionData: dataPassport },
-		{ yotiMockId: "0115", docSelectionData: dataPassport },
-		{ yotiMockId: "0116", docSelectionData: dataPassport },
-		{ yotiMockId: "0117", docSelectionData: dataPassport },
-		{ yotiMockId: "0118", docSelectionData: dataPassport },
-		{ yotiMockId: "0119", docSelectionData: dataPassport },
-		{ yotiMockId: "0120", docSelectionData: dataPassport },
-		{ yotiMockId: "0121", docSelectionData: dataPassport },
-		{ yotiMockId: "0122", docSelectionData: dataPassport },
-		{ yotiMockId: "0123", docSelectionData: dataPassport },
-		{ yotiMockId: "0124", docSelectionData: dataPassport },
-		{ yotiMockId: "0125", docSelectionData: dataPassport },
-		{ yotiMockId: "0133", docSelectionData: dataPassport },
-		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport },
-		{ yotiMockId: "0201", docSelectionData: dataNonUkPassport },
-		{ yotiMockId: "0202", docSelectionData: dataNonUkPassport },
-		{ yotiMockId: "0203", docSelectionData: dataNonUkPassport },
-		{ yotiMockId: "0204", docSelectionData: dataNonUkPassport },
-		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence },
-		{ yotiMockId: "0401", docSelectionData: dataEuDrivingLicence },
-		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard },
-		{ yotiMockId: "0501", docSelectionData: dataEeaIdCard },
-		{ yotiMockId: "0502", docSelectionData: dataEeaIdCard },
-		{ yotiMockId: "0503", docSelectionData: dataEeaIdCard },
-	])("F2F CRI Callback Endpoint - yotiMockId $yotiMockId", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; docSelectionData: DocSelectionData }) => {
+		{ yotiMockId: "0000", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
+		{ yotiMockId: "0001", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
+		{ yotiMockId: "0003", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
+		{ yotiMockId: "0101", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0102", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0103", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0108", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0109", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0110", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0111", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0112", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0113", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0114", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0115", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0116", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0117", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0118", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0119", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0120", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0121", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0122", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0123", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0124", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0125", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0133", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0200", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
+		{ yotiMockId: "0201", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
+		{ yotiMockId: "0202", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
+		{ yotiMockId: "0203", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
+		{ yotiMockId: "0204", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
+		{ yotiMockId: "0400", documentType: "EuDrivingLicence", docSelectionData: dataEuDrivingLicence },
+		{ yotiMockId: "0401", documentType: "EuDrivingLicence", docSelectionData: dataEuDrivingLicence },
+		{ yotiMockId: "0500", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
+		{ yotiMockId: "0501", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
+		{ yotiMockId: "0502", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
+		{ yotiMockId: "0503", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
+	])("F2F CRI Callback Endpoint - Verified Credential validation for yotiMockId: $yotiMockId - documentType: $documentType", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; documentType: string; docSelectionData: DocSelectionData }) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
 
 		const { sessionId, sub } = await startStubServiceAndReturnSessionId(f2fStubPayload);
@@ -118,7 +118,7 @@ describe("/callback endpoint", () => {
 		{ yotiMockId:"0402", docSelectionData: dataEuDrivingLicence, givenName1: "FREDERICK", givenName2: "SMITH", givenName3: "JON", familyName: "FLINTSTONE" },
 		{ yotiMockId:"0206", docSelectionData: dataNonUkPassport, givenName1: "FREDERICK", givenName2: "JON", givenName3: "De", familyName: "FLINTSTONE" },
 
-	])("Mutltuple given Names in Yoti Response - yotiMockId $yotiMockId'", async (
+	])("Mutltuple given Names in Yoti Response - yotiMockId $yotiMockId - Full Name: $givenName1 $givenName2 $givenName3 $familyName", async (
 		{ yotiMockId, docSelectionData, givenName1, givenName2, givenName3, familyName }:
 		// eslint-disable-next-line max-len
 		{ yotiMockId: string; docSelectionData: DocSelectionData; givenName1: string; givenName2: string; givenName3: string; familyName: string },
@@ -150,12 +150,12 @@ describe("/callback endpoint", () => {
 	}, 20000);
 
 	it.each([
-		{ yotiMockId: "0000", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_SCHEMA" },
-		{ yotiMockId: "0101", docSelectionData: dataPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_01_SCHEMA" },
-		{ yotiMockId: "0200", docSelectionData: dataNonUkPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_01_SCHEMA" },
-		{ yotiMockId: "0400", docSelectionData: dataEuDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_04_SCHEMA" },
-		{ yotiMockId: "0500", docSelectionData: dataEeaIdCard, yotiStartSchema: "F2F_YOTI_START_05_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_05_SCHEMA" },
-	])("TxMA event Validation $yotiMockId", async ({ yotiMockId, docSelectionData, yotiStartSchema, vcIssuedSchema }: { yotiMockId: string; docSelectionData: DocSelectionData; yotiStartSchema: string; vcIssuedSchema: string }) => {
+		{ yotiMockId: "0000", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_SCHEMA" },
+		{ yotiMockId: "0101", documentType: "UkPassport", docSelectionData: dataPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_01_SCHEMA" },
+		{ yotiMockId: "0200", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_01_SCHEMA" },
+		{ yotiMockId: "0400", documentType: "EuDrivingLicence", docSelectionData: dataEuDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_04_SCHEMA" },
+		{ yotiMockId: "0500", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard, yotiStartSchema: "F2F_YOTI_START_05_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_05_SCHEMA" },
+	])("E2E Journey with Callback and TxMA event Validation for yotiMockID: $yotiMockId - documentType: $documentType", async ({ yotiMockId, docSelectionData, yotiStartSchema, vcIssuedSchema }: { yotiMockId: string; documentType: string; docSelectionData: DocSelectionData; yotiStartSchema: string; vcIssuedSchema: string }) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
 		
 		const { sessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
@@ -178,7 +178,7 @@ describe("/callback endpoint", () => {
 		validateTxMAEventData({ eventName: "F2F_CRI_VC_ISSUED", schemaName: vcIssuedSchema }, allTxmaEventBodies);
 	}, 20000);
 
-	it("Thank you email - yotiMockId 0101", async () => {
+	it("E2E Journey with Callback and Thank you Email TxMA event Validation for yotiMockID: 0101 - documentType: UkPassport", async () => {
 		const yotiMockID = "0101";
 		f2fStubPayload.yotiMockID = yotiMockID;
 
