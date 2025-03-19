@@ -84,12 +84,12 @@ describe("/personInfo endpoint", () => {
 
 describe("/documentSelection endpoint", () => {
 	it.each([
-		{ yotiMockId: "0000", statusCode: 400, docSelectionData: dataDriversLicenseInvalid, errorMessage: { "message": "Invalid request body" } },
-		{ yotiMockId: "0102", statusCode: 500, docSelectionData: dataPassportBlankFad, errorMessage: "Error generating Yoti instructions PDF" },
-		{ yotiMockId: "0103", statusCode: 500, docSelectionData: dataPassportIncorrectFad, errorMessage: "Error generating Yoti instructions PDF" },
-		{ yotiMockId: "0104", statusCode: 500, docSelectionData: dataPassportInvalidFadFormat, errorMessage: "Error generating Yoti instructions PDF" },
-		{ yotiMockId: "0105", statusCode: 400, docSelectionData: dataPassportMissingFad, errorMessage: { "message": "Invalid request body" } },
-	])("Unsuccessful Request Tests - yotiMockId $yotiMockId", async ({ yotiMockId, statusCode, docSelectionData, errorMessage }: { yotiMockId: string; statusCode: number; docSelectionData: DocSelectionData; errorMessage: any }) => {
+		{ yotiMockId: "0000", documentType: "UkDrivingLicence", statusCode: 400, docSelectionData: dataDriversLicenseInvalid, errorMessage: { "message": "Invalid request body" } },
+		{ yotiMockId: "0102", documentType: "UkPassport", statusCode: 500, docSelectionData: dataPassportBlankFad, errorMessage: "Error generating Yoti instructions PDF" },
+		{ yotiMockId: "0103", documentType: "UkPassport", statusCode: 500, docSelectionData: dataPassportIncorrectFad, errorMessage: "Error generating Yoti instructions PDF" },
+		{ yotiMockId: "0104", documentType: "UkPassport", statusCode: 500, docSelectionData: dataPassportInvalidFadFormat, errorMessage: "Error generating Yoti instructions PDF" },
+		{ yotiMockId: "0105", documentType: "UkPassport", statusCode: 400, docSelectionData: dataPassportMissingFad, errorMessage: { "message": "Invalid request body" } },
+	])("Unsuccessful Request Tests - yotiMockId $yotiMockId  - documentType: $documentType", async ({ yotiMockId, statusCode, docSelectionData, errorMessage }: { yotiMockId: string; documentType: string; statusCode: number; docSelectionData: DocSelectionData; errorMessage: any }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		newf2fStubPayload.yotiMockID = yotiMockId;
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
