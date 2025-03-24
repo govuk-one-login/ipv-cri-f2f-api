@@ -274,3 +274,383 @@ export const mockCompletedYotiSessionPayload = {
 	checks: [authenticityCheck, mockFaceMatchCheck, visualReviewCheck, validityCheck, profileMatchCheck],
 	user_tracking_id: "some_id2",
 };
+
+export const mockYotiSessionItemBST = {
+	client_session_token_ttl: 2453254,
+	session_id: "99ce0305-444e-4793-b1a2-36cac84e7a07",
+	state: "ONGOING",
+	resources: {
+		id_documents: [
+			{
+				id: "c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
+				tasks: [
+					{
+						type: "ID_DOCUMENT_TEXT_DATA_EXTRACTION",
+						id: "5e557551-51fc-49b8-9f2e-32da31cba8fd",
+						state: "DONE",
+						created: "2023-09-07T14:30:37Z",
+						last_updated: "2023-09-07T14:31:16Z",
+						generated_checks: [],
+						generated_media: [
+							{
+								id: "e8841901-44fb-42b2-b6b8-88937a106d65",
+								type: "JSON",
+							},
+						],
+					},
+				],
+				source: {
+					type: "IBV",
+				},
+				created_at: "2023-09-07T14:30:37Z",
+				last_updated: "2023-09-07T14:31:16Z",
+				document_type: "PASSPORT",
+				issuing_country: "GBR",
+				pages: [
+					{
+						capture_method: "CAMERA",
+						media: {
+							id: "3a5441af-da2b-4b9e-b2e3-db9c55e780e8",
+							type: "IMAGE",
+							created: "2023-09-07T14:31:07Z",
+							last_updated: "2023-09-07T14:31:07Z",
+						},
+						frames: [
+							{
+								media: {
+									id: "c502725a-3f16-4a7d-95ee-48b56281fe81",
+									type: "IMAGE",
+									created: "2023-09-07T14:31:08Z",
+									last_updated: "2023-09-07T14:31:08Z",
+								},
+							},
+						],
+					},
+				],
+				document_fields: {
+					media: {
+						id: "e8841901-44fb-42b2-b6b8-88937a106d65",
+						type: "JSON",
+						created: "2023-09-07T14:31:16Z",
+						last_updated: "2023-09-07T14:31:16Z",
+					},
+				},
+				document_id_photo: {
+					media: {
+						id: "99e0d324-4023-4b81-8414-ddd391bb13e4",
+						type: "IMAGE",
+						created: "2023-09-07T14:31:16Z",
+						last_updated: "2023-09-07T14:31:16Z",
+					},
+				},
+			},
+		],
+		supplementary_documents: [],
+		liveness_capture: [],
+		face_capture: [
+			{
+				id: "d068c3e3-9bde-4cf8-bc7f-fe68c06777ca",
+				tasks: [],
+				source: {
+					type: "IBV",
+				},
+				created_at: "2023-09-07T14:31:49Z",
+				last_updated: "2023-09-07T14:32:01Z",
+				image: {
+					media: {
+						id: "914014a3-703a-4a9b-834f-aad505e95d02",
+						type: "IMAGE",
+						created: "2023-09-07T14:32:01Z",
+						last_updated: "2023-09-07T14:32:01Z",
+					},
+				},
+			},
+		],
+		applicant_profiles: [
+			{
+				id: "0da43bf8-fc60-4d4d-b846-cdfe8cc96f2b",
+				tasks: [],
+				source: {
+					type: "RELYING_BUSINESS",
+				},
+				created_at: "2023-09-07T14:29:12Z",
+				last_updated: "2023-09-07T14:29:12Z",
+				media: {
+					id: "e8f55883-0071-4b46-a1e8-610b279b8a15",
+					type: "JSON",
+					created: "2023-09-07T14:29:12Z",
+					last_updated: "2023-09-07T14:29:12Z",
+				},
+			},
+		],
+	},
+	checks: [
+		{
+			type: "ID_DOCUMENT_AUTHENTICITY",
+			id: "e29b5645-7cd1-4f42-94d7-0a2c43283f4c",
+			state: "PENDING",
+			resources_used: [
+				"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
+			],
+			generated_media: [],
+			created: "2023-09-07T14:32:13Z",
+			last_updated: "2023-09-07T14:32:13Z",
+		},
+		{
+			type: "ID_DOCUMENT_FACE_MATCH",
+			id: "f4799bad-7a34-41f9-8956-be9fb22f9efe",
+			state: "PENDING",
+			resources_used: [
+				"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
+				"d068c3e3-9bde-4cf8-bc7f-fe68c06777ca",
+			],
+			generated_media: [],
+			created: "2023-09-07T14:32:13Z",
+			last_updated: "2023-09-07T14:32:13Z",
+		},
+		{
+			type: "IBV_VISUAL_REVIEW_CHECK",
+			id: "f1191e59-eb6c-4dca-9b15-88cff7187b2a",
+			state: "DONE",
+			resources_used: [
+				"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
+			],
+			generated_media: [],
+			report: {
+				recommendation: {
+					value: "APPROVE",
+				},
+				breakdown: [],
+			}, 
+			created: "2023-09-07T14:32:13Z",
+			last_updated: "2023-09-07T14:32:13Z",
+		},
+		{
+			type: "DOCUMENT_SCHEME_VALIDITY_CHECK",
+			id: "f03051b1-532d-4388-95a3-9d07bb807429",
+			state: "DONE",
+			resources_used: [
+				"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
+			],
+			generated_media: [],
+			report: {
+				recommendation: {
+					value: "APPROVE",
+				},
+				breakdown: [],
+			},
+			created: "2023-09-07T14:32:13Z",
+			last_updated: "2023-09-07T14:32:13Z",
+			scheme: "UK_GDS",
+		},
+		{
+			type: "PROFILE_DOCUMENT_MATCH",
+			id: "05f16627-2803-4b20-b909-5dd3fba420ef",
+			state: "DONE",
+			resources_used: [
+				"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
+				"0da43bf8-fc60-4d4d-b846-cdfe8cc96f2b",
+			],
+			generated_media: [],
+			report: {
+				recommendation: {
+					value: "APPROVE",
+				},
+				breakdown: [],
+			},
+			created: "2023-09-07T14:32:13Z",
+			last_updated: "2023-09-07T14:32:13Z",
+		},
+	],
+	user_tracking_id: "some_id",
+};
+
+export const mockYotiSessionItemGMT = {
+	client_session_token_ttl: 2453254,
+	session_id: "99ce0305-444e-4793-b1a2-36cac84e7a07",
+	state: "ONGOING",
+	resources: {
+		id_documents: [
+			{
+				id: "c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
+				tasks: [
+					{
+						type: "ID_DOCUMENT_TEXT_DATA_EXTRACTION",
+						id: "5e557551-51fc-49b8-9f2e-32da31cba8fd",
+						state: "DONE",
+						created: "2023-02-07T14:30:37Z",
+						last_updated: "2023-02-07T14:31:16Z",
+						generated_checks: [],
+						generated_media: [
+							{
+								id: "e8841901-44fb-42b2-b6b8-88937a106d65",
+								type: "JSON",
+							},
+						],
+					},
+				],
+				source: {
+					type: "IBV",
+				},
+				created_at: "2023-02-07T14:30:37Z",
+				last_updated: "2023-02-07T14:31:16Z",
+				document_type: "PASSPORT",
+				issuing_country: "GBR",
+				pages: [
+					{
+						capture_method: "CAMERA",
+						media: {
+							id: "3a5441af-da2b-4b9e-b2e3-db9c55e780e8",
+							type: "IMAGE",
+							created: "2023-02-07T14:31:07Z",
+							last_updated: "2023-02-07T14:31:07Z",
+						},
+						frames: [
+							{
+								media: {
+									id: "c502725a-3f16-4a7d-95ee-48b56281fe81",
+									type: "IMAGE",
+									created: "2023-02-07T14:31:08Z",
+									last_updated: "2023-02-07T14:31:08Z",
+								},
+							},
+						],
+					},
+				],
+				document_fields: {
+					media: {
+						id: "e8841901-44fb-42b2-b6b8-88937a106d65",
+						type: "JSON",
+						created: "2023-02-07T14:31:16Z",
+						last_updated: "2023-02-07T14:31:16Z",
+					},
+				},
+				document_id_photo: {
+					media: {
+						id: "99e0d324-4023-4b81-8414-ddd391bb13e4",
+						type: "IMAGE",
+						created: "2023-02-07T14:31:16Z",
+						last_updated: "2023-02-07T14:31:16Z",
+					},
+				},
+			},
+		],
+		supplementary_documents: [],
+		liveness_capture: [],
+		face_capture: [
+			{
+				id: "d068c3e3-9bde-4cf8-bc7f-fe68c06777ca",
+				tasks: [],
+				source: {
+					type: "IBV",
+				},
+				created_at: "2023-02-07T14:31:49Z",
+				last_updated: "2023-02-07T14:32:01Z",
+				image: {
+					media: {
+						id: "914014a3-703a-4a9b-834f-aad505e95d02",
+						type: "IMAGE",
+						created: "2023-02-07T14:32:01Z",
+						last_updated: "2023-02-07T14:32:01Z",
+					},
+				},
+			},
+		],
+		applicant_profiles: [
+			{
+				id: "0da43bf8-fc60-4d4d-b846-cdfe8cc96f2b",
+				tasks: [],
+				source: {
+					type: "RELYING_BUSINESS",
+				},
+				created_at: "2023-02-07T14:29:12Z",
+				last_updated: "2023-02-07T14:29:12Z",
+				media: {
+					id: "e8f55883-0071-4b46-a1e8-610b279b8a15",
+					type: "JSON",
+					created: "2023-02-07T14:29:12Z",
+					last_updated: "2023-02-07T14:29:12Z",
+				},
+			},
+		],
+	},
+	checks: [
+		{
+			type: "ID_DOCUMENT_AUTHENTICITY",
+			id: "e29b5645-7cd1-4f42-94d7-0a2c43283f4c",
+			state: "PENDING",
+			resources_used: [
+				"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
+			],
+			generated_media: [],
+			created: "2023-02-07T14:32:13Z",
+			last_updated: "2023-02-07T14:32:13Z",
+		},
+		{
+			type: "ID_DOCUMENT_FACE_MATCH",
+			id: "f4799bad-7a34-41f9-8956-be9fb22f9efe",
+			state: "PENDING",
+			resources_used: [
+				"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
+				"d068c3e3-9bde-4cf8-bc7f-fe68c06777ca",
+			],
+			generated_media: [],
+			created: "2023-02-07T14:32:13Z",
+			last_updated: "2023-02-07T14:32:13Z",
+		},
+		{
+			type: "IBV_VISUAL_REVIEW_CHECK",
+			id: "f1191e59-eb6c-4dca-9b15-88cff7187b2a",
+			state: "DONE",
+			resources_used: [
+				"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
+			],
+			generated_media: [],
+			report: {
+				recommendation: {
+					value: "APPROVE",
+				},
+				breakdown: [],
+			}, 
+			created: "2023-02-07T14:32:13Z",
+			last_updated: "2023-02-07T14:32:13Z",
+		},
+		{
+			type: "DOCUMENT_SCHEME_VALIDITY_CHECK",
+			id: "f03051b1-532d-4388-95a3-9d07bb807429",
+			state: "DONE",
+			resources_used: [
+				"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
+			],
+			generated_media: [],
+			report: {
+				recommendation: {
+					value: "APPROVE",
+				},
+				breakdown: [],
+			},
+			created: "2023-02-07T14:32:13Z",
+			last_updated: "2023-02-07T14:32:13Z",
+			scheme: "UK_GDS",
+		},
+		{
+			type: "PROFILE_DOCUMENT_MATCH",
+			id: "05f16627-2803-4b20-b909-5dd3fba420ef",
+			state: "DONE",
+			resources_used: [
+				"c2a33e99-1c55-4e21-b7d2-411a5f987ae2",
+				"0da43bf8-fc60-4d4d-b846-cdfe8cc96f2b",
+			],
+			generated_media: [],
+			report: {
+				recommendation: {
+					value: "APPROVE",
+				},
+				breakdown: [],
+			},
+			created: "2023-02-07T14:32:13Z",
+			last_updated: "2023-02-07T14:32:13Z",
+		},
+	],
+	user_tracking_id: "some_id",
+};

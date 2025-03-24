@@ -94,15 +94,16 @@ export class Constants {
 
 	static readonly FIRST_NAME = "first name";
 	
-	// Printed Customer Letter
 	static readonly PCL_PREFERENCE_EMAIL = "EMAIL";
 
 	static readonly PCL_PREFERENCE_LETTER = "LETTER";
 
+	static readonly ADDRESS_LOCATIONS_LOGGER_SVC_NAME : "AddressLocationsHandler";
 
 	static readonly GOV_NOTIFY_OPTIONS = {
 		FIRST_NAME: "first name",
 		LAST_NAME: "last name",
+		DATE: "date",
 		LINK_TO_FILE: "link_to_file",
 		CHOSEN_PHOTO_ID: "chosen photo ID",
 	};
@@ -112,5 +113,10 @@ export class Constants {
 	static readonly X_FORWARDED_FOR = "x-forwarded-for";
 
 	static readonly ENCODED_AUDIT_HEADER = "txma-audit-encoded";
-  
+	
+	static readonly POSTCODE_HEADER = "postcode";
+
+	static readonly PDF_PREFERENCE_PRINTED_LETTER = "PRINTED_LETTER";
+
+	static readonly PDF_PREFERENCE_EMAIL_ONLY = "EMAIL_ONLY";  
 }

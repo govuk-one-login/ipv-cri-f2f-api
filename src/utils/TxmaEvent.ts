@@ -1,10 +1,11 @@
-import { ResidencePermit, IdentityCard, DrivingPermit, Passport, VerifiedCredentialSubject } from "./IVeriCredential";
+import { IdentityCard, DrivingPermit, Passport, VerifiedCredentialSubject } from "./IVeriCredential";
 import { ISessionItem } from "../models/ISessionItem";
 
 export type TxmaEventName =
 	"F2F_CRI_START"
 	| "F2F_CRI_AUTH_CODE_ISSUED"
 	| "F2F_YOTI_PDF_EMAILED"
+	| "F2F_YOTI_PDF_LETTER_POSTED"
 	| "F2F_YOTI_START"
 	| "F2F_YOTI_RESPONSE_RECEIVED"
 	| "F2F_CRI_VC_ISSUED"
@@ -37,8 +38,8 @@ export interface RestrictedObject {
 	"issuingCountry"?: string;
 	"passport"?: Passport;
 	"drivingPermit"?: DrivingPermit;
-	"residencePermit"?: ResidencePermit;
 	"idCard"?: IdentityCard;
+	"postalAddress"?: object;
 	device_information?: {
 		encoded: string;
 	};
@@ -77,6 +78,7 @@ export interface ExtensionObject {
 	"previous_govuk_signin_journey_id"?: string;
 	"post_office_details"?: PostOfficeDetails;
 	"post_office_visit_details"?: PostOfficeVisitDetails;
+	"differentPostalAddress"?: boolean;
 }
 
 export interface TxmaEvent extends BaseTxmaEvent {

@@ -1,11 +1,14 @@
-// @ts-ignore
+/* eslint-disable max-lines */
+// @ts-expect-error linting to be updated
 import { NotifyClient } from "notifications-node-client";
 
 import { EmailResponse } from "../models/EmailResponse";
 import { Email } from "../models/Email";
+import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { Logger } from "@aws-lambda-powertools/logger";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
@@ -15,18 +18,17 @@ import { F2fService } from "./F2fService";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { ReminderEmail } from "../models/ReminderEmail";
-import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { Constants } from "../utils/Constants";
 import { getClientConfig } from "../utils/ClientConfig";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { ValidationHelper } from "../utils/ValidationHelper";
+import { ISessionItem } from "../models/ISessionItem";
 
 /**
  * Class to send emails using gov notify service
  */
 export class SendEmailService {
-  private govNotify: NotifyClient;
 
   private govNotifyErrorMapper: GovNotifyErrorMapper;
 
@@ -35,6 +37,8 @@ export class SendEmailService {
   private readonly environmentVariables: EnvironmentVariables;
 
   private readonly logger: Logger;
+
+  private readonly metrics: Metrics;
 
 	private readonly validationHelper: ValidationHelper;
 
@@ -56,11 +60,13 @@ export class SendEmailService {
    */
   private constructor(
   	logger: Logger,
+  	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
   ) {
   	this.logger = logger;
+  	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(
   		logger,
   		ServicesEnum.GOV_NOTIFY_SERVICE,
@@ -71,6 +77,7 @@ export class SendEmailService {
   	this.f2fService = F2fService.getInstance(
   		this.environmentVariables.sessionTable(),
   		this.logger,
+		this.metrics,
   		createDynamoDbClient(),
   	);
   	this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
@@ -79,6 +86,7 @@ export class SendEmailService {
 
   static getInstance(
   	logger: Logger,
+  	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
@@ -86,6 +94,7 @@ export class SendEmailService {
   	if (!this.instance) {
   		this.instance = new SendEmailService(
   			logger,
+  			metrics,
   			YOTI_PRIVATE_KEY,
   			GOVUKNOTIFY_API_KEY,
   			govnotifyServiceId,
@@ -107,43 +116,18 @@ export class SendEmailService {
    * @throws AppError
    */
   async sendYotiPdfEmail(message: Email): Promise<EmailResponse> {
-  	// Fetch the instructions pdf from Yoti
   	try {
-  		const f2fSessionInfo = await this.f2fService.getSessionById(
-  			message.sessionId,
-  		);
-
-  		if (!f2fSessionInfo) {
-  			this.logger.warn("Missing details in SESSION table", {
-  				messageCode: MessageCodes.SESSION_NOT_FOUND,
-  			});
-  			throw new AppError(
-  				HttpCodesEnum.BAD_REQUEST,
-  				"Missing details in SESSION or table",
-  			);
-  		}
-
-  		//Initialise Yoti Service base on SessionClietID
-  		const clientConfig = getClientConfig(
-  			this.environmentVariables.clientConfig(),
-  			f2fSessionInfo.clientId,
-  			this.logger,
-  		);
-			
-  		if (!clientConfig) {
-  			this.logger.error("Unrecognised client in request", {
-  				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
-  			});
-  			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Bad Request");
-  		}
+  		const sessionConfigObject = await this.fetchSessionAndConfigInfo(message.sessionId);
 
   		const encoded = await this.fetchInstructionsPdf(
   			message,
-  			clientConfig.YotiBaseUrl,
+  			sessionConfigObject.clientConfig.YotiBaseUrl,
   		);
   		if (encoded) {
   			this.logger.debug("sendEmail", SendEmailService.name);
   			this.logger.info("Sending Yoti PDF email");
+
+  			const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
 
   			const { GOV_NOTIFY_OPTIONS } = Constants;
 
@@ -151,6 +135,7 @@ export class SendEmailService {
   				personalisation: {
   					[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
   					[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
+  					[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
   					[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   						file: encoded,
   						confirm_email_before_download: true,
@@ -164,19 +149,21 @@ export class SendEmailService {
   				this.environmentVariables.getPdfEmailTemplateId(this.logger),
   				message,
   				options,
-  				clientConfig.GovNotifyApi,
+  				sessionConfigObject.clientConfig.GovNotifyApi,
   			);
   			await this.sendF2FYotiEmailedEvent(message);
   			return emailResponse;
   		} else {
   			this.logger.error("Failed to fetch the Instructions pdf", {
-  				messageCode: MessageCodes.FAILED_FETHCING_YOTI_PDF,
+  				messageCode: MessageCodes.FAILED_FETCHING_YOTI_PDF,
   			});
   			throw new AppError(
   				HttpCodesEnum.SERVER_ERROR,
   				"sendYotiPdfEmail - Failed to fetch the Instructions pdf",
   			);
   		}
+		// ignored so as not log PII
+		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (err: any) {
   		this.logger.error("sendYotiPdfEmail - Cannot send Email", {
   			messageCode: MessageCodes.FAILED_TO_SEND_PDF_EMAIL,
@@ -192,7 +179,26 @@ export class SendEmailService {
   	this.logger.info("Sending reminder email");
 
   	try {
+  		const sessionConfigObject = await this.fetchSessionAndConfigInfo(message.sessionId);
+
+  		const encoded = await this.fetchInstructionsPdf(
+  			message,
+  			sessionConfigObject.clientConfig.YotiBaseUrl,
+  		);
+
+  		const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
+
+  		const { GOV_NOTIFY_OPTIONS } = Constants;
+
   		const options = {
+  			personalisation: {
+  				[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
+  				[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
+  					file: encoded,
+  					confirm_email_before_download: true,
+  					retention_period: "2 weeks",
+  				},
+  			},
   			reference: message.referenceId,
   		};
 
@@ -200,9 +206,11 @@ export class SendEmailService {
   			this.environmentVariables.getReminderEmailTemplateId(this.logger),
   			message,
   			options,
-  			this.environmentVariables.reminderEmailsGovNotifyUrl(),
+  			sessionConfigObject.clientConfig.GovNotifyApi,
   		);
   		return emailResponse;
+		// ignored so as not log PII
+		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (err: any) {
   		this.logger.error("Failed to send Reminder Email", {
   			messageCode: MessageCodes.FAILED_TO_SEND_REMINDER_EMAIL,
@@ -219,14 +227,30 @@ export class SendEmailService {
   ): Promise<EmailResponse> {
   	this.logger.info("Sending dynamic reminder email");
 
-  	const { GOV_NOTIFY_OPTIONS } = Constants;
-
   	try {
+  		const sessionConfigObject = await this.fetchSessionAndConfigInfo(message.sessionId);
+
+  		const encoded = await this.fetchInstructionsPdf(
+  			message,
+  			sessionConfigObject.clientConfig.YotiBaseUrl,
+  		);
+
+  		const { GOV_NOTIFY_OPTIONS } = Constants;
+
+  		const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
+
+  	
   		const options = {
   			personalisation: {
   				[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
   				[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
+  				[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
   				[GOV_NOTIFY_OPTIONS.CHOSEN_PHOTO_ID]: message.documentUsed,
+				  [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
+  					file: encoded,
+  					confirm_email_before_download: true,
+  					retention_period: "2 weeks",
+  				},
   			},
   			reference: message.referenceId,
   		};
@@ -237,9 +261,11 @@ export class SendEmailService {
   			),
   			message,
   			options,
-  			this.environmentVariables.reminderEmailsGovNotifyUrl(),
+  			sessionConfigObject.clientConfig.GovNotifyApi,
   		);
   		return emailResponse;
+		// ignored so as not log PII
+		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (err: any) {
   		this.logger.error("Failed to send Dynamic Reminder Email", {
   			messageCode: MessageCodes.FAILED_TO_SEND_REMINDER_EMAIL,
@@ -276,6 +302,8 @@ export class SendEmailService {
   					govuk_signin_journey_id: session.clientSessionId,
   				},
   			});
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
   		} catch (error) {
   			this.logger.error(
   				"Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.",
@@ -291,14 +319,14 @@ export class SendEmailService {
 
   async sendGovNotification(
   	templateId: string,
-  	message: Email | ReminderEmail,
+  	message: Email | DynamicReminderEmail | ReminderEmail,
   	options: any,
   	GovNotifyApi: string,
   ): Promise<EmailResponse> {
   	let retryCount = 0;
   	//retry for maxRetry count configured value if fails
   	while (retryCount <= this.environmentVariables.maxRetries()) {
-  		this.logger.debug("sendEmail - trying to send email message", {
+  		this.logger.info("sendEmail - trying to send email message", {
   			templateId: this.environmentVariables.getPdfEmailTemplateId(
   				this.logger,
   			),
@@ -307,12 +335,12 @@ export class SendEmailService {
   		});
 
   		try {
-  			this.govNotify = new NotifyClient(
+  			const govNotify = new NotifyClient(
   				GovNotifyApi,
   				this.GOV_NOTIFY_SERVICE_ID,
   				this.GOVUKNOTIFY_API_KEY,
   			);
-  			const emailResponse = await this.govNotify.sendEmail(
+  			const emailResponse = await govNotify.sendEmail(
   				templateId,
   				message.emailAddress,
   				options,
@@ -326,6 +354,7 @@ export class SendEmailService {
   				new Date().toISOString(),
   				"",
   				emailResponse.status,
+  				emailResponse.data.id,
   			);
   		} catch (err: any) {
   			this.logger.error("sendEmail - GOV UK Notify threw an error");
@@ -373,7 +402,7 @@ export class SendEmailService {
   }
 
   async fetchInstructionsPdf(
-  	message: Email,
+  	message: Email | DynamicReminderEmail | ReminderEmail,
   	yotiBaseUrl: string,
   ): Promise<string> {
   	if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -383,7 +412,7 @@ export class SendEmailService {
   		yotiInstructionsPdfRetryCount <=
       this.environmentVariables.yotiInstructionsPdfMaxRetries()
   	) {
-  		this.logger.debug(
+  		this.logger.info(
   			"Fetching the Instructions Pdf from yoti for sessionId: ",
   			message.yotiSessionId,
   		);
@@ -391,11 +420,12 @@ export class SendEmailService {
   			this.logger.info("BASE_URL", yotiBaseUrl);
   			this.yotiService = YotiService.getInstance(
   				this.logger,
+  				this.metrics,
   				this.YOTI_PRIVATE_KEY,
-  				yotiBaseUrl,
   			);
   			const instructionsPdf = await this.yotiService.fetchInstructionsPdf(
   				message.yotiSessionId,
+  				yotiBaseUrl,
   			);
   			if (instructionsPdf) {
   				const encoded = Buffer.from(instructionsPdf, "binary").toString(
@@ -405,7 +435,7 @@ export class SendEmailService {
   			}
   		} catch (err: any) {
   			this.logger.error(
-  				"Error while fetching Instructions pfd or encoding the pdf.",
+  				"Error while fetching Instructions pdf or encoding the pdf.",
   				{ err },
   			);
   			if (
@@ -437,5 +467,49 @@ export class SendEmailService {
   		HttpCodesEnum.SERVER_ERROR,
   		`sendEmail - Could not fetch Instructions pdf after ${this.environmentVariables.yotiInstructionsPdfMaxRetries()} retries`,
   	);
+  }
+
+  formatExpiryDate(f2fSessionInfo: ISessionItem): string {
+  	const createdDate = f2fSessionInfo.createdDate;
+  	const expiryDate = createdDate + 15 * 86400;
+	  
+  	const dateObject = new Date(expiryDate * 1000);
+  	const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
+  	return formattedDate;
+  }
+
+  async fetchSessionAndConfigInfo(sessionId: string): Promise<any> {
+  	const f2fSessionInfo = await this.f2fService.getSessionById(
+  		sessionId,
+  	);
+
+  	if (!f2fSessionInfo) {
+  		this.logger.warn("Missing details in SESSION table", {
+  			messageCode: MessageCodes.SESSION_NOT_FOUND,
+  		});
+  		throw new AppError(
+  			HttpCodesEnum.BAD_REQUEST,
+  			"Missing details in SESSION or table",
+  		);
+  	}
+  	const clientConfig = getClientConfig(
+  		this.environmentVariables.clientConfig(),
+  		f2fSessionInfo.clientId,
+  		this.logger,
+  	);
+	
+  	if (!clientConfig) {
+  		this.logger.error("Unrecognised client in request", {
+  			messageCode: MessageCodes.UNRECOGNISED_CLIENT,
+  		});
+  		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+  	}
+
+  	const sessionConfigObject = {
+  		f2fSessionInfo,
+  		clientConfig,
+  	};
+
+  	return sessionConfigObject;
   }
 }

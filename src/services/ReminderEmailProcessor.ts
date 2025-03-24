@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -20,7 +21,7 @@ export class ReminderEmailProcessor {
 
   constructor(private readonly logger: Logger, private readonly metrics: Metrics) {
   	const envVariables = new EnvironmentVariables(logger, ServicesEnum.REMINDER_SERVICE);
-  	this.f2fService = F2fService.getInstance(envVariables.sessionTable(), logger, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(envVariables.sessionTable(), logger, metrics, createDynamoDbClient());
   }
 
   static getInstance(logger: Logger, metrics: Metrics): ReminderEmailProcessor {
@@ -52,12 +53,13 @@ export class ReminderEmailProcessor {
   			filteredSessions.map(async ({ sessionId, documentUsed }) => {
   				try {
   					const envVariables = new EnvironmentVariables(this.logger, ServicesEnum.REMINDER_SERVICE);
+  					const sessionItem = await this.f2fService.getSessionById(sessionId);
   					const personIdentityItem = await this.f2fService.getPersonIdentityById(sessionId, envVariables.personIdentityTableName());
-  					if ( personIdentityItem ) {
+  					if ( sessionItem && personIdentityItem ) {
   						const nameParts = personIdentityUtils.getNames(personIdentityItem);
-  						return { sessionId, emailAddress: personIdentityItem.emailAddress, firstName: nameParts.givenNames[0], lastName: nameParts.familyNames[0], documentUsed };
+  						return { sessionId, yotiSessionId: sessionItem.yotiSessionId, emailAddress: personIdentityItem.emailAddress, firstName: nameParts.givenNames[0], lastName: nameParts.familyNames[0], documentUsed };
   					} else {
-  						this.logger.warn("No records returned from Person Identity Table");
+  						this.logger.warn("No records returned from Person Identity or Session Table");
   						return null;
   					}
   				} catch (error) {
@@ -71,15 +73,15 @@ export class ReminderEmailProcessor {
   		}
 
   		const sendEmailPromises = usersToRemind
-  			.filter((user): user is { sessionId: any; emailAddress: string; firstName: string; lastName: string; documentUsed: string } => user !== null)
-  			.map(async ({ sessionId, emailAddress, firstName, lastName, documentUsed }) => {
+  			.filter((user): user is { sessionId: any; yotiSessionId: any; emailAddress: string; firstName: string; lastName: string; documentUsed: string } => user !== null)
+  			.map(async ({ sessionId, yotiSessionId, emailAddress, firstName, lastName, documentUsed }) => {
   				try {
   					if (firstName && lastName && documentUsed) {
   						this.logger.info("Sending Dynamic Reminder Email", { sessionId });
-  						await this.f2fService.sendToGovNotify(buildDynamicReminderEmailEventFields(emailAddress, firstName, lastName, documentUsed));
+  						await this.f2fService.sendToGovNotify(buildDynamicReminderEmailEventFields(sessionId, yotiSessionId, emailAddress, firstName, lastName, documentUsed));
   					} else { 
   						this.logger.info("Sending Static Reminder Email", { sessionId });
-  						await this.f2fService.sendToGovNotify(buildReminderEmailEventFields(emailAddress));
+  						await this.f2fService.sendToGovNotify(buildReminderEmailEventFields(sessionId, emailAddress, yotiSessionId));
   					}
   					await this.f2fService.updateReminderEmailFlag(sessionId, true);
   					this.logger.info("Reminder email sent to user: ", { sessionId });

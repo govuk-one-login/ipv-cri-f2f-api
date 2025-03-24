@@ -1,5 +1,5 @@
 import { mock } from "jest-mock-extended";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AbortRequestProcessor } from "../../../services/AbortRequestProcessor";
 import { F2fService } from "../../../services/F2fService";
@@ -15,7 +15,7 @@ const logger = mock<Logger>();
 
 let abortRequestProcessor: AbortRequestProcessor;
 let f2fSessionItem: ISessionItem;
-const metrics = new Metrics({ namespace: "F2F" });
+const metrics = mock<Metrics>();
 const sessionId = "RandomF2FSessionID";
 const encodedHeader = "ENCHEADER";
 function getMockSessionItem(): ISessionItem {
@@ -44,7 +44,7 @@ function getMockSessionItem(): ISessionItem {
 describe("AbortRequestProcessor", () => {
 	beforeAll(() => {
 		abortRequestProcessor = new AbortRequestProcessor(logger, metrics);
-    		// @ts-ignore
+    		// @ts-expect-error linting to be updated
 		abortRequestProcessor.f2fService = mockF2fService;
 		f2fSessionItem = getMockSessionItem();
 	});
@@ -75,6 +75,7 @@ describe("AbortRequestProcessor", () => {
 		expect(out.body).toBe("Session has already been aborted");
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.info).toHaveBeenCalledWith("Session has already been aborted");
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("updates auth session state and returns successful response if session has not been aborted", async () => {
@@ -87,6 +88,7 @@ describe("AbortRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
 		expect(out.headers?.Location).toBe(encodeURIComponent(`${f2fSessionItem.redirectUri}?error=access_denied&state=${f2fSessionItem.state}`));
+		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_CRI_SESSION_ABORTED", MetricUnits.Count, 1)
 	});
 
 	it("Returns successful response if session has not been aborted and redirectUri contains f2f id", async () => {
@@ -101,6 +103,7 @@ describe("AbortRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
 		expect(out.headers?.Location).toContain(encodeURIComponent(`${f2fSessionItem.redirectUri}&error=access_denied&state=${f2fSessionItem.state}`));
+		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_CRI_SESSION_ABORTED", MetricUnits.Count, 1)
 	});
 
 	it("sends TxMA event after auth session state has been updated", async () => {
@@ -112,6 +115,7 @@ describe("AbortRequestProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(expect.objectContaining({
 			event_name: TxmaEventNames.F2F_CRI_SESSION_ABORTED,
 		}), encodedHeader);
+		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_CRI_SESSION_ABORTED", MetricUnits.Count, 1)
 	});
 
 	it("logs error if sending TxMA event fails, but successful response is still returned", async () => {
@@ -127,6 +131,7 @@ describe("AbortRequestProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
+		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_CRI_SESSION_ABORTED", MetricUnits.Count, 1)
 	});
 
 	it("returns failed response if auth session state cannot be updated", async () => {
@@ -137,5 +142,6 @@ describe("AbortRequestProcessor", () => {
 
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 });

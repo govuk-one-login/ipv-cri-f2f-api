@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { SQSEvent } from "aws-lambda";
-// @ts-ignore
+// @ts-expect-error linting to be updated
 import { NotifyClient } from "notifications-node-client";
 import { VALID_SQS_EVENT, VALID_REMINDER_SQS_EVENT, VALID_DYNAMIC_REMINDER_SQS_EVENT } from "../data/sqs-events";
 import { SendEmailService } from "../../../services/SendEmailService";
@@ -14,8 +14,10 @@ import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { ReminderEmail } from "../../../models/ReminderEmail";
-import { DynamicReminderEmail } from "../../../models/DynamicReminderEmail";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
+import { DynamicReminderEmail } from "../../../models/DynamicReminderEmail";
+import { Metrics } from "@aws-lambda-powertools/metrics";
+
 
 jest.mock("notifications-node-client", () => {
 	return {
@@ -30,6 +32,8 @@ const YOTI_PRIVATE_KEY = "sdfsdf";
 // pragma: allowlist nextline secret
 const GOVUKNOTIFY_API_KEY = "sdhohofsdf";
 const logger = mock<Logger>();
+const metrics = new Metrics({ namespace: "F2F" });
+
 let sqsEvent: SQSEvent;
 let reminderEmailEvent: SQSEvent;
 let dynamicEmailEvent: SQSEvent;
@@ -62,8 +66,8 @@ const mockSendEmail = jest.fn();
 
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
-		sendEmailServiceTest = SendEmailService.getInstance(logger, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
-		// @ts-ignore
+		sendEmailServiceTest = SendEmailService.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
+		// @ts-expect-error linting to be updated
 		sendEmailServiceTest.f2fService = mockF2fService;
 		sqsEvent = VALID_SQS_EVENT;
 		reminderEmailEvent = VALID_REMINDER_SQS_EVENT;
@@ -90,10 +94,10 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("Returns EmailResponse when YOTI PDF email is sent successfully", async () => {
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
+		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201, "1004");
 		const session = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(session);
-		mockSendEmail.mockResolvedValue(mockEmailResponse);
+		mockSendEmail.mockResolvedValue({ status: 201, data: mockEmailResponse });
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
 		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
@@ -197,8 +201,8 @@ describe("SendEmailProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.sendToTXMA.mockRejectedValue({});
 
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
-		mockSendEmail.mockResolvedValue(mockEmailResponse);
+		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201, "1005");
+		mockSendEmail.mockResolvedValue({ status: 201, data: mockEmailResponse });
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
 		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
@@ -211,26 +215,47 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("Returns EmailResponse when Reminder email is sent successfully", async () => {
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
-		mockSendEmail.mockResolvedValue(mockEmailResponse);
+		const mockReference = "1234";
+		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201, "1006");
+		mockSendEmail.mockResolvedValue({ status: 201, data: mockEmailResponse });
 		const eventBody = JSON.parse(reminderEmailEvent.Records[0].body);
 		const email = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
+		email.referenceId = mockReference;
 		const emailResponse = await sendEmailServiceTest.sendReminderEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
-		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837115", "example@test.com", { "reference": expect.any(String) });
+		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837115", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
+			"date": "18 February", 
+			"link_to_file": { 
+				"confirm_email_before_download": true, 
+				"file": "Z2tpaWhv", 
+				"retention_period": "2 weeks",
+			} },
+		"reference": "1234" });
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 
 	it("Returns EmailResponse when Dynamic Reminder email is sent successfully", async () => {
-		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201);
-		mockSendEmail.mockResolvedValue(mockEmailResponse);
+		const mockReference = "1234";
+		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201, "1007");
+		mockSendEmail.mockResolvedValue({ status: 201, data: mockEmailResponse });
 		const eventBody = JSON.parse(dynamicEmailEvent.Records[0].body);
 		const email = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
+		email.referenceId = mockReference;
 		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
-		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { "chosen photo ID": "PASSPORT", "first name": "Frederick", "last name": "Flintstone" }, "reference": expect.any(String) });
+		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
+			"chosen photo ID": "PASSPORT",
+			"date": "18 February", 
+			"first name": "Frederick", 
+			"last name": "Flintstone",
+			"link_to_file": { 
+				"confirm_email_before_download": true, 
+				"file": "Z2tpaWhv", 
+				"retention_period": "2 weeks",
+			} },
+		"reference": "1234" });
 		expect(emailResponse.emailFailureMessage).toBe("");
 	});
 

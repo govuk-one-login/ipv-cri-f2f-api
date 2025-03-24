@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
@@ -13,7 +13,7 @@ import { ValidationHelper } from "../utils/ValidationHelper";
 import { getClientConfig } from "../utils/ClientConfig";
 import { Constants } from "../utils/Constants";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 
 export class GenerateYotiLetterProcessor {
 
@@ -39,7 +39,7 @@ export class GenerateYotiLetterProcessor {
 		this.logger = logger;
 		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_YOTI_LETTER_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.s3Client = new S3Client({
@@ -90,13 +90,13 @@ export class GenerateYotiLetterProcessor {
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
+		this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY);
 
 		this.logger.info(
 			"Fetching the Instructions Pdf from yoti for sessionId: ",
 			f2fSessionInfo.yotiSessionId!,
 		);
-		const encoded = await this.yotiService.fetchInstructionsPdf(f2fSessionInfo.yotiSessionId!);
+		const encoded = await this.yotiService.fetchInstructionsPdf(f2fSessionInfo.yotiSessionId!, clientConfig.YotiBaseUrl);
 
 		if (!encoded) {
 			this.logger.error("An error occurred when generating Yoti instructions pdf", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
@@ -116,14 +116,17 @@ export class GenerateYotiLetterProcessor {
 		try {
 			this.logger.info(`Uploading object with key ${key} to bucket ${bucket}`);
 			await this.s3Client.send(new PutObjectCommand(uploadParams));
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error) {
 			this.logger.error("Error uploading Yoti PDF to S3 bucket", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error uploading Yoti PDF to S3 bucket");
 		}
 
+		this.metrics.addMetric("GenerateYotiLetter_instructions_saved", MetricUnits.Count, 1);
 		return {
 			sessionId: event.sessionId,
-			pdf_preference: event.pdf_preference,
+			pdfPreference: event.pdfPreference,
 		};
 
 	}

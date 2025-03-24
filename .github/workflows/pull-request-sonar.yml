@@ -23,18 +23,18 @@ jobs:
         uses: "actions/checkout@v4"
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: Setup nodeJS v18
+      - name: Setup nodeJS v20
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
       - name: Install dependencies
         run: npm install
       - name: Test and coverage
         run: npm run test:unit -- --coverage
-      - name: "Run SonarCloud Scan"
-        if: ${{ success() && github.actor != 'dependabot[bot]' }}
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run SonarCloud scan
+        uses: govuk-one-login/github-actions/code-quality/sonarcloud@0739d7e7a19bae3177cf851ae51944bb4dd53565
+        with:
+          coverage-location: src/coverage/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
 

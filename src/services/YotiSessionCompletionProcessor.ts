@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
@@ -17,7 +17,7 @@ import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
 import { YotiSessionDocument, ID_DOCUMENT_TEXT_DATA_EXTRACTION } from "../utils/YotiPayloadEnums";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
-import { DrivingPermit, IdentityCard, Passport, ResidencePermit, Name } from "../utils/IVeriCredential";
+import { DrivingPermit, IdentityCard, Passport, Name } from "../utils/IVeriCredential";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
 import { YotiCallbackPayload } from "../type/YotiCallbackPayload";
 import { ISessionItem } from "../models/ISessionItem";
@@ -59,7 +59,7 @@ export class YotiSessionCompletionProcessor {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
   	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
   	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.logger, this.environmentVariables.dnsSuffix());
   	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger);
@@ -93,6 +93,7 @@ export class YotiSessionCompletionProcessor {
   	return YotiSessionCompletionProcessor.instance;
 	}
 
+	// eslint-disable-next-line complexity
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
 		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		
@@ -124,11 +125,12 @@ export class YotiSessionCompletionProcessor {
 				return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 			}
 
-			this.yotiService = YotiService.getInstance(this.logger, this.YOTI_PRIVATE_KEY, clientConfig.YotiBaseUrl);
+			this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY);
 
 
 		  this.logger.info({ message: "Fetching status for Yoti SessionID" });
-		  const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries());
+		  // eslint-disable-next-line max-len
+		  const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries(), clientConfig.YotiBaseUrl);
 
 		  if (!completedYotiSessionInfo) {
 			  this.logger.error({ message: "No YOTI Session found with ID:" }, {
@@ -188,7 +190,7 @@ export class YotiSessionCompletionProcessor {
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields media ID not found");
 		  }
 
-		  const documentFields = await this.yotiService.getMediaContent(yotiSessionID, documentFieldsId);
+		  const documentFields = await this.yotiService.getMediaContent(yotiSessionID, clientConfig.YotiBaseUrl, documentFieldsId);
 		  if (!documentFields) {
 			  this.logger.error({ message: "No document fields info found" }, {
 				  documentFieldsId,
@@ -221,12 +223,16 @@ export class YotiSessionCompletionProcessor {
 					  },
 
 				  });
+				// ignored so as not log PII
+				/* eslint-disable @typescript-eslint/no-unused-vars */
 			  } catch (error) {
 				  this.logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", {
 					  messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
 				  });
 			  }
-				
+			
+			this.metrics.addMetric("SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+
   			const { given_names, family_name, full_name } = documentFields;
 
   			const missingGivenName = this.checkMissingField(given_names, "given_names");
@@ -320,6 +326,8 @@ export class YotiSessionCompletionProcessor {
 				  AuthSessionState.F2F_CREDENTIAL_ISSUED,
 			  );
 
+			  this.metrics.addMetric("state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
+			  this.metrics.addMetric("SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 			  return Response(HttpCodesEnum.OK, "OK");
 		  } else {
 			  this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
@@ -345,8 +353,8 @@ export class YotiSessionCompletionProcessor {
 	async sendYotiEventsToTxMA(documentFields: any, VcNameParts: Name[], f2fSession: any, yotiSessionID: string, evidence: any, rejectionReasons: [{ ci: string; reason: string }]): Promise<any> {
 	  // Document type objects to pass into TxMA event F2F_CRI_VC_ISSUED
 
-	  let docName: DocumentNames.PASSPORT | DocumentNames.RESIDENCE_PERMIT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
-	  let documentInfo: Passport | ResidencePermit | DrivingPermit | IdentityCard;
+	  let docName: DocumentNames.PASSPORT | DocumentNames.DRIVING_LICENCE | DocumentNames.NATIONAL_ID;
+	  let documentInfo: Passport | DrivingPermit | IdentityCard;
 	  switch (documentFields.document_type) {
 		  case DocumentTypes.PASSPORT:
 			  docName = DocumentNames.PASSPORT;
@@ -354,16 +362,6 @@ export class YotiSessionCompletionProcessor {
 				  documentType: documentFields.document_type,
 				  documentNumber: documentFields.document_number,
 				  expiryDate: documentFields.expiration_date,
-				  icaoIssuerCode: documentFields.issuing_country,
-			  };
-			  break;
-		  case DocumentTypes.RESIDENCE_PERMIT:
-			  docName = DocumentNames.RESIDENCE_PERMIT;
-			  documentInfo = {
-				  documentType: documentFields.document_type,
-				  documentNumber: documentFields.document_number,
-				  expiryDate: documentFields.expiration_date,
-				  issueDate: documentFields.date_of_issue,
 				  icaoIssuerCode: documentFields.issuing_country,
 			  };
 			  break;

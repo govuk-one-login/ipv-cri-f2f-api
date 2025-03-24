@@ -22,6 +22,7 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { IPVCoreEvent } from "../utils/IPVCoreEvent";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { PdfPreferenceEnum } from "../utils/PdfPreferenceEnum";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
 export class F2fService {
 	readonly tableName: string;
@@ -30,20 +31,23 @@ export class F2fService {
 
 	readonly logger: Logger;
 
+	private readonly metrics: Metrics;
+
 	private readonly environmentVariables: EnvironmentVariables;
 
 	private static instance: F2fService;
 
-	constructor(tableName: any, logger: Logger, dynamoDbClient: DynamoDBDocument) {
+	constructor(tableName: any, logger: Logger, metrics: Metrics, dynamoDbClient: DynamoDBDocument) {
 		this.tableName = tableName;
 		this.dynamo = dynamoDbClient;
 		this.logger = logger;
+		this.metrics = metrics
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.NA);
 	}
 
-	static getInstance(tableName: string, logger: Logger, dynamoDbClient: DynamoDBDocument): F2fService {
+	static getInstance(tableName: string, logger: Logger, metrics: Metrics, dynamoDbClient: DynamoDBDocument): F2fService {
 		if (!F2fService.instance) {
-			F2fService.instance = new F2fService(tableName, logger, dynamoDbClient);
+			F2fService.instance = new F2fService(tableName, logger, metrics, dynamoDbClient);
 		}
 		return F2fService.instance;
 	}
@@ -144,6 +148,8 @@ export class F2fService {
 
 		try {
 			await this.dynamo.send(updateSessionCommand);
+			this.metrics.addMetric("state-F2F_AUTH_CODE_ISSUED", MetricUnits.Count, 1);
+
 			this.logger.info({ message: "updated authorizationCode in dynamodb" });
 		} catch (error: any) {
 			this.logger.error({ message: "Error updating authorizationCode" }, {
@@ -326,6 +332,7 @@ export class F2fService {
 
 		try {
 			await this.dynamo.send(updateStateCommand);
+			this.metrics.addMetric("state-F2F_SESSION_EXPIRED", MetricUnits.Count, 1);
 			this.logger.info({ message: "Session marked as expired", sessionId });
 		} catch (error) {
 			this.logger.error({ message: "Got error marking session as expired", error });
@@ -347,6 +354,8 @@ export class F2fService {
 		this.logger.info({ message: "updating Access token details in dynamodb" }, { tableName: this.tableName });
 		try {
 			await this.dynamo.send(updateAccessTokenDetailsCommand);
+			this.metrics.addMetric("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnits.Count, 1);
+
 			this.logger.info({ message: "updated Access token details in dynamodb" });
 		} catch (error) {
 			this.logger.error({ message: "got error updating Access token details", error }, { messageCode: MessageCodes.FAILED_UPDATING_SESSION });
@@ -486,10 +495,10 @@ export class F2fService {
 			this.logger.info({ message: "Updating person table with letter preference and postal address" });
 			try {
 				await this.dynamo.send(updateUserDetails);
-				this.logger.info({ message: "Updated letter preference and postal address details in dynamodb" });
+				this.logger.info({ message: "Updated postal address and pdfPreference details in dynamodb" });
 			} catch (error) {
-				this.logger.error({ message: "Got error saving letter preference or postal address details", error });
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving letter preference or postal address details");
+				this.logger.error({ message: `Got error updating pdfPreference or postal address details in ${tableName}`, error });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating pdfPreference or postal address details in ${tableName}`);
 			}
 		} else {
 			const updateUserPreference = new UpdateCommand({
@@ -500,13 +509,13 @@ export class F2fService {
 					":pdfPreference": pdfPreference,
 				},
 			});
-			this.logger.info({ message: `Updating pdfPreference in ${tableName}` });
+			this.logger.info({ message: `No postal address provided - Updating pdfPreference in ${tableName}` });
 			try {
 				await this.dynamo.send(updateUserPreference);
 				this.logger.info({ message: `Updated ${tableName} with pdfPreference` });
 			} catch (error) {
 				this.logger.error({ message: `Got error updating pdfPreference in ${tableName}`, error });
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating pdfPreference in ${tableName}`);
 			}
 		}
 		const personIdentityItem = await this.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());

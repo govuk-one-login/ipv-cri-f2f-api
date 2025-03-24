@@ -48,6 +48,8 @@ export class ValidationHelper {
 		let isValidJwt = false;
 		try {
 			isValidJwt = await jwtAdapter.verify(token);
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (err) {
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Failed to verify signature");
 		}
@@ -179,6 +181,16 @@ export class ValidationHelper {
 				errorMessage: "",
 				errorMessageCode: "",
 			};
+		}
+	}
+
+	// If >1 addresses in shared_claims, address{}.validUntil will not be present on the preferredAddress
+	getPreferredAddress(sharedClaimsAddress: PersonIdentityAddress[]): PersonIdentityAddress | undefined {
+		if (sharedClaimsAddress.length > 1) {
+		  // Find the address object that does not have the 'validUntil' property
+		  return sharedClaimsAddress.find((addr) => !addr.validUntil);
+		} else if (sharedClaimsAddress.length === 1) {
+		  return sharedClaimsAddress[0];
 		}
 	}
 

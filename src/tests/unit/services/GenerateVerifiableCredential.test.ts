@@ -37,6 +37,7 @@ describe("GenerateVerifiableCredential", () => {
 
 	afterEach(() => {
 		jest.resetAllMocks();
+		jest.restoreAllMocks();
 	});
 
 	describe("doesDocumentContainValidChip", () => {
@@ -91,8 +92,6 @@ describe("GenerateVerifiableCredential", () => {
 			{ documentType: "PASSPORT", documentContainsValidChip: false, country: "ALB", score: 3 },
 			{ documentType: "PASSPORT", documentContainsValidChip: true, country: "ALB", score: 4 },
 			{ documentType: "DRIVING_LICENCE", documentContainsValidChip: false, country: "ALB", score: 3 },
-			{ documentType: "RESIDENCE_PERMIT", documentContainsValidChip: false, country: "ALB", score: 3 },
-			{ documentType: "RESIDENCE_PERMIT", documentContainsValidChip: true, country: "ALB", score: 4 },
 			{ documentType: "NATIONAL_ID", documentContainsValidChip: true, country: "ALB", score: 4 },
 			{ documentType: "NATIONAL_ID", documentContainsValidChip: false, country: "ALB", score: 3 },
 		])(
@@ -106,7 +105,7 @@ describe("GenerateVerifiableCredential", () => {
 		it.each([
 			{ country: "GBR", errorMessage: "Invalid documentType provided for issuingCountry" },
 			{ country: "ALB", errorMessage: "Invalid documentType provided" },
-		])("should throw an error for an invalid document type where country is $country", ({ country, errorMessage }) => {
+		])("should throw an error for an invalid document type where country is $country", ({ country }) => {
 			const documentType = "INVALID_DOCUMENT";
 			const documentContainsValidChip = true;
 

@@ -1,9 +1,7 @@
 import { lambdaHandler } from "../../AuthorizationCodeHandler";
 import { mock } from "jest-mock-extended";
-import { RESOURCE_NOT_FOUND, UNSUPPORTED_AUTHCODE, VALID_AUTHCODE } from "./data/auth-events";
+import { VALID_AUTHCODE } from "./data/auth-events";
 
-import { Response } from "../../utils/Response";
-import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { AuthorizationRequestProcessor } from "../../services/AuthorizationRequestProcessor";
 
 const mockedAuthorizationRequestProcessor = mock<AuthorizationRequestProcessor>();

@@ -282,7 +282,7 @@ paths:
             statusCode: "200"
         type: aws
   
-  /bucket/:
+  bucket/:
     get:
       operationId: getBucket
       summary: List the contents of the test harness bucket
@@ -323,7 +323,7 @@ paths:
             statusCode: "200"
         type: aws
 
-  /object/{object-key+}:
+  object/{object-key+}:
     get:
       operationId: getTestObject
       summary: Get an object from the test bucket
@@ -379,8 +379,107 @@ paths:
           default:
             statusCode: "200"
         type: aws
+    
+  /yotiletterbucket/:
+    get:
+      operationId: getYotiLetterBucketContents
+      summary: List the contents of the Yoti Letter bucket
+      description: >-
+        Endpoint to list the contents of the Yoti Letter bucket. Up to 1000 objects are returned, 
+        sorted by ascending key. A `prefix` can be specified as a query parameter to filter the results.
+      parameters:
+        - name: prefix
+          in: query
+          description: Prefix to list objects from the bucket with
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+        - sigv4Reference: []
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        credentials:
+          Fn::GetAtt:
+            - AccessTestHarnessRole  
+            - Arn
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${BackendStack}-yotiletter-f2f-${Environment}/"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.querystring.prefix: "method.request.querystring.prefix"
+        responses:
+          default:
+            statusCode: "200"
+        type: aws
 
-  /updateRecord/{tableName}:
+  /yotiletterbucket/{object-key+}:
+    get:
+      operationId: getYotiLetterObject
+      summary: Get an object from the Yoti Letter bucket
+      description: >-
+        Endpoint returns the contents of a specific object from the Yoti Letter bucket.
+      parameters:
+        - name: object-key
+          in: path
+          description: Key to query the bucket with
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: OK
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+            Strict-Transport-Security:
+              schema:
+                type: string
+            X-Content-Type-Options:
+              schema:
+                type: string
+            X-Frame-Options:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+        - sigv4Reference: []
+      x-amazon-apigateway-request-validator: "requestParamsOnly"
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        credentials:
+          Fn::GetAtt:
+            - AccessTestHarnessRole
+            - Arn
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${BackendStack}-yotiletter-f2f-${Environment}/{key}"
+        passthroughBehavior: when_no_match
+        requestParameters:
+          integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          integration.request.path.key: "method.request.path.object-key"
+        responses:
+          default:
+            statusCode: "200"
+            ContentHandling: CONVERT_TO_BINARY
+        type: aws
+
+  updateRecord/{tableName}:
     patch:
       operationId: updateRecord
       summary: Update a record in a DynamoDB table

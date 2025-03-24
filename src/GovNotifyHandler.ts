@@ -33,11 +33,14 @@ class GovNotifyHandler implements LambdaInterface {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 
+		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());
+
 		if (event.Records.length === 1) {
 			const record: SQSRecord = event.Records[0];
 			logger.debug("Starting to process record");
 
 			try {
+				logger.info("checking service has redeployed");
 				const body = JSON.parse(record.body);
 				logger.debug("Parsed SQS event body");
 				if (!YOTI_PRIVATE_KEY) {

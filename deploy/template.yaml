@@ -66,21 +66,28 @@ Parameters:
     Description: "ARN of the role used during pipeline test stage, allowing Lambda invocations. Injected by the deployment pipeline"
     Type: String
     Default: none
-
+  TrafficTestRoleArn:
+    Description: "ARN of the role used during pipeline traffic test stage, allowing Lambda invocations. Injected by the deployment pipeline"
+    Type: String
+    Default: none
+  LambdaDeploymentPreference:
+    Description: "Specifies the configuration to enable gradual Lambda deployments. This value is picked up from the LambdaCanaryDeployment on the pipeline "
+    Type: String
+    Default: AllAtOnce
 
 Mappings:
   EnvironmentConfiguration: # This is where you store per-environment settings.
     dev:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables #pragma: allowlist secret
-      logretentionindays: 3
+      logretentionindays: 30
       apiTracingEnabled: true
     build:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables #pragma: allowlist secret
-      logretentionindays: 3
+      logretentionindays: 30
       apiTracingEnabled: true
     staging:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables #pragma: allowlist secret
-      logretentionindays: 3
+      logretentionindays: 30
       apiTracingEnabled: true
     integration:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables #pragma: allowlist secret
@@ -105,19 +112,24 @@ Mappings:
 
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
+      PCLENABLED: "true"
       YOTIBASEURL: "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify"
       POSTOFFICESTUBAPI: "https://f2f-post-office-stub-postofficestub.review-o.dev.account.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
+      GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
+      GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
+      GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1555200 # Default 14 days
       CLIENTS:
         '[
           {
@@ -125,33 +137,41 @@ Mappings:
               "clientId":"5C584572",
               "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk",
-              "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify"
+              "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           },
           {
               "jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
               "clientId":"SandboxJourneyFlow",
               "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://f2f-cri-outbound-proxy-proxy.review-o.dev.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 86400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
     build:
+      PCLENABLED: "true"
       YOTIBASEURL: "https://yotistub.review-o.build.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.build.account.gov.uk'
       DNSSUFFIX: review-o.build.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://govnotifystub.review-o.build.account.gov.uk/govnotify"
       POSTOFFICESTUBAPI: "https://postofficestub.review-o.build.account.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
+      GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
+      GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
+      GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1814400 # Default 18 days
       CLIENTS:
         '[
           {
@@ -159,31 +179,39 @@ Mappings:
               "clientId":"BD7B2A5D",
               "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://yotistub.review-o.build.account.gov.uk",
-              "GovNotifyApi": "https://govnotifystub.review-o.build.account.gov.uk/govnotify"
+              "GovNotifyApi": "https://govnotifystub.review-o.build.account.gov.uk/govnotify",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           },
           {
               "jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json",
               "clientId":"SandboxJourneyFlow",
               "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.build.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
     staging:
+      PCLENABLED: "true"
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
       ISSUER: 'https://review-o.staging.account.gov.uk'
       DNSSUFFIX: review-o.staging.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
+      GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
+      GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
+      GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1814400 # Default 18 days
       CLIENTS:
         '[
           {
@@ -191,23 +219,30 @@ Mappings:
               "clientId":"03A5A659-17AA-453F-B905-95D2804823D1",
               "redirectUri":"https://identity.staging.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://yotistub.review-o.staging.account.gov.uk",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
+      PCLENABLED: "true"
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
       ISSUER: 'https://review-o.integration.account.gov.uk'
       DNSSUFFIX: review-o.integration.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "bea2a584-4dca-4970-a90d-93977e752fdf"
       GOVUKNOTIFYREMINDERTEMPLATEID: "2987ded5-1c1b-4336-931b-7f66a5569684"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0261960b-9126-4aac-88f3-0026287c0423"
+      GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
+      GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
+      GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1814400 # Default 18 days
       CLIENTS:
         '[
           {
@@ -215,23 +250,30 @@ Mappings:
               "clientId":"AE140E43-1987-4EE8-86CC-BEF19FC9FF3F",
               "redirectUri":"https://identity.integration.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.integration.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
+      PCLENABLED: "true"
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
       ISSUER: 'https://review-o.account.gov.uk'
       DNSSUFFIX: review-o.account.gov.uk
       MESSAGERETENTIONPERIODDAYS: 345600 # Default: 4 days
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
-      GOVUKNOTIFYAPI: "https://api.notifications.service.gov.uk"
       GOVUKNOTIFYPDFTEMPLATEID: "ccba5634-33e9-4e0d-96c1-57067db941af"
       GOVUKNOTIFYREMINDERTEMPLATEID: "0d0d2aab-3c31-46da-8462-1af0f5f456f0"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "0d3b9cb6-2c54-4316-865a-933f0f0dfb53"
+      GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID: "a1b28aba-2abe-4201-b255-cfd977c9f633"
+      GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID: "9af55561-e797-41b1-8a0c-6723bfba6c9b"
+      GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID: "a675cb71-6300-4d7f-a006-a92be6a5c4c1"
       YOTISESSIONTTLDAYS: 10 # Default 10 days
+      EXTENDEDYOTISESSIONTTLDAYS: 15 # Default 15 days
       RESOURCETTLSECS: 1209600 # Default 14 days
+      EXTENDEDRESOURCETTLSECS: 1814400 # Default 18 days
       CLIENTS:
         '[
           {
@@ -239,10 +281,12 @@ Mappings:
               "clientId":"C910A762-4BB2-400D-8F3D-4D7E6C84E342",
               "redirectUri":"https://identity.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk"
+              "GovNotifyApi": "https://api.notifications.service.gov.uk",
+              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1382400 # 11 days in seconds
+      AUTHSESSIONTTLSECS: 1382400 # 16 days in seconds
+      EXTENDEDAUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
@@ -308,10 +352,16 @@ Conditions:
   AddExpiredSessionFunctionTestRolePermissions: !And
     - Condition: IsNotProdLikeEnvironment
     - !Not [ !Equals [ !Ref TestRoleArn, none ]]
+  AddExpiredSessionFunctionTrafficTestRolePermissions: !And
+    - Condition: IsNotProdLikeEnvironment
+    - !Not [ !Equals [ !Ref TrafficTestRoleArn, none ]]
+
+  UseCanaryDeploymentAlarms: !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
+  PclEnabled: !Equals [ !FindInMap [ EnvironmentVariables, !Ref Environment, PCLENABLED ], "true" ]
 
 Globals:
   Function:
-    Runtime: nodejs18.x
+    Runtime: nodejs20.x
     VpcConfig:
       SecurityGroupIds:
         - !GetAtt LambdaEgressSecurityGroup.GroupId
@@ -360,7 +410,10 @@ Globals:
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
         POWERTOOLS_LOG_LEVEL: !If [IsNotProdLikeEnvironment, "DEBUG", "INFO"] # The LogLevel for the AWS PowerTools LogHelper
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
-        RESOURCES_TTL_SECS: !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
+        RESOURCES_TTL_SECS: !If 
+            - PclEnabled
+            - !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDRESOURCETTLSECS]
+            - !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
         SESSION_TABLE:
           Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
         CLIENT_CONFIG:
@@ -372,7 +425,6 @@ Globals:
         ] # What is this? @TODO
         #  SQS_AUDIT_EVENT_PREFIX: CIC-F2F # The prefix to add to TxMA event messages
     AutoPublishAlias: live
-
 
 Resources:
 
@@ -612,6 +664,7 @@ Resources:
     Properties:
       StageName: !Ref Environment
       OpenApiVersion: 3.0.1
+      AlwaysDeploy: true
       AccessLogSetting:
         Format: >-
           {
@@ -656,6 +709,8 @@ Resources:
         Service: backend
         Name: F2FRestApi
         Source: alphagov/di-devplatform-demo-sam-app/sam-app/template.yaml
+        FMSRegionalPolicy: false
+        CustomPolicy: true
 
   F2FAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -765,6 +820,22 @@ Resources:
 
   ### End of API Gateway Custom Domain definition
 
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+
   ### Function Definition
 
 ####################################################################
@@ -778,6 +849,13 @@ Resources:
     DependsOn: SessionFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-Session-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref SessionFunctionFatalErrorAlarm, !Ref SessionFunctionLambdaErrors, !Ref SessionFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: SessionHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -787,7 +865,10 @@ Resources:
       Environment:
         Variables:
           AUTH_SESSION_TTL_SECS:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
+            !If 
+              - PclEnabled
+              - !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDAUTHSESSIONTTLSECS] 
+              - !FindInMap [EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS]
           POWERTOOLS_SERVICE_NAME: SessionHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           PERSON_IDENTITY_TABLE_NAME:
@@ -877,7 +958,6 @@ Resources:
 
   SessionFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -891,7 +971,6 @@ Resources:
     DependsOn:
       - "SessionFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SessionFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -908,6 +987,63 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  SessionFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-SessionFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-SessionFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub SessionFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  SessionFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-SessionFunctionCanary5xxErrors"
+      AlarmDescription: !Sub SessionFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: POST
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /session
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
@@ -1052,17 +1188,24 @@ Resources:
     DependsOn: SessionConfigFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-SessionConfig-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref SessionConfigFunctionFatalErrorAlarm, !Ref SessionConfigFunctionLambdaErrors, !Ref SessionConfigFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: SessionConfigHandler.lambdaHandler
       CodeUri: ../src/
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: SessionConfigHandler
-          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${Environment}/f2f/printedCustomerLetter/enabled"
+          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${AWS::StackName}/f2f/printedCustomerLetter/enabled"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
-            ParameterName: !Sub "${Environment}/f2f/printedCustomerLetter/enabled"
+            ParameterName: !Sub "${AWS::StackName}/f2f/printedCustomerLetter/enabled"
         - DynamoDBWritePolicy:
             TableName:
               Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
@@ -1115,6 +1258,99 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref SessionConfigFunction
       Principal: apigateway.amazonaws.com
+
+  SessionConfigFunctionFatalErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref SessionConfigFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "SessionConfigFunction-Fatalerror"
+
+  SessionConfigFunctionFatalErrorAlarm:
+    DependsOn:
+      - "SessionConfigFunctionFatalErrorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-SessionConfigFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: false
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: SessionConfigFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  SessionConfigFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-SessionConfigFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-SessionConfigFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub SessionConfigFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  SessionConfigFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-SessionConfigFunctionCanary5xxErrors"
+      AlarmDescription:  !Sub SessionConfigFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: GET
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /sessionConfiguration
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
 
   SessionConfigConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
@@ -1177,6 +1413,13 @@ Resources:
     DependsOn: TokenFunctionLogGroup
     Properties:
       FunctionName: !Sub "Access-Token-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref TokenFunctionFatalErrorAlarm, !Ref TokenFunctionCanary5xxErrors, !Ref TokenFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: AccessTokenHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1253,7 +1496,6 @@ Resources:
 
   TokenFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref TokenFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1267,7 +1509,6 @@ Resources:
     DependsOn:
       - "TokenFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TokenFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1284,6 +1525,63 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  TokenFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-TokenFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-TokenFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub TokenFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  TokenFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-TokenFunctionCanary5xxErrors"
+      AlarmDescription:  !Sub TokenFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: POST
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /token
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
@@ -1349,6 +1647,13 @@ Resources:
     DependsOn: AuthorizationFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-Authorization-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref AuthorizationFunctionFatalErrorAlarm, !Ref AuthorizationFunctionCanary5xxErrors, !Ref AuthorizationFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: AuthorizationCodeHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1432,7 +1737,6 @@ Resources:
 
   AuthorizationFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref AuthorizationFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1446,7 +1750,6 @@ Resources:
     DependsOn:
       - "AuthorizationFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1463,6 +1766,63 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  AuthorizationFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-AuthorizationFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-AuthorizationFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub AuthorizationFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AuthorizationFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-AuthorizationFunctionCanary5xxErrors"
+      AlarmDescription:  !Sub AuthorizationFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: GET
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /authorization
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
@@ -1528,6 +1888,13 @@ Resources:
     DependsOn: DocumentSelectionLogGroup
     Properties:
       FunctionName: !Sub "Document-Selection-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref DocumentSelectionFatalErrorAlarm, !Ref DocumentSelectionFunctionLambdaErrors, !Ref DocumentSelectionFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: DocumentSelectionHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1538,8 +1905,10 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
-          AUTH_SESSION_TTL_SECS:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
+          AUTH_SESSION_TTL_SECS: !If 
+              - PclEnabled
+              - !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDAUTHSESSIONTTLSECS]
+              - !FindInMap [EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
           YOTICALLBACKURL: !If
@@ -1556,12 +1925,20 @@ Resources:
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_SESSION_TTL_DAYS:
+            !If 
+              - PclEnabled
+              - !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS] 
+              - !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_LETTER_STATE_MACHINE_ARN: !GetAtt SendYotiLetterStateMachine.Arn
+          PRINTED_CUSTOMER_LETTER_ENABLED_SSM_PATH: !Sub "/${AWS::StackName}/f2f/printedCustomerLetter/enabled"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${AWS::StackName}/f2f/printedCustomerLetter/enabled"
         - DynamoDBReadPolicy:
             TableName: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
@@ -1602,6 +1979,11 @@ Resources:
                 - "kms:Decrypt"
                 - "kms:GenerateDataKey"
               Resource: !GetAtt [GovNotifyEncryptionKey, Arn]
+        -  Statement:
+              - Effect: Allow
+                Action:
+                  - "states:StartExecution"
+                Resource: !GetAtt SendYotiLetterStateMachine.Arn
       Events:
         documentSelection:
           Type: Api
@@ -1642,7 +2024,6 @@ Resources:
 
   DocumentSelectionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref DocumentSelectionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1656,7 +2037,6 @@ Resources:
     DependsOn:
       - "DocumentSelectionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DocumentSelection-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1673,6 +2053,63 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  DocumentSelectionFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-DocumentSelectionFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub DocumentSelectionFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  DocumentSelectionFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunctionCanary5xxErrors"
+      AlarmDescription: !Sub DocumentSelectionFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: POST
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /documentSelection
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
@@ -1738,6 +2175,13 @@ Resources:
     DependsOn: AbortLogGroup
     Properties:
       FunctionName: !Sub "Abort-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref AbortFunctionFatalErrorAlarm, !Ref AbortFunctionLambdaErrors, !Ref AbortFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: AbortHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1807,7 +2251,6 @@ Resources:
 
   AbortFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref AbortLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1821,7 +2264,6 @@ Resources:
     DependsOn:
       - "AbortFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AbortFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1842,6 +2284,64 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
+  AbortFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-AbortFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-AbortFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub AbortFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AbortFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-AbortFunctionCanary5xxErrors"
+      AlarmDescription: !Sub AbortFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: POST
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /abort
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+
   AbortPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -1855,6 +2355,13 @@ Resources:
     DependsOn: PersonInfoFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-person-info-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref PersonInfoFunctionFatalErrorAlarm, !Ref PersonInfoFunctionLambdaErrors, !Ref PersonInfoFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: PersonInfoHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -1936,7 +2443,6 @@ Resources:
 
   PersonInfoFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref PersonInfoFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1950,7 +2456,6 @@ Resources:
     DependsOn:
       - "PersonInfoFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PersonInfoFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -1970,6 +2475,64 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
+
+  PersonInfoFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-PersonInfoFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub PersonInfoFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PersonInfoFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoFunctionCanary5xxErrors"
+      AlarmDescription: !Sub PersonInfoFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: GET
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /person-info
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
 
   PersonInfoConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
@@ -2213,6 +2776,13 @@ Resources:
     DependsOn: PersonInfoKeyFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-person-info-key-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref PersonInfoKeyFunctionFatalErrorAlarm, !Ref PersonInfoKeyFunctionLambdaErrors, !Ref PersonInfoKeyFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Handler: PersonInfoKeyHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -2280,7 +2850,6 @@ Resources:
     DependsOn:
       - "PersonInfoKeyFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2297,6 +2866,63 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  PersonInfoKeyFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-PersonInfoKeyFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub PersonInfoKeyFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PersonInfoKeyFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunctionCanary5xxErrors"
+      AlarmDescription: !Sub PersonInfoKeyFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: GET
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /person-info-key
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
@@ -2344,6 +2970,224 @@ Resources:
       Dimensions:
         - Name: FunctionName
           Value: !Ref PersonInfoKeyFunction
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+  ## AddressLocationsHandler
+  AddressLocationsFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: AddressLocationsFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-addressLocations-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref AddressLocationsFunctionFatalErrorAlarm, !Ref AddressLocationsFunctionLambdaErrors, !Ref AddressLocationsFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
+      Handler: AddressLocationsHandler.lambdaHandler
+      CodeUri: ../src/
+      ReservedConcurrentExecutions: !If
+        - ApplyReservedConcurrency
+        - !Ref LambdaConcurrency
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: AddressLocationsHandler
+          OS_API_KEY_SSM_PATH: !Sub "/${Environment}/ordnance-survey/API_KEY"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/ordnance-survey/API_KEY"
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-key-id"
+        - Statement:
+            - Sid: KMSPolicy
+              Effect: Allow
+              Action:
+                - kms:*
+              Resource:
+                "*"
+      Events:
+        AddressLocations:
+          Type: Api
+          Properties:
+            Path: /addressLocations
+            Method: post
+            RestApiId: !Ref F2FRestApi
+
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false
+        EntryPoints:
+          - AddressLocationsHandler.ts
+
+  AddressLocationsFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-addressLocations-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  AddressLocationsFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref AddressLocationsFunction
+      Principal: apigateway.amazonaws.com
+
+  AddressLocationsFunctionFatalErorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref AddressLocationsFunctionLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        -
+          MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "AddressLocationsFunction-Fatalerror"
+
+  AddressLocationsFunctionFatalErrorAlarm:
+    DependsOn:
+      - "AddressLocationsFunctionFatalErorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunction-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: AddressLocationsFunction-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  AddressLocationsFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-AddressLocationsFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub AddressLocationsFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AddressLocationsFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunctionCanary5xxErrors"
+      AlarmDescription: !Sub AddressLocationsFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: GET
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /addressLocations
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  AddressLocationsFunctionConcurrency80Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "ApplyReservedConcurrency"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger the alarm if over 80% of AddressLocations is used. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunction-concurrency"
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AddressLocationsFunction
+      Statistic: Maximum
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref LambdaConcurrencyThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  AddressLocationsFunctionThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${AddressLocationsFunction} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunction-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AddressLocationsFunction
       TreatMissingData: notBreaching
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
@@ -2507,7 +3351,6 @@ Resources:
 
   JsonWebKeysFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref JsonWebKeysLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2521,7 +3364,6 @@ Resources:
     DependsOn:
       - "JsonWebKeysFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2603,6 +3445,13 @@ Resources:
     DependsOn: GovNotifyFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-GovNotify-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref GovNotifyFunctionFatalErrorAlarm, !Ref GovNotifyFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: GovNotifyHandler.lambdaHandler
       CodeUri: ../src/
       Timeout: 300
@@ -2615,14 +3464,22 @@ Resources:
           POWERTOOLS_SERVICE_NAME: GovNotifyHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
-          REMINDER_EMAIL_GOVUKNOTIFY_API: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI ]
           GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
-          GOVUKNOTIFY_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]
-          GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]
+          GOVUKNOTIFY_REMINDER_TEMPLATE_ID: 
+            !If [PclEnabled,
+              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERWITHSTEPSTEMPLATEID ],
+              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYREMINDERTEMPLATEID ]]
+          GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID:
+            !If [PclEnabled,
+              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID ],
+              !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]]
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY_ENCRYPTED"
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_SESSION_TTL_DAYS:             
+            !If [PclEnabled, 
+              !FindInMap [ EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS ], 
+              !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS ]]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -2701,9 +3558,15 @@ Resources:
       FunctionName: !Ref GovNotifyFunction
       Principal: apigateway.amazonaws.com
 
+  GovNotifyFunctionPermissionAlias:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GovNotifyFunction.Alias
+      Principal: apigateway.amazonaws.com
+
   GovNotifyFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref GovNotifyFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2717,7 +3580,6 @@ Resources:
     DependsOn:
       - "GovNotifyFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2736,6 +3598,32 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  GovNotifyFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-GovNotifyFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-GovNotifyFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub GovNotifyFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
   GovNotifyConcurrency80Alarm:
@@ -2774,6 +3662,13 @@ Resources:
     DependsOn: UserInfoFunctionLogGroup
     Properties:
       FunctionName: !Sub "User-Info-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref UserInfoFunctionFatalErrorAlarm, !Ref UserInfoFunctionCanary5xxErrors, !Ref UserInfoFunctionLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: UserInfoHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -2861,7 +3756,6 @@ Resources:
 
   UserInfoFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref UserInfoFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2875,7 +3769,6 @@ Resources:
     DependsOn:
       - "UserInfoFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-UserInfoFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2895,6 +3788,64 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
+
+  UserInfoFunctionLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-UserInfoFunctionLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-UserInfoFunction:live"
+        - Name: ExecutedVersion
+          Value: !Sub UserInfoFunction.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  UserInfoFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmName: !Sub "${AWS::StackName}-UserInfoFunctionCanary5xxErrors"
+      AlarmDescription: !Sub UserInfoFunction Lambda returning 5xx response. ${SupportManualURL}
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: Method
+          Value: POST
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName} - F2F Credential Issuer Private API"
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /userinfo
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
 
   UserInfoConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
@@ -2968,7 +3919,6 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: ReminderEmailHandler
           GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
-          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
           KMS_KEY_ARN:
@@ -3053,7 +4003,6 @@ Resources:
 
   ReminderEmailFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref ReminderEmailFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3067,7 +4016,6 @@ Resources:
     DependsOn:
       - "ReminderEmailFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ReminderEmailFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -3164,8 +4112,13 @@ Resources:
           ENCRYPTION_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
           AUTH_SESSION_TTL_SECS:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS ]
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+            !If [PclEnabled, 
+              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDAUTHSESSIONTTLSECS], 
+              !FindInMap [EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS]]
+          YOTI_SESSION_TTL_DAYS:             
+            !If [PclEnabled, 
+              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS], 
+              !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]]
           IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -3235,6 +4188,7 @@ Resources:
       FunctionName: !Ref ExpiredSessionsFunction
       Principal: apigateway.amazonaws.com
 
+
   ExpiredSessionFunctionTestRolePermission:
     Type: AWS::Lambda::Permission
     Condition: AddExpiredSessionFunctionTestRolePermissions
@@ -3243,9 +4197,16 @@ Resources:
       FunctionName: !Ref ExpiredSessionsFunction
       Principal: !Ref TestRoleArn
 
+  ExpiredSessionFunctionTrafficTestRolePermission:
+    Type: AWS::Lambda::Permission
+    Condition: AddExpiredSessionFunctionTrafficTestRolePermissions
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ExpiredSessionsFunction
+      Principal: !Ref TrafficTestRoleArn
+
   ExpiredSessionsFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref ExpiredSessionsFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3259,10 +4220,9 @@ Resources:
     DependsOn:
       - "ExpiredSessionsFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ExpiredSessionsFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -3378,6 +4338,13 @@ Resources:
     DependsOn: TriggerYotiCallbackStateMachineLogGroup
     Properties:
       FunctionName: !Sub "F2F-TriggerYotiCallbackStateMachine-${AWS::StackName}"
+      DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref TriggerYotiCallbackStateMachineFatalErrorAlarm, !Ref TriggerYotiCallbackStateMachineLambdaErrors]
+          - [!Ref AWS::NoValue]
       Handler: TriggerYotiCallbackStateMachineHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
@@ -3462,7 +4429,6 @@ Resources:
 
   TriggerYotiCallbackSMFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref TriggerYotiCallbackStateMachineLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3474,9 +4440,8 @@ Resources:
 
   TriggerYotiCallbackStateMachineFatalErrorAlarm:
     DependsOn:
-      - "YotiCallbackFunctionFatalErorMetricFilter"
+      - "TriggerYotiCallbackSMFatalErrorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackStateMachineFatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -3495,6 +4460,32 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  TriggerYotiCallbackStateMachineLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackStateMachineLambdaErrors"
+      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-TriggerYotiCallbackStateMachine:live"
+        - Name: ExecutedVersion
+          Value: !Sub TriggerYotiCallbackStateMachine.Version.Version
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
   TriggerYotiConcurrency80Alarm:
@@ -3593,7 +4584,10 @@ Resources:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
           IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
-          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          YOTI_SESSION_TTL_DAYS:             
+            !If [PclEnabled, 
+              !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS], 
+              !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -3922,7 +4916,7 @@ Resources:
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
-  
+
   MissingPclEnabledFeatureFlagErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
@@ -3980,7 +4974,7 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: GenerateYotiLetterHandler
           YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
-          YOTI_PDF_BUCKET_FOLDER: pdf
+          YOTI_PDF_BUCKET_LETTER_FOLDER: pdf
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
       Policies:
@@ -4139,13 +5133,40 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue:
+              Fn::Sub: ${L2DynamoStackName}-person-identity-table-name
           POWERTOOLS_SERVICE_NAME: GeneratePrintedLetterHandler
+          YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
+          YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER: merged-pdf
+          YOTI_PDF_BUCKET_COVER_LETTER_FOLDER: cover-pdf
+          YOTI_PDF_BUCKET_LETTER_FOLDER: pdf
+          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - DynamoDBReadPolicy:
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-name"
+        - S3WritePolicy:
+            BucketName: !Ref YotiLetterBucket
+        - S3ReadPolicy:
+            BucketName: !Ref YotiLetterBucket
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-key-id"
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-key-id"
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
+        Loader:
+          - .ttf=file
+          - .png=file
         Minify: true
         Target: "es2020"
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
@@ -4285,9 +5306,63 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: SendToGovNotifyHandler
+          YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
+          YOTI_PDF_BUCKET_LETTER_FOLDER: pdf
+          YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER: merged-pdf
+          ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
+          TXMA_QUEUE_URL: !Ref TxMASQSQueue
+          GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFWITHSTEPSTEMPLATEID ]
+          YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
+          YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, EXTENDEDYOTISESSIONTTLDAYS]
+          PERSON_IDENTITY_TABLE_NAME:
+            Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/YOTI/PRIVATEKEY"
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY"
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
+        - KMSDecryptPolicy:
+            KeyId:
+              Fn::ImportValue:
+                !Sub "${L2DynamoStackName}-session-table-key-id"
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-person-identity-table-key-id"
+        - S3ReadPolicy:
+            BucketName: !Sub "${AWS::StackName}-yotiletter-f2f-${Environment}"
+        - S3WritePolicy:
+            BucketName: !Sub "${AWS::StackName}-yotiletter-f2f-${Environment}"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt TxMASQSQueue.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:GenerateDataKey"
+              Resource: !GetAtt TxMAKMSEncryptionKey.Arn
+            - Effect: Allow
+              Action:
+                - "kms:Decrypt"
+              Resource: !GetAtt GovNotifyEncryptionKey.Arn
+      
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -5015,8 +6090,10 @@ Resources:
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the UserInfo endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       Dimensions: [ ]
@@ -5139,8 +6216,10 @@ Resources:
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Token endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       Dimensions: [ ]
@@ -5263,8 +6342,10 @@ Resources:
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Authorization endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       Dimensions: [ ]
@@ -5387,8 +6468,10 @@ Resources:
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Session endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       Dimensions: [ ]
@@ -5511,8 +6594,10 @@ Resources:
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the userInfo endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
+        - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       Dimensions: [ ]
@@ -6367,6 +7452,15 @@ Resources:
               MetricName: IssueAccessTokenLambdaTimeOut
             Period: 60
             Stat: Sum
+
+  ParameterPclEnabledToggle:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/f2f/printedCustomerLetter/enabled"
+      Value: !FindInMap [ EnvironmentVariables, !Ref Environment, PCLENABLED ]
+      Type: String
+      Description: PCL Enabled Parameter
+
 
   ConcurrencyAlarmDashboard:
     Type: AWS::CloudWatch::Dashboard
@@ -7296,10 +8390,6 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F DNS Suffix"
     Value: !FindInMap [EnvironmentVariables, !Ref Environment, DNSSUFFIX]
-  F2FGovNotifyURL:
-    Condition: IsNotProdLikeEnvironment
-    Description: "F2F Gov Notify API"
-    Value: !FindInMap [EnvironmentVariables, !Ref Environment, GOVUKNOTIFYAPI]
   F2FPostOfficeStubURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Post Office Stub API"
@@ -7313,3 +8403,9 @@ Outputs:
     Condition: IsNotProdLikeEnvironment
     Description: "Lambda Service to process expired user sessions"
     Value: !Ref ExpiredSessionsFunction
+  YotiLetterBucketArn:
+    Condition: IsNotProdLikeEnvironment
+    Description: "ARN of the Yoti Letter Bucket"
+    Value: !GetAtt YotiLetterBucket.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-YotiLetterBucketArn

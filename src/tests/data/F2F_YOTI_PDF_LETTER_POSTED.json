@@ -1,0 +1,137 @@
+{
+    "type": "object",
+    "properties": {
+        "event_name": {
+            "type": "string"
+        },
+        "user": {
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "govuk_signin_journey_id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "user_id",
+                "session_id",
+                "ip_address",
+                "email",
+                "govuk_signin_journey_id"
+            ]
+        },
+        "timestamp": {
+            "type": "integer"
+        },
+        "event_timestamp_ms": {
+            "type": "integer"
+        },
+        "component_id": {
+            "type": "string"
+        },
+        "extensions": {
+            "type": "object",
+            "properties": {
+                "differentPostalAddress": {
+                    "type": "boolean"
+                },
+                "evidence": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "txn": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "txn"
+                            ]
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "evidence"
+            ]
+        },
+        "restricted": {
+            "type": "object",
+            "properties": {
+                "postalAddress": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "addressCountry": {
+                                    "type": "string"
+                                },
+                                "preferredAddress": {
+                                    "type": "boolean"
+                                },
+                                "uprn": {
+                                    "type": "integer"
+                                },
+                                "buildingName": {
+                                    "type": "string"
+                                },
+                                "streetName": {
+                                    "type": "string"
+                                },
+                                "postalCode": {
+                                    "type": "string"
+                                },
+                                "buildingNumber": {
+                                    "type": "string"
+                                },
+                                "addressLocality": {
+                                    "type": "string"
+                                },
+                                "subBuildingName": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "addressCountry",
+                                "preferredAddress",
+                                "uprn",
+                                "buildingName",
+                                "streetName",
+                                "postalCode",
+                                "buildingNumber",
+                                "addressLocality",
+                                "subBuildingName"
+                            ]
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "postalAddress"
+            ]
+        }
+    },
+    "required": [
+        "event_name",
+        "user",
+        "timestamp",
+        "event_timestamp_ms",
+        "component_id",
+        "extensions",
+        "restricted"
+    ],
+    "additionalProperties": false
+}

@@ -5,7 +5,7 @@ import { aws4Interceptor } from "aws4-axios";
 import { XMLParser } from "fast-xml-parser";
 import { ISessionItem } from "../../models/ISessionItem";
 import { PersonIdentityItem } from "../../models/PersonIdentityItem";
-import NodeRSA = require("node-rsa");
+import * as NodeRSA from "node-rsa";
 import { constants } from "./ApiConstants";
 import { jwtUtils } from "../../utils/JwtUtils";
 import crypto from "node:crypto";
@@ -62,6 +62,9 @@ export async function stubStartPost(stubPayload: StubStartRequest): Promise<Axio
 	if (constants.THIRD_PARTY_CLIENT_ID) {
 		stubPayload.clientId = constants.THIRD_PARTY_CLIENT_ID;
 	}
+	if (constants.THIRD_PARTY_CLIENT_ID === "SandboxJourneyFlow") {
+		delete stubPayload.yotiMockID;
+	}
 	try {
 		const postRequest = await axios.post(`${path}`, stubPayload);
 		expect(postRequest.status).toBe(201);
@@ -108,12 +111,11 @@ export async function personInfoKeyGet(): Promise<AxiosResponse<{ key: string }>
 	}
 }
 export function validatePersonInfoResponse(personInfoKey: string, personInfoResponse: string, address_line1: string, address_line2: string, town_city: string, postalCode: string): void {
-	const privateKey = new NodeRSA(personInfoKey);
+	const privateKey = new NodeRSA.default(personInfoKey);
 	const encryptedValue = personInfoResponse;
 	const decryptedValue = privateKey.decrypt(encryptedValue, "utf8");
-	console.log(decryptedValue);
-	expect(decryptedValue).toBe("{\"address_line1\":\"" + address_line1 +  "\",\"address_line2\":\"" + address_line2  + "\",\"town_city\":\"" + town_city + "\",\"postal_code\":\"" + postalCode + "\"}");
-	
+	expect(decryptedValue).toBe("{\"address_line1\":\"" + address_line1 + "\",\"address_line2\":\"" + address_line2 + "\",\"town_city\":\"" + town_city + "\",\"postal_code\":\"" + postalCode + "\"}");
+
 }
 
 
@@ -250,43 +252,46 @@ export function generateRandomAlphanumeric(substringStart: number, substringEnd:
 
 export async function getSessionById(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
 	interface OriginalValue {
-	  N?: string;
-	  S?: string;
-	  BOOL?: boolean;
+		N?: string;
+		S?: string;
+		BOOL?: boolean;
 	}
-  
+
 	interface OriginalSessionItem {
-	  [key: string]: OriginalValue;
+		[key: string]: OriginalValue;
 	}
-  
+
 	let session: ISessionItem | undefined;
 	try {
-	  const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
-	  const originalSession = response.data.Item;
-  
-	  session = Object.fromEntries(
+		const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
+		const originalSession = response.data.Item;
+
+		session = Object.fromEntries(
 			Object.entries(originalSession).map(([key, value]) => {
-		  if (value.N !== undefined) {
+				if (value.N !== undefined) {
 					return [key, Number(value.N)];
-		  } else if (value.S !== undefined) {
+				} else if (value.S !== undefined) {
 					return [key, value.S];
-		  } else if (value.BOOL !== undefined) {
+				} else if (value.BOOL !== undefined) {
 					return [key, value.BOOL];
-		  } else {
+				} else {
 					return [key, undefined];
-		  }
+				}
 			}),
-	  ) as unknown as ISessionItem;
+		) as unknown as ISessionItem;
 	} catch (e: any) {
-	  console.error({ message: "getSessionById - failed getting session from Dynamo", e });
+		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
 	}
-  
+
 	return session;
 }
 
-export async function getPersonIdentityRecordById(sessionId: string, tableName: string): Promise<PersonIdentityItem | undefined> {
+export async function getPersonIdentityRecordById(
+	sessionId: string,
+	tableName: string,
+): Promise<PersonIdentityItem | undefined> {
 	interface OriginalValue {
-		N?: string;
+		N?: number;
 		S?: string;
 		BOOL?: boolean;
 		L?: OriginalValue[];
@@ -299,7 +304,16 @@ export async function getPersonIdentityRecordById(sessionId: string, tableName: 
 
 	let session: PersonIdentityItem | undefined;
 
-	const unwrapValue = (value: OriginalValue): any => {
+	const unwrapValue = (key: string, value: OriginalValue): any => {
+		// Check for 'uprn' FIRST
+		if (key === "uprn" && value.S !== undefined) {
+			const num = Number(value.S); 
+			if (Number.isInteger(num)) { 
+				return num;
+			}
+		}
+
+		// Then handle other types
 		if (value.N !== undefined) {
 			return value.N;
 		}
@@ -310,19 +324,24 @@ export async function getPersonIdentityRecordById(sessionId: string, tableName: 
 			return value.BOOL;
 		}
 		if (value.L !== undefined) {
-			return value.L.map(unwrapValue);
+			return value.L.map((v) => unwrapValue(key, v));
 		}
 		if (value.M !== undefined) {
-			return Object.fromEntries(Object.entries(value.M).map(([k, v]) => [k, unwrapValue(v)]));
+			return Object.fromEntries(
+				Object.entries(value.M).map(([k, v]) => [k, unwrapValue(k, v)]),
+			);
 		}
 		return value;
 	};
 
 	try {
-		const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(`getRecordBySessionId/${tableName}/${sessionId}`, {});
+		const response = await HARNESS_API_INSTANCE.get<{ Item: OriginalSessionItem }>(
+			`getRecordBySessionId/${tableName}/${sessionId}`,
+			{},
+		);
 		const originalSession = response.data.Item;
 		session = Object.fromEntries(
-			Object.entries(originalSession).map(([key, value]) => [key, unwrapValue(value)]),
+			Object.entries(originalSession).map(([key, value]) => [key, unwrapValue(key, value)]),
 		) as unknown as PersonIdentityItem;
 	} catch (e: any) {
 		console.error({ message: "getSessionById - failed getting session from Dynamo", e });
@@ -342,6 +361,22 @@ export async function getSessionByYotiId(sessionId: string, tableName: string): 
 
 	console.log("getSessionByYotiId Response", session.Items[0]);
 	return session.Items[0] as ISessionItem;
+}
+
+export async function getMergedYotiPdf(yotiSessionId: string | undefined): Promise<any> {
+	let pdfData;
+	try {
+		// Wait for  pdf to appear tin S3
+		await new Promise(f => setTimeout(f, 5000));
+
+		const response = await HARNESS_API_INSTANCE.get(`yotiletterbucket/merged-pdf-${yotiSessionId}`, {
+			responseType: "arraybuffer" });
+		pdfData = response;
+	} catch (e: any) {
+		console.error({ message: "getMergedYotiPdf - failed getting pdf from bucket", e });
+	}
+
+	return pdfData;
 }
 
 export async function getSessionByAuthCode(sessionId: string, tableName: string): Promise<ISessionItem | undefined> {
@@ -410,7 +445,7 @@ export async function getDequeuedSqsMessage(prefix: string): Promise<any> {
 }
 
 export async function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): Promise<void> {
-	const [rawHead, rawBody, signature] = jwtToken.split(".");
+	const [rawHead, rawBody] = jwtToken.split(".");
 	// Validate Header
 	const decodedHeader = JSON.parse(jwtUtils.base64DecodeToString(rawHead.replace(/\W/g, "")));
 	expect(decodedHeader.typ).toBe("JWT");
@@ -431,12 +466,12 @@ export async function validateJwtToken(jwtToken: any, vcData: any, yotiId?: stri
 	}
 	// Validity Score
 	const expecedValidityScore = eval("vcData.s" + yotiId + ".validityScore");
-	if (expecedStrengthScore) {
+	if (expecedValidityScore) {
 		expect(decodedBody.vc.evidence[0].validityScore).toBe(eval("vcData.s" + yotiId + ".validityScore"));
 	}
 	// Verification Score
 	const expecedVerificationScore = eval("vcData.s" + yotiId + ".verificationScore");
-	if (expecedStrengthScore) {
+	if (expecedVerificationScore) {
 		expect(decodedBody.vc.evidence[0].verificationScore).toBe(eval("vcData.s" + yotiId + ".verificationScore"));
 	}
 	// Check Methods
@@ -466,7 +501,7 @@ export async function validateJwtToken(jwtToken: any, vcData: any, yotiId?: stri
 }
 
 export function validateJwtTokenNamePart(jwtToken: any, givenName1: any, givenName2: any, givenName3: any, familyName: any): void {
-	const [rawHead, rawBody, signature] = jwtToken.split(".");
+	const rawBody = jwtToken.split(".")[1];
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
 	expect(decodedBody.vc.credentialSubject.name[0].nameParts[0].value).toBe(givenName1);
 	expect(decodedBody.vc.credentialSubject.name[0].nameParts[1].value).toBe(givenName2);

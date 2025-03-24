@@ -20,7 +20,6 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { Constants } from "../utils/Constants";
 
-
 interface ClientConfig {
 	jwksEndpoint: string;
 	clientId: string;
@@ -48,7 +47,7 @@ export class SessionRequestProcessor {
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.SESSION_SERVICE);
   	logger.debug("metrics is  " + JSON.stringify(this.metrics));
   	this.metrics.addMetric("Called", MetricUnits.Count, 1);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
   	this.kmsDecryptor = new KmsJwtAdapter(this.environmentVariables.encryptionKeyIds());
   	this.validationHelper = new ValidationHelper();
   }
@@ -200,6 +199,7 @@ export class SessionRequestProcessor {
 
   	try {
   		await this.f2fService.createAuthSession(session);
+		this.metrics.addMetric("state-F2F_SESSION_CREATED", MetricUnits.Count, 1);
   	} catch (error) {
   		this.logger.error("Failed to create session in session table", {
   			error,
@@ -208,16 +208,18 @@ export class SessionRequestProcessor {
   		return Response(HttpCodesEnum.SERVER_ERROR, "Internal server error");
   	}
 
-  	if (jwtPayload.shared_claims) {
-  		try {
-  			await this.f2fService.savePersonIdentity(jwtPayload.shared_claims, sessionId);
-  		} catch (error) {
-  			this.logger.error("Failed to create session in person identity table", {
-  				error,
-  				messageCode: MessageCodes.FAILED_SAVING_PERSON_IDENTITY,
-  			});
-  			return Response(HttpCodesEnum.SERVER_ERROR, "Internal server error");
-  		}
+  	try {
+  		// If multiple addresses present, retrieve preferred address from shared_claims
+  		const preferredAddress = this.validationHelper.getPreferredAddress(jwtPayload.shared_claims.address);
+  		jwtPayload.shared_claims.address = [preferredAddress];
+
+  		await this.f2fService.savePersonIdentity(jwtPayload.shared_claims, sessionId);
+  	} catch (error) {
+  		this.logger.error("Failed to create session in person identity table", {
+  			error,
+  			messageCode: MessageCodes.FAILED_SAVING_PERSON_IDENTITY,
+  		});
+  		return Response(HttpCodesEnum.SERVER_ERROR, "Internal server error");
   	}
 
   	try {
@@ -239,6 +241,8 @@ export class SessionRequestProcessor {
   	}
 
   	this.logger.info("Session created successfully. Returning 200OK");
+
+	this.metrics.addMetric("session_created", MetricUnits.Count, 1);
 
   	return {
   		statusCode: HttpCodesEnum.OK,

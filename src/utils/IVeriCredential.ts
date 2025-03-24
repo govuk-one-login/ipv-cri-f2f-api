@@ -119,7 +119,6 @@ export interface VerifiedCredentialSubject {
 	address?: Address[];
 	drivingPermit?: DrivingPermit[];
 	passport?: Passport[];
-	residencePermit?: ResidencePermit[];
 	idCard?: any[];
 }
 
@@ -137,7 +136,7 @@ export interface BirthDate {
 }
 
 export interface Address {
-	uprn?: string;
+	uprn?: number;
 	organisationName?: any;
 	subBuildingName?: any;
 	buildingNumber: string;
@@ -165,14 +164,6 @@ export interface Passport {
 	documentType?: string;
 	documentNumber?: string;
 	expiryDate?: string;
-	icaoIssuerCode?: string;
-}
-
-export interface ResidencePermit {
-	documentType?: string;
-	documentNumber?: string;
-	expiryDate?: string;
-	issueDate?: string;
 	icaoIssuerCode?: string;
 }
 

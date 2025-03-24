@@ -76,7 +76,7 @@ Globals:
   Function:
     Tracing: Active
     MemorySize: 512
-    Runtime: nodejs18.x
+    Runtime: nodejs20.x
     Timeout: 60
     Tags:
       API: !Sub ${AWS::StackName}-test-resource

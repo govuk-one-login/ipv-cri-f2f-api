@@ -1,6 +1,5 @@
 import { IsString, IsNotEmpty, IsEmail } from "class-validator";
 import { randomUUID } from "crypto";
-
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "./enums/HttpCodesEnum";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -11,6 +10,8 @@ import { Logger } from "@aws-lambda-powertools/logger";
 export class DynamicReminderEmail {
 
 	constructor(data: Partial<DynamicReminderEmail>) {
+		this.sessionId = data.sessionId!;
+		this.yotiSessionId = data.yotiSessionId!;
 		this.emailAddress = data.emailAddress!;
 		this.firstName = data.firstName!;
 		this.lastName = data.lastName!;
@@ -21,11 +22,21 @@ export class DynamicReminderEmail {
 	static parseRequest(data: any, logger: Logger): DynamicReminderEmail {
 		try {
 			return new DynamicReminderEmail(JSON.parse(data));
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error: any) {
 			logger.error("Cannot parse ReminderEmail data");
 			throw new AppError( HttpCodesEnum.BAD_REQUEST, "Cannot parse ReminderEmail data");
 		}
 	}
+
+	@IsString()
+	@IsNotEmpty()
+	sessionId!: string;
+
+	@IsString()
+    @IsNotEmpty()
+    yotiSessionId!: string;
 
 	@IsString()
 	@IsNotEmpty()
@@ -43,7 +54,6 @@ export class DynamicReminderEmail {
 	@IsString()
 	@IsNotEmpty()
 	documentUsed!: string;
-
 
 	@IsString()
 	@IsNotEmpty()

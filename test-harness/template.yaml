@@ -63,8 +63,12 @@ Conditions:
           - "none"
 
 Globals:
+  Api:
+    BinaryMediaTypes:
+      - "application/pdf"
+      - "application/octet-stream"
   Function:
-    Runtime: nodejs18.x
+    Runtime: nodejs20.x
     VpcConfig:
       SecurityGroupIds:
         - !GetAtt LambdaEgressSecurityGroup.GroupId
@@ -257,6 +261,8 @@ Resources:
                   - !Sub "arn:aws:s3:::${EventTestBucket}"
                   - !Sub "arn:aws:s3:::${EventTestBucket}/txma/*"
                   - !Sub "arn:aws:s3:::${EventTestBucket}/ipv-core/*"
+                  - !Sub "arn:aws:s3:::${BackendStack}-yotiletter-f2f-${Environment}"
+                  - !Sub "arn:aws:s3:::${BackendStack}-yotiletter-f2f-${Environment}/*"
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
@@ -353,11 +359,18 @@ Resources:
       EndpointConfiguration:
         Type: REGIONAL
       DefinitionBody:
+        openapi: '3.0.2'
+        paths:
+          /myMethod:
+            post:
+              produces:
+                - "application/json"
+              responses: { }
+
         Fn::Transform:
           Name: AWS::Include
           Parameters:
             Location: './test-harness-spec.yaml'
-          OpenApiVersion: 3.0.1
       MethodSettings:
         - LoggingLevel: INFO
           MetricsEnabled: true
@@ -444,3 +457,4 @@ Outputs:
     Value: !Sub
       - "https://${URL}/"
       - URL: !Ref TestHarnessCustomDomain
+      

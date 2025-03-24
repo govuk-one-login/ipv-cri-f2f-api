@@ -1,5 +1,5 @@
 import { Template, Match } from "aws-cdk-lib/assertions";
-const { schema } = require("yaml-cfn");
+import { schema } from "yaml-cfn";
 import { readFileSync } from "fs";
 import { load } from "js-yaml";
 
@@ -61,9 +61,9 @@ describe("Infra", () => {
     });
   });
 
-  it("There are 19 lambdas defined, all with at least one specific permission:", () => {
-    const lambdaCount = 19;
-    const lambdaPermissionCount = 20;
+  it("There are 20 lambdas defined, all with at least one specific permission:", () => {
+    const lambdaCount = 20;
+    const lambdaPermissionCount = 23;
     template.resourceCountIs("AWS::Serverless::Function", lambdaCount);
     template.resourceCountIs("AWS::Lambda::Permission", lambdaPermissionCount);
     expect(lambdaPermissionCount > lambdaCount);
@@ -241,9 +241,9 @@ describe("Infra", () => {
   describe("Log group retention", () => {
     it.each`
       environment      | retention
-      ${"dev"}         | ${3}
-      ${"build"}       | ${3}
-      ${"staging"}     | ${3}
+      ${"dev"}         | ${30}
+      ${"build"}       | ${30}
+      ${"staging"}     | ${30}
       ${"integration"} | ${30}
       ${"production"}  | ${30}
     `(

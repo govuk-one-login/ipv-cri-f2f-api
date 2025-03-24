@@ -2,11 +2,11 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/dot-notation */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
-import { Response } from "../../../utils/Response";
+import { getParameter } from "../../../utils/Config";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "../../../services/DocumentSelectionRequestProcessor";
 import {
@@ -14,13 +14,12 @@ import {
 	VALID_NON_UK_PASSPORT_REQUEST,
 	VALID_REQUEST,
 	MISSING_PDF_PREFERENCE,
-	MISSING_UPRN,
-	MISSING_BUILDING_NUMBER_AND_BUILDING_NAME,
-	MISSING_STREET_NAME,
-	MISSING_ADDRESS_LOCALITY,
-	MISSING_ADDRESS_COUNTRY,
-	MISSING_POSTAL_CODE,
-	MISSING_PREFERRED_ADDRESS,
+	PCL_VALID_REQUEST,
+	PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS,
+	PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NUMBER,
+	PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME,
+	PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME_AND_NUMBER,
+	PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_POSTAL_CODE,
 } from "../data/documentSelection-events";
 import { YotiService } from "../../../services/YotiService";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
@@ -38,7 +37,7 @@ const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 
 const logger = mock<Logger>();
-const metrics = new Metrics({ namespace: "F2F" });
+const metrics = mock<Metrics>();
 const encodedHeader = "ENCHEADER";
 
 function getMockSessionItem(): ISessionItem {
@@ -186,17 +185,29 @@ function getYotiSessionInfo(): YotiSessionInfo {
 	return yotiSessionInfo;
 }
 
+jest.mock("@aws-sdk/client-sfn", () => ({
+	SFNClient: jest.fn().mockImplementation(() => ({
+		send: jest.fn(),
+	})),
+	StartExecutionCommand: jest.fn().mockImplementation((params) => params),
+}));
+
+jest.mock("../../../utils/Config", () => ({
+	getParameter: jest.fn(),
+}));
+
 describe("DocumentSelectionRequestProcessor", () => {
 	let personIdentityItem: PersonIdentityItem, f2fSessionItem: ISessionItem, yotiSessionInfo: YotiSessionInfo;
 	beforeAll(() => {
 		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(logger, metrics, "YOTIPRIM");
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockDocumentSelectionRequestProcessor.f2fService = mockF2fService;
 
 		YotiService.getInstance = jest.fn(() => mockYotiService);
 
 		yotiSessionInfo = getYotiSessionInfo();
 		f2fSessionItem = getMockSessionItem();
+		metrics.singleMetric.mockReturnValue(metrics);
 	});
 
 	beforeEach(() => {
@@ -233,6 +244,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1)
 	});
 
 	it("Should return successful response with 200 OK when non-UK passport used for YOTI session", async () => {
@@ -258,6 +271,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1)
 	});
 
 	it("Should return successful response with 200 OK when an EEA ID Card is used and creates YOTI session", async () => {
@@ -286,6 +301,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1)
 	});
 
 	it("Throws bad request error when personDetails is missing", async () => {
@@ -299,6 +316,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.warn).toHaveBeenNthCalledWith(1,
 			"Missing details in SESSION or PERSON IDENTITY tables", { "messageCode": "SESSION_NOT_FOUND" },
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("Returns bad request response when pdf_preference is missing from FE payload", async () => {
@@ -309,17 +327,15 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", { messageCode: "MISSING_MANDATORY_FIELDS" },
 		);
+		expect(metrics.addDimension).toHaveBeenCalledWith("validation_failure", "missingPdfPreference");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "DocSelect_validation_failed", MetricUnits.Count, 1);
+		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 	});
 
 	it.each([
-		MISSING_UPRN,
-		MISSING_BUILDING_NUMBER_AND_BUILDING_NAME,
-		MISSING_STREET_NAME,
-		MISSING_ADDRESS_LOCALITY,
-		MISSING_ADDRESS_COUNTRY,
-		MISSING_POSTAL_CODE,
-		MISSING_PREFERRED_ADDRESS,
-	])("Returns bad request response when postal_address is present but mandatory fields within postal_address are missing from FE payload", async (payload) => {
+		PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_POSTAL_CODE,
+		PCL_INVALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME_AND_NUMBER,
+	])("Returns bad request response when printed letter and new postal address options are selected, but mandatory fields within postal_address are missing from FE payload", async (payload) => {
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(payload, "1234", encodedHeader);
 		
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
@@ -327,6 +343,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			"Postal address missing mandatory fields in postal address", { messageCode: "MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS" },
 		);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "DocSelect_missing_mandatory_fields_in_postal_address", MetricUnits.Count, 1);
+		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 	});
 
 	it("Should update the TTL on both Session & Person Identity Tables", async () => {
@@ -383,6 +401,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.warn).toHaveBeenCalledWith(
 			"Yoti session already exists for this authorization session or Session is in the wrong state: F2F_YOTI_SESSION_CREATED", { messageCode: "STATE_MISMATCH" },
 		);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "DocSelect_error_user_state_incorrect", MetricUnits.Count, 1);
+		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 	});
 
 	it("Returns server error if PersonIdentity table is missing emailAddress", async () => {
@@ -403,6 +423,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing emailAddress in the PERSON IDENTITY table", { "messageCode": MessageCodes.MISSING_PERSON_EMAIL_ADDRESS },
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("Returns server error if PersonIdentity table is missing name", async () => {
@@ -423,6 +444,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing person's GivenName or FamilyName in the PERSON IDENTITY table", { "messageCode": MessageCodes.MISSING_PERSON_IDENTITY_NAME },
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("Returns server error if GivenName is empty in the PersonIdentity table", async () => {
@@ -456,6 +478,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing person's GivenName or FamilyName in the PERSON IDENTITY table", { "messageCode": MessageCodes.MISSING_PERSON_IDENTITY_NAME },
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("Returns server error if FamilyName is empty in the PersonIdentity table", async () => {
@@ -489,6 +512,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing person's GivenName or FamilyName in the PERSON IDENTITY table", { "messageCode": MessageCodes.MISSING_PERSON_IDENTITY_NAME },
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("Throw server error if Yoti Session creation fails", async () => {
@@ -509,6 +533,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenNthCalledWith(2,
 			"Error occurred during documentSelection orchestration", "An error occurred when creating Yoti Session", { "messageCode": "FAILED_DOCUMENT_SELECTION_ORCHESTRATION" },
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 	});
 
 	it("Throw server error if Yoti Session info fetch fails", async () => {
@@ -531,6 +556,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenNthCalledWith(2,
 			"Error occurred during documentSelection orchestration", "An error occurred when fetching Yoti Session", { "messageCode": "FAILED_DOCUMENT_SELECTION_ORCHESTRATION" },
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 	});
 
 	it("Throw server error if Yoti pdf generation fails", async () => {
@@ -556,7 +582,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenNthCalledWith(2,
 			"Error occurred during documentSelection orchestration", "An error occurred when generating Yoti instructions pdf", { "messageCode": "FAILED_DOCUMENT_SELECTION_ORCHESTRATION" },
 		);
-
+		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 	});
 
 	it("Return 200 when write to txMA fails", async () => {
@@ -605,6 +631,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenNthCalledWith(2,
 			"Error occurred during documentSelection orchestration", "An error occurred when sending message to GovNotify handler", { "messageCode": "FAILED_DOCUMENT_SELECTION_ORCHESTRATION" },
 		);
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
+		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 	});
 
 	it("Return 500 when updating the session returns an error", async () => {
@@ -626,6 +654,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
+		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 	});
 
 	it("Return 500 when updating the TTLs returns an error", async () => {
@@ -650,6 +680,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 	});
 
 	it("Return 500 when add users documentUsed returns an error", async () => {
@@ -670,5 +702,44 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
+	});
+
+	it.each([
+		PCL_VALID_REQUEST,
+		PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS,
+		PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NUMBER,
+		PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME,
+	])("invokes step function if PRINTED_CUSTOMER_LETTER_ENABLED set to true", async (payload) => {
+		(getParameter as jest.Mock).mockResolvedValueOnce("true");
+
+		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
+
+		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
+
+		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
+
+		mockYotiService.fetchSessionInfo.mockResolvedValueOnce(yotiSessionInfo);
+
+		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
+
+		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(payload, "RandomF2FSessionID", encodedHeader);
+
+		// @ts-expect-error linting to be updated
+		expect(mockDocumentSelectionRequestProcessor.stepFunctionsClient.send).toHaveBeenCalledWith(
+			{ "input": "{\"sessionId\":\"RandomF2FSessionID\",\"pdfPreference\":\"PRINTED_LETTER\",\"yotiSessionID\":\"b83d54ce-1565-42ee-987a-97a1f48f27dg\",\"govuk_signin_journey_id\":\"sdfssg\"}", "name": "RandomF2FSessionID-1585695600000", "stateMachineArn": "MockSendYotiLetterStateMachine.Arn" },
+		);
+		expect(logger.info).toHaveBeenNthCalledWith(6, { message: "Starting Yoti letter state machine" });
+		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "pdf_preference", "PRINTED_LETTER");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "DocSelect_yoti_session_created", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "DocSelect_comms_choice", MetricUnits.Count, 1);
+	
+		expect(metrics.addDimension).toHaveBeenNthCalledWith(2, "document_type", "ukPassport");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(4, "DocSelect_document_selected", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(5, "DocSelect_doc_select_complete", MetricUnits.Count, 1);
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+
 	});
 });

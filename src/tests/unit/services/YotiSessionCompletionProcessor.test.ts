@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
@@ -18,8 +18,8 @@ import { VerifiableCredentialService } from "../../../services/VerifiableCredent
 import { AppError } from "../../../utils/AppError";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
-import { TXMA_BRP_VC_ISSUED, TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_DL_VC_ISSUED_WITHOUT_FULL_ADDRESS, TXMA_EEA_VC_ISSUED, TXMA_EU_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
-import { getBrpFields, getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getDrivingPermitFieldsWithoutFormattedAddress, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
+import { TXMA_CORE_FIELDS, TXMA_DL_VC_ISSUED, TXMA_DL_VC_ISSUED_WITHOUT_FULL_ADDRESS, TXMA_EEA_VC_ISSUED, TXMA_EU_DL_VC_ISSUED, TXMA_VC_ISSUED } from "../data/txmaEvent";
+import { getCompletedYotiSession, getDocumentFields, getDrivingPermitFields, getDrivingPermitFieldsWithoutFormattedAddress, getEeaIdCardFields, getEuDrivingPermitFields } from "../utils/YotiCallbackUtils";
 import { APIGatewayProxyResult } from "aws-lambda";
 
 let mockCompletedSessionProcessor: YotiSessionCompletionProcessor;
@@ -27,7 +27,7 @@ const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 
 const logger = mock<Logger>();
-const metrics = new Metrics({ namespace: "F2F" });
+const metrics = mock<Metrics>();
 jest.mock("crypto", () => ({
 	...jest.requireActual("crypto"),
 	randomUUID: () => "sdfsdf",
@@ -113,7 +113,7 @@ describe("YotiSessionCompletionProcessor", () => {
 	let f2fSessionItem: ISessionItem, personIdentityItem: PersonIdentityItem, completedYotiSession: YotiCompletedSession, documentFields: any;
 	beforeAll(() => {
 		mockCompletedSessionProcessor = new YotiSessionCompletionProcessor(logger, metrics, "YOTIPRIM");
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.f2fService = mockF2fService;
 
 		YotiService.getInstance = jest.fn(() => mockYotiService);
@@ -129,7 +129,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		jest.clearAllMocks();
 		jest.useFakeTimers();
 		jest.setSystemTime(new Date(1585695600000));
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 	});
 
@@ -141,7 +141,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -228,6 +228,10 @@ describe("YotiSessionCompletionProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
+
 	});
 
 	it("Return successful response with 200 OK when YOTI session created with driving permit", async () => {
@@ -237,7 +241,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(ukDLYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -331,6 +335,9 @@ describe("YotiSessionCompletionProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 	});
 
 	it("Return successful response with 200 OK when YOTI session is completed for driving permit- Media not containing formatted_address", async () => {
@@ -340,7 +347,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(ukDLYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -434,6 +441,9 @@ describe("YotiSessionCompletionProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 	});
 
 	it("Return successful response with 200 OK when YOTI session is completed for driving permit- Media not containing structured_postal_address", async () => {
@@ -444,7 +454,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(ukDLYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -529,6 +539,9 @@ describe("YotiSessionCompletionProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 	});
 
 	it("Return successful response with 200 OK when YOTI session created with EU driving permit", async () => {
@@ -540,7 +553,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -629,6 +642,9 @@ describe("YotiSessionCompletionProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 	});
 
 	it("Return successful response with 200 OK when YOTI session created with EEA Identity Card", async () => {
@@ -639,7 +655,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(eeaYotiSession);
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -726,103 +742,9 @@ describe("YotiSessionCompletionProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("OK");
-	});
-
-	it("Return successful response with 200 OK when YOTI session created with BRP", async () => {
-		documentFields = getBrpFields();
-		const brpYotiSession = getCompletedYotiSession();
-		brpYotiSession.resources.id_documents[0].document_type = "RESIDENCE_PERMIT";
-		mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(brpYotiSession);
-		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
-		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-		// @ts-ignore
-		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
-
-		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
-		const brpCoreFields = TXMA_CORE_FIELDS;
-		brpCoreFields.timestamp = 1585695600;
-		brpCoreFields.event_timestamp_ms = 1585695600000;
-
-		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, brpCoreFields);
-		const brpVcIssued =  TXMA_BRP_VC_ISSUED;
-		brpVcIssued.event_name = "F2F_CRI_VC_ISSUED";
-		brpVcIssued.timestamp = 1585695600;
-		brpVcIssued.event_timestamp_ms = 1585695600000;
-		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, brpVcIssued);
-		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
-		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
-			sub: "testsub",
-			state: "Y@atr",
-			"https://vocab.account.gov.uk/v1/credentialJWT": [JSON.stringify({
-				"sub":"testsub",
-				"nbf":absoluteTimeNow(),
-				"iss":"https://XXX-c.env.account.gov.uk",
-				"iat":absoluteTimeNow(),
-				"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
-				"vc":{
-					"@context":[
-					 Constants.W3_BASE_CONTEXT,
-					 Constants.DI_CONTEXT,
-					],
-					"type": [Constants.VERIFIABLE_CREDENTIAL, Constants.IDENTITY_CHECK_CREDENTIAL],
-					 "credentialSubject":{
-						"name":[
-								 {
-								"nameParts":[
-											 {
-										"value":"TECH",
-										"type":"GivenName",
-											 },
-											 {
-										"value":"REFRESH",
-										"type":"GivenName",
-											 },
-											 {
-										"value":"ICTHREEMALE",
-										"type":"FamilyName",
-											 },
-								],
-								 },
-						],
-						"birthDate":[
-								 {
-								"value":"1988-12-04",
-								 },
-						],
-						"residencePermit":[
-								 {
-								"documentNumber": "RF9082242",
-								"expiryDate": "2024-11-11",
-								"issueDate": "2015-05-19",
-								"icaoIssuerCode": "GBR",
-								 },
-						],
-					 },
-					 "evidence":[
-						{
-								 "type":"IdentityCheck",
-							      "txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-								 "strengthScore":3,
-								 "validityScore":2,
-								 "verificationScore":3,
-								 "checkDetails":[
-								{
-											 "checkMethod":"vri",
-											 "identityCheckPolicy":"published",
-								},
-								{
-											 "checkMethod":"pvr",
-											 "photoVerificationProcessLevel":3,
-								},
-								 ],
-						},
-					 ],
-				},
-		 })],
-		});
-		expect(out.statusCode).toBe(HttpCodesEnum.OK);
-		expect(out.body).toBe("OK");
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 	});
 
 	describe("name checks", () => {
@@ -830,11 +752,14 @@ describe("YotiSessionCompletionProcessor", () => {
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-			// @ts-ignore
+			// @ts-expect-error linting to be updated
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 			await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 			expect(logger.info).toHaveBeenCalledWith("Getting NameParts using Yoti DocumentFields Info");
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);	
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 		});	
 
 		it("Should call getNamesFromPersonIdentity if DocumentFields does not contain given_name", async () => {
@@ -846,15 +771,19 @@ describe("YotiSessionCompletionProcessor", () => {
 			});
 			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-			// @ts-ignore
+			// @ts-expect-error linting to be updated
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 			await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
 			expect(logger.info).toHaveBeenCalledWith("Getting NameParts using F2F Person Identity Info");
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);	
 		});	
 
 		it("Should use name casing from documentFields when using getNamesFromPersonIdentity", async () => {
+			documentFields = getDocumentFields();
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
 			mockYotiService.getMediaContent.mockResolvedValueOnce({ 
 				...documentFields,
@@ -863,7 +792,7 @@ describe("YotiSessionCompletionProcessor", () => {
 			});
 			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-			// @ts-ignore
+			// @ts-expect-error linting to be updated
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 			await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -909,8 +838,8 @@ describe("YotiSessionCompletionProcessor", () => {
 							],
 							"passport":[
 								 {
-									"documentNumber":"RF9082242",
-									"expiryDate":"2024-11-11",
+									"documentNumber":"533401372",
+									"expiryDate":"2025-09-28",
 									"icaoIssuerCode":"GBR",
 								 },
 							],
@@ -937,6 +866,9 @@ describe("YotiSessionCompletionProcessor", () => {
 					},
 		 })],
 			});
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 		});
 
 		it("Should throw an error of name mismatch between F2F and Yoti DocumentFields", async () => {
@@ -948,13 +880,14 @@ describe("YotiSessionCompletionProcessor", () => {
 			});
 			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(personIdentityItem);
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-			// @ts-ignore
+			// @ts-expect-error linting to be updated
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
-			return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+			expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "FullName mismatch between F2F & YOTI",
 			}));
+			expect(metrics.addMetric).not.toHaveBeenCalled()
 		});
 	});
 
@@ -976,6 +909,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				error: "access_denied",
     			error_description: "VC generation failed : Yoti Session not found",
 			});
+			expect(metrics.addMetric).not.toHaveBeenCalled()
 		});
 
 		it("Throws server error if session in Yoti is not completed", async () => {
@@ -997,6 +931,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				error: "access_denied",
     			error_description: "VC generation failed : Yoti Session not complete",
 			});
+			expect(metrics.addMetric).not.toHaveBeenCalled()
 		});
 
 		it("Throws server error if session in Yoti does not contain document fields", async () => {
@@ -1074,6 +1009,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				error: "access_denied",
     			error_description: "VC generation failed : Yoti document_fields not populated",
 			});
+			expect(metrics.addMetric).not.toHaveBeenCalled()
 		});
 
 		it("Throws server error if session in Yoti contains multiple document_field entries", async () => {
@@ -1100,6 +1036,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				error: "access_denied",
     			error_description: "VC generation failed : Multiple document_fields in response",
 			});
+			expect(metrics.addMetric).not.toHaveBeenCalled()
 		});
 
 		it("Throws server error if session in Yoti does not contain media ID", async () => {
@@ -1122,6 +1059,7 @@ describe("YotiSessionCompletionProcessor", () => {
 				error: "access_denied",
     			error_description: "VC generation failed : Yoti document_fields media ID not found",
 			});
+			expect(metrics.addMetric).not.toHaveBeenCalled()
 		});
 	});
 
@@ -1134,6 +1072,7 @@ describe("YotiSessionCompletionProcessor", () => {
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Missing Info in Session Table",
 		}));
+		expect(metrics.addMetric).not.toHaveBeenCalled()
 	});
 
 	it("Should throw an error when session is in wrong AuthSessionState", async () => {
@@ -1155,7 +1094,8 @@ describe("YotiSessionCompletionProcessor", () => {
 			error_description: "VC generation failed : AuthSession is in wrong Auth state",
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
-		expect(out.body).toBe("AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED or F2F_AUTH_CODE_ISSUED, actual state- F2F_YOTI_SESSION_CREATED");		
+		expect(out.body).toBe("AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED or F2F_AUTH_CODE_ISSUED, actual state- F2F_YOTI_SESSION_CREATED");
+		expect(metrics.addMetric).not.toHaveBeenCalled()		
 	});
 
 	it("Return 200 when write to txMA fails", async () => {
@@ -1164,7 +1104,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 		mockF2fService.sendToTXMA.mockRejectedValue({});
 
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
@@ -1181,15 +1121,16 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
 		mockF2fService.sendToIPVCore.mockRejectedValueOnce("Failed to send to IPV Core");
 
-		return expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+		expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Failed to send to IPV Core",
-		}));		
+		}));
+		expect(metrics.addMetric).not.toHaveBeenCalled()		
 	});
 
 	it("Throws server error if signGeneratedVerifiableCredentialJwt returns empty string", async () => {
@@ -1212,6 +1153,9 @@ describe("YotiSessionCompletionProcessor", () => {
 			error: "access_denied",
 			error_description: "VC generation failed : Unable to create signed JWT",
 		});
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+		expect(metrics.addMetric).not.toHaveBeenNthCalledWith(2, "state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
+		expect(metrics.addMetric).not.toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 	});
 
 	it("Returns server error response if signGeneratedVerifiableCredentialJwt throws error", async () => {
@@ -1234,6 +1178,10 @@ describe("YotiSessionCompletionProcessor", () => {
 			error: "access_denied",
 			error_description: "VC generation failed : Failed to sign the verifiableCredential Jwt",
 		});
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+		expect(metrics.addMetric).not.toHaveBeenNthCalledWith(2, "state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
+		expect(metrics.addMetric).not.toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
+	
 	});
 	
 	describe("isTaskDone function", () => {

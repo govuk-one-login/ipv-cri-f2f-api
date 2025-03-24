@@ -18,15 +18,20 @@ import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
 
 const logger = mock<Logger>();
+const metrics = mock<Metrics>();
+
 let f2fService: F2fService;
 const tableName = "SESSIONTABLE";
 const personTableName = "PERSONTABLE";
 const sessionId = "SESSID";
 const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
 const mockSqsClient = createSqsClient();
-const SESSION_RECORD = require("../data/db_record.json");
+import SESSION_RECORD from "../data/db_record.json";
+import { ISessionItem } from "../../../models/ISessionItem";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
 jest.mock("@aws-sdk/client-sqs", () => ({
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	SendMessageCommand: jest.fn().mockImplementation(() => {}),
 }));
 
@@ -71,7 +76,7 @@ describe("F2f Service", () => {
 
 	beforeEach(() => {
 		jest.resetAllMocks();
-		f2fService = F2fService.getInstance(tableName, logger, mockDynamoDbClient);
+		f2fService = F2fService.getInstance(tableName, logger, metrics, mockDynamoDbClient);
 	});
 
 	it("Should return a session item when passed a valid session Id", async () => {
@@ -99,7 +104,9 @@ describe("F2f Service", () => {
 	});
 
 	it("Should not throw an error and return undefined when set AuthorizationCode F2F data doesn't exist", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
 		await expect(f2fService.setAuthorizationCode(sessionId, randomUUID())).resolves.toBeUndefined();
+		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_AUTH_CODE_ISSUED", MetricUnits.Count, 1)
 	});
 
 	it("should throw 500 if request fails when setting AuthorizationCode", async () => {
@@ -107,6 +114,7 @@ describe("F2f Service", () => {
 		await expect(f2fService.setAuthorizationCode(FAILURE_VALUE, randomUUID())).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 		}));
+		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_AUTH_CODE_ISSUED", MetricUnits.Count, 1)
 	});
 
 	it("should throw 500 if request fails during update Session data with access token details", async () => {
@@ -115,6 +123,14 @@ describe("F2f Service", () => {
 		await expect(f2fService.updateSessionWithAccessTokenDetails(sessionId, 12345)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 		}));
+		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnits.Count, 1)
+	});
+
+	it("Should not throw an error and return undefined when set access token details do not exist", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+
+		await expect(f2fService.updateSessionWithAccessTokenDetails(sessionId, 12345)).resolves.toBeUndefined();
+		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnits.Count, 1)
 	});
 
 	it("should throw 500 if request fails during update Session data with yoti session details", async () => {
@@ -309,6 +325,7 @@ describe("F2f Service", () => {
 				UpdateExpression: "SET expiredNotificationSent = :expiredNotificationSent, authSessionState = :authSessionState",
 			},
 		}));
+		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_SESSION_EXPIRED", MetricUnits.Count, 1)
 	});
 
 
@@ -331,7 +348,7 @@ describe("F2f Service", () => {
 
 	it("should create auth session", async () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
-		await f2fService.createAuthSession(SESSION_RECORD);
+		await f2fService.createAuthSession(SESSION_RECORD as ISessionItem);
 		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
 			input: {
 				Item: {
@@ -514,6 +531,22 @@ describe("F2f Service", () => {
 			
 		}),
 		);
+	});
+
+	it("should throw an error when update fails for pdfPreference", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce({ Item: personIdentityOutputRecord }).mockRejectedValue({});
+		await expect(f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressSameInputRecord, personTableName)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+			message: "updateItem - failed: got error updating pdfPreference in PERSONTABLE",
+		}));
+	});
+
+	it("should throw an error when update fails for pdfPreference or postal address", async () => {
+		mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce({ Item: personIdentityOutputRecordTwoAddresses }).mockRejectedValue({});
+		await expect(f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressDifferentInputRecord, personTableName)).rejects.toThrow(expect.objectContaining({
+			statusCode: HttpCodesEnum.SERVER_ERROR,
+			message: "updateItem - failed: got error updating pdfPreference or postal address details in PERSONTABLE",
+		}));
 	});
 
 	describe("obfuscateJSONValues", () => {

@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 /* eslint-disable max-lines-per-function */
 import { SessionRequestProcessor } from "../../../services/SessionRequestProcessor";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
@@ -16,8 +16,6 @@ import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 
 /* eslint @typescript-eslint/unbound-method: 0 */
-/* eslint jest/unbound-method: error */
-
 let sessionRequestProcessor: SessionRequestProcessor;
 const mockF2fService = mock<F2fService>();
 const mockKmsJwtAdapter = mock<KmsJwtAdapter>();
@@ -135,11 +133,11 @@ describe("SessionRequestProcessor", () => {
 
 	beforeAll(() => {
 		sessionRequestProcessor = new SessionRequestProcessor(logger, metrics);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		sessionRequestProcessor.f2fService = mockF2fService;
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		sessionRequestProcessor.kmsDecryptor = mockKmsJwtAdapter;
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		sessionRequestProcessor.validationHelper = mockValidationHelper;
 	});
 
@@ -151,9 +149,10 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: "UNRECOGNISED_CLIENT",
+				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
 			}),
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("should report a JWE decryption failure", async () => {
@@ -166,9 +165,10 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: "FAILED_DECRYPTING_JWE",
+				messageCode: MessageCodes.FAILED_DECRYPTING_JWE,
 			}),
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("should report a failure to decode JWT", async () => {
@@ -184,9 +184,10 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: "FAILED_DECODING_JWT",
+				messageCode: MessageCodes.FAILED_DECODING_JWT,
 			}),
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("should report a JWT verification failure", async () => {
@@ -204,6 +205,7 @@ describe("SessionRequestProcessor", () => {
 				messageCode: MessageCodes.FAILED_VERIFYING_JWT,
 			}),
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("should report an unexpected error verifying JWT", async () => {
@@ -221,6 +223,7 @@ describe("SessionRequestProcessor", () => {
 				messageCode: MessageCodes.FAILED_VERIFYING_JWT,
 			}),
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("should report a JWT validation failure", async () => {
@@ -238,6 +241,7 @@ describe("SessionRequestProcessor", () => {
 				messageCode: "FAILED_VALIDATING_JWT",
 			}),
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("should report invalid address countryCode failure", async () => {
@@ -257,6 +261,7 @@ describe("SessionRequestProcessor", () => {
 				messageCode: MessageCodes.INVALID_COUNTRY_CODE,
 			}),
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("should report invalid address format failure", async () => {
@@ -276,6 +281,7 @@ describe("SessionRequestProcessor", () => {
 				messageCode: MessageCodes.MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS,
 			}),
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("should return unauthorized when emailAddress is missing in the sharedClaim data", async () => {
@@ -295,6 +301,7 @@ describe("SessionRequestProcessor", () => {
 				messageCode: MessageCodes.MISSING_PERSON_EMAIL_ADDRESS,
 			}),
 		);
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("should report session already exists", async () => {
@@ -312,7 +319,7 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: "SESSION_ALREADY_EXISTS",
+				messageCode: MessageCodes.SESSION_ALREADY_EXISTS,
 			}),
 		);
 		expect(response.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
@@ -320,6 +327,7 @@ describe("SessionRequestProcessor", () => {
 			sessionId: expect.any(String),
 			govuk_signin_journey_id: "abcdef",
 		});
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("should fail to create a session", async () => {
@@ -338,7 +346,7 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: "FAILED_CREATING_SESSION",
+				messageCode: MessageCodes.FAILED_CREATING_SESSION,
 			}),
 		);
 		expect(response.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
@@ -346,6 +354,7 @@ describe("SessionRequestProcessor", () => {
 			sessionId: expect.any(String),
 			govuk_signin_journey_id: "abcdef",
 		});
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	it("should create a new session", async () => {
@@ -369,6 +378,8 @@ describe("SessionRequestProcessor", () => {
 			sessionId: expect.any(String),
 			govuk_signin_journey_id: "abcdef",
 		});
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "state-F2F_SESSION_CREATED", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "session_created", MetricUnits.Count, 1)
 	});
 
 	it("ip_address is X_FORWARDED_FOR header if present in event header", async () => {
@@ -447,6 +458,8 @@ describe("SessionRequestProcessor", () => {
 			sessionId: expect.any(String),
 			govuk_signin_journey_id: "abcdef",
 		});
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "state-F2F_SESSION_CREATED", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "session_created", MetricUnits.Count, 1)
 	});
 
 	// the test below fails as the session processor is not writing the expiryDate value correctly in
