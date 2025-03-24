@@ -1,5 +1,5 @@
 import { F2fService } from "./F2fService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { MessageCodes } from "../models/enums/MessageCodes";
@@ -44,7 +44,7 @@ export class ThankYouEmailProcessor {
   	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.THANK_YOU_EMAIL_SERVICE);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.validationHelper = new ValidationHelper();
 	}
@@ -132,6 +132,7 @@ export class ThankYouEmailProcessor {
   			},
   		});
 
+		this.metrics.addMetric("document_uploaded_at_PO", MetricUnits.Count, 1);
   		return Response(HttpCodesEnum.OK, "OK");
 
   	} else {

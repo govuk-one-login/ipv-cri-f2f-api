@@ -153,7 +153,7 @@ describe("ReminderEmailProcessor", () => {
 
 	beforeAll(() => {
 		reminderEmailProcessor = new ReminderEmailProcessor(mockLogger, mockMetrics);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		reminderEmailProcessor.f2fService = mockF2fService;
 
 		mockSessionItem = getMockSessionItem();

@@ -1,5 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { SendEmailService } from "./SendEmailService";
 import { Constants } from "../utils/Constants";
 import { Email } from "../models/Email";
@@ -15,9 +15,16 @@ export class SendEmailProcessor {
 
   private readonly govNotifyService: SendEmailService;
 
-  constructor(private readonly logger: Logger, private readonly metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, govnotifyServiceId: string) {
+  private readonly metrics: Metrics; 
+
+  private readonly logger: Logger; 
+
+
+  constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, govnotifyServiceId: string) {
   	this.validationHelper = new ValidationHelper();
-  	this.govNotifyService = SendEmailService.getInstance(this.logger, this.metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId);
+	this.metrics = metrics;
+	this.logger = logger;
+  	this.govNotifyService = SendEmailService.getInstance(logger, this.metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId);
   }
 
   static getInstance(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string, GOVUKNOTIFY_API_KEY: string, govnotifyServiceId: string): SendEmailProcessor {
@@ -29,20 +36,37 @@ export class SendEmailProcessor {
   	let email: Email;
   	let dynamicReminderEmail: DynamicReminderEmail;
   	let reminderEmail: ReminderEmail;
-
+	
+	const singleMetric = this.metrics.singleMetric();
   	switch (messageType) {
-  		case Constants.PDF_EMAIL:
+  		case Constants.PDF_EMAIL: {
   			email = Email.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(email, this.logger);
-  			return this.govNotifyService.sendYotiPdfEmail(email);
-  		case Constants.REMINDER_EMAIL_DYNAMIC:
+  			const pdfEmailResponse = this.govNotifyService.sendYotiPdfEmail(email);
+
+			singleMetric.addDimension("emailType", "Pdf");
+  			singleMetric.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
+			this.metrics.addMetric("GovNotify_PDF_email_sent", MetricUnits.Count, 1);
+			return pdfEmailResponse;
+		}
+  		case Constants.REMINDER_EMAIL_DYNAMIC: {
   			dynamicReminderEmail = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(dynamicReminderEmail, this.logger);
-  			return this.govNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);
-  		case Constants.REMINDER_EMAIL:
+  			const dynamicReminderEmailResponse = this.govNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);
+
+			singleMetric.addDimension("emailType", "dynamic_reminder");
+  			singleMetric.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
+			return dynamicReminderEmailResponse;
+		}
+  		case Constants.REMINDER_EMAIL: {
   			reminderEmail = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), this.logger);
   			await this.validationHelper.validateModel(reminderEmail, this.logger);
-  			return this.govNotifyService.sendReminderEmail(reminderEmail);
+  			const reminderEmailResponse = this.govNotifyService.sendReminderEmail(reminderEmail);
+
+			singleMetric.addDimension("emailType", "reminder");
+  			singleMetric.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
+			return reminderEmailResponse;
+		}
   	}
   	return undefined;
   }

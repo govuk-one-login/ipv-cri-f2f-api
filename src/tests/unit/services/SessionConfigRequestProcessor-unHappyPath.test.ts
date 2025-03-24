@@ -49,7 +49,7 @@ function getMockSessionItem(): ISessionItem {
 describe("SessionConfigRequestProcessor-Missing pcl_enabled flag", () => {
 	beforeAll(() => {
 		sessionConfigRequestProcessorTest = new SessionConfigRequestProcessor(logger, metrics);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		sessionConfigRequestProcessorTest.f2fService = mockF2fService;
 	});
 

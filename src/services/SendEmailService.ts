@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-// @ts-ignore
+// @ts-expect-error linting to be updated
 import { NotifyClient } from "notifications-node-client";
 
 import { EmailResponse } from "../models/EmailResponse";
@@ -77,6 +77,7 @@ export class SendEmailService {
   	this.f2fService = F2fService.getInstance(
   		this.environmentVariables.sessionTable(),
   		this.logger,
+		this.metrics,
   		createDynamoDbClient(),
   	);
   	this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
@@ -161,6 +162,8 @@ export class SendEmailService {
   				"sendYotiPdfEmail - Failed to fetch the Instructions pdf",
   			);
   		}
+		// ignored so as not log PII
+		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (err: any) {
   		this.logger.error("sendYotiPdfEmail - Cannot send Email", {
   			messageCode: MessageCodes.FAILED_TO_SEND_PDF_EMAIL,
@@ -206,6 +209,8 @@ export class SendEmailService {
   			sessionConfigObject.clientConfig.GovNotifyApi,
   		);
   		return emailResponse;
+		// ignored so as not log PII
+		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (err: any) {
   		this.logger.error("Failed to send Reminder Email", {
   			messageCode: MessageCodes.FAILED_TO_SEND_REMINDER_EMAIL,
@@ -259,6 +264,8 @@ export class SendEmailService {
   			sessionConfigObject.clientConfig.GovNotifyApi,
   		);
   		return emailResponse;
+		// ignored so as not log PII
+		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (err: any) {
   		this.logger.error("Failed to send Dynamic Reminder Email", {
   			messageCode: MessageCodes.FAILED_TO_SEND_REMINDER_EMAIL,
@@ -295,6 +302,8 @@ export class SendEmailService {
   					govuk_signin_journey_id: session.clientSessionId,
   				},
   			});
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
   		} catch (error) {
   			this.logger.error(
   				"Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.",

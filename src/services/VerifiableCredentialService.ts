@@ -62,6 +62,8 @@ export class VerifiableCredentialService {
   			return signedJwt;
   		}
   		return "";
+		// ignored so as not log PII
+		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (error) {
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt");
   	}

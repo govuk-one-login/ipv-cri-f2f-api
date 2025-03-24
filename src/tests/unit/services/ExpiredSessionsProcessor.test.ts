@@ -56,7 +56,7 @@ describe("ExpiredSessionsProcessor", () => {
 
 	beforeAll(() => {
 		expiredSessionsProcessor = new ExpiredSessionsProcessor(mockLogger, mockMetrics);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		expiredSessionsProcessor.f2fService = mockF2fService;
 		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(F2FSessionsWithYotiSession);
 		mockF2fService.sendToIPVCore.mockResolvedValue();

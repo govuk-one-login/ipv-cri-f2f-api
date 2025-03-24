@@ -445,7 +445,7 @@ export async function getDequeuedSqsMessage(prefix: string): Promise<any> {
 }
 
 export async function validateJwtToken(jwtToken: any, vcData: any, yotiId?: string): Promise<void> {
-	const [rawHead, rawBody, signature] = jwtToken.split(".");
+	const [rawHead, rawBody] = jwtToken.split(".");
 	// Validate Header
 	const decodedHeader = JSON.parse(jwtUtils.base64DecodeToString(rawHead.replace(/\W/g, "")));
 	expect(decodedHeader.typ).toBe("JWT");
@@ -466,12 +466,12 @@ export async function validateJwtToken(jwtToken: any, vcData: any, yotiId?: stri
 	}
 	// Validity Score
 	const expecedValidityScore = eval("vcData.s" + yotiId + ".validityScore");
-	if (expecedStrengthScore) {
+	if (expecedValidityScore) {
 		expect(decodedBody.vc.evidence[0].validityScore).toBe(eval("vcData.s" + yotiId + ".validityScore"));
 	}
 	// Verification Score
 	const expecedVerificationScore = eval("vcData.s" + yotiId + ".verificationScore");
-	if (expecedStrengthScore) {
+	if (expecedVerificationScore) {
 		expect(decodedBody.vc.evidence[0].verificationScore).toBe(eval("vcData.s" + yotiId + ".verificationScore"));
 	}
 	// Check Methods
@@ -501,7 +501,7 @@ export async function validateJwtToken(jwtToken: any, vcData: any, yotiId?: stri
 }
 
 export function validateJwtTokenNamePart(jwtToken: any, givenName1: any, givenName2: any, givenName3: any, familyName: any): void {
-	const [rawHead, rawBody, signature] = jwtToken.split(".");
+	const rawBody = jwtToken.split(".")[1];
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
 	expect(decodedBody.vc.credentialSubject.name[0].nameParts[0].value).toBe(givenName1);
 	expect(decodedBody.vc.credentialSubject.name[0].nameParts[1].value).toBe(givenName2);

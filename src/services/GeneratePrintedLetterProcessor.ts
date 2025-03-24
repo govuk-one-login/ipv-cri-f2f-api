@@ -34,7 +34,7 @@ export class GeneratePrintedLetterProcessor {
 		this.logger = logger;
 		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
 		this.pdfService = PDFService.getInstance(logger, metrics);
 		this.s3Client = new S3Client({
 			region: process.env.REGION,
@@ -105,6 +105,8 @@ export class GeneratePrintedLetterProcessor {
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Yoti PDF from S3 bucket. No data found");
 
 			}
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error) {
 			this.logger.error("Error retrieving Yoti PDF from S3 bucket", { messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS });
 
@@ -127,6 +129,8 @@ export class GeneratePrintedLetterProcessor {
 
 			mergedPdfBuffer = await merger.saveAsBuffer(); 
 			this.logger.info("PDF's merged succesfully"); 
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error) {
 			this.logger.error("Error merging PDFs", { messageCode: MessageCodes.FAILED_PDF_MERGE });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error merging PDFs");
@@ -146,6 +150,8 @@ export class GeneratePrintedLetterProcessor {
 
 			this.logger.info(`Uploading merged PDF: ${mergedUploadParams.Key}`);
 			await this.s3Client.send(new PutObjectCommand(mergedUploadParams));
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error) {
 			this.logger.error("Error uploading merged or resizing PDF", { messageCode: MessageCodes.FAILED_MERGED_PDF_PUT });
 

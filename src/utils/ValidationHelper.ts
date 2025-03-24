@@ -48,6 +48,8 @@ export class ValidationHelper {
 		let isValidJwt = false;
 		try {
 			isValidJwt = await jwtAdapter.verify(token);
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (err) {
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Failed to verify signature");
 		}

@@ -1,4 +1,5 @@
-export enum YotiDocumentTypesEnum {
+ /* eslint-disable @typescript-eslint/no-duplicate-enum-values */
+ export enum YotiDocumentTypesEnum {
 	UKPASSPORT = "PASSPORT",
 	UKPHOTOCARDDL = "DRIVING_LICENCE",
 	NONUKPASSPORT = "PASSPORT",

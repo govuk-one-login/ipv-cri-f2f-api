@@ -9,7 +9,7 @@ import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { YotiService } from "../../../services/YotiService";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { S3Client } from "@aws-sdk/client-s3";
 
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
@@ -56,10 +56,10 @@ function getMockSessionItem(): ISessionItem {
 describe("GenerateYotiLetterProcessor", () => {
 	beforeAll(() => {
 		generateYotiLetterProcessor = new GenerateYotiLetterProcessor(logger, metrics, yotiPrivateKey );
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		generateYotiLetterProcessor.f2fService = mockF2fService;
 		YotiService.getInstance = jest.fn(() => mockYotiService);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		generateYotiLetterProcessor.s3Client = mockS3Client;
 
 	});
@@ -102,7 +102,6 @@ describe("GenerateYotiLetterProcessor", () => {
 		mockYotiService.fetchInstructionsPdf.mockResolvedValueOnce("test-data");
 		const response =  await generateYotiLetterProcessor.processRequest({ sessionId, pdfPreference });
         
-		// @ts-ignore
 		expect(mockS3Client.send).toHaveBeenCalledWith({
 			Bucket: "YOTI_LETTER_BUCKET",
 			Key: "pdf-undefined",

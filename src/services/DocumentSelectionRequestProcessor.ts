@@ -54,7 +54,7 @@ export class DocumentSelectionRequestProcessor {
 		this.logger = logger;
 		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.stepFunctionsClient = new SFNClient({ region: process.env.REGION, credentials: fromEnv() });
@@ -123,6 +123,8 @@ export class DocumentSelectionRequestProcessor {
 				this.metrics.addMetric("DocSelect_missing_mandatory_fields_in_postal_address", MetricUnits.Count, 1);
 				return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in postal address");
 			}
+		// ignored so as not log PII
+		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (error) {
   		this.logger.error("Error parsing the payload", {
   			messageCode: MessageCodes.ERROR_PARSING_PAYLOAD,
@@ -190,6 +192,8 @@ export class DocumentSelectionRequestProcessor {
 						yotiSessionId,
 						AuthSessionState.F2F_YOTI_SESSION_CREATED,
 					);
+					this.metrics.addMetric("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
+
 					const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
 					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
 					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
@@ -297,6 +301,8 @@ export class DocumentSelectionRequestProcessor {
 						],
 					},
 				}, encodedHeader);
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 			} catch (error) {
 				this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
 			}
@@ -390,6 +396,7 @@ export class DocumentSelectionRequestProcessor {
 	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
 		this.logger.info({ message: "Posting message to Gov Notify" });
 		try {
+			this.metrics.addMetric("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1);
 			await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
 		} catch (error) {
 			this.logger.error("Yoti session created, failed to post message to GovNotify SQS Queue", {
