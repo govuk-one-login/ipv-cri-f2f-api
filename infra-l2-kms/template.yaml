@@ -34,6 +34,15 @@ Parameters:
     Description: Number of days to retain KMS in pending deletion state when deleted
     Default: 30
 
+  ServiceName:
+    Type: String
+    Description: >
+      Optionally provide a service name to enable naming convention patterns
+    Default: "none"
+    AllowedPattern: "[a-z0-9-]+|none"
+    ConstraintDescription: >
+      Must be a DNS compliant name containing alphanumeric characters and hyphens only OR set as "none"
+
 Conditions:
   UseCodeSigning:
     Fn::Not:
@@ -127,6 +136,29 @@ Resources:
       AliasName: !Sub "alias/${AWS::StackName}-encryption-key"
       TargetKeyId: !Ref KMSEncryptionKey
 
+  PublishedKeysS3Bucket:
+    Type: AWS::S3::Bucket
+    # checkov:skip=CKV_AWS_18: "Ensure the S3 bucket has access logging enabled"
+    Properties:
+      BucketName: !Sub "${ServiceName}-${Environment}-key-rotation-bucket"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      NotificationConfiguration:
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
+      Tags:
+        - Key: "Description"
+          Value: "Published OAuth or DID keys bucket for key rotation state machine"
+
 Outputs:
   SigningKeyArn:
     Description: "The Arn of the VC signing key"
@@ -154,3 +186,13 @@ Outputs:
   EncryptionKeyAlias:
     Description: "The ARN of the encryption key"
     Value: !Ref KMSEncryptionKeyAlias
+  PublishedKeysS3BucketName:
+    Description: "The name of the bucket used by the key rotation state machine"
+    Value: !Ref PublishedKeysS3Bucket
+    Export:
+      Name: !Sub PublishedKeysS3BucketName
+  PublishedKeysS3BucketArn:
+    Description: "The ARN of the bucket used by the key rotation state machine"
+    Value: !GetAtt PublishedKeysS3Bucket.Arn
+    Export:
+      Name: !Sub PublishedKeysS3BucketArn
