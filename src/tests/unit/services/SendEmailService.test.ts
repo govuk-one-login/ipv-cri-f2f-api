@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Logger } from "@aws-lambda-powertools/logger";
 import { SQSEvent } from "aws-lambda";
-// @ts-ignore
+// @ts-expect-error linting to be updated
 import { NotifyClient } from "notifications-node-client";
 import { VALID_SQS_EVENT, VALID_REMINDER_SQS_EVENT, VALID_DYNAMIC_REMINDER_SQS_EVENT } from "../data/sqs-events";
 import { SendEmailService } from "../../../services/SendEmailService";
@@ -67,7 +67,7 @@ const mockSendEmail = jest.fn();
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
 		sendEmailServiceTest = SendEmailService.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		sendEmailServiceTest.f2fService = mockF2fService;
 		sqsEvent = VALID_SQS_EVENT;
 		reminderEmailEvent = VALID_REMINDER_SQS_EVENT;

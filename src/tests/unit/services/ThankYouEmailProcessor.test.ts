@@ -1,7 +1,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
@@ -17,7 +17,7 @@ import { mockYotiSessionItemBST, mockYotiSessionItemGMT } from "../data/yoti-ses
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 const logger = mock<Logger>();
-const metrics = new Metrics({ namespace: "F2F" });
+const metrics = mock<Metrics>();
 // pragma: allowlist nextline secret
 const YOTI_PRIVATE_KEY = "YOTI_PRIVATE_KEY";
 const sessionId = "RandomF2FSessionID";
@@ -56,7 +56,7 @@ function getMockYotiSessionItem(mockYotiSessionItem: YotiCompletedSession): Yoti
 describe("ThankYouEmailProcessor", () => {
 	beforeAll(() => {
 		thankYouEmailProcessor = new ThankYouEmailProcessor(logger, metrics, YOTI_PRIVATE_KEY);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		thankYouEmailProcessor.f2fService = mockF2fService;
 		
 		YotiService.getInstance = jest.fn(() => mockYotiService);
@@ -80,6 +80,7 @@ describe("ThankYouEmailProcessor", () => {
 			expect(logger.error).toHaveBeenCalledWith("Event does not include yoti session_id", {
 				messageCode: MessageCodes.MISSING_SESSION_ID,
 			});
+			expect(metrics.addMetric).not.toHaveBeenCalled();
 		});
 
 		it("throws error if F2F session can't be found", async () => {
@@ -92,6 +93,7 @@ describe("ThankYouEmailProcessor", () => {
 			expect(logger.error).toHaveBeenCalledWith("Session not found", {
 				messageCode: MessageCodes.SESSION_NOT_FOUND,
 			});
+			expect(metrics.addMetric).not.toHaveBeenCalled();
 		});
 
 		it("throws error if yoti session can't be found", async () => {
@@ -106,6 +108,7 @@ describe("ThankYouEmailProcessor", () => {
 				yotiSessionID: sessionId,
 				messageCode: MessageCodes.VENDOR_SESSION_NOT_FOUND,
 			});
+			expect(metrics.addMetric).not.toHaveBeenCalled();
 		});
 
 		it("sends correctly formatted message to TxMA if all checks pass", async () => {
@@ -133,6 +136,7 @@ describe("ThankYouEmailProcessor", () => {
   			},
 			});
 			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "7 February 2023", postOfficeTimeOfVisit: "2:30 pm" });
+			expect(metrics.addMetric).toHaveBeenCalledWith("document_uploaded_at_PO", MetricUnits.Count, 1);
 		});
 
 		it("adjusts for BST correctly", async () => {
@@ -161,6 +165,7 @@ describe("ThankYouEmailProcessor", () => {
   			},
 			});
 			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "7 September 2023", postOfficeTimeOfVisit: "3:30 pm" });
+			expect(metrics.addMetric).toHaveBeenCalledWith("document_uploaded_at_PO", MetricUnits.Count, 1);
 		});
 	});
 });

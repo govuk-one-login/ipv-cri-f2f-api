@@ -39,7 +39,7 @@ export class GenerateYotiLetterProcessor {
 		this.logger = logger;
 		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_YOTI_LETTER_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.s3Client = new S3Client({
@@ -116,6 +116,8 @@ export class GenerateYotiLetterProcessor {
 		try {
 			this.logger.info(`Uploading object with key ${key} to bucket ${bucket}`);
 			await this.s3Client.send(new PutObjectCommand(uploadParams));
+			// ignored so as not log PII
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error) {
 			this.logger.error("Error uploading Yoti PDF to S3 bucket", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error uploading Yoti PDF to S3 bucket");

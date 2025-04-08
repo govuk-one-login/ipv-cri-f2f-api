@@ -14,6 +14,7 @@ import govUkLogo from "../static/govuk-logo-lockup-black-1800px.png";
 
 import { PersonIdentityAddress } from "../models/PersonIdentityItem";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 
 export class PDFGenerationService {
 
@@ -25,20 +26,24 @@ export class PDFGenerationService {
 
   private readonly logger: Logger;
 
-  private constructor(logger: Logger) {
+  private readonly metrics: Metrics;
+
+  private constructor(logger: Logger, metrics: Metrics) {
   	this.logger = logger;
+	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
   }
 
 mmToPt = (mm: number) => mm * 2.83465;
 
 static getInstance(
 	logger: Logger,
+	metrics: Metrics
 ): PDFGenerationService {
 	if (!PDFGenerationService.instance) {
 		PDFGenerationService.instance = new PDFGenerationService(
-			logger,
+			logger, metrics
 		);
 	}
 	return PDFGenerationService.instance;

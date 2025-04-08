@@ -8,11 +8,14 @@ import { mock } from "jest-mock-extended";
 import { PersonIdentityAddress, PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { F2fService } from "../../../services/F2fService";
 import { PDFGenerationService } from "../../../services/pdfGenerationService";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 
 let pdfGenerationService: PDFGenerationService;
 const mockF2fService = mock<F2fService>();
 
 const logger = mock<Logger>();
+const metrics = mock<Metrics>();
+
 const sessionId = "sessionId";
 
 const person: PersonIdentityItem = {
@@ -62,8 +65,8 @@ const person: PersonIdentityItem = {
 
 describe("PdfGenerationServiceTest", () => {
 	beforeAll(() => {
-		pdfGenerationService = PDFGenerationService.getInstance(logger);
-		// @ts-ignore
+		pdfGenerationService = PDFGenerationService.getInstance(logger, metrics);
+		// @ts-expect-error linting to be updated
 		pdfGenerationService.f2fService = mockF2fService;
 	});
 
@@ -112,9 +115,11 @@ describe("PdfGenerationServiceTest", () => {
 	});
 
 	it("should omit missing fields from mapped address", () => {
-		const { organisationName, departmentName, ...postalAddress }: PersonIdentityAddress = person.addresses[0];
+		const { ...postalAddress }: PersonIdentityAddress = person.addresses[0];
 		const result = pdfGenerationService.mapToAddressLines(postalAddress);
 		expect(result).toEqual([
+			"Test dept",
+			"Test org",
 			"Flat 5",
 			"Sherman",
 			"32 Wallaby Way",

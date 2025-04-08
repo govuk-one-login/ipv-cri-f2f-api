@@ -31,7 +31,7 @@ export class SessionConfigRequestProcessor {
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.SESSION_CONFIG_SERVICE);
 		this.validationHelper = new ValidationHelper();
 		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics): SessionConfigRequestProcessor {

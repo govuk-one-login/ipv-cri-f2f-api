@@ -1,4 +1,3 @@
-/* eslint-disable jest/no-commented-out-tests */
 /* eslint-disable max-lines-per-function */
 import {
 	sessionPost,
@@ -67,7 +66,7 @@ describe("/session endpoint", () => {
 
 		if (addressFromRecord) {
 			addressFromRecord.uprn = Number(addressFromRecord.uprn);
-			// eslint-disable-next-line jest/no-conditional-expect
+			
 			expect(addressFromRecord.uprn).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
 		} else {
 			throw new Error("Address not found in personIdentityRecord");
@@ -132,7 +131,7 @@ describe("/documentSelection Endpoint", () => {
 		validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: yotiStartSchema }, allTxmaEventBodies);
 		if (!constants.THIRD_PARTY_CLIENT_ID) {
 			validateTxMAEventData({ eventName: "F2F_YOTI_PDF_EMAILED", schemaName: "F2F_YOTI_PDF_EMAILED_SCHEMA" }, allTxmaEventBodies);
-			// eslint-disable-next-line jest/no-conditional-expect
+			
 			expect(session?.yotiSessionId).toContain(yotiMockId);
 		}
 	});
@@ -205,7 +204,7 @@ describe("/documentSelection Endpoint", () => {
 
 		if (addressFromRecord) {
 			addressFromRecord.uprn = Number(addressFromRecord.uprn);
-			// eslint-disable-next-line jest/no-conditional-expect
+			
 			expect(addressFromRecord.uprn).toBe(newf2fStubPayload.shared_claims.address[0].uprn);
 		} else {
 			throw new Error("Address not found in personIdentityRecord");
@@ -247,7 +246,7 @@ describe("/documentSelection Endpoint", () => {
 					files.forEach(fileName => {
 						const imagePath = pdfImagesLocation + "/" + fileName;
 						const image = fs.readFileSync(imagePath);
-						// eslint-disable-next-line jest/no-conditional-expect
+						
 						expect(image).toMatchImageSnapshot({
 							runInProcess: true,
 							customDiffDir: "tests/visual/__snapshots-diff__",

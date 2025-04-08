@@ -741,6 +741,8 @@ describe("YotiService", () => {
 		});
 	
 		it("getCompletedSessionInfo retries when there is a 429 error fetching the completed Yoti session info", async () => {
+			// Used for testing
+			/* eslint-disable @typescript-eslint/no-unused-vars */
 			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},

@@ -25,6 +25,8 @@ export async function fetchEncodedFileFromS3Bucket(s3Client: S3Client, bucket: s
 			const body = await streamToBuffer(file.Body);
 			return body;
 		}
+		// ignored so as not log PII
+		/* eslint-disable @typescript-eslint/no-unused-vars */
 	} catch (error) {
 		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching the file from S3 bucket");
 	}		

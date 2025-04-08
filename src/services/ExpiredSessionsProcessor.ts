@@ -19,7 +19,7 @@ export class ExpiredSessionsProcessor {
 
   constructor(private readonly logger: Logger, private readonly metrics: Metrics) {
   	const envVariables = new EnvironmentVariables(logger, ServicesEnum.REMINDER_SERVICE);
-  	this.f2fService = F2fService.getInstance(envVariables.sessionTable(), logger, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(envVariables.sessionTable(), logger, metrics, createDynamoDbClient());
   }
 
   static getInstance(logger: Logger, metrics: Metrics): ExpiredSessionsProcessor {

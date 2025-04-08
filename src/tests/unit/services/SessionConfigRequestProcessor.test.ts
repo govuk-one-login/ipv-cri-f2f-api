@@ -48,7 +48,7 @@ function getMockSessionItem(): ISessionItem {
 describe("SessionConfigRequestProcessor", () => {
 	beforeAll(() => {
 		sessionConfigRequestProcessorTest = new SessionConfigRequestProcessor(logger, metrics);
-		// @ts-ignore
+		// @ts-expect-error linting to be updated
 		sessionConfigRequestProcessorTest.f2fService = mockF2fService;
 	});
 

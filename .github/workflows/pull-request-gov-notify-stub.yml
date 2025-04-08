@@ -41,10 +41,10 @@ jobs:
         with:
           extra_args: "detect-secrets --all-files"
 
-      - name: Setup nodeJS v18
+      - name: Setup nodeJS v20
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Set offline mirror path
         id: offline-mirror-path

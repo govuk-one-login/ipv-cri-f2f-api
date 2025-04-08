@@ -105,7 +105,7 @@ describe("GenerateVerifiableCredential", () => {
 		it.each([
 			{ country: "GBR", errorMessage: "Invalid documentType provided for issuingCountry" },
 			{ country: "ALB", errorMessage: "Invalid documentType provided" },
-		])("should throw an error for an invalid document type where country is $country", ({ country, errorMessage }) => {
+		])("should throw an error for an invalid document type where country is $country", ({ country }) => {
 			const documentType = "INVALID_DOCUMENT";
 			const documentContainsValidChip = true;
 
