@@ -118,7 +118,7 @@ describe("/callback endpoint", () => {
 		{ yotiMockId:"0402", docSelectionData: dataEuDrivingLicence, givenName1: "FREDERICK", givenName2: "SMITH", givenName3: "JON", familyName: "FLINTSTONE" },
 		{ yotiMockId:"0206", docSelectionData: dataNonUkPassport, givenName1: "FREDERICK", givenName2: "JON", givenName3: "De", familyName: "FLINTSTONE" },
 
-	])("Mutltuple given Names in Yoti Response - yotiMockId $yotiMockId - Full Name: $givenName1 $givenName2 $givenName3 $familyName", async (
+	])("Multiple given Names in Yoti Response - yotiMockId $yotiMockId - Full Name: $givenName1 $givenName2 $givenName3 $familyName", async (
 		{ yotiMockId, docSelectionData, givenName1, givenName2, givenName3, familyName }:
 		// eslint-disable-next-line max-len
 		{ yotiMockId: string; docSelectionData: DocSelectionData; givenName1: string; givenName2: string; givenName3: string; familyName: string },
