@@ -166,7 +166,15 @@ export class DocumentSelectionRequestProcessor {
 			return Response(HttpCodesEnum.SERVER_ERROR, data.errorMessage + " in the PERSON IDENTITY table");
 		}
 		this.logger.info("checking service has redeployed");
-		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
+
+		if (f2fSessionInfo.authSessionState !== AuthSessionState.F2F_SESSION_CREATED) {
+			this.logger.warn(`Session for journey ${f2fSessionInfo?.clientSessionId} is in the wrong state: ${f2fSessionInfo.authSessionState}, expected state should be ${AuthSessionState.F2F_SESSION_CREATED}`, {
+				messageCode: MessageCodes.INCORRECT_SESSION_STATE,
+			});
+			this.metrics.addMetric(`${MessageCodes.INCORRECT_SESSION_STATE} - Session for journey ${f2fSessionInfo?.clientSessionId} is in the wrong state: ${f2fSessionInfo.authSessionState}, expected state should be ${AuthSessionState.F2F_AUTH_CODE_ISSUED}`, MetricUnits.Count, 1);
+			return Response(HttpCodesEnum.UNAUTHORIZED, `Session is in the wrong state: ${f2fSessionInfo.authSessionState}`);
+	
+		} else if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
 
 			const PRINTED_CUSTOMER_LETTER_ENABLED = await getParameter(this.environmentVariables.printedCustomerLetterEnabledSsmPath());
 			try {
@@ -311,11 +319,11 @@ export class DocumentSelectionRequestProcessor {
 			return Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 
 		} else {
-			this.logger.warn(`Yoti session already exists for this authorization session or Session is in the wrong state: ${f2fSessionInfo.authSessionState}`, {
-				messageCode: MessageCodes.STATE_MISMATCH,
+			this.logger.warn(`Yoti session already exists for journey ${f2fSessionInfo?.clientSessionId}`, {
+				messageCode: MessageCodes.YOTI_SESSION_ALREADY_EXISTS,
 			});
-			this.metrics.addMetric("DocSelect_error_user_state_incorrect", MetricUnits.Count, 1);
-			return Response(HttpCodesEnum.UNAUTHORIZED, "Yoti session already exists for this authorization session or Session is in the wrong state");
+			this.metrics.addMetric("Yoti session already exists", MetricUnits.Count, 1);
+			return Response(HttpCodesEnum.UNAUTHORIZED, `Yoti session already exists for journey ${f2fSessionInfo.authSessionState}`);
 		}
 	}
 

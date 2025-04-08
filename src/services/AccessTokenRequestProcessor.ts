@@ -1,5 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { F2fService } from "./F2fService";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -117,7 +117,8 @@ export class AccessTokenRequestProcessor {
 					}),
 				};
 			} else {
-				this.logger.warn(`Session is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_AUTH_CODE_ISSUED}`, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
+				this.metrics.addMetric(`${MessageCodes.INCORRECT_SESSION_STATE} - Session for journey ${session?.clientSessionId} is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_AUTH_CODE_ISSUED}`, MetricUnits.Count, 1);
+				this.logger.warn(`Session for journey ${session?.clientSessionId} is in the wrong state: ${session.authSessionState}, expected state should be ${AuthSessionState.F2F_AUTH_CODE_ISSUED}`, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
 				return Response(HttpCodesEnum.UNAUTHORIZED, `Session is in the wrong state: ${session.authSessionState}`);
 			}
 		} catch (err: any) {
