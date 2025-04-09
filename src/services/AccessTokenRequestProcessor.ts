@@ -119,7 +119,7 @@ export class AccessTokenRequestProcessor {
 			} else {
 				this.metrics.addMetric("AccessToken_error_user_state_incorrect", MetricUnits.Count, 1);
 				this.logger.warn( { message: `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state - ${session.authSessionState}` }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
-				return Response(HttpCodesEnum.UNAUTHORIZED, `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state - ${session.authSessionState}`);
+				return Response(HttpCodesEnum.UNAUTHORIZED, `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state - ${session.authSessionState}`);
 			}
 		} catch (err: any) {
 			this.logger.error({ message: "Error processing access token request", err });
