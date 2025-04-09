@@ -85,9 +85,9 @@ export class UserInfoRequestProcessor {
 				"https://vocab.account.gov.uk/v1/credentialStatus": "pending",
 			}));
 		} else {
-			this.logger.error({ message: `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state- ${session.authSessionState}` },
-				{ messageCode: MessageCodes.INCORRECT_SESSION_STATE });
-			return Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state- ${session.authSessionState}`);
+			this.metrics.addMetric("UserInfo_error_user_state_incorrect", MetricUnits.Count, 1);
+			this.logger.error({ message: `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state - ${session.authSessionState}` }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
+			return Response(HttpCodesEnum.UNAUTHORIZED, `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state - ${session.authSessionState}`);
 		}
 	}
 }

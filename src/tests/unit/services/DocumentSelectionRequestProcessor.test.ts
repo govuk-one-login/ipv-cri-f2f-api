@@ -397,9 +397,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
-		expect(out.body).toBe("Yoti session already exists for this authorization session or Session is in the wrong state");
+		expect(out.body).toBe("Yoti session already exists or session for journey sdfssg is in the wrong Auth state: expected state - F2F_SESSION_CREATED, actual state - F2F_YOTI_SESSION_CREATED");
 		expect(logger.warn).toHaveBeenCalledWith(
-			"Yoti session already exists for this authorization session or Session is in the wrong state: F2F_YOTI_SESSION_CREATED", { messageCode: "STATE_MISMATCH" },
+			"Yoti session already exists or session for journey sdfssg is in the wrong Auth state: expected state - F2F_SESSION_CREATED, actual state - F2F_YOTI_SESSION_CREATED", { messageCode: "INCORRECT_SESSION_STATE" },
 		);
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "DocSelect_error_user_state_incorrect", MetricUnits.Count, 1);
 		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
