@@ -57,13 +57,13 @@ jobs:
           key: offline-mirror-oauth
 
       - name: Install dependencies
-        run: npm install
+        run: cd src && npm install
 
       - name: Run lint
-        run: npm run lint
+        run: cd src && npm run lint
 
       - name: Run Tests
-        run: npm run test
+        run: cd src && npm run test
   sam-validate:
     name: SAM Validate
     runs-on: ubuntu-latest
@@ -99,12 +99,6 @@ jobs:
 
       - name: SAM Validate
         run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml
-
-      - name: Install Nodejs Npm Esbuild Builder
-        run: npm -g install esbuild
-
-      - name: Install Dependencies
-        run: npm install
 
       - name: SAM Build
         run: sam build -t template.yaml

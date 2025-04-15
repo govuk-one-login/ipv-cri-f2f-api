@@ -3,9 +3,10 @@ import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import crypto from "node:crypto";
 import { util } from "node-jose";
 import format from "ecdsa-sig-formatter";
-import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { JarPayload, Jwks, JwtHeader } from "../auth.types";
 import axios from "axios";
+import { __ServiceException } from "@aws-sdk/client-kms/dist-types/models/KMSServiceException";
 
 export const v3KmsClient = new KMSClient({
   region: process.env.REGION ?? "eu-west-2",
@@ -153,7 +154,7 @@ async function getPublicEncryptionKey(config: {
   const publicKey = oauthProviderJwks.keys.find((key) => key.use === "enc");
   const publicEncryptionKey: CryptoKey = await webcrypto.subtle.importKey(
     "jwk",
-    publicKey,
+    publicKey as JsonWebKey,
     { name: "RSA-OAEP", hash: "SHA-256" },
     true,
     ["encrypt"]
@@ -188,7 +189,7 @@ async function sign(payload: JarPayload, keyId: string): Promise<string> {
     })
   );
   if (res?.Signature == null) {
-    throw res as unknown as AWS.AWSError;
+    throw res as unknown as __ServiceException;
   }
   tokenComponents.signature = format.derToJose(
     Buffer.from(res.Signature),

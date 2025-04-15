@@ -5,12 +5,8 @@
 
 export default {
   transform: {
-    '^.+\\.ts?$': [
-      'esbuild-jest',
-      {
-        sourcemap: true
-      }
-    ]
+    "^.+\\.tsx?$": "ts-jest",
+    "^.+\\.m?[tj]sx?$": ["babel-jest", { presets: ["@babel/preset-env"] }],
   },
   clearMocks: true,
   reporters: [

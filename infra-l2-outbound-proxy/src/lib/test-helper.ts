@@ -9,7 +9,7 @@ export class testHelper {
   public getTemplate<T extends Template>() {
     if (this.template === null || this.template === undefined) {
       const yamltemplate: any = load(
-        readFileSync("template.yaml", "utf-8"),
+        readFileSync("../template.yaml", "utf-8"),
         {
           schema: schema,
         }
