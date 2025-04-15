@@ -204,7 +204,7 @@ export class YotiRequestProcessor {
         yotiSessionItem.session_id = replacedYotiSessionId
         this.logger.info("CREATED SESSION ITEM", {yotiSessionItem})
 
-        this.logger.info("Create Session Success Scenarios", SUPPORTED_DOCUMENTS);
+        this.logger.info("Create Session Success Scenarios", { SUPPORTED_DOCUMENTS });
 
         if (SUPPORTED_DOCUMENTS.includes(firstTwoChars)) {
             this.logger.debug(JSON.stringify(yotiSessionItem));
@@ -1198,7 +1198,7 @@ export class YotiRequestProcessor {
         const firstTwoChars = lastUuidChars.slice(0, 2);
         this.logger.info({message: "last 4 ID chars", lastUuidChars});
 
-        this.logger.info("getSessionConfiguration", SUPPORTED_DOCUMENTS);
+        this.logger.info("getSessionConfiguration", { SUPPORTED_DOCUMENTS });
 
         if (SUPPORTED_DOCUMENTS.includes(firstTwoChars)) {
             VALID_GET_SESSION_CONFIG_RESPONSE.session_id = sessionId;
@@ -1244,7 +1244,7 @@ export class YotiRequestProcessor {
         const validFadCodeFormat = /^[a-zA-Z0-9]{7}$/;
         const lastFadCodeChars = fadCode.slice(-4);
 
-        this.logger.info("getSessionConfiguration", SUPPORTED_DOCUMENTS);
+        this.logger.info("getSessionConfiguration", { SUPPORTED_DOCUMENTS });
 
         if (!fadCode) {
             this.logger.info("Fad Code not included", JSON.stringify(FAD_CODE_NOT_INCLUDED));

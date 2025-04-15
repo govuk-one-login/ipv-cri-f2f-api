@@ -119,6 +119,8 @@ export class SessionRequestProcessor {
   		sessionId,
   	});
   	try {
+		this.logger.info("PARSED JWT ", jwtPayload);
+		this.logger.info("ENCODED JWT ", urlEncodedJwt)
   		if (configClient?.jwksEndpoint) {
   			const payload = await this.kmsDecryptor.verifyWithJwks(urlEncodedJwt, configClient.jwksEndpoint);
   			if (!payload) {
@@ -189,7 +191,7 @@ export class SessionRequestProcessor {
   		expiryDate: absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs(),
   		createdDate: absoluteTimeNow(),
   		state: jwtPayload.state,
-  		subject: jwtPayload.sub ? jwtPayload.sub : "",
+  		subject: jwtPayload.sub ?? "",
   		persistentSessionId: jwtPayload.persistent_session_id, //Might not be used
   		clientIpAddress,
   		attemptCount: 0,
