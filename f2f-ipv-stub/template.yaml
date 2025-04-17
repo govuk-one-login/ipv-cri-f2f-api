@@ -100,6 +100,7 @@ Resources:
                   - kms:GetPublicKey
                 Resource:
                   - !GetAtt IPVStubKMSSigningKey.Arn
+                  - !GetAtt IPVStubKMSAdditionalKey.Arn
               - Effect: Allow
                 Action:
                   - "logs:CreateLogGroup"
@@ -320,6 +321,7 @@ Resources:
                 - kms:Sign
               Resource:
                 - !GetAtt IPVStubKMSSigningKey.Arn
+                - !GetAtt IPVStubKMSAdditionalKey.Arn
       Role: !GetAtt IPVStubLambdaRole.Arn
       PermissionsBoundary: !If
         - UsePermissionsBoundary
@@ -367,6 +369,7 @@ Resources:
                 - kms:GetPublicKey
               Resource:
                 - !GetAtt IPVStubKMSSigningKey.Arn
+                - !GetAtt IPVStubKMSAdditionalKey.Arn
       Role: !GetAtt IPVStubLambdaRole.Arn
       PermissionsBoundary: !If
         - UsePermissionsBoundary
@@ -430,6 +433,32 @@ Resources:
     Type: AWS::KMS::Key
     Properties:
       Description: A KMS Key for testing signing KMS integration in the development account.
+      Enabled: true
+      EnableKeyRotation: false
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource:
+              - "*"
+      KeySpec: ECC_NIST_P256
+      KeyUsage: SIGN_VERIFY
+      MultiRegion: false
+      PendingWindowInDays: 7
+      Tags:
+        - Key: KeyType
+          Value: Test Signing Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+
+  IPVStubKMSAdditionalKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: A additional valid signing key in KMS to reflect multiple JWK's returned by the 'well-known' endpoint.
       Enabled: true
       EnableKeyRotation: false
       KeyPolicy:
