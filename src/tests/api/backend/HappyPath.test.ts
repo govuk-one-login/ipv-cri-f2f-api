@@ -243,11 +243,13 @@ describe("/documentSelection Endpoint", () => {
 					await convertPdfToImages(pdfBuffer, pdfImagesLocation);
 
 					const files = fs.readdirSync(pdfImagesLocation);
-					files.forEach(fileName => {
+					files.forEach((fileName, index) => {
 						const imagePath = pdfImagesLocation + "/" + fileName;
 						const image = fs.readFileSync(imagePath);
+						const snapshotName = `pdfSnapshot-page-${index + 1}`;
 						
 						expect(image).toMatchImageSnapshot({
+							customSnapshotIdentifier: () => snapshotName,
 							runInProcess: true,
 							customDiffDir: "tests/visual/__snapshots-diff__",
 							customSnapshotsDir: "tests/visual/__snapshots__",
