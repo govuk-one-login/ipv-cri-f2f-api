@@ -4,7 +4,8 @@ import { mockClient } from "aws-sdk-client-mock";
 
 describe("JWKS Endpoint", () => {
   beforeEach(() => {
-    process.env.SIGNING_KEY = "test";
+    process.env.SIGNING_KEY = "test1";
+    process.env.ADDITIONAL_KEY = "test2";
     const mockKmsClient = mockClient(KMSClient);
     mockKmsClient.on(GetPublicKeyCommand).resolves({
       KeyId: "test",
@@ -19,14 +20,14 @@ describe("JWKS Endpoint", () => {
     });
   });
 
-  it("provides at least one signing key", async () => {
+  it("provides at least two signing keys", async () => {
     const response = await handler();
     expect(response.statusCode).toBe(200);
     expect(response.body).toBeDefined();
 
     const jwks = JSON.parse(response.body);
     expect(jwks.keys).toBeDefined();
-    expect(jwks.keys.length >= 1).toBe(true);
-    expect(jwks.keys.find((k) => k.use === "sig")).toBeDefined();
+    expect(jwks.keys.length >= 2).toBe(true);
+    expect(jwks.keys.find((k: any) => k.use === "sig")).toBeDefined();
   });
 });
