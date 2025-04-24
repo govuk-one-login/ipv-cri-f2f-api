@@ -69,6 +69,7 @@ export class KmsJwtAdapter {
 
 	async verifyWithJwks(urlEncodedJwt: string, publicKeyEndpoint: string, targetKid?: string): Promise<JWTPayload | null> {
 		const oidcProviderJwks = (await axios.get(publicKeyEndpoint)).data;
+		console.log("!!!", oidcProviderJwks);
 		const signingKey = oidcProviderJwks.keys.find((key: Jwk) => key.kid === targetKid);
 
 		if (!signingKey) {
