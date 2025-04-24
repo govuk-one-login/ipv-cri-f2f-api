@@ -114,13 +114,14 @@ export class SessionRequestProcessor {
   	}
 
   	const jwtPayload: JwtPayload = parsedJwt.payload;
+	const jwtTargetKid: string | undefined = parsedJwt.header?.kid;
   	this.logger.appendKeys({
   		govuk_signin_journey_id: jwtPayload.govuk_signin_journey_id as string,
   		sessionId,
   	});
   	try {
   		if (configClient?.jwksEndpoint) {
-  			const payload = await this.kmsDecryptor.verifyWithJwks(urlEncodedJwt, configClient.jwksEndpoint);
+  			const payload = await this.kmsDecryptor.verifyWithJwks(urlEncodedJwt, configClient.jwksEndpoint, jwtTargetKid);
   			if (!payload) {
   				this.logger.error("Failed to verify JWT", {
   					messageCode: MessageCodes.FAILED_VERIFYING_JWT,
