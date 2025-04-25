@@ -41,7 +41,7 @@ Parameters:
   DeployAlarmsInDev:
     Description: "Set to the string value `true` to deploy alarms in a DEV environment"
     Type: String
-    Default: false
+    Default: true
   SupportManualURL:
     Description: "Link to the F2F support manual"
     Type: String
@@ -1110,14 +1110,48 @@ Resources:
           Dimensions:
             - Key: MessageCode
               Value: $.messageCode
+
   VerifyAuthorizeRequestFailedVerifyingJwtLowThresholdAlarm:
     DependsOn:
       - "VerifyAuthorizeRequestMessageCodeMetricFilter"
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-VerifyAuthorizeRequestFailedVerifyingJwtAlarm"
+      AlarmName: !Sub "${AWS::StackName}-VerifyAuthorizeRequestFailedVerifyingJwtLowThresholdAlarm"
       AlarmDescription: !Sub "There has been an error verifying the JWT using the RP's public key. This is likely an issue with the RP. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: error
+          ReturnData: true
+          MetricStat:
+            Metric:
+              Namespace: !Sub "${AWS::StackName}/LogMessages"
+              MetricName: VerifyAuthorizeRequest-lambda-messageCode
+              Dimensions:
+                - Name: MessageCode
+                  Value: F2F_FAILED_VERIFYING_JWT
+            Period: 60
+            Stat: Sum
+
+  VerifyAuthorizeRequestFailedVerifyingJwtAlarm:
+    DependsOn:
+      - "VerifyAuthorizeRequestMessageCodeMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-VerifyAuthorizeRequestFailedVerifyingJwtAlarm"
+      AlarmDescription: !Sub "F2F_FAILED_VERIFYING_JWT warning ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -1153,14 +1187,16 @@ Resources:
       AlarmDescription: !Sub "There has been an error verifying the JWT using the RP's public key. This is likely an issue with the RP. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
+        # - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmActions:
+        # - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      Threshold: 10
+      Threshold: 5
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
       Metrics:
@@ -6090,10 +6126,10 @@ Resources:
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the UserInfo endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
+        # - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
+        # - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       Dimensions: [ ]
@@ -6216,10 +6252,10 @@ Resources:
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Token endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
+        # - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
+        # - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       Dimensions: [ ]
@@ -6342,10 +6378,10 @@ Resources:
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Authorization endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
+        # - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
+        # - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       Dimensions: [ ]
@@ -6468,10 +6504,10 @@ Resources:
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Session endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
+        # - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
+        # - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       Dimensions: [ ]
@@ -6594,10 +6630,10 @@ Resources:
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the userInfo endpoint. ${SupportManualURL}"
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
+        # - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
+        # - !ImportValue platform-alarm-pagerduty-alert-topic
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       Dimensions: [ ]
@@ -7460,7 +7496,6 @@ Resources:
       Value: !FindInMap [ EnvironmentVariables, !Ref Environment, PCLENABLED ]
       Type: String
       Description: PCL Enabled Parameter
-
 
   ConcurrencyAlarmDashboard:
     Type: AWS::CloudWatch::Dashboard

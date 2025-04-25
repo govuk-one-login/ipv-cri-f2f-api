@@ -123,7 +123,7 @@ export class SessionRequestProcessor {
   			const payload = await this.kmsDecryptor.verifyWithJwks(urlEncodedJwt, configClient.jwksEndpoint);
   			if (!payload) {
   				this.logger.error("Failed to verify JWT", {
-  					messageCode: MessageCodes.FAILED_VERIFYING_JWT,
+  					messageCode: MessageCodes.F2F_FAILED_VERIFYING_JWT,
   				});
   				return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   			}
@@ -136,7 +136,7 @@ export class SessionRequestProcessor {
   	} catch (error) {
   		this.logger.error("Could not verify jwt", {
   			error,
-  			messageCode: MessageCodes.FAILED_VERIFYING_JWT,
+  			messageCode: MessageCodes.F2F_FAILED_VERIFYING_JWT,
   		});
   		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
