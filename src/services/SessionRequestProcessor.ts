@@ -119,8 +119,6 @@ export class SessionRequestProcessor {
   		sessionId,
   	});
   	try {
-		this.logger.info("PARSED JWT ", jwtPayload);
-		this.logger.info("ENCODED JWT ", urlEncodedJwt)
   		if (configClient?.jwksEndpoint) {
   			const payload = await this.kmsDecryptor.verifyWithJwks(urlEncodedJwt, configClient.jwksEndpoint);
   			if (!payload) {
