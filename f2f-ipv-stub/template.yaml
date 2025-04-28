@@ -300,6 +300,7 @@ Resources:
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
+          ADDITIONAL_KEY: !Ref IPVStubKMSAdditionalKey
           CLIENT_ID: !FindInMap [Configuration, !Ref Environment, IPVStubID]
           REDIRECT_URI: !If
           - CreateDevResources
