@@ -27,7 +27,7 @@ describe("JWKS Endpoint", () => {
 
     const jwks = JSON.parse(response.body);
     expect(jwks.keys).toBeDefined();
-    expect(jwks.keys.length >= 1).toBe(true);
+    expect(jwks.keys.length >= 2).toBe(true);
     expect(jwks.keys.find((k: any) => k.use === "sig")).toBeDefined();
   });
 });

@@ -32,6 +32,7 @@ jobs:
       - name: Test and coverage
         run: npm run test:unit -- --coverage
       - name: Run SonarCloud scan
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: govuk-one-login/github-actions/code-quality/sonarcloud@0739d7e7a19bae3177cf851ae51944bb4dd53565
         with:
           coverage-location: src/coverage/
