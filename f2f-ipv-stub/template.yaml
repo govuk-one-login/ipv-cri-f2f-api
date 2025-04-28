@@ -362,6 +362,7 @@ Resources:
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
+          ADDITIONAL_KEY: !Ref IPVStubKMSAdditionalKey
       Policies:
         - Statement:
             - Sid: KMSSignPolicy
