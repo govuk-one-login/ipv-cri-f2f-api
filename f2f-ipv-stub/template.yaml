@@ -296,7 +296,7 @@ Resources:
     Properties:
       FunctionName: !Sub "StartF2FCheckFunction-${AWS::StackName}"
       Handler: startF2fCheck.handler
-      CodeUri: src/handlers/
+      CodeUri: src/
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
@@ -334,7 +334,7 @@ Resources:
         Target: "es2020"
         Sourcemap: true
         EntryPoints:
-          - startF2fCheck.ts
+          - handlers/startF2fCheck.ts
 
   StartF2FCheckFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -357,7 +357,7 @@ Resources:
     Properties:
       FunctionName: !Sub "IPVStubJWKS-${AWS::StackName}"
       Handler: jsonWebKeys.handler
-      CodeUri: src/handlers/
+      CodeUri: src/
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
@@ -382,7 +382,7 @@ Resources:
         Target: "es2020"
         Sourcemap: true
         EntryPoints:
-          - jsonWebKeys.ts
+          - handlers/jsonWebKeys.ts
 
   JwksFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -405,7 +405,7 @@ Resources:
     Properties:
       FunctionName: !Sub "IPVStubRedirect-${AWS::StackName}"
       Handler: callback.handler
-      CodeUri: src/handlers/
+      CodeUri: src/
       Role: !GetAtt IPVStubLambdaRole.Arn
     Metadata:
       BuildMethod: esbuild
@@ -414,7 +414,7 @@ Resources:
         Target: "es2020"
         Sourcemap: true
         EntryPoints:
-          - callback.ts
+          - handlers/callback.ts
 
   IPVStubRedirectFunctionPermission:
     Type: AWS::Lambda::Permission

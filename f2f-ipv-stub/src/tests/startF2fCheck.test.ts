@@ -1,20 +1,13 @@
-import { handler } from "../handlers/startF2fCheck";
-import {
-  expect,
-  jest,
-  it,
-  beforeEach,
-  afterEach,
-  describe,
-} from "@jest/globals";
-import { mockClient } from "aws-sdk-client-mock";
-import "aws-sdk-client-mock-jest";
-import startDefault from "../events/startDefault.json";
 import axios from "axios";
+
+import { handler } from "../handlers/startF2fCheck";
+import { mockClient } from "aws-sdk-client-mock";
+import startDefault from "../events/startDefault.json";
 import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import format from "ecdsa-sig-formatter";
 
 jest.setTimeout(30000);
+jest.mock("axios");
 
 const mockJwks = {
   keys: [
@@ -39,6 +32,8 @@ const mockJwks = {
 };
 
 describe("Start CIC Check Endpoint", () => {
+  const axiosMock = axios as jest.Mocked<typeof axios>;
+
   beforeEach(() => {
     // TODO: Make response fixed for stronger test assertions
     // webcrypto.getRandomValues = () => {
@@ -47,9 +42,7 @@ describe("Start CIC Check Endpoint", () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date(1585695600000)); // == 2020-03-31T23:00:00.000Z
 
-    jest.mock("axios");
-    axios.get = jest.fn()<() => Promise<object>>;
-    axios.get.mockResolvedValue({ data: mockJwks });
+    axiosMock.get.mockResolvedValue({ data: mockJwks });
 
     // format.derToJose = jest.fn();
 

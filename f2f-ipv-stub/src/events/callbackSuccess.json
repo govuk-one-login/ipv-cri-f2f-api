@@ -3,11 +3,49 @@
     "path": "/callback",
     "httpMethod": "POST",
     "requestContext": {
-        "accountId": "test",
-        "apiId": "test",
+        "accountId": "123456789012",
+        "apiId": "id",
+        "authorizer": {
+            "claims": null,
+            "scopes": null
+        },
+        "domainName": "id.execute-api.us-east-1.amazonaws.com",
+        "domainPrefix": "id",
+        "extendedRequestId": "request-id",
         "resourcePath": "/",
         "httpMethod": "POST",
-        "path": "/callback"
+        "path": "/callback",
+        "protocol": "https",
+        "stage": "dev",
+        "requestId": "123456789",
+        "requestTimeEpoch": 1744035666,
+        "resourceId": "123456789",
+        "identity": {
+            "accessKey": null,
+            "accountId": null,
+            "caller": null,
+            "cognitoAuthenticationProvider": null,
+            "cognitoAuthenticationType": null,
+            "cognitoIdentityId": null,
+            "cognitoIdentityPoolId": null,
+            "principalOrgId": null,
+            "sourceIp": "IP",
+            "user": null,
+            "userAgent": "user-agent",
+            "userArn": null,
+            "clientCert": {
+                "clientCertPem": "CERT_CONTENT",
+                "subjectDN": "www.example.com",
+                "issuerDN": "Example issuer",
+                "serialNumber": "a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1:a1",
+                "validity": {
+                    "notBefore": "May 28 12:30:02 2019 GMT",
+                    "notAfter": "Aug  5 09:36:04 2021 GMT"
+                }
+            },
+            "apiKey": "key123",
+            "apiKeyId": "apiKeyId123"
+        }
     },
     "headers": {
         "accept": "application/x-www-form-urlencoded;charset=UTF-8",
