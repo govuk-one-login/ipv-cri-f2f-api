@@ -67,9 +67,14 @@ export class KmsJwtAdapter {
 		}
 	}
 
-	async verifyWithJwks(urlEncodedJwt: string, publicKeyEndpoint: string): Promise<JWTPayload | null> {
+	async verifyWithJwks(urlEncodedJwt: string, publicKeyEndpoint: string, targetKid?: string): Promise<JWTPayload | null> {
 		const oidcProviderJwks = (await axios.get(publicKeyEndpoint)).data;
-		const signingKey = oidcProviderJwks.keys.find((key: Jwk) => key.use === "sig");
+		const signingKey = oidcProviderJwks.keys.find((key: Jwk) => key.kid === targetKid);
+
+		if (!signingKey) {
+			throw new Error(`No key found with kid '${targetKid}'`);
+		}
+
 		const publicKey = await importJWK(signingKey, signingKey.alg);
 
 		try {
