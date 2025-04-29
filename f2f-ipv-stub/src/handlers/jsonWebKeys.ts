@@ -11,17 +11,17 @@ export const handler = async (): Promise<APIGatewayProxyResult> => {
   };
   if (signingKey != null) {
     const signingKeyId = signingKey.split("/").pop() ?? "";
-    const formattedKey = await getAsJwk(signingKeyId);
-    if (formattedKey != null) {
-      jwks.keys.push(formattedKey);
+    const formattedSigningKey = await getAsJwk(signingKeyId);
+    if (formattedSigningKey != null) {
+      jwks.keys.push(formattedSigningKey);
     }
   }
 
   if (additionalKey != null) {
     const additionalKeyId = additionalKey.split("/").pop() ?? "";
-    const formattedKey = await getAsJwk(additionalKeyId);
-    if (formattedKey != null) {
-      jwks.keys.push(formattedKey);
+    const formattedAdditionalKey = await getAsJwk(additionalKeyId);
+    if (formattedAdditionalKey != null) {
+      jwks.keys.push(formattedAdditionalKey);
     }
   }
   return {

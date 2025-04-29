@@ -97,8 +97,16 @@ export const handler = async (
     namePart.value += overrides.yotiMockID;
   }
 
+  let invalidKey;
+  if (overrides?.missingKid != null) {
+    invalidKey = crypto.randomUUID();
+  }
+  if (overrides?.invalidKid != null) {
+    invalidKey = config.additionalKey;
+  }
+
   console.log("Generate payload is" + JSON.stringify(payload));
-  const signedJwt = await sign(payload, config.signingKey);
+  const signedJwt = await sign(payload, config.signingKey, invalidKey);
   const publicEncryptionKey: CryptoKey = await getPublicEncryptionKey(config);
   const request = await encrypt(signedJwt, publicEncryptionKey);
 
@@ -119,12 +127,14 @@ export function getDefaultConfig(): {
   redirectUri: string;
   jwksUri: string;
   signingKey: string;
+  additionalKey: string;
   oauthUri: string;
 } {
   const requiredEnvVars = [
     "REDIRECT_URI",
     "JWKS_URI",
     "SIGNING_KEY",
+    "ADDITIONAL_KEY",
     "OAUTH_FRONT_BASE_URI",
   ];
 
@@ -139,6 +149,7 @@ export function getDefaultConfig(): {
     redirectUri: process.env.REDIRECT_URI!,
     jwksUri: process.env.JWKS_URI!,
     signingKey: process.env.SIGNING_KEY!,
+    additionalKey: process.env.ADDITIONAL_KEY!,
     oauthUri: process.env.OAUTH_FRONT_BASE_URI!,
   };
 }
@@ -162,8 +173,14 @@ async function getPublicEncryptionKey(config: {
   return publicEncryptionKey;
 }
 
-async function sign(payload: JarPayload, keyId: string): Promise<string> {
-  const kid = keyId.split("/").pop() ?? "";
+async function sign(
+  payload: JarPayload,
+  keyId: string,
+  invalidKeyId: string | undefined
+): Promise<string> {
+  const signingKid = keyId.split("/").pop() ?? "";
+  const invalidKid = invalidKeyId?.split("/").pop() ?? "";
+  const kid = invalidKeyId ? invalidKid : signingKid;
   const alg = "ECDSA_SHA_256";
   const jwtHeader: JwtHeader = { alg: "ES256", typ: "JWT", kid };
   const tokenComponents = {
@@ -180,7 +197,7 @@ async function sign(payload: JarPayload, keyId: string): Promise<string> {
 
   const res = await v3KmsClient.send(
     new SignCommand({
-      KeyId: kid,
+      KeyId: signingKid,
       SigningAlgorithm: alg,
       MessageType: "RAW",
       Message: Buffer.from(

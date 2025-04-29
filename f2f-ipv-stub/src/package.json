@@ -13,6 +13,7 @@
     "node-jose": "2.2.0"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.26.9",
     "@types/aws-lambda": "8.10.148",
     "@types/jest": "27.5.2",
     "@types/node": "17.0.45",
