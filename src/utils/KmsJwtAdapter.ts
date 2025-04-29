@@ -8,20 +8,28 @@ import { importJWK, JWTPayload, jwtVerify } from "jose";
 import axios from "axios";
 import { createKmsClient } from "./KMSClient";
 import * as AWS from "@aws-sdk/client-kms";
+import { Logger } from "@aws-lambda-powertools/logger";
 
 export class KmsJwtAdapter {
 	readonly kid: string;	
 
 	readonly kms: AWS.KMS;
 
+	cachedJwks: any;
+
+	cachedTime: Date | undefined;
+
+	private readonly logger: Logger;
+
 	/**
 	 * An implemention the JWS standard using KMS to sign Jwts
 	 *
 	 * kid: The key Id of the KMS key
 	 */
-	constructor(kid: string) {
+	constructor(kid: string, logger: Logger) {
 		this.kid = kid;
 		this.kms = createKmsClient();
+		this.logger = logger;
 	}
 
 	async sign(jwtPayload: JwtPayload, dnsSuffix: string): Promise<string> {
@@ -68,8 +76,17 @@ export class KmsJwtAdapter {
 	}
 
 	async verifyWithJwks(urlEncodedJwt: string, publicKeyEndpoint: string, targetKid?: string): Promise<JWTPayload | null> {
-		const oidcProviderJwks = (await axios.get(publicKeyEndpoint)).data;
-		const signingKey = oidcProviderJwks.keys.find((key: Jwk) => key.kid === targetKid);
+		if (!this.cachedJwks || (this.cachedTime && new Date() > this.cachedTime)) {
+			this.logger.info(`No cached keys found or cache time has expired, retrieving new JWKS from '${publicKeyEndpoint}'`);
+			const oidcProviderJwks = (await axios.get(publicKeyEndpoint));
+			this.cachedJwks = oidcProviderJwks.data.keys;
+			const cacheControl = oidcProviderJwks.headers['cache-control'];
+
+			// If header is missing or doesn't match the expected format, maxAgeMatch will be null, and we set cache time to default value of 300 (5 minutes)
+			const maxAge = cacheControl ? parseInt(cacheControl.match(/max-age=(\d+)/)?.[1], 10) || 300 : 300;
+			this.cachedTime = new Date(Date.now() + (maxAge * 1000));
+		}
+		const signingKey = this.cachedJwks.find((key: Jwk) => key.kid === targetKid);
 
 		if (!signingKey) {
 			throw new Error(`No key found with kid '${targetKid}'`);

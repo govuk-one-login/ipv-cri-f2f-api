@@ -4,9 +4,13 @@ import { KmsJwtAdapter } from "../../../utils/KmsJwtAdapter";
 import { Constants } from "../../../utils/Constants";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { jwtUtils } from "../../../utils/JwtUtils";
+import { Logger } from "@aws-lambda-powertools/logger";
+import { mock } from "jest-mock-extended";
 import axios from "axios";
 
 jest.mock('axios');
+
+const logger = mock<Logger>();
 
 jest.mock("ecdsa-sig-formatter", () => ({
 	derToJose: jest.fn().mockImplementation(() => "JOSE-formatted signature"),
@@ -26,7 +30,7 @@ describe("KmsJwtAdapter utils", () => {
 	const dnsSuffix = process.env.DNSSUFFIX!;
 
 	beforeEach(() => {
-		kmsJwtAdapter = new KmsJwtAdapter(process.env.KMS_KEY_ARN!);
+		kmsJwtAdapter = new KmsJwtAdapter(process.env.KMS_KEY_ARN!, logger);
 		jest.spyOn(kmsJwtAdapter.kms, "sign").mockImplementation(() => ({
 			Signature: "signature",
 		}));
@@ -99,29 +103,90 @@ describe("KmsJwtAdapter utils", () => {
 	});
 
 	describe("#verifyWithJwks", () => {
+
 		const mockPublicKeyEndpoint = 'https://example.com/jwks';
-		const mockTargetKid = '1234';
 		// JWT has 'exp' value set to Friday, 9 March 2125 12:58:39 to ensure jose.jwtVerify() always passes
 		const encodedJwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ijg2NTRmYmMxLTExMjEtNGIzOC1iMDM2LTAxM2RmODRjYmNlYyJ9.eyJzdWIiOiIyOTk4NmRkNS0wMWVjLTQyMzYtYWMyMS01ODQ1ZmRhZmQ5YjUiLCJyZWRpcmVjdF91cmkiOiJodHRwczovL2lwdnN0dWIucmV2aWV3LWMuZGV2LmFjY291bnQuZ292LnVrL3JlZGlyZWN0IiwicmVzcG9uc2VfdHlwZSI6ImNvZGUiLCJnb3Z1a19zaWduaW5fam91cm5leV9pZCI6Ijg4Y2UxNmUxZTU5MTkxZjE0YzlkMzU3MDk4M2JiYTg3IiwiYXVkIjoiaHR0cHM6Ly9jaWMtY3JpLWZyb250LnJldmlldy1jLmRldi5hY2NvdW50Lmdvdi51ayIsImlzcyI6Imh0dHBzOi8vaXB2LmNvcmUuYWNjb3VudC5nb3YudWsiLCJjbGllbnRfaWQiOiI1QzU4NDU3MiIsInN0YXRlIjoiZGYyMjVjNzdlN2MzOWU4ODJjM2FhNzc0NjcyMGM0NjUiLCJpYXQiOjE3NDM1OTg3MTksIm5iZiI6MTc0MzU5ODcxOCwiZXhwIjo0ODk3MTk4NzE5LCJzaGFyZWRfY2xhaW1zIjp7Im5hbWUiOlt7Im5hbWVQYXJ0cyI6W3sidmFsdWUiOiJGcmVkZXJpY2siLCJ0eXBlIjoiR2l2ZW5OYW1lIn0seyJ2YWx1ZSI6Ikpvc2VwaCIsInR5cGUiOiJHaXZlbk5hbWUifSx7InZhbHVlIjoiRmxpbnRzdG9uZSIsInR5cGUiOiJGYW1pbHlOYW1lIn1dfV0sImJpcnRoRGF0ZSI6W3sidmFsdWUiOiIxOTYwLTAyLTAyIn1dLCJlbWFpbCI6ImV4YW1wbGVAdGVzdGVtYWlsLmNvbSJ9fQ.7M7WQqMK1cp8zin6Rb2ZBxmxvsjc3vWTjdHpKYJApvzdXo6S1lxRK52l-rJR3AeBW7QS-28j6PW4LhgkX6O1mA"
 		const mockJwksResponse = {
+			"headers": { 
+				"cache-control": "max-age=300" 
+				 },
+			"data": {
 			"keys": [
-			  {
-				kty: "EC",
-				x: "5KIC1DrBMWrwOUMc-xEph9D_jfGeG9uOMJcuJ9g8Yic",
-				y: "xMQcIwuJonk4nY9x7opfJ2bJPtFA2PECu1hXruK2osM",
-				crv: "P-256",
-				use: "sig",
-				kid: "1234",
-				alg: "ES256"
-			  }
-			]
+					{ // Correct key for above JWT signature
+						kty: "EC",
+						x: "5KIC1DrBMWrwOUMc-xEph9D_jfGeG9uOMJcuJ9g8Yic",
+						y: "xMQcIwuJonk4nY9x7opfJ2bJPtFA2PECu1hXruK2osM",
+						crv: "P-256",
+						use: "sig",
+						kid: "1234",
+						alg: "ES256"
+					},
+					{ // Unrelated key
+						"kty": "EC",
+						"x": "8N3zhTbjR7RUtDi_hdEAZHH-C_zFJ7Zi7YIH2FkjBxo",
+						"y": "FeYAkItxxjk2gKVRv31ZfundmiHceZhXEvawtDf4dgM",
+						"crv": "P-256",
+						"use": "sig",
+						"kid": "4567",
+						"alg": "ES256"
+					}
+				]
+			}
 		}
 
-		it("verifies a JWT and returns a payload", async () => {
-			(axios.get as jest.Mock).mockResolvedValue({ data: mockJwksResponse });
+		beforeEach(() => {
+			kmsJwtAdapter.cachedJwks = undefined;
+			kmsJwtAdapter.cachedTime = undefined;
+			jest.spyOn(axios, "get").mockResolvedValue(mockJwksResponse);
+		});
+
+		// Jose validation is not mocked for this test
+		it("should successfully verify a JWT", async () => {
+			const mockTargetKid = "1234"; //kid to retrieve correct key from mocked axios response
 			const result = await kmsJwtAdapter.verifyWithJwks(encodedJwt, mockPublicKeyEndpoint, mockTargetKid);
 			expect(axios.get).toHaveBeenCalledWith(mockPublicKeyEndpoint);
     		expect(result?.sub).toEqual("29986dd5-01ec-4236-ac21-5845fdafd9b5");
+		});
+
+		it('should throw an error if no key is found with the specified kid', async () => {
+			const mockTargetKid = "dummyValue"; //kid does not correspond to any keys in mocked axios response
+			await expect(kmsJwtAdapter.verifyWithJwks(encodedJwt, mockPublicKeyEndpoint, mockTargetKid)
+			).rejects.toThrow(`No key found with kid '${mockTargetKid}'`);
+		});
+
+		it('should throw an error if signature verification fails', async () => {
+			const mockTargetKid = "4567"; //this kid will retrieve the 2nd key from the mocked axios response
+			await expect(kmsJwtAdapter.verifyWithJwks(encodedJwt, mockPublicKeyEndpoint, mockTargetKid)
+			).rejects.toThrow("Failed to verify signature: JWSSignatureVerificationFailed: signature verification failed");
+		});
+
+		it('should fetch and cache JWKS data when no cached data exists', async () => {
+			const mockTargetKid = "1234";
+			await kmsJwtAdapter.verifyWithJwks(encodedJwt, mockPublicKeyEndpoint, mockTargetKid);
+			expect(kmsJwtAdapter.cachedJwks).toEqual(mockJwksResponse.data.keys);
+			expect(kmsJwtAdapter.cachedTime?.getTime()).toBeGreaterThanOrEqual(new Date().getTime());
+		});
+
+		it('should use cached JWKS data when cache is valid', async () => {
+			const mockTargetKid = "1234";
+			const validCacheTime = new Date(Date.now() + 60000); // 1 minute in the future
+			kmsJwtAdapter.cachedJwks = mockJwksResponse.data.keys;
+    		kmsJwtAdapter.cachedTime = validCacheTime;
+			await kmsJwtAdapter.verifyWithJwks(encodedJwt, mockPublicKeyEndpoint, mockTargetKid);
+			expect(axios.get).not.toHaveBeenCalled();
+			expect(kmsJwtAdapter.cachedJwks).toEqual(mockJwksResponse.data.keys);
+		});
+
+		it('should refresh JWKS data when cache is expired', async () => {
+			const mockTargetKid = "1234";
+			const expiredCacheTime = new Date(Date.now() - 60000); // 1 minute in the past
+			kmsJwtAdapter.cachedJwks = mockJwksResponse.data.keys;
+    		kmsJwtAdapter.cachedTime = expiredCacheTime;
+			await kmsJwtAdapter.verifyWithJwks(encodedJwt, mockPublicKeyEndpoint, mockTargetKid);
+			expect(axios.get).toHaveBeenCalledWith(mockPublicKeyEndpoint);
+			expect(kmsJwtAdapter.cachedJwks).toEqual(mockJwksResponse.data.keys);
+			expect(kmsJwtAdapter.cachedTime?.getTime()).toBeGreaterThanOrEqual(new Date().getTime());
 		});
 	});
 

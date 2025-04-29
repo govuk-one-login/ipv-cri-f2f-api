@@ -48,7 +48,7 @@ export class SessionRequestProcessor {
   	logger.debug("metrics is  " + JSON.stringify(this.metrics));
   	this.metrics.addMetric("Called", MetricUnits.Count, 1);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
-  	this.kmsDecryptor = new KmsJwtAdapter(this.environmentVariables.encryptionKeyIds());
+  	this.kmsDecryptor = new KmsJwtAdapter(this.environmentVariables.encryptionKeyIds(), logger);
   	this.validationHelper = new ValidationHelper();
   }
 
