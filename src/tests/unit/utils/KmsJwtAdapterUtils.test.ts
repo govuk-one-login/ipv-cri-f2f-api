@@ -106,6 +106,7 @@ describe("KmsJwtAdapter utils", () => {
 
 		const mockPublicKeyEndpoint = 'https://example.com/jwks';
 		// JWT has 'exp' value set to Friday, 9 March 2125 12:58:39 to ensure jose.jwtVerify() always passes
+		// pragma: allowlist nextline secret
 		const encodedJwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ijg2NTRmYmMxLTExMjEtNGIzOC1iMDM2LTAxM2RmODRjYmNlYyJ9.eyJzdWIiOiIyOTk4NmRkNS0wMWVjLTQyMzYtYWMyMS01ODQ1ZmRhZmQ5YjUiLCJyZWRpcmVjdF91cmkiOiJodHRwczovL2lwdnN0dWIucmV2aWV3LWMuZGV2LmFjY291bnQuZ292LnVrL3JlZGlyZWN0IiwicmVzcG9uc2VfdHlwZSI6ImNvZGUiLCJnb3Z1a19zaWduaW5fam91cm5leV9pZCI6Ijg4Y2UxNmUxZTU5MTkxZjE0YzlkMzU3MDk4M2JiYTg3IiwiYXVkIjoiaHR0cHM6Ly9jaWMtY3JpLWZyb250LnJldmlldy1jLmRldi5hY2NvdW50Lmdvdi51ayIsImlzcyI6Imh0dHBzOi8vaXB2LmNvcmUuYWNjb3VudC5nb3YudWsiLCJjbGllbnRfaWQiOiI1QzU4NDU3MiIsInN0YXRlIjoiZGYyMjVjNzdlN2MzOWU4ODJjM2FhNzc0NjcyMGM0NjUiLCJpYXQiOjE3NDM1OTg3MTksIm5iZiI6MTc0MzU5ODcxOCwiZXhwIjo0ODk3MTk4NzE5LCJzaGFyZWRfY2xhaW1zIjp7Im5hbWUiOlt7Im5hbWVQYXJ0cyI6W3sidmFsdWUiOiJGcmVkZXJpY2siLCJ0eXBlIjoiR2l2ZW5OYW1lIn0seyJ2YWx1ZSI6Ikpvc2VwaCIsInR5cGUiOiJHaXZlbk5hbWUifSx7InZhbHVlIjoiRmxpbnRzdG9uZSIsInR5cGUiOiJGYW1pbHlOYW1lIn1dfV0sImJpcnRoRGF0ZSI6W3sidmFsdWUiOiIxOTYwLTAyLTAyIn1dLCJlbWFpbCI6ImV4YW1wbGVAdGVzdGVtYWlsLmNvbSJ9fQ.7M7WQqMK1cp8zin6Rb2ZBxmxvsjc3vWTjdHpKYJApvzdXo6S1lxRK52l-rJR3AeBW7QS-28j6PW4LhgkX6O1mA"
 		const mockJwksResponse = {
 			"headers": { 
@@ -115,7 +116,9 @@ describe("KmsJwtAdapter utils", () => {
 			"keys": [
 					{ // Correct key for above JWT signature
 						kty: "EC",
+						// pragma: allowlist nextline secret
 						x: "5KIC1DrBMWrwOUMc-xEph9D_jfGeG9uOMJcuJ9g8Yic",
+						// pragma: allowlist nextline secret
 						y: "xMQcIwuJonk4nY9x7opfJ2bJPtFA2PECu1hXruK2osM",
 						crv: "P-256",
 						use: "sig",
@@ -124,7 +127,9 @@ describe("KmsJwtAdapter utils", () => {
 					},
 					{ // Unrelated key
 						"kty": "EC",
+						// pragma: allowlist nextline secret
 						"x": "8N3zhTbjR7RUtDi_hdEAZHH-C_zFJ7Zi7YIH2FkjBxo",
+						// pragma: allowlist nextline secret
 						"y": "FeYAkItxxjk2gKVRv31ZfundmiHceZhXEvawtDf4dgM",
 						"crv": "P-256",
 						"use": "sig",
