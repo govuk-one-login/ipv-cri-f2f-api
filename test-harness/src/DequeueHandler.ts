@@ -2,14 +2,14 @@ import { SQSEvent } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { Constants } from "./utils/Constants";
 import { BatchItemFailure } from "./utils/BatchItemFailure";
 
-const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL
+const POWERTOOLS_LOG_LEVEL: string = process.env.POWERTOOLS_LOG_LEVEL
 	? process.env.POWERTOOLS_LOG_LEVEL
 	: Constants.DEBUG;
-const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME
+const POWERTOOLS_SERVICE_NAME: string = process.env.POWERTOOLS_SERVICE_NAME
 	? process.env.POWERTOOLS_SERVICE_NAME
 	: Constants.DEQUEUE_LOGGER_SVC_NAME;
 

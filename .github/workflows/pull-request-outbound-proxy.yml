@@ -58,10 +58,10 @@ jobs:
           key: offline-mirror-oauth
 
       - name: Install dependencies
-        run: npm install
+        run: cd src && npm install
 
       - name: Run Infra checks
-        run: npm run test:infra
+        run: cd src && npm run test:infra
 
   sam-validate:
     name: SAM Validate
@@ -91,9 +91,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ./di-ipv-cri-cic-api/.aws-sam/cache
-            ./di-ipv-cri-cic-api/.aws-sam/deps
-            ./di-ipv-cri-cic-api/.aws-sam/build.toml
+            ./di-ipv-cri-f2f-api/.aws-sam/cache
+            ./di-ipv-cri-f2f-api/.aws-sam/deps
+            ./di-ipv-cri-f2f-api/.aws-sam/build.toml
           key: sam-oauth
 
       - name: SAM Validate

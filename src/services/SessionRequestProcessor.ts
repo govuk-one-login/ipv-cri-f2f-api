@@ -189,7 +189,7 @@ export class SessionRequestProcessor {
   		expiryDate: absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs(),
   		createdDate: absoluteTimeNow(),
   		state: jwtPayload.state,
-  		subject: jwtPayload.sub ? jwtPayload.sub : "",
+  		subject: jwtPayload.sub ?? "",
   		persistentSessionId: jwtPayload.persistent_session_id, //Might not be used
   		clientIpAddress,
   		attemptCount: 0,

@@ -100,6 +100,7 @@ Resources:
                   - kms:GetPublicKey
                 Resource:
                   - !GetAtt IPVStubKMSSigningKey.Arn
+                  - !GetAtt IPVStubKMSAdditionalKey.Arn
               - Effect: Allow
                 Action:
                   - "logs:CreateLogGroup"
@@ -295,7 +296,7 @@ Resources:
     Properties:
       FunctionName: !Sub "StartF2FCheckFunction-${AWS::StackName}"
       Handler: startF2fCheck.handler
-      CodeUri: src/handlers/
+      CodeUri: src/
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
@@ -320,6 +321,7 @@ Resources:
                 - kms:Sign
               Resource:
                 - !GetAtt IPVStubKMSSigningKey.Arn
+                - !GetAtt IPVStubKMSAdditionalKey.Arn
       Role: !GetAtt IPVStubLambdaRole.Arn
       PermissionsBoundary: !If
         - UsePermissionsBoundary
@@ -332,7 +334,7 @@ Resources:
         Target: "es2020"
         Sourcemap: true
         EntryPoints:
-          - startF2fCheck.ts
+          - handlers/startF2fCheck.ts
 
   StartF2FCheckFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -355,7 +357,7 @@ Resources:
     Properties:
       FunctionName: !Sub "IPVStubJWKS-${AWS::StackName}"
       Handler: jsonWebKeys.handler
-      CodeUri: src/handlers/
+      CodeUri: src/
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
@@ -367,6 +369,7 @@ Resources:
                 - kms:GetPublicKey
               Resource:
                 - !GetAtt IPVStubKMSSigningKey.Arn
+                - !GetAtt IPVStubKMSAdditionalKey.Arn
       Role: !GetAtt IPVStubLambdaRole.Arn
       PermissionsBoundary: !If
         - UsePermissionsBoundary
@@ -379,7 +382,7 @@ Resources:
         Target: "es2020"
         Sourcemap: true
         EntryPoints:
-          - jsonWebKeys.ts
+          - handlers/jsonWebKeys.ts
 
   JwksFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -402,7 +405,7 @@ Resources:
     Properties:
       FunctionName: !Sub "IPVStubRedirect-${AWS::StackName}"
       Handler: callback.handler
-      CodeUri: src/handlers/
+      CodeUri: src/
       Role: !GetAtt IPVStubLambdaRole.Arn
     Metadata:
       BuildMethod: esbuild
@@ -411,7 +414,7 @@ Resources:
         Target: "es2020"
         Sourcemap: true
         EntryPoints:
-          - callback.ts
+          - handlers/callback.ts
 
   IPVStubRedirectFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -430,6 +433,32 @@ Resources:
     Type: AWS::KMS::Key
     Properties:
       Description: A KMS Key for testing signing KMS integration in the development account.
+      Enabled: true
+      EnableKeyRotation: false
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource:
+              - "*"
+      KeySpec: ECC_NIST_P256
+      KeyUsage: SIGN_VERIFY
+      MultiRegion: false
+      PendingWindowInDays: 7
+      Tags:
+        - Key: KeyType
+          Value: Test Signing Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+
+  IPVStubKMSAdditionalKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: A additional valid signing key in KMS to reflect multiple JWK's returned by the 'well-known' endpoint.
       Enabled: true
       EnableKeyRotation: false
       KeyPolicy:

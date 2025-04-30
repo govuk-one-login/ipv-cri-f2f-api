@@ -8,6 +8,7 @@ import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import {AppError} from "./utils/AppError";
 import {YotiRequestProcessor} from "./services/YotiRequestProcessor";
+import { Constants } from "./utils/Constants";
 
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
@@ -79,29 +80,29 @@ class MockYotiSessionHandler implements LambdaInterface {
 				}
 				 break;
 
-				 case ResourcesEnum.SESSIONS_CONFIGURATION:
-					 if (event.httpMethod === "GET") {
-						 try {
-							 logger.info("Event received", {event});
+			case ResourcesEnum.SESSIONS_CONFIGURATION:
+				if (event.httpMethod === "GET") {
+					try {
+						logger.info("Event received", {event});
 
-							 if (event && event.pathParameters) {
-								 // Extract attributes from queryStringParameters and add them to the data object
-								 const sessionId = event.pathParameters?.sessionId;
-								 if(sessionId){
-									logger.info("Getting Mock YOTI Session Config");
-									 return await YotiRequestProcessor.getInstance(logger, metrics).getSessionConfiguration(sessionId);
-								 }
-							 }
+						if (event && event.pathParameters) {
+							// Extract attributes from queryStringParameters and add them to the data object
+							const sessionId = event.pathParameters?.sessionId;
+							if(sessionId){
+							logger.info("Getting Mock YOTI Session Config");
+								return await YotiRequestProcessor.getInstance(logger, metrics).getSessionConfiguration(sessionId);
+							}
+						}
 
-						 } catch (err: any) {
-							 logger.error({message: "An error has occurred.", err});
-							 if (err instanceof AppError) {
-								 return new Response(err.statusCode, err.message);
-							 }
-							 return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
-						 }
-					 }
-					 break;
+					} catch (err: any) {
+						logger.error({message: "An error has occurred.", err});
+						if (err instanceof AppError) {
+							return new Response(err.statusCode, err.message);
+						}
+						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+					}
+				}
+				break;
 			 case ResourcesEnum.INSTRUCTIONS:
 				 if (event.httpMethod === "PUT") {
 					 try {
@@ -142,56 +143,57 @@ class MockYotiSessionHandler implements LambdaInterface {
 				break;
 
 			 case ResourcesEnum.INSTRUCTIONS_PDF:
-			 if (event.httpMethod === "GET") {
-				 try {
-					 logger.info("Event received: GetInstructionsPDF", {event});
+				if (event.httpMethod === "GET") {
+					try {
+						logger.info("Event received: GetInstructionsPDF", {event});
 
-					 if (event && event.pathParameters) {
-						 // Extract attributes from queryStringParameters and add them to the data object
-						 const sessionId = event.pathParameters?.sessionId;
-						 if(sessionId){
-							logger.info("Fetching Mock YOTI Session PDF");
-							return YotiRequestProcessor.getInstance(logger, metrics).fetchInstructionsPdf(sessionId);
-						 }
-					 }
+						if (event && event.pathParameters) {
+							// Extract attributes from queryStringParameters and add them to the data object
+							const sessionId = event.pathParameters?.sessionId;
+							if(sessionId){
+								logger.info("Fetching Mock YOTI Session PDF");
+								return YotiRequestProcessor.getInstance(logger, metrics).fetchInstructionsPdf(sessionId);
+							}
+						}
 
-				 } catch (err: any) {
-					 logger.error({message: "An error has occurred.", err});
-					 if (err instanceof AppError) {
-						 return new Response(err.statusCode, err.message);
-					 }
-					 return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
-				 }
-			 }
-				 break;
+					} catch (err: any) {
+						logger.error({message: "An error has occurred.", err});
+						if (err instanceof AppError) {
+							return new Response(err.statusCode, err.message);
+						}
+						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
+					}
+				}
+				break;
 
 			case ResourcesEnum.MEDIA_CONTENT:
-			if (event.httpMethod === "GET") {
-				try {
-					logger.info("Event received: GetMediaContent", {event});
+				if (event.httpMethod === "GET") {
+					try {
+						logger.info("Event received: GetMediaContent", {event});
 
-					 if (event && event.pathParameters) {
-						 // Extract attributes from queryStringParameters and add them to the data object
-						 const mediaId = event.pathParameters?.mediaId;
-						 if(mediaId){
-							logger.info("Fetching Mock YOTI Session Media Content");
-							return YotiRequestProcessor.getInstance(logger, metrics).getMediaContent(mediaId);
-						 }
-					 }
+						if (event && event.pathParameters) {
+							// Extract attributes from queryStringParameters and add them to the data object
+							const mediaId = event.pathParameters?.mediaId;
+							if(mediaId){
+								logger.info("Fetching Mock YOTI Session Media Content");
+								return YotiRequestProcessor.getInstance(logger, metrics).getMediaContent(mediaId);
+							}
+						}
 
-				} catch (err: any) {
-					logger.error({ message: "An error has occurred.", err });
-					if (err instanceof AppError) {
-						return new Response(err.statusCode, err.message);
+					} catch (err: any) {
+						logger.error({ message: "An error has occurred.", err });
+						if (err instanceof AppError) {
+							return new Response(err.statusCode, err.message);
+						}
+						return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 					}
-					return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
-			}
 				break;
 					
 			 default:
 			 	throw new AppError(`Requested resource does not exist: ${event.resource}`, HttpCodesEnum.NOT_FOUND);
 		}
+		return new Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 	}
 
 }

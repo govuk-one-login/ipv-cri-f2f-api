@@ -491,5 +491,39 @@ describe("SessionRequestProcessor", () => {
 		const actualExpiryDate = mockF2fService.createAuthSession.mock.calls[0][0].expiryDate;
 		expect(actualExpiryDate).toBeLessThan(10000000000);
 		jest.useRealTimers();
+	});
+	
+	it("the session created should have an empty subjectId", async () => {
+		mockKmsJwtAdapter.decrypt.mockResolvedValue("success");
+		mockKmsJwtAdapter.decode.mockReturnValue(decodedJwtFactory());
+
+		const jwtPayload = decryptedJwtPayloadFactory();
+		jwtPayload.sub = undefined;
+
+		mockKmsJwtAdapter.verifyWithJwks.mockResolvedValue(jwtPayload);
+		mockValidationHelper.isJwtValid.mockReturnValue("");
+		mockValidationHelper.isPersonDetailsValid.mockReturnValue({ errorMessage : "", errorMessageCode : "" });
+		mockValidationHelper.isAddressFormatValid.mockReturnValue({ errorMessage:"", errorMessageCode: "" });
+		mockF2fService.getSessionById.mockResolvedValue(undefined);
+		mockF2fService.createAuthSession.mockResolvedValue();
+		mockF2fService.savePersonIdentity.mockRejectedValue("error");
+		jest.useFakeTimers();
+		const fakeTime = 1684933200.123;
+		jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.000Z
+
+		await sessionRequestProcessor.processRequest(VALID_SESSION);
+
+		expect(mockF2fService.createAuthSession).toHaveBeenNthCalledWith(
+			1,
+			expect.objectContaining({
+				expiryDate: Math.floor(fakeTime + +process.env.AUTH_SESSION_TTL_SECS!),
+				subject: ""
+			}),
+		);
+		// the next assertion checks that the value has no more than 10 digits, i.e. is in secs not ms
+		// this will break in the year 2286!
+		const actualExpiryDate = mockF2fService.createAuthSession.mock.calls[0][0].expiryDate;
+		expect(actualExpiryDate).toBeLessThan(10000000000);
+		jest.useRealTimers();
 	});	
 });
