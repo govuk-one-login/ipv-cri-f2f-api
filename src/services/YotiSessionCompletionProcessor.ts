@@ -105,18 +105,14 @@ export class YotiSessionCompletionProcessor {
 		  try {
 		  	f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
 		  } catch (error: any) {
-			const singleMetric = this.metrics.singleMetric();
-			singleMetric.addDimension("error", error.message);
-			singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+			this.constructNotReturnedErrorMetric(error.message);
 			throw error;
 		  }
 		  if (!f2fSession) {
 			  this.logger.error("Session not found", {
 				  messageCode: MessageCodes.SESSION_NOT_FOUND,
 			  });
-			  const singleMetric = this.metrics.singleMetric();
-			  singleMetric.addDimension("error", "Session not found");
-			  singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+			  this.constructNotReturnedErrorMetric("Session not found");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
 		  }
 
@@ -132,9 +128,7 @@ export class YotiSessionCompletionProcessor {
 				this.logger.error("Unrecognised client in request", {
 					messageCode: MessageCodes.UNRECOGNISED_CLIENT,
 				});
-				const singleMetric = this.metrics.singleMetric();
-				singleMetric.addDimension("error", "Unrecognised client in request");
-				singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+				this.constructNotReturnedErrorMetric("Unrecognised client in request");
 				return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 			}
 
@@ -147,9 +141,7 @@ export class YotiSessionCompletionProcessor {
 		  try {
 		  completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries(), clientConfig.YotiBaseUrl);
 		  } catch (error: any) {
-			const singleMetric = this.metrics.singleMetric();
-			singleMetric.addDimension("error", error.message);
-			singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+			this.constructNotReturnedErrorMetric(error.message);
 			throw error;
 		  }
 		  if (!completedYotiSessionInfo) {
@@ -286,9 +278,7 @@ export class YotiSessionCompletionProcessor {
 				try {
   					VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(personDetails, documentFields, this.logger);
 				} catch (error: any) {
-					const singleMetric = this.metrics.singleMetric();
-					singleMetric.addDimension("error", error.message);
-					singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+					this.constructNotReturnedErrorMetric(error.message);
 					throw error;
 				}
   			} else {
@@ -490,6 +480,12 @@ export class YotiSessionCompletionProcessor {
   			messageCode: MessageCodes.FAILED_SENDING_VC,
   		});		
   	}
+	}
+
+	private constructNotReturnedErrorMetric(errorDimension: string) {
+		const singleMetric = this.metrics.singleMetric();
+		singleMetric.addDimension("error", errorDimension);
+		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
 	}
 }
 

@@ -91,9 +91,7 @@ export class GenerateVerifiableCredential {
 			}
 		}
 	} catch (error: any) {
-		const singleMetric = this.metrics.singleMetric();
-		singleMetric.addDimension("error", "Invalid documentType provided");
-		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+		this.constructErrorMetric("Invalid documentType provided")
 		throw error
 	}
   }
@@ -317,14 +315,11 @@ export class GenerateVerifiableCredential {
   		}
 	}
 	} catch (error: any) {
-		const singleMetric = this.metrics.singleMetric();
-		singleMetric.addDimension("error", error.message);
-		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+		this.constructErrorMetric("Invalid documentType provided");
 		throw error;
   	}
   	return credentialSubject;
   }
-
 
   getVerifiedCredentialInformation(
   	yotiSessionId: string,
@@ -376,9 +371,7 @@ export class GenerateVerifiableCredential {
   	this.logger.info({ message: "Yoti Mandatory Checks" });
 
   	if (Object.values(MANDATORY_CHECKS).some((check) => check?.object === undefined)) {
-		const singleMetric = this.metrics.singleMetric();
-		singleMetric.addDimension("error", "Missing mandatory checks in Yoti completed payload");
-		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+		this.constructErrorMetric("Missing mandatory checks in Yoti completed payload")
   		throw new AppError(
   			HttpCodesEnum.BAD_REQUEST,
   			"Missing mandatory checks in Yoti completed payload",
@@ -391,9 +384,7 @@ export class GenerateVerifiableCredential {
   			(check) => check?.state !== YotiSessionDocument.DONE_STATE,
   		)
   	) {
-		const singleMetric = this.metrics.singleMetric();
-		singleMetric.addDimension("error", "Mandatory checks not all completed");
-		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+		this.constructErrorMetric("Mandatory checks not all completed")
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Mandatory checks not all completed");
   	}
 
@@ -504,4 +495,10 @@ export class GenerateVerifiableCredential {
   		rejectionReasons,
   	};
   }
+
+  private constructErrorMetric(dimension: string) {
+	const singleMetric = this.metrics.singleMetric();
+	singleMetric.addDimension("error", dimension);
+	singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+}
 }
