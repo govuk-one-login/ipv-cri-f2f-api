@@ -10,20 +10,23 @@ import {
 	VerifiedCredentialSubject,
 	Name,
 } from "../utils/IVeriCredential";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
 export class GenerateVerifiableCredential {
   readonly logger: Logger;
+  readonly metrics: Metrics;
 
   private static instance: GenerateVerifiableCredential;
 
-  constructor(logger: Logger) {
+  constructor(logger: Logger, metrics: Metrics) {
   	this.logger = logger;
+	this.metrics = metrics
   }
 
-  static getInstance(logger: Logger): GenerateVerifiableCredential {
+  static getInstance(logger: Logger, metrics: Metrics): GenerateVerifiableCredential {
   	if (!GenerateVerifiableCredential.instance) {
   		GenerateVerifiableCredential.instance = new GenerateVerifiableCredential(
-  			logger,
+  			logger, metrics
   		);
   	}
   	return GenerateVerifiableCredential.instance;
@@ -61,31 +64,38 @@ export class GenerateVerifiableCredential {
    * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545465037/Draft+-+Generating+Strength+from+Yoti+Results
    **/
   private calculateStrengthScore(documentType: string, issuingCountry: string, documentContainsValidChip: boolean): number {
-  	if (issuingCountry === "GBR") {
-  		switch (documentType) {
-  			case "PASSPORT":
-  				return documentContainsValidChip ? 4 : 3;
-  			case "DRIVING_LICENCE":
-  				return 3;
-  			default:
-  				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided for issuingCountry", {
-  					documentType, issuingCountry,
-  				});
-  		}
-  	} else {
-  		switch (documentType) {
-  			case "PASSPORT":
-  				return documentContainsValidChip ? 4 : 3;
-  			case "DRIVING_LICENCE":
-  				return 3;
-  			case "NATIONAL_ID":
-  				return documentContainsValidChip ? 4 : 3;
-  			default:
-  				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
-  					documentType, issuingCountry,
-  				});
-  		}
-  	}
+	try {
+		if (issuingCountry === "GBR") {
+			switch (documentType) {
+				case "PASSPORT":
+					return documentContainsValidChip ? 4 : 3;
+				case "DRIVING_LICENCE":
+					return 3;
+				default:
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided for issuingCountry", {
+						documentType, issuingCountry,
+					});
+			}
+		} else {
+			switch (documentType) {
+				case "PASSPORT":
+					return documentContainsValidChip ? 4 : 3;
+				case "DRIVING_LICENCE":
+					return 3;
+				case "NATIONAL_ID":
+					return documentContainsValidChip ? 4 : 3;
+				default:
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Invalid documentType provided", {
+						documentType, issuingCountry,
+					});
+			}
+		}
+	} catch (error: any) {
+		const singleMetric = this.metrics.singleMetric();
+		singleMetric.addDimension("error", "Invalid documentType provided");
+		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+		throw error
+	}
   }
 
 
@@ -235,7 +245,7 @@ export class GenerateVerifiableCredential {
   	documentFields: YotiDocumentFields,
   ): VerifiedCredentialSubject {
   	let countryDetails: EuDrivingLicenseCountry | undefined;
-
+	try {
 	  if (issuingCountry === "GBR") {
   		switch (documentType) {
   			case "PASSPORT":
@@ -305,6 +315,12 @@ export class GenerateVerifiableCredential {
   					documentType, issuingCountry,
   				});
   		}
+	}
+	} catch (error: any) {
+		const singleMetric = this.metrics.singleMetric();
+		singleMetric.addDimension("error", error.message);
+		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+		throw error;
   	}
   	return credentialSubject;
   }
@@ -360,6 +376,9 @@ export class GenerateVerifiableCredential {
   	this.logger.info({ message: "Yoti Mandatory Checks" });
 
   	if (Object.values(MANDATORY_CHECKS).some((check) => check?.object === undefined)) {
+		const singleMetric = this.metrics.singleMetric();
+		singleMetric.addDimension("error", "Missing mandatory checks in Yoti completed payload");
+		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
   		throw new AppError(
   			HttpCodesEnum.BAD_REQUEST,
   			"Missing mandatory checks in Yoti completed payload",
@@ -372,6 +391,9 @@ export class GenerateVerifiableCredential {
   			(check) => check?.state !== YotiSessionDocument.DONE_STATE,
   		)
   	) {
+		const singleMetric = this.metrics.singleMetric();
+		singleMetric.addDimension("error", "Mandatory checks not all completed");
+		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Mandatory checks not all completed");
   	}
 

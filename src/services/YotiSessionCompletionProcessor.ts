@@ -62,7 +62,7 @@ export class YotiSessionCompletionProcessor {
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
   	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
   	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.logger, this.environmentVariables.dnsSuffix());
-  	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger);
+  	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger, this.metrics);
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.validationHelper = new ValidationHelper();
 	}
@@ -101,12 +101,22 @@ export class YotiSessionCompletionProcessor {
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
 	  if (yotiSessionID) {
-		  const f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
-
+		  let f2fSession;
+		  try {
+		  	f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
+		  } catch (error: any) {
+			const singleMetric = this.metrics.singleMetric();
+			singleMetric.addDimension("error", error.message);
+			singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+			throw error;
+		  }
 		  if (!f2fSession) {
 			  this.logger.error("Session not found", {
 				  messageCode: MessageCodes.SESSION_NOT_FOUND,
 			  });
+			  const singleMetric = this.metrics.singleMetric();
+			  singleMetric.addDimension("error", "Session not found");
+			  singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
 		  }
 
@@ -122,6 +132,9 @@ export class YotiSessionCompletionProcessor {
 				this.logger.error("Unrecognised client in request", {
 					messageCode: MessageCodes.UNRECOGNISED_CLIENT,
 				});
+				const singleMetric = this.metrics.singleMetric();
+				singleMetric.addDimension("error", "Unrecognised client in request");
+				singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
 				return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 			}
 
@@ -130,8 +143,15 @@ export class YotiSessionCompletionProcessor {
 
 		  this.logger.info({ message: "Fetching status for Yoti SessionID" });
 		  // eslint-disable-next-line max-len
-		  const completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries(), clientConfig.YotiBaseUrl);
-
+		  let completedYotiSessionInfo;
+		  try {
+		  completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries(), clientConfig.YotiBaseUrl);
+		  } catch (error: any) {
+			const singleMetric = this.metrics.singleMetric();
+			singleMetric.addDimension("error", error.message);
+			singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+			throw error;
+		  }
 		  if (!completedYotiSessionInfo) {
 			  this.logger.error({ message: "No YOTI Session found with ID:" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_NOT_FOUND,
@@ -263,14 +283,30 @@ export class YotiSessionCompletionProcessor {
   				}
 
   				this.logger.info("Getting NameParts using F2F Person Identity Info");
-  				VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(personDetails, documentFields, this.logger);
+				try {
+  					VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(personDetails, documentFields, this.logger);
+				} catch (error: any) {
+					const singleMetric = this.metrics.singleMetric();
+					singleMetric.addDimension("error", error.message);
+					singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+					throw error;
+				}
   			} else {
   				this.logger.info("Getting NameParts using Yoti DocumentFields Info");
   				VcNameParts = personIdentityUtils.getNamesFromYoti(given_names, family_name);
   			}
 
-
 			  const { credentialSubject, evidence, rejectionReasons } = this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields, VcNameParts);
+
+			  if (rejectionReasons.length > 0) {
+				const singleMetric = this.metrics.singleMetric();
+				let failureReasons: string[] = [];
+				rejectionReasons.forEach((rejectionReason) => {
+					failureReasons.push(rejectionReason.reason)
+				});
+				singleMetric.addDimension("failure_reasons", failureReasons.toString());
+				singleMetric.addMetric("Yoti_Check_Failure", MetricUnits.Count, 1);
+			  }
 
 			  if (!credentialSubject || !evidence) {
 				  this.logger.error({ message: "Missing Credential Subject or Evidence payload" }, {
@@ -335,8 +371,7 @@ export class YotiSessionCompletionProcessor {
 			  return Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED} or ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${f2fSession.authSessionState}`);
 		  }
 	  } else {
-		  //log error
-		  // throw error response
+		  this.logger.error({ message: "No yoti sessionId provided"});
 		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "");
 	  }
 
@@ -438,6 +473,10 @@ export class YotiSessionCompletionProcessor {
   	this.logger.error(`VC generation failed : ${errorMessage}`, {		
   		messageCode: MessageCodes.ERROR_GENERATING_VC,
   	});
+
+	const singleMetric = this.metrics.singleMetric();
+	singleMetric.addDimension("error", errorMessage);
+	singleMetric.addMetric("Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
   	try {
   		await this.f2fService.sendToIPVCore({
   			sub: f2fSession.subject,
