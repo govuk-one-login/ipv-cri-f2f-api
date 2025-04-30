@@ -19,7 +19,6 @@ const mockF2fService = mock<F2fService>();
 
 const logger = mock<Logger>();
 const metrics = mock<Metrics>();
-let mockSession: ISessionItem;
 
 
 function getMockSessionItem(): ISessionItem {
