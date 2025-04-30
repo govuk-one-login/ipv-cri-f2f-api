@@ -135,7 +135,7 @@ export class SessionRequestProcessor {
   			return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
   		}
   	} catch (error) {
-  		this.logger.error("Could not verify jwt", {
+  		this.logger.error("Could not verify JWT", {
   			error,
   			messageCode: MessageCodes.FAILED_VERIFYING_JWT,
   		});
@@ -150,14 +150,14 @@ export class SessionRequestProcessor {
   		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
 
-  	// Validate the user details of the shared_claims received from the jwt.
+  	// Validate the user details of the shared_claims received from the JWT.
   	const data = this.validationHelper.isPersonDetailsValid(jwtPayload.shared_claims.emailAddress, jwtPayload.shared_claims.name);
   	if (data.errorMessage.length > 0) {
   		this.logger.error( { message: data.errorMessage + "  from shared claims data" }, { messageCode : data.errorMessageCode });
   		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
 
-  	// Validate the address format of the shared_claims received from the jwt.
+  	// Validate the address format of the shared_claims received from the JWT.
   	const { errorMessage, errorMessageCode } = this.validationHelper.isAddressFormatValid(jwtPayload);
   	if (errorMessage.length > 0) {
   		this.logger.error( { message: errorMessage }, { messageCode : errorMessageCode });
