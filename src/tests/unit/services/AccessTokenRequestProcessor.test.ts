@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
@@ -16,6 +16,7 @@ import { Constants } from "../../../utils/Constants";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
 import { AppError } from "../../../utils/AppError";
+import { MessageCodes } from "../../../models/enums/MessageCodes";
 
 let accessTokenRequestProcessorTest: AccessTokenRequestProcessor;
 const mockF2fService = mock<F2fService>();
@@ -24,7 +25,7 @@ jest.mock("../../../utils/KmsJwtAdapter");
 const passingKmsJwtAdapterFactory = () => new MockKmsSigningTokenJwtAdapter();
 const failingKmsJwtSigningAdapterFactory = () => new MockFailingKmsSigningJwtAdapter();
 const logger = mock<Logger>();
-const metrics = new Metrics({ namespace: "F2F" });
+const metrics = mock<Metrics>();
 const ENCODED_REDIRECT_URI = encodeURIComponent("http://localhost:8085/callback");
 const AUTHORIZATION_CODE = randomUUID();
 let request: APIGatewayProxyEvent;
@@ -129,7 +130,12 @@ describe("AccessTokenRequestProcessor", () => {
 		mockF2fService.getSessionByAuthorizationCode.mockResolvedValue(mockSession);
 		const out: APIGatewayProxyResult = await accessTokenRequestProcessorTest.processRequest(request);
 
-		expect(out.body).toBe("Session is in the wrong state: F2F_ACCESS_TOKEN_ISSUED");
+		expect(logger.warn).toHaveBeenCalledWith(
+					"Session for journey sdfssg is in the wrong Auth state: expected state - F2F_AUTH_CODE_ISSUED, actual state - F2F_ACCESS_TOKEN_ISSUED", { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
+		);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "AccessToken_error_user_state_incorrect", MetricUnits.Count, 1);	
+
+		expect(out.body).toBe("Session for journey sdfssg is in the wrong Auth state: expected state - F2F_AUTH_CODE_ISSUED, actual state - F2F_ACCESS_TOKEN_ISSUED");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 	});
 

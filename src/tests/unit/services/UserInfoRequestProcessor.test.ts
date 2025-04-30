@@ -144,12 +144,14 @@ describe("UserInfoRequestProcessor", () => {
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
-		expect(out.body).toContain("AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED, actual state- F2F_AUTH_CODE_ISSUED");
+		expect(out.body).toContain("Session for journey sdfssg is in the wrong Auth state: expected state - F2F_ACCESS_TOKEN_ISSUED, actual state - F2F_AUTH_CODE_ISSUED");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(logger.error).toHaveBeenCalledWith(
-			{ message: "AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED, actual state- F2F_AUTH_CODE_ISSUED" }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
+			{ message: "Session for journey sdfssg is in the wrong Auth state: expected state - F2F_ACCESS_TOKEN_ISSUED, actual state - F2F_AUTH_CODE_ISSUED" }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
 		);
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "found session", MetricUnits.Count, 1);
-		expect(metrics.addMetric).not.toHaveBeenNthCalledWith(2, "UserInfo_pending_VC_returned", MetricUnits.Count, 1);	});
+		expect(metrics.addMetric).not.toHaveBeenNthCalledWith(2, "UserInfo_pending_VC_returned", MetricUnits.Count, 1);	
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "UserInfo_error_user_state_incorrect", MetricUnits.Count, 1);	
+	});
 });

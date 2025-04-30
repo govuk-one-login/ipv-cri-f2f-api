@@ -311,11 +311,11 @@ export class DocumentSelectionRequestProcessor {
 			return Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 
 		} else {
-			this.logger.warn(`Yoti session already exists for this authorization session or Session is in the wrong state: ${f2fSessionInfo.authSessionState}`, {
-				messageCode: MessageCodes.STATE_MISMATCH,
+			this.logger.warn(`Yoti session already exists or session for journey ${f2fSessionInfo?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_SESSION_CREATED}, actual state - ${f2fSessionInfo.authSessionState}`, {
+				messageCode: MessageCodes.INCORRECT_SESSION_STATE,
 			});
 			this.metrics.addMetric("DocSelect_error_user_state_incorrect", MetricUnits.Count, 1);
-			return Response(HttpCodesEnum.UNAUTHORIZED, "Yoti session already exists for this authorization session or Session is in the wrong state");
+			return Response(HttpCodesEnum.UNAUTHORIZED, `Yoti session already exists or session for journey ${f2fSessionInfo?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_SESSION_CREATED}, actual state - ${f2fSessionInfo.authSessionState}`);
 		}
 	}
 
