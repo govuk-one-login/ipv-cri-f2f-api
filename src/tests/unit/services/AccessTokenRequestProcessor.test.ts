@@ -131,7 +131,7 @@ describe("AccessTokenRequestProcessor", () => {
 		const out: APIGatewayProxyResult = await accessTokenRequestProcessorTest.processRequest(request);
 
 		expect(logger.warn).toHaveBeenCalledWith(
-					{ message: "Session for journey sdfssg is in the wrong Auth state: expected state - F2F_AUTH_CODE_ISSUED, actual state - F2F_ACCESS_TOKEN_ISSUED" }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
+					"Session for journey sdfssg is in the wrong Auth state: expected state - F2F_AUTH_CODE_ISSUED, actual state - F2F_ACCESS_TOKEN_ISSUED", { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
 		);
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "AccessToken_error_user_state_incorrect", MetricUnits.Count, 1);	
 
