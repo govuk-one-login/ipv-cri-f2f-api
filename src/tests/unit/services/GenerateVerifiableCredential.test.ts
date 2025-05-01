@@ -12,9 +12,12 @@ import {
 	visualReviewCheck,
 	mockCompletedYotiSessionPayload,
 } from "../data/yoti-session";
+import { Metrics } from "@aws-lambda-powertools/metrics";
 
 describe("GenerateVerifiableCredential", () => {
 	const logger = mock<Logger>();
+	const metrics = mock<Metrics>();
+
 	let generateVerifiableCredential: GenerateVerifiableCredential;
 	const VcNameParts = [
 		{
@@ -32,12 +35,14 @@ describe("GenerateVerifiableCredential", () => {
 	];
 
 	beforeEach(() => {
-		generateVerifiableCredential = GenerateVerifiableCredential.getInstance(logger);
+		generateVerifiableCredential = GenerateVerifiableCredential.getInstance(logger, metrics);
+		metrics.singleMetric.mockReturnValue(metrics);
 	});
 
 	afterEach(() => {
 		jest.resetAllMocks();
 		jest.restoreAllMocks();
+		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
 	describe("doesDocumentContainValidChip", () => {
