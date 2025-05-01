@@ -202,7 +202,7 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: MessageCodes.F2F_FAILED_VERIFYING_JWT,
+				messageCode: MessageCodes.FAILED_VERIFYING_JWT,
 			}),
 		);
 		expect(metrics.addMetric).not.toHaveBeenCalled();
@@ -220,7 +220,7 @@ describe("SessionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.objectContaining({
-				messageCode: MessageCodes.F2F_FAILED_VERIFYING_JWT,
+				messageCode: MessageCodes.FAILED_VERIFYING_JWT,
 			}),
 		);
 		expect(metrics.addMetric).not.toHaveBeenCalled();
