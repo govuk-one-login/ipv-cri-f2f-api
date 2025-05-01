@@ -38,7 +38,6 @@ describe("/session endpoint", () => {
 	    const newf2fStubPayload = structuredClone(f2fStubPayload);
 		newf2fStubPayload.yotiMockID = "";
 		newf2fStubPayload.shared_claims.name[0].nameParts[2].value = "";
-	    console.log(JSON.stringify(newf2fStubPayload));
 		const stubResponse = await stubStartPost(newf2fStubPayload);
 		const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		expect(sessionResponse.status).toBe(401);
@@ -65,6 +64,22 @@ describe("/session endpoint", () => {
 
 	it("Unsuccessful Request Tests - Incorrect Address Format", async () => {
 		const stubResponse = await stubStartPost(addressSessionPayload as StubStartRequest);
+		const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		expect(sessionResponse.status).toBe(401);
+		expect(sessionResponse.data).toBe("Unauthorized");
+	});
+
+	it("Unsuccessful Request Tests - Invalid Kid Test", async () => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		const stubResponse = await stubStartPost(newf2fStubPayload, { journeyType: 'invalidKid' });
+		const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+		expect(sessionResponse.status).toBe(401);
+		expect(sessionResponse.data).toBe("Unauthorized");
+	});
+
+	it("Unsuccessful Request Tests - Missing Kid Test", async () => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		const stubResponse = await stubStartPost(newf2fStubPayload, { journeyType: 'missingKid' });
 		const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		expect(sessionResponse.status).toBe(401);
 		expect(sessionResponse.data).toBe("Unauthorized");
