@@ -62,7 +62,7 @@ export class ExpiredSessionsProcessor {
   		const ipvCoreSessionLogs: string[] = [];
 
   		await Promise.all(sessionsToExpire.map(async (session) => {
-  			try {
+  			try {	
   				await this.f2fService.sendToIPVCore({
   					sub: session.subject,
   					state: session.state,
