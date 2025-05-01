@@ -64,7 +64,7 @@ interface KidOptions {
 export async function stubStartPost(stubPayload: StubStartRequest, options?: KidOptions): Promise<AxiosResponse<any>> {
 	const path = constants.DEV_IPV_F2F_STUB_URL!;
   
-	const payload: StubStartRequest = { ...stubPayload };
+	const payload: StubStartRequest = stubPayload;
   
 	if (constants.THIRD_PARTY_CLIENT_ID) {
 	  payload.clientId = constants.THIRD_PARTY_CLIENT_ID;
