@@ -1155,10 +1155,10 @@ Resources:
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       AlarmActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 1
