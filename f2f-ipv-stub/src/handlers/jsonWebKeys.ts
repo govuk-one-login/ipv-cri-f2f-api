@@ -2,7 +2,7 @@ import { APIGatewayProxyResult } from "aws-lambda";
 import { createPublicKey } from "node:crypto";
 import { JsonWebKey, Jwks } from "../auth.types";
 import { GetPublicKeyCommand, KMSClient } from "@aws-sdk/client-kms";
-import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 
 export const handler = async (): Promise<APIGatewayProxyResult> => {
   const { signingKey, additionalKey } = getConfig();

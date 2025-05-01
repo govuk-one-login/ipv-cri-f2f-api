@@ -8,7 +8,7 @@ import { load } from 'js-yaml';
 let template: Template;
 
 beforeAll(() => {
-  let yamlTemplate: any = load(readFileSync('./template.yaml', 'utf-8'), { schema: schema })
+  let yamlTemplate: any = load(readFileSync('../template.yaml', 'utf-8'), { schema: schema })
   template = Template.fromJSON(yamlTemplate)
 })
 

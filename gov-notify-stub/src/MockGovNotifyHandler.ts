@@ -8,6 +8,7 @@ import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { AppError } from "./utils/AppError";
 import { GovNotifyRequestEmailProcessor } from "./services/GovNotifyRequestEmailProcessor";
 import { GovNotifyRequestLetterProcessor } from "./services/GovNotifyRequestLetterProcessor";
+import { Constants } from "./utils/Constants";
 
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
@@ -29,31 +30,36 @@ class MockGovNotifyHandler implements LambdaInterface {
 			logger.info("Event received: GOVNotify SendEmail", { event });
 			const payload = event.body;
 			let payloadParsed;
+			if (payload) {
+				if (payload.includes("email_address")) {
+					logger.info("Event body", { payload });
+					if (event.isBase64Encoded) {
+						payloadParsed = JSON.parse(Buffer.from(payload, "base64").toString("binary"));
+					} else {
+						payloadParsed = JSON.parse(payload);
+					}
 
-			if (payload.includes("email_address")) {
-				logger.info("Event body", { payload });
-				if (event.isBase64Encoded) {
-					payloadParsed = JSON.parse(Buffer.from(payload, "base64").toString("binary"));
+					logger.info("PARSED JSON", { payloadParsed });
+					logger.info("PARSED EMAIL", payloadParsed.email_address);
+					logger.info("Starting GovNotifyRequestEmailProcessor");
+					return await GovNotifyRequestEmailProcessor.getInstance(logger, metrics).mockSendEmail(payloadParsed.email_address);
 				} else {
-					payloadParsed = JSON.parse(payload);
-				}
+					logger.info("Event body", { payload });
+					if (event.isBase64Encoded) {
+						payloadParsed = JSON.parse(Buffer.from(payload, "base64").toString("binary"));
+					} else {
+						payloadParsed = JSON.parse(payload);
+					}
 
-				logger.info("PARSED JSON", { payloadParsed });
-				logger.info("PARSED EMAIL", payloadParsed.email_address);
-				logger.info("Starting GovNotifyRequestEmailProcessor");
-				return await GovNotifyRequestEmailProcessor.getInstance(logger, metrics).mockSendEmail(payloadParsed.email_address);
+					logger.info("PARSED JSON", { payloadParsed });
+					logger.info("PARSED REFERENCE", payloadParsed.reference);
+					logger.info("Starting GovNotifyRequestLetterProcessor");
+					return await GovNotifyRequestLetterProcessor.getInstance(logger, metrics).mockSendLetter(payloadParsed.reference);
+				}
 			} else {
-				logger.info("Event body", { payload });
-				if (event.isBase64Encoded) {
-					payloadParsed = JSON.parse(Buffer.from(payload, "base64").toString("binary"));
-				} else {
-					payloadParsed = JSON.parse(payload);
-				}
-
-				logger.info("PARSED JSON", { payloadParsed });
-				logger.info("PARSED REFERENCE", payloadParsed.reference);
-				logger.info("Starting GovNotifyRequestLetterProcessor");
-				return await GovNotifyRequestLetterProcessor.getInstance(logger, metrics).mockSendLetter(payloadParsed.reference);
+				const errorMessage = "No payload passed to stub";
+				logger.error(errorMessage);
+				return new Response(HttpCodesEnum.BAD_REQUEST, errorMessage);
 			}
 
 		} catch (err) {

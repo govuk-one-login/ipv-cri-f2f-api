@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable max-lines-per-function */
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
@@ -12,12 +12,14 @@ import { AuthorizationRequestProcessor } from "../../../services/AuthorizationRe
 import { VALID_AUTHCODE } from "../data/auth-events";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 import { APIGatewayProxyResult } from "aws-lambda";
+import { MessageCodes } from "../../../models/enums/MessageCodes";
 
 let authorizationRequestProcessorTest: AuthorizationRequestProcessor;
 const mockF2fService = mock<F2fService>();
 
 const logger = mock<Logger>();
-const metrics = new Metrics({ namespace: "F2F" });
+const metrics = mock<Metrics>();
+
 
 function getMockSessionItem(): ISessionItem {
 	const sess: ISessionItem = {
@@ -154,5 +156,22 @@ describe("AuthorizationRequestProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_CRI_AUTH_CODE_ISSUED to SQS queue.", { "messageCode": "ERROR_WRITING_TXMA" });
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+	});
+
+	it("Return 401 Unauthorized response when AuthSessionState is not F2F_YOTI_SESSION_CREATED", async () => {
+		const sess = getMockSessionItem();
+		console.log("SESS!", sess)
+		sess.authSessionState = AuthSessionState.F2F_AUTH_CODE_ISSUED;
+		console.log("SESS!2", sess)
+		mockF2fService.getSessionById.mockResolvedValue(sess);
+		const out: APIGatewayProxyResult = await authorizationRequestProcessorTest.processRequest(VALID_AUTHCODE, "1234");
+
+		expect(logger.warn).toHaveBeenCalledWith(
+					{ message: "Session for journey sdfssg is in the wrong Auth state: expected state - F2F_YOTI_SESSION_CREATED, actual state - F2F_AUTH_CODE_ISSUED" }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
+		);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "AuthRequest_error_user_state_incorrect", MetricUnits.Count, 1);	
+
+		expect(out.body).toBe("Session for journey sdfssg is in the wrong Auth state: expected state - F2F_YOTI_SESSION_CREATED, actual state - F2F_AUTH_CODE_ISSUED");
+		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 	});
 });
