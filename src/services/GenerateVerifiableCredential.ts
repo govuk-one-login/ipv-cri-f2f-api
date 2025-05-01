@@ -91,7 +91,7 @@ export class GenerateVerifiableCredential {
 			}
 		}
 	} catch (error: any) {
-		this.constructErrorMetric("Invalid documentType provided")
+		this.constructNotReturnedErrorMetric(error.message);
 		throw error
 	}
   }
@@ -315,7 +315,7 @@ export class GenerateVerifiableCredential {
   		}
 	}
 	} catch (error: any) {
-		this.constructErrorMetric("Invalid documentType provided");
+		this.constructNotReturnedErrorMetric(error.message);
 		throw error;
   	}
   	return credentialSubject;
@@ -371,7 +371,7 @@ export class GenerateVerifiableCredential {
   	this.logger.info({ message: "Yoti Mandatory Checks" });
 
   	if (Object.values(MANDATORY_CHECKS).some((check) => check?.object === undefined)) {
-		this.constructErrorMetric("Missing mandatory checks in Yoti completed payload")
+		this.constructNotReturnedErrorMetric("Missing mandatory checks in Yoti completed payload")
   		throw new AppError(
   			HttpCodesEnum.BAD_REQUEST,
   			"Missing mandatory checks in Yoti completed payload",
@@ -384,7 +384,7 @@ export class GenerateVerifiableCredential {
   			(check) => check?.state !== YotiSessionDocument.DONE_STATE,
   		)
   	) {
-		this.constructErrorMetric("Mandatory checks not all completed")
+		this.constructNotReturnedErrorMetric("Mandatory checks not all completed")
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Mandatory checks not all completed");
   	}
 
@@ -496,7 +496,7 @@ export class GenerateVerifiableCredential {
   	};
   }
 
-  private constructErrorMetric(dimension: string) {
+  private constructNotReturnedErrorMetric(dimension: string) {
 	const singleMetric = this.metrics.singleMetric();
 	singleMetric.addDimension("error", dimension);
 	singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
