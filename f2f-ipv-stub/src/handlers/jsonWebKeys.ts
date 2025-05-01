@@ -3,7 +3,7 @@ import { createPublicKey } from "node:crypto";
 import { JsonWebKey, Jwks } from "../auth.types";
 import { GetPublicKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
-import { jwtUtils } from "../../../src/utils/JwtUtils";
+import { getHashedKid } from "../utils/hashing";
 
 export const handler = async (): Promise<APIGatewayProxyResult> => {
   const { signingKey, additionalKey } = getConfig();
@@ -73,7 +73,7 @@ const getAsJwk = async (keyId: string): Promise<JsonWebKey | null> => {
       format: "der",
     }).export({ format: "jwk" });
     const kid = keyId.split("/").pop()!;
-    const hashedKid = jwtUtils.getHashedKid(kid);
+    const hashedKid = getHashedKid(kid);
     return {
       ...publicKey,
       use,

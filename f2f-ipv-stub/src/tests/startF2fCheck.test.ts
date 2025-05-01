@@ -16,7 +16,6 @@ import format from "ecdsa-sig-formatter";
 const testData = require("../events/startEvents.js");
 
 jest.setTimeout(30000);
-jest.mock("axios");
 
 const mockJwks = {
   keys: [
@@ -81,6 +80,19 @@ describe("Start F2F Check Endpoint", () => {
 
   it("returns JAR data and target uri", async () => {
     const response = await handler(testData.startDefault);
+    expect(response.statusCode).toBe(201);
+    expect(response.body).toBeDefined();
+
+    const body = JSON.parse(response.body);
+    expect(body.request).toBeDefined();
+    expect(body.responseType).toBeDefined();
+    expect(body.clientId).toBeDefined();
+    expect(body.AuthorizeLocation).toBeDefined();
+  });
+
+  it("returns JAR data and target uri with custom payload", async () => {
+
+    const response = await handler(testData.startCustom);
     expect(response.statusCode).toBe(201);
     expect(response.body).toBeDefined();
 

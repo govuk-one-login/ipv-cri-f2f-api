@@ -7,7 +7,7 @@ import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { JarPayload, Jwks, JwtHeader } from "../auth.types";
 import axios from "axios";
 import { __ServiceException } from "@aws-sdk/client-kms/dist-types/models/KMSServiceException";
-import { jwtUtils } from "../../../src/utils/JwtUtils";
+import { getHashedKid } from "../utils/hashing";
 
 export const v3KmsClient = new KMSClient({
   region: process.env.REGION ?? "eu-west-2",
@@ -98,6 +98,7 @@ export const handler = async (
     namePart.value += overrides.yotiMockID;
   }
 
+  // Unhappy path testing enabled by optional flag provided in stub paylod
   let invalidKey;
   if (overrides?.missingKid != null) {
     invalidKey = crypto.randomUUID();
@@ -181,11 +182,10 @@ async function sign(
 ): Promise<string> {
   const signingKid = keyId.split("/").pop() ?? "";
   const invalidKid = invalidKeyId?.split("/").pop() ?? "";
-  const kid = invalidKeyId
-    ? jwtUtils.getHashedKid(invalidKid)
-    : jwtUtils.getHashedKid(signingKid);
+  const kid = invalidKeyId ? invalidKid : signingKid;
+  const hashedKid = getHashedKid(kid);
   const alg = "ECDSA_SHA_256";
-  const jwtHeader: JwtHeader = { alg: "ES256", typ: "JWT", kid };
+  const jwtHeader: JwtHeader = { alg: "ES256", typ: "JWT", kid: hashedKid };
   const tokenComponents = {
     header: util.base64url.encode(
       Buffer.from(JSON.stringify(jwtHeader)),
