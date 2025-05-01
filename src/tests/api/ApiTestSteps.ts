@@ -57,21 +57,32 @@ export async function startStubServiceAndReturnSessionId(stubPayload: StubStartR
 	};
 }
 
-export async function stubStartPost(stubPayload: StubStartRequest): Promise<AxiosResponse<StubStartResponse>> {
-	const path = constants.DEV_IPV_F2F_STUB_URL;
+interface KidOptions {
+	journeyType: 'invalidKid' | 'missingKid';
+}
+
+export async function stubStartPost(stubPayload: StubStartRequest, options?: KidOptions): Promise<AxiosResponse<any>> {
+	const path = constants.DEV_IPV_F2F_STUB_URL!;
+  
 	if (constants.THIRD_PARTY_CLIENT_ID) {
 		stubPayload.clientId = constants.THIRD_PARTY_CLIENT_ID;
 	}
+  
 	if (constants.THIRD_PARTY_CLIENT_ID === "SandboxJourneyFlow") {
-		delete stubPayload.yotiMockID;
+	  delete stubPayload.yotiMockID;
 	}
+  
+	if (options) {
+	  stubPayload[options.journeyType] = true;
+	}
+  
 	try {
-		const postRequest = await axios.post(`${path}`, stubPayload);
-		expect(postRequest.status).toBe(201);
-		return postRequest;
+	  const postRequest = await axios.post(path, stubPayload);
+	  expect(postRequest.status).toBe(201);
+	  return postRequest;
 	} catch (error: any) {
-		console.log(`Error response from ${path} endpoint: ${error}`);
-		return error.response;
+	  console.error(`Error response from ${path} endpoint: ${error}`);
+	  return error.response;
 	}
 }
 
