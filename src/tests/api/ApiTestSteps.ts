@@ -64,22 +64,20 @@ interface KidOptions {
 export async function stubStartPost(stubPayload: StubStartRequest, options?: KidOptions): Promise<AxiosResponse<any>> {
 	const path = constants.DEV_IPV_F2F_STUB_URL!;
   
-	const payload: StubStartRequest = stubPayload;
-  
 	if (constants.THIRD_PARTY_CLIENT_ID) {
-	  payload.clientId = constants.THIRD_PARTY_CLIENT_ID;
+		stubPayload.clientId = constants.THIRD_PARTY_CLIENT_ID;
 	}
   
 	if (constants.THIRD_PARTY_CLIENT_ID === "SandboxJourneyFlow") {
-	  delete payload.yotiMockID;
+	  delete stubPayload.yotiMockID;
 	}
   
 	if (options) {
-	  payload[options.journeyType] = true;
+	  stubPayload[options.journeyType] = true;
 	}
   
 	try {
-	  const postRequest = await axios.post(path, payload);
+	  const postRequest = await axios.post(path, stubPayload);
 	  expect(postRequest.status).toBe(201);
 	  return postRequest;
 	} catch (error: any) {
