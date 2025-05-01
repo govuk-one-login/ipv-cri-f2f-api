@@ -12,7 +12,6 @@ import crypto from "node:crypto";
 import { sleep } from "../../utils/Sleep";
 import {
 	StubStartRequest,
-	StubStartResponse,
 	SessionResponse,
 	DocSelectionData,
 	AuthorizationResponse,
