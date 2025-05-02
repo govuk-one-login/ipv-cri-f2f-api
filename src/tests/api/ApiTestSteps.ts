@@ -18,6 +18,7 @@ import {
 	TokenResponse,
 	UserInfoResponse,
 	SessionConfigResponse,
+	StubStartResponse,
 } from "./types";
 
 const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOV_NOTIFY_API });
@@ -60,7 +61,7 @@ interface KidOptions {
 	journeyType: 'invalidKid' | 'missingKid';
 }
 
-export async function stubStartPost(stubPayload: StubStartRequest, options?: KidOptions): Promise<AxiosResponse<any>> {
+export async function stubStartPost(stubPayload: StubStartRequest, options?: KidOptions): Promise<AxiosResponse<StubStartResponse>> {
 	const path = constants.DEV_IPV_F2F_STUB_URL!;
   
 	if (constants.THIRD_PARTY_CLIENT_ID) {
