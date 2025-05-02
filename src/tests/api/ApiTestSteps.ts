@@ -78,7 +78,7 @@ export async function stubStartPost(stubPayload: StubStartRequest, options?: Kid
   
 	try {
 	  const postRequest = await axios.post(path, stubPayload);
-	  expect(postRequest.status).toBe(201);
+	  expect(postRequest.status).toBe(200);
 	  return postRequest;
 	} catch (error: any) {
 	  console.error(`Error response from ${path} endpoint: ${error}`);
