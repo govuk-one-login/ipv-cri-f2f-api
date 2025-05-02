@@ -3,6 +3,7 @@ import { createPublicKey } from "node:crypto";
 import { JsonWebKey, Jwks } from "../auth.types";
 import { GetPublicKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
+import { getHashedKid } from "../utils/hashing";
 
 export const handler = async (): Promise<APIGatewayProxyResult> => {
   const { signingKey, additionalKey } = getConfig();
@@ -11,17 +12,17 @@ export const handler = async (): Promise<APIGatewayProxyResult> => {
   };
   if (signingKey != null) {
     const signingKeyId = signingKey.split("/").pop() ?? "";
-    const formattedKey = await getAsJwk(signingKeyId);
-    if (formattedKey != null) {
-      jwks.keys.push(formattedKey);
+    const formattedSigningKey = await getAsJwk(signingKeyId);
+    if (formattedSigningKey != null) {
+      jwks.keys.push(formattedSigningKey);
     }
   }
 
   if (additionalKey != null) {
     const additionalKeyId = additionalKey.split("/").pop() ?? "";
-    const formattedKey = await getAsJwk(additionalKeyId);
-    if (formattedKey != null) {
-      jwks.keys.push(formattedKey);
+    const formattedAdditionalKey = await getAsJwk(additionalKeyId);
+    if (formattedAdditionalKey != null) {
+      jwks.keys.push(formattedAdditionalKey);
     }
   }
   return {
@@ -71,10 +72,12 @@ const getAsJwk = async (keyId: string): Promise<JsonWebKey | null> => {
       type: "spki",
       format: "der",
     }).export({ format: "jwk" });
+    const kid = keyId.split("/").pop()!;
+    const hashedKid = getHashedKid(kid);
     return {
       ...publicKey,
       use,
-      kid: keyId.split("/").pop(),
+      kid: hashedKid,
       alg: map.algorithm,
     } as unknown as JsonWebKey;
   }

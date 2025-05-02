@@ -60,7 +60,7 @@ export class YotiSessionCompletionProcessor {
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
-  	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
+  	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn(), logger);
   	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.logger, this.environmentVariables.dnsSuffix());
   	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger, this.metrics);
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;

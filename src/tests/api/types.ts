@@ -51,6 +51,8 @@ export interface StubStartRequest {
 		address: Address[];
 		emailAddress: string;
 	};
+	invalidKid?: boolean;
+	missingKid?: boolean;
 }
 
 export interface StubStartResponse {

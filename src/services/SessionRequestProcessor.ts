@@ -48,7 +48,7 @@ export class SessionRequestProcessor {
   	logger.debug("metrics is  " + JSON.stringify(this.metrics));
   	this.metrics.addMetric("Called", MetricUnits.Count, 1);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
-  	this.kmsDecryptor = new KmsJwtAdapter(this.environmentVariables.encryptionKeyIds());
+  	this.kmsDecryptor = new KmsJwtAdapter(this.environmentVariables.encryptionKeyIds(), logger);
   	this.validationHelper = new ValidationHelper();
   }
 
@@ -114,13 +114,14 @@ export class SessionRequestProcessor {
   	}
 
   	const jwtPayload: JwtPayload = parsedJwt.payload;
+	const jwtTargetKid: string | undefined = parsedJwt.header?.kid;
   	this.logger.appendKeys({
   		govuk_signin_journey_id: jwtPayload.govuk_signin_journey_id as string,
   		sessionId,
   	});
   	try {
   		if (configClient?.jwksEndpoint) {
-  			const payload = await this.kmsDecryptor.verifyWithJwks(urlEncodedJwt, configClient.jwksEndpoint);
+  			const payload = await this.kmsDecryptor.verifyWithJwks(urlEncodedJwt, configClient.jwksEndpoint, jwtTargetKid);
   			if (!payload) {
   				this.logger.error("Failed to verify JWT", {
   					messageCode: MessageCodes.FAILED_VERIFYING_JWT,
@@ -134,7 +135,7 @@ export class SessionRequestProcessor {
   			return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
   		}
   	} catch (error) {
-  		this.logger.error("Could not verify jwt", {
+  		this.logger.error("Could not verify JWT", {
   			error,
   			messageCode: MessageCodes.FAILED_VERIFYING_JWT,
   		});
@@ -149,14 +150,14 @@ export class SessionRequestProcessor {
   		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
 
-  	// Validate the user details of the shared_claims received from the jwt.
+  	// Validate the user details of the shared_claims received from the JWT.
   	const data = this.validationHelper.isPersonDetailsValid(jwtPayload.shared_claims.emailAddress, jwtPayload.shared_claims.name);
   	if (data.errorMessage.length > 0) {
   		this.logger.error( { message: data.errorMessage + "  from shared claims data" }, { messageCode : data.errorMessageCode });
   		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
 
-  	// Validate the address format of the shared_claims received from the jwt.
+  	// Validate the address format of the shared_claims received from the JWT.
   	const { errorMessage, errorMessageCode } = this.validationHelper.isAddressFormatValid(jwtPayload);
   	if (errorMessage.length > 0) {
   		this.logger.error( { message: errorMessage }, { messageCode : errorMessageCode });
