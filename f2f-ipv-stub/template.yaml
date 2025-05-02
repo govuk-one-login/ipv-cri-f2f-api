@@ -260,9 +260,9 @@ Resources:
     Properties:
       RestApiId: !Ref IPVStubApiGw
       ParentId: !GetAtt IPVStubApiGw.RootResourceId
-      PathPart: start-token
+      PathPart: generate-token-request
 
-  GenerateTokenRequestF2FMethodGet:
+  GenerateTokenRequestF2FMethodPost:
     DependsOn:
       - GenerateTokenRequestF2FPath
       - GenerateTokenRequestF2FFunction
@@ -297,6 +297,7 @@ Resources:
       - RedirectMethodGet
       - JwksMethodGet
       - StartF2FMethodGet
+      - GenerateTokenRequestF2FMethodPost
     Type: "AWS::ApiGateway::Deployment"
     Properties:
       RestApiId: !Ref IPVStubApiGw
