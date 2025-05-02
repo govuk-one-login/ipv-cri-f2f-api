@@ -33,11 +33,10 @@ describe("Start BAV Check Endpoint", () => {
       ]),
     });
 
-    jest
-      .spyOn(format, "derToJose")
-      .mockReturnValue(
-        "PmBhykH4w94xj3dSDSR-tE5XSh60SjKAP6hHGc6c_fx7ia87hEkKgfhSTCT000RaDhH0MaV47FsUjztCb0m1qg"
-      );
+    jest.spyOn(format, "derToJose").mockReturnValue(
+      // pragma: allowlist nextline secret
+      "PmBhykH4w94xj3dSDSR-tE5XSh60SjKAP6hHGc6c_fx7ia87hEkKgfhSTCT000RaDhH0MaV47FsUjztCb0m1qg"
+    );
   });
 
   afterEach(() => {
