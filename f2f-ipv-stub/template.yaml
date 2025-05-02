@@ -255,22 +255,22 @@ Resources:
         - StatusCode: 500
 
   # Start token-----------------------------------------
-  StartTokenF2FPath:
+  GenerateTokenRequestF2FPath:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref IPVStubApiGw
       ParentId: !GetAtt IPVStubApiGw.RootResourceId
       PathPart: start-token
 
-  StartTokenF2FMethodGet:
+  GenerateTokenRequestF2FMethodGet:
     DependsOn:
-      - StartTokenF2FPath
-      - StartTokenF2FFunction
+      - GenerateTokenRequestF2FPath
+      - GenerateTokenRequestF2FFunction
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: NONE
       RestApiId: !Ref IPVStubApiGw
-      ResourceId: !Ref StartTokenF2FPath
+      ResourceId: !Ref GenerateTokenRequestF2FPath
       HttpMethod: POST
       Integration:
         Type: AWS_PROXY
@@ -282,7 +282,7 @@ Resources:
             - ":apigateway:"
             - !Ref "AWS::Region"
             - ":lambda:path/2015-03-31/functions/"
-            - !GetAtt StartTokenF2FFunction.Arn
+            - !GetAtt GenerateTokenRequestF2FFunction.Arn
             - /invocations
         IntegrationResponses:
           - StatusCode: 200
@@ -390,13 +390,13 @@ Resources:
       Principal: apigateway.amazonaws.com
 
   # ------------------------------------
-  StartTokenF2FFunction:
+  GenerateTokenRequestF2FFunction:
     DependsOn:
-      - StartTokenF2FFunctionLogGroup
+      - GenerateTokenRequestF2FFunctionLogGroup
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "StartTokenF2FFunction-${AWS::StackName}"
-      Handler: startTokenF2f.handler
+      FunctionName: !Sub "GenerateTokenRequestF2FFunction-${AWS::StackName}"
+      Handler: generateTokenRequest.handler
       CodeUri: src/handlers/
       Environment:
         Variables:
@@ -423,19 +423,19 @@ Resources:
         Target: "es2020"
         Sourcemap: true
         EntryPoints:
-          - startTokenF2f.ts
+          - generateTokenRequest.ts
 
-  StartTokenF2FFunctionLogGroup:
+  GenerateTokenRequestF2FFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       RetentionInDays: 30
-      LogGroupName: !Sub "/aws/lambda/StartTokenF2FFunction-${AWS::StackName}"
+      LogGroupName: !Sub "/aws/lambda/GenerateTokenRequestF2FFunction-${AWS::StackName}"
 
-  StartTokenF2FFunctionPermission:
+  GenerateTokenRequestF2FFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt StartTokenF2FFunction.Arn
+      FunctionName: !GetAtt GenerateTokenRequestF2FFunction.Arn
       Principal: apigateway.amazonaws.com
 
   #----------------------------

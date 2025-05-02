@@ -1,4 +1,4 @@
-import { handler } from "../handlers/startTokenF2f";
+import { handler } from "../handlers/generateTokenRequest";
 import {
   expect,
   jest,
