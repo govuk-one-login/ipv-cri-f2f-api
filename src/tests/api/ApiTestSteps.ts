@@ -19,6 +19,7 @@ import {
 	TokenResponse,
 	UserInfoResponse,
 	SessionConfigResponse,
+	StubStartResponse,
 } from "./types";
 
 const GOV_NOTIFY_INSTANCE = axios.create({ baseURL: constants.GOV_NOTIFY_API });
