@@ -262,6 +262,35 @@ Resources:
       ParentId: !GetAtt IPVStubApiGw.RootResourceId
       PathPart: generate-token-request
 
+  GenerateTokenRequestF2FMethodPost:
+    DependsOn:
+      - GenerateTokenRequestF2FPath
+      - GenerateTokenRequestF2FFunction
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId: !Ref IPVStubApiGw
+      ResourceId: !Ref GenerateTokenRequestF2FPath
+      HttpMethod: POST
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Join
+          - ""
+          - - "arn:"
+            - !Ref "AWS::Partition"
+            - ":apigateway:"
+            - !Ref "AWS::Region"
+            - ":lambda:path/2015-03-31/functions/"
+            - !GetAtt GenerateTokenRequestF2FFunction.Arn
+            - /invocations
+        IntegrationResponses:
+          - StatusCode: 200
+      MethodResponses:
+        - StatusCode: 200
+        - StatusCode: 400
+        - StatusCode: 500
+
   # -----------------------------------------
   IPVStubApiGwDeployment:
     DependsOn:
