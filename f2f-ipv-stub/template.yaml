@@ -45,11 +45,13 @@ Mappings:
       JWKSURI: "https://api-f2f-cri-api.review-o.dev.account.gov.uk"
       IPVSTUBURL: "ipvstub.review-o.dev.account.gov.uk"
       OAUTHFRONTBASEURI: "https://f2f-cri-front.review-o.dev.account.gov.uk"
+      AUD: "https://review-o.dev.account.gov.uk"
     build:
       IPVStubID: "BD7B2A5D"
       JWKSURI: "https://api.review-o.build.account.gov.uk"
       IPVSTUBURL: "ipvstub.review-o.build.account.gov.uk"
       OAUTHFRONTBASEURI:  "https://www.review-o.build.account.gov.uk"
+      AUD: "https://review-o.dev.account.gov.uk"
     staging:
       IPVStubID: "9CDA6F61"
     integration:
