@@ -391,40 +391,18 @@ Resources:
       Principal: apigateway.amazonaws.com
 
   # ------------------------------------
-  GenerateTokenRequestF2FFunction:
-    DependsOn:
-      - GenerateTokenRequestF2FFunctionLogGroup
-    Type: AWS::Serverless::Function
+  GenerateTokenRequestF2FFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
     Properties:
-      FunctionName: !Sub "GenerateTokenRequestF2FFunction-${AWS::StackName}"
-      Handler: generateTokenRequest.handler
-      CodeUri: src/handlers/
-      Environment:
-        Variables:
-          SIGNING_KEY: !Ref IPVStubKMSSigningKey
-          ADDITIONAL_KEY: !Ref IPVStubKMSAdditionalKey
-          JWT_AUDIENCE: !FindInMap [Configuration, !Ref Environment, AUD]
-      Policies:
-        - Statement:
-            - Sid: KMSSignPolicy
-              Effect: Allow
-              Action:
-                - kms:Sign
-              Resource:
-                - !GetAtt IPVStubKMSSigningKey.Arn
-      Role: !GetAtt IPVStubLambdaRole.Arn
-      PermissionsBoundary: !If
-        - UsePermissionsBoundary
-        - !Ref PermissionsBoundary
-        - !Ref AWS::NoValue
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: true
-        EntryPoints:
-          - generateTokenRequest.ts
+      RetentionInDays: 30
+      LogGroupName: !Sub "/aws/lambda/GenerateTokenRequestF2FFunction-${AWS::StackName}"
+
+  GenerateTokenRequestF2FFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt GenerateTokenRequestF2FFunction.Arn
+      Principal: apigateway.amazonaws.com
 
   #----------------------------
   JwksFunction:
