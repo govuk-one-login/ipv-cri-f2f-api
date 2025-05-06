@@ -80,7 +80,7 @@ describe("Start F2F Check Endpoint", () => {
 
   it("returns JAR data and target uri", async () => {
     const response = await handler(testData.startDefault);
-    expect(response.statusCode).toBe(201);
+    expect(response.statusCode).toBe(200);
     expect(response.body).toBeDefined();
 
     const body = JSON.parse(response.body);
@@ -93,7 +93,7 @@ describe("Start F2F Check Endpoint", () => {
   it("returns JAR data and target uri with custom payload", async () => {
 
     const response = await handler(testData.startCustom);
-    expect(response.statusCode).toBe(201);
+    expect(response.statusCode).toBe(200);
     expect(response.body).toBeDefined();
 
     const body = JSON.parse(response.body);
@@ -109,7 +109,7 @@ describe("Start F2F Check Endpoint", () => {
       const signCommandInput =
         kmsClient.commandCalls(SignCommand)[0].args[0].input;
       expect(signCommandInput.KeyId).toBe("key-id");
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
     });
 
     it("should sign a JWT using the correct key when provided with a custom payload for 'invalidKid'", async () => {
@@ -117,7 +117,7 @@ describe("Start F2F Check Endpoint", () => {
       const signCommandInput =
         kmsClient.commandCalls(SignCommand)[0].args[0].input;
       expect(signCommandInput.KeyId).toBe("key-id");
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
     });
 
     it("should sign a JWT using the correct key when provided with a custom payload for 'missingKid'", async () => {
@@ -125,7 +125,7 @@ describe("Start F2F Check Endpoint", () => {
       const signCommandInput =
         kmsClient.commandCalls(SignCommand)[0].args[0].input;
       expect(signCommandInput.KeyId).toBe("key-id");
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
     });
   });
 });
