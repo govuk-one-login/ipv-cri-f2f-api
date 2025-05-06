@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 const AUTHORIZATION_CODE = randomUUID();
 const ENCODED_REDIRECT_URI = encodeURIComponent("http://localhost:8085/callback");
 export const VALID_ACCESSTOKEN = {
+	// pragma: allowlist secret
 	body:`code=${AUTHORIZATION_CODE}&grant_type=authorization_code&redirect_uri=${ENCODED_REDIRECT_URI}&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&client_assertion=eyJraWQiOiJ0ZXN0LXNpZ25pbmcta2V5IiwidHlwIjoiSldUIiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJpcHYtY29yZS1sb2NhbCIsInN1YiI6Imlwdi1jb3JlLWxvY2FsIiwiYXVkIjoiaHR0cHM6Ly9jbGFpbWVkLWlkZW50aXR5LWNyaS5zdHVicy5hY2NvdW50Lmdvdi51ayIsImV4cCI6MTc0NTMzNDcyMSwianRpIjoiblAyWFVrOEVvMzJZdXROdVcxcUZxaF9qcGxNUUdTNENIMWRzZm5FT2xDdyJ9.7XghAgildk1qymuah5LBjgs0mvwyJySisSNeNUpqc8F3zdwqZOw6Zu2XDNVSR9P483AkhryjbwkeLJh7cs2kKQ`,	httpMethod: "POST",
 	headers: {},
 	isBase64Encoded: false,
