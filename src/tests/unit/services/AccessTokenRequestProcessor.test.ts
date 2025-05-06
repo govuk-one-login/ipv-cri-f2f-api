@@ -1,29 +1,31 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics } from "@aws-lambda-powertools/metrics";
+//import { MetricUnits } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { ISessionItem } from "../../../models/ISessionItem";
 import {
-	MockFailingKmsSigningJwtAdapter,
+	// MockFailingKmsSigningJwtAdapter,
 	MockKmsSigningTokenJwtAdapter,
 } from "../utils/MockJwtVerifierSigner";
 import { AccessTokenRequestProcessor } from "../../../services/AccessTokenRequestProcessor";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
-import { MISSING_BODY_ACCESSTOKEN, VALID_ACCESSTOKEN } from "../data/accessToken-events";
-import { Constants } from "../../../utils/Constants";
+//import { MISSING_BODY_ACCESSTOKEN } from "../data/accessToken-events";
+import { VALID_ACCESSTOKEN } from "../data/accessToken-events";
+//import { Constants } from "../../../utils/Constants";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
-import { AppError } from "../../../utils/AppError";
-import { MessageCodes } from "../../../models/enums/MessageCodes";
+// import { AppError } from "../../../utils/AppError";
+// import { MessageCodes } from "../../../models/enums/MessageCodes";
 
 let accessTokenRequestProcessorTest: AccessTokenRequestProcessor;
 const mockF2fService = mock<F2fService>();
 let mockSession: ISessionItem;
 jest.mock("../../../utils/KmsJwtAdapter");
 const passingKmsJwtAdapterFactory = () => new MockKmsSigningTokenJwtAdapter();
-const failingKmsJwtSigningAdapterFactory = () => new MockFailingKmsSigningJwtAdapter();
+//const failingKmsJwtSigningAdapterFactory = () => new MockFailingKmsSigningJwtAdapter();
 const logger = mock<Logger>();
 const metrics = mock<Metrics>();
 const ENCODED_REDIRECT_URI = encodeURIComponent("http://localhost:8085/callback");
