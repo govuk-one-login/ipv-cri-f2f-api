@@ -45,11 +45,13 @@ Mappings:
       JWKSURI: "https://api-f2f-cri-api.review-o.dev.account.gov.uk"
       IPVSTUBURL: "ipvstub.review-o.dev.account.gov.uk"
       OAUTHFRONTBASEURI: "https://f2f-cri-front.review-o.dev.account.gov.uk"
+      AUD: "https://review-o.dev.account.gov.uk"
     build:
       IPVStubID: "BD7B2A5D"
       JWKSURI: "https://api.review-o.build.account.gov.uk"
       IPVSTUBURL: "ipvstub.review-o.build.account.gov.uk"
       OAUTHFRONTBASEURI:  "https://www.review-o.build.account.gov.uk"
+      AUD: "https://review-o.build.account.gov.uk"
     staging:
       IPVStubID: "9CDA6F61"
     integration:
@@ -252,12 +254,50 @@ Resources:
         - StatusCode: 400
         - StatusCode: 500
 
+  # Start token-----------------------------------------
+  GenerateTokenRequestF2FPath:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref IPVStubApiGw
+      ParentId: !GetAtt IPVStubApiGw.RootResourceId
+      PathPart: generate-token-request
+
+  GenerateTokenRequestF2FMethodPost:
+    DependsOn:
+      - GenerateTokenRequestF2FPath
+      - GenerateTokenRequestF2FFunction
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId: !Ref IPVStubApiGw
+      ResourceId: !Ref GenerateTokenRequestF2FPath
+      HttpMethod: POST
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Join
+          - ""
+          - - "arn:"
+            - !Ref "AWS::Partition"
+            - ":apigateway:"
+            - !Ref "AWS::Region"
+            - ":lambda:path/2015-03-31/functions/"
+            - !GetAtt GenerateTokenRequestF2FFunction.Arn
+            - /invocations
+        IntegrationResponses:
+          - StatusCode: 200
+      MethodResponses:
+        - StatusCode: 200
+        - StatusCode: 400
+        - StatusCode: 500
+
   # -----------------------------------------
   IPVStubApiGwDeployment:
     DependsOn:
       - RedirectMethodGet
       - JwksMethodGet
       - StartF2FMethodGet
+      - GenerateTokenRequestF2FMethodPost
     Type: "AWS::ApiGateway::Deployment"
     Properties:
       RestApiId: !Ref IPVStubApiGw
@@ -348,6 +388,55 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt StartF2FCheckFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  # ------------------------------------
+  GenerateTokenRequestF2FFunction:
+    DependsOn:
+      - GenerateTokenRequestF2FFunctionLogGroup
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "GenerateTokenRequestF2FFunction-${AWS::StackName}"
+      Handler: generateTokenRequest.handler
+      CodeUri: src/
+      Environment:
+        Variables:
+          SIGNING_KEY: !Ref IPVStubKMSSigningKey
+          ADDITIONAL_KEY: !Ref IPVStubKMSAdditionalKey
+          JWT_AUDIENCE: !FindInMap [Configuration, !Ref Environment, AUD]
+      Policies:
+        - Statement:
+            - Sid: KMSSignPolicy
+              Effect: Allow
+              Action:
+                - kms:Sign
+              Resource:
+                - !GetAtt IPVStubKMSSigningKey.Arn
+      Role: !GetAtt IPVStubLambdaRole.Arn
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - handlers/generateTokenRequest.ts
+
+  GenerateTokenRequestF2FFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 30
+      LogGroupName: !Sub "/aws/lambda/GenerateTokenRequestF2FFunction-${AWS::StackName}"
+
+  GenerateTokenRequestF2FFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt GenerateTokenRequestF2FFunction.Arn
       Principal: apigateway.amazonaws.com
 
   #----------------------------

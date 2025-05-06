@@ -6,21 +6,24 @@ export interface EvidenceRequested {
   identityFraudScore?: number;
 }
 
-export interface JarPayload {
-  [key: string]: any;
+export interface JWTPayload {
+  // Required as per OpenID Connect documentation
+  iss: string;
   sub: string;
-  redirect_uri: string;
-  client_id: string;
-  response_type: "code";
-  state: string;
+  aud: string;
+  jti: string;
   exp: number;
-  nbf: number;
-  iat: number;
-  aud?: string | string[];
+  // Additional optional values
+  redirect_uri?: string;
+  client_id?: string;
+  response_type?: string;
+  state?: string;
+  nbf?: number;
+  iat?: number;
   scope?: string;
   nonce?: string;
-  iss?: string;
   evidence_requested?: EvidenceRequested | undefined;
+  [key: string]: any;
 }
 export interface Jwks {
   keys: JsonWebKey[];

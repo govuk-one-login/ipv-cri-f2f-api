@@ -12,6 +12,7 @@ import crypto from "node:crypto";
 import { sleep } from "../../utils/Sleep";
 import {
 	StubStartRequest,
+	StubStartResponse,
 	SessionResponse,
 	DocSelectionData,
 	AuthorizationResponse,
@@ -60,7 +61,7 @@ interface KidOptions {
 	journeyType: 'invalidKid' | 'missingKid';
 }
 
-export async function stubStartPost(stubPayload: StubStartRequest, options?: KidOptions): Promise<AxiosResponse<any>> {
+export async function stubStartPost(stubPayload: StubStartRequest, options?: KidOptions): Promise<AxiosResponse<StubStartResponse>> {
 	const path = constants.DEV_IPV_F2F_STUB_URL!;
   
 	if (constants.THIRD_PARTY_CLIENT_ID) {
@@ -77,7 +78,7 @@ export async function stubStartPost(stubPayload: StubStartRequest, options?: Kid
   
 	try {
 	  const postRequest = await axios.post(path, stubPayload);
-	  expect(postRequest.status).toBe(201);
+	  expect(postRequest.status).toBe(200);
 	  return postRequest;
 	} catch (error: any) {
 	  console.error(`Error response from ${path} endpoint: ${error}`);
