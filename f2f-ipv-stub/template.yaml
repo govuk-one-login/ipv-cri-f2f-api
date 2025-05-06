@@ -254,6 +254,14 @@ Resources:
         - StatusCode: 400
         - StatusCode: 500
 
+  # Start token-----------------------------------------
+  GenerateTokenRequestF2FPath:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref IPVStubApiGw
+      ParentId: !GetAtt IPVStubApiGw.RootResourceId
+      PathPart: generate-token-request
+
   # -----------------------------------------
   IPVStubApiGwDeployment:
     DependsOn:
