@@ -398,7 +398,7 @@ Resources:
     Properties:
       FunctionName: !Sub "GenerateTokenRequestF2FFunction-${AWS::StackName}"
       Handler: generateTokenRequest.handler
-      CodeUri: src/handlers/
+      CodeUri: src/
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
