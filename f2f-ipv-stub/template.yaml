@@ -297,6 +297,7 @@ Resources:
       - RedirectMethodGet
       - JwksMethodGet
       - StartF2FMethodGet
+      - GenerateTokenRequestF2FMethodPost
     Type: "AWS::ApiGateway::Deployment"
     Properties:
       RestApiId: !Ref IPVStubApiGw
