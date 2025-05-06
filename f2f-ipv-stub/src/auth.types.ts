@@ -8,7 +8,7 @@ export interface EvidenceRequested {
 
 export interface JarPayload {
   [key: string]: any;
-  sub: string;
+  sub: string
   redirect_uri: string;
   client_id: string;
   response_type: "code";
