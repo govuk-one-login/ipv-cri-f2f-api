@@ -71,7 +71,6 @@ export class AccessTokenRequestProcessor {
 
 			let session: ISessionItem | undefined;
 
-			//try {
 				session = await this.f2fService.getSessionByAuthorizationCode(requestPayload.code);
 				if (!session) {
 					this.logger.info(`No session found by authorization code: : ${requestPayload.code}`, { messageCode: MessageCodes.SESSION_NOT_FOUND });
@@ -100,17 +99,6 @@ export class AccessTokenRequestProcessor {
 					});
 					return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 				}	
-			// } catch (error) {
-			// 	if (error instanceof AppError) {
-			// 		return Response(error.statusCode, error.message);
-			// 	}
-
-			// 	this.logger.error("Error while retrieving the session", {
-			// 		messageCode: MessageCodes.SESSION_NOT_FOUND,
-			// 		error,
-			// 	});
-			// 	return Response(HttpCodesEnum.UNAUTHORIZED, "Error while retrieving the session");
-			// }
 
 			if (session.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED) {
 				const jwt: string = requestPayload.client_assertion;
