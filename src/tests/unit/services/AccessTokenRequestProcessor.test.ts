@@ -109,13 +109,13 @@ describe("AccessTokenRequestProcessor", () => {
 
 	// });
 
-	// it("Returns 401 Unauthorized response when grant_type parameter is not equal to 'authorization_code'", async () => {
-	// 	request.body = `code=${AUTHORIZATION_CODE}&grant_type=WRONG_CODE&redirect_uri=${ENCODED_REDIRECT_URI}`;
-	// 	const out: APIGatewayProxyResult = await accessTokenRequestProcessorTest.processRequest(request);
+	it("Returns 401 Unauthorized response when grant_type parameter is not equal to 'authorization_code'", async () => {
+		request.body = `code=${AUTHORIZATION_CODE}&grant_type=WRONG_CODE&redirect_uri=${ENCODED_REDIRECT_URI}`;
+		const out: APIGatewayProxyResult = await accessTokenRequestProcessorTest.processRequest(request);
 
-	// 	expect(out.body).toBe("Invalid grant_type parameter");
-	// 	expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
-	// });
+		expect(out.body).toBe("Invalid grant_type parameter");
+		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
+	});
 
 	// it("Returns 401 Unauthorized response when code parameter is not a valid UUID", async () => {
 	// 	request.body = `code=1234&grant_type=authorization_code&redirect_uri=${ENCODED_REDIRECT_URI}`;
