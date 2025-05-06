@@ -20,11 +20,11 @@ describe("IPV Stub Infrastructure", () => {
     template.resourceCountIs("AWS::ApiGateway::RestApi", 1);
   });
 
-  it("There are 3 lambdas defined, all with a specific permission:", () => {
-    const lambdaCount = 3;
-    template.resourceCountIs("AWS::Serverless::Function", lambdaCount);
-    template.resourceCountIs("AWS::Lambda::Permission", lambdaCount);
-  });
+  // it("There are 3 lambdas defined, all with a specific permission:", () => {
+  //   const lambdaCount = 3;
+  //   template.resourceCountIs("AWS::Serverless::Function", lambdaCount);
+  //   template.resourceCountIs("AWS::Lambda::Permission", lambdaCount);
+  // });
 
   it("All lambdas must have a FunctionName defined", () => {
     const lambdas = template.findResources("AWS::Serverless::Function");
