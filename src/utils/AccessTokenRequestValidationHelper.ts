@@ -20,6 +20,8 @@ export class AccessTokenRequestValidationHelper {
 		const code = searchParams.get(Constants.CODE);
 		const redirectUri = searchParams.get(Constants.REDIRECT_URL);
 		const grant_type = searchParams.get(Constants.GRANT_TYPE);
+		const client_assertion_type = searchParams.get(Constants.CLIENT_ASSERTION_TYPE);
+		const client_assertion = searchParams.get(Constants.CLIENT_ASSERTION);
 
 		if (!redirectUri) throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Invalid request: Missing redirect_uri parameter");
 		if (!code) throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Invalid request: Missing code parameter");
@@ -32,7 +34,13 @@ export class AccessTokenRequestValidationHelper {
 			throw new AppError(HttpCodesEnum.UNAUTHORIZED, "AuthorizationCode must be a valid uuid");
 		}
 
-		return { grant_type, code, redirectUri };
+		if (!client_assertion_type || client_assertion_type !== Constants.CLIENT_ASSERTION_TYPE_JWT_BEARER) {
+			throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Invalid client_assertion_type parameter");
+		}
+	
+		if (!client_assertion) throw new AppError(HttpCodesEnum.UNAUTHORIZED, "Invalid request: Missing client_assertion parameter");
+	
+		return { grant_type, code, redirectUri, client_assertion_type, client_assertion };
 	}
 
 	validateTokenRequestToRecord(sessionItem: ISessionItem, redirectUri: string): void {

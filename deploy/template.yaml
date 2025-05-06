@@ -1437,6 +1437,7 @@ Resources:
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
+          CLIENT_CONFIG: !FindInMap [ EnvironmentVariables, !Ref Environment, CLIENTS ]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
