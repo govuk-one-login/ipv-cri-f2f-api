@@ -99,7 +99,7 @@ export class AccessTokenRequestProcessor {
 				const config = JSON.parse(this.clientConfig) as ClientConfig[];
 				configClient = config.find(c => c.clientId === session?.clientId);
 			} catch (error: any) {
-				this.logger.error("Invalid or missing client configuration table", {
+				this.logger.error("Invalid22 or missing client configuration table", {
 					error,
 					messageCode: MessageCodes.MISSING_CONFIGURATION,
 				});
@@ -130,7 +130,7 @@ export class AccessTokenRequestProcessor {
 					/* eslint-disable @typescript-eslint/no-unused-vars */
 				} catch (error) {
 					this.logger.error("Failed to sign the accessToken Jwt", {error, messageCode: MessageCodes.FAILED_SIGNING_JWT });
-					return Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the accessToken Jwt");
+					return Response(HttpCodesEnum.SERVER_ERROR, "Failed 22to sign the accessToken Jwt");
 				}
 
 				// Update the sessionTable with accessTokenExpiryDate and AuthSessionState.
