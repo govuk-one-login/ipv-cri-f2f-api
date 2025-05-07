@@ -36,7 +36,7 @@ export class AccessTokenRequestProcessor {
 
 	private readonly environmentVariables: EnvironmentVariables;
 
-	private readonly clientConfig: string;
+	// private readonly clientConfig: string;
 
 	constructor(logger: Logger, metrics: Metrics) {
 		this.logger = logger;
@@ -45,7 +45,7 @@ export class AccessTokenRequestProcessor {
 		this.accessTokenRequestValidationHelper = new AccessTokenRequestValidationHelper();
 		this.metrics = metrics;
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
-		this.clientConfig = this.environmentVariables.clientConfig();
+		// this.clientConfig = this.environmentVariables.clientConfig();
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics): AccessTokenRequestProcessor {
