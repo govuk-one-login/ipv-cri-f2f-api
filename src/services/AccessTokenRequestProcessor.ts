@@ -122,7 +122,7 @@ export class AccessTokenRequestProcessor {
 				return Response(HttpCodesEnum.UNAUTHORIZED, `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state - ${session.authSessionState}`);
 			}
 		} catch (err: any) {
-			this.logger.error({ message: "Error processing access token request", err });
+			this.logger.error({ message: "Error processing access token2 request", err });
 			return Response(err.statusCode, err.message);
 		}
 	}
