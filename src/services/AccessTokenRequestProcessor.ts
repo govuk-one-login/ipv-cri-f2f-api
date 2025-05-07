@@ -15,7 +15,6 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AppError } from "../utils/AppError";
-// import { Jwt } from "../utils/IVeriCredential";
 
 interface ClientConfig {
 	jwksEndpoint: string;
@@ -130,7 +129,7 @@ export class AccessTokenRequestProcessor {
 					// ignored so as not log PII
 					/* eslint-disable @typescript-eslint/no-unused-vars */
 				} catch (error) {
-					this.logger.error("Failed to sign the accessToken Jwt", { messageCode: MessageCodes.FAILED_SIGNING_JWT });
+					this.logger.error("Failed to sign the accessToken Jwt", {error, messageCode: MessageCodes.FAILED_SIGNING_JWT });
 					return Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the accessToken Jwt");
 				}
 
