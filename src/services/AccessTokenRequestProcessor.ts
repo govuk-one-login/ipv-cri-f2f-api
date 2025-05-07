@@ -95,23 +95,23 @@ export class AccessTokenRequestProcessor {
 
 			let configClient: ClientConfig | undefined;
 
-			try {
-				const config = JSON.parse(this.clientConfig) as ClientConfig[];
-				configClient = config.find(c => c.clientId === session?.clientId);
-			} catch (error: any) {
-				this.logger.error("Invalid or missing client configuration table", {
-					error,
-					messageCode: MessageCodes.MISSING_CONFIGURATION,
-				});
-				return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
-			}
+			// try {
+			// 	const config = JSON.parse(this.clientConfig) as ClientConfig[];
+			// 	configClient = config.find(c => c.clientId === session?.clientId);
+			// } catch (error: any) {
+			// 	this.logger.error("Invalid or missing client configuration table", {
+			// 		error,
+			// 		messageCode: MessageCodes.MISSING_CONFIGURATION,
+			// 	});
+			// 	return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
+			// }
 	
-			if (!configClient) {
-				this.logger.error("Unrecognised client in request", {
-					messageCode: MessageCodes.UNRECOGNISED_CLIENT,
-				});
-				return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
-			}
+			// if (!configClient) {
+			// 	this.logger.error("Unrecognised client in request", {
+			// 		messageCode: MessageCodes.UNRECOGNISED_CLIENT,
+			// 	});
+			// 	return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+			// }
 
 			if (session.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED) {
 
