@@ -16,10 +16,10 @@ import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AppError } from "../utils/AppError";
 
-interface ClientConfig {
-	jwksEndpoint: string;
-	clientId: string;
-}
+// interface ClientConfig {
+// 	jwksEndpoint: string;
+// 	clientId: string;
+// }
 
 export class AccessTokenRequestProcessor {
 	private static instance: AccessTokenRequestProcessor;
