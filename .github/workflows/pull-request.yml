@@ -43,25 +43,6 @@ env: # Only adding the variables in that are required for
   PACT_PROVIDER_NAME: ${{ secrets.PACT_PROVIDER_NAME }}
   PACT_PROVIDER_VERSION: ${{ secrets.PACT_PROVIDER_VERSION }}
 
-  '[
-          {
-              "jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
-              "clientId":"5C584572",
-              "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
-              "YotiBaseUrl": "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk",
-              "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify",
-              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
-          },
-          {
-              "jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
-              "clientId":"SandboxJourneyFlow",
-              "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
-              "YotiBaseUrl": "https://f2f-cri-outbound-proxy-proxy.review-o.dev.account.gov.uk/yoti",
-              "GovNotifyApi": "https://api.notifications.service.gov.uk",
-              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
-          }
-        ]'
-
 jobs:
   run-code-check:
     name: Code Checks
