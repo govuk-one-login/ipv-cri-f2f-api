@@ -15,7 +15,7 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AppError } from "../utils/AppError";
-import { Jwt } from "../utils/IVeriCredential";
+// import { Jwt } from "../utils/IVeriCredential";
 
 interface ClientConfig {
 	jwksEndpoint: string;
