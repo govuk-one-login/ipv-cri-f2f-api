@@ -94,7 +94,7 @@ export class AccessTokenRequestProcessor {
 			}
 
 			let configClient: ClientConfig | undefined;
-			console.log("CLIENTZZZZ", this.clientConfig)
+			console.log("CLIENTZZZZ", this.clientConfig);
 			try {
 				const config = JSON.parse(this.clientConfig) as ClientConfig[];
 				configClient = config.find(c => c.clientId === session?.clientId);
