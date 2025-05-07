@@ -41,6 +41,7 @@ env: # Only adding the variables in that are required for
   PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}?testSource=${{ secrets.PACT_BROKER_SOURCE_HEADER }}
   PACT_PROVIDER_NAME: ${{ secrets.PACT_PROVIDER_NAME }}
   PACT_PROVIDER_VERSION: ${{ secrets.PACT_PROVIDER_VERSION }}
+  CLIENT_CONFIG: "Some test string"
 
 jobs:
   run-code-check:
