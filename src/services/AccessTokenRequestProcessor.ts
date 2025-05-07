@@ -16,10 +16,10 @@ import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AppError } from "../utils/AppError";
 
-// interface ClientConfig {
-// 	jwksEndpoint: string;
-// 	clientId: string;
-// }
+interface ClientConfig {
+	jwksEndpoint: string;
+	clientId: string;
+}
 
 export class AccessTokenRequestProcessor {
 	private static instance: AccessTokenRequestProcessor;
@@ -36,7 +36,7 @@ export class AccessTokenRequestProcessor {
 
 	private readonly environmentVariables: EnvironmentVariables;
 
-	// private readonly clientConfig: string;
+	private readonly clientConfig: string;
 
 	constructor(logger: Logger, metrics: Metrics) {
 		this.logger = logger;
@@ -45,7 +45,7 @@ export class AccessTokenRequestProcessor {
 		this.accessTokenRequestValidationHelper = new AccessTokenRequestValidationHelper();
 		this.metrics = metrics;
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
-		// this.clientConfig = this.environmentVariables.clientConfig();
+		this.clientConfig = this.environmentVariables.clientConfig();
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics): AccessTokenRequestProcessor {
@@ -93,25 +93,25 @@ export class AccessTokenRequestProcessor {
 				return Response(HttpCodesEnum.UNAUTHORIZED, "Error while retrieving the session");
 			}
 
-			// let configClient: ClientConfig | undefined;
+			let configClient: ClientConfig | undefined;
 
-			// try {
-			// 	const config = JSON.parse(this.clientConfig) as ClientConfig[];
-			// 	configClient = config.find(c => c.clientId === session?.clientId);
-			// } catch (error: any) {
-			// 	this.logger.error("Invalid or missing client configuration table", {
-			// 		error,
-			// 		messageCode: MessageCodes.MISSING_CONFIGURATION,
-			// 	});
-			// 	return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
-			// }
+			try {
+				const config = JSON.parse(this.clientConfig) as ClientConfig[];
+				configClient = config.find(c => c.clientId === session?.clientId);
+			} catch (error: any) {
+				this.logger.error("Invalid or missing client configuration table", {
+					error,
+					messageCode: MessageCodes.MISSING_CONFIGURATION,
+				});
+				return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
+			}
 	
-			// if (!configClient) {
-			// 	this.logger.error("Unrecognised client in request", {
-			// 		messageCode: MessageCodes.UNRECOGNISED_CLIENT,
-			// 	});
-			// 	return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
-			// }
+			if (!configClient) {
+				this.logger.error("Unrecognised client in request", {
+					messageCode: MessageCodes.UNRECOGNISED_CLIENT,
+				});
+				return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+			}
 
 			if (session.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED) {
 
