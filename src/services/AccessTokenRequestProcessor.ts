@@ -99,8 +99,8 @@ export class AccessTokenRequestProcessor {
 					// ignored so as not log PII
 					/* eslint-disable @typescript-eslint/no-unused-vars */
 				} catch (error) {
-					this.logger.error("Failed to sign the accessToken Jwt", { messageCode: MessageCodes.FAILED_SIGNING_JWT });
-					return Response(error, HttpCodesEnum.SERVER_ERROR, "Failed to sign the accessToken Jwt");
+					this.logger.error("Failed to sign the accessToken Jwt", {error, messageCode: MessageCodes.FAILED_SIGNING_JWT });
+					return Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the accessToken Jwt");
 				}
 
 				// Update the sessionTable with accessTokenExpiryDate and AuthSessionState.
