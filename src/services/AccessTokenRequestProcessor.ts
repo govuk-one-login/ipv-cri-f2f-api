@@ -15,6 +15,12 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AppError } from "../utils/AppError";
+import { Jwt } from "../utils/IVeriCredential";
+
+interface ClientConfig {
+	jwksEndpoint: string;
+	clientId: string;
+}
 
 export class AccessTokenRequestProcessor {
 	private static instance: AccessTokenRequestProcessor;
@@ -31,6 +37,8 @@ export class AccessTokenRequestProcessor {
 
 	private readonly environmentVariables: EnvironmentVariables;
 
+	private readonly clientConfig: string;
+
 	constructor(logger: Logger, metrics: Metrics) {
 		this.logger = logger;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
@@ -38,6 +46,7 @@ export class AccessTokenRequestProcessor {
 		this.accessTokenRequestValidationHelper = new AccessTokenRequestValidationHelper();
 		this.metrics = metrics;
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
+		this.clientConfig = this.environmentVariables.clientConfig();
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics): AccessTokenRequestProcessor {
@@ -59,8 +68,9 @@ export class AccessTokenRequestProcessor {
 				}
 				return Response(HttpCodesEnum.UNAUTHORIZED, "An error has occurred while validating the Access token request payload.");
 			}
+
 			let session: ISessionItem | undefined;
-			try {
+
 				session = await this.f2fService.getSessionByAuthorizationCode(requestPayload.code);
 				if (!session) {
 					this.logger.info(`No session found by authorization code: : ${requestPayload.code}`, { messageCode: MessageCodes.SESSION_NOT_FOUND });
@@ -71,19 +81,62 @@ export class AccessTokenRequestProcessor {
 				this.logger.appendKeys({
 					govuk_signin_journey_id: session?.clientSessionId,
 				});
-			} catch (error) {
-				if (error instanceof AppError) {
-					return Response(error.statusCode, error.message);
+				let configClient: ClientConfig | undefined;
+				try {
+					const config = JSON.parse(this.clientConfig) as ClientConfig[];
+					configClient = config.find(c => c.clientId === session?.clientId);
+				} catch (error: any) {
+					this.logger.error("Invalid or missing client configuration table", {
+						error,
+						messageCode: MessageCodes.MISSING_CONFIGURATION,
+					});
+					return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
 				}
-
-				this.logger.error("Error while retrieving the session", {
-					messageCode: MessageCodes.SESSION_NOT_FOUND,
-					error,
-				});
-				return Response(HttpCodesEnum.UNAUTHORIZED, "Error while retrieving the session");
-			}
+		
+				if (!configClient) {
+					this.logger.error("Unrecognised client in request", {
+						messageCode: MessageCodes.UNRECOGNISED_CLIENT,
+					});
+					return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+				}	
 
 			if (session.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED) {
+				const jwt: string = requestPayload.client_assertion;
+
+				let parsedJwt: Jwt;
+				try {
+					parsedJwt = this.kmsJwtAdapter.decode(jwt);
+				} catch (error: any) {
+					this.logger.error("Failed to decode supplied JWT", {
+						error,
+						messageCode: MessageCodes.FAILED_DECODING_JWT,
+					});
+					return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
+				}
+
+				try {
+					if (configClient.jwksEndpoint) {
+						const payload = await this.kmsJwtAdapter.verifyWithJwks(jwt, configClient.jwksEndpoint, parsedJwt.header.kid);
+
+						if (!payload) {
+							this.logger.error("Failed to verify JWT", {
+								messageCode: MessageCodes.FAILED_VERIFYING_JWT,
+							});
+							return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
+						}
+					} else {
+						this.logger.error("Incomplete Client Configuration", {
+							messageCode: MessageCodes.MISSING_CONFIGURATION,
+						});
+						return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
+					}
+				} catch (error: any) {
+					this.logger.error("Invalid request: Could not verify JWT", {
+						error,
+						messageCode: MessageCodes.FAILED_VERIFYING_JWT,
+					});
+					return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
+				}
 
 				this.accessTokenRequestValidationHelper.validateTokenRequestToRecord(session, requestPayload.redirectUri);
 				// Generate access token

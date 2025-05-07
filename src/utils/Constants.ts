@@ -118,5 +118,11 @@ export class Constants {
 
 	static readonly PDF_PREFERENCE_PRINTED_LETTER = "PRINTED_LETTER";
 
-	static readonly PDF_PREFERENCE_EMAIL_ONLY = "EMAIL_ONLY";  
+	static readonly PDF_PREFERENCE_EMAIL_ONLY = "EMAIL_ONLY";
+	
+	static readonly CLIENT_ASSERTION = "client_assertion";
+
+	static readonly CLIENT_ASSERTION_TYPE = "client_assertion_type";
+
+	static readonly CLIENT_ASSERTION_TYPE_JWT_BEARER = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 }
