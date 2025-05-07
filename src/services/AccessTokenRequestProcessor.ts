@@ -57,7 +57,6 @@ export class AccessTokenRequestProcessor {
 	}
 
 	async processRequest(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-		console.log("TOKEN EVENT!!!", event)
 		try {
 			let requestPayload;
 			try {
@@ -103,7 +102,6 @@ export class AccessTokenRequestProcessor {
 
 			if (session.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED) {
 				const jwt: string = requestPayload.client_assertion;
-				console.log("JWT", jwt);
 
 				let parsedJwt: Jwt;
 				try {
