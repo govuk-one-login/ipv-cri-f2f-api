@@ -7,6 +7,7 @@ import {
 	getSessionById,
 	getSessionAndVerifyKey,
 	authorizationGet,
+	startTokenPost,
 	tokenPost,
 	userInfoPost,
 	sessionConfigurationGet,
@@ -361,8 +362,8 @@ describe("/token endpoint", () => {
 		await postDocumentSelection(docSelectionData, sessionId);
 
 		const authResponse = await authorizationGet(sessionId);
-
-		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri);
+		const startTokenResponse = await startTokenPost();
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
 		expect(tokenResponse.status).toBe(200);
 
 
@@ -386,7 +387,9 @@ describe("/userinfo endpoint", () => {
 
 		const authResponse = await authorizationGet(sessionId);
 
-		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri);
+		const startTokenResponse = await startTokenPost();
+		
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
 
 		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
 		expect(userInfoResponse.status).toBe(202);
