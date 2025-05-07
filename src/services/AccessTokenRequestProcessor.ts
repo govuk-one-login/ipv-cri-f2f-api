@@ -100,7 +100,7 @@ export class AccessTokenRequestProcessor {
 					/* eslint-disable @typescript-eslint/no-unused-vars */
 				} catch (error) {
 					this.logger.error("Failed to sign the accessToken Jwt", { messageCode: MessageCodes.FAILED_SIGNING_JWT });
-					return Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the accessToken Jwt");
+					return Response(error, HttpCodesEnum.SERVER_ERROR, "Failed to sign the accessToken Jwt");
 				}
 
 				// Update the sessionTable with accessTokenExpiryDate and AuthSessionState.
