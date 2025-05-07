@@ -93,7 +93,7 @@ export class AccessTokenRequestProcessor {
 				return Response(HttpCodesEnum.UNAUTHORIZED, "Error while retrieving the session");
 			}
 
-			let configClient: ClientConfig | undefined;
+			// let configClient: ClientConfig | undefined;
 
 			// try {
 			// 	const config = JSON.parse(this.clientConfig) as ClientConfig[];
