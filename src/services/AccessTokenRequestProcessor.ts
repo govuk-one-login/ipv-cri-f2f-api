@@ -102,7 +102,6 @@ export class AccessTokenRequestProcessor {
 
 			if (session.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED) {
 				const jwt: string = requestPayload.client_assertion;
-				console.log("JWT", jwt);
 
 				let parsedJwt: Jwt;
 				try {
@@ -114,8 +113,6 @@ export class AccessTokenRequestProcessor {
 					});
 					return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
 				}
-
-				console.log("ParsedJWT", parsedJwt);
 
 				try {
 					if (configClient.jwksEndpoint) {
