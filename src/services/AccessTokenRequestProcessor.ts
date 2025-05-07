@@ -57,6 +57,7 @@ export class AccessTokenRequestProcessor {
 	}
 
 	async processRequest(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+		console.log("TOKEN EVENT!!!", event)
 		try {
 			let requestPayload;
 			try {
