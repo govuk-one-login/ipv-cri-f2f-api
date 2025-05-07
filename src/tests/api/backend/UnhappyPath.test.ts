@@ -5,6 +5,7 @@ import {
 	startStubServiceAndReturnSessionId, 
 	postDocumentSelection, 
 	authorizationGet, 
+	startTokenPost,
 	tokenPost, 
 	userInfoPost, 
 	sessionConfigurationGet,
@@ -128,6 +129,51 @@ describe("/documentSelection endpoint", () => {
 	});
 });
 
+describe("/token Endpoint", () => {
+	let sessionId: string;
+	
+
+	beforeEach(async () => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = "0000";
+		const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+		sessionId = newSessionId;
+		await postDocumentSelection(dataPassport, sessionId);
+	});
+
+	it("Unsuccessful Request Tests - Invalid Kid in Token JWT", async () => {
+		const authResponse = await authorizationGet(sessionId);
+		const startTokenResponse = await startTokenPost({ journeyType: 'invalidKid' });
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
+		expect(tokenResponse.status).toBe(401);
+		expect(tokenResponse.data).toBe("Unauthorized");
+	});
+
+	it("Unsuccessful Request Tests - Missing Kid in Token JWT", async () => {
+		const authResponse = await authorizationGet(sessionId);
+		const startTokenResponse = await startTokenPost({ journeyType: 'missingKid' });
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
+		expect(tokenResponse.status).toBe(401);
+		expect(tokenResponse.data).toBe("Unauthorized");
+	});
+
+	it("Unsuccessful Request Tests - Request does not include client_assertion", async () => {
+		const authResponse = await authorizationGet(sessionId);
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, "");
+		expect(tokenResponse.status).toBe(401);
+		expect(tokenResponse.data).toBe("Invalid request: Missing client_assertion parameter");
+	});
+
+	it("Unsuccessful Request Tests - Request does not include client_assertion_type", async () => {
+		const authResponse = await authorizationGet(sessionId);
+		const startTokenResponse = await startTokenPost();
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data, " ");
+		expect(tokenResponse.status).toBe(401);
+		expect(tokenResponse.data).toBe("Invalid client_assertion_type parameter");
+	});
+
+});
+
 describe("/userInfo Endpoint", () => {
 	let sessionId: string;
 
@@ -141,7 +187,8 @@ describe("/userInfo Endpoint", () => {
 	it("Unsuccessful Request Tests - Invalid Signature", async () => {
 		await postDocumentSelection(dataPassport, sessionId);
 		const authResponse = await authorizationGet(sessionId);
-		await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
+		const startTokenResponse = await startTokenPost();
+		await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
 		const userInfoResponse = await userInfoPost("Bearer 123");
 
 		expect(userInfoResponse.status).toBe(400);
@@ -151,7 +198,8 @@ describe("/userInfo Endpoint", () => {
 	it("Unsuccessful Request Tests - Invalid Authorization Header", async () => {
 		await postDocumentSelection(dataPassport, sessionId);
 		const authResponse = await authorizationGet(sessionId);
-		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri );
+		const startTokenResponse = await startTokenPost();
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
 		const userInfoResponse = await userInfoPost(tokenResponse.data.access_token);
 
 		expect(userInfoResponse.status).toBe(400);
