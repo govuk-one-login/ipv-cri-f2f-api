@@ -15,6 +15,12 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AppError } from "../utils/AppError";
+import { Jwt } from "../utils/IVeriCredential";
+
+interface ClientConfig {
+	jwksEndpoint: string;
+	clientId: string;
+}
 
 export class AccessTokenRequestProcessor {
 	private static instance: AccessTokenRequestProcessor;
@@ -31,6 +37,8 @@ export class AccessTokenRequestProcessor {
 
 	private readonly environmentVariables: EnvironmentVariables;
 
+	private readonly clientConfig: string;
+
 	constructor(logger: Logger, metrics: Metrics) {
 		this.logger = logger;
 		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
@@ -38,6 +46,7 @@ export class AccessTokenRequestProcessor {
 		this.accessTokenRequestValidationHelper = new AccessTokenRequestValidationHelper();
 		this.metrics = metrics;
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
+		this.clientConfig = this.environmentVariables.clientConfig();
 	}
 
 	static getInstance(logger: Logger, metrics: Metrics): AccessTokenRequestProcessor {
@@ -49,6 +58,7 @@ export class AccessTokenRequestProcessor {
 
 	async processRequest(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 		try {
+
 			let requestPayload;
 			try {
 				requestPayload = this.accessTokenRequestValidationHelper.validatePayload(event.body);
@@ -59,6 +69,7 @@ export class AccessTokenRequestProcessor {
 				}
 				return Response(HttpCodesEnum.UNAUTHORIZED, "An error has occurred while validating the Access token request payload.");
 			}
+
 			let session: ISessionItem | undefined;
 			try {
 				session = await this.f2fService.getSessionByAuthorizationCode(requestPayload.code);
@@ -81,6 +92,26 @@ export class AccessTokenRequestProcessor {
 					error,
 				});
 				return Response(HttpCodesEnum.UNAUTHORIZED, "Error while retrieving the session");
+			}
+
+			let configClient: ClientConfig | undefined;
+
+			try {
+				const config = JSON.parse(this.clientConfig) as ClientConfig[];
+				configClient = config.find(c => c.clientId === session?.clientId);
+			} catch (error: any) {
+				this.logger.error("Invalid or missing client configuration table", {
+					error,
+					messageCode: MessageCodes.MISSING_CONFIGURATION,
+				});
+				return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
+			}
+	
+			if (!configClient) {
+				this.logger.error("Unrecognised client in request", {
+					messageCode: MessageCodes.UNRECOGNISED_CLIENT,
+				});
+				return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 			}
 
 			if (session.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED) {
