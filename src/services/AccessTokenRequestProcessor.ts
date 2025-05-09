@@ -78,6 +78,7 @@ export class AccessTokenRequestProcessor {
 				}
 				this.logger.appendKeys({ sessionId: session.sessionId });
 				this.logger.info({ message: "Found Session" });
+				console.log("Force GH checks to run");
 				this.logger.appendKeys({
 					govuk_signin_journey_id: session?.clientSessionId,
 				});
