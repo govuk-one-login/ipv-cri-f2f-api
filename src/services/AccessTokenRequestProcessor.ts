@@ -74,7 +74,7 @@ export class AccessTokenRequestProcessor {
 				session = await this.f2fService.getSessionByAuthorizationCode(requestPayload.code);
 				if (!session) {
 					this.logger.info(`No session found by authorization code: : ${requestPayload.code}`, { messageCode: MessageCodes.SESSION_NOT_FOUND });
-					return Response(HttpCodesEnum.UNAUTHORIZED, `No session2 found by authorization code: ${requestPayload.code}`);
+					return Response(HttpCodesEnum.UNAUTHORIZED, `No session found by authorization code: ${requestPayload.code}`);
 				}
 				this.logger.appendKeys({ sessionId: session.sessionId });
 				this.logger.info({ message: "Found Session" });
