@@ -22,7 +22,6 @@ describe("Pact Verification", () => {
 			pactBrokerUsername: process.env.PACT_BROKER_USER,
 			pactBrokerPassword: process.env.PACT_BROKER_PASSWORD,
 			consumerVersionSelectors: [
-				{ mainBranch: false },
 				{ branch: "PYIC-8320-add-kid-to-contract-tests" },
 				{ deployedOrReleased: true },
 			  ],
