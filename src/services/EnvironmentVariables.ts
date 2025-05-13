@@ -155,6 +155,7 @@ export class EnvironmentVariables {
 
 				if (!this.SESSION_TABLE || this.SESSION_TABLE.trim().length === 0 ||
 					!this.KMS_KEY_ARN || this.KMS_KEY_ARN.trim().length === 0 ||
+					!this.CLIENT_CONFIG || this.CLIENT_CONFIG.trim().length === 0 ||
 					!this.ISSUER || this.ISSUER.trim().length === 0) {
 					logger.error("Environment variable SESSION_TABLE or KMS_KEY_ARN or ISSUER is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "AccessToken Service incorrectly configured");
