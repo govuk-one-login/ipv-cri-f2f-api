@@ -905,6 +905,8 @@ describe("YotiSessionCompletionProcessor", () => {
 			}));
 			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Yoti Session not found", {
 				messageCode: MessageCodes.ERROR_GENERATING_VC,
+				govUkSignInJourneyId: "sdfssg",
+				yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 			});
 			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 				sub: "testsub",
@@ -928,6 +930,8 @@ describe("YotiSessionCompletionProcessor", () => {
 			}));
 			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Yoti Session not complete", {
 				messageCode: MessageCodes.ERROR_GENERATING_VC,
+				govUkSignInJourneyId: "sdfssg",
+				yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 			});
 			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 				sub: "testsub",
@@ -998,11 +1002,8 @@ describe("YotiSessionCompletionProcessor", () => {
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Yoti document_fields not populated",
 			}));
-			expect(logger.error).toHaveBeenCalledWith({ message: "Yoti document_fields not populated" }, {
+			expect(logger.error).toHaveBeenCalledWith({ message: "No document_fields found in completed Yoti Session" }, {
 				messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
-				govSignInJourneyId: "sdfssg",
-				yotiSessionId: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-				numberOfDocumentsFields: 0,
 				ID_DOCUMENT_TEXT_DATA_CHECK: {
 					value: "NOT_AVAILABLE",
 					reason: "EXTRACTION_FAILED",
@@ -1010,6 +1011,8 @@ describe("YotiSessionCompletionProcessor", () => {
 			});
 			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Yoti document_fields not populated", {
 				messageCode: MessageCodes.ERROR_GENERATING_VC,
+				govUkSignInJourneyId: "sdfssg",
+				yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 			});
 			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 				sub: "testsub",
@@ -1033,14 +1036,14 @@ describe("YotiSessionCompletionProcessor", () => {
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Multiple document_fields in response",
 			}));
-			expect(logger.error).toHaveBeenCalledWith({ message: "Multiple document_fields in response" }, {
+			expect(logger.error).toHaveBeenCalledWith({ message: "Multiple document_fields found in completed Yoti Session" }, {
 				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
-				govSignInJourneyId: "sdfssg",
-				yotiSessionId: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-				numberOfDocumentsFields: 2,
 			});
 			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Multiple document_fields in response", {
 				messageCode: MessageCodes.ERROR_GENERATING_VC,
+				govUkSignInJourneyId: "sdfssg",
+				yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+				numberOfDocumentFields: 2,
 			});
 			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 				sub: "testsub",
@@ -1065,6 +1068,9 @@ describe("YotiSessionCompletionProcessor", () => {
 			}));
 			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Yoti document_fields media ID not found", {
 				messageCode: MessageCodes.ERROR_GENERATING_VC,
+				govUkSignInJourneyId: "sdfssg",
+            	yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+				numberOfDocumentFields: 1,
 			});
 			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 				sub: "testsub",
@@ -1101,6 +1107,8 @@ describe("YotiSessionCompletionProcessor", () => {
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 		expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : AuthSession is in wrong Auth state", {
 			messageCode: MessageCodes.ERROR_GENERATING_VC,
+			govUkSignInJourneyId: "sdfssg",
+            yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
 		});
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "testsub",
@@ -1162,6 +1170,9 @@ describe("YotiSessionCompletionProcessor", () => {
 		}));
 		expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Unable to create signed JWT", {
 			messageCode: MessageCodes.ERROR_GENERATING_VC,
+			govUkSignInJourneyId: "sdfssg",
+            yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+			numberOfDocumentFields: 1,
 		});
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "testsub",
@@ -1189,6 +1200,9 @@ describe("YotiSessionCompletionProcessor", () => {
 		}));
 		expect(logger.error).toHaveBeenNthCalledWith(3, "VC generation failed : Failed to sign the verifiableCredential Jwt", {
 			messageCode: MessageCodes.ERROR_GENERATING_VC,
+			govUkSignInJourneyId: "sdfssg",
+            yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+			numberOfDocumentFields: 1,
 		});
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "testsub",
