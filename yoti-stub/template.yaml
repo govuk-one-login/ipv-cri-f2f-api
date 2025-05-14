@@ -246,7 +246,7 @@ Resources:
   MockYotiSessionFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/Access-Token-${AWS::StackName}"
+      LogGroupName: !Sub "/aws/lambda/Yoti-Stub-${AWS::StackName}"
       RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logretentionindays ]
 
   MockYotiSessionFunctionPermission:
