@@ -96,7 +96,7 @@ export class YotiSessionCompletionProcessor {
 	// eslint-disable-next-line complexity
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
 		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
-		
+		console.log("GCD EVENTBODY------------", eventBody);
   	const yotiSessionID = eventBody.session_id;
 
   	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
@@ -116,9 +116,11 @@ export class YotiSessionCompletionProcessor {
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
 		  }
 
+		  const govUkSignInJourneyId = f2fSession.clientSessionId
+
 		  this.logger.appendKeys({
 			  sessionId: f2fSession.sessionId,
-			  govuk_signin_journey_id: f2fSession.clientSessionId,
+			  govuk_signin_journey_id: govUkSignInJourneyId,
 		  });
 
 			//Initialise Yoti Service base on session client_id
@@ -181,33 +183,49 @@ export class YotiSessionCompletionProcessor {
 
 			  this.logger.error({ message: "No document_fields found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+				  govSignInJourneyId: govUkSignInJourneyId,
+				  yotiSessionId: yotiSessionID,
+				  numberOfDocumentsFields: idDocumentsDocumentFields.length,
   				ID_DOCUMENT_TEXT_DATA_CHECK: documentTextDataCheck?.report?.recommendation,
 			  });
+			  this.constructNotReturnedErrorMetric("Yoti document_fields not populated");
 			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document_fields not populated");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields not populated");
   		} else if (idDocumentsDocumentFields.length > 1) {
   			this.logger.error({ message: "Multiple document_fields found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
+				  govSignInJourneyId: govUkSignInJourneyId,
+				  yotiSessionId: yotiSessionID,
+				  numberOfDocumentsFields: idDocumentsDocumentFields.length,
 			  });
+			  this.constructNotReturnedErrorMetric("Multiple document_fields in response");
 			  await this.sendErrorMessageToIPVCore(f2fSession, "Multiple document_fields in response");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Multiple document_fields in response");
   		}
 
 		  const documentFieldsId = idDocumentsDocumentFields[0].media.id;
 		  if (!documentFieldsId) {
-			  this.logger.error({ message: "No media ID found in completed Yoti Session" }, {
+			  this.logger.error({ message: "No media ID found in completed Yoti Session document_fields" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+				  govSignInJourneyId: govUkSignInJourneyId,
+				  yotiSessionId: yotiSessionID,
+				  numberOfDocumentsFields: idDocumentsDocumentFields.length,
 			  });
+			  this.constructNotReturnedErrorMetric("Yoti document_fields media ID not found");
 			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document_fields media ID not found");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields media ID not found");
 		  }
 
-		  const documentFields = await this.yotiService.getMediaContent(yotiSessionID, clientConfig.YotiBaseUrl, documentFieldsId);
+		  const documentFields = await this.yotiService.getMediaContent(yotiSessionID, clientConfig.YotiBaseUrl, documentFieldsId); // documentFieldsId === mediaId
 		  if (!documentFields) {
 			  this.logger.error({ message: "No document fields info found" }, {
 				  documentFieldsId,
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+				  govSignInJourneyId: govUkSignInJourneyId,
+				  yotiSessionId: yotiSessionID,
+				  numberOfDocumentsFields: idDocumentsDocumentFields.length,
 			  });
+			  this.constructNotReturnedErrorMetric("Yoti document fields info not found");
 			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document fields info not found");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
 		  }
@@ -258,7 +276,11 @@ export class YotiSessionCompletionProcessor {
   			if (missingGivenName && missingFamilyName && missingFullName) {
   				this.logger.error({ message: "Missing Name Info in DocumentFields" }, {
   					messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
+					  govSignInJourneyId: govUkSignInJourneyId,
+					  yotiSessionId: yotiSessionID,
+					  numberOfDocumentsFields: idDocumentsDocumentFields.length,
   				});
+				  this.constructNotReturnedErrorMetric("Missing Name Info in DocumentFields");
   				await this.sendErrorMessageToIPVCore(f2fSession, "Missing Name Info in DocumentFields");
   				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Name Info in DocumentFields");
   			}
