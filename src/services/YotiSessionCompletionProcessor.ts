@@ -180,52 +180,47 @@ export class YotiSessionCompletionProcessor {
   		if (idDocumentsDocumentFields.length === 0) {
   			// If there is no document_fields, yoti have told us there will always be ID_DOCUMENT_TEXT_DATA_CHECK
   			const documentTextDataCheck = completedYotiSessionInfo.checks.find((check) => check.type === "ID_DOCUMENT_TEXT_DATA_CHECK");
-
-			  this.logger.error({ message: "No document_fields found in completed Yoti Session" }, {
+			  this.logger.error({ message: "Yoti document_fields not populated" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 				  govSignInJourneyId: govUkSignInJourneyId,
 				  yotiSessionId: yotiSessionID,
 				  numberOfDocumentsFields: idDocumentsDocumentFields.length,
   				ID_DOCUMENT_TEXT_DATA_CHECK: documentTextDataCheck?.report?.recommendation,
 			  });
-			  this.constructNotReturnedErrorMetric("Yoti document_fields not populated");
 			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document_fields not populated");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields not populated");
   		} else if (idDocumentsDocumentFields.length > 1) {
-  			this.logger.error({ message: "Multiple document_fields found in completed Yoti Session" }, {
+  			this.logger.error({ message: "Multiple document_fields in response" }, {
 				  messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
 				  govSignInJourneyId: govUkSignInJourneyId,
 				  yotiSessionId: yotiSessionID,
 				  numberOfDocumentsFields: idDocumentsDocumentFields.length,
 			  });
-			  this.constructNotReturnedErrorMetric("Multiple document_fields in response");
 			  await this.sendErrorMessageToIPVCore(f2fSession, "Multiple document_fields in response");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Multiple document_fields in response");
   		}
 
 		  const documentFieldsId = idDocumentsDocumentFields[0].media.id;
 		  if (!documentFieldsId) {
-			  this.logger.error({ message: "No media ID found in completed Yoti Session document_fields" }, {
+			  this.logger.error({ message: "Yoti document_fields media ID not found" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 				  govSignInJourneyId: govUkSignInJourneyId,
 				  yotiSessionId: yotiSessionID,
 				  numberOfDocumentsFields: idDocumentsDocumentFields.length,
 			  });
-			  this.constructNotReturnedErrorMetric("Yoti document_fields media ID not found");
 			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document_fields media ID not found");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields media ID not found");
 		  }
 
 		  const documentFields = await this.yotiService.getMediaContent(yotiSessionID, clientConfig.YotiBaseUrl, documentFieldsId); // documentFieldsId === mediaId
 		  if (!documentFields) {
-			  this.logger.error({ message: "No document fields info found" }, {
+			  this.logger.error({ message: "Yoti document fields info not found" }, {
 				  documentFieldsId,
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 				  govSignInJourneyId: govUkSignInJourneyId,
 				  yotiSessionId: yotiSessionID,
 				  numberOfDocumentsFields: idDocumentsDocumentFields.length,
 			  });
-			  this.constructNotReturnedErrorMetric("Yoti document fields info not found");
 			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document fields info not found");
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
 		  }
@@ -280,7 +275,6 @@ export class YotiSessionCompletionProcessor {
 					  yotiSessionId: yotiSessionID,
 					  numberOfDocumentsFields: idDocumentsDocumentFields.length,
   				});
-				  this.constructNotReturnedErrorMetric("Missing Name Info in DocumentFields");
   				await this.sendErrorMessageToIPVCore(f2fSession, "Missing Name Info in DocumentFields");
   				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Name Info in DocumentFields");
   			}
