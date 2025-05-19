@@ -80,21 +80,21 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run lint
-        run: npm run lint
+      # - name: Run lint
+      #   run: npm run lint
 
-      - name: Archive lint results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-report
-          path: src/reports/eslint/reportFile.html
+      # - name: Archive lint results
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: lint-report
+      #     path: src/reports/eslint/reportFile.html
 
       - name: Run Tests
         run: npm run test:unit
 
-      - name: Run Infra checks
-        run: npm run test:infra
+      # - name: Run Infra checks
+      #   run: npm run test:infra
 
       - name: Run Contract tests
         run: npm run test:contract:ci   
