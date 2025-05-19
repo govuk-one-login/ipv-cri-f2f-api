@@ -89,6 +89,7 @@ export class KmsJwtAdapter {
 
 	async verifyWithJwks(urlEncodedJwt: string, publicKeyEndpoint: string, targetKid?: string): Promise<JWTPayload | null> {
 		if (process.env.USE_MOCKED) {
+			this.logger.info("Test working");
 			const mockPayload: JWTPayload = {
 				"mock_field": "Success"
 			};
