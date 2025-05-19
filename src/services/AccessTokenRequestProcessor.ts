@@ -92,6 +92,8 @@ export class AccessTokenRequestProcessor {
 					});
 					return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
 				}
+
+				console.log("Some change");
 		
 				if (!configClient) {
 					this.logger.error("Unrecognised client in request", {
