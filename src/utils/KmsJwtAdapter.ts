@@ -88,7 +88,7 @@ export class KmsJwtAdapter {
 	}
 
 	async verifyWithJwks(urlEncodedJwt: string, publicKeyEndpoint: string, targetKid?: string): Promise<JWTPayload | null> {
-		console.log("Some change2");
+		this.logger.info("Some change2");
 		if (!this.cachedJwks || (this.cachedTime && new Date() > this.cachedTime)) {
 			this.logger.info(`No cached keys found or cache time has expired, retrieving new JWKS from '${publicKeyEndpoint}'`);
 			const oidcProviderJwks = (await axios.get(publicKeyEndpoint));
@@ -116,6 +116,7 @@ export class KmsJwtAdapter {
 	}
 
 	decode(urlEncodedJwt: string): Jwt {
+		this.logger.info("Some change1.5");
 		const [header, payload, signature] = urlEncodedJwt.split(".");
 
 		const result: Jwt = {
