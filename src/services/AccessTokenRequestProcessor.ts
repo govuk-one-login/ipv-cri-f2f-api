@@ -92,8 +92,6 @@ export class AccessTokenRequestProcessor {
 					});
 					return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
 				}
-
-				console.log("Some change");
 		
 				if (!configClient) {
 					this.logger.error("Unrecognised client in request", {
@@ -118,6 +116,7 @@ export class AccessTokenRequestProcessor {
 
 				try {
 					if (configClient.jwksEndpoint) {
+						console.log("Some change");
 						const payload = await this.kmsJwtAdapter.verifyWithJwks(jwt, configClient.jwksEndpoint, parsedJwt.header.kid);
 
 						if (!payload) {
