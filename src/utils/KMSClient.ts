@@ -10,21 +10,21 @@ const logger = new Logger({
 
 const createKmsClient = () => {    
 
-	let kmsClient: AWS.KMS;	
+	let kmsClient: AWS.KMS;
 
-	// if (process.env.USE_MOCKED) {
+	if (process.env.USE_MOCKED) {
 		logger.info("KMSClient: USING MOCKED");
 		kmsClient = mockKmsClient as unknown as AWS.KMS;
-// 	} else {
+	} else {
 
-// 		AWSXRay.setContextMissingStrategy("LOG_ERROR");
-// 		const kms = new AWS.KMS({
-// 			region: process.env.REGION,
-// 		});
+		AWSXRay.setContextMissingStrategy("LOG_ERROR");
+		const kms = new AWS.KMS({
+			region: process.env.REGION,
+		});
 
-// 		kmsClient = process.env.XRAY_ENABLED === "true" ? AWSXRay.captureAWSv3Client(kms as any) : kms;
-// 	}
-// 	return kmsClient;
+		kmsClient = process.env.XRAY_ENABLED === "true" ? AWSXRay.captureAWSv3Client(kms as any) : kms;
+	}
+	return kmsClient;
 };
 
 export { createKmsClient };

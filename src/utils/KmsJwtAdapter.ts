@@ -88,30 +88,37 @@ export class KmsJwtAdapter {
 	}
 
 	async verifyWithJwks(urlEncodedJwt: string, publicKeyEndpoint: string, targetKid?: string): Promise<JWTPayload | null> {
-		this.logger.info("Some change2");
-		if (!this.cachedJwks || (this.cachedTime && new Date() > this.cachedTime)) {
-			this.logger.info(`No cached keys found or cache time has expired, retrieving new JWKS from '${publicKeyEndpoint}'`);
-			const oidcProviderJwks = (await axios.get(publicKeyEndpoint));
-			this.cachedJwks = oidcProviderJwks.data.keys;
-			const cacheControl = oidcProviderJwks.headers['cache-control'];
+		if (process.env.USE_MOCKED) {
+			const mockPayload: JWTPayload = {
+				"mock_field": "Success"
+			};
+			return mockPayload
+		} else {
+			this.logger.info("Some change2");
+			if (!this.cachedJwks || (this.cachedTime && new Date() > this.cachedTime)) {
+				this.logger.info(`No cached keys found or cache time has expired, retrieving new JWKS from '${publicKeyEndpoint}'`);
+				const oidcProviderJwks = (await axios.get(publicKeyEndpoint));
+				this.cachedJwks = oidcProviderJwks.data.keys;
+				const cacheControl = oidcProviderJwks.headers['cache-control'];
 
-			// If header is missing or doesn't match the expected format, maxAgeMatch will be null, and we set cache time to default value of 300 (5 minutes)
-			const maxAge = cacheControl ? parseInt(cacheControl.match(/max-age=(\d+)/)?.[1], 10) || 300 : 300;
-			this.cachedTime = new Date(Date.now() + (maxAge * 1000));
-		}
-		const signingKey = this.cachedJwks.find((key: Jwk) => key.kid === targetKid);
+				// If header is missing or doesn't match the expected format, maxAgeMatch will be null, and we set cache time to default value of 300 (5 minutes)
+				const maxAge = cacheControl ? parseInt(cacheControl.match(/max-age=(\d+)/)?.[1], 10) || 300 : 300;
+				this.cachedTime = new Date(Date.now() + (maxAge * 1000));
+			}
+			const signingKey = this.cachedJwks.find((key: Jwk) => key.kid === targetKid);
 
-		if (!signingKey) {
-			throw new Error(`No key found with kid '${targetKid}'`);
-		}
+			if (!signingKey) {
+				throw new Error(`No key found with kid '${targetKid}'`);
+			}
 
-		const publicKey = await importJWK(signingKey, signingKey.alg);
+			const publicKey = await importJWK(signingKey, signingKey.alg);
 
-		try {
-			const { payload } = await jwtVerify(urlEncodedJwt, publicKey);
-			return payload;
-		} catch (error) {
-			throw new Error("Failed to verify signature: " + error);
+			try {
+				const { payload } = await jwtVerify(urlEncodedJwt, publicKey);
+				return payload;
+			} catch (error) {
+				throw new Error("Failed to verify signature: " + error);
+			}
 		}
 	}
 
