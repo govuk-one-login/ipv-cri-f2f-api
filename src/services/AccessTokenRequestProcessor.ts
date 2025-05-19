@@ -116,7 +116,6 @@ export class AccessTokenRequestProcessor {
 
 				try {
 					if (configClient.jwksEndpoint) {
-						console.log("Some change");
 						const payload = await this.kmsJwtAdapter.verifyWithJwks(jwt, configClient.jwksEndpoint, parsedJwt.header.kid);
 
 						if (!payload) {
