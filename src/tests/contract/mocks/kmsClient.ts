@@ -11,6 +11,7 @@ const dummySignArr = [48, 69, 2, 32, 40, 41, 115, 198, 65, 212, 223, 151, 36, 22
 
 
 export const mockKmsClient = {
+	decode: () => "Success",
 	send: () => "Success",
 	sign: () => { return { Signature: new Uint8Array(dummySignArr) }; },	
 	verify: () => { return { SignatureValid: true }; },
