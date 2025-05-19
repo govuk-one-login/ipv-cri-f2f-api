@@ -7,5 +7,6 @@ export const mockKmsClient = {
 	send: () => "Success",
 	sign: () => { return { Signature: new Uint8Array(dummySignArr) }; },	
 	verify: () => { return { SignatureValid: true }; },
+	verifyWithJwks: () => { return { DummyJWTBody: "DummyJWTBody" }; }
 };
 
