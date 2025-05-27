@@ -12,7 +12,7 @@ const createKmsClient = () => {
 
 	let kmsClient: AWS.KMS;	
 
-	if (process.env.USE_MOCKED) {
+	if (process.env.USE_MOCKED === "true") {
 		logger.info("KMSClient: USING MOCKED");
 		kmsClient = mockKmsClient as unknown as AWS.KMS;
 	} else {
