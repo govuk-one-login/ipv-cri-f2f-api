@@ -47,5 +47,21 @@ describe("createKmsClient", () => {
         expect(AWSXRay.captureAWSv3Client).toHaveBeenCalledWith(expect.any(AWS.SSMClient));
     });
 
+    it("should return a raw SSM client when XRAY_ENABLED is false and USE_MOCKED is not set", () => {
+        process.env.XRAY_ENABLED = "false";
+        process.env.REGION = "eu-west-2"; // Or your desired region
+        const ssmClient = createSsmClient();
+        expect(AWSXRay.captureAWSv3Client).not.toHaveBeenCalled();
+        expect(ssmClient).toBeInstanceOf(AWS.SSMClient);
+    });
+
+
+    it("should return a raw SSM client when XRAY_ENABLED is not set and USE_MOCKED is not set", () => {
+        process.env.REGION = "eu-west-2"; // Or your desired region
+        const ssmClient = createSsmClient();
+        expect(AWSXRay.captureAWSv3Client).not.toHaveBeenCalled();
+        expect(ssmClient).toBeInstanceOf(AWS.SSMClient);
+    });
+
 });
 
