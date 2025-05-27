@@ -106,11 +106,13 @@ export class KmsJwtAdapter {
 
 		const publicKey = await importJWK(signingKey, signingKey.alg);
 
-		if (process.env.USE_MOCKED) { //JWT verification is mocked for contract tests
+		if (process.env.USE_MOCKED === "true") { //JWT verification is mocked for contract tests
 			return {
-				payload: "dummyPayload"
+				payload: { 
+					data: "mockPayloadClaims" 
+				}
 			}
-		} else {
+		} else { 
 			try {
 				const { payload } = await jwtVerify(urlEncodedJwt, publicKey);
 				return payload;

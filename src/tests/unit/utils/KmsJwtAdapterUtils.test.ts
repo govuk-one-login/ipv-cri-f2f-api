@@ -145,12 +145,12 @@ describe("KmsJwtAdapter utils", () => {
 		});
 
 		// Jose validation is not mocked for this test
-		// it("should successfully verify a JWT", async () => {
-		// 	const mockTargetKid = "1234"; //kid to retrieve correct key from mocked axios response
-		// 	const result = await kmsJwtAdapter.verifyWithJwks(encodedJwt, mockPublicKeyEndpoint, mockTargetKid);
-		// 	expect(axios.get).toHaveBeenCalledWith(mockPublicKeyEndpoint);
-    	// 	expect(result?.sub).toEqual("29986dd5-01ec-4236-ac21-5845fdafd9b5");
-		// });
+		it("should successfully verify a JWT", async () => {
+			const mockTargetKid = "1234"; //kid to retrieve correct key from mocked axios response
+			const result = await kmsJwtAdapter.verifyWithJwks(encodedJwt, mockPublicKeyEndpoint, mockTargetKid);
+			expect(axios.get).toHaveBeenCalledWith(mockPublicKeyEndpoint);
+    		expect(result?.sub).toEqual("29986dd5-01ec-4236-ac21-5845fdafd9b5");
+		});
 
 		it('should throw an error if no key is found with the specified kid', async () => {
 			const mockTargetKid = "dummyValue"; //kid does not correspond to any keys in mocked axios response
@@ -158,11 +158,11 @@ describe("KmsJwtAdapter utils", () => {
 			).rejects.toThrow(`No key found with kid '${mockTargetKid}'`);
 		});
 
-		// it('should throw an error if signature verification fails', async () => {
-		// 	const mockTargetKid = "4567"; //this kid will retrieve the 2nd key from the mocked axios response
-		// 	await expect(kmsJwtAdapter.verifyWithJwks(encodedJwt, mockPublicKeyEndpoint, mockTargetKid)
-		// 	).rejects.toThrow("Failed to verify signature: JWSSignatureVerificationFailed: signature verification failed");
-		// });
+		it('should throw an error if signature verification fails', async () => {
+			const mockTargetKid = "4567"; //this kid will retrieve the 2nd key from the mocked axios response
+			await expect(kmsJwtAdapter.verifyWithJwks(encodedJwt, mockPublicKeyEndpoint, mockTargetKid)
+			).rejects.toThrow("Failed to verify signature: JWSSignatureVerificationFailed: signature verification failed");
+		});
 
 		it('should fetch and cache JWKS data when no cached data exists', async () => {
 			const mockTargetKid = "1234";
