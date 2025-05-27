@@ -81,6 +81,7 @@ export class AccessTokenRequestProcessor {
 				this.logger.appendKeys({
 					govuk_signin_journey_id: session?.clientSessionId,
 				});
+				this.logger.info({ message: "LOG1" });
 				let configClient: ClientConfig | undefined;
 				try {
 					const config = JSON.parse(this.clientConfig) as ClientConfig[];
@@ -113,6 +114,8 @@ export class AccessTokenRequestProcessor {
 					});
 					return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
 				}
+
+				this.logger.info({ message: "LOG2" });
 
 				try {
 					if (configClient.jwksEndpoint) {
