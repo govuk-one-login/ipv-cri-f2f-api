@@ -1,4 +1,4 @@
-import * as AWS from "@aws-sdk/client-kms";
+import * as AWS from "@aws-sdk/client-sqs";
 import { mockSqsClient } from "../../../tests/contract/mocks/sqsClient";
 import { createSqsClient } from "../../../utils/SqsClient";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -31,7 +31,7 @@ describe("createKmsClient", () => {
         process.env.XRAY_ENABLED = "false";
 
         const sqsClient = createSqsClient();
-        expect(sqsClient).toBeInstanceOf(AWS.KMS);
+        expect(sqsClient).toBeInstanceOf(AWS.SQS);
     });
 
 });
