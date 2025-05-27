@@ -2,9 +2,6 @@ import * as AWS from "@aws-sdk/client-kms";
 import { mockKmsClient } from "../../../tests/contract/mocks/kmsClient";
 import { createKmsClient } from "../../../utils/KMSClient";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { mock } from "jest-mock-extended";
-
-
 
 describe("createKmsClient", () => {
 	
