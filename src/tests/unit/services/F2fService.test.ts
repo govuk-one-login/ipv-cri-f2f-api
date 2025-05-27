@@ -63,11 +63,11 @@ function getGovNotifyEventPayload(): GovNotifyEvent {
 }
 
 function getIPVCoreEventPayload(): IPVCoreEvent {
-	const govNotifyEventPayload: IPVCoreEvent = {
+	const ipvCoreEventPayload: IPVCoreEvent = {
 		"sub": "sub",
 		"state": "state"
 	}
-	return govNotifyEventPayload;
+	return ipvCoreEventPayload;
 }
 
 describe("F2f Service", () => {
