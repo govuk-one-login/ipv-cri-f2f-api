@@ -2,6 +2,12 @@ import * as AWS from "@aws-sdk/client-kms";
 import { mockKmsClient } from "../../../tests/contract/mocks/kmsClient";
 import { createKmsClient } from "../../../utils/KMSClient";
 import { Logger } from "@aws-lambda-powertools/logger";
+import AWSXRay from "aws-xray-sdk-core";
+
+jest.mock("aws-xray-sdk-core", () => ({
+    captureAWSv3Client: jest.fn((client) => client),
+    setContextMissingStrategy: jest.fn(),
+}));
 
 describe("createKmsClient", () => {
 	
@@ -32,6 +38,13 @@ describe("createKmsClient", () => {
 
         const kmsClient = createKmsClient();
         expect(kmsClient).toBeInstanceOf(AWS.KMS);
+    });
+
+    it("should return an X-Ray wrapped SQS client when XRAY_ENABLED is true and USE_MOCKED is not set", () => {
+        process.env.XRAY_ENABLED = "true";
+        process.env.REGION = "eu-west-2";
+        createKmsClient();
+        expect(AWSXRay.captureAWSv3Client).toHaveBeenCalledWith(expect.any(AWS.KMS));
     });
 
 });

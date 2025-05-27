@@ -2,6 +2,12 @@ import * as AWS from "@aws-sdk/client-ssm";
 import { mockSsmClient } from "../../contract/mocks/ssmClient";
 import { createSsmClient } from "../../../utils/SSMClient";
 import { Logger } from "@aws-lambda-powertools/logger";
+import AWSXRay from "aws-xray-sdk-core";
+
+jest.mock("aws-xray-sdk-core", () => ({
+    captureAWSv3Client: jest.fn((client) => client),
+    setContextMissingStrategy: jest.fn(),
+}));
 
 describe("createKmsClient", () => {
 	
@@ -32,6 +38,13 @@ describe("createKmsClient", () => {
 
         const ssmClient = createSsmClient();
         expect(ssmClient).toBeInstanceOf(AWS.SSMClient);
+    });
+
+    it("should return an X-Ray wrapped SSM client when XRAY_ENABLED is true and USE_MOCKED is not set", () => {
+        process.env.XRAY_ENABLED = "true";
+        process.env.REGION = "eu-west-2";
+        createSsmClient();
+        expect(AWSXRay.captureAWSv3Client).toHaveBeenCalledWith(expect.any(AWS.SSMClient));
     });
 
 });
