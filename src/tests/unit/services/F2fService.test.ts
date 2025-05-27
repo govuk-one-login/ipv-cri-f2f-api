@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable max-lines */
-/* eslint-disable max-lines-per-function */
 import { mock } from "jest-mock-extended";
 import { F2fService } from "../../../services/F2fService";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -9,30 +6,28 @@ import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { TxmaEvent } from "../../../utils/TxmaEvent";
 import { GovNotifyEvent } from "../../../utils/GovNotifyEvent";
+import { IPVCoreEvent } from "../../../utils/IPVCoreEvent";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { personIdentityInputRecord, personIdentityOutputRecord, personIdentityOutputRecordTwoAddresses } from "../data/personIdentity-records";
 import { postalAddressSameInputRecord, postalAddressDifferentInputRecord } from "../data/postalAddress-events";
-import { createSqsClient } from "../../../utils/SqsClient";
-import { SendMessageCommand } from "@aws-sdk/client-sqs";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
-
-const logger = mock<Logger>();
-const metrics = mock<Metrics>();
-
-let f2fService: F2fService;
-const tableName = "SESSIONTABLE";
-const personTableName = "PERSONTABLE";
-const sessionId = "SESSID";
-const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
-const mockSqsClient = createSqsClient();
 import SESSION_RECORD from "../data/db_record.json";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
-jest.mock("@aws-sdk/client-sqs", () => ({
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	SendMessageCommand: jest.fn().mockImplementation(() => {}),
+let f2fService: F2fService;
+const logger = mock<Logger>();
+const metrics = mock<Metrics>();
+const tableName = "SESSIONTABLE";
+const personTableName = "PERSONTABLE";
+const sessionId = "SESSID";
+const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
+
+jest.mock('@aws-sdk/client-sqs', () => ({
+    SQSClient: jest.fn(),
+    SendMessageCommand: jest.fn(),
 }));
 
 const FAILURE_VALUE = "throw_me";
@@ -66,17 +61,31 @@ function getGovNotifyEventPayload(): GovNotifyEvent {
 	return govNotifyEventPayload;
 }
 
+function getIPVCoreEventPayload(): IPVCoreEvent {
+	const govNotifyEventPayload: IPVCoreEvent = {
+		"sub": "sub",
+		"state": "state"
+	}
+	return govNotifyEventPayload;
+}
+
 describe("F2f Service", () => {
-	let txmaEventPayload: TxmaEvent, govNotifyEventPayload: GovNotifyEvent;
+	let mockSend: jest.Mock;
+	let txmaEventPayload: TxmaEvent, govNotifyEventPayload: GovNotifyEvent, ipvCoreEventPayload: IPVCoreEvent;
 
 	beforeAll(() => {
 		txmaEventPayload = getTXMAEventPayload();
 		govNotifyEventPayload = getGovNotifyEventPayload();
+		ipvCoreEventPayload = getIPVCoreEventPayload();
 	});
 
 	beforeEach(() => {
 		jest.resetAllMocks();
 		f2fService = F2fService.getInstance(tableName, logger, metrics, mockDynamoDbClient);
+		mockSend = jest.fn();
+			(SQSClient as jest.Mock).mockImplementation(() => ({
+				send: mockSend,
+			}));
 	});
 
 	it("Should return a session item when passed a valid session Id", async () => {
@@ -147,25 +156,49 @@ describe("F2f Service", () => {
 		expect(logger.info).toHaveBeenCalledWith({ message: "Updated Yoti session details in dynamodb" });
 	});
 
-	it("show throw error if failed to send to GovNotify queue", async () => {
-		mockSqsClient.send = jest.fn().mockRejectedValue({});
+	describe("sendToGovNotify/sendToIPVCore", () => {
 
-		await expect(f2fService.sendToGovNotify(govNotifyEventPayload)).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.SERVER_ERROR,
-		}));
-	});
+		it("Should send event to GovNotify queue", async () => { 
+			await f2fService.sendToGovNotify(govNotifyEventPayload);
+			const messageBody = JSON.stringify(govNotifyEventPayload);			
+	
+			expect(SendMessageCommand).toHaveBeenCalledWith({
+				MessageBody: messageBody,
+				QueueUrl: "GOV_NOTIFY_QUEUE_URL",
+			});
+			expect(logger.info).toHaveBeenCalledWith("Sent message to Gov Notify");
+		});
 
-	it("should throw error if failed to send to IPVCore queue", async () => {
-		mockSqsClient.send = jest.fn().mockRejectedValue({});
+		it("Should send event to IPVCore queue", async () => { 
+			await f2fService.sendToIPVCore(ipvCoreEventPayload);
+			const messageBody = JSON.stringify(ipvCoreEventPayload);			
+	
+			expect(SendMessageCommand).toHaveBeenCalledWith({
+				MessageBody: messageBody,
+				QueueUrl: "IPV_CORE_QUEUE_URL",
+			});
 
-		await expect(f2fService.sendToIPVCore({
-			sub: "",
-			state: "",
-			"https://vocab.account.gov.uk/v1/credentialJWT": [],
-		})).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.SERVER_ERROR,
-		}));
-	});
+			expect(logger.info).toHaveBeenCalledWith("Sent message to IPV Core");
+		});
+		
+		it("show throw error if failed to send to GovNotify queue", async () => {
+			mockSend.mockRejectedValueOnce("Simulated SQS error");
+			await expect(f2fService.sendToGovNotify(govNotifyEventPayload)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+			}));
+
+			expect(logger.error).toHaveBeenCalledWith({ message: "Error when sending message to GovNotify Queue", error : "Simulated SQS error" });
+		});
+
+		it("should throw error if failed to send to IPVCore queue", async () => {
+			mockSend.mockRejectedValueOnce("Simulated SQS error");
+			await expect(f2fService.sendToIPVCore(ipvCoreEventPayload)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+			}));
+
+			expect(logger.error).toHaveBeenCalledWith({ message: "Error when sending message to IPV Core Queue", error : "Simulated SQS error" });
+		});
+	})
 
 	it("should return undefined when session item is not found by authorization code", async () => {
 		mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [] });
@@ -632,18 +665,19 @@ describe("F2f Service", () => {
 	});
 
 	describe("#sendToTXMA", () => {
+
 		it("Should send event to TxMA without encodedHeader if encodedHeader param is missing", async () => {  
 			const payload = txmaEventPayload;
+			
 			await f2fService.sendToTXMA(payload);
 	
 			const messageBody = JSON.stringify(payload);			
 	
 			expect(SendMessageCommand).toHaveBeenCalledWith({
 				MessageBody: messageBody,
-				QueueUrl: "MYQUEUE",
+				QueueUrl: "TXMA_QUEUE_URL",
 			});
-			expect(mockSqsClient.send).toHaveBeenCalled();
-			expect(f2fService.logger.info).toHaveBeenCalledWith("Sent message to TxMA");
+			expect(logger.info).toHaveBeenCalledWith("Sent message to TxMA");
 		});
 
 		it("Should send event to TxMA without encodedHeader if encodedHeader param is empty", async () => {  
@@ -654,10 +688,9 @@ describe("F2f Service", () => {
 	
 			expect(SendMessageCommand).toHaveBeenCalledWith({
 				MessageBody: messageBody,
-				QueueUrl: "MYQUEUE",
+				QueueUrl: "TXMA_QUEUE_URL",
 			});
-			expect(mockSqsClient.send).toHaveBeenCalled();
-			expect(f2fService.logger.info).toHaveBeenCalledWith("Sent message to TxMA");
+			expect(logger.info).toHaveBeenCalledWith("Sent message to TxMA");
 		});
 
 		it("Should send event to TxMA with the correct details for a payload without restricted present", async () => {  
@@ -674,14 +707,12 @@ describe("F2f Service", () => {
 	
 			expect(SendMessageCommand).toHaveBeenCalledWith({
 				MessageBody: messageBody,
-				QueueUrl: "MYQUEUE",
+				QueueUrl: "TXMA_QUEUE_URL",
 			});
-			expect(mockSqsClient.send).toHaveBeenCalled();
-			expect(f2fService.logger.info).toHaveBeenCalledWith("Sent message to TxMA");
+			expect(logger.info).toHaveBeenCalledWith("Sent message to TxMA");
 		});
 
 		it("Should send event to TxMA with the correct details for a payload with restricted present", async () => {  
-				
 			const restrictedDetails = {
 				device_information: {
 					encoded: "ENCHEADER",
@@ -696,19 +727,18 @@ describe("F2f Service", () => {
 	
 			expect(SendMessageCommand).toHaveBeenCalledWith({
 				MessageBody: messageBody,
-				QueueUrl: "MYQUEUE",
+				QueueUrl: "TXMA_QUEUE_URL",
 			});
-			expect(mockSqsClient.send).toHaveBeenCalled();
-			expect(f2fService.logger.info).toHaveBeenCalledWith("Sent message to TxMA");
+			expect(logger.info).toHaveBeenCalledWith("Sent message to TxMA");
 		});		
 
 		it("show throw error if failed to send to TXMA queue", async () => {
-			mockSqsClient.send = jest.fn().mockRejectedValue({});
-
+			mockSend.mockRejectedValueOnce("Simulated SQS error");
 			await expect(f2fService.sendToTXMA(txmaEventPayload)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 			}));
-			expect(f2fService.logger.error).toHaveBeenCalledWith({
+
+			expect(logger.error).toHaveBeenCalledWith({
 				message: "Error when sending message to TXMA Queue", error: expect.anything(),
 			});
 		});
