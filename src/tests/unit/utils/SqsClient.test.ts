@@ -1,6 +1,6 @@
 import * as AWS from "@aws-sdk/client-kms";
 import { mockSqsClient } from "../../../tests/contract/mocks/sqsClient";
-import { createKmsClient } from "../../../utils/KMSClient";
+import { createSqsClient } from "../../../utils/SqsClient";
 import { Logger } from "@aws-lambda-powertools/logger";
 
 describe("createKmsClient", () => {
@@ -19,9 +19,9 @@ describe("createKmsClient", () => {
 	it("should use the mocked client and log correctly when USE_MOCKED is true", () => {
         process.env.USE_MOCKED = "true";
 
-        const kmsClient = createKmsClient();
+        const sqsClient = createSqsClient();
 
-        expect(kmsClient).toBe(mockSqsClient);
+        expect(sqsClient).toBe(mockSqsClient);
         expect(loggerSpy).toHaveBeenCalledWith("KMSClient: USING MOCKED");
     });
 
@@ -30,8 +30,8 @@ describe("createKmsClient", () => {
         process.env.REGION = "eu-west-2";
         process.env.XRAY_ENABLED = "false";
 
-        const kmsClient = createKmsClient();
-        expect(kmsClient).toBeInstanceOf(AWS.KMS);
+        const sqsClient = createSqsClient();
+        expect(sqsClient).toBeInstanceOf(AWS.KMS);
     });
 
 });
