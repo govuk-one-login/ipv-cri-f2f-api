@@ -176,6 +176,7 @@ describe("F2f Service", () => {
 			MessageBody: messageBody,
 			QueueUrl: "IPV_CORE_QUEUE_URL",
 		});
+		expect(logger.info).toHaveBeenCalledWith("Sent message to IPV Core");
 	});
 
 	it("show throw error if failed to send to GovNotify queue", async () => {
@@ -734,7 +735,7 @@ describe("F2f Service", () => {
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 			}));
 			expect(logger.error).toHaveBeenCalledWith({
-				message: "Error when sending message to TXMA Queue", error: expect.anything(),
+				message: "Error when sending message to TXMA Queue", error : "Simulated SQS error",
 			});
 		});
 	});
