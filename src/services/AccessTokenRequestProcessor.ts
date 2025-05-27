@@ -115,7 +115,7 @@ export class AccessTokenRequestProcessor {
 					return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
 				}
 
-				this.logger.info({ message: "ParsedJWT: " + JSON.stringify(parsedJwt) });
+				this.logger.info({ message: "ParsedJWT: " + console.dir(parsedJwt) });
 
 				try {
 					if (configClient.jwksEndpoint) {
