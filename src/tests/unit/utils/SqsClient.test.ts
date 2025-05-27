@@ -22,16 +22,16 @@ describe("createKmsClient", () => {
         const sqsClient = createSqsClient();
 
         expect(sqsClient).toBe(mockSqsClient);
-        expect(loggerSpy).toHaveBeenCalledWith("KMSClient: USING MOCKED");
+        expect(loggerSpy).toHaveBeenCalledWith("SqsClient: USING MOCKED");
     });
 
-    it("should return a real KMS client when USE_MOCKED is not true or undefined", () => {
+    it("should return a real SQS client when USE_MOCKED is not true or undefined", () => {
         process.env.USE_MOCKED = undefined;
         process.env.REGION = "eu-west-2";
         process.env.XRAY_ENABLED = "false";
 
         const sqsClient = createSqsClient();
-        expect(sqsClient).toBeInstanceOf(AWS.SQS);
+        expect(sqsClient).toBeInstanceOf(AWS.SQSClient);
     });
 
 });
