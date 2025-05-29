@@ -84,7 +84,7 @@
     "@types/node": "20.14.8",
     "@types/node-rsa": "1.1.4",
     "@types/pdfkit": "0.13.8",
-    "@typescript-eslint/eslint-plugin": "8.26.0",
+    "@typescript-eslint/eslint-plugin": "8.33.0",
     "ajv": "8.17.1",
     "aws-cdk-lib": "2.181.1",
     "aws4-axios": "3.4.0",
