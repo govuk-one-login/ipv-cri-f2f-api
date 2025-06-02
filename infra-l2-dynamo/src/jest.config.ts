@@ -6,7 +6,6 @@
 export default {
   transform: {
     "^.+\\.tsx?$": "ts-jest",
-    "^.+\\.m?[tj]sx?$": ["babel-jest", { presets: ["@babel/preset-env"] }],
   },
   clearMocks: true,
   reporters: [
