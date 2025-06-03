@@ -1,9 +1,6 @@
 name: Pull Request CI - Sonar
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
   pull_request:
     types:
       - opened
@@ -12,30 +9,19 @@ on:
       - synchronize
 
 jobs:
-  run-code-analysis:
+  unit-tests:
+        uses: ./.github/workflows/run-unit-tests.yml
+        with:
+          coverage-report: true
+  run-sonar-pr:
+    name: run-sonar-pr
+    needs: unit-tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: src/
     steps:
-      - name: "Checkout code"
-        uses: "actions/checkout@v4"
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: Setup nodeJS v20
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-      - name: Install dependencies
-        run: npm install
-      - name: Test and coverage
-        run: npm run test:unit -- --coverage
       - name: Run SonarCloud scan
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: govuk-one-login/github-actions/code-quality/sonarcloud@0739d7e7a19bae3177cf851ae51944bb4dd53565
+        uses: govuk-one-login/github-actions/code-quality/sonarcloud@5480cced560e896dea12c47ea33e548a4d093e65
         with:
-          coverage-location: src/coverage/
+          coverage-location: coverage
           github-token: ${{ secrets.GITHUB_TOKEN }}
           sonar-token: ${{ secrets.SONAR_TOKEN }}
-

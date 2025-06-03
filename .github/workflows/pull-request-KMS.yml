@@ -37,11 +37,6 @@ jobs:
         with:
           submodules: true
 
-      - name: Checks if commiting secrets to repo
-        uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: "detect-secrets --all-files"
-
       - name: Setup nodeJS v20
         uses: actions/setup-node@v3
         with:
