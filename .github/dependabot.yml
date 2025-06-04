@@ -15,6 +15,9 @@ updates:
       awssdk:
         patterns:
             - "@aws-sdk/*"
+      powertools:
+        patterns:
+          - "@aws-lambda-powertools/*"
     commit-message:
       prefix: BAU
   - package-ecosystem: 'github-actions'

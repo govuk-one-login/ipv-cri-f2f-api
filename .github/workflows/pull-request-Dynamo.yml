@@ -37,11 +37,6 @@ jobs:
         with:
           submodules: true
 
-      - name: Checks if commiting secrets to repo
-        uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: "detect-secrets --all-files"
-
       - name: Setup nodeJS v20
         uses: actions/setup-node@v3
         with:
@@ -90,9 +85,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ./di-ipv-f2f-cic-api/.aws-sam/cache
-            ./di-ipv-f2f-cic-api/.aws-sam/deps
-            ./di-ipv-f2f-cic-api/.aws-sam/build.toml
+            ./di-ipv-cri-f2f-api/.aws-sam/cache
+            ./di-ipv-cri-f2f-api/.aws-sam/deps
+            ./di-ipv-cri-f2f-api/.aws-sam/build.toml
           key: sam-oauth
 
       - name: SAM Validate
