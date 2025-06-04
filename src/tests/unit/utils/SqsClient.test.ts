@@ -9,7 +9,7 @@ jest.mock("aws-xray-sdk-core", () => ({
     setContextMissingStrategy: jest.fn(),
 }));
 
-describe("createKmsClient", () => {
+describe("createSqsClient", () => {
 	
 	let loggerSpy: jest.SpyInstance;
 
@@ -47,20 +47,20 @@ describe("createKmsClient", () => {
         expect(AWSXRay.captureAWSv3Client).toHaveBeenCalledWith(expect.any(AWS.SQSClient));
     });
 
-    it("should return a raw SSM client when XRAY_ENABLED is false and USE_MOCKED is not set", () => {
+    it("should return a raw SQS client when XRAY_ENABLED is false and USE_MOCKED is not set", () => {
         process.env.XRAY_ENABLED = "false";
         process.env.REGION = "eu-west-2"; // Or your desired region
-        const ssmClient = createSqsClient();
+        const sqsClient = createSqsClient();
         expect(AWSXRay.captureAWSv3Client).not.toHaveBeenCalled();
-        expect(ssmClient).toBeInstanceOf(AWS.SQSClient);
+        expect(sqsClient).toBeInstanceOf(AWS.SQSClient);
     });
 
 
-    it("should return a raw SSM client when XRAY_ENABLED is not set and USE_MOCKED is not set", () => {
+    it("should return a raw SQS client when XRAY_ENABLED is not set and USE_MOCKED is not set", () => {
         process.env.REGION = "eu-west-2"; // Or your desired region
-        const ssmClient = createSqsClient();
+        const sqsClient = createSqsClient();
         expect(AWSXRay.captureAWSv3Client).not.toHaveBeenCalled();
-        expect(ssmClient).toBeInstanceOf(AWS.SQSClient);
+        expect(sqsClient).toBeInstanceOf(AWS.SQSClient);
     });
 
 });

@@ -9,7 +9,7 @@ jest.mock("aws-xray-sdk-core", () => ({
     setContextMissingStrategy: jest.fn(),
 }));
 
-describe("createKmsClient", () => {
+describe("createSsmClient", () => {
 
 	let loggerSpy: jest.SpyInstance;
 
