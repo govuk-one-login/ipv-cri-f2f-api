@@ -6,7 +6,6 @@ import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
-import { getParameter } from "../../../utils/Config";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "../../../services/DocumentSelectionRequestProcessor";
 import {
@@ -190,10 +189,6 @@ jest.mock("@aws-sdk/client-sfn", () => ({
 		send: jest.fn(),
 	})),
 	StartExecutionCommand: jest.fn().mockImplementation((params) => params),
-}));
-
-jest.mock("../../../utils/Config", () => ({
-	getParameter: jest.fn(),
 }));
 
 describe("DocumentSelectionRequestProcessor", () => {
@@ -711,8 +706,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS,
 		PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NUMBER,
 		PCL_VALID_REQUEST_WITH_POSTAL_ADDRESS_NO_BUILDING_NAME,
-	])("invokes step function if PRINTED_CUSTOMER_LETTER_ENABLED set to true", async (payload) => {
-		(getParameter as jest.Mock).mockResolvedValueOnce("true");
+	])("invokes step function when user selects PRINTED_LETTER", async (payload) => {
 
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 
