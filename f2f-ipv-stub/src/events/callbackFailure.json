@@ -9,9 +9,6 @@
             "claims": null,
             "scopes": null
         },
-        "domainName": "id.execute-api.us-east-1.amazonaws.com",
-        "domainPrefix": "id",
-        "extendedRequestId": "request-id",
         "resourcePath": "/",
         "httpMethod": "POST",
         "path": "/callback",
