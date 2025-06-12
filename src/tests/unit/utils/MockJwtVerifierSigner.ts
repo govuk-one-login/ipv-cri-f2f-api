@@ -6,12 +6,15 @@ const testJwt = {
 		header: {
 			"alg": "ES256",
 			"typ": "JWT",
+			// pragma: allowlist nextline secret
 			"kid": "5d6ec7413ae8bf2ea7c416e766ba9b9299b67eaf9e14f984e2f798a48bf6c921"
 		},
 		payload: {
 			"iss": "https://ipv.core.account.gov.uk",
+			// pragma: allowlist nextline secret
 			"sub": "5ad58c01-3672-4e22-bd1b-9151f3d766c1",
 			"aud": "https://review-o.dev.account.gov.uk",
+			// pragma: allowlist nextline secret
 			"jti": "4b5067a335b158598eb217887cfe8322",
 			"iat": 1749636899,
 			exp: absoluteTimeNow() + 1000,

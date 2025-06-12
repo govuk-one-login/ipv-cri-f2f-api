@@ -19,6 +19,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
  import { AppError } from "../../../utils/AppError";
  import { MessageCodes } from "../../../models/enums/MessageCodes";
+import { AccessTokenRequestValidationHelper } from "../../../utils/AccessTokenRequestValidationHelper";
 
 let accessTokenRequestProcessorTest: AccessTokenRequestProcessor;
 let mockSession: ISessionItem;
@@ -28,6 +29,7 @@ jest.mock("../../../utils/KmsJwtAdapter");
 const logger = mock<Logger>();
 const metrics = mock<Metrics>();
 const mockF2fService = mock<F2fService>();
+const mockAccessTokenRequestValidationHelper = mock<AccessTokenRequestValidationHelper>();
 
 const ENCODED_REDIRECT_URI = encodeURIComponent("http:localhost:8085/callback");
 const AUTHORIZATION_CODE = randomUUID();
@@ -57,6 +59,7 @@ function getMockSessionItem(): ISessionItem {
 	return sess;
 }
 
+// pragma: allowlist nextline secret
 const clientAssertionJwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVkNmVjNzQxM2FlOGJmMmVhN2M0MTZlNzY2YmE5YjkyOTliNjdlYWY5ZTE0Zjk4NGUyZjc5OGE0OGJmNmM5MjEifQ.eyJpc3MiOiJodHRwczovL2lwdi5jb3JlLmFjY291bnQuZ292LnVrIiwic3ViIjoiNWFkNThjMDEtMzY3Mi00ZTIyLWJkMWItOTE1MWYzZDc2NmMxIiwiYXVkIjoiaHR0cHM6Ly9yZXZpZXctby5kZXYuYWNjb3VudC5nb3YudWsiLCJqdGkiOiI0YjUwNjdhMzM1YjE1ODU5OGViMjE3ODg3Y2ZlODMyMiIsImV4cCI6MTc0OTYzNzA3OSwiaWF0IjoxNzQ5NjM2ODk5fQ.ww8_MdgOYS70XGtsWWk-rPBR_3IXSyLd2Tl61J3M1EGBPM3HKUFmWA6N-dq82IpBoGpkn1Nj_qeWNO3Mo50Reg";
 
 describe("AccessTokenRequestProcessor", () => {
@@ -99,6 +102,24 @@ describe("AccessTokenRequestProcessor", () => {
 
 		expect(logger.error).toHaveBeenCalledWith("Failed validating the Access token request body.", {"error": "Invalid request: missing body", "messageCode": "FAILED_VALIDATING_ACCESS_TOKEN_REQUEST_BODY"});
 	 	expect(out.body).toBe("Invalid request: missing body");
+	 	expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
+	 });
+
+	it("Returns 401 Unauthorized response when body is invalid", async () => {
+		const tempAccessTokenRequestProcessorTest = new AccessTokenRequestProcessor(logger, metrics);
+		//@ts-expect-error linting to be updated
+		tempAccessTokenRequestProcessorTest.f2fService = mockF2fService;
+		//@ts-expect-error linting to be updated
+		tempAccessTokenRequestProcessorTest.accessTokenRequestValidationHelper = mockAccessTokenRequestValidationHelper;
+	
+		mockAccessTokenRequestValidationHelper.validatePayload.mockImplementation(() => {
+      		throw new Error("Unexpected url parsing error");
+    	});
+		const out: APIGatewayProxyResult = await tempAccessTokenRequestProcessorTest.processRequest(request);
+
+
+		expect(logger.error).toHaveBeenCalledWith("Failed validating the Access token request body.", {"error": "Unexpected url parsing error", "messageCode": "FAILED_VALIDATING_ACCESS_TOKEN_REQUEST_BODY"});
+	 	expect(out.body).toBe("Unexpected url parsing error");
 	 	expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 	 });
 

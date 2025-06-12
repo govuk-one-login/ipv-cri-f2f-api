@@ -30,6 +30,7 @@ describe("KmsJwtAdapter utils", () => {
 	const dnsSuffix = process.env.DNSSUFFIX!;
 
 	beforeEach(() => {
+		process.env.USE_MOCKED="false";
 		kmsJwtAdapter = new KmsJwtAdapter(process.env.KMS_KEY_ARN!, logger);
 		jest.spyOn(kmsJwtAdapter.kms, "sign").mockImplementation(() => ({
 			Signature: "signature",
@@ -150,6 +151,16 @@ describe("KmsJwtAdapter utils", () => {
 			const result = await kmsJwtAdapter.verifyWithJwks(encodedJwt, mockPublicKeyEndpoint, mockTargetKid);
 			expect(axios.get).toHaveBeenCalledWith(mockPublicKeyEndpoint);
     		expect(result?.sub).toEqual("29986dd5-01ec-4236-ac21-5845fdafd9b5");
+		});
+
+		it("should successfully verify a JWT when using a mocked client", async () => {
+			process.env.USE_MOCKED="true";
+			const mockTargetKid = "1234"; //kid to retrieve correct key from mocked axios response
+			const result: any = await kmsJwtAdapter.verifyWithJwks(encodedJwt, mockPublicKeyEndpoint, mockTargetKid);
+			expect(axios.get).toHaveBeenCalledWith(mockPublicKeyEndpoint);
+    		expect(result?.payload?.data).toEqual("mockPayloadClaims");
+			process.env.USE_MOCKED="false";
+
 		});
 
 		it('should throw an error if no key is found with the specified kid', async () => {
