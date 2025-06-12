@@ -11,7 +11,7 @@ const logger = new Logger({
 
 const createSqsClient = () => {
 	let sqsClient: SQSClient;
-	if (process.env.USE_MOCKED) {
+	if (process.env.USE_MOCKED === "true") {
 		logger.info("SqsClient: USING MOCKED");
 		sqsClient = mockSqsClient as unknown as SQSClient;
 	} else {

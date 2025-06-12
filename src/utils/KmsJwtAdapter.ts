@@ -106,11 +106,19 @@ export class KmsJwtAdapter {
 
 		const publicKey = await importJWK(signingKey, signingKey.alg);
 
-		try {
-			const { payload } = await jwtVerify(urlEncodedJwt, publicKey);
-			return payload;
-		} catch (error) {
-			throw new Error("Failed to verify signature: " + error);
+		if (process.env.USE_MOCKED === "true") { //JWT verification is mocked for contract tests
+			return {
+				payload: { 
+					data: "mockPayloadClaims" 
+				}
+			}
+		} else { 
+			try {
+				const { payload } = await jwtVerify(urlEncodedJwt, publicKey);
+				return payload;
+			} catch (error) {
+				throw new Error("Failed to verify signature: " + error);
+			}
 		}
 	}
 

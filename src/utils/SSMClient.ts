@@ -10,7 +10,7 @@ const logger = new Logger({
 
 const createSsmClient = () => {
 	let ssmClient: SSMClient;
-	if (process.env.USE_MOCKED) {
+	if (process.env.USE_MOCKED === "true") {
 		logger.info("SSMClient: USING MOCKED");
 		ssmClient = mockSsmClient as unknown as SSMClient;
 	} else {
