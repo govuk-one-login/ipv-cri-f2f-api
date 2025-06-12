@@ -87,7 +87,7 @@ describe("F2f Service", () => {
 		(SQSClient as jest.Mock).mockImplementation(() => ({
 			send: mockSend,
 		}));
-});
+	});
 
 	it("Should return a session item when passed a valid session Id", async () => {
 		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: SESSION_RECORD });

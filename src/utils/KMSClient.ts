@@ -16,7 +16,6 @@ const createKmsClient = () => {
 		logger.info("KMSClient: USING MOCKED");
 		kmsClient = mockKmsClient as unknown as AWS.KMS;
 	} else {
-
 		AWSXRay.setContextMissingStrategy("LOG_ERROR");
 		const kms = new AWS.KMS({
 			region: process.env.REGION,
