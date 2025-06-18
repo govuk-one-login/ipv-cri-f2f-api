@@ -91,6 +91,34 @@ describe("SessionConfigRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
+	it("Return pcl_enabled when env var is ABSENT", async () => {
+		delete process.env.PCLENABLED;
+
+		mockF2fService.getSessionById.mockResolvedValueOnce(getMockSessionItem());
+
+		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(
+		VALID_SESSION_CONFIG,
+		"sid-123",
+		);
+
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+		expect(JSON.parse(out.body)).toHaveProperty("pcl_enabled", "true");
+	});
+
+	it("Return pcl_enabled when PCLENABLED=false", async () => {
+		process.env.PCLENABLED = "false";
+
+		mockF2fService.getSessionById.mockResolvedValueOnce(getMockSessionItem());
+
+		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(
+		VALID_SESSION_CONFIG,
+		"sid-123",
+		);
+
+		expect(out.statusCode).toBe(HttpCodesEnum.OK);
+		expect(JSON.parse(out.body)).toHaveProperty("pcl_enabled", "true");
+	});
+
 	it("Return 401 when session is expired", async () => {
 		const sess = getMockSessionItem();
 		sess.expiryDate = 1675458564;
