@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import * as pdfjs from "pdfjs-dist/legacy/build/pdf.js";
+import { getDocument, PDFPageProxy} from "pdfjs-dist/legacy/build/pdf.js";
 import { createCanvas, Canvas } from "canvas";
 
 /**
@@ -18,7 +18,7 @@ export async function convertPdfToImages(pdfBuffer: Buffer, outputDir: string): 
 		}
 
 		// Load the original PDF using pdf.js
-		const loadingTask = pdfjs.getDocument({ data: pdfBuffer });
+		const loadingTask = getDocument({ data: pdfBuffer });
 		const pdfDocument = await loadingTask.promise;
 
 		// Loop through each page of the PDF
@@ -44,14 +44,15 @@ export async function convertPdfToImages(pdfBuffer: Buffer, outputDir: string): 
  * @param {pdfjs.PDFPageProxy} page - The PDF.js page object.
  * @returns {Promise<Buffer>} The image as a buffer (JPEG format).
  */
-async function renderPageToImage(page: pdfjs.PDFPageProxy): Promise<Buffer> {
+async function renderPageToImage(page: PDFPageProxy): Promise<Buffer> {
 	// Scale the page to 2x for a higher quality image output
 	const viewport = page.getViewport({ scale: 2.0 });
 	const canvas: Canvas = createCanvas(viewport.width, viewport.height);
 	const context = canvas.getContext("2d");
-
+    (context as any).canvas = canvas;
+    const castContext = context as any as CanvasRenderingContext2D;
 	// Render the PDF page to the canvas
-	await page.render({ canvasContext: context, viewport }).promise;
+	await page.render({ canvasContext: castContext, viewport }).promise;
 
 	// Convert the canvas content to a JPEG image buffer and return it
 	return canvas.toBuffer("image/png");

@@ -61,12 +61,10 @@ export class AccessTokenRequestProcessor {
 			let requestPayload;
 			try {
 				requestPayload = this.accessTokenRequestValidationHelper.validatePayload(event.body);
-			} catch (error) {
-				this.logger.error("Failed validating the Access token request body.", { messageCode: MessageCodes.FAILED_VALIDATING_ACCESS_TOKEN_REQUEST_BODY });
-				if (error instanceof AppError) {
-					return Response(error.statusCode, error.message);
-				}
-				return Response(HttpCodesEnum.UNAUTHORIZED, "An error has occurred while validating the Access token request payload.");
+			} catch (error: any) {
+				const statusCode = error instanceof AppError ? error.statusCode : HttpCodesEnum.UNAUTHORIZED;
+				this.logger.error("Failed validating the Access token request body.", { messageCode: MessageCodes.FAILED_VALIDATING_ACCESS_TOKEN_REQUEST_BODY, error: error.message });
+				return Response(statusCode, error.message);
 			}
 
 			let session: ISessionItem | undefined;
@@ -149,10 +147,11 @@ export class AccessTokenRequestProcessor {
 				let accessToken;
 				try {
 					accessToken = await this.kmsJwtAdapter.sign(jwtPayload, this.environmentVariables.dnsSuffix());
-					// ignored so as not log PII
-					/* eslint-disable @typescript-eslint/no-unused-vars */
 				} catch (error) {
 					this.logger.error("Failed to sign the accessToken Jwt", { messageCode: MessageCodes.FAILED_SIGNING_JWT });
+					if (error instanceof AppError) {
+						return Response(error.statusCode, error.message);
+					}
 					return Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the accessToken Jwt");
 				}
 
@@ -175,8 +174,9 @@ export class AccessTokenRequestProcessor {
 				return Response(HttpCodesEnum.UNAUTHORIZED, `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state - ${session.authSessionState}`);
 			}
 		} catch (err: any) {
+			const statusCode = err instanceof AppError ? err.statusCode : HttpCodesEnum.UNAUTHORIZED;
 			this.logger.error({ message: "Error processing access token request", err });
-			return Response(err.statusCode, err.message);
+			return Response(statusCode, err.message);
 		}
 	}
 }
