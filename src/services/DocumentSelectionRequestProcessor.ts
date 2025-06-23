@@ -26,7 +26,7 @@ import { getClientConfig } from "../utils/ClientConfig";
 import { Constants } from "../utils/Constants";
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { fromEnv } from "@aws-sdk/credential-providers";
-import { getParameter } from "../utils/Config";
+import { PdfPreferenceEnum } from "../utils/PdfPreferenceEnum";
 
 
 export class DocumentSelectionRequestProcessor {
@@ -168,7 +168,7 @@ export class DocumentSelectionRequestProcessor {
 		this.logger.info("checking service has redeployed");
 		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
 
-			const PRINTED_CUSTOMER_LETTER_ENABLED = await getParameter(this.environmentVariables.printedCustomerLetterEnabledSsmPath());
+			const PRINTED_CUSTOMER_LETTER_ENABLED = "true";
 			try {
 				yotiSessionId = await this.createSessionGenerateInstructions(
 					clientConfig.YotiBaseUrl,
@@ -179,7 +179,10 @@ export class DocumentSelectionRequestProcessor {
 					countryCode,
 				);
 				if (yotiSessionId) {
-					if (PRINTED_CUSTOMER_LETTER_ENABLED === "true") {
+					if (
+            			pdfPreference === PdfPreferenceEnum.PRINTED_LETTER &&
+            			PRINTED_CUSTOMER_LETTER_ENABLED === "true"
+          				) {
 						const singleMetric = this.metrics.singleMetric();
 						singleMetric.addDimension("pdf_preference", pdfPreference);
 						singleMetric.addMetric("DocSelect_comms_choice", MetricUnits.Count, 1);
