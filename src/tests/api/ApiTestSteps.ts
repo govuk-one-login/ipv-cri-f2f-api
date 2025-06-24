@@ -59,7 +59,7 @@ export async function startStubServiceAndReturnSessionId(stubPayload: StubStartR
 }
 
 interface KidOptions {
-	journeyType: 'invalidKid' | 'missingKid';
+	journeyType: 'invalidSigningKid' | 'missingSigningKid';
 }
 
 export async function stubStartPost(stubPayload: StubStartRequest, options?: KidOptions): Promise<AxiosResponse<StubStartResponse>> {

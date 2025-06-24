@@ -1,22 +1,18 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
+import { SignCommand } from "@aws-sdk/client-kms";
 import crypto from "node:crypto";
 import { util } from "node-jose";
 import format from "ecdsa-sig-formatter";
-import { NodeHttpHandler } from "@smithy/node-http-handler";
-import { JWTPayload, Jwks, JwtHeader } from "../auth.types";
+import {
+  JWTPayload,
+  Jwks,
+  JwtHeader,
+  PublicEncryptionKeyAndKid,
+} from "../auth.types";
 import axios from "axios";
+import { getAsJwk, v3KmsClient } from "../utils/jwkUtils";
 import { __ServiceException } from "@aws-sdk/client-kms/dist-types/models/KMSServiceException";
 import { getHashedKid } from "../utils/hashing";
-
-export const v3KmsClient = new KMSClient({
-  region: process.env.REGION ?? "eu-west-2",
-  requestHandler: new NodeHttpHandler({
-    connectionTimeout: 29000,
-    socketTimeout: 29000,
-  }),
-  maxAttempts: 2,
-});
 
 let frontendURL: string;
 let clientID: string;
@@ -27,7 +23,7 @@ export const handler = async (
   const config = getDefaultConfig();
   const overrides = event.body ? JSON.parse(event.body) : {};
   config.jwksUri = overrides.target || config.jwksUri;
-  frontendURL = overrides.frontendURL || config.oauthUri;
+  frontendURL = overrides.frontendURL || config.frontUri;
   clientID = overrides.clientId || process.env.CLIENT_ID;
 
   const defaultClaims = {
@@ -100,18 +96,43 @@ export const handler = async (
   }
 
   // Unhappy path testing enabled by optional flag provided in stub paylod
-  let invalidKey;
-  if (overrides?.missingKid != null) {
-    invalidKey = crypto.randomUUID();
+  let invalidSigningKey;
+  let encryptionKeyKid;
+  let encryptionKey: CryptoKey;
+
+  if (overrides?.missingSigningKid != null) {
+    invalidSigningKey = crypto.randomUUID();
   }
-  if (overrides?.invalidKid != null) {
-    invalidKey = config.additionalKey;
+  if (overrides?.invalidSigningKid != null) {
+    invalidSigningKey = config.additionalSigningKey;
   }
 
   console.log("Generate payload is" + JSON.stringify(payload));
-  const signedJwt = await sign(payload, config.signingKey, invalidKey);
-  const publicEncryptionKey: CryptoKey = await getPublicEncryptionKey(config);
-  const request = await encrypt(signedJwt, publicEncryptionKey);
+  const signedJwt = await sign(payload, config.signingKey, invalidSigningKey);
+
+  // JWE unhappy path options
+  // Generate a decryption error as payload is encrypted using a key not available to the CRI
+  if (overrides?.invalidEncryptionKid) {
+    const webcrypto = crypto.webcrypto as unknown as Crypto;
+    const invalidEncryptionKeyId =
+      config.additionalEncryptionKey.split("/").pop() ?? "";
+    const invalidEncryptionKey = await getAsJwk(invalidEncryptionKeyId);
+    encryptionKeyKid = invalidEncryptionKey?.kid;
+    encryptionKey = await webcrypto.subtle.importKey(
+      "jwk",
+      invalidEncryptionKey as JsonWebKey,
+      { name: "RSA-OAEP", hash: "SHA-256" },
+      true,
+      ["encrypt"]
+    );
+    // Happy path
+  } else {
+    const res = await getPublicEncryptionKeyAndKid(config);
+    encryptionKey = res.publicEncryptionKey;
+    encryptionKeyKid = res.kid;
+  }
+
+  const request = await encrypt(signedJwt, encryptionKey, encryptionKeyKid);
 
   return {
     statusCode: 200,
@@ -129,43 +150,51 @@ export const handler = async (
 export function getDefaultConfig(): {
   redirectUri: string;
   jwksUri: string;
+  clientId: string;
   signingKey: string;
-  additionalKey: string;
-  oauthUri: string;
+  additionalSigningKey: string;
+  additionalEncryptionKey: string;
+  frontUri: string;
+  backendUri: string;
 } {
-  const requiredEnvVars = [
-    "REDIRECT_URI",
-    "JWKS_URI",
-    "SIGNING_KEY",
-    "ADDITIONAL_KEY",
-    "OAUTH_FRONT_BASE_URI",
-  ];
-
-  const missingVars = requiredEnvVars.filter(
-    (varName) => !process.env[varName]
-  );
-  if (missingVars.length > 0) {
-    throw new Error(`Missing configuration: ${missingVars.join(", ")}`);
+  if (
+    process.env.REDIRECT_URI == null ||
+    process.env.JWKS_URI == null ||
+    process.env.CLIENT_ID == null ||
+    process.env.SIGNING_KEY == null ||
+    process.env.OIDC_API_BASE_URI == null ||
+    process.env.ADDITIONAL_SIGNING_KEY == null ||
+    process.env.ADDITIONAL_ENCRYPTION_KEY == null ||
+    process.env.OIDC_FRONT_BASE_URI == null
+  ) {
+    throw new Error("Missing configuration");
   }
 
   return {
-    redirectUri: process.env.REDIRECT_URI!,
-    jwksUri: process.env.JWKS_URI!,
-    signingKey: process.env.SIGNING_KEY!,
-    additionalKey: process.env.ADDITIONAL_KEY!,
-    oauthUri: process.env.OAUTH_FRONT_BASE_URI!,
+    redirectUri: process.env.REDIRECT_URI,
+    jwksUri: process.env.JWKS_URI,
+    clientId: process.env.CLIENT_ID,
+    signingKey: process.env.SIGNING_KEY,
+    additionalSigningKey: process.env.ADDITIONAL_SIGNING_KEY,
+    additionalEncryptionKey: process.env.ADDITIONAL_ENCRYPTION_KEY,
+    frontUri: process.env.OIDC_FRONT_BASE_URI,
+    backendUri: process.env.OIDC_API_BASE_URI,
   };
 }
 
-async function getPublicEncryptionKey(config: {
-  jwksUri: string;
-  oauthUri: string;
-}): Promise<CryptoKey> {
+async function getPublicEncryptionKeyAndKid(config: {
+  backendUri: string;
+}): Promise<PublicEncryptionKeyAndKid> {
   const webcrypto = crypto.webcrypto as unknown as Crypto;
-  const oauthProviderJwks = (
-    await axios.get(`${config.jwksUri}/.well-known/jwks.json`)
+  const oidcProviderJwks = (
+    await axios.get(`${config.backendUri}/.well-known/jwks.json`)
   ).data as Jwks;
-  const publicKey = oauthProviderJwks.keys.find((key) => key.use === "enc");
+  const publicKey = oidcProviderJwks.keys.find((key) => key.use === "enc");
+  if (!publicKey) {
+    throw new Error("No encryption key found");
+  }
+  const kid = getHashedKid(publicKey.kid);
+  publicKey.kid = kid;
   const publicEncryptionKey: CryptoKey = await webcrypto.subtle.importKey(
     "jwk",
     publicKey as JsonWebKey,
@@ -173,7 +202,8 @@ async function getPublicEncryptionKey(config: {
     true,
     ["encrypt"]
   );
-  return publicEncryptionKey;
+  const keys = { publicEncryptionKey, kid };
+  return keys;
 }
 
 async function sign(
@@ -182,8 +212,8 @@ async function sign(
   invalidKeyId: string | undefined
 ): Promise<string> {
   const signingKid = keyId.split("/").pop() ?? "";
-  const invalidKid = invalidKeyId?.split("/").pop() ?? "";
-  const kid = invalidKeyId ? invalidKid : signingKid;
+  const invalidSigningKid = invalidKeyId?.split("/").pop() ?? "";
+  const kid = invalidKeyId ? invalidSigningKid : signingKid;
   const hashedKid = getHashedKid(kid);
   const alg = "ECDSA_SHA_256";
   const jwtHeader: JwtHeader = { alg: "ES256", typ: "JWT", kid: hashedKid };
@@ -221,13 +251,15 @@ async function sign(
 
 async function encrypt(
   plaintext: string,
-  publicEncryptionKey: CryptoKey
+  publicEncryptionKey: CryptoKey,
+  kid: string | undefined
 ): Promise<string> {
   const webcrypto = crypto.webcrypto as unknown as Crypto;
   const initialisationVector = webcrypto.getRandomValues(new Uint8Array(12));
   const header = {
     alg: "RSA-OAEP-256",
     enc: "A256GCM",
+    kid: kid,
   };
   const protectedHeader: string = util.base64url.encode(
     Buffer.from(JSON.stringify(header)),

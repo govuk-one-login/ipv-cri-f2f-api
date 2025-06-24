@@ -72,7 +72,7 @@ describe("/session endpoint", () => {
 
 	it("Unsuccessful Request Tests - Invalid Kid Test", async () => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
-		const stubResponse = await stubStartPost(newf2fStubPayload, { journeyType: 'invalidKid' });
+		const stubResponse = await stubStartPost(newf2fStubPayload, { journeyType: 'invalidSigningKid' });
 		const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		expect(sessionResponse.status).toBe(401);
 		expect(sessionResponse.data).toBe("Unauthorized");
@@ -80,7 +80,7 @@ describe("/session endpoint", () => {
 
 	it("Unsuccessful Request Tests - Missing Kid Test", async () => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
-		const stubResponse = await stubStartPost(newf2fStubPayload, { journeyType: 'missingKid' });
+		const stubResponse = await stubStartPost(newf2fStubPayload, { journeyType: 'missingSigningKid' });
 		const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		expect(sessionResponse.status).toBe(401);
 		expect(sessionResponse.data).toBe("Unauthorized");
@@ -143,7 +143,7 @@ describe("/token Endpoint", () => {
 
 	it("Unsuccessful Request Tests - Invalid Kid in Token JWT", async () => {
 		const authResponse = await authorizationGet(sessionId);
-		const startTokenResponse = await startTokenPost({ journeyType: 'invalidKid' });
+		const startTokenResponse = await startTokenPost({ journeyType: 'invalidSigningKid' });
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
 		expect(tokenResponse.status).toBe(401);
 		expect(tokenResponse.data).toBe("Unauthorized");
@@ -151,7 +151,7 @@ describe("/token Endpoint", () => {
 
 	it("Unsuccessful Request Tests - Missing Kid in Token JWT", async () => {
 		const authResponse = await authorizationGet(sessionId);
-		const startTokenResponse = await startTokenPost({ journeyType: 'missingKid' });
+		const startTokenResponse = await startTokenPost({ journeyType: 'missingSigningKid' });
 		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
 		expect(tokenResponse.status).toBe(401);
 		expect(tokenResponse.data).toBe("Unauthorized");

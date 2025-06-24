@@ -12,12 +12,12 @@ import "aws-sdk-client-mock-jest";
 import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import format from "ecdsa-sig-formatter";
 
-const testData = require("../events/startEvents.js");
+import testData from "../events/startEvents.js";
 
 jest.setTimeout(30000);
 
 process.env.SIGNING_KEY = "key-id";
-process.env.ADDITIONAL_KEY = "additional-key-id";
+process.env.ADDITIONAL_SIGNING_KEY = "additional-signing-key-id";
 process.env.JWT_AUDIENCE = "aud";
 
 const kmsClient = mockClient(KMSClient);
@@ -60,7 +60,7 @@ describe("Start F2F Check Endpoint", () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it("should sign a JWT using the correct key when provided with a custom payload for 'invalidKid'", async () => {
+    it("should sign a JWT using the correct key when provided with a custom payload for 'invalidSigningKid'", async () => {
       const response = await handler(testData.startCustomInvalidSigningKey);
       const signCommandInput =
         kmsClient.commandCalls(SignCommand)[0].args[0].input;
@@ -68,7 +68,7 @@ describe("Start F2F Check Endpoint", () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it("should sign a JWT using the correct key when provided with a custom payload for 'missingKid'", async () => {
+    it("should sign a JWT using the correct key when provided with a custom payload for 'missingSigningKid'", async () => {
       const response = await handler(testData.startCustomMissingSigningKey);
       const signCommandInput =
         kmsClient.commandCalls(SignCommand)[0].args[0].input;
