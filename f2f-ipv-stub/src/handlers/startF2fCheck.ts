@@ -7,10 +7,10 @@ import {
   JWTPayload,
   Jwks,
   JwtHeader,
-  PublicEncryptionKeyAndKid,
+  EncryptionKeyWrapper,
 } from "../auth.types";
 import axios from "axios";
-import { getAsJwk, v3KmsClient } from "../utils/jwkUtils";
+import { getKeyFromKmsAsJwk, v3KmsClient } from "../utils/jwkUtils";
 import { __ServiceException } from "@aws-sdk/client-kms/dist-types/models/KMSServiceException";
 import { getHashedKid } from "../utils/hashing";
 
@@ -113,18 +113,13 @@ export const handler = async (
   // JWE unhappy path options
   // Generate a decryption error as payload is encrypted using a key not available to the CRI
   if (overrides?.invalidEncryptionKid) {
-    const webcrypto = crypto.webcrypto as unknown as Crypto;
     const invalidEncryptionKeyId =
       config.additionalEncryptionKey.split("/").pop() ?? "";
-    const invalidEncryptionKey = await getAsJwk(invalidEncryptionKeyId);
-    encryptionKeyKid = invalidEncryptionKey?.kid;
-    encryptionKey = await webcrypto.subtle.importKey(
-      "jwk",
-      invalidEncryptionKey as JsonWebKey,
-      { name: "RSA-OAEP", hash: "SHA-256" },
-      true,
-      ["encrypt"]
+    const invalidEncryptionKey = await getKeyFromKmsAsJwk(
+      invalidEncryptionKeyId
     );
+    encryptionKeyKid = invalidEncryptionKey?.kid;
+    encryptionKey = await convertJsonKeyToCryptoKey(invalidEncryptionKey);
     // Happy path
   } else {
     const res = await getPublicEncryptionKeyAndKid(config);
@@ -158,14 +153,14 @@ export function getDefaultConfig(): {
   backendUri: string;
 } {
   if (
-    process.env.REDIRECT_URI == null ||
-    process.env.JWKS_URI == null ||
-    process.env.CLIENT_ID == null ||
-    process.env.SIGNING_KEY == null ||
-    process.env.OIDC_API_BASE_URI == null ||
-    process.env.ADDITIONAL_SIGNING_KEY == null ||
-    process.env.ADDITIONAL_ENCRYPTION_KEY == null ||
-    process.env.OIDC_FRONT_BASE_URI == null
+    !process.env.REDIRECT_URI ||
+    !process.env.JWKS_URI ||
+    !process.env.CLIENT_ID ||
+    !process.env.SIGNING_KEY ||
+    !process.env.OIDC_API_BASE_URI ||
+    !process.env.ADDITIONAL_SIGNING_KEY ||
+    !process.env.ADDITIONAL_ENCRYPTION_KEY ||
+    !process.env.OIDC_FRONT_BASE_URI
   ) {
     throw new Error("Missing configuration");
   }
@@ -184,8 +179,7 @@ export function getDefaultConfig(): {
 
 async function getPublicEncryptionKeyAndKid(config: {
   backendUri: string;
-}): Promise<PublicEncryptionKeyAndKid> {
-  const webcrypto = crypto.webcrypto as unknown as Crypto;
+}): Promise<EncryptionKeyWrapper> {
   const oidcProviderJwks = (
     await axios.get(`${config.backendUri}/.well-known/jwks.json`)
   ).data as Jwks;
@@ -195,12 +189,8 @@ async function getPublicEncryptionKeyAndKid(config: {
   }
   const kid = getHashedKid(publicKey.kid);
   publicKey.kid = kid;
-  const publicEncryptionKey: CryptoKey = await webcrypto.subtle.importKey(
-    "jwk",
-    publicKey as JsonWebKey,
-    { name: "RSA-OAEP", hash: "SHA-256" },
-    true,
-    ["encrypt"]
+  const publicEncryptionKey: CryptoKey = await convertJsonKeyToCryptoKey(
+    publicKey
   );
   const keys = { publicEncryptionKey, kid };
   return keys;
@@ -304,5 +294,16 @@ async function encrypt(
     )}.` +
     `${util.base64url.encode(Buffer.from(ciphertext))}.` +
     `${util.base64url.encode(Buffer.from(tag))}`
+  );
+}
+
+async function convertJsonKeyToCryptoKey(encyptionKey: JsonWebKey | undefined) {
+  const webcrypto = crypto.webcrypto as unknown as Crypto;
+  return await webcrypto.subtle.importKey(
+    "jwk",
+    encyptionKey as JsonWebKey,
+    { name: "RSA-OAEP", hash: "SHA-256" },
+    true,
+    ["encrypt"]
   );
 }

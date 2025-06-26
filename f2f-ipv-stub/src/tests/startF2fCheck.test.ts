@@ -14,6 +14,8 @@ import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import format from "ecdsa-sig-formatter";
 import base64url from "base64url";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import testData from "../events/startEvents.js";
 
 jest.setTimeout(30000);
@@ -47,7 +49,7 @@ process.env.SIGNING_KEY = "key-id";
 process.env.ADDITIONAL_SIGNING_KEY = "additional-signing-key-id";
 process.env.ADDITIONAL_ENCRYPTION_KEY = "additional-encryption-key-id";
 process.env.OIDC_API_BASE_URI = "api-target.com";
-process.env.OAUTH_FRONT_BASE_URI = "test-target.com";
+process.env.OIDC_FRONT_BASE_URI = "test-target.com";
 
 const kmsClient = mockClient(KMSClient);
 

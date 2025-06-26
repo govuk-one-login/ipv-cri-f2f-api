@@ -1,6 +1,6 @@
 import { APIGatewayProxyResult } from "aws-lambda";
 import { Jwks } from "../auth.types";
-import { getAsJwk } from "../utils/jwkUtils";
+import { getKeyFromKmsAsJwk } from "../utils/jwkUtils";
 
 export const handler = async (): Promise<APIGatewayProxyResult> => {
   const { signingKey, additionalKey } = getConfig();
@@ -9,7 +9,7 @@ export const handler = async (): Promise<APIGatewayProxyResult> => {
   };
   if (signingKey != null) {
     const signingKeyId = signingKey.split("/").pop() ?? "";
-    const formattedSigningKey = await getAsJwk(signingKeyId);
+    const formattedSigningKey = await getKeyFromKmsAsJwk(signingKeyId);
     if (formattedSigningKey != null) {
       jwks.keys.push(formattedSigningKey);
     }
@@ -17,7 +17,7 @@ export const handler = async (): Promise<APIGatewayProxyResult> => {
 
   if (additionalKey != null) {
     const additionalKeyId = additionalKey.split("/").pop() ?? "";
-    const formattedAdditionalKey = await getAsJwk(additionalKeyId);
+    const formattedAdditionalKey = await getKeyFromKmsAsJwk(additionalKeyId);
     if (formattedAdditionalKey != null) {
       jwks.keys.push(formattedAdditionalKey);
     }

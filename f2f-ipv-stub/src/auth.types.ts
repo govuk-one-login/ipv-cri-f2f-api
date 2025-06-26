@@ -55,7 +55,7 @@ export interface JwtHeader {
   kid?: string;
 }
 
-export interface PublicEncryptionKeyAndKid {
+export interface EncryptionKeyWrapper {
   publicEncryptionKey: CryptoKey;
   kid: string;
 }

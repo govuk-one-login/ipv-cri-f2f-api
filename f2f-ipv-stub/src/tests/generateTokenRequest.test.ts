@@ -12,6 +12,8 @@ import "aws-sdk-client-mock-jest";
 import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import format from "ecdsa-sig-formatter";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import testData from "../events/startEvents.js";
 
 jest.setTimeout(30000);

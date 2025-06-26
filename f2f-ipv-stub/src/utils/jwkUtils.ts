@@ -13,7 +13,9 @@ export const v3KmsClient = new KMSClient({
   maxAttempts: 2,
 });
 
-export const getAsJwk = async (keyId: string): Promise<JsonWebKey | null> => {
+export const getKeyFromKmsAsJwk = async (
+  keyId: string
+): Promise<JsonWebKey | undefined> => {
   let publicSigningKey: any;
   try {
     publicSigningKey = await v3KmsClient.send(
@@ -34,10 +36,10 @@ export const getAsJwk = async (keyId: string): Promise<JsonWebKey | null> => {
   ];
   const map = conversions.find((x) => x.keySpec === publicSigningKey?.KeySpec);
   if (
-    publicSigningKey != null &&
-    map != null &&
-    publicSigningKey.KeyId != null &&
-    publicSigningKey.PublicKey != null
+    publicSigningKey &&
+    map &&
+    publicSigningKey.KeyId &&
+    publicSigningKey.PublicKey
   ) {
     const use = publicSigningKey.KeyUsage === "ENCRYPT_DECRYPT" ? "enc" : "sig";
     const publicKey = createPublicKey({
@@ -54,5 +56,5 @@ export const getAsJwk = async (keyId: string): Promise<JsonWebKey | null> => {
       alg: map.algorithm,
     } as unknown as JsonWebKey;
   }
-  return null;
+  return undefined;
 };
