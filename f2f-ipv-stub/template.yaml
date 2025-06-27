@@ -103,6 +103,7 @@ Resources:
                 Resource:
                   - !GetAtt IPVStubKMSSigningKey.Arn
                   - !GetAtt IPVStubKMSAdditionalKey.Arn
+                  - !GetAtt IPVStubKMSAdditionalEncryptionKey.Arn
               - Effect: Allow
                 Action:
                   - "logs:CreateLogGroup"
@@ -340,7 +341,8 @@ Resources:
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
-          ADDITIONAL_KEY: !Ref IPVStubKMSAdditionalKey
+          ADDITIONAL_SIGNING_KEY: !Ref IPVStubKMSAdditionalKey
+          ADDITIONAL_ENCRYPTION_KEY: !Ref IPVStubKMSAdditionalEncryptionKey
           CLIENT_ID: !FindInMap [Configuration, !Ref Environment, IPVStubID]
           REDIRECT_URI: !If
           - CreateDevResources
@@ -402,7 +404,7 @@ Resources:
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
-          ADDITIONAL_KEY: !Ref IPVStubKMSAdditionalKey
+          ADDITIONAL_SIGNING_KEY: !Ref IPVStubKMSAdditionalKey
           JWT_AUDIENCE: !FindInMap [Configuration, !Ref Environment, AUD]
       Policies:
         - Statement:
@@ -451,7 +453,8 @@ Resources:
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
-          ADDITIONAL_KEY: !Ref IPVStubKMSAdditionalKey
+          ADDITIONAL_SIGNING_KEY: !Ref IPVStubKMSAdditionalKey
+          ADDITIONAL_ENCRYPTION_KEY: !Ref IPVStubKMSAdditionalEncryptionKey
       Policies:
         - Statement:
             - Sid: KMSSignPolicy
@@ -461,6 +464,7 @@ Resources:
               Resource:
                 - !GetAtt IPVStubKMSSigningKey.Arn
                 - !GetAtt IPVStubKMSAdditionalKey.Arn
+                - !GetAtt IPVStubKMSAdditionalEncryptionKey.Arn
       Role: !GetAtt IPVStubLambdaRole.Arn
       PermissionsBoundary: !If
         - UsePermissionsBoundary
@@ -569,6 +573,32 @@ Resources:
       Tags:
         - Key: KeyType
           Value: Test Signing Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+
+  IPVStubKMSAdditionalEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: A unique public encryption key not available at the CRI's /well-known/jwks.json endpoint to test scenarios where decryption fails
+      Enabled: true
+      EnableKeyRotation: false
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource:
+              - "*"
+      KeySpec: RSA_2048
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      PendingWindowInDays: 7
+      Tags:
+        - Key: KeyType
+          Value: Test Encryption Key
         - Key: Environment
           Value: !Sub ${Environment}
 

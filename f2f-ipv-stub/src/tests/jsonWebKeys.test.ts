@@ -8,7 +8,7 @@ describe("JWKS Endpoint", () => {
 
   beforeEach(() => {
     process.env.SIGNING_KEY = "test1";
-    process.env.ADDITIONAL_KEY = "test2";
+    process.env.ADDITIONAL_SIGNING_KEY = "test2";
     mockKmsClient.on(GetPublicKeyCommand).resolves({
       KeyId: "test",
       PublicKey: Buffer.from(
@@ -35,7 +35,7 @@ describe("JWKS Endpoint", () => {
 
   it("should return a 200 response with an empty JWK array if no keys are provided", async () => {
     delete process.env.SIGNING_KEY;
-    delete process.env.ADDITIONAL_KEY;
+    delete process.env.ADDITIONAL_SIGNING_KEY;
     const response = await handler();
     const result = response as APIGatewayProxyResult;
     expect(result.statusCode).toBe(200);

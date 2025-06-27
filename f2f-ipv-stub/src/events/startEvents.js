@@ -72,7 +72,7 @@ const startCustomInvalidSigningKey = {
   multiValueQueryStringParameters: null,
   pathParameters: null,
   stageVariables: null,
-  body: '{"invalidKid":"true"}',
+  body: '{"invalidSigningKid":"true"}',
   isBase64Encoded: false,
 };
 
@@ -98,7 +98,7 @@ const startCustomMissingSigningKey = {
   multiValueQueryStringParameters: null,
   pathParameters: null,
   stageVariables: null,
-  body: '{"missingKid":"true"}',
+  body: '{"missingSigningKid":"true"}',
   isBase64Encoded: false,
 };
 
