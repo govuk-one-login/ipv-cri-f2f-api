@@ -42,15 +42,15 @@ Mappings:
   Configuration:
     dev:
       IPVStubID: "5C584572"
-      JWKSURI: "https://api-f2f-cri-api.review-o.dev.account.gov.uk"
       IPVSTUBURL: "ipvstub.review-o.dev.account.gov.uk"
       OAUTHFRONTBASEURI: "https://f2f-cri-front.review-o.dev.account.gov.uk"
+      OIDCBACKBASEURI: "https://api-f2f-cri-api.review-o.dev.account.gov.uk"
       AUD: "https://review-o.dev.account.gov.uk"
     build:
       IPVStubID: "BD7B2A5D"
-      JWKSURI: "https://api.review-o.build.account.gov.uk"
       IPVSTUBURL: "ipvstub.review-o.build.account.gov.uk"
       OAUTHFRONTBASEURI:  "https://www.review-o.build.account.gov.uk"
+      OIDCBACKBASEURI: "https://api-f2f-cri-api.review-o.build.account.gov.uk"
       AUD: "https://review-o.build.account.gov.uk"
     staging:
       IPVStubID: "9CDA6F61"
@@ -354,8 +354,8 @@ Resources:
             - "https://${IPVSTUBURL}/redirect?id=f2f"
             - IPVSTUBURL:
                 !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
-          JWKS_URI: !FindInMap [Configuration, !Ref Environment, JWKSURI]
-          OAUTH_FRONT_BASE_URI: !FindInMap [Configuration, !Ref Environment, OAUTHFRONTBASEURI]
+          OIDC_FRONT_BASE_URI: !FindInMap [Configuration, !Ref Environment, OAUTHFRONTBASEURI]
+          OIDC_API_BASE_URI: !FindInMap [Configuration, !Ref Environment, OIDCBACKBASEURI]
       Policies:
         - Statement:
             - Sid: KMSSignPolicy

@@ -22,7 +22,6 @@ export const handler = async (
 ): Promise<APIGatewayProxyResult> => {
   const config = getDefaultConfig();
   const overrides = event.body ? JSON.parse(event.body) : {};
-  config.jwksUri = overrides.target || config.jwksUri;
   frontendURL = overrides.frontendURL || config.frontUri;
   clientID = overrides.clientId || process.env.CLIENT_ID;
 
@@ -146,7 +145,6 @@ export const handler = async (
 
 export function getDefaultConfig(): {
   redirectUri: string;
-  jwksUri: string;
   clientId: string;
   signingKey: string;
   additionalSigningKey: string;
@@ -156,7 +154,6 @@ export function getDefaultConfig(): {
 } {
   if (
     !process.env.REDIRECT_URI ||
-    !process.env.JWKS_URI ||
     !process.env.CLIENT_ID ||
     !process.env.SIGNING_KEY ||
     !process.env.OIDC_API_BASE_URI ||
@@ -169,7 +166,6 @@ export function getDefaultConfig(): {
 
   return {
     redirectUri: process.env.REDIRECT_URI,
-    jwksUri: process.env.JWKS_URI,
     clientId: process.env.CLIENT_ID,
     signingKey: process.env.SIGNING_KEY,
     additionalSigningKey: process.env.ADDITIONAL_SIGNING_KEY,
