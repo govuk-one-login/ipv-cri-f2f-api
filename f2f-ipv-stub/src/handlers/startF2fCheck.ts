@@ -95,19 +95,21 @@ export const handler = async (
     namePart.value += overrides.yotiMockID;
   }
 
-  // Unhappy path testing enabled by optional flag provided in stub paylod
   let invalidSigningKey;
   let encryptionKeyKid;
   let encryptionKey: CryptoKey;
 
+  // JWT unhappy path options
+  // Generate a key retrieval error as KID provided does not match any keys at the well-known e/p
   if (overrides?.missingSigningKid != null) {
     invalidSigningKey = crypto.randomUUID();
   }
+
+  // Generate a signature verification error as KID provided does not match key used to sign JWT
   if (overrides?.invalidSigningKid != null) {
     invalidSigningKey = config.additionalSigningKey;
   }
 
-  console.log("Generate payload is" + JSON.stringify(payload));
   const signedJwt = await sign(payload, config.signingKey, invalidSigningKey);
 
   // JWE unhappy path options
@@ -203,6 +205,7 @@ async function sign(
 ): Promise<string> {
   const signingKid = keyId.split("/").pop() ?? "";
   const invalidSigningKid = invalidKeyId?.split("/").pop() ?? "";
+  // If an additional kid is provided to the function, return it in the header to create a mismatch - enable unhappy path testing
   const kid = invalidKeyId ? invalidSigningKid : signingKid;
   const hashedKid = getHashedKid(kid);
   const alg = "ECDSA_SHA_256";
@@ -221,6 +224,7 @@ async function sign(
 
   const res = await v3KmsClient.send(
     new SignCommand({
+      // Key used to sign will always be default key
       KeyId: signingKid,
       SigningAlgorithm: alg,
       MessageType: "RAW",
