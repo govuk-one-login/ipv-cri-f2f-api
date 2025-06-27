@@ -43,7 +43,6 @@ const mockJwks = {
 };
 
 process.env.REDIRECT_URI = "test.com/callback";
-process.env.JWKS_URI = "test.com/.well-known/jwks.json";
 process.env.CLIENT_ID = "test-id";
 process.env.SIGNING_KEY = "key-id";
 process.env.ADDITIONAL_SIGNING_KEY = "additional-signing-key-id";
