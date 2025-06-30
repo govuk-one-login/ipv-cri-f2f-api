@@ -12,8 +12,11 @@ import { mockClient } from "aws-sdk-client-mock";
 import "aws-sdk-client-mock-jest";
 import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import format from "ecdsa-sig-formatter";
+import base64url from "base64url";
 
-const testData = require("../events/startEvents.js");
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import testData from "../events/startEvents.js";
 
 jest.setTimeout(30000);
 
@@ -40,12 +43,12 @@ const mockJwks = {
 };
 
 process.env.REDIRECT_URI = "test.com/callback";
-process.env.JWKS_URI = "test.com/.well-known/jwks.json";
 process.env.CLIENT_ID = "test-id";
 process.env.SIGNING_KEY = "key-id";
-process.env.ADDITIONAL_KEY = "additional-key-id";
+process.env.ADDITIONAL_SIGNING_KEY = "additional-signing-key-id";
+process.env.ADDITIONAL_ENCRYPTION_KEY = "additional-encryption-key-id";
 process.env.OIDC_API_BASE_URI = "api-target.com";
-process.env.OAUTH_FRONT_BASE_URI = "test-target.com";
+process.env.OIDC_FRONT_BASE_URI = "test-target.com";
 
 const kmsClient = mockClient(KMSClient);
 
@@ -84,23 +87,34 @@ describe("Start F2F Check Endpoint", () => {
     expect(response.body).toBeDefined();
 
     const body = JSON.parse(response.body);
+    const [protectedHeaderBase64] = body.request.split(".");
+    const protectedHeader = JSON.parse(base64url.decode(protectedHeaderBase64));
+
     expect(body.request).toBeDefined();
     expect(body.responseType).toBeDefined();
     expect(body.clientId).toBeDefined();
     expect(body.AuthorizeLocation).toBeDefined();
+    expect(protectedHeader).toHaveProperty("alg");
+    expect(protectedHeader).toHaveProperty("enc");
+    expect(protectedHeader).toHaveProperty("kid");
   });
 
   it("returns JAR data and target uri with custom payload", async () => {
-
     const response = await handler(testData.startCustom);
     expect(response.statusCode).toBe(200);
     expect(response.body).toBeDefined();
 
     const body = JSON.parse(response.body);
+    const [protectedHeaderBase64] = body.request.split(".");
+    const protectedHeader = JSON.parse(base64url.decode(protectedHeaderBase64));
+
     expect(body.request).toBeDefined();
     expect(body.responseType).toBeDefined();
     expect(body.clientId).toBeDefined();
     expect(body.AuthorizeLocation).toBeDefined();
+    expect(protectedHeader).toHaveProperty("alg");
+    expect(protectedHeader).toHaveProperty("enc");
+    expect(protectedHeader).toHaveProperty("kid");
   });
 
   describe("Sign function", () => {
@@ -112,7 +126,7 @@ describe("Start F2F Check Endpoint", () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it("should sign a JWT using the correct key when provided with a custom payload for 'invalidKid'", async () => {
+    it("should sign a JWT using the correct key when provided with a custom payload for 'invalidSigningKid'", async () => {
       const response = await handler(testData.startCustomInvalidSigningKey);
       const signCommandInput =
         kmsClient.commandCalls(SignCommand)[0].args[0].input;
@@ -120,7 +134,7 @@ describe("Start F2F Check Endpoint", () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it("should sign a JWT using the correct key when provided with a custom payload for 'missingKid'", async () => {
+    it("should sign a JWT using the correct key when provided with a custom payload for 'missingSigningKid'", async () => {
       const response = await handler(testData.startCustomMissingSigningKey);
       const signCommandInput =
         kmsClient.commandCalls(SignCommand)[0].args[0].input;

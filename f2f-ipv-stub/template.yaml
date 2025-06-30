@@ -42,15 +42,15 @@ Mappings:
   Configuration:
     dev:
       IPVStubID: "5C584572"
-      JWKSURI: "https://api-f2f-cri-api.review-o.dev.account.gov.uk"
       IPVSTUBURL: "ipvstub.review-o.dev.account.gov.uk"
       OAUTHFRONTBASEURI: "https://f2f-cri-front.review-o.dev.account.gov.uk"
+      OIDCBACKBASEURI: "https://api-f2f-cri-api.review-o.dev.account.gov.uk"
       AUD: "https://review-o.dev.account.gov.uk"
     build:
       IPVStubID: "BD7B2A5D"
-      JWKSURI: "https://api.review-o.build.account.gov.uk"
       IPVSTUBURL: "ipvstub.review-o.build.account.gov.uk"
       OAUTHFRONTBASEURI:  "https://www.review-o.build.account.gov.uk"
+      OIDCBACKBASEURI: "https://api-f2f-cri-api.review-o.build.account.gov.uk"
       AUD: "https://review-o.build.account.gov.uk"
     staging:
       IPVStubID: "9CDA6F61"
@@ -103,6 +103,7 @@ Resources:
                 Resource:
                   - !GetAtt IPVStubKMSSigningKey.Arn
                   - !GetAtt IPVStubKMSAdditionalKey.Arn
+                  - !GetAtt IPVStubKMSAdditionalEncryptionKey.Arn
               - Effect: Allow
                 Action:
                   - "logs:CreateLogGroup"
@@ -340,7 +341,8 @@ Resources:
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
-          ADDITIONAL_KEY: !Ref IPVStubKMSAdditionalKey
+          ADDITIONAL_SIGNING_KEY: !Ref IPVStubKMSAdditionalKey
+          ADDITIONAL_ENCRYPTION_KEY: !Ref IPVStubKMSAdditionalEncryptionKey
           CLIENT_ID: !FindInMap [Configuration, !Ref Environment, IPVStubID]
           REDIRECT_URI: !If
           - CreateDevResources
@@ -352,8 +354,8 @@ Resources:
             - "https://${IPVSTUBURL}/redirect?id=f2f"
             - IPVSTUBURL:
                 !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
-          JWKS_URI: !FindInMap [Configuration, !Ref Environment, JWKSURI]
-          OAUTH_FRONT_BASE_URI: !FindInMap [Configuration, !Ref Environment, OAUTHFRONTBASEURI]
+          OIDC_FRONT_BASE_URI: !FindInMap [Configuration, !Ref Environment, OAUTHFRONTBASEURI]
+          OIDC_API_BASE_URI: !FindInMap [Configuration, !Ref Environment, OIDCBACKBASEURI]
       Policies:
         - Statement:
             - Sid: KMSSignPolicy
@@ -402,7 +404,7 @@ Resources:
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
-          ADDITIONAL_KEY: !Ref IPVStubKMSAdditionalKey
+          ADDITIONAL_SIGNING_KEY: !Ref IPVStubKMSAdditionalKey
           JWT_AUDIENCE: !FindInMap [Configuration, !Ref Environment, AUD]
       Policies:
         - Statement:
@@ -451,7 +453,8 @@ Resources:
       Environment:
         Variables:
           SIGNING_KEY: !Ref IPVStubKMSSigningKey
-          ADDITIONAL_KEY: !Ref IPVStubKMSAdditionalKey
+          ADDITIONAL_SIGNING_KEY: !Ref IPVStubKMSAdditionalKey
+          ADDITIONAL_ENCRYPTION_KEY: !Ref IPVStubKMSAdditionalEncryptionKey
       Policies:
         - Statement:
             - Sid: KMSSignPolicy
@@ -461,6 +464,7 @@ Resources:
               Resource:
                 - !GetAtt IPVStubKMSSigningKey.Arn
                 - !GetAtt IPVStubKMSAdditionalKey.Arn
+                - !GetAtt IPVStubKMSAdditionalEncryptionKey.Arn
       Role: !GetAtt IPVStubLambdaRole.Arn
       PermissionsBoundary: !If
         - UsePermissionsBoundary
@@ -569,6 +573,32 @@ Resources:
       Tags:
         - Key: KeyType
           Value: Test Signing Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+
+  IPVStubKMSAdditionalEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: A unique public encryption key not available at the CRI's /well-known/jwks.json endpoint to test scenarios where decryption fails
+      Enabled: true
+      EnableKeyRotation: false
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource:
+              - "*"
+      KeySpec: RSA_2048
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      PendingWindowInDays: 7
+      Tags:
+        - Key: KeyType
+          Value: Test Encryption Key
         - Key: Environment
           Value: !Sub ${Environment}
 
