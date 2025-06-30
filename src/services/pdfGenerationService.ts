@@ -10,7 +10,7 @@ import { F2fService } from "./F2fService";
 
 import gdsLightFont from "../static/light-94a07e06a1-v2.ttf";
 import gdsBoldFont from "../static/bold-b542beb274-v2.ttf";
-import govUkLogo from "../static/govuk-logo-lockup-black-1800px.png";
+import govUkLogo from "../static/GOVUKOneLogin.png";
 
 import { PersonIdentityAddress } from "../models/PersonIdentityItem";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
@@ -83,14 +83,14 @@ async generatePDF(
 		const buffers: any = [];
 		doc.on("data", buffers.push.bind(buffers));
 		doc.on("end", () => {
-			const pdfData = Buffer.concat(buffers);
+			const pdfData = Buffer.concat(buffers);		
 			return resolve(pdfData);
 		}); 
             
 		const postalAddress = postalAddresses[0];
 		const address = this.mapToAddressLines(postalAddress);
 
-		doc.image(govUkLogo, this.mmToPt(15), this.mmToPt(15), { fit: [200, 70.5] });
+		doc.image(govUkLogo, this.mmToPt(15), this.mmToPt(15), { fit: [300, 70.5] });
 
 		let addressLinesYPos = this.mmToPt(40);
 		const lineHeight = 12;
