@@ -50,9 +50,9 @@ export class GeneratePrintedLetterHandler implements LambdaInterface {
 		}
 	}
 
-	validateEvent(event: { sessionId: string; pdfPreference: string }):void {
-		if (!event.pdfPreference) {			
-			const message = "Invalid request: missing pdfPreference";
+	validateEvent(event: { sessionId: string; pclPreference: string }):void {
+		if (!event.pclPreference) {			
+			const message = "Invalid request: missing pclPreference";
 			logger.error({ message, messageCode: MessageCodes.MISSING_PCL_PREFERENCE });
 			throw new AppError(HttpCodesEnum.UNAUTHORIZED, message);
 		} else if (!event.sessionId) {

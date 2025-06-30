@@ -31,7 +31,7 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_YOTI_LETTER_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
-	async handler(event: { sessionId: string; pdfPreference: string }, context: any): Promise<any> {
+	async handler(event: { sessionId: string; pclPreference: string }, context: any): Promise<any> {
 		logger.setPersistentLogAttributes({});
 		logger.addContext(context);
 		this.validateEvent(event);
@@ -65,9 +65,9 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 		}
 	}
 
-	validateEvent(event: { sessionId: string; pdfPreference: string }):void {
-		if (!event.pdfPreference) {			
-			const message = "Invalid request: missing pdfPreference";
+	validateEvent(event: { sessionId: string; pclPreference: string }):void {
+		if (!event.pclPreference) {			
+			const message = "Invalid request: missing pclPreference";
 			logger.error({ message, messageCode: MessageCodes.MISSING_PCL_PREFERENCE });
 			throw new AppError(HttpCodesEnum.UNAUTHORIZED, message);
 		} else if (!event.sessionId) {

@@ -63,11 +63,6 @@ export class SessionConfigRequestProcessor {
 				evidence_requested: session.evidence_requested,
 			};
 
-			this.logger.info({ message: "pcl_enabled hard-coded to true" });
-
-			f2fResp.pcl_enabled = "true";
-
-
 			if (session.evidence_requested?.strengthScore && session.evidence_requested?.strengthScore === 4) {
 				this.logger.info("Requested Strength score is 4");
 			} else if (session.evidence_requested?.strengthScore && session.evidence_requested?.strengthScore < 4) {

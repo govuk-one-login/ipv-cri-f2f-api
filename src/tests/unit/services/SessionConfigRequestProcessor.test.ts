@@ -56,67 +56,37 @@ describe("SessionConfigRequestProcessor", () => {
 		jest.clearAllMocks();
 	});
 
-	it("Return successful response with 200 OK and with pcl_enabled flag when evidence_requested is missing", async () => {
+	it("Return successful response with 200 OK when evidence_requested is missing", async () => {
 		const sess = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
 		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
-		expect(out.body).toEqual(JSON.stringify({ pcl_enabled: "true" }));
-
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
-	it("Return successful response with 200 OK and with pcl_enabled flag when evidence_requested is present and is set to 4", async () => {
+	it("Return successful response with 200 OK when evidence_requested is present and is set to 4", async () => {
 		const sess = getMockSessionItem();
 		sess.evidence_requested = { strengthScore: 4 };
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
 		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
-		expect(out.body).toEqual(JSON.stringify({ evidence_requested: { strengthScore: 4 }, pcl_enabled: "true" }));
+		expect(out.body).toEqual(JSON.stringify({ evidence_requested: { strengthScore: 4 }}));
 
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 	});
 
-	it("Return successful response with 200 OK and with pcl_enabled flag when evidence_requested is present but is set to less than 4", async () => {
+	it("Return successful response with 200 OK when evidence_requested is present but is set to less than 4", async () => {
 		const sess = getMockSessionItem();
 		sess.evidence_requested = { strengthScore: 3 };
 		mockF2fService.getSessionById.mockResolvedValue(sess);
 
 		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
-		expect(out.body).toEqual(JSON.stringify({ evidence_requested: { strengthScore: 3 }, pcl_enabled: "true" }));
+		expect(out.body).toEqual(JSON.stringify({ evidence_requested: { strengthScore: 3 }}));
 
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
-	});
-
-	it("Return pcl_enabled when env var is ABSENT", async () => {
-		delete process.env.PCLENABLED;
-
-		mockF2fService.getSessionById.mockResolvedValueOnce(getMockSessionItem());
-
-		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(
-		VALID_SESSION_CONFIG,
-		"sid-123",
-		);
-
-		expect(out.statusCode).toBe(HttpCodesEnum.OK);
-		expect(JSON.parse(out.body)).toHaveProperty("pcl_enabled", "true");
-	});
-
-	it("Return pcl_enabled when PCLENABLED=false", async () => {
-		process.env.PCLENABLED = "false";
-
-		mockF2fService.getSessionById.mockResolvedValueOnce(getMockSessionItem());
-
-		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(
-		VALID_SESSION_CONFIG,
-		"sid-123",
-		);
-
-		expect(out.statusCode).toBe(HttpCodesEnum.OK);
-		expect(JSON.parse(out.body)).toHaveProperty("pcl_enabled", "true");
 	});
 
 	it("Return 401 when session is expired", async () => {
