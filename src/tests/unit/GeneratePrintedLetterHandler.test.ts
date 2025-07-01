@@ -33,7 +33,7 @@ describe("GeneratePrintedLetterHandler", () => {
 
 		GeneratePrintedLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
 
-		await lambdaHandler(({ "sessionId":"", "pclPreference":"POST" }), CONTEXT);
+		await lambdaHandler(({ "sessionId":"", "pdfPreference":"POST" }), CONTEXT);
 
 		expect(logger.error).toHaveBeenCalledWith({ message: "Invalid request: missing sessionId", messageCode: MessageCodes.MISSING_SESSION_ID });
 		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter", MetricUnits.Count, 1);
@@ -44,7 +44,7 @@ describe("GeneratePrintedLetterHandler", () => {
 
 		GeneratePrintedLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
 
-		await lambdaHandler(({ "sessionId":"abcdefgh", "pclPreference":"POST" }), CONTEXT);
+		await lambdaHandler(({ "sessionId":"abcdefgh", "pdfPreference":"POST" }), CONTEXT);
 
 		expect(logger.error).toHaveBeenCalledWith({ message: "Invalid request: sessionId is not a valid uuid", messageCode: MessageCodes.INVALID_SESSION_ID });
 		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter", MetricUnits.Count, 1);
@@ -53,10 +53,10 @@ describe("GeneratePrintedLetterHandler", () => {
 	it("calls GenerateYotiLetterProcessor if required attributes are present", async () => {
 		GeneratePrintedLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
 
-		await lambdaHandler({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pclPreference":"POST" }, CONTEXT);
+		await lambdaHandler({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"POST" }, CONTEXT);
 
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(mockedGeneratePrintedLetterProcessor.processRequest).toHaveBeenCalledTimes(1);
-		expect(mockedGeneratePrintedLetterProcessor.processRequest).toHaveBeenCalledWith({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pclPreference":"POST" });
+		expect(mockedGeneratePrintedLetterProcessor.processRequest).toHaveBeenCalledWith({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"POST" });
 	});
 });
