@@ -122,8 +122,8 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
       GOVUKNOTIFYREMINDERTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
-      YOTISESSIONTTLDAYS: 15 # Default 15 days
-      RESOURCETTLSECS: 1555200 # Default 18 days
+      YOTISESSIONTTLDAYS: 15 # Default: 15 days
+      RESOURCETTLSECS: 1814400 # Default: 21 days
       CLIENTS:
         '[
           {
@@ -143,7 +143,7 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
+      AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
     build:
@@ -157,8 +157,8 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
       GOVUKNOTIFYREMINDERTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
-      YOTISESSIONTTLDAYS: 15 # Default 15 days
-      RESOURCETTLSECS: 1814400 # Default 18 days
+      YOTISESSIONTTLDAYS: 15 # Default: 15 days
+      RESOURCETTLSECS: 1814400 # Default: 21 days
       CLIENTS:
         '[
           {
@@ -178,7 +178,7 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
+      AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
     staging:
@@ -190,8 +190,8 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
       GOVUKNOTIFYREMINDERTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
-      YOTISESSIONTTLDAYS: 15 # Default 15 days
-      RESOURCETTLSECS: 1814400 # Default 18 days
+      YOTISESSIONTTLDAYS: 15 # Default: 15 days
+      RESOURCETTLSECS: 1814400 # Default: 21 days
       CLIENTS:
         '[
           {
@@ -203,7 +203,7 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
+      AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
     integration:
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
@@ -214,8 +214,8 @@ Mappings:
       GOVUKNOTIFYPDFTEMPLATEID: "b817746a-5808-4b23-be29-5ce8c1509afb"
       GOVUKNOTIFYREMINDERTEMPLATEID: "59cdab0d-3b81-4711-ae47-6cfb80b07f56"
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
-      YOTISESSIONTTLDAYS: 15 # Default 15 days
-      RESOURCETTLSECS: 1814400 # Default 18 days
+      YOTISESSIONTTLDAYS: 15 # Default: 15 days
+      RESOURCETTLSECS: 1814400 # Default: 21 days
       CLIENTS:
         '[
           {
@@ -227,7 +227,7 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
+      AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
     production:
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
@@ -237,9 +237,9 @@ Mappings:
       TXMAMESSAGERETENTIONPERIODDAYS: 604800 # Default: 7 days
       GOVUKNOTIFYPDFTEMPLATEID: "a1b28aba-2abe-4201-b255-cfd977c9f633"
       GOVUKNOTIFYREMINDERTEMPLATEID: "9af55561-e797-41b1-8a0c-6723bfba6c9b"
-      GOVUKNOTIFYDYNAMICREMINDERWITHSTEPSTEMPLATEID: "a675cb71-6300-4d7f-a006-a92be6a5c4c1"
-      YOTISESSIONTTLDAYS: 15 # Default 15 days
-      RESOURCETTLSECS: 1814400 # Default 18 days
+      GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "a675cb71-6300-4d7f-a006-a92be6a5c4c1"
+      YOTISESSIONTTLDAYS: 15 # Default: 15 days
+      RESOURCETTLSECS: 1814400 # Default: 21 days
       CLIENTS:
         '[
           {
@@ -251,7 +251,7 @@ Mappings:
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
         ]'
-      AUTHSESSIONTTLSECS: 1814400 # 21 days in seconds
+      AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
