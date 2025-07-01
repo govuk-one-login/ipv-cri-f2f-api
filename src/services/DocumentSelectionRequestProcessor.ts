@@ -26,8 +26,6 @@ import { getClientConfig } from "../utils/ClientConfig";
 import { Constants } from "../utils/Constants";
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { fromEnv } from "@aws-sdk/credential-providers";
-import { PdfPreferenceEnum } from "../utils/PdfPreferenceEnum";
-
 
 export class DocumentSelectionRequestProcessor {
 

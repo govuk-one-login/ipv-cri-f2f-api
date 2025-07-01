@@ -32,6 +32,8 @@ import { APIGatewayProxyResult } from "aws-lambda";
 
 
 let mockDocumentSelectionRequestProcessor: DocumentSelectionRequestProcessor;
+let yotiLetterStateMachineSpy: jest.SpyInstance;
+
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 
@@ -198,6 +200,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 		// @ts-expect-error linting to be updated
 		mockDocumentSelectionRequestProcessor.f2fService = mockF2fService;
 
+		yotiLetterStateMachineSpy = jest.spyOn(mockDocumentSelectionRequestProcessor, 'startStateMachine');
+
 		YotiService.getInstance = jest.fn(() => mockYotiService);
 
 		yotiSessionInfo = getYotiSessionInfo();
@@ -206,7 +210,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 	});
 
 	beforeEach(() => {
-		jest.restoreAllMocks();
+		
+		jest.clearAllMocks();
 		jest.useFakeTimers();
 		jest.setSystemTime(new Date(1585695600000));
 		personIdentityItem = getPersonIdentityItem();
@@ -227,8 +232,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		const yotiLetterStateMachineSpy = jest.spyOn(mockDocumentSelectionRequestProcessor, 'startStateMachine');
-
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
 
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
@@ -237,12 +240,15 @@ describe("DocumentSelectionRequestProcessor", () => {
 		passportYotiStart.timestamp = 1585695600;
 		passportYotiStart.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart, encodedHeader);
-		expect(yotiLetterStateMachineSpy).toHaveBeenCalledTimes(1);
+		expect(yotiLetterStateMachineSpy).toHaveBeenCalledWith(f2fSessionItem.sessionId, "b83d54ce-1565-42ee-987a-97a1f48f27dg", f2fSessionItem.clientSessionId, PdfPreferenceEnum.EMAIL_ONLY);
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
-		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_yoti_session_created", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_comms_choice", MetricUnits.Count, 1)
 		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_document_selected", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_doc_select_complete", MetricUnits.Count, 1)
 	});
 
 	it("Should return successful response with 200 OK when non-UK passport used for YOTI session", async () => {
@@ -264,12 +270,15 @@ describe("DocumentSelectionRequestProcessor", () => {
 		passportYotiStart.timestamp = 1585695600;
 		passportYotiStart.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart, encodedHeader);
-		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
+		expect(yotiLetterStateMachineSpy).toHaveBeenCalledWith(f2fSessionItem.sessionId, "b83d54ce-1565-42ee-987a-97a1f48f27dg", f2fSessionItem.clientSessionId, PdfPreferenceEnum.EMAIL_ONLY);
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
-		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_yoti_session_created", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_comms_choice", MetricUnits.Count, 1)
 		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_document_selected", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_doc_select_complete", MetricUnits.Count, 1)
 	});
 
 	it("Should return successful response with 200 OK when an EEA ID Card is used and creates YOTI session", async () => {
@@ -294,12 +303,15 @@ describe("DocumentSelectionRequestProcessor", () => {
 		nationalIdYotiStart.timestamp = 1585695600;
 		nationalIdYotiStart.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, nationalIdYotiStart, encodedHeader);
-		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
+		expect(yotiLetterStateMachineSpy).toHaveBeenCalledWith(f2fSessionItem.sessionId, "b83d54ce-1565-42ee-987a-97a1f48f27dg", f2fSessionItem.clientSessionId, PdfPreferenceEnum.EMAIL_ONLY);
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_yoti_session_created", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_comms_choice", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_document_selected", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_doc_select_complete", MetricUnits.Count, 1)
 	});
 
 	it("Throws bad request error when personDetails is missing", async () => {
@@ -603,35 +615,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.body).toBe("Instructions PDF Generated");
 	});
 
-	it("Throws server error if failure to send to GovNotify queue", async () => {
-		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		
-		mockF2fService.saveUserPdfPreferences.mockResolvedValueOnce(personIdentityItem);
-
-		mockYotiService.createSession.mockResolvedValueOnce("b83d54ce-1565-42ee-987a-97a1f48f27dg");
-
-		mockYotiService.fetchSessionInfo.mockResolvedValueOnce(yotiSessionInfo);
-
-		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
-
-		mockF2fService.sendToGovNotify.mockRejectedValueOnce("Failed to send to GovNotify Queue");
-
-		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
-
-		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
-		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
-		expect(out.body).toBe("An error occurred when sending message to GovNotify handler");
-		expect(logger.error).toHaveBeenCalledTimes(2);
-		expect(logger.error).toHaveBeenNthCalledWith(1,
-			"Yoti session created, failed to post message to GovNotify SQS Queue", { "error": "Failed to send to GovNotify Queue", "messageCode": "FAILED_TO_WRITE_GOV_NOTIFY" },
-		);
-		expect(logger.error).toHaveBeenNthCalledWith(2,
-			"Error occurred during documentSelection orchestration", "An error occurred when sending message to GovNotify handler", { "messageCode": "FAILED_DOCUMENT_SELECTION_ORCHESTRATION" },
-		);
-		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
-		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
-	});
-
 	it("Return 500 when updating the session returns an error", async () => {
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		
@@ -648,10 +631,10 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "1234", encodedHeader);
 
-		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
+		expect(yotiLetterStateMachineSpy).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");
-		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_yoti_session_created", MetricUnits.Count, 1)
 		expect(metrics.addMetric).not.toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 	});
 
@@ -674,10 +657,10 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
 
-		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
+		expect(yotiLetterStateMachineSpy).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");
-		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_yoti_session_created", MetricUnits.Count, 1)
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 	});
 
@@ -696,10 +679,10 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
 
-		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
+		expect(yotiLetterStateMachineSpy).toHaveBeenCalledTimes(1);
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");
-		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenCalledWith("DocSelect_yoti_session_created", MetricUnits.Count, 1)
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "state-F2F_YOTI_SESSION_CREATED", MetricUnits.Count, 1);
 	});
 
