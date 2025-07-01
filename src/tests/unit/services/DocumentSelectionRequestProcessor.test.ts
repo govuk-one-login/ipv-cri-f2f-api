@@ -206,7 +206,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		jest.restoreAllMocks();
 		jest.useFakeTimers();
 		jest.setSystemTime(new Date(1585695600000));
 		personIdentityItem = getPersonIdentityItem();
@@ -227,6 +227,8 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
+		const yotiLetterStateMachineSpy = jest.spyOn(mockDocumentSelectionRequestProcessor, 'startStateMachine');
+
 		const out: APIGatewayProxyResult = await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
 
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
@@ -235,7 +237,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		passportYotiStart.timestamp = 1585695600;
 		passportYotiStart.event_timestamp_ms = 1585695600000;
 		expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(1, passportYotiStart, encodedHeader);
-		expect(mockF2fService.sendToGovNotify).toHaveBeenCalledTimes(1);
+		expect(yotiLetterStateMachineSpy).toHaveBeenCalledTimes(1);
 		expect(mockF2fService.updateSessionWithYotiIdAndStatus).toHaveBeenCalledWith("RandomF2FSessionID", "b83d54ce-1565-42ee-987a-97a1f48f27dg", "F2F_YOTI_SESSION_CREATED");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
