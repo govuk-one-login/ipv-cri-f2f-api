@@ -24,6 +24,7 @@ import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { ISessionItem } from "../models/ISessionItem";
 import { PersonIdentityItem } from "../models/PersonIdentityItem";
 import { randomUUID } from "crypto";
+import { PdfPreferenceEnum } from "../utils/PdfPreferenceEnum";
 
 /**
  * Class to send emails using gov notify service
@@ -152,7 +153,7 @@ export class SendToGovNotifyService {
   			this.GOVUKNOTIFY_API_KEY,
   		);
 
-  		if (f2fPersonInfo.pdfPreference === Constants.PDF_PREFERENCE_PRINTED_LETTER) {
+  		if (f2fPersonInfo.pdfPreference === PdfPreferenceEnum.PRINTED_LETTER) {
   			this.metrics.addMetric("SendToGovNotify_opted_for_printed_letter", MetricUnits.Count, 1);
   			try {
   				const mergedPdf = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.mergedLetterBucketPDFFolder());

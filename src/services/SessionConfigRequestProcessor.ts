@@ -10,7 +10,6 @@ import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
-import { getParameter } from "../utils/Config";
 
 export class SessionConfigRequestProcessor {
 	private static instance: SessionConfigRequestProcessor;
@@ -63,17 +62,6 @@ export class SessionConfigRequestProcessor {
 			const f2fResp : { [key: string]: any } = {
 				evidence_requested: session.evidence_requested,
 			};
-
-			this.logger.info({ message: "Fetching PRINTED_CUSTOMER_LETTER_ENABLED flag from SSM" });
-			try {
-				const PRINTED_CUSTOMER_LETTER_ENABLED = await getParameter(this.environmentVariables.printedCustomerLetterEnabledSsmPath());
-				f2fResp.pcl_enabled = PRINTED_CUSTOMER_LETTER_ENABLED;
-			} catch (error) {
-				this.logger.error(`Failed to get param from ssm at ${this.environmentVariables.printedCustomerLetterEnabledSsmPath()}`, {
-					messageCode: MessageCodes.MISSING_PRINTED_CUSTOMER_LETTER_ENABLED_CONFIGURATION,
-					error,
-				});
-			}
 
 			if (session.evidence_requested?.strengthScore && session.evidence_requested?.strengthScore === 4) {
 				this.logger.info("Requested Strength score is 4");
