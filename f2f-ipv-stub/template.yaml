@@ -50,7 +50,7 @@ Mappings:
       IPVStubID: "BD7B2A5D"
       IPVSTUBURL: "ipvstub.review-o.build.account.gov.uk"
       OAUTHFRONTBASEURI:  "https://www.review-o.build.account.gov.uk"
-      OIDCBACKBASEURI: "https://api-f2f-cri-api.review-o.build.account.gov.uk"
+      OIDCBACKBASEURI: "https://api.review-o.build.account.gov.uk"
       AUD: "https://review-o.build.account.gov.uk"
     staging:
       IPVStubID: "9CDA6F61"
