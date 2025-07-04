@@ -11,7 +11,6 @@ import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
 import { absoluteTimeNow } from "../utils/DateTimeUtils";
-import { buildGovNotifyEventFields } from "../utils/GovNotifyEvent";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
@@ -26,8 +25,6 @@ import { getClientConfig } from "../utils/ClientConfig";
 import { Constants } from "../utils/Constants";
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { fromEnv } from "@aws-sdk/credential-providers";
-import { getParameter } from "../utils/Config";
-
 
 export class DocumentSelectionRequestProcessor {
 
@@ -168,7 +165,6 @@ export class DocumentSelectionRequestProcessor {
 		this.logger.info("checking service has redeployed");
 		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
 
-			const PRINTED_CUSTOMER_LETTER_ENABLED = await getParameter(this.environmentVariables.printedCustomerLetterEnabledSsmPath());
 			try {
 				yotiSessionId = await this.createSessionGenerateInstructions(
 					clientConfig.YotiBaseUrl,
@@ -179,14 +175,10 @@ export class DocumentSelectionRequestProcessor {
 					countryCode,
 				);
 				if (yotiSessionId) {
-					if (PRINTED_CUSTOMER_LETTER_ENABLED === "true") {
-						const singleMetric = this.metrics.singleMetric();
-						singleMetric.addDimension("pdf_preference", pdfPreference);
-						singleMetric.addMetric("DocSelect_comms_choice", MetricUnits.Count, 1);
-						await this.startStateMachine(sessionId, yotiSessionId, f2fSessionInfo?.clientSessionId, pdfPreference);
-					} else {
-						await this.postToGovNotify(f2fSessionInfo.sessionId, yotiSessionId, personDetails);
-					}
+					const singleMetric = this.metrics.singleMetric();
+					singleMetric.addDimension("pdf_preference", pdfPreference);
+					singleMetric.addMetric("DocSelect_comms_choice", MetricUnits.Count, 1);
+					await this.startStateMachine(sessionId, yotiSessionId, f2fSessionInfo?.clientSessionId, pdfPreference);
 					await this.f2fService.updateSessionWithYotiIdAndStatus(
 						f2fSessionInfo.sessionId,
 						yotiSessionId,
@@ -390,21 +382,6 @@ export class DocumentSelectionRequestProcessor {
 		}
 
 		return yotiSessionId;
-	}
-
-
-	async postToGovNotify(sessionId: string, yotiSessionID: string, personDetails: PersonIdentityItem): Promise<any> {
-		this.logger.info({ message: "Posting message to Gov Notify" });
-		try {
-			this.metrics.addMetric("DocSelect_pdf_email_added_to_queue", MetricUnits.Count, 1);
-			await this.f2fService.sendToGovNotify(buildGovNotifyEventFields(sessionId, yotiSessionID, personDetails));
-		} catch (error) {
-			this.logger.error("Yoti session created, failed to post message to GovNotify SQS Queue", {
-				error,
-				messageCode: MessageCodes.FAILED_TO_WRITE_GOV_NOTIFY,
-			});
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when sending message to GovNotify handler");
-		}
 	}
 	
 	async startStateMachine(sessionId: string, yotiSessionID: string, govuk_signin_journey_id: string, pdfPreference: string): Promise<any> {

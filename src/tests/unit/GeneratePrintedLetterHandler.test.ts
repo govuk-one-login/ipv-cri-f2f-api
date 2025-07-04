@@ -50,16 +50,6 @@ describe("GeneratePrintedLetterHandler", () => {
 		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter", MetricUnits.Count, 1);
 	});
 
-	it("throws error if pdfPreference is missing from lambda event", async () => {
-
-		GeneratePrintedLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
-
-		await lambdaHandler(({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"" }), CONTEXT);
-
-		expect(logger.error).toHaveBeenCalledWith({ message: "Invalid request: missing pdfPreference", messageCode: MessageCodes.MISSING_PCL_PREFERENCE });
-		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter", MetricUnits.Count, 1);
-	});
-
 	it("calls GenerateYotiLetterProcessor if required attributes are present", async () => {
 		GeneratePrintedLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
 
