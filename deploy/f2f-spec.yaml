@@ -657,7 +657,7 @@ paths:
         credentials:
           Fn::GetAtt: [ "JWKSBucketRole", "Arn" ]
         uri:
-          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${JsonWebKeysBucket}/.well-known/jwks.json"
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/govuk-one-login-f2f-published-keys-${Environment}/jwks.json"
         responses:
           default:
             statusCode: "200"

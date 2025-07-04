@@ -2,7 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { LambdaInterface } from "@aws-lambda-powertools/commons";
 import { Constants } from "./utils/Constants";
 import { Jwk, JWKSBody, Algorithm } from "./utils/IVeriCredential";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { PutObjectCommand, S3Client, CopyObjectCommand } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import crypto from "crypto";
 import * as AWS from "@aws-sdk/client-kms";
@@ -11,6 +11,8 @@ import { ServicesEnum } from "./models/enums/ServicesEnum";
 
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.JWKS_LOGGER_SVC_NAME;
+const JWKS_BUCKET_NAME = process.env.JWKS_BUCKET_NAME;
+const PUBLISHED_KEYS_BUCKET_NAME = process.env.PUBLISHED_KEYS_BUCKET_NAME;
 const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
 	serviceName: POWERTOOLS_SERVICE_NAME,
@@ -32,40 +34,52 @@ const kmsClient = new AWS.KMS({
 
 class JwksHandler implements LambdaInterface {
 
-	async handler(): Promise<string> {
-		const body: JWKSBody = { keys: [] };
-		const kmsKeyIds = [
-			...environmentVariables.signingKeyIds().split(","),
-			...environmentVariables.encryptionKeyIds().split(","),
-		];
-		logger.info({ message:"Building wellknown JWK endpoint with keys" + kmsKeyIds });
+    async handler(): Promise<string> {
+        const body: JWKSBody = { keys: [] };
+        const kmsKeyIds = [
+            ...environmentVariables.signingKeyIds().split(","),
+            ...environmentVariables.encryptionKeyIds().split(","),
+        ];
+        logger.info({ message:"Building wellknown JWK endpoint with keys" + kmsKeyIds });
 
-		const jwks = await Promise.all(
-			kmsKeyIds.map(async id => getAsJwk(id)),
-		);
-		jwks.forEach(jwk => {
-			if (jwk != null) {
-				body.keys.push(jwk);
-			} else logger.warn({ message:"Environment contains missing keys" });
-		});
+        const jwks = await Promise.all(
+            kmsKeyIds.map(async id => getAsJwk(id)),
+        );
+        jwks.forEach(jwk => {
+            if (jwk != null) {
+                body.keys.push(jwk);
+            } else logger.warn({ message:"Environment contains missing keys" });
+        });
 
-		const uploadParams = {
-			Bucket: environmentVariables.jwksBucketName(),
-			Key: ".well-known/jwks.json",
-			Body: JSON.stringify(body),
-			ContentType: "application/json",
-		};
+        const uploadParams = {
+            Bucket: JWKS_BUCKET_NAME,
+        Key: ".well-known/jwks.json",
+        Body: JSON.stringify(body),
+        ContentType: "application/json",
+        };
 
-		try {
-			await s3Client.send(new PutObjectCommand(uploadParams));
-		} catch (err) {
-			logger.error({ message: "Error writing keys to S3 bucket" + err });
-			throw new Error("Error writing keys to S3 bucket");
-		}
-		return JSON.stringify(body);
+        try {
+            logger.info({ message: "Uploading keys to JWKS bucket" });
+            await s3Client.send(new PutObjectCommand(uploadParams));
 
-	}
+            logger.info({ message: "Copying keys to published keys bucket" });
+            await s3Client.send(
+                new CopyObjectCommand({
+                Bucket: PUBLISHED_KEYS_BUCKET_NAME,
+                Key: "jwks.json",
+                CopySource: `${JWKS_BUCKET_NAME}/.well-known/jwks.json`,
+                }),
+            );
+
+        return JSON.stringify(body);
+        } catch (err) {
+            logger.error({ message: "Error writing / copying keys", err });
+            throw new Error("Error writing keys");
+        }
+
+    }
 }
+
 const getAsJwk = async (keyId: string): Promise<Jwk | null> => {
 	let kmsKey;
 	try {
