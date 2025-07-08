@@ -1,5 +1,4 @@
 import { handlerClass, lambdaHandler, logger} from "../../JwksHandler";
-import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { Jwk, Algorithm } from "../../utils/IVeriCredential";
 import crypto from "crypto";
 
@@ -124,6 +123,7 @@ describe("JwksHandler", () => {
 
 		it("logs error if fetched key does not contain KeyId", async () => {
 			const keyId = "f2f-cri-api-vc-signing-key";
+			// pragma: allowlist nextline secret
 			const publicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAES4sDJifz8h3GDznZZ6NC3QN5qlQn8Zf2mck4yBmlwqvXzZu7Wkwc4QuOxXhGHXamfkoG5d0UJVXJwwvFxiSzRQ==";
 			jest.spyOn(handlerClass.kmsClient, "getPublicKey").mockImplementationOnce(() => ({
 				KeySpec: "ECC_NIST_P256",
