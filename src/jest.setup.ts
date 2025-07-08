@@ -28,4 +28,7 @@ process.env.USE_MOCKED = "false";
 process.env.YOTI_LETTER_STATE_MACHINE_ARN = "MockSendYotiLetterStateMachine.Arn";
 process.env.OS_API_KEY_SSM_PATH = "Test/String";
 process.env.RESOURCES_TTL_SECS = "1209600";
+process.env.SIGNING_KEY_IDS = "f2f-cri-api-vc-signing-key";
+process.env.JWKS_BUCKET_NAME = "f2f-cri-api-jwks-dev";
+process.env.PUBLISHED_KEYS_BUCKET_NAME = "published-keys-bucket";
 
