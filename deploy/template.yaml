@@ -1170,7 +1170,7 @@ Resources:
       Statistic: Sum
       Dimensions: [ ]
       Period: 60
-      EvaluationPeriods: 1
+      EvaluationPeriods: 2
       DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
