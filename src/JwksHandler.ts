@@ -52,9 +52,9 @@ class JwksHandler implements LambdaInterface {
 
         const uploadParams = {
             Bucket: JWKS_BUCKET_NAME,
-        Key: ".well-known/jwks.json",
-        Body: JSON.stringify(body),
-        ContentType: "application/json",
+			Key: ".well-known/jwks.json",
+			Body: JSON.stringify(body),
+			ContentType: "application/json",
         };
 
 		const copyParams = {
