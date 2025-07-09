@@ -70,7 +70,7 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
         with:
-          cosign-release: 'v1.9.0'
+          cosign-release: 'v2.5.2'
 
       - name: Build, tag, and push testing image to Amazon ECR
         env:
@@ -84,7 +84,7 @@ jobs:
           cosign sign --key awskms:///${CONTAINER_SIGN_KMS_KEY} $ECR_REGISTRY/$TEST_ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Build, push traffic test image to ECR
-        uses: govuk-one-login/devplatform-upload-action-ecr@5431bcea6158b6c12776a96e067b1e02bf91b13d # pin@1.3.0
+        uses: govuk-one-login/devplatform-upload-action-ecr@224346cd422f5bdfb6b68d0f8e189e55354b2804 # pin@1.4.0 
         with:
           artifact-bucket-name: ""
           container-sign-kms-key-arn: ${{ secrets[format('{0}_CONTAINER_SIGN_KMS_KEY', matrix.environment)] }}
