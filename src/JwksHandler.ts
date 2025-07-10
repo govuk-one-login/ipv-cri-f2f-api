@@ -124,7 +124,7 @@ class JwksHandler implements LambdaInterface {
 			},
 			{
 				keySpec: "RSA_2048",
-				algorithm: "RS256" as Algorithm,
+				algorithm: "RSA-OAEP-256" as Algorithm,
 			},
 		];
 		return conversions.find(x => x.keySpec === spec);
