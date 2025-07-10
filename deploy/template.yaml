@@ -1143,6 +1143,43 @@ Resources:
             Period: 300
             Stat: Sum
 
+  KeyAliasesUnavailableMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: DeployAlarms
+    Properties:
+      LogGroupName: !Ref SessionFunctionLogGroup
+      FilterPattern: '{ $.messageCode = "KEY_ALIASES_UNAVAILABLE" }'
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "KeyAliasesUnavailable"
+          
+  KeyAliasesUnavailableAlarm:
+    DependsOn:
+      - "KeyAliasesUnavailableMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-KeyAliasesUnavailableAlarm"
+      AlarmDescription: !Sub "KEY_ALIASES_UNAVAILABLE critical ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+      InsufficientDataActions: [ ]
+      MetricName: KeyAliasesUnavailable
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
 ####################################################################
 #                                                                  #
