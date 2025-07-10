@@ -597,6 +597,11 @@ Resources:
                   - "s3:Get*"
                 Resource:
                   - !Sub "arn:aws:s3:::${JsonWebKeysBucket}/.well-known/jwks.json"
+              - Effect: Allow
+                Action:
+                  - "s3:Get*"
+                Resource:
+                  - !Sub "arn:aws:s3:::govuk-one-login-f2f-published-keys-${Environment}/jwks.json"
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
@@ -3289,12 +3294,18 @@ Resources:
         - ApplyReservedConcurrency
         - !Ref LambdaConcurrency
         - !Ref AWS::NoValue
+      Tags:
+        key_consumer_type: manage
       Policies:
         - AWSXRayDaemonWriteAccess
         - S3WritePolicy:
             BucketName: !Ref JsonWebKeysBucket
         - S3ReadPolicy:
             BucketName: !Ref JsonWebKeysBucket
+        - S3ReadPolicy:
+            BucketName: !Sub "govuk-one-login-f2f-published-keys-${Environment}"
+        - S3WritePolicy:
+            BucketName: !Sub "govuk-one-login-f2f-published-keys-${Environment}"
         - Statement:
             - Sid: KMSSignPolicy
               Effect: Allow
@@ -3312,6 +3323,7 @@ Resources:
       Environment:
         Variables:
           JWKS_BUCKET_NAME: !Ref JsonWebKeysBucket
+          PUBLISHED_KEYS_BUCKET_NAME: !Sub "govuk-one-login-f2f-published-keys-${Environment}"
           SIGNING_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           ENCRYPTION_KEY_IDS:
