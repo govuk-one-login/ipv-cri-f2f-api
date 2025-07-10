@@ -173,7 +173,7 @@ describe("JwksHandler", () => {
 		it("returns the correct key spec map for RSA_2048 spec", () => {
 			expect(handlerClass.getKeySpecMap("RSA_2048")).toEqual({
 				keySpec: "RSA_2048",
-				algorithm: "RS256" as Algorithm,
+				algorithm: "RSA-OAEP-256" as Algorithm,
 			});
 		});
 	});
