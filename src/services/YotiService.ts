@@ -285,8 +285,8 @@ export class YotiService {
     				retryCount++;
 				} else {
 					if (retryCount === maxRetries) {
-						this.logger.error({ message: "Error fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, xRequestId });
-						throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
+						this.logger.error({ message: `fetchSessionInfo - cannot fetch Yoti session even after ${maxRetries} retries.`, messageCode: MessageCodes.YOTI_RETRIES_EXCEEDED, xRequestId });
+						throw new AppError(HttpCodesEnum.SERVER_ERROR, `fetchSessionInfo - cannot fetch Yoti session even after ${maxRetries} retries.`);
 					}
 					const message = "An error occurred when fetching Yoti session";
 					this.logger.error({ message, yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_SESSION, xRequestId });
@@ -358,7 +358,7 @@ export class YotiService {
 				const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
 
 				if (((error.response?.status >= 500 && error.response?.status < 600) || error.response?.status === 429) && retryCount < maxRetries) {
-    				this.logger.warn({ message: `generateInstructions - Retrying to generate Yoti instructions PDF. Sleeping for ${backoffPeriodMs} ms`, retryCount, yotiErrorMessage: error.message, yotiErrorCode: error.code, yotiErrorStatus: error.response?.status, messageCode: MessageCodes.FAILED_YOTI_GET_SESSION, xRequestId });
+    				this.logger.warn({ message: `generateInstructions - Retrying to generate Yoti instructions PDF. Sleeping for ${backoffPeriodMs} ms`, retryCount, yotiErrorMessage: error.message, yotiErrorCode: error.code, yotiErrorStatus: error.response?.status, messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS, xRequestId });
     				await sleep(backoffPeriodMs);
     				retryCount++;
     			} else {
