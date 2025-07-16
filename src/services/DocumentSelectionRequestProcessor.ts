@@ -321,7 +321,7 @@ export class DocumentSelectionRequestProcessor {
 	): Promise<string> {
 		this.logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
 
-		const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, yotiBaseUrl, this.environmentVariables.yotiCallbackUrl());
+		const yotiSessionId = await this.yotiService.createSession(personDetails, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries(), selectedDocument, countryCode, yotiBaseUrl, this.environmentVariables.yotiCallbackUrl());
 		this.metrics.addMetric("DocSelect_yoti_session_created", MetricUnits.Count, 1);
 
 		if (!yotiSessionId) {
@@ -330,7 +330,7 @@ export class DocumentSelectionRequestProcessor {
 		}
 
 		this.logger.info("Fetching Session Info");
-		const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId, yotiBaseUrl);
+		const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries(), yotiBaseUrl);
 
 		if (!yotiSessionInfo) {
 			this.logger.error("An error occurred when fetching Yoti Session", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
@@ -370,6 +370,8 @@ export class DocumentSelectionRequestProcessor {
 		this.logger.info({ message: "Generating Instructions PDF" });
 		const generateInstructionsResponse = await this.yotiService.generateInstructions(
 			yotiSessionId,
+			this.environmentVariables.fetchYotiSessionBackoffPeriod(), 
+			this.environmentVariables.fetchYotiSessionMaxRetries(),
 			personDetails,
 			requirements,
 			postOfficeSelection,

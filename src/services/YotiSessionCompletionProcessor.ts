@@ -202,7 +202,7 @@ export class YotiSessionCompletionProcessor {
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields media ID not found");
 		  }
 
-		  const documentFields = await this.yotiService.getMediaContent(yotiSessionID, clientConfig.YotiBaseUrl, documentFieldsId); 
+		  const documentFields = await this.yotiService.getMediaContent(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries(), clientConfig.YotiBaseUrl, documentFieldsId); 
 		  if (!documentFields) {
 			  this.logger.error({ message: "No document fields info found" }, {
 				  documentFieldsId,
