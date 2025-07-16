@@ -363,8 +363,8 @@ export class YotiService {
     				retryCount++;
     			} else {
 					if (retryCount === maxRetries) {
-						this.logger.error({ message: `generateInstructions - cannot generate instructions even after ${maxRetries} retries.`, messageCode: MessageCodes.YOTI_RETRIES_EXCEEDED, xRequestId });
-    					throw new AppError(HttpCodesEnum.SERVER_ERROR, `Cannot generate instructions even after ${maxRetries} retries.`);
+						this.logger.error({ message: `generateInstructions - cannot generate Yoti instructions PDF even after ${maxRetries} retries.`, messageCode: MessageCodes.YOTI_RETRIES_EXCEEDED, xRequestId });
+    					throw new AppError(HttpCodesEnum.SERVER_ERROR, `Cannot generate Yoti instructions PDF even after ${maxRetries} retries.`);
 					}
 				this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS, xRequestId });
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF");
@@ -412,7 +412,7 @@ export class YotiService {
     			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
 
 				if (((error.response?.status >= 500 && error.response?.status < 600) || error.response?.status === 429) && retryCount < maxRetries) {
-    				this.logger.warn({ message: `fetchInstructionsPdf - Retrying to fetch Yoti instructions PDF. Sleeping for ${backoffPeriodMs} ms`, retryCount, yotiErrorMessage: error.message, yotiErrorCode: error.code, yotiErrorStatus: error.response?.status, messageCode: MessageCodes.FAILED_YOTI_GET_SESSION, xRequestId });
+    				this.logger.warn({ message: `fetchInstructionsPdf - Retrying to fetch Yoti instructions PDF. Sleeping for ${backoffPeriodMs} ms`, retryCount, yotiErrorMessage: error.message, yotiErrorCode: error.code, yotiErrorStatus: error.response?.status, messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS, xRequestId });
     				await sleep(backoffPeriodMs);
     				retryCount++;
     			} else {
@@ -464,7 +464,7 @@ export class YotiService {
     			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
 				
     			if (((error.response?.status >= 500 && error.response?.status < 600) || error.response?.status === 429) && retryCount < maxRetries) {
-    				this.logger.warn({ message: `getCompletedSessionInfo - Retrying to fetch completed Yoti session. Sleeping for ${backoffPeriodMs} ms`, retryCount, yotiErrorMessage: error.message, yotiErrorCode: error.code, yotiErrorStatus: error.response?.status, messageCode: MessageCodes.FAILED_YOTI_GET_SESSION, xRequestId });
+    				this.logger.warn({ message: `getCompletedSessionInfo - Retrying to fetch completed Yoti session. Sleeping for ${backoffPeriodMs} ms`, retryCount, yotiErrorMessage: error.message, yotiErrorCode: error.code, yotiErrorStatus: error.response?.status, messageCode: MessageCodes.FAILED_YOTI_GET_COMPLETED_SESSION, xRequestId });
     				await sleep(backoffPeriodMs);
     				retryCount++;
     			} else {
@@ -504,7 +504,7 @@ export class YotiService {
 				const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
 
 				if (((error.response?.status >= 500 && error.response?.status < 600) || error.response?.status === 429) && retryCount < maxRetries) {
-    				this.logger.warn({ message: `getMediaContent - Retrying to fetch Yoti media content. Sleeping for ${backoffPeriodMs} ms`, retryCount, yotiErrorMessage: error.message, yotiErrorCode: error.code, yotiErrorStatus: error.response?.status, messageCode: MessageCodes.FAILED_YOTI_GET_SESSION, xRequestId });
+    				this.logger.warn({ message: `getMediaContent - Retrying to fetch Yoti media content. Sleeping for ${backoffPeriodMs} ms`, retryCount, yotiErrorMessage: error.message, yotiErrorCode: error.code, yotiErrorStatus: error.response?.status, messageCode: MessageCodes.FAILED_YOTI_GET_MEDIA_CONTENT, xRequestId });
     				await sleep(backoffPeriodMs);
     				retryCount++;
     			} else {
