@@ -96,7 +96,7 @@ export class GenerateYotiLetterProcessor {
 			"Fetching the Instructions Pdf from yoti for sessionId: ",
 			f2fSessionInfo.yotiSessionId!,
 		);
-		const encoded = await this.yotiService.fetchInstructionsPdf(f2fSessionInfo.yotiSessionId!, clientConfig.YotiBaseUrl);
+		const encoded = await this.yotiService.fetchInstructionsPdf(f2fSessionInfo.yotiSessionId!, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries(), clientConfig.YotiBaseUrl);
 
 		if (!encoded) {
 			this.logger.error("An error occurred when generating Yoti instructions pdf", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
