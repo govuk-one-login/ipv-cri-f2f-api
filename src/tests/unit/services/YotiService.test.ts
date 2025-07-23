@@ -269,7 +269,7 @@ describe("YotiService", () => {
 			const fakeTime = 1684933200.123;
 			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
 
-			const sessionId = await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTIBASEURL, YOTICALLBACKURL);
+			const sessionId = await yotiService.createSession(personDetails, 2000, 3, selectedDocument, "GBR", YOTIBASEURL, YOTICALLBACKURL);
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", createSessionPayload, {});
@@ -289,7 +289,7 @@ describe("YotiService", () => {
 			const fakeTime = 1684933200.123;
 			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
 
-			await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTIBASEURL, YOTICALLBACKURL);
+			await yotiService.createSession(personDetails, 3, 2000, selectedDocument, "GBR", YOTIBASEURL, YOTICALLBACKURL);
 
 			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", {
 				...createSessionPayload,
@@ -312,7 +312,7 @@ describe("YotiService", () => {
 				  data: { message: "failed to create session" },
 			  } });
 
-			await expect(yotiService.createSession(personDetails, selectedDocument, "GBR", YOTIBASEURL, YOTICALLBACKURL)).rejects.toThrow(
+			await expect(yotiService.createSession(personDetails, 3, 2000, selectedDocument, "GBR", YOTIBASEURL, YOTICALLBACKURL)).rejects.toThrow(
 				new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session"),
 			);
 
@@ -323,6 +323,70 @@ describe("YotiService", () => {
 			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", expect.any(Object), expect.any(Object));
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "401");
 			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_session_creation_response", MetricUnits.Count, 1);
+		});
+
+		it("createSession retries when there is a 429 error creating the Yoti session", async () => {
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123",
+				config: {},
+			});
+
+			jest.useRealTimers();
+
+			axiosMock.post.mockRejectedValue({
+				"message": "Failed to create session",
+				"code": 429,
+				"status": 429,
+				"response": {
+					"status": 429,
+					...errorResponseHeaders,
+				},
+			});
+
+			await expect(yotiService.createSession(personDetails, 3, 2000, selectedDocument, "GBR", YOTIBASEURL, YOTICALLBACKURL)).rejects.toThrow();
+
+			expect(logger.warn).toHaveBeenCalledTimes(3);
+			expect(logger.warn).toHaveBeenNthCalledWith(2,
+				{ "message": "createSession - Retrying to create Yoti session. Sleeping for 2000 ms", "messageCode": "FAILED_CREATING_YOTI_SESSION", "yotiErrorCode": 429, "yotiErrorMessage": "Failed to create session", "yotiErrorStatus": 429, "retryCount": 1, "xRequestId": "dummy-request-id" },
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "createSession - cannot create Yoti session even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
+			);
+			expect(sleep).toHaveBeenCalledTimes(3);
+			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
+			expect(axios.post).toHaveBeenCalledTimes(4);
+		});
+
+		it("createSession retries when there is a 503 error creating the Yoti session", async () => {
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123",
+				config: {},
+			});
+
+			jest.useRealTimers();
+
+			axiosMock.post.mockRejectedValue({
+				"message": "Failed to create session",
+				"code": 503,
+				"status": 503,
+				"response": {
+					"status": 503,
+					...errorResponseHeaders,
+				},
+			});
+
+			await expect(yotiService.createSession(personDetails, 3, 2000, selectedDocument, "GBR", YOTIBASEURL, YOTICALLBACKURL)).rejects.toThrow();
+
+			expect(logger.warn).toHaveBeenCalledTimes(3);
+			expect(logger.warn).toHaveBeenNthCalledWith(2,
+				{ "message": "createSession - Retrying to create Yoti session. Sleeping for 2000 ms", "messageCode": "FAILED_CREATING_YOTI_SESSION", "yotiErrorCode": 503, "yotiErrorMessage": "Failed to create session", "yotiErrorStatus": 503, "retryCount": 1, "xRequestId": "dummy-request-id" },
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "createSession - cannot create Yoti session even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
+			);
+			expect(sleep).toHaveBeenCalledTimes(3);
+			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
+			expect(axios.post).toHaveBeenCalledTimes(4);
 		});
 	});
 
@@ -499,7 +563,7 @@ describe("YotiService", () => {
 
 			axiosMock.get.mockResolvedValueOnce({ status:201, data: expectedResponse });
 
-			const sessionInfo = await yotiService.fetchSessionInfo(sessionId, "http://localhost");
+			const sessionInfo = await yotiService.fetchSessionInfo(sessionId, 2000, 3, "http://localhost");
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123/configuration", {});
@@ -521,15 +585,79 @@ describe("YotiService", () => {
 				"response": errorResponseHeaders,						
 			});
 
-			await expect(yotiService.fetchSessionInfo(sessionId, "http://localhost")).rejects.toThrow();
+			await expect(yotiService.fetchSessionInfo(sessionId, 2000, 3, "http://localhost")).rejects.toThrow();
 
 			expect(logger.error).toHaveBeenCalledWith(
-				{ "message": "Error fetching Yoti session", "yotiErrorCode": 404, "yotiErrorMessage": "Failed to fetch session info", "xRequestId": "dummy-request-id" },
+				{ "message": "An error occurred when fetching Yoti session", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": 404, "yotiErrorMessage": "Failed to fetch session info", "xRequestId": "dummy-request-id" },
 			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123/configuration", expect.any(Object));
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "404");
 			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_fetch_session_response", MetricUnits.Count, 1);
+		});
+
+		it("fetchSessionInfo retries when there is a 429 error fetching the Yoti instructions", async () => {
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123",
+				config: {},
+			});
+
+			jest.useRealTimers();
+
+			axiosMock.get.mockRejectedValue({
+				"message": "Failed to fetch session info",
+				"code": 429,
+				"status": 429,
+				"response": {
+					"status": 429,
+					...errorResponseHeaders,
+				},
+			});
+
+			await expect(yotiService.fetchSessionInfo(sessionId, 2000, 3, "http://localhost")).rejects.toThrow();
+
+			expect(logger.warn).toHaveBeenCalledTimes(3);
+			expect(logger.warn).toHaveBeenNthCalledWith(2,
+				{ "message": "fetchSessionInfo - Retrying to fetch Yoti session. Sleeping for 2000 ms", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": 429, "yotiErrorMessage": "Failed to fetch session info", "yotiErrorStatus": 429, "retryCount": 1, "xRequestId": "dummy-request-id" },
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "fetchSessionInfo - cannot fetch Yoti session even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
+			);
+			expect(sleep).toHaveBeenCalledTimes(3);
+			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
+			expect(axios.get).toHaveBeenCalledTimes(4);
+		});
+
+		it("fetchSessionInfo retries when there is a 503 error fetching the Yoti instructions", async () => {
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123",
+				config: {},
+			});
+
+			jest.useRealTimers();
+
+			axiosMock.get.mockRejectedValue({
+				"message": "Failed to fetch session info",
+				"code": 503,
+				"status": 503,
+				"response": {
+					"status": 503,
+					...errorResponseHeaders,
+				},
+			});
+
+			await expect(yotiService.fetchSessionInfo(sessionId, 2000, 3, "http://localhost")).rejects.toThrow();
+
+			expect(logger.warn).toHaveBeenCalledTimes(3);
+			expect(logger.warn).toHaveBeenNthCalledWith(2,
+				{ "message": "fetchSessionInfo - Retrying to fetch Yoti session. Sleeping for 2000 ms", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": 503, "yotiErrorMessage": "Failed to fetch session info", "yotiErrorStatus": 503, "retryCount": 1, "xRequestId": "dummy-request-id" },
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "fetchSessionInfo - cannot fetch Yoti session even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
+			);
+			expect(sleep).toHaveBeenCalledTimes(3);
+			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
+			expect(axios.get).toHaveBeenCalledTimes(4);
 		});
 	});
 
@@ -563,7 +691,7 @@ describe("YotiService", () => {
 
 			axiosMock.put.mockResolvedValueOnce({ status: 200 });
 
-			const statusCode = await yotiService.generateInstructions(sessionID, personDetails, requirements, PostOfficeSelection, "http://localhost");
+			const statusCode = await yotiService.generateInstructions(sessionID, 2000, 3, personDetails, requirements, PostOfficeSelection, "http://localhost");
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.put).toHaveBeenCalledWith(
@@ -590,11 +718,11 @@ describe("YotiService", () => {
 			});
 
 			await expect(
-				yotiService.generateInstructions(sessionID, personDetails, requirements, PostOfficeSelection, "http://localhost"),
+				yotiService.generateInstructions(sessionID, 2000, 3, personDetails, requirements, PostOfficeSelection, "http://localhost"),
 			).rejects.toThrow();
 
 			expect(logger.error).toHaveBeenCalledWith(
-				{ "message": "An error occurred when generating Yoti instructions PDF", "yotiErrorCode": 400, "yotiErrorMessage": "Failed to generate instructions", "xRequestId": "dummy-request-id" },
+				{ "message": "An error occurred when generating Yoti instructions PDF",  "messageCode": "FAILED_YOTI_PUT_INSTRUCTIONS", "yotiErrorCode": 400, "yotiErrorMessage": "Failed to generate instructions", "xRequestId": "dummy-request-id" },
 			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.put).toHaveBeenCalledWith(
@@ -604,6 +732,70 @@ describe("YotiService", () => {
 			);
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "400");
 			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_generate_instructions_response", MetricUnits.Count, 1);
+		});
+
+		it("generateInstructions retries when there is a 429 error fetching the Yoti instructions", async () => {
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123",
+				config: {},
+			});
+
+			jest.useRealTimers();
+
+			axiosMock.put.mockRejectedValue({
+				"message": "Failed to generate instructions",
+				"code": 429,
+				"status": 429,
+				"response": {
+					"status": 429,
+					...errorResponseHeaders,
+				},
+			});
+
+			await expect(yotiService.generateInstructions(sessionID, 2000, 3, personDetails, requirements, PostOfficeSelection, "http://localhost")).rejects.toThrow();
+
+			expect(logger.warn).toHaveBeenCalledTimes(3);
+			expect(logger.warn).toHaveBeenNthCalledWith(2,
+				{ "message": "generateInstructions - Retrying to generate Yoti instructions PDF. Sleeping for 2000 ms", "messageCode": "FAILED_YOTI_PUT_INSTRUCTIONS", "yotiErrorCode": 429, "yotiErrorMessage": "Failed to generate instructions", "yotiErrorStatus": 429, "retryCount": 1, "xRequestId": "dummy-request-id" },
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "generateInstructions - cannot generate Yoti instructions PDF even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
+			);
+			expect(sleep).toHaveBeenCalledTimes(3);
+			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
+			expect(axios.put).toHaveBeenCalledTimes(4);
+		});
+
+		it("generateInstructions retries when there is a 503 error fetching the Yoti instructions", async () => {
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123",
+				config: {},
+			});
+
+			jest.useRealTimers();
+
+			axiosMock.put.mockRejectedValue({
+				"message": "Failed to generate instructions",
+				"code": 503,
+				"status": 503,
+				"response": {
+					"status": 503,
+					...errorResponseHeaders,
+				},
+			});
+
+			await expect(yotiService.generateInstructions(sessionID, 2000, 3, personDetails, requirements, PostOfficeSelection, "http://localhost")).rejects.toThrow();
+
+			expect(logger.warn).toHaveBeenCalledTimes(3);
+			expect(logger.warn).toHaveBeenNthCalledWith(2,
+				{ "message": "generateInstructions - Retrying to generate Yoti instructions PDF. Sleeping for 2000 ms", "messageCode": "FAILED_YOTI_PUT_INSTRUCTIONS", "yotiErrorCode": 503, "yotiErrorMessage": "Failed to generate instructions", "yotiErrorStatus": 503, "retryCount": 1, "xRequestId": "dummy-request-id" },
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "generateInstructions - cannot generate Yoti instructions PDF even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
+			);
+			expect(sleep).toHaveBeenCalledTimes(3);
+			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
+			expect(axios.put).toHaveBeenCalledTimes(4);
 		});
 	});
 
@@ -622,7 +814,7 @@ describe("YotiService", () => {
 			const pdfData = "mocked-pdf-data";
 			axiosMock.get.mockResolvedValueOnce({ status:200, data: pdfData });
 
-			const fetchedPdf = await yotiService.fetchInstructionsPdf(sessionId, "http://localhost");
+			const fetchedPdf = await yotiService.fetchInstructionsPdf(sessionId, 2000, 3, "http://localhost");
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith(
@@ -644,16 +836,16 @@ describe("YotiService", () => {
 			});
 
 			axiosMock.get.mockRejectedValueOnce({
-				"message": "Failed to fetch PDF",
+				"message": "Failed to fetch instructions PDF",
 				"code": 500,
 				"status": 500,
 				"response": errorResponseHeaders,						
 			});
 
-			await expect(yotiService.fetchInstructionsPdf(sessionId, "http://localhost")).rejects.toThrow();
+			await expect(yotiService.fetchInstructionsPdf(sessionId, 2000, 3, "http://localhost")).rejects.toThrow();
 
 			expect(logger.error).toHaveBeenCalledWith(
-				{ "message": "An error occurred when fetching Yoti instructions PDF", "messageCode": "FAILED_YOTI_GET_INSTRUCTIONS", "yotiErrorCode": 500, "yotiErrorMessage": "Failed to fetch PDF", "xRequestId": "dummy-request-id" },
+				{ "message": "An error occurred when fetching Yoti instructions PDF", "messageCode": "FAILED_YOTI_GET_INSTRUCTIONS", "yotiErrorCode": 500, "yotiErrorMessage": "Failed to fetch instructions PDF", "xRequestId": "dummy-request-id" },
 			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith(
@@ -662,6 +854,70 @@ describe("YotiService", () => {
 			);
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "500");
 			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_fetch_instructions_response", MetricUnits.Count, 1);
+		});
+
+		it("fetchInstructionsPdf retries when there is a 429 error fetching the Yoti instructions", async () => {
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123",
+				config: {},
+			});
+
+			jest.useRealTimers();
+
+			axiosMock.get.mockRejectedValue({
+				"message": "Failed to fetch instructions PDF",
+				"code": 429,
+				"status": 429,
+				"response": {
+					"status": 429,
+					...errorResponseHeaders,
+				},
+			});
+
+			await expect(yotiService.fetchInstructionsPdf(sessionId, 2000, 3, "http://localhost")).rejects.toThrow();
+
+			expect(logger.warn).toHaveBeenCalledTimes(3);
+			expect(logger.warn).toHaveBeenNthCalledWith(2,
+				{ "message": "fetchInstructionsPdf - Retrying to fetch Yoti instructions PDF. Sleeping for 2000 ms", "messageCode": "FAILED_YOTI_GET_INSTRUCTIONS", "yotiErrorCode": 429, "yotiErrorMessage": "Failed to fetch instructions PDF", "yotiErrorStatus": 429, "retryCount": 1, "xRequestId": "dummy-request-id" },
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "fetchInstructionsPdf - cannot fetch Yoti instructions PDF even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
+			);
+			expect(sleep).toHaveBeenCalledTimes(3);
+			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
+			expect(axios.get).toHaveBeenCalledTimes(4);
+		});
+
+		it("fetchInstructionsPdf retries when there is a 503 error fetching the Yoti instructions", async () => {
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123",
+				config: {},
+			});
+
+			jest.useRealTimers();
+
+			axiosMock.get.mockRejectedValue({
+				"message": "Failed to fetch instructions PDF",
+				"code": 503,
+				"status": 503,
+				"response": {
+					"status": 503,
+					...errorResponseHeaders,
+				},
+			});
+
+			await expect(yotiService.fetchInstructionsPdf(sessionId, 2000, 3, "http://localhost")).rejects.toThrow();
+
+			expect(logger.warn).toHaveBeenCalledTimes(3);
+			expect(logger.warn).toHaveBeenNthCalledWith(2,
+				{ "message": "fetchInstructionsPdf - Retrying to fetch Yoti instructions PDF. Sleeping for 2000 ms", "messageCode": "FAILED_YOTI_GET_INSTRUCTIONS", "yotiErrorCode": 503, "yotiErrorMessage": "Failed to fetch instructions PDF", "yotiErrorStatus": 503, "retryCount": 1, "xRequestId": "dummy-request-id" },
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "fetchInstructionsPdf - cannot fetch Yoti instructions PDF even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
+			);
+			expect(sleep).toHaveBeenCalledTimes(3);
+			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
+			expect(axios.get).toHaveBeenCalledTimes(4);
 		});
 	});
 
@@ -703,7 +959,7 @@ describe("YotiService", () => {
 			await expect(yotiService.getCompletedSessionInfo(sessionId, 2000, 3, "http://localhost")).rejects.toThrow();
 
 			expect(logger.error).toHaveBeenCalledWith(
-				{ "message": "An error occurred when fetching Yoti session", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": 404, "yotiErrorMessage": "Failed to fetch completed session info", "xRequestId": "dummy-request-id" },
+				{ "message": "An error occurred when fetching completed Yoti session", "messageCode": "FAILED_YOTI_GET_COMPLETED_SESSION", "yotiErrorCode": 404, "yotiErrorMessage": "Failed to fetch completed session info", "xRequestId": "dummy-request-id" },
 			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123", expect.any(Object));
@@ -711,7 +967,7 @@ describe("YotiService", () => {
 			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_get_completed_session_response", MetricUnits.Count, 1);
 		});
 
-		it("should throw an AppError and doesn't retry if there is a non 5XX or 4249 error while fetching the completed Yoti session info", async () => {
+		it("should throw an AppError and doesn't retry if there is a non 5XX or 429 error while fetching the completed Yoti session info", async () => {
 			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
@@ -730,7 +986,7 @@ describe("YotiService", () => {
 			await expect(yotiService.getCompletedSessionInfo(sessionId, 2000, 3, "http://localhost")).rejects.toThrow();
 
 			expect(logger.error).toHaveBeenCalledWith(
-				{ "message": "An error occurred when fetching Yoti session", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": 404, "yotiErrorMessage": "Failed to fetch completed session info", "xRequestId": "dummy-request-id" },
+				{ "message": "An error occurred when fetching completed Yoti session", "messageCode": "FAILED_YOTI_GET_COMPLETED_SESSION", "yotiErrorCode": 404, "yotiErrorMessage": "Failed to fetch completed session info", "xRequestId": "dummy-request-id" },
 			);
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 
@@ -764,10 +1020,10 @@ describe("YotiService", () => {
 
 			expect(logger.warn).toHaveBeenCalledTimes(3);
 			expect(logger.warn).toHaveBeenNthCalledWith(2,
-				{ "message": "getCompletedSessionInfo - Retrying to fetch Yoti session. Sleeping for 2000 ms", "messageCode": "FAILED_YOTI_GET_SESSION", "yotiErrorCode": 429, "yotiErrorMessage": "Failed to fetch completed session info", "yotiErrorStatus": 429, "retryCount": 1, "xRequestId": "dummy-request-id" },
+				{ "message": "getCompletedSessionInfo - Retrying to fetch completed Yoti session. Sleeping for 2000 ms", "messageCode": "FAILED_YOTI_GET_COMPLETED_SESSION", "yotiErrorCode": 429, "yotiErrorMessage": "Failed to fetch completed session info", "yotiErrorStatus": 429, "retryCount": 1, "xRequestId": "dummy-request-id" },
 			);
 			expect(logger.error).toHaveBeenCalledWith(
-				{ "message": "getCompletedSessionInfo - cannot fetch Yoti session even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
+				{ "message": "getCompletedSessionInfo - cannot fetch completed Yoti session even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
 			);
 			expect(sleep).toHaveBeenCalledTimes(3);
 			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
@@ -791,7 +1047,7 @@ describe("YotiService", () => {
 			const responseData = null;
 			axiosMock.get.mockResolvedValueOnce({ data: responseData });
 
-			const result = await yotiService.getMediaContent(sessionId, mediaId, "http://localhost");
+			const result = await yotiService.getMediaContent(sessionId, 2000, 3, mediaId, "http://localhost");
 
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith(
@@ -814,7 +1070,7 @@ describe("YotiService", () => {
 				"response": errorResponseHeaders,						
 			});	
 
-			await expect(yotiService.getMediaContent(sessionId, mediaId, "http://localhost")).rejects.toThrow();
+			await expect(yotiService.getMediaContent(sessionId, 2000, 3, mediaId, "http://localhost")).rejects.toThrow();
 
 			expect(axios.get).toHaveBeenCalledWith(
 				yotiRequest.url,
@@ -823,6 +1079,70 @@ describe("YotiService", () => {
 			expect(logger.error).toHaveBeenNthCalledWith(1,
 				{ "message": "An error occurred when fetching Yoti media content", "messageCode": "FAILED_YOTI_GET_MEDIA_CONTENT", "yotiErrorCode": 400, "yotiErrorMessage": "Failed to fetch media content", "xRequestId": "dummy-request-id" },
 			);
+		});
+
+		it("getMediaContent retries when there is a 429 error fetching the Yoti media content", async () => {
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123",
+				config: {},
+			});
+
+			jest.useRealTimers();
+
+			axiosMock.get.mockRejectedValue({
+				"message": "Failed to fetch media content",
+				"code": 429,
+				"status": 429,
+				"response": {
+					"status": 429,
+					...errorResponseHeaders,
+				},
+			});
+
+			await expect(yotiService.getMediaContent(sessionId, 2000, 3, mediaId, "http://localhost")).rejects.toThrow();
+
+			expect(logger.warn).toHaveBeenCalledTimes(3);
+			expect(logger.warn).toHaveBeenNthCalledWith(2,
+				{ "message": "getMediaContent - Retrying to fetch Yoti media content. Sleeping for 2000 ms", "messageCode": "FAILED_YOTI_GET_MEDIA_CONTENT", "yotiErrorCode": 429, "yotiErrorMessage": "Failed to fetch media content", "yotiErrorStatus": 429, "retryCount": 1, "xRequestId": "dummy-request-id" },
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "getMediaContent - cannot fetch Yoti media content even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
+			);
+			expect(sleep).toHaveBeenCalledTimes(3);
+			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
+			expect(axios.get).toHaveBeenCalledTimes(4);
+		});
+
+		it("getMediaContent retries when there is a 503 error fetching the Yoti media content", async () => {
+			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+				url: "https://example.com/api/sessions/session123",
+				config: {},
+			});
+
+			jest.useRealTimers();
+
+			axiosMock.get.mockRejectedValue({
+				"message": "Failed to fetch media content",
+				"code": 503,
+				"status": 503,
+				"response": {
+					"status": 503,
+					...errorResponseHeaders,
+				},
+			});
+
+			await expect(yotiService.getMediaContent(sessionId, 2000, 3, mediaId, "http://localhost")).rejects.toThrow();
+
+			expect(logger.warn).toHaveBeenCalledTimes(3);
+			expect(logger.warn).toHaveBeenNthCalledWith(2,
+				{ "message": "getMediaContent - Retrying to fetch Yoti media content. Sleeping for 2000 ms", "messageCode": "FAILED_YOTI_GET_MEDIA_CONTENT", "yotiErrorCode": 503, "yotiErrorMessage": "Failed to fetch media content", "yotiErrorStatus": 503, "retryCount": 1, "xRequestId": "dummy-request-id" },
+			);
+			expect(logger.error).toHaveBeenCalledWith(
+				{ "message": "getMediaContent - cannot fetch Yoti media content even after 3 retries.", "messageCode": "YOTI_RETRIES_EXCEEDED", "xRequestId": "dummy-request-id" },
+			);
+			expect(sleep).toHaveBeenCalledTimes(3);
+			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
+			expect(axios.get).toHaveBeenCalledTimes(4);
 		});
 	});
 });
