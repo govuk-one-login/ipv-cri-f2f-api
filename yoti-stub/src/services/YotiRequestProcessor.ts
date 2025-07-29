@@ -1256,12 +1256,12 @@ export class YotiRequestProcessor {
             // retries
             case '2429':
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
-                this.logger.warn({ message: `fetchSessionInfo - Retrying to fetch Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+                this.logger.warn({ message: `fetchSessionInfo - Retrying to fetch Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to fetch session info", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_YOTI_GET_SESSION", xRequestId: "dummy-request-id" });
     		    await sleep(5000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_GET_SESSION_CONFIG_RESPONSE));
             case '2500':
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
-                this.logger.warn({ message: `fetchSessionInfo - Retrying to fetch Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+                this.logger.warn({ message: `fetchSessionInfo - Retrying to fetch Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to fetch session info", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_YOTI_GET_SESSION", xRequestId: "dummy-request-id" });
     		    await sleep(5000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_GET_SESSION_CONFIG_RESPONSE));
             default:
@@ -1322,12 +1322,12 @@ export class YotiRequestProcessor {
             // retries
              case '3429':
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
-                this.logger.warn({ message: `generateInstructions - Retrying to generate Yoti instructions PDF. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+                this.logger.warn({ message: `generateInstructions - Retrying to generate Yoti instructions PDF. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to generate instructions", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_YOTI_PUT_INSTRUCTIONS", xRequestId: "dummy-request-id" });
     		    await sleep(5000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
             case '3500':
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
-                this.logger.warn({ message: `generateInstructions - Retrying to generate Yoti instructions PDF. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+                this.logger.warn({ message: `generateInstructions - Retrying to generate Yoti instructions PDF. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to generate instructions", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_YOTI_PUT_INSTRUCTIONS", xRequestId: "dummy-request-id" });
     		    await sleep(5000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
             default:
@@ -1399,12 +1399,12 @@ export class YotiRequestProcessor {
             // retries
             case '4429':
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
-                this.logger.warn({ message: `fetchInstructionsPdf - Retrying to fetch Yoti instructions PDF. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+                this.logger.warn({ message: `fetchInstructionsPdf - Retrying to fetch Yoti instructions PDF. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to fetch instructions PDF", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_YOTI_GET_INSTRUCTIONS", xRequestId: "dummy-request-id" });
     		    await sleep(5000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
             case '4501':
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
-                this.logger.warn({ message: `fetchInstructionsPdf - Retrying to fetch Yoti instructions PDF. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+                this.logger.warn({ message: `fetchInstructionsPdf - Retrying to fetch Yoti instructions PDF. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to fetch instructions PDF", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_YOTI_GET_INSTRUCTIONS", xRequestId: "dummy-request-id" });
     		    await sleep(5000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
             default:
@@ -1502,13 +1502,13 @@ export class YotiRequestProcessor {
             // retries
             case '6429':
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
-                this.logger.warn({ message: `getMediaContent - Retrying to fetch Yoti media content. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+                this.logger.warn({ message: `getMediaContent - Retrying to fetch Yoti media content. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to fetch media content", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_YOTI_GET_MEDIA_CONTENT", xRequestId: "dummy-request-id" });
     		    await sleep(5000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE));
 
             case '6500':
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
-                this.logger.warn({ message: `getMediaContent - Retrying to fetch Yoti media content. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+                this.logger.warn({ message: `getMediaContent - Retrying to fetch Yoti media content. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to fetch media content", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_YOTI_GET_MEDIA_CONTENT", xRequestId: "dummy-request-id" });
     		    await sleep(5000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE));
 

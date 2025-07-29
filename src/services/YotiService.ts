@@ -241,9 +241,9 @@ export class YotiService {
 						this.logger.error({ message: `createSession - cannot create Yoti session even after ${maxRetries} retries.`, messageCode: MessageCodes.YOTI_RETRIES_EXCEEDED, xRequestId });
     					throw new AppError(HttpCodesEnum.SERVER_ERROR, `Cannot create Yoti session even after ${maxRetries} retries.`);
 					}
-				this.logger.error({ message: "An error occurred when creating Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION, xRequestId });
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session");
-			}
+					this.logger.error({ message: "An error occurred when creating Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION, xRequestId });
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session");
+				}
 			}
 		}
 	}
