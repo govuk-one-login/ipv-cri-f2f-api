@@ -52,7 +52,6 @@ import {EEA_AI_MATCH_NO_CHIP} from "../data/getSessions/eeaAiMatchNoChip";
 import {EEA_AI_FAIL_MANUAL_PASS} from "../data/getSessions/eeaAiFailManualPass";
 import {EEA_MANUAL_PASS} from "../data/getSessions/eeaManualPass";
 import {DIFFERENT_PERSON_RESPONSE} from "../data/getSessions/differentPersonResponse";
-import {CREATE_SESSION} from "../data/createSession";
 import {ERROR_RESPONSE_HEADERS} from "../data/errorHeaders";
 import {VALID_PUT_INSTRUCTIONS_RESPONSE} from "../data/putInstructions/putInstructionsResponse";
 import {PUT_INSTRUCTIONS_400} from "../data/putInstructions/putInstructions400";
@@ -245,6 +244,17 @@ export class YotiRequestProcessor {
                 await sleep(30000)
                 this.logger.info("I am awake, returning now");
                 return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+            // retries
+            case '1429':
+                this.logger.info({message: "last 4 ID chars", lastFullNameChars});
+                this.logger.warn({ message: `createSession - Retrying to create Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+    		    await sleep(5000);
+                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem.session_id));
+            case '1500':
+                this.logger.info({message: "last 4 ID chars", lastFullNameChars});
+                this.logger.warn({ message: `createSession - Retrying to create Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+    		    await sleep(5000);
+                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem.session_id));
             default:
                 return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming user_tracking_id ${yotiSessionId} didn't match any of the use cases`, ERROR_RESPONSE_HEADERS);
         }
@@ -275,7 +285,7 @@ export class YotiRequestProcessor {
                         VALID_DL_RESPONSE_0000.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE_0000.resources.id_documents[0].document_fields.media.id, UK_DL_MEDIA_ID);
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE_0000));
 
-                    case '0001': // UK Driving License Success - Face Match not  automated
+                    case '0001': // UK Driving License Success - Face Match not automated
                         logger.debug(JSON.stringify(yotiSessionRequest));
                         const VALID_DL_RESPONSE_0001 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
                         VALID_DL_RESPONSE_0001.session_id = sessionId;
@@ -1169,7 +1179,6 @@ export class YotiRequestProcessor {
         }
 
         // Error scenarios
-
         switch (lastUuidChars) {
             case '5400':
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
@@ -1244,6 +1253,17 @@ export class YotiRequestProcessor {
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
                 await sleep(30000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_GET_SESSION_CONFIG_RESPONSE));
+            // retries
+            case '2429':
+                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                this.logger.warn({ message: `fetchSessionInfo - Retrying to fetch Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+    		    await sleep(5000);
+                return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_GET_SESSION_CONFIG_RESPONSE));
+            case '2500':
+                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                this.logger.warn({ message: `fetchSessionInfo - Retrying to fetch Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+    		    await sleep(5000);
+                return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_GET_SESSION_CONFIG_RESPONSE));
             default:
                 return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`, ERROR_RESPONSE_HEADERS);
         }
@@ -1299,6 +1319,17 @@ export class YotiRequestProcessor {
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
                 await new Promise(resolve => setTimeout(resolve, 30000));
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
+            // retries
+             case '3429':
+                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                this.logger.warn({ message: `generateInstructions - Retrying to generate Yoti instructions PDF. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+    		    await sleep(5000);
+                return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
+            case '3500':
+                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                this.logger.warn({ message: `generateInstructions - Retrying to generate Yoti instructions PDF. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+    		    await sleep(5000);
+                return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
             default:
                 return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`, ERROR_RESPONSE_HEADERS);
         }
@@ -1311,6 +1342,15 @@ export class YotiRequestProcessor {
 
         let pdfBytes;
         let successResp;
+        const VALID_GET_INSTRUCTIONS_RESPONSE = {
+                headers: {
+                    'Content-Type': "application/octet-stream",
+                    "Access-Control-Allow-Origin":"*",
+                    'Accept': 'application/pdf'},
+                statusCode: 200,
+                body: pdfBytes,
+                isBase64Encoded: true
+            }
         const lastUuidChars = sessionId.slice(-4);
         const firstTwoChars = lastUuidChars.slice(0, 2);
         this.logger.info({message: "last 4 ID chars", lastUuidChars});
@@ -1321,15 +1361,7 @@ export class YotiRequestProcessor {
             page.moveTo(5, 200)
             page.drawText("This is a demo page generated by Yoti Stub");
             pdfBytes = await pdfDoc.saveAsBase64()
-            successResp = {
-                headers: {
-                    'Content-Type': "application/octet-stream",
-                    "Access-Control-Allow-Origin":"*",
-                    'Accept': 'application/pdf'},
-                statusCode: 200,
-                body: pdfBytes,
-                isBase64Encoded: true
-            }
+            successResp = VALID_GET_INSTRUCTIONS_RESPONSE
 
             if (SUPPORTED_DOCUMENTS.includes(firstTwoChars)) {
                 this.logger.info("fetchInstructionsPdf",JSON.stringify(successResp));
@@ -1364,6 +1396,17 @@ export class YotiRequestProcessor {
                 this.logger.info({message: "last 4 ID chars", lastUuidChars});
                 await sleep(30000);
                 return successResp;
+            // retries
+            case '4429':
+                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                this.logger.warn({ message: `fetchInstructionsPdf - Retrying to fetch Yoti instructions PDF. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+    		    await sleep(5000);
+                return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
+            case '4501':
+                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                this.logger.warn({ message: `fetchInstructionsPdf - Retrying to fetch Yoti instructions PDF. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+    		    await sleep(5000);
+                return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
             default:
                 return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`, ERROR_RESPONSE_HEADERS);
         }
@@ -1455,6 +1498,19 @@ export class YotiRequestProcessor {
                 logger.info({message: "last 4 ID chars", lastUuidChars});
                 await sleep(30000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
+            
+            // retries
+            case '6429':
+                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                this.logger.warn({ message: `getMediaContent - Retrying to fetch Yoti media content. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+    		    await sleep(5000);
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE));
+
+            case '6500':
+                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                this.logger.warn({ message: `getMediaContent - Retrying to fetch Yoti media content. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+    		    await sleep(5000);
+                return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_DRIVING_LICENCE));
 
             default:
                 return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming mediaId ${mediaId} didn't match any of the use cases`, ERROR_RESPONSE_HEADERS);
