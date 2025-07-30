@@ -195,8 +195,8 @@ describe("YotiService", () => {
 			"CLIENT_SDK_ID",
 			1209600,
 			10,
-			3,
 			2000,
+			3,
 			"PEM_KEY",
 		);
 	});
