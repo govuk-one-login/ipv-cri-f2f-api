@@ -58,7 +58,7 @@ export class PostOfficeRequestProcessor {
     		case "MNE":
     			this.logger.info({ message: "Returning incomplete data" });
     			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_OFFICE_RESPONSE_INCOMPLETE_DATA));
-			case "IDD":
+			case "1DD":
 				this.logger.info({ message: "Returning 2 branches for KW15 1DD" });
 				return new Response(HttpCodesEnum.OK, JSON.stringify(POST_OFFICE_LESS_THAN_FIVE_BRANCHES_RESPONSE));
     		default:
