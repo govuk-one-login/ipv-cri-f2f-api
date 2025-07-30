@@ -319,12 +319,10 @@ export class DocumentSelectionRequestProcessor {
 		selectedDocument: string,
 		countryCode: string,
 	): Promise<string> {
-		const yotiSessionBackoffPeriod = this.environmentVariables.fetchYotiSessionBackoffPeriod()
-		const yotiSessionMaxRetries = this.environmentVariables.fetchYotiSessionMaxRetries()
 
 		this.logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
 
-		const yotiSessionId = await this.yotiService.createSession(personDetails, yotiSessionBackoffPeriod, yotiSessionMaxRetries, selectedDocument, countryCode, yotiBaseUrl, this.environmentVariables.yotiCallbackUrl());
+		const yotiSessionId = await this.yotiService.createSession(personDetails, this.yotiService.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS, this.yotiService.FETCH_YOTI_SESSION_MAX_RETRIES, selectedDocument, countryCode, yotiBaseUrl, this.environmentVariables.yotiCallbackUrl());
 		this.metrics.addMetric("DocSelect_yoti_session_created", MetricUnits.Count, 1);
 
 		if (!yotiSessionId) {
@@ -333,7 +331,7 @@ export class DocumentSelectionRequestProcessor {
 		}
 
 		this.logger.info("Fetching Session Info");
-		const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId, yotiSessionBackoffPeriod, yotiSessionMaxRetries, yotiBaseUrl);
+		const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId, this.yotiService.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS, this.yotiService.FETCH_YOTI_SESSION_MAX_RETRIES, yotiBaseUrl);
 
 		if (!yotiSessionInfo) {
 			this.logger.error("An error occurred when fetching Yoti Session", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
@@ -373,8 +371,8 @@ export class DocumentSelectionRequestProcessor {
 		this.logger.info({ message: "Generating Instructions PDF" });
 		const generateInstructionsResponse = await this.yotiService.generateInstructions(
 			yotiSessionId,
-			yotiSessionBackoffPeriod, 
-			yotiSessionMaxRetries,
+			this.yotiService.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS, 
+			this.yotiService.FETCH_YOTI_SESSION_MAX_RETRIES,
 			personDetails,
 			requirements,
 			postOfficeSelection,

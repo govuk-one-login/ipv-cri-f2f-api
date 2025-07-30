@@ -26,13 +26,19 @@ export class YotiService {
 
 	readonly YOTI_SESSION_TTL_DAYS: number;
 
-	readonly RESOURCES_TTL_SECS:number;
+	readonly RESOURCES_TTL_SECS: number;
+
+	readonly FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: number;
+
+	readonly FETCH_YOTI_SESSION_MAX_RETRIES: number;
 
 	readonly validationHelper: ValidationHelper;
 
-	constructor(logger: Logger, metrics: Metrics, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number, PEM_KEY: string) {
+	constructor(logger: Logger, metrics: Metrics, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number,  FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: number, FETCH_YOTI_SESSION_MAX_RETRIES: number, PEM_KEY: string) {
     	this.RESOURCES_TTL_SECS = RESOURCES_TTL_SECS;
     	this.YOTI_SESSION_TTL_DAYS = YOTI_SESSION_TTL_DAYS;
+		this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS = FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
+		this.FETCH_YOTI_SESSION_MAX_RETRIES = FETCH_YOTI_SESSION_MAX_RETRIES
     	this.logger = logger;
 		this.metrics = metrics;
     	this.CLIENT_SDK_ID = CLIENT_SDK_ID;
@@ -40,15 +46,17 @@ export class YotiService {
     	this.validationHelper = new ValidationHelper();
 	}
 
-	static getInstance(logger: Logger, metrics:Metrics, PEM_KEY: string): YotiService {
+	static getInstance(logger: Logger, metrics: Metrics, PEM_KEY: string): YotiService {
 		if (!YotiService.instance) {
-			const { YOTISDK, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS } = process.env;
+			const { YOTISDK, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS, FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS, FETCH_YOTI_SESSION_MAX_RETRIES } = process.env;
 			YotiService.instance = new YotiService(
 				logger,
 				metrics,
 				YOTISDK!,
 				Number(RESOURCES_TTL_SECS),
 				Number(YOTI_SESSION_TTL_DAYS),
+				Number(FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS),
+				Number(FETCH_YOTI_SESSION_MAX_RETRIES),
 				PEM_KEY,
 			);
 		}

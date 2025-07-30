@@ -425,8 +425,8 @@ export class SendEmailService {
   			);
   			const instructionsPdf = await this.yotiService.fetchInstructionsPdf(
   				message.yotiSessionId,
-				this.environmentVariables.fetchYotiSessionBackoffPeriod(), 
-				this.environmentVariables.fetchYotiSessionMaxRetries(),
+				this.yotiService.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS, 
+				this.yotiService.FETCH_YOTI_SESSION_MAX_RETRIES,
   				yotiBaseUrl,
   			);
   			if (instructionsPdf) {
