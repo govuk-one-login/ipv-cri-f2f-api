@@ -154,14 +154,14 @@ export class YotiService {
 
 	async createSession(
     	personDetails: PersonIdentityItem,
-		maxRetries: number,
-		backoffPeriodMs: number,
     	selectedDocument: string,
     	countryCode: string,
 		yotiBaseUrl: string,
     	yotiCallbackUrl: string,
 	): Promise<string | undefined> {
     	const sessionDeadlineDate = new Date(new Date().getTime() + Number(process.env.YOTI_SESSION_TTL_DAYS) * 24 * 60 * 60 * 1000);
+		const backoffPeriodMs = this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
+		const maxRetries = this.FETCH_YOTI_SESSION_MAX_RETRIES;
     	sessionDeadlineDate.setUTCHours(22, 0, 0, 0);
     	const payloadJSON: CreateSessionPayload = {
     		session_deadline: sessionDeadlineDate,
@@ -256,12 +256,15 @@ export class YotiService {
 		}
 	}
 
-	async fetchSessionInfo(sessionId: string, backoffPeriodMs: number, maxRetries: number, yotiBaseUrl: string): Promise<YotiSessionInfo | undefined> {
+	async fetchSessionInfo(sessionId: string, yotiBaseUrl: string): Promise<YotiSessionInfo | undefined> {
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.GET,
 			yotiBaseUrl,
     		endpoint: `/sessions/${sessionId}/configuration`,
     	});
+
+		const backoffPeriodMs = this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
+		const maxRetries = this.FETCH_YOTI_SESSION_MAX_RETRIES;
 		let retryCount = 0;
     	while (retryCount <= maxRetries) {
 			this.logger.info({
@@ -306,13 +309,13 @@ export class YotiService {
 
 	async generateInstructions(
     	sessionId: string,
-		backoffPeriodMs: number, 
-		maxRetries: number,
     	personDetails: PersonIdentityItem,
     	requirements: Array<{ requirement_id: string; document: { type: string; country_code: string; document_type: string } } | undefined>,
     	PostOfficeSelection: PostOfficeInfo,
 		yotiBaseUrl: string,
 	):Promise<number | undefined> {
+		const backoffPeriodMs = this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
+		const maxRetries = this.FETCH_YOTI_SESSION_MAX_RETRIES;
     	const nameParts = personIdentityUtils.getNames(personDetails);
     	const givenNames = nameParts.givenNames.length > 1 ? nameParts.givenNames.join(" ") : nameParts.givenNames[0];
     	const familyNames = nameParts.familyNames.length > 1 ? nameParts.familyNames.join(" ") : nameParts.familyNames[0];
@@ -381,7 +384,7 @@ export class YotiService {
 		}
 	}
 
-	async fetchInstructionsPdf(sessionId: string, backoffPeriodMs: number, maxRetries: number, yotiBaseUrl: string): Promise<string | undefined> {
+	async fetchInstructionsPdf(sessionId: string, yotiBaseUrl: string): Promise<string | undefined> {
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.GET,
 			yotiBaseUrl,
@@ -390,6 +393,8 @@ export class YotiService {
     		configResponseEncoding: "binary",
     	});
 
+		const backoffPeriodMs = this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
+		const maxRetries = this.FETCH_YOTI_SESSION_MAX_RETRIES;
 		let retryCount = 0;
     	while (retryCount <= maxRetries) {
     		this.logger.info({
@@ -438,13 +443,15 @@ export class YotiService {
     	}}
 	}
 
-	async getCompletedSessionInfo(sessionId: string, backoffPeriodMs: number, maxRetries: number, yotiBaseUrl: string): Promise<YotiCompletedSession | undefined> {
+	async getCompletedSessionInfo(sessionId: string, yotiBaseUrl: string): Promise<YotiCompletedSession | undefined> {
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.GET,
 			yotiBaseUrl,
     		endpoint: `/sessions/${sessionId}`,
     	});
 
+		const backoffPeriodMs = this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
+		const maxRetries = this.FETCH_YOTI_SESSION_MAX_RETRIES;
     	let retryCount = 0;
     	while (retryCount <= maxRetries) {
     		this.logger.info({
@@ -488,13 +495,15 @@ export class YotiService {
     	}
 	}
 
-	async getMediaContent(sessionId: string, backoffPeriodMs: number, maxRetries: number, yotiBaseUrl: string, mediaId: string): Promise<any> {
+	async getMediaContent(sessionId: string, yotiBaseUrl: string, mediaId: string): Promise<any> {
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.GET,
 			yotiBaseUrl,
     		endpoint: `/sessions/${sessionId}/media/${mediaId}/content`,
     	});
 
+		const backoffPeriodMs = this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
+		const maxRetries = this.FETCH_YOTI_SESSION_MAX_RETRIES;
 		let retryCount = 0;
     	while (retryCount <= maxRetries) {
 			this.logger.info({
