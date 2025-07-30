@@ -9,6 +9,7 @@ import { POST_REPONSE_403 } from "../data/postOfficeResponse/postResponse403";
 import { POST_REPONSE_429 } from "../data/postOfficeResponse/postResponse429";
 import { POST_REPONSE_500 } from "../data/postOfficeResponse/postResponse500";
 import { POST_REPONSE_503 } from "../data/postOfficeResponse/postResponse503";
+import { POST_OFFICE_LESS_THAN_FIVE_BRANCHES_RESPONSE } from "../data/postOfficeResponse/postOfficeLessBranchesResponse";
 
 export class PostOfficeRequestProcessor {
     private static instance: PostOfficeRequestProcessor;
@@ -57,6 +58,9 @@ export class PostOfficeRequestProcessor {
     		case "MNE":
     			this.logger.info({ message: "Returning incomplete data" });
     			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_OFFICE_RESPONSE_INCOMPLETE_DATA));
+			case "IDD":
+				this.logger.info({ message: "Returning 2 branches for KW15 1DD" });
+				return new Response(HttpCodesEnum.OK, JSON.stringify(POST_OFFICE_LESS_THAN_FIVE_BRANCHES_RESPONSE));
     		default:
     			this.logger.info({ message: "Successful request" });
     			return new Response(HttpCodesEnum.OK, JSON.stringify(POST_OFFICE_RESPONSE));
