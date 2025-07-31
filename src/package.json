@@ -82,13 +82,13 @@
     "@types/node": "20.14.8",
     "@types/node-rsa": "1.1.4",
     "@types/pdfkit": "0.13.8",
-    "@typescript-eslint/eslint-plugin": "8.34.0",
+    "@typescript-eslint/eslint-plugin": "8.36.0",
     "ajv": "8.17.1",
     "aws-cdk-lib": "2.196.0",
     "aws4-axios": "3.4.0",
     "canvas": "3.1.0",
     "dotenv": "16.4.7",
-    "eslint": "9.21.0",
+    "eslint": "9.31.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-jest": "28.11.0",
     "eslint-plugin-jsdoc": "50.6.3",
@@ -115,5 +115,8 @@
   },
   "engines": {
     "node": "20.18.3"
+  },
+  "overrides": {
+    "form-data": ">=4.0.4"
   }
 }

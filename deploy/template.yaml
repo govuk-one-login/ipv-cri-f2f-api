@@ -132,7 +132,7 @@ Mappings:
               "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk",
               "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify",
-              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
+              "OsLocationsApi": "https://zilsfhaczg.execute-api.eu-west-2.amazonaws.com/dev/search/places/v1/postcode"
           },
           {
               "jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
@@ -167,7 +167,7 @@ Mappings:
               "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://yotistub.review-o.build.account.gov.uk",
               "GovNotifyApi": "https://govnotifystub.review-o.build.account.gov.uk/govnotify",
-              "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
+              "OsLocationsApi": "https://vq96n2kz0g.execute-api.eu-west-2.amazonaws.com/build/search/places/v1/postcode"
           },
           {
               "jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json",
@@ -597,6 +597,11 @@ Resources:
                   - "s3:Get*"
                 Resource:
                   - !Sub "arn:aws:s3:::${JsonWebKeysBucket}/.well-known/jwks.json"
+              - Effect: Allow
+                Action:
+                  - "s3:Get*"
+                Resource:
+                  - !Sub "arn:aws:s3:::govuk-one-login-f2f-published-keys-${Environment}/jwks.json"
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
@@ -1138,6 +1143,43 @@ Resources:
             Period: 300
             Stat: Sum
 
+  KeyAliasesUnavailableMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: DeployAlarms
+    Properties:
+      LogGroupName: !Ref SessionFunctionLogGroup
+      FilterPattern: '{ $.messageCode = "KEY_ALIASES_UNAVAILABLE" }'
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "KeyAliasesUnavailable"
+          
+  KeyAliasesUnavailableAlarm:
+    DependsOn:
+      - "KeyAliasesUnavailableMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: DeployAlarms
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-KeyAliasesUnavailableAlarm"
+      AlarmDescription: !Sub "KEY_ALIASES_UNAVAILABLE critical ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue platform-alarm-pagerduty-alert-topic
+      InsufficientDataActions: [ ]
+      MetricName: KeyAliasesUnavailable
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
 ####################################################################
 #                                                                  #
@@ -3252,12 +3294,18 @@ Resources:
         - ApplyReservedConcurrency
         - !Ref LambdaConcurrency
         - !Ref AWS::NoValue
+      Tags:
+        key_consumer_type: manage
       Policies:
         - AWSXRayDaemonWriteAccess
         - S3WritePolicy:
             BucketName: !Ref JsonWebKeysBucket
         - S3ReadPolicy:
             BucketName: !Ref JsonWebKeysBucket
+        - S3ReadPolicy:
+            BucketName: !Sub "govuk-one-login-f2f-published-keys-${Environment}"
+        - S3WritePolicy:
+            BucketName: !Sub "govuk-one-login-f2f-published-keys-${Environment}"
         - Statement:
             - Sid: KMSSignPolicy
               Effect: Allow
@@ -3275,6 +3323,7 @@ Resources:
       Environment:
         Variables:
           JWKS_BUCKET_NAME: !Ref JsonWebKeysBucket
+          PUBLISHED_KEYS_BUCKET_NAME: !Sub "govuk-one-login-f2f-published-keys-${Environment}"
           SIGNING_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           ENCRYPTION_KEY_IDS:
