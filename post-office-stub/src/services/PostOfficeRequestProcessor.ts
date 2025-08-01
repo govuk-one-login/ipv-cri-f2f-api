@@ -61,6 +61,9 @@ export class PostOfficeRequestProcessor {
 			case "1DD":
 				this.logger.info({ message: "Returning 2 branches for KW15 1DD" });
 				return new Response(HttpCodesEnum.OK, JSON.stringify(POST_OFFICE_LESS_THAN_FIVE_BRANCHES_RESPONSE));
+			case "1AD":
+				this.logger.info({ message: "Returning 0 branch for IM1 1AD" });
+				return new Response(HttpCodesEnum.OK, JSON.stringify([]));
     		default:
     			this.logger.info({ message: "Successful request" });
     			return new Response(HttpCodesEnum.OK, JSON.stringify(POST_OFFICE_RESPONSE));

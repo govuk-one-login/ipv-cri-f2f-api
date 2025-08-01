@@ -32,5 +32,11 @@ describe("Post Office Stub", () => {
 		expect(response.status).toBe(200);
 		expect(response.data).toEqual(POST_OFFICE_LESS_THAN_FIVE_BRANCHES_RESPONSE);
 	});
+
+	it("returns response with zero branches when 1AD fed as last 3 chars", async () => {
+		const response = await postPOCodeRequest("1AD", poStubPayloadData);
+		expect(response.status).toBe(200);
+		expect(response.data).toEqual([]);
+	});
 });
 
