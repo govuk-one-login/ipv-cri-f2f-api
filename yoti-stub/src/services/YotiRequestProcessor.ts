@@ -331,7 +331,6 @@ export class YotiRequestProcessor {
                         VALID_DL_RESPONSE_0003.resources.id_documents[0].document_fields.media.id = sessionId;
                         VALID_DL_RESPONSE_0003.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE_0003.resources.id_documents[0].document_fields.media.id, UK_DL_MISSING_FORMATTED_ADDRESS_MEDIA_ID);
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE_0003));
-
                     default:
                         return undefined;
                 }
@@ -1164,10 +1163,13 @@ export class YotiRequestProcessor {
             }
         };
 
+       
+         
 
         const replaceLastUuidChars = (str: string, lastUuidChars: string): string => {
             return str.replace(/\d{4}$/, lastUuidChars);
         };
+        
 
         // without this bit, the API won't run scenarios for the different document types
         if ((lastUuidChars.substring(0, 2) === '00') || (lastUuidChars.substring(0, 2) === '01') || (lastUuidChars.substring(0, 2) === '02') ||
@@ -1176,6 +1178,23 @@ export class YotiRequestProcessor {
             if (response) {
                 return response;
             }
+        }
+
+         
+        // Retry scenarios
+        const yotiSessionRequest = new YotiSessionRequest(sessionId);
+        
+        switch (lastUuidChars) {
+            case '0429': // UK Driving License Success - Face Match automated - first attempt 429 error, second attempt 200
+                this.logger.debug(JSON.stringify(yotiSessionRequest));
+                const VALID_DL_RESPONSE_0429 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
+                VALID_DL_RESPONSE_0429.session_id = sessionId;
+                VALID_DL_RESPONSE_0429.resources.id_documents[0].document_fields.media.id = sessionId; 
+                VALID_DL_RESPONSE_0429.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE_0429.resources.id_documents[0].document_fields.media.id, UK_DL_MEDIA_ID);
+                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                this.logger.warn({ message: `fetchSessionInfo - Retrying to fetch Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to fetch session info", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_YOTI_GET_SESSION", xRequestId: "dummy-request-id" });
+                await sleep(5000);
+                return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE_0429));
         }
 
         // Error scenarios

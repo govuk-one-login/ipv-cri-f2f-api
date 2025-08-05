@@ -117,6 +117,7 @@ describe("/documentSelection Endpoint", () => {
 		{ yotiMockId: "0200", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA" },
 		{ yotiMockId: "0400", documentType: "EuDrivingLicence", docSelectionData: dataEuDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 		{ yotiMockId: "0500", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard, yotiStartSchema: "F2F_YOTI_START_05_SCHEMA" },
+		{ yotiMockId: "0429", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 	])("Successful Request Tests - authSessionState and TxMA event validation yotiMockId: $yotiMockId - documentType: $documentType", async ({ yotiMockId, docSelectionData, yotiStartSchema }: { yotiMockId: string; documentType: string; docSelectionData: DocSelectionData; yotiStartSchema: string }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		newf2fStubPayload.yotiMockID = yotiMockId;
@@ -324,6 +325,7 @@ describe("/authorization endpoint", () => {
 		{ yotiMockId: "0200", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA" },
 		{ yotiMockId: "0400", documentType: "EuDrivingLicence", docSelectionData: dataEuDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 		{ yotiMockId: "0500", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard, yotiStartSchema: "F2F_YOTI_START_05_SCHEMA" },
+		{ yotiMockId: "0429", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 	])("Successful Request Tests - authSessionState and TxMA event validation yotiMockId: $yotiMockId - documentType: $documentType", async ({ yotiMockId, docSelectionData, yotiStartSchema }: { yotiMockId: string; documentType: string; docSelectionData: DocSelectionData; yotiStartSchema: string }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		newf2fStubPayload.yotiMockID = yotiMockId;
@@ -354,6 +356,7 @@ describe("/token endpoint", () => {
 		{ yotiMockId: "0200", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
 		{ yotiMockId: "0400", documentType: "EuDrivingLicence", docSelectionData: dataEuDrivingLicence },
 		{ yotiMockId: "0500", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
+		{ yotiMockId: "0429", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 	])("Successful Request Tests - authSessionState validation yotiMockId: $yotiMockId - documentType: $documentType", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; documentType: string; docSelectionData: DocSelectionData }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		newf2fStubPayload.yotiMockID = yotiMockId;
@@ -378,6 +381,7 @@ describe("/userinfo endpoint", () => {
 		{ yotiMockId: "0200", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
 		{ yotiMockId: "0400", documentType: "EuDrivingLicence", docSelectionData: dataEuDrivingLicence },
 		{ yotiMockId: "0500", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
+		{ yotiMockId: "0429", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 	])("Successful Request Tests - authSessionState validation yotiMockId: $yotiMockId - documentType: $documentType", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; documentType: string; docSelectionData: DocSelectionData }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		newf2fStubPayload.yotiMockID = yotiMockId;
