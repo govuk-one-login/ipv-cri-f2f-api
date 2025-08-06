@@ -140,7 +140,7 @@ export class YotiSessionCompletionProcessor {
 		  // eslint-disable-next-line max-len
 		  let completedYotiSessionInfo;
 		  try {
-		  completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries(), clientConfig.YotiBaseUrl);
+		  completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, clientConfig.YotiBaseUrl);
 		  } catch (error: any) {
 			this.constructNotReturnedErrorMetric(error.message);
 			throw error;
