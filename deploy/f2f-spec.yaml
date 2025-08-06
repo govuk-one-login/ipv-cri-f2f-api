@@ -664,6 +664,87 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws"
+  
+  /.well-known-test/jwks.json:
+    get:
+      operationId: getWellKnownTestJwksJson
+      summary: Return the contents of the published-keys bucket
+      tags:
+        - Backend - F2F CRI specific
+      responses:
+        "200":
+          description: >-
+            OK - key ring returned
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JWKSFile"
+        "400":
+          description: 400 response
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "500":
+          description: Internal Server Error
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "GET"
+        credentials:
+          Fn::GetAtt: [ "JWKSBucketRole", "Arn" ]
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/govuk-one-login-f2f-published-keys-${Environment}/jwks.json"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+
   /userinfo:
     post:
       operationId: postUserInfo
