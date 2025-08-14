@@ -68,7 +68,7 @@ Globals:
       - "application/pdf"
       - "application/octet-stream"
   Function:
-    Runtime: nodejs20.x
+    Runtime: nodejs22.x
     VpcConfig:
       SecurityGroupIds:
         - !GetAtt LambdaEgressSecurityGroup.GroupId
