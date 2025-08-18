@@ -15,7 +15,7 @@ Conditions:
 Mappings:
   EnvironmentVariables:
     dev:
-      POSTOFFICEURL: "https://f2f-post-office-stub-postofficestub.review-o.dev.account.gov.uk"
+      POSTOFFICEURL: "https://f2f-postoffice-mock-postofficestub.review-o.dev.account.gov.uk"
       YOTIURL: "https://api.yoti.com/idverify/v1"
       PRETTYPROXYURL: "proxy.review-o.dev.account.gov.uk"
     build:
