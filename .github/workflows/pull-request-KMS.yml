@@ -37,10 +37,10 @@ jobs:
         with:
           submodules: true
 
-      - name: Setup nodeJS v20
+      - name: Setup nodeJS v22
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Set offline mirror path
         id: offline-mirror-path

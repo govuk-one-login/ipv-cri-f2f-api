@@ -64,7 +64,7 @@ Globals:
     BinaryMediaTypes:
       - '*/*'
   Function:
-    Runtime: nodejs22.x
+    Runtime: nodejs20.x
     VpcConfig:
       SecurityGroupIds:
         - !GetAtt LambdaEgressSecurityGroup.GroupId
