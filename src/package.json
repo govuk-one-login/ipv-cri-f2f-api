@@ -93,7 +93,7 @@
     "eslint-plugin-jest": "28.11.0",
     "eslint-plugin-jsdoc": "50.6.3",
     "eslint-plugin-prefer-arrow": "1.2.3",
-    "eslint-plugin-prettier": "4.2.1",
+    "eslint-plugin-prettier": "5.5.4",
     "eslint-plugin-security": "1.6.0",
     "express": "4.21.2",
     "express-asyncify": "2.1.2",
