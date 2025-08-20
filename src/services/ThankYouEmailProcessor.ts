@@ -98,7 +98,7 @@ export class ThankYouEmailProcessor {
 			this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY);
 
   		this.logger.info({ message: "Fetching yoti session" });
-		  const yotiSessionInfo: YotiCompletedSession | undefined = await this.yotiService.getCompletedSessionInfo(yotiSessionID, this.environmentVariables.fetchYotiSessionBackoffPeriod(), this.environmentVariables.fetchYotiSessionMaxRetries(), clientConfig.YotiBaseUrl);
+		  const yotiSessionInfo: YotiCompletedSession | undefined = await this.yotiService.getCompletedSessionInfo(yotiSessionID, clientConfig.YotiBaseUrl);
 
 		  if (!yotiSessionInfo) {
 			  this.logger.error({ message: "No Yoti Session found with ID" }, {
