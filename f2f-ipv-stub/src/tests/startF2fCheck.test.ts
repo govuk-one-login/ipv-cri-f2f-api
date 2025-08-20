@@ -37,7 +37,7 @@ const mockJwks = {
       e: "AQAB",
       use: "enc",
       kid: "569c43c6-8136-42c9-932d-fbcdddbfd778",
-      alg: "RS256",
+      alg: "RSA-OAEP-256",
     },
   ],
 };
