@@ -336,7 +336,7 @@ export class YotiService {
 				this.logger.error({ message: `${yotiRequestName} - cannot get response from yoti even after ${maxRetries} retries.`, 
 					messageCode: MessageCodes.YOTI_RETRIES_EXCEEDED, 
 					xRequestId });
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, `${yotiRequestName} - get response from yoti even after ${maxRetries} retries.`);
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, `${yotiRequestName} - cannot get response from yoti even after ${maxRetries} retries.`);
 			}
 
 			const is5xx = (error.response?.status >= 500 && error.response?.status < 600);

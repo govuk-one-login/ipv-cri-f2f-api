@@ -1,9 +1,12 @@
+// Required dependencies
 import {Response} from "../utils/Response";
 import {PDFDocument} from "pdf-lib"
 import {Metrics} from "@aws-lambda-powertools/metrics";
 import {randomUUID} from "crypto";
-import {APIGatewayProxyEvent} from "aws-lambda";
 import {Logger} from "@aws-lambda-powertools/logger";
+import {sleep} from "../utils/Sleep";
+import {HttpCodesEnum} from "../utils/HttpCodesEnum";
+// Request mappings
 import {
     DocumentMapping,
     UK_DL_MEDIA_ID,
@@ -34,9 +37,10 @@ import {
     YOTI_DOCUMENT_FIELDS_INFO_NOT_FOUND,
     MISSING_NAME_INFO_IN_DOCUMENT_FIELDS
 } from "../utils/Constants";
-import {HttpCodesEnum} from "../utils/HttpCodesEnum";
+
 import {YotiSessionItem} from "../models/YotiSessionItem";
 import {YotiSessionRequest} from "../models/YotiSessionRequest";
+// Response types
 import {VALID_RESPONSE} from "../data/getSessions/responses";
 import {VALID_RESPONSE_NFC} from "../data/getSessions/nfcResponse";
 import {VALID_DL_RESPONSE} from "../data/getSessions/driversLicenseResponse";
@@ -92,7 +96,6 @@ import {MISSING_NAME_INFO_IN_DOCUMENT_FIELDS_500} from "../data/getMediaContent/
 import {YOTI_DOCUMENT_FIELDS_NOT_POPULATED_500} from "../data/getMediaContent/yotiDocumentFieldsNotPopulated500";
 import { MULTIPLE_DOCUMENT_FIELDS_IN_RESPONSE_500 } from "../data/getMediaContent/multipleDocumentFieldsInResponse500";
 import { YOTI_DOCUMENT_FIELDS_MEDIA_ID_NOT_FOUND_500 } from "../data/getMediaContent/yotiDocumentFieldsMediaIdNotFound500";
-import {sleep} from "../utils/Sleep";
 import {POST_SESSIONS_INVALID_ADDRESS_400} from "../data/postSessions/postSessionsInvalidAddress400";
 import {GBR_PASSPORT_JOYCE} from "../data/getMediaContent/gbPassportResponseJOYCE";
 import { GBR_PASSPORT_ONLY_FULLNAME } from "../data/getMediaContent/gbPassportOnlyFullname";
@@ -116,10 +119,14 @@ export class YotiRequestProcessor {
 
     private readonly metrics: Metrics;
 
+    private createSessionRequestCount: number;
+
     constructor(logger: Logger, metrics: Metrics) {
         this.logger = logger;
 
         this.metrics = metrics;
+
+        this.createSessionRequestCount = 0;
     }
 
     static getInstance(logger: Logger, metrics: Metrics): YotiRequestProcessor {
@@ -134,7 +141,8 @@ export class YotiRequestProcessor {
      * @param event
      * @param incomingPayload
      */
-    async createSession(event: APIGatewayProxyEvent, incomingPayload: any): Promise<Response> {
+    async createSession(incomingPayload: any): Promise<Response> {
+        
         this.logger.info("START OF CREATESESSION")
 	    this.logger.info("/createSession Payload", {incomingPayload});
         if( (!incomingPayload.resources.applicant_profile.structured_postal_address.building_number || incomingPayload.resources.applicant_profile.structured_postal_address.building_number === "") &&
@@ -245,16 +253,24 @@ export class YotiRequestProcessor {
                 this.logger.info("I am awake, returning now");
                 return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
             // retries
-            case '1429':
-                this.logger.info({message: "last 4 ID chars", lastFullNameChars});
-                this.logger.warn({ message: `createSession - Retrying to create Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
-    		    await sleep(5000);
-                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem.session_id));
+            
+            case '1429': //2 fails + success
+                this.createSessionRequestCount++;
+                if (this.createSessionRequestCount < 3) {
+                    return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(POST_SESSIONS_503), ERROR_RESPONSE_HEADERS)
+                } else {
+                    this.createSessionRequestCount = 0;
+                    return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem.session_id));
+                }
+                // this.logger.info({message: "last 4 ID chars", lastFullNameChars});
+                // this.logger.warn({ message: `createSession - Retrying to create Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+    		    // await sleep(5000);
+                // return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem.session_id));
             case '1500':
                 this.logger.info({message: "last 4 ID chars", lastFullNameChars});
                 this.logger.warn({ message: `createSession - Retrying to create Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
     		    await sleep(5000);
-                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem.session_id));
+                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
             default:
                 return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming user_tracking_id ${yotiSessionId} didn't match any of the use cases`, ERROR_RESPONSE_HEADERS);
         }
@@ -868,23 +884,23 @@ export class YotiRequestProcessor {
                         VALID_RESPONSE_NFC_0132.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_RESPONSE_NFC_0132.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID_SUZIE);
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0132));
 
-										case '0133': // UK Passport Success - document_fields object 2nd in list of resources
-											logger.debug(JSON.stringify(yotiSessionRequest));
-											const DOCUMENT_FIELDS_SECOND_1033 = JSON.parse(JSON.stringify(DOCUMENT_FIELDS_SECOND));
+                    case '0133': // UK Passport Success - document_fields object 2nd in list of resources
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        const DOCUMENT_FIELDS_SECOND_1033 = JSON.parse(JSON.stringify(DOCUMENT_FIELDS_SECOND));
 
-											DOCUMENT_FIELDS_SECOND_1033.session_id = sessionId;
-											DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id = sessionId;
-											DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id = replaceLastUuidChars(DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
-											return new Response(HttpCodesEnum.OK, JSON.stringify(DOCUMENT_FIELDS_SECOND_1033));
+                        DOCUMENT_FIELDS_SECOND_1033.session_id = sessionId;
+                        DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id = sessionId;
+                        DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id = replaceLastUuidChars(DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(DOCUMENT_FIELDS_SECOND_1033));
 
-										case '0134': // UK Passport Success - Multiple document_fields objects in list of resources
-											logger.debug(JSON.stringify(yotiSessionRequest));
-											const MULTIPLE_DOCUMENT_FIELDS_1034 = JSON.parse(JSON.stringify(MULTIPLE_DOCUMENT_FIELDS));
+                    case '0134': // UK Passport Success - Multiple document_fields objects in list of resources
+                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        const MULTIPLE_DOCUMENT_FIELDS_1034 = JSON.parse(JSON.stringify(MULTIPLE_DOCUMENT_FIELDS));
 
-											MULTIPLE_DOCUMENT_FIELDS_1034.session_id = sessionId;
-											MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id = sessionId;
-											MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
-											return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_1034));
+                        MULTIPLE_DOCUMENT_FIELDS_1034.session_id = sessionId;
+                        MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id = sessionId;
+                        MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_1034));
 
                     case '0150': // UK Passport Success - Only FullName in DocumentFields
                         logger.debug(JSON.stringify(yotiSessionRequest));
