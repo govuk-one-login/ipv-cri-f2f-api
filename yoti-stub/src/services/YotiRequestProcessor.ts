@@ -1,4 +1,3 @@
-// Required dependencies
 import {Response} from "../utils/Response";
 import {PDFDocument} from "pdf-lib"
 import {Metrics} from "@aws-lambda-powertools/metrics";
@@ -38,8 +37,6 @@ import {
     MISSING_NAME_INFO_IN_DOCUMENT_FIELDS
 } from "../utils/Constants";
 
-import {YotiSessionItem} from "../models/YotiSessionItem";
-import {YotiSessionRequest} from "../models/YotiSessionRequest";
 // Response types
 import {VALID_RESPONSE} from "../data/getSessions/responses";
 import {VALID_RESPONSE_NFC} from "../data/getSessions/nfcResponse";
@@ -111,6 +108,10 @@ import {GBR_PASSPORT_SUZIE} from "../data/getMediaContent/gbPassportResponseSUZI
 import { GBR_DRIVING_LICENCE_MISSING_FORMATTED_ADDRESS } from "../data/getMediaContent/gbDriversLicenseMissingFormatedAddressResponse";
 import { GET_SESSIONS_429 } from "../data/getSessions/getSessions429";
 import { GET_SESSIONS_503 } from "../data/getSessions/getSessions503";
+
+// Not sure about these
+import {YotiSessionItem} from "../models/YotiSessionItem";
+import {YotiSessionRequest} from "../models/YotiSessionRequest";
 
 export class YotiRequestProcessor {
     private static instance: YotiRequestProcessor;
