@@ -77,6 +77,8 @@ export class EnvironmentVariables {
 
 	private readonly OS_API_KEY_SSM_PATH = process.env.OS_API_KEY_SSM_PATH;
 
+	private readonly KEY_ROTATION_ENABLED = process.env.KEY_ROTATION_ENABLED;
+
 	/*
 	 * This function performs validation on env variable values.
 	 * If certain variables have unexpected values the constructor will throw an error and/or log an error message
@@ -168,8 +170,9 @@ export class EnvironmentVariables {
 					!this.ENCRYPTION_KEY_IDS || this.ENCRYPTION_KEY_IDS.trim().length === 0 ||
 					!this.AUTH_SESSION_TTL_IN_SECS ||
 					!this.ISSUER || this.ISSUER.trim().length === 0 ||
-					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0) {
-					logger.error("Environment variable SESSION_TABLE or CLIENT_CONFIG or ENCRYPTION_KEY_IDS or AUTH_SESSION_TTL_SECS is not configured");
+					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ||
+					this.KEY_ROTATION_ENABLED === undefined) {
+					logger.error("Environment variable SESSION_TABLE or CLIENT_CONFIG or ENCRYPTION_KEY_IDS or AUTH_SESSION_TTL_SECS or KEY_ROTATION_ENABLED is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Session Service incorrectly configured");
 				}
 				break;
@@ -511,6 +514,10 @@ export class EnvironmentVariables {
 
 	oSAPIKeySsmPath(): any {
 		return this.OS_API_KEY_SSM_PATH;
+	}
+
+	keyRotationEnabled(): any {
+		return this.KEY_ROTATION_ENABLED;
 	}
 
 }
