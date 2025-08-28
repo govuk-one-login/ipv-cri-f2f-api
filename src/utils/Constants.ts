@@ -124,7 +124,7 @@ export class Constants {
 
 	static readonly ENCRYPTION_KEY_ALIASES = [
         "session_decryption_key_active_alias",
-        "session_decryption_key_inactive_alias",
-        "session_decryption_key_previous_alias"
+        "session_decryption_key_previous_alias",
+        "session_decryption_key_inactive_alias"
     ]
 }
