@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
 import { lambdaHandler, logger } from "../../PersonInfoHandler";
 import { VALID_PERSON_INFO } from "./data/person-info-events";
 import { CONTEXT } from "./data/context";
@@ -13,7 +13,7 @@ jest.mock("../../utils/Config", () => ({
 	getParameter: (parameter: string) => parameter,
 }));
 
-// eslint-disable-next-line max-lines-per-function
+ 
 describe("PersonInfoHandler", () => {
 	let loggerSpy: jest.SpyInstance;
 

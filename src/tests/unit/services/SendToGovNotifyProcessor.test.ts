@@ -29,7 +29,7 @@ describe("SendToGovNotify processor", () => {
 	it("successfully calls the SendToGovNotifyService with incoming event", async () => {
 		await sendToGovNotifyProcessor.processRequest("24a61cb9-5930-46e1-8913-588c135431fb");
 	
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockSendToGovNotifyService.sendYotiInstructions).toHaveBeenCalledTimes(1);
 	});
 
@@ -37,7 +37,7 @@ describe("SendToGovNotify processor", () => {
 		mockSendToGovNotifyService.sendYotiInstructions.mockRejectedValueOnce("sendYotiInstructions - Cannot send Email");
 
 		await expect(sendToGovNotifyProcessor.processRequest("sessionId")).rejects.toThrow("sendYotiInstructions - Cannot send Email");
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_failed_to_send_instructions", MetricUnits.Count, 1);
 
 	});

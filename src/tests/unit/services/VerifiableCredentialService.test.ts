@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/dot-notation */
+ 
 import { Logger } from "@aws-lambda-powertools/logger";
 import { VerifiableCredentialService } from "../../../services/VerifiableCredentialService";
 import { AppError } from "../../../utils/AppError";

@@ -25,7 +25,7 @@ describe("GovNotifyHandler", () => {
 		SendEmailProcessor.getInstance = jest.fn().mockReturnValue(mockedSendEmailRequestProcessor);
 		await lambdaHandler(VALID_SQS_EVENT, CONTEXT );
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockedSendEmailRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
 
