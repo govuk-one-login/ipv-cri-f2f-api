@@ -1253,6 +1253,11 @@ components:
           description: >-
             an JWT which has been signed with the clients signing private key and encrypted with the F2F public
             encryption key.
+        kid:
+          type: string
+          example: 733b0ce935285074953e4757vt9e5770e8f7f8679f605474f716f68e1fc2f2f0
+          description: >-
+            Hashed KMS Key ID - optional
     IssueTokenRequest:
       type: object
       additionalProperties: false

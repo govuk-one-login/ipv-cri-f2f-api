@@ -121,4 +121,10 @@ export class Constants {
 	static readonly CLIENT_ASSERTION_TYPE = "client_assertion_type";
 
 	static readonly CLIENT_ASSERTION_TYPE_JWT_BEARER = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+
+	static readonly ENCRYPTION_KEY_ALIASES = [
+        "session_decryption_key_active_alias",
+        "session_decryption_key_inactive_alias",
+        "session_decryption_key_previous_alias"
+    ]
 }
