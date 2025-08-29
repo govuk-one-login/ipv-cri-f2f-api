@@ -126,6 +126,12 @@ Resources:
     Properties:
       AliasName: !Sub "alias/${AWS::StackName}-encryption-key"
       TargetKeyId: !Ref KMSEncryptionKey
+  
+  KMSEncryptionKeyAliasKeyRotationActive:
+    Type: 'AWS::KMS::Alias'
+    Properties:
+      AliasName: !Sub "alias/session_decryption_key_active_alias"
+      TargetKeyId: !Ref KMSEncryptionKey
 
 Outputs:
   SigningKeyArn:

@@ -32,6 +32,12 @@ jest.mock("@aws-sdk/client-s3", () => ({
 	CopyObjectCommand: jest.fn().mockImplementation((args) => args),
 }));
 
+jest.mock("../../utils/JwtUtils", () => ({
+	jwtUtils: {
+		getHashedKid: jest.fn().mockImplementation((args) => {return args;}),
+	},
+}));
+
 describe("JwksHandler", () => {
 	describe("#handler", () => {
 		beforeEach(() => {

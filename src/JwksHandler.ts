@@ -8,6 +8,7 @@ import crypto from "crypto";
 import * as AWS from "@aws-sdk/client-kms";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
+import { jwtUtils } from "./utils/JwtUtils";
 
 const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.JWKS_LOGGER_SVC_NAME;
@@ -102,10 +103,12 @@ class JwksHandler implements LambdaInterface {
 					format: "der",
 				})
 				.export({ format: "jwk" });
+			const kid = keyId.split("/").pop();
+			const hashedKid = kid ? jwtUtils.getHashedKid(kid) : undefined;
 			return {
 				...publicKey,
 				use,
-				kid: keyId.split("/").pop(),
+				kid: hashedKid,
 				alg: map.algorithm,
 			} as unknown as Jwk;
 		}
