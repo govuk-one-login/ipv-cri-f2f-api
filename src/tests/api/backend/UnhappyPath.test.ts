@@ -101,9 +101,9 @@ describe("/personInfo endpoint", () => {
 describe("/documentSelection endpoint", () => {
 	it.each([
 		{ yotiMockId: "0000", documentType: "UkDrivingLicence", statusCode: 400, docSelectionData: dataDriversLicenseInvalid, errorMessage: { "message": "Invalid request body" } },
-		{ yotiMockId: "0102", documentType: "UkPassport", statusCode: 500, docSelectionData: dataPassportBlankFad, errorMessage: "Error generating Yoti instructions PDF" },
-		{ yotiMockId: "0103", documentType: "UkPassport", statusCode: 500, docSelectionData: dataPassportIncorrectFad, errorMessage: "Error generating Yoti instructions PDF" },
-		{ yotiMockId: "0104", documentType: "UkPassport", statusCode: 500, docSelectionData: dataPassportInvalidFadFormat, errorMessage: "Error generating Yoti instructions PDF" },
+		{ yotiMockId: "0102", documentType: "UkPassport", statusCode: 500, docSelectionData: dataPassportBlankFad, errorMessage: "generateInstructions - Unretryable error" },
+		{ yotiMockId: "0103", documentType: "UkPassport", statusCode: 500, docSelectionData: dataPassportIncorrectFad, errorMessage: "generateInstructions - Unretryable error" },
+		{ yotiMockId: "0104", documentType: "UkPassport", statusCode: 500, docSelectionData: dataPassportInvalidFadFormat, errorMessage: "generateInstructions - Unretryable error" },
 		{ yotiMockId: "0105", documentType: "UkPassport", statusCode: 400, docSelectionData: dataPassportMissingFad, errorMessage: { "message": "Invalid request body" } },
 	])("Unsuccessful Request Tests - yotiMockId $yotiMockId  - documentType: $documentType", async ({ yotiMockId, statusCode, docSelectionData, errorMessage }: { yotiMockId: string; documentType: string; statusCode: number; docSelectionData: DocSelectionData; errorMessage: any }) => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
