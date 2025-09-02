@@ -412,11 +412,4 @@ describe("KmsJwtAdapter utils", () => {
 
 		});
   	});
-
-	// describe("#decrypt", () => {
-
-	// 	it("throws error if the jwe doesn't contain the correct number of components", async () => {
-	// 		await expect(kmsJwtAdapter.decrypt("protectedHeader.encryptedKey.iv.ciphertext")).rejects.toThrow(expect.objectContaining({ message: "Error decrypting JWE: Missing component" }));
-	// 	});
-	// });
 });
