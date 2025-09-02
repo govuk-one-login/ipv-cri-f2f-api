@@ -1184,7 +1184,7 @@ Resources:
     Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
-      FilterPattern: '{ $.messageCode = "KEY_ALIASES_UNAVAILABLE" }'
+      FilterPattern: '{ $.messageCode = "FAILED_DECRYPTING_JWE" }'
       MetricTransformations:
         - MetricValue: "1"
           MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
@@ -1198,7 +1198,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-KeyAliasesUnavailableAlarm"
       AlarmDescription: !Sub 
-        - "KEY_ALIASES_UNAVAILABLE critical ${RunbookUrl}"
+        - "FAILED_DECRYPTING_JWE critical ${RunbookUrl}"
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
