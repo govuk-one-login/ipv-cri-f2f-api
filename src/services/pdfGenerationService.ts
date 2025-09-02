@@ -53,10 +53,7 @@ async generatePDF(
 	sessionId: string,
 ): Promise<Buffer | undefined> { 
 
-	 
-	return new Promise<Buffer>(async (resolve) => {
-
-		const person = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
+	const person = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
 		if (!person) {
 			throw new Error("Failed to find person details for user " + sessionId);
 		}
@@ -65,6 +62,8 @@ async generatePDF(
 		if (!postalAddresses[0]) {
 			throw new Error("Failed to find a preferred address required for postage");
 		}
+
+	return new Promise<Buffer>((resolve) => {
 
 		const doc = new PDFDocument({
 			bufferPages: true,
@@ -80,11 +79,12 @@ async generatePDF(
 		doc.registerFont("GDS bold", gdsBoldFont);
 		doc.registerFont("GDS light", gdsLightFont);
 
-		const buffers: any = [];
-		doc.on("data", buffers.push.bind(buffers));
+		const chunks: Uint8Array[] = [];
+		doc.on("data", (chunk: Uint8Array) => {
+			chunks.push(chunk);
+		});
 		doc.on("end", () => {
-			const pdfData = Buffer.concat(buffers);		
-			return resolve(pdfData);
+		resolve(Buffer.concat(chunks));
 		}); 
             
 		const postalAddress = postalAddresses[0];
