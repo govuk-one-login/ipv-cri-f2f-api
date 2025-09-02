@@ -81,9 +81,8 @@ async generatePDF(
 
 		const buffers: any = [];
 		doc.on("data", buffers.push.bind(buffers));
-		});
 		doc.on("end", () => {
-				const pdfData = Buffer.concat(buffers);		
+			const pdfData = Buffer.concat(buffers);		
 			return resolve(pdfData);
 		}); 
             
