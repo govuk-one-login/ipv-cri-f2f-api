@@ -292,7 +292,6 @@ export class YotiService {
     			payloadJSON,
     			yotiRequest.config,
     		);
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { data } = response;
 
 			const singleMetric = this.metrics.singleMetric();
