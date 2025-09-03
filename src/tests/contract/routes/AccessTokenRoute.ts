@@ -7,7 +7,7 @@ import { Constants } from "../utils/Constants";
 
 export const accessTokenRouter = asyncify(express.Router());
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
+ 
 accessTokenRouter.post("/", async (req, res) => {		
 	const event: APIGatewayProxyEvent = eventRequest;
 	event.body = convertUrlEncodedRequestBodyToString(req.body);

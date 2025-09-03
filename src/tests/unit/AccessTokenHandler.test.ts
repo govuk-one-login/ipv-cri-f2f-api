@@ -17,7 +17,7 @@ describe("AccessTokenHandler", () => {
 
 		await lambdaHandler(VALID_ACCESSTOKEN, "F2F");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockedAccessTokenRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
 });

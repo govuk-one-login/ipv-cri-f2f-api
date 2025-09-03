@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
 import { lambdaHandler, logger } from "../../AddressLocationsHandler";
 import { VALID_ADDRESS_LOCATIONS } from "./data//addressLocations-event";
 import { CONTEXT } from "./data/context";
@@ -16,7 +16,7 @@ jest.mock("../../utils/Config", () => ({
 
 const mockedAddressLocationsProcessor = mock<AddressLocationsProcessor>();
 
-// eslint-disable-next-line max-lines-per-function
+ 
 describe("AddressLocationsHandler", () => {
 	let loggerSpy: jest.SpyInstance;
 	let metricsSpy: jest.SpyInstance;

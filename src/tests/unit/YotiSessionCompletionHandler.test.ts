@@ -24,7 +24,7 @@ describe("YotiSessionCompletionHandler", () => {
 		YotiSessionCompletionProcessor.getInstance = jest.fn().mockReturnValue(mockedYotiSessionCompletionProcessor);
 		await lambdaHandler(VALID_SESSION_COMPLETION_EVENT, "F2F");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockedYotiSessionCompletionProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
 

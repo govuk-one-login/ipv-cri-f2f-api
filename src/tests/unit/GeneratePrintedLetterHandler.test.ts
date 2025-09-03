@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
 import { lambdaHandler, logger } from "../../GeneratePrintedLetterHandler";
 import { GeneratePrintedLetterProcessor } from "../../services/GeneratePrintedLetterProcessor";
 import { mock } from "jest-mock-extended";
@@ -55,7 +55,7 @@ describe("GeneratePrintedLetterHandler", () => {
 
 		await lambdaHandler({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"POST" }, CONTEXT);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockedGeneratePrintedLetterProcessor.processRequest).toHaveBeenCalledTimes(1);
 		expect(mockedGeneratePrintedLetterProcessor.processRequest).toHaveBeenCalledWith({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"POST" });
 	});

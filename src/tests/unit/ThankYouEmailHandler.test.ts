@@ -24,7 +24,7 @@ describe("ThankYouEmailHandler", () => {
 		ThankYouEmailProcessor.getInstance = jest.fn().mockReturnValue(mockedThankYouEmailHandler);
 		await lambdaHandler(VALID_THANK_YOU_EMAIL_EVENT, "F2F");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockedThankYouEmailHandler.processRequest).toHaveBeenCalledTimes(1);
 	});
 

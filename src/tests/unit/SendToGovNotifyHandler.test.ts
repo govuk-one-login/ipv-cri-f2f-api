@@ -44,7 +44,7 @@ describe("GovNotifyHandler", () => {
 		SendToGovNotifyProcessor.getInstance = jest.fn().mockReturnValue(mockedSendToGovNotifyProcessor);
 		await lambdaHandler(event, CONTEXT);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockedSendToGovNotifyProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
 

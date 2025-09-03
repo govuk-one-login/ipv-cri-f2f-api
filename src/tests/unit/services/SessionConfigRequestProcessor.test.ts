@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -96,7 +96,7 @@ describe("SessionConfigRequestProcessor", () => {
 
 		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 		expect(out.body).toBe("Session with session id: 1234 has expired");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
@@ -107,7 +107,7 @@ describe("SessionConfigRequestProcessor", () => {
 
 		const out: APIGatewayProxyResult = await sessionConfigRequestProcessorTest.processRequest(VALID_SESSION_CONFIG, "1234");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 		expect(out.body).toBe("No session found with the session id: 1234");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);

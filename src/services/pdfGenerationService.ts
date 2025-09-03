@@ -1,4 +1,4 @@
-/* eslint-disable no-async-promise-executor */
+ 
 import PDFDocument from "pdfkit";
 
 import { EnvironmentVariables } from "./EnvironmentVariables";
@@ -53,7 +53,6 @@ async generatePDF(
 	sessionId: string,
 ): Promise<Buffer | undefined> { 
 
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises 
 	return new Promise<Buffer>(async (resolve) => {
 
 		const person = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());

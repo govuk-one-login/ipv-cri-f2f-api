@@ -1,5 +1,5 @@
-/* eslint-disable max-lines-per-function */
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
+ 
 import fs from "fs";
 
 import { Logger } from "@aws-lambda-powertools/logger";
