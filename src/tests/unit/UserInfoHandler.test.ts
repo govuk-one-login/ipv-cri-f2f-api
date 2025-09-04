@@ -17,7 +17,7 @@ describe("UserInfoHandler", () => {
 
 		await lambdaHandler(VALID_USERINFO, "CIC");
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockedUserInfoRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
 });

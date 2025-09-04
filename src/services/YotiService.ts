@@ -292,7 +292,7 @@ export class YotiService {
     			payloadJSON,
     			yotiRequest.config,
     		);
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unused-vars
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { data } = response;
 
 			const singleMetric = this.metrics.singleMetric();
@@ -345,7 +345,7 @@ export class YotiService {
     			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF");
     		}
     	} else {
-    		// eslint-disable-next-line max-lines
+    		 
     		this.logger.error({ message: "Missing Yoti request config ", yotiRequest });
     	}
 	}
@@ -361,7 +361,7 @@ export class YotiService {
     	while (retryCount <= maxRetries) {
     		this.logger.info({
     			message: "getCompletedSessionInfo - trying to fetch Yoti session", 
-    			// eslint-disable-next-line max-lines
+    			 
     			yotiSessionId: sessionId,
     			retryCount,
     		});

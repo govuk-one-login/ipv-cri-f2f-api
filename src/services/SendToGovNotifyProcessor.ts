@@ -1,5 +1,5 @@
-/* eslint-disable max-len */
-/* eslint-disable max-params */
+ 
+ 
 import { Logger } from "@aws-lambda-powertools/logger";
 import { SendToGovNotifyService } from "./SendToGovNotifyService";
 import { EmailResponse } from "../models/EmailResponse";

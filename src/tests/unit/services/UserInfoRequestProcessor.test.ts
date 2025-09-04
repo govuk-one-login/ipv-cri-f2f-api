@@ -63,7 +63,7 @@ describe("UserInfoRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValue(mockSession);
 
 		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 
 		expect(out.body).toEqual(JSON.stringify({
@@ -71,11 +71,11 @@ describe("UserInfoRequestProcessor", () => {
 			"https://vocab.account.gov.uk/v1/credentialStatus": "pending",
 		}));
 		expect(out.statusCode).toBe(HttpCodesEnum.ACCEPTED);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(logger.appendKeys).toHaveBeenCalledWith({
 			govuk_signin_journey_id: "sdfssg",
 		});
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(logger.appendKeys).toHaveBeenCalledWith({
 			sessionId: "sdfsdg",
 		});
@@ -126,11 +126,11 @@ describe("UserInfoRequestProcessor", () => {
 
 		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 		expect(out.body).toContain("No session found with the sessionId: ");
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(logger.error).toHaveBeenCalledWith(
 			"No session found with the sessionId: sessionId", { messageCode: MessageCodes.SESSION_NOT_FOUND },
 		);
@@ -142,11 +142,11 @@ describe("UserInfoRequestProcessor", () => {
 		mockSession.authSessionState = "F2F_AUTH_CODE_ISSUED";
 		const out: APIGatewayProxyResult = await userInforequestProcessorTest.processRequest(VALID_USERINFO);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockF2fService.getSessionById).toHaveBeenCalledTimes(1);
 		expect(out.body).toContain("Session for journey sdfssg is in the wrong Auth state: expected state - F2F_ACCESS_TOKEN_ISSUED, actual state - F2F_AUTH_CODE_ISSUED");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(logger.error).toHaveBeenCalledWith(
 			{ message: "Session for journey sdfssg is in the wrong Auth state: expected state - F2F_ACCESS_TOKEN_ISSUED, actual state - F2F_AUTH_CODE_ISSUED" }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
 		);

@@ -1,4 +1,4 @@
-/* eslint-disable max-lines-per-function */
+ 
 import dataPassport from "../../data/docSelectionPayloadPassportValid.json";
 import dataUkDrivingLicence from "../../data/docSelectionPayloadDriversLicenceValid.json";
 import dataEuDrivingLicence from "../../data/docSelectionPayloadEuDriversLicenceValid.json";
@@ -120,7 +120,7 @@ describe("/callback endpoint", () => {
 
 	])("Multiple given Names in Yoti Response - yotiMockId $yotiMockId - Full Name: $givenName1 $givenName2 $givenName3 $familyName", async (
 		{ yotiMockId, docSelectionData, givenName1, givenName2, givenName3, familyName }:
-		// eslint-disable-next-line max-len
+		 
 		{ yotiMockId: string; docSelectionData: DocSelectionData; givenName1: string; givenName2: string; givenName3: string; familyName: string },
 	) => {
 		f2fStubPayload.yotiMockID = yotiMockId;

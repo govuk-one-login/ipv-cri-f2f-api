@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
 import { personIdentityUtils } from "../../../utils/PersonIdentityUtils";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { mock } from "jest-mock-extended";

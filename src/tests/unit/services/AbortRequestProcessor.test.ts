@@ -60,7 +60,7 @@ describe("AbortRequestProcessor", () => {
 			statusCode: HttpCodesEnum.BAD_REQUEST,
 			message: "Missing details in SESSION table",
 		}));
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(logger.warn).toHaveBeenCalledWith("Missing details in SESSION TABLE", {
 			messageCode: MessageCodes.SESSION_NOT_FOUND,
 		});
@@ -73,7 +73,7 @@ describe("AbortRequestProcessor", () => {
 
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has already been aborted");
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(logger.info).toHaveBeenCalledWith("Session has already been aborted");
 		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
@@ -83,7 +83,7 @@ describe("AbortRequestProcessor", () => {
 
 		const out: APIGatewayProxyResult = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(sessionId, AuthSessionState.F2F_CRI_SESSION_ABORTED);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
@@ -98,7 +98,7 @@ describe("AbortRequestProcessor", () => {
 
 		const out: APIGatewayProxyResult = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(sessionId, AuthSessionState.F2F_CRI_SESSION_ABORTED);
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
@@ -111,7 +111,7 @@ describe("AbortRequestProcessor", () => {
 
 		await abortRequestProcessor.processRequest(sessionId, encodedHeader);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(expect.objectContaining({
 			event_name: TxmaEventNames.F2F_CRI_SESSION_ABORTED,
 		}), encodedHeader);
@@ -124,7 +124,7 @@ describe("AbortRequestProcessor", () => {
 
 		const out: APIGatewayProxyResult = await abortRequestProcessor.processRequest(sessionId, encodedHeader);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(logger.error).toHaveBeenCalledWith("Auth session successfully aborted. Failed to send F2F_CRI_SESSION_ABORTED event to TXMA", {
   			error: {},
   			messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,

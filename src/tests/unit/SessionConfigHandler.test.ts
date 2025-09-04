@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Constants } from "../../utils/Constants";
 import { lambdaHandler } from "../../SessionConfigHandler";
