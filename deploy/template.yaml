@@ -146,6 +146,7 @@ Mappings:
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
+      KEYROTATIONENABLED: true
     build:
       YOTIBASEURL: "https://yotistub.review-o.build.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
@@ -181,6 +182,7 @@ Mappings:
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
+      KEYROTATIONENABLED: false
     staging:
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
       ISSUER: 'https://review-o.staging.account.gov.uk'
@@ -205,6 +207,7 @@ Mappings:
         ]'
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
+      KEYROTATIONENABLED: false
     integration:
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
       ISSUER: 'https://review-o.integration.account.gov.uk'
@@ -229,6 +232,7 @@ Mappings:
         ]'
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
+      KEYROTATIONENABLED: false
     production:
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
       ISSUER: 'https://review-o.account.gov.uk'
@@ -253,6 +257,7 @@ Mappings:
         ]'
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
+      KEYROTATIONENABLED: false
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
     dev:
@@ -857,6 +862,8 @@ Resources:
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           ENCRYPTION_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
+          KEY_ROTATION_ENABLED:
+            !FindInMap [EnvironmentVariables, !Ref Environment, KEYROTATIONENABLED]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -1177,7 +1184,7 @@ Resources:
     Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
-      FilterPattern: '{ $.messageCode = "KEY_ALIASES_UNAVAILABLE" }'
+      FilterPattern: '{ $.messageCode = "FAILED_DECRYPTING_JWE" }'
       MetricTransformations:
         - MetricValue: "1"
           MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
@@ -1191,7 +1198,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-KeyAliasesUnavailableAlarm"
       AlarmDescription: !Sub 
-        - "KEY_ALIASES_UNAVAILABLE critical ${RunbookUrl}"
+        - "FAILED_DECRYPTING_JWE critical ${RunbookUrl}"
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
