@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Test Container Deployment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({
@@ -34,7 +34,7 @@ jobs:
             })
 
       - name: Trigger Dynamo Infra Deployment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({
@@ -48,7 +48,7 @@ jobs:
             })
 
       - name: Trigger KMS Infra Deployment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({
@@ -62,7 +62,7 @@ jobs:
             })
 
       - name: Trigger Outbound Proxy Infra Deployment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({
@@ -76,7 +76,7 @@ jobs:
             })
 
       - name: Trigger Test Harness Deployment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({
@@ -90,7 +90,7 @@ jobs:
             })
 
       - name: Trigger PostOffice Mock Deployment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({
@@ -104,7 +104,7 @@ jobs:
             })
 
       - name: Trigger Yoti Stub Deployment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({
@@ -118,7 +118,7 @@ jobs:
             })
 
       - name: Trigger GovNotify Stub Deployment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({
@@ -132,7 +132,7 @@ jobs:
             })
 
       - name: Trigger IPV Stub Deployment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({
@@ -146,7 +146,7 @@ jobs:
             })
 
       - name: Trigger API Deployment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.actions.createWorkflowDispatch({
