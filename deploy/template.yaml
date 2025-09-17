@@ -232,7 +232,7 @@ Mappings:
         ]'
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
-      KEYROTATIONENABLED: false
+      KEYROTATIONENABLED: true
     production:
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
       ISSUER: 'https://review-o.account.gov.uk'
