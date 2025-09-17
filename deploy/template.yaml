@@ -257,7 +257,7 @@ Mappings:
         ]'
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
-      KEYROTATIONENABLED: false
+      KEYROTATIONENABLED: true
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
     dev:
