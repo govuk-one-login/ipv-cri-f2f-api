@@ -90,9 +90,11 @@ import {GET_MEDIA_CONTENT_401} from "../data/getMediaContent/getMediaContent401"
 import {GET_MEDIA_CONTENT_404} from "../data/getMediaContent/getMediaContent404";
 import {YOTI_DOCUMENT_FIELDS_INFO_NOT_FOUND_500} from "../data/getMediaContent/yotiDocumentFieldsInfoNotFound500";
 import {MISSING_NAME_INFO_IN_DOCUMENT_FIELDS_500} from "../data/getMediaContent/missingNameInfoInDocumentFields500";
-import {YOTI_DOCUMENT_FIELDS_NOT_POPULATED_500} from "../data/getMediaContent/yotiDocumentFieldsNotPopulated500";
-import { MULTIPLE_DOCUMENT_FIELDS_IN_RESPONSE_500 } from "../data/getMediaContent/multipleDocumentFieldsInResponse500";
-import { YOTI_DOCUMENT_FIELDS_MEDIA_ID_NOT_FOUND_500 } from "../data/getMediaContent/yotiDocumentFieldsMediaIdNotFound500";
+import {YOTI_DOCUMENT_FIELDS_NOT_POPULATED_500} from "../data/getSessions/yotiDocumentFieldsNotPopulated500";
+import { MULTIPLE_DOCUMENT_FIELDS_IN_RESPONSE_500 } from "../data/getSessions/multipleDocumentFieldsInResponse500";
+import { MULTIPLE_IDS_USED_IN_COMPLETED_YOTI_SESSION_500 } from "../data/getSessions/multipleIdsUsedInCompletedYotiSession500";
+import { UNSUCCESSFUL_ATTEMPT_TO_MATCH_DOCUMENT_IDS_500 } from "../data/getSessions/unsuccessfulAttemptToMatchDocumentIds500";
+import { YOTI_DOCUMENT_FIELDS_MEDIA_ID_NOT_FOUND_500 } from "../data/getSessions/yotiDocumentFieldsMediaIdNotFound500";
 import {sleep} from "../utils/Sleep";
 import {POST_SESSIONS_INVALID_ADDRESS_400} from "../data/postSessions/postSessionsInvalidAddress400";
 import {GBR_PASSPORT_JOYCE} from "../data/getMediaContent/gbPassportResponseJOYCE";
@@ -109,6 +111,7 @@ import {GBR_PASSPORT_SUZIE} from "../data/getMediaContent/gbPassportResponseSUZI
 import { GBR_DRIVING_LICENCE_MISSING_FORMATTED_ADDRESS } from "../data/getMediaContent/gbDriversLicenseMissingFormatedAddressResponse";
 import { GET_SESSIONS_429 } from "../data/getSessions/getSessions429";
 import { GET_SESSIONS_503 } from "../data/getSessions/getSessions503";
+import { SAME_ID_USED_IN_MULTIPLE_DOCUMENTS_500 } from "../data/getSessions/sameIdUsedInMultipleDocuments500";
 
 export class YotiRequestProcessor {
     private static instance: YotiRequestProcessor;
@@ -876,6 +879,15 @@ export class YotiRequestProcessor {
 											MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id = sessionId;
 											MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
 											return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_1034));
+										
+                    case '0135': // UK Passport Success - Multiple objects in id_documents array with different ids
+                    logger.debug(JSON.stringify(yotiSessionRequest));
+                    const MULTIPLE_DOCUMENT_FIELDS_1035 = JSON.parse(JSON.stringify(MULTIPLE_DOCUMENT_FIELDS));
+
+                    MULTIPLE_DOCUMENT_FIELDS_1035.session_id = sessionId;
+                    MULTIPLE_DOCUMENT_FIELDS_1035.resources.id_documents[0].id = sessionId;
+                    MULTIPLE_DOCUMENT_FIELDS_1035.resources.checks.resources_used = [sessionId]; 
+                    return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_1035));
 
                     case '0150': // UK Passport Success - Only FullName in DocumentFields
                         logger.debug(JSON.stringify(yotiSessionRequest));
@@ -1199,6 +1211,15 @@ export class YotiRequestProcessor {
             case '1062':
                 this.logger.info({message: "Yoti document_fields media ID not found", lastUuidChars});
                 return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(YOTI_DOCUMENT_FIELDS_MEDIA_ID_NOT_FOUND_500), ERROR_RESPONSE_HEADERS);
+            case '1063':
+                this.logger.info({message: "Multiple IDs used in completed Yoti Session", lastUuidChars});
+                return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(MULTIPLE_IDS_USED_IN_COMPLETED_YOTI_SESSION_500), ERROR_RESPONSE_HEADERS);
+            case '1064':
+                this.logger.info({message: "Same ID used in multiple documents", lastUuidChars});
+                return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(SAME_ID_USED_IN_MULTIPLE_DOCUMENTS_500), ERROR_RESPONSE_HEADERS);
+            case '1065':
+                this.logger.info({message: "Unsuccessful attempt to match document IDs", lastUuidChars});
+                return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(UNSUCCESSFUL_ATTEMPT_TO_MATCH_DOCUMENT_IDS_500), ERROR_RESPONSE_HEADERS);
                     
             default:
                 return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`, ERROR_RESPONSE_HEADERS);
