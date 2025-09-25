@@ -1026,7 +1026,10 @@ describe("YotiSessionCompletionProcessor", () => {
 
 		it("Throws server error if session in Yoti contains multiple document_field entries", async () => {
 			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
-			completedYotiSessionClone.resources.id_documents = [completedYotiSession.resources.id_documents[0], completedYotiSession.resources.id_documents[0]];
+			completedYotiSessionClone.resources.id_documents = [
+				...completedYotiSessionClone.resources.id_documents,
+				{ ...completedYotiSessionClone.resources.id_documents[0], id: "877e0l80-9d2a-850c-a72e-e13q7417fb9a" },
+			];
 		
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
@@ -1053,6 +1056,120 @@ describe("YotiSessionCompletionProcessor", () => {
 			});
 			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
 			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Multiple document_fields in response");
+		});
+
+		it("Throws server error if multiple resources used in ID_DOCUMENT_AUTHENTICITY check", async () => {
+			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
+			completedYotiSessionClone.resources.id_documents = [
+				...completedYotiSessionClone.resources.id_documents,
+				{ ...completedYotiSessionClone.resources.id_documents[0], id: "877e0l80-9d2a-850c-a72e-e13q7417fb9a" },
+			];
+
+			const idDocumentAuthenticityCheck = completedYotiSessionClone.checks.find(
+  				(c: { type: string }) => c.type === "ID_DOCUMENT_AUTHENTICITY"
+			);
+
+			idDocumentAuthenticityCheck.resources_used = ["355e9f80-6f2a-470c-a72e-e13c7417fb9a", "3c3ea0ac-2902-4c7c-a0ba-cf5daef5cc38"];
+		
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+	
+			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "Multiple IDs used in completed Yoti Session",
+			}));
+			expect(logger.error).toHaveBeenCalledWith({ message: "Multiple IDs used in completed Yoti Session" }, {
+				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
+			});
+			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Multiple IDs used in completed Yoti Session", {
+				messageCode: MessageCodes.ERROR_GENERATING_VC,
+				govUkSignInJourneyId: "sdfssg",
+				yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91"
+			});
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				error: "access_denied",
+    			error_description: "VC generation failed : Multiple IDs used in completed Yoti Session",
+			});
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
+			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Multiple IDs used in completed Yoti Session");
+		});
+
+		it("Throws server error if multiple id_documents have id properties that match the resource used in ID_DOCUMENT_AUTHENTICITY check", async () => {
+			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
+			completedYotiSessionClone.resources.id_documents = [completedYotiSession.resources.id_documents[0], completedYotiSession.resources.id_documents[0]];
+
+			const idDocumentAuthenticityCheck = completedYotiSessionClone.checks.find(
+  				(c: { type: string }) => c.type === "ID_DOCUMENT_AUTHENTICITY"
+			);
+
+			idDocumentAuthenticityCheck.resources_used = ["355e9f80-6f2a-470c-a72e-e13c7417fb9a"];
+		
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+	
+			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "Same ID used in multiple documents",
+			}));
+			expect(logger.error).toHaveBeenCalledWith({ message: "Same ID used in multiple documents" }, {
+				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
+			});
+			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Same ID used in multiple documents", {
+				messageCode: MessageCodes.ERROR_GENERATING_VC,
+				govUkSignInJourneyId: "sdfssg",
+				yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91"
+			});
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				error: "access_denied",
+    			error_description: "VC generation failed : Same ID used in multiple documents",
+			});
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
+			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Same ID used in multiple documents");
+		});
+
+		it("Throws server error if no document IDs match the resource used in ID_DOCUMENT_AUTHENTICITY check", async () => {
+			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
+			completedYotiSessionClone.resources.id_documents = [
+				...completedYotiSessionClone.resources.id_documents,
+				{ ...completedYotiSessionClone.resources.id_documents[0], id: "877e0l80-9d2a-850c-a72e-e13q7417fb9a" },
+			];
+
+			const idDocumentAuthenticityCheck = completedYotiSessionClone.checks.find(
+  				(c: { type: string }) => c.type === "ID_DOCUMENT_AUTHENTICITY"
+			);
+
+			idDocumentAuthenticityCheck.resources_used = ["566e9f45-9b5a-950p-b76e-e13c7417fb9a"];
+		
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+	
+			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "Unsuccessful attempt to match document IDs",
+			}));
+			expect(logger.error).toHaveBeenCalledWith({ message: "Unsuccessful attempt to match document IDs" }, {
+				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
+			});
+			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Unsuccessful attempt to match document IDs", {
+				messageCode: MessageCodes.ERROR_GENERATING_VC,
+				govUkSignInJourneyId: "sdfssg",
+				yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91"
+			});
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				error: "access_denied",
+    			error_description: "VC generation failed : Unsuccessful attempt to match document IDs",
+			});
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
+			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Unsuccessful attempt to match document IDs");
 		});
 
 		it("Throws server error if session in Yoti does not contain media ID", async () => {
