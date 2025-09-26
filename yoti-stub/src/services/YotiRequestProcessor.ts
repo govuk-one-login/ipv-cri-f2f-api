@@ -116,15 +116,17 @@ export class YotiRequestProcessor {
 
     private readonly metrics: Metrics;
 
-    constructor(logger: Logger, metrics: Metrics) {
-        this.logger = logger;
+    private readonly forceRetry: boolean;
 
+    constructor(logger: Logger, metrics: Metrics, forceRetry: boolean = false) {
+        this.logger = logger;
         this.metrics = metrics;
+        this.forceRetry = forceRetry;
     }
 
-    static getInstance(logger: Logger, metrics: Metrics): YotiRequestProcessor {
+    static getInstance(logger: Logger, metrics: Metrics, forceRetry: boolean = false): YotiRequestProcessor {
         if (!YotiRequestProcessor.instance) {
-            YotiRequestProcessor.instance = new YotiRequestProcessor(logger, metrics);
+            YotiRequestProcessor.instance = new YotiRequestProcessor(logger, metrics, forceRetry);
         }
         return YotiRequestProcessor.instance;
     }
@@ -247,16 +249,29 @@ export class YotiRequestProcessor {
             // retries
             case '1429':
                 this.logger.info({message: "last 4 ID chars", lastFullNameChars});
+                if (this.forceRetry) {
+                    this.logger.warn({ message: `createSession - Simulated 429 (constructor flag)`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+                    return new Response(HttpCodesEnum.TOO_MANY_REQUESTS, JSON.stringify(POST_SESSIONS_503), ERROR_RESPONSE_HEADERS);
+                }
                 this.logger.warn({ message: `createSession - Retrying to create Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
-    		    await sleep(5000);
-                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem.session_id));
+                await sleep(5000);
+                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+
             case '1500':
                 this.logger.info({message: "last 4 ID chars", lastFullNameChars});
+                if (this.forceRetry) {
+                    this.logger.warn({ message: `createSession - Simulated 500 (constructor flag)`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
+                    return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(POST_SESSIONS_503), ERROR_RESPONSE_HEADERS);
+                }
                 this.logger.warn({ message: `createSession - Retrying to create Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
-    		    await sleep(5000);
-                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem.session_id));
+                await sleep(5000);
+                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
             default:
-                return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming user_tracking_id ${yotiSessionId} didn't match any of the use cases`, ERROR_RESPONSE_HEADERS);
+                return new Response(
+                    HttpCodesEnum.SERVER_ERROR,
+                    `Incoming user_tracking_id ${yotiSessionId} didn't match any of the use cases`,
+                    ERROR_RESPONSE_HEADERS
+                );
         }
     }
 
@@ -1187,6 +1202,10 @@ export class YotiRequestProcessor {
         switch (lastUuidChars) {
             case '0429': // UK Driving License Success - Face Match automated - first attempt 429 error, second attempt 200
                 this.logger.debug(JSON.stringify(yotiSessionRequest));
+                if (this.forceRetry) {
+                    this.logger.info({message: "Simulated 429 on first attempt (constructor flag)", lastUuidChars});
+                    return new Response(HttpCodesEnum.TOO_MANY_REQUESTS, JSON.stringify(GET_SESSIONS_429), ERROR_RESPONSE_HEADERS);
+                }
                 const VALID_DL_RESPONSE_0429 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
                 VALID_DL_RESPONSE_0429.session_id = sessionId;
                 VALID_DL_RESPONSE_0429.resources.id_documents[0].document_fields.media.id = sessionId; 
