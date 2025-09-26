@@ -3,6 +3,14 @@ Transform: "AWS::Serverless-2016-10-31"
 Description: "Digital Identity F2F Yoti Stub"
 
 Parameters:
+  EnableCustomDomain:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "false"
+  ForceRetry:
+    Type: String
+    AllowedValues: ["true","false"]
+    Default: "false"
   KmsPendingWindowInDays:
     Type: Number
     Description: Number of days to retain KMS in pending deletion state when deleted
@@ -51,6 +59,7 @@ Mappings:
       YOTISTUBURL: "yotistub.review-o.staging.account.gov.uk"
 
 Conditions:
+  UseCustomDomain: !Equals [ !Ref EnableCustomDomain, "true" ]
   CreateDevResources: !Equals
     - !Ref Environment
     - dev
@@ -192,6 +201,7 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: MockYotiSessionHandler
+          FORCE_RETRY: !Ref ForceRetry
 
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -257,6 +267,7 @@ Resources:
       Principal: apigateway.amazonaws.com
 
   MockYotiApiGatewayCustomDomain:
+    Condition: UseCustomDomain 
     Type: AWS::ApiGatewayV2::DomainName
     Properties:
       DomainName: !If
@@ -272,6 +283,7 @@ Resources:
           SecurityPolicy: TLS_1_2
 
   MockYotiApiDomainRecord:
+    Condition: UseCustomDomain
     Type: AWS::Route53::RecordSet
     Properties:
       Name: !Ref MockYotiApiGatewayCustomDomain
@@ -284,6 +296,7 @@ Resources:
 
   # Base Path Mapping
   MockYotiApiBasePathMapping:
+    Condition: UseCustomDomain
     Type: 'AWS::ApiGateway::BasePathMapping'
     Properties:
       DomainName: !Ref MockYotiApiGatewayCustomDomain
@@ -301,4 +314,7 @@ Outputs:
       Name: !Sub ${AWS::StackName}-MockYotiApiGatewayId
   F2FYotiStubURL:
     Description: "F2F Yoti Stub"
-    Value: !Sub https://${MockYotiApiGatewayCustomDomain}
+    Value: !If
+      - UseCustomDomain
+      - !Sub https://${MockYotiApiGatewayCustomDomain}
+      - !Sub "https://${MockYotiRestApi}.execute-api.${AWS::Region}.amazonaws.com/${MockYotiRestApiStage}"
