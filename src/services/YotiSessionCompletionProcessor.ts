@@ -14,7 +14,7 @@ import { VerifiableCredentialService } from "./VerifiableCredentialService";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
-import { YotiSessionDocument, ID_DOCUMENT_TEXT_DATA_EXTRACTION } from "../utils/YotiPayloadEnums";
+import { YotiSessionDocument, ID_DOCUMENT_TEXT_DATA_EXTRACTION, YOTI_CHECKS } from "../utils/YotiPayloadEnums";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { DrivingPermit, IdentityCard, Passport, Name } from "../utils/IVeriCredential";
@@ -167,7 +167,8 @@ export class YotiSessionCompletionProcessor {
 
   		const idDocuments = completedYotiSessionInfo.resources.id_documents;
 		  
-		const idDocumentAuthenticityCheck = completedYotiSessionInfo.checks.find((check) => check.type === "ID_DOCUMENT_AUTHENTICITY")
+		const idDocumentAuthenticityCheck = completedYotiSessionInfo.checks.find((check) => check.type === YOTI_CHECKS.ID_DOCUMENT_AUTHENTICITY.type)
+		const documentUsedInVerification = idDocuments.filter((document) => document.id === idDocumentAuthenticityCheck?.resources_used[0])
 
 		  if (idDocuments.length > 1) {
 			if (!idDocumentAuthenticityCheck || idDocumentAuthenticityCheck.resources_used.length < 1) {
@@ -184,7 +185,6 @@ export class YotiSessionCompletionProcessor {
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Multiple IDs used in completed Yoti Session");
 			}
 
-			const documentUsedInVerification = idDocuments.filter((document) => document.id === idDocumentAuthenticityCheck?.resources_used[0])
 
 			if (documentUsedInVerification.length > 1) {
 				this.logger.error({ message: "Same ID used in multiple documents" }, {
@@ -208,8 +208,7 @@ export class YotiSessionCompletionProcessor {
 		  }
 
   		const idDocumentsDocumentFields = [];
-
-  		for (const document of idDocuments) {
+  		for (const document of documentUsedInVerification) {
   			if (document.document_fields) {
   				const taskTypeToCheck = ID_DOCUMENT_TEXT_DATA_EXTRACTION;
   				const isDone = this.isTaskDone(document, taskTypeToCheck);
@@ -217,7 +216,7 @@ export class YotiSessionCompletionProcessor {
   			}
   		}
 
-  		if (idDocumentsDocumentFields.length === 0) {
+		if (idDocumentsDocumentFields.length === 0) {
   			// If there is no document_fields, yoti have told us there will always be ID_DOCUMENT_TEXT_DATA_CHECK
   			const documentTextDataCheck = completedYotiSessionInfo.checks.find((check) => check.type === "ID_DOCUMENT_TEXT_DATA_CHECK");
 			  this.logger.error({ message: "No document_fields found in completed Yoti Session" }, {
@@ -235,6 +234,7 @@ export class YotiSessionCompletionProcessor {
   		}
 
 		  const documentFieldsId = idDocumentsDocumentFields[0].media.id;
+
 		  if (!documentFieldsId) {
 			  this.logger.error({ message: "No media ID found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
@@ -346,7 +346,6 @@ export class YotiSessionCompletionProcessor {
 				  await this.sendErrorMessageToIPVCore(f2fSession, "Missing Credential Subject or Evidence payload", govUkSignInJourneyId, yotiSessionID, idDocumentsDocumentFields.length);
 				  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Credential Subject or Evidence payload");
 			  }
-
 			  let signedJWT;
 			  let unsignedJWT;
 			  try {

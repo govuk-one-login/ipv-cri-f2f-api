@@ -960,6 +960,9 @@ describe("YotiSessionCompletionProcessor", () => {
 				{
 					type: "ID_DOCUMENT_AUTHENTICITY",
 					state: "DONE",
+					resources_used: [
+							"355e9f80-6f2a-470c-a72e-e13c7417fb9a"
+					],
 					generated_media: [],
 					report: {
 						recommendation: {
@@ -1022,40 +1025,6 @@ describe("YotiSessionCompletionProcessor", () => {
 			});
 			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
 			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Yoti document_fields not populated");
-		});
-
-		it("Throws server error if session in Yoti contains multiple document_field entries", async () => {
-			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
-			completedYotiSessionClone.resources.id_documents = [
-				...completedYotiSessionClone.resources.id_documents,
-				{ ...completedYotiSessionClone.resources.id_documents[0], id: "877e0l80-9d2a-850c-a72e-e13q7417fb9a" },
-			];
-		
-			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
-			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
-			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
-	
-			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
-				statusCode: HttpCodesEnum.SERVER_ERROR,
-				message: "Multiple document_fields in response",
-			}));
-			expect(logger.error).toHaveBeenCalledWith({ message: "Multiple document_fields found in completed Yoti Session" }, {
-				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
-			});
-			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Multiple document_fields in response", {
-				messageCode: MessageCodes.ERROR_GENERATING_VC,
-				govUkSignInJourneyId: "sdfssg",
-				yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-				numberOfDocumentFields: 2,
-			});
-			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
-				sub: "testsub",
-				state: "Y@atr",
-				error: "access_denied",
-    			error_description: "VC generation failed : Multiple document_fields in response",
-			});
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
-			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Multiple document_fields in response");
 		});
 
 		it("Throws server error if multiple resources used in ID_DOCUMENT_AUTHENTICITY check", async () => {
