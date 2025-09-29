@@ -692,8 +692,8 @@ Resources:
         Service: backend
         Name: F2FRestApi
         Source: alphagov/di-devplatform-demo-sam-app/sam-app/template.yaml
-        FMSRegionalPolicy: false
-        CustomPolicy: true
+        FMSRegionalPolicy: !If [IsNotProdLikeEnvironment, false, !Ref "AWS::NoValue"]
+        CustomPolicy: !If [IsNotProdLikeEnvironment, true, !Ref "AWS::NoValue"]
 
   F2FAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -745,6 +745,11 @@ Resources:
           - REGIONAL
       RegionalCertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
       SecurityPolicy: TLS_1_2
+      Tags:
+        - Key: FMSRegionalPolicy
+          Value: !If [IsNotProdLikeEnvironment, false, !Ref "AWS::NoValue"]
+        - Key: CustomPolicy
+          Value: !If [IsNotProdLikeEnvironment, true, !Ref "AWS::NoValue"]
 
   F2FApiBasePath:
     Type: AWS::ApiGateway::BasePathMapping
