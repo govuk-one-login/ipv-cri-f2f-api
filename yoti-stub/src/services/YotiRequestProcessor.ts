@@ -95,6 +95,7 @@ import { MULTIPLE_DOCUMENT_FIELDS_IN_RESPONSE_500 } from "../data/getSessions/mu
 import { MULTIPLE_IDS_USED_IN_COMPLETED_YOTI_SESSION_500 } from "../data/getSessions/multipleIdsUsedInCompletedYotiSession500";
 import { UNSUCCESSFUL_ATTEMPT_TO_MATCH_DOCUMENT_IDS_500 } from "../data/getSessions/unsuccessfulAttemptToMatchDocumentIds500";
 import { YOTI_DOCUMENT_FIELDS_MEDIA_ID_NOT_FOUND_500 } from "../data/getSessions/yotiDocumentFieldsMediaIdNotFound500";
+import { NO_DOCUMENTS_FOUND_IN_YOTI_RESPONSE_500 } from "../data/getSessions/noDocumentsFoundInYotiResponse500";
 import {sleep} from "../utils/Sleep";
 import {POST_SESSIONS_INVALID_ADDRESS_400} from "../data/postSessions/postSessionsInvalidAddress400";
 import {GBR_PASSPORT_JOYCE} from "../data/getMediaContent/gbPassportResponseJOYCE";
@@ -886,7 +887,7 @@ export class YotiRequestProcessor {
 
                     MULTIPLE_DOCUMENT_FIELDS_1035.session_id = sessionId;
                     MULTIPLE_DOCUMENT_FIELDS_1035.resources.id_documents[0].id = sessionId;
-                    MULTIPLE_DOCUMENT_FIELDS_1035.resources.checks.resources_used = [sessionId]; 
+                    MULTIPLE_DOCUMENT_FIELDS_1035.checks.resources_used = [sessionId]; 
                     return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_1035));
 
                     case '0150': // UK Passport Success - Only FullName in DocumentFields
@@ -1220,6 +1221,9 @@ export class YotiRequestProcessor {
             case '1065':
                 this.logger.info({message: "Unsuccessful attempt to match document IDs", lastUuidChars});
                 return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(UNSUCCESSFUL_ATTEMPT_TO_MATCH_DOCUMENT_IDS_500), ERROR_RESPONSE_HEADERS);
+            case '1066':
+                this.logger.info({message: "No documents found in Yoti response", lastUuidChars});
+                return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(NO_DOCUMENTS_FOUND_IN_YOTI_RESPONSE_500), ERROR_RESPONSE_HEADERS);
                     
             default:
                 return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`, ERROR_RESPONSE_HEADERS);

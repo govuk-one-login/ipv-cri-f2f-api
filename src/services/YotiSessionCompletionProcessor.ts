@@ -199,6 +199,12 @@ export class YotiSessionCompletionProcessor {
 			  	await this.sendErrorMessageToIPVCore(f2fSession, "Unsuccessful attempt to match document IDs", govUkSignInJourneyId, yotiSessionID);
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unsuccessful attempt to match document IDs");
 			}
+		  } else if (idDocuments.length < 1) {
+			this.logger.error({ message: "No documents found in Yoti response" }, {
+				  messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
+			  });
+			  	await this.sendErrorMessageToIPVCore(f2fSession, "No documents found in Yoti response", govUkSignInJourneyId, yotiSessionID);
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, "No documents found in Yoti response");
 		  }
 
   		const idDocumentsDocumentFields = [];
@@ -326,9 +332,9 @@ export class YotiSessionCompletionProcessor {
 			  if (rejectionReasons.length > 0) {
 				const singleMetric = this.metrics.singleMetric();
 				let failureReasons: string[] = [];
-				rejectionReasons.forEach((rejectionReason) => {
+				for (const rejectionReason of rejectionReasons) {
 					failureReasons.push(rejectionReason.reason)
-				});
+				};
 				singleMetric.addDimension("failure_reasons", failureReasons.toString());
 				singleMetric.addMetric("Yoti_Check_Failure", MetricUnits.Count, 1);
 			  }
@@ -433,13 +439,13 @@ export class YotiSessionCompletionProcessor {
 				  expiryDate: documentFields.expiration_date,
 				  issuingCountry: documentFields.issuing_country,
 			  };
-			  if (documentFields.issuing_country !== "GBR") {
-				  documentInfo.issuedBy = documentFields.place_of_issue;
-				  documentInfo.issueDate = documentFields.date_of_issue;
-			  } else {
+			  if (documentFields.issuing_country === "GBR") {
 				  documentInfo.issuedBy = documentFields.issuing_authority;
 				  documentInfo.issueDate = documentFields.date_of_issue;
 				  documentInfo.fullAddress = documentFields.structured_postal_address?.formatted_address;
+			  } else {
+				  documentInfo.issuedBy = documentFields.place_of_issue;
+				  documentInfo.issueDate = documentFields.date_of_issue;
 			  }
 			  break;
 		  case DocumentTypes.NATIONAL_ID:

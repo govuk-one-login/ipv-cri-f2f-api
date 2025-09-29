@@ -1172,6 +1172,32 @@ describe("YotiSessionCompletionProcessor", () => {
 			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Unsuccessful attempt to match document IDs");
 		});
 
+		it("Throws server error if Yoti response contains no id_documents", async () => {
+			let completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
+			completedYotiSessionClone.resources.id_documents = []
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+	
+			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "No documents found in Yoti response",
+			}));
+			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : No documents found in Yoti response", {
+				messageCode: MessageCodes.ERROR_GENERATING_VC,
+				govUkSignInJourneyId: "sdfssg",
+            	yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+			});
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				error: "access_denied",
+    			error_description: "VC generation failed : No documents found in Yoti response",
+			});
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
+			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "No documents found in Yoti response");
+		});
+
 		it("Throws server error if session in Yoti does not contain media ID", async () => {
 			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
 			delete completedYotiSessionClone.resources.id_documents[0].document_fields.media.id;
