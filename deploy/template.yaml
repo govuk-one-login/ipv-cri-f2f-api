@@ -692,8 +692,8 @@ Resources:
         Service: backend
         Name: F2FRestApi
         Source: alphagov/di-devplatform-demo-sam-app/sam-app/template.yaml
-        FMSRegionalPolicy: !If [IsNotProdLikeEnvironment, false, !Ref "AWS::NoValue"]
-        CustomPolicy: !If [IsNotProdLikeEnvironment, true, !Ref "AWS::NoValue"]
+        FMSRegionalPolicy: !If [IsPersonalIdentifiableInformationEnvironment, !Ref "AWS::NoValue", "false"]
+        CustomPolicy: !If [IsPersonalIdentifiableInformationEnvironment, !Ref "AWS::NoValue", "true"]
 
   F2FAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -747,9 +747,9 @@ Resources:
       SecurityPolicy: TLS_1_2
       Tags:
         - Key: FMSRegionalPolicy
-          Value: !If [IsNotProdLikeEnvironment, false, !Ref "AWS::NoValue"]
+          Value: !If [IsPersonalIdentifiableInformationEnvironment, !Ref "AWS::NoValue", "false"]
         - Key: CustomPolicy
-          Value: !If [IsNotProdLikeEnvironment, true, !Ref "AWS::NoValue"]
+          Value: !If [IsPersonalIdentifiableInformationEnvironment, !Ref "AWS::NoValue", "true"]
 
   F2FApiBasePath:
     Type: AWS::ApiGateway::BasePathMapping
