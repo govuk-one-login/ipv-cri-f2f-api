@@ -166,32 +166,24 @@ export class YotiSessionCompletionProcessor {
 		  });
 
   		const idDocuments = completedYotiSessionInfo.resources.id_documents;
-		  
+		
+			if (idDocuments.length < 1) {
+				this.logger.error({ message: "No documents found in Yoti response" }, {
+					messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
+				});
+					await this.sendErrorMessageToIPVCore(f2fSession, "No documents found in Yoti response", govUkSignInJourneyId, yotiSessionID);
+					throw new AppError(HttpCodesEnum.SERVER_ERROR, "No documents found in Yoti response");
+			}
+
 		const idDocumentAuthenticityCheck = completedYotiSessionInfo.checks.find((check) => check.type === YOTI_CHECKS.ID_DOCUMENT_AUTHENTICITY.type)
 		const documentUsedInVerification = idDocuments.filter((document) => document.id === idDocumentAuthenticityCheck?.resources_used[0])
 
-		  if (idDocuments.length > 1) {
-			if (!idDocumentAuthenticityCheck || idDocumentAuthenticityCheck.resources_used.length < 1) {
-				this.logger.error({ message: "No ID document authenticity check found" }, {
-				  messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
-			  });
-			  	await this.sendErrorMessageToIPVCore(f2fSession, "No ID document authenticity check found", govUkSignInJourneyId, yotiSessionID);
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "No ID document authenticity check found");
-			} else if (idDocumentAuthenticityCheck.resources_used.length > 1) {
+			if (idDocumentAuthenticityCheck && idDocumentAuthenticityCheck.resources_used.length > 1) {
 				this.logger.error({ message: "Multiple IDs used in completed Yoti Session" }, {
 				  messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
 			  });
 			  	await this.sendErrorMessageToIPVCore(f2fSession, "Multiple IDs used in completed Yoti Session", govUkSignInJourneyId, yotiSessionID);
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Multiple IDs used in completed Yoti Session");
-			}
-
-
-			if (documentUsedInVerification.length > 1) {
-				this.logger.error({ message: "Same ID used in multiple documents" }, {
-				  messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
-			  });
-			  	await this.sendErrorMessageToIPVCore(f2fSession, "Same ID used in multiple documents", govUkSignInJourneyId, yotiSessionID);
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Same ID used in multiple documents");
 			} else if (documentUsedInVerification.length < 1) {
 				this.logger.error({ message: "Unsuccessful attempt to match document IDs" }, {
 				  messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
@@ -199,13 +191,6 @@ export class YotiSessionCompletionProcessor {
 			  	await this.sendErrorMessageToIPVCore(f2fSession, "Unsuccessful attempt to match document IDs", govUkSignInJourneyId, yotiSessionID);
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unsuccessful attempt to match document IDs");
 			}
-		  } else if (idDocuments.length < 1) {
-			this.logger.error({ message: "No documents found in Yoti response" }, {
-				  messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
-			  });
-			  	await this.sendErrorMessageToIPVCore(f2fSession, "No documents found in Yoti response", govUkSignInJourneyId, yotiSessionID);
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "No documents found in Yoti response");
-		  }
 
   		const idDocumentsDocumentFields = [];
   		for (const document of documentUsedInVerification) {
