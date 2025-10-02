@@ -112,7 +112,6 @@ import {GBR_PASSPORT_SUZIE} from "../data/getMediaContent/gbPassportResponseSUZI
 import { GBR_DRIVING_LICENCE_MISSING_FORMATTED_ADDRESS } from "../data/getMediaContent/gbDriversLicenseMissingFormatedAddressResponse";
 import { GET_SESSIONS_429 } from "../data/getSessions/getSessions429";
 import { GET_SESSIONS_503 } from "../data/getSessions/getSessions503";
-import { SAME_ID_USED_IN_MULTIPLE_DOCUMENTS_500 } from "../data/getSessions/sameIdUsedInMultipleDocuments500";
 
 export class YotiRequestProcessor {
     private static instance: YotiRequestProcessor;
@@ -887,7 +886,15 @@ export class YotiRequestProcessor {
 
                         MULTIPLE_DOCUMENT_FIELDS_0135.session_id = sessionId;
                         MULTIPLE_DOCUMENT_FIELDS_0135.resources.id_documents[0].id = sessionId;
-                        MULTIPLE_DOCUMENT_FIELDS_0135.checks.resources_used = [sessionId]; 
+                        modifiedPayload = {
+                            ...MULTIPLE_DOCUMENT_FIELDS_0135,
+                            checks: MULTIPLE_DOCUMENT_FIELDS_0135.checks.map((check: any) => {
+                                if (check.type === "ID_DOCUMENT_AUTHENTICITY") {
+                                    check.resources_used = [sessionId]
+                                }
+                                return check;
+                            }),
+                        };
                         return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_0135));
 
                     case '0150': // UK Passport Success - Only FullName in DocumentFields
@@ -1215,9 +1222,6 @@ export class YotiRequestProcessor {
             case '1063':
                 this.logger.info({message: "Multiple IDs used in completed Yoti Session", lastUuidChars});
                 return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(MULTIPLE_IDS_USED_IN_COMPLETED_YOTI_SESSION_500), ERROR_RESPONSE_HEADERS);
-            case '1064':
-                this.logger.info({message: "Same ID used in multiple documents", lastUuidChars});
-                return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(SAME_ID_USED_IN_MULTIPLE_DOCUMENTS_500), ERROR_RESPONSE_HEADERS);
             case '1065':
                 this.logger.info({message: "Unsuccessful attempt to match document IDs", lastUuidChars});
                 return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(UNSUCCESSFUL_ATTEMPT_TO_MATCH_DOCUMENT_IDS_500), ERROR_RESPONSE_HEADERS);
