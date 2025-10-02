@@ -327,6 +327,10 @@ Conditions:
     - !Not [ !Equals [ !Ref TrafficTestRoleArn, none ]]
 
   UseCanaryDeploymentAlarms: !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
+  IsDevOrBuildOrStaging: !Or
+    - !Equals [ !Ref Environment, dev ]
+    - !Equals [ !Ref Environment, build ]
+    - !Equals [ !Ref Environment, staging ]
 
 Globals:
   Function:
@@ -692,8 +696,8 @@ Resources:
         Service: backend
         Name: F2FRestApi
         Source: alphagov/di-devplatform-demo-sam-app/sam-app/template.yaml
-        FMSRegionalPolicy: !If [IsPersonalIdentifiableInformationEnvironment, !Ref "AWS::NoValue", "false"]
-        CustomPolicy: !If [IsPersonalIdentifiableInformationEnvironment, !Ref "AWS::NoValue", "true"]
+        FMSRegionalPolicy: !If [ IsDevOrBuildOrStaging, "false", "none" ]
+        CustomPolicy: !If [ IsDevOrBuildOrStaging, "true", "none" ]
 
   F2FAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -745,11 +749,6 @@ Resources:
           - REGIONAL
       RegionalCertificateArn: !Sub "{{resolve:ssm:/${Environment}/Platform/ACM/PrimaryZoneWildcardCertificateARN}}"
       SecurityPolicy: TLS_1_2
-      Tags:
-        - Key: FMSRegionalPolicy
-          Value: !If [IsPersonalIdentifiableInformationEnvironment, !Ref "AWS::NoValue", "false"]
-        - Key: CustomPolicy
-          Value: !If [IsPersonalIdentifiableInformationEnvironment, !Ref "AWS::NoValue", "true"]
 
   F2FApiBasePath:
     Type: AWS::ApiGateway::BasePathMapping
