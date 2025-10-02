@@ -66,6 +66,8 @@ import {POST_SESSIONS_400} from "../data/postSessions/postSessions400";
 import {POST_SESSIONS_401} from "../data/postSessions/postSessions401";
 import {POST_SESSIONS_403} from "../data/postSessions/postSessions403";
 import {POST_SESSIONS_404} from "../data/postSessions/postSessions404";
+import {POST_SESSIONS_429} from "../data/postSessions/postSessions429";
+import {POST_SESSIONS_500} from "../data/postSessions/postSessions500";
 import {POST_SESSIONS_503} from "../data/postSessions/postSessions503";
 import {VALID_GET_SESSION_CONFIG_RESPONSE} from "../data/getSessionsConfig/getSessionConfigValidResponse";
 import {GET_SESSIONS_CONFIG_400} from "../data/getSessionsConfig/getSessionsConfig400";
@@ -108,6 +110,7 @@ import {GBR_PASSPORT_SUZIE} from "../data/getMediaContent/gbPassportResponseSUZI
 import { GBR_DRIVING_LICENCE_MISSING_FORMATTED_ADDRESS } from "../data/getMediaContent/gbDriversLicenseMissingFormatedAddressResponse";
 import { GET_SESSIONS_429 } from "../data/getSessions/getSessions429";
 import { GET_SESSIONS_503 } from "../data/getSessions/getSessions503";
+import { GET_SESSIONS_500 } from "../data/getSessions/getSessions500";
 
 export class YotiRequestProcessor {
     private static instance: YotiRequestProcessor;
@@ -224,6 +227,36 @@ export class YotiRequestProcessor {
             return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
         }
 
+        // Retry on first call simulations
+        switch (lastFullNameChars) {
+            case '1429': // first attempt 429, second attempt 201
+                this.logger.info({ message: "createSession – simulated 429 via FORCE_RETRY", lastFullNameChars });
+                if (this.forceRetry) {
+                return new Response(HttpCodesEnum.TOO_MANY_REQUESTS, JSON.stringify(POST_SESSIONS_429), ERROR_RESPONSE_HEADERS);
+                }
+                this.logger.warn({ message: "createSession – retry after 429, sleeping 5000 ms", retryCount: 0, yotiErrorStatus: 429, xRequestId: "dummy-request-id" });
+                await sleep(5000);
+                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+
+            case '1503': // first attempt 503, second attempt 201
+                this.logger.info({ message: "createSession – simulated 503 via FORCE_RETRY", lastFullNameChars });
+                if (this.forceRetry) {
+                return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(POST_SESSIONS_503), ERROR_RESPONSE_HEADERS);
+                }
+                this.logger.warn({ message: "createSession – retry after 503, sleeping 5000 ms", retryCount: 0, yotiErrorStatus: 503, xRequestId: "dummy-request-id" });
+                await sleep(5000);
+                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+
+            case '1500': // first attempt 500, second attempt 201
+                this.logger.info({ message: "createSession – simulated 500 via FORCE_RETRY", lastFullNameChars });
+                if (this.forceRetry) {
+                return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(POST_SESSIONS_500), ERROR_RESPONSE_HEADERS);
+                }
+                this.logger.warn({ message: "createSession – retry after 500, sleeping 5000 ms", retryCount: 0, yotiErrorStatus: 500, xRequestId: "dummy-request-id" });
+                await sleep(5000);
+                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
+        }
+
         if (lastFullNameChars[0] === '3' || lastFullNameChars[0] === '2') {
             return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
         }
@@ -249,26 +282,6 @@ export class YotiRequestProcessor {
                 this.logger.info("sleeping for 30 secs");
                 await sleep(30000)
                 this.logger.info("I am awake, returning now");
-                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
-            // retries
-            case '1429':
-                this.logger.info({message: "last 4 ID chars", lastFullNameChars});
-                if (this.forceRetry) {
-                    this.logger.warn({ message: `createSession - Simulated 429 (constructor flag)`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
-                    return new Response(HttpCodesEnum.TOO_MANY_REQUESTS, JSON.stringify(POST_SESSIONS_503), ERROR_RESPONSE_HEADERS);
-                }
-                this.logger.warn({ message: `createSession - Retrying to create Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 429, yotiErrorStatus: 429, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
-                await sleep(5000);
-                return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
-
-            case '1500':
-                this.logger.info({message: "last 4 ID chars", lastFullNameChars});
-                if (this.forceRetry) {
-                    this.logger.warn({ message: `createSession - Simulated 500 (constructor flag)`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
-                    return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(POST_SESSIONS_503), ERROR_RESPONSE_HEADERS);
-                }
-                this.logger.warn({ message: `createSession - Retrying to create Yoti session. Sleeping for 5000 ms`, retryCount: 0, yotiErrorMessage: "Failed to create session", yotiErrorCode: 500, yotiErrorStatus: 500, messageCode: "FAILED_CREATING_YOTI_SESSION", xRequestId: "dummy-request-id" });
-                await sleep(5000);
                 return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
             default:
                 return new Response(
@@ -1135,6 +1148,26 @@ export class YotiRequestProcessor {
 
                     default:
                         return undefined;
+                }
+            }
+
+            if (firstTwoChars === DocumentMapping.EEA_ID && this.forceRetry) {
+                switch (lastUuidChars) {
+                    case '0500': // simulate 500 on first call, CRI should retry
+                    this.logger.info({ message: 'EEA guard: simulated 500 on first attempt', lastUuidChars });
+                    return new Response(
+                        HttpCodesEnum.SERVER_ERROR,
+                        JSON.stringify(GET_SESSIONS_500),
+                        ERROR_RESPONSE_HEADERS
+                    );
+
+                    case '0503': // simulate 503 on first call, CRI should retry
+                    this.logger.info({ message: 'EEA guard: simulated 503 on first attempt', lastUuidChars });
+                    return new Response(
+                        HttpCodesEnum.SERVICE_UNAVAILABLE,
+                        JSON.stringify(GET_SESSIONS_503),
+                        ERROR_RESPONSE_HEADERS
+                    );
                 }
             }
 
