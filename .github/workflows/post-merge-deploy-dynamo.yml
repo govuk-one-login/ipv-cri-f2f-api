@@ -62,7 +62,7 @@ jobs:
           use-installer: true
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets[format('{0}_F2F_DDB_GH_ACTIONS_ROLE_ARN', matrix.environment)] }}
           aws-region: ${{ env.AWS_REGION }}
