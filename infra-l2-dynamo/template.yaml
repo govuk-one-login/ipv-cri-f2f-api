@@ -150,6 +150,9 @@ Resources:
         KMSMasterKeyId: !Ref SessionTableKey
         SSEEnabled: true
         SSEType: KMS
+      Tags:
+        - Key: BackupFrequency
+          Value: Daily
 
   SessionTableKey:
     Type: AWS::KMS::Key
@@ -208,6 +211,9 @@ Resources:
         KMSMasterKeyId: !Ref PersonIdentityTableKey
         SSEEnabled: true
         SSEType: KMS
+      Tags:
+        - Key: BackupFrequency
+          Value: Daily
 
   PersonIdentityTableKey:
     Type: AWS::KMS::Key
