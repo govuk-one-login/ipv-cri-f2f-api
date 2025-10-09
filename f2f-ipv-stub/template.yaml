@@ -603,20 +603,6 @@ Resources:
         - Key: Environment
           Value: !Sub ${Environment}
 
-  # SSMParameter for .env variable
-  ProviderBaseUri:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Description: The Base URI from backend stack to test
-      Name: !Sub "/${Environment}/${AWS::StackName}/API/PROVIDER_BASE_URI"
-      Type: String
-      Value: !If
-        - CreateDevResources
-        - !Sub "https://api-${BackendStack}.review-o.dev.account.gov.uk"
-        - "https://api.review-o.build.account.gov.uk"
-      Tags:
-        APP: !Sub f2f-${AWS::StackName}
-
   IPVStubId:
     Type: AWS::SSM::Parameter
     Properties:
