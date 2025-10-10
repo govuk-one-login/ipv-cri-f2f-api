@@ -14,7 +14,7 @@ import { VerifiableCredentialService } from "./VerifiableCredentialService";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
 import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { GenerateVerifiableCredential } from "./GenerateVerifiableCredential";
-import { YotiSessionDocument, ID_DOCUMENT_TEXT_DATA_EXTRACTION, YOTI_CHECKS } from "../utils/YotiPayloadEnums";
+import { YotiSessionDocument, YOTI_CHECKS } from "../utils/YotiPayloadEnums";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { DocumentNames, DocumentTypes } from "../models/enums/DocumentTypes";
 import { DrivingPermit, IdentityCard, Passport, Name } from "../utils/IVeriCredential";
@@ -171,12 +171,11 @@ export class YotiSessionCompletionProcessor {
 			this.logger.error({ message: "No documents found in Yoti response" }, {
 				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
 			});
-				await this.sendErrorMessageToIPVCore(f2fSession, "No documents found in Yoti response", govUkSignInJourneyId, yotiSessionID);
-				throw new AppError(HttpCodesEnum.SERVER_ERROR, "No documents found in Yoti response");
+			await this.sendErrorMessageToIPVCore(f2fSession, "No documents found in Yoti response", govUkSignInJourneyId, yotiSessionID);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "No documents found in Yoti response");
 		}
 
 		const idDocumentAuthenticityCheck = completedYotiSessionInfo.checks.find((check) => check.type === YOTI_CHECKS.ID_DOCUMENT_AUTHENTICITY.type)
-		const documentUsedInVerification = idDocuments.filter((document) => document.id === idDocumentAuthenticityCheck?.resources_used[0])
 
 		if (idDocumentAuthenticityCheck && idDocumentAuthenticityCheck.resources_used.length > 1) {
 			this.logger.error({ message: "Multiple IDs used in completed Yoti Session" }, {
@@ -184,7 +183,11 @@ export class YotiSessionCompletionProcessor {
 			});
 			await this.sendErrorMessageToIPVCore(f2fSession, "Multiple IDs used in completed Yoti Session", govUkSignInJourneyId, yotiSessionID);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Multiple IDs used in completed Yoti Session");
-		} else if (documentUsedInVerification.length < 1) {
+		}  
+
+		const documentUsedInVerification = idDocuments.filter((document) => document.id === idDocumentAuthenticityCheck?.resources_used[0])
+
+		if (documentUsedInVerification.length < 1) {
 			this.logger.error({ message: "Unsuccessful attempt to match document IDs" }, {
 				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
 			});
@@ -192,39 +195,24 @@ export class YotiSessionCompletionProcessor {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unsuccessful attempt to match document IDs");
 		}
 
-  		const idDocumentsDocumentFields = [];
-  		for (const document of documentUsedInVerification) {
-  			if (document.document_fields) {
-  				const taskTypeToCheck = ID_DOCUMENT_TEXT_DATA_EXTRACTION;
-  				const isDone = this.isTaskDone(document, taskTypeToCheck);
-  				if (isDone) idDocumentsDocumentFields.push(document.document_fields);
-  			}
-  		}
-
-		if (idDocumentsDocumentFields.length === 0) {
+		if (!documentUsedInVerification[0].document_fields) {
   			// If there is no document_fields, yoti have told us there will always be ID_DOCUMENT_TEXT_DATA_CHECK
   			const documentTextDataCheck = completedYotiSessionInfo.checks.find((check) => check.type === "ID_DOCUMENT_TEXT_DATA_CHECK");
 			  this.logger.error({ message: "No document_fields found in completed Yoti Session" }, {
 				messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
   				ID_DOCUMENT_TEXT_DATA_CHECK: documentTextDataCheck?.report?.recommendation,
 			  });
-			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document_fields not populated", govUkSignInJourneyId, yotiSessionID, idDocumentsDocumentFields.length);
+			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document_fields not populated", govUkSignInJourneyId, yotiSessionID);
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields not populated");
-  		} else if (idDocumentsDocumentFields.length > 1) {
-  			this.logger.error({ message: "Multiple document_fields found in completed Yoti Session" }, {
-				  messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
-			  });
-			  await this.sendErrorMessageToIPVCore(f2fSession, "Multiple document_fields in response", govUkSignInJourneyId, yotiSessionID, idDocumentsDocumentFields.length);
-			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Multiple document_fields in response");
   		}
 
-		  const documentFieldsId = idDocumentsDocumentFields[0].media.id;
+		  const documentFieldsId = documentUsedInVerification[0].document_fields.media.id;
 
 		  if (!documentFieldsId) {
 			  this.logger.error({ message: "No media ID found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 			  });
-			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document_fields media ID not found", govUkSignInJourneyId, yotiSessionID, idDocumentsDocumentFields.length);
+			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document_fields media ID not found", govUkSignInJourneyId, yotiSessionID);
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document_fields media ID not found");
 		  }
 
@@ -234,7 +222,7 @@ export class YotiSessionCompletionProcessor {
 				  documentFieldsId,
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 			  });
-			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document fields info not found", govUkSignInJourneyId, yotiSessionID, idDocumentsDocumentFields.length);
+			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document fields info not found", govUkSignInJourneyId, yotiSessionID);
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
 		  }
 
@@ -285,7 +273,7 @@ export class YotiSessionCompletionProcessor {
   				this.logger.error({ message: "Missing Name Info in DocumentFields" }, {
   					messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
   				});
-  				await this.sendErrorMessageToIPVCore(f2fSession, "Missing Name Info in DocumentFields", govUkSignInJourneyId, yotiSessionID, idDocumentsDocumentFields.length);
+  				await this.sendErrorMessageToIPVCore(f2fSession, "Missing Name Info in DocumentFields", govUkSignInJourneyId, yotiSessionID);
   				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Name Info in DocumentFields");
   			}
 
@@ -296,7 +284,7 @@ export class YotiSessionCompletionProcessor {
   					this.logger.warn("Missing details in PERSON IDENTITY tables", {
   						messageCode: MessageCodes.PERSON_NOT_FOUND,
   					});
-  					await this.sendErrorMessageToIPVCore(f2fSession, "Missing details in PERSON IDENTITY tables", govUkSignInJourneyId, yotiSessionID, idDocumentsDocumentFields.length);
+  					await this.sendErrorMessageToIPVCore(f2fSession, "Missing details in PERSON IDENTITY tables", govUkSignInJourneyId, yotiSessionID);
   					throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in PERSON IDENTITY tables");
   				}
 
@@ -328,7 +316,7 @@ export class YotiSessionCompletionProcessor {
 				  this.logger.error({ message: "Missing Credential Subject or Evidence payload" }, {
 					  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 				  });
-				  await this.sendErrorMessageToIPVCore(f2fSession, "Missing Credential Subject or Evidence payload", govUkSignInJourneyId, yotiSessionID, idDocumentsDocumentFields.length);
+				  await this.sendErrorMessageToIPVCore(f2fSession, "Missing Credential Subject or Evidence payload", govUkSignInJourneyId, yotiSessionID);
 				  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Credential Subject or Evidence payload");
 			  }
 			  let signedJWT;
@@ -344,13 +332,13 @@ export class YotiSessionCompletionProcessor {
 						  error,
 						  messageCode: MessageCodes.FAILED_SIGNING_JWT,
 					  });
-					  await this.sendErrorMessageToIPVCore(f2fSession, "Failed to sign the verifiableCredential Jwt", govUkSignInJourneyId, yotiSessionID, idDocumentsDocumentFields.length);
+					  await this.sendErrorMessageToIPVCore(f2fSession, "Failed to sign the verifiableCredential Jwt", govUkSignInJourneyId, yotiSessionID);
 					  return Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the verifiableCredential Jwt");
 				  }
 			  }
 
 			  if (!signedJWT) {
-  				await this.sendErrorMessageToIPVCore(f2fSession, "Unable to create signed JWT", govUkSignInJourneyId, yotiSessionID, idDocumentsDocumentFields.length);
+  				await this.sendErrorMessageToIPVCore(f2fSession, "Unable to create signed JWT", govUkSignInJourneyId, yotiSessionID);
   				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unable to create signed JWT", {
   					messageCode: MessageCodes.FAILED_SIGNING_JWT,
   				});				  

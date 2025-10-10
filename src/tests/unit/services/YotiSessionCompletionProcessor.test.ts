@@ -1175,12 +1175,12 @@ describe("YotiSessionCompletionProcessor", () => {
 				...completedYotiSessionClone.resources.id_documents,
 				{ ...completedYotiSessionClone.resources.id_documents[0], id: "877e0l80-9d2a-850c-a72e-e13q7417fb9a" },
 			];
-
 			const idDocumentAuthenticityCheck = completedYotiSessionClone.checks.find(
   				(c: { type: string }) => c.type === "ID_DOCUMENT_AUTHENTICITY"
 			);
-
-			idDocumentAuthenticityCheck.resources_used = ["566e9f45-9b5a-950p-b76e-e13c7417fb9a"];
+			idDocumentAuthenticityCheck.resources_used = [
+				...["566e9f45-9b5a-950p-b76e-e13c7417fb9a"],
+			];
 		
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
@@ -1249,7 +1249,6 @@ describe("YotiSessionCompletionProcessor", () => {
 				messageCode: MessageCodes.ERROR_GENERATING_VC,
 				govUkSignInJourneyId: "sdfssg",
             	yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-				numberOfDocumentFields: 1,
 			});
 			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 				sub: "testsub",
@@ -1351,7 +1350,6 @@ describe("YotiSessionCompletionProcessor", () => {
 			messageCode: MessageCodes.ERROR_GENERATING_VC,
 			govUkSignInJourneyId: "sdfssg",
             yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-			numberOfDocumentFields: 1,
 		});
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "testsub",
@@ -1381,7 +1379,6 @@ describe("YotiSessionCompletionProcessor", () => {
 			messageCode: MessageCodes.ERROR_GENERATING_VC,
 			govUkSignInJourneyId: "sdfssg",
             yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-			numberOfDocumentFields: 1,
 		});
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "testsub",
