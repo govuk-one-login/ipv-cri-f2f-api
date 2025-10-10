@@ -145,6 +145,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 
+
 		const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
 
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
@@ -960,6 +961,9 @@ describe("YotiSessionCompletionProcessor", () => {
 				{
 					type: "ID_DOCUMENT_AUTHENTICITY",
 					state: "DONE",
+					resources_used: [
+							"355e9f80-6f2a-470c-a72e-e13c7417fb9a"
+					],
 					generated_media: [],
 					report: {
 						recommendation: {
@@ -1024,9 +1028,18 @@ describe("YotiSessionCompletionProcessor", () => {
 			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Yoti document_fields not populated");
 		});
 
-		it("Throws server error if session in Yoti contains multiple document_field entries", async () => {
+		it("Throws server error if multiple resources used in ID_DOCUMENT_AUTHENTICITY check", async () => {
 			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
-			completedYotiSessionClone.resources.id_documents = [completedYotiSession.resources.id_documents[0], completedYotiSession.resources.id_documents[0]];
+			completedYotiSessionClone.resources.id_documents = [
+				...completedYotiSessionClone.resources.id_documents,
+				{ ...completedYotiSessionClone.resources.id_documents[0], id: "877e0l80-9d2a-850c-a72e-e13q7417fb9a" },
+			];
+
+			const idDocumentAuthenticityCheck = completedYotiSessionClone.checks.find(
+  				(c: { type: string }) => c.type === "ID_DOCUMENT_AUTHENTICITY"
+			);
+
+			idDocumentAuthenticityCheck.resources_used = ["355e9f80-6f2a-470c-a72e-e13c7417fb9a", "3c3ea0ac-2902-4c7c-a0ba-cf5daef5cc38"];
 		
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
 			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
@@ -1034,25 +1047,191 @@ describe("YotiSessionCompletionProcessor", () => {
 	
 			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
-				message: "Multiple document_fields in response",
+				message: "Multiple IDs used in completed Yoti Session",
 			}));
-			expect(logger.error).toHaveBeenCalledWith({ message: "Multiple document_fields found in completed Yoti Session" }, {
+			expect(logger.error).toHaveBeenCalledWith({ message: "Multiple IDs used in completed Yoti Session" }, {
 				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
 			});
-			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Multiple document_fields in response", {
+			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Multiple IDs used in completed Yoti Session", {
 				messageCode: MessageCodes.ERROR_GENERATING_VC,
 				govUkSignInJourneyId: "sdfssg",
-				yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-				numberOfDocumentFields: 2,
+				yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91"
 			});
 			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 				sub: "testsub",
 				state: "Y@atr",
 				error: "access_denied",
-    			error_description: "VC generation failed : Multiple document_fields in response",
+    			error_description: "VC generation failed : Multiple IDs used in completed Yoti Session",
 			});
 			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
-			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Multiple document_fields in response");
+			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Multiple IDs used in completed Yoti Session");
+		});
+
+		it("Returns successful response with 200 OK when one document id out of multiple in id_document array matches resource used in ID_DOCUMENT_AUTHENTICITY check", async () => {
+			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
+			completedYotiSessionClone.resources.id_documents = [
+				...completedYotiSessionClone.resources.id_documents,
+				{ ...completedYotiSessionClone.resources.id_documents[0], id: "877e0l80-9d2a-850c-a72e-e13q7417fb9a" },
+			];
+
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSession);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+			// @ts-expect-error linting to be updated
+			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
+
+			const out: APIGatewayProxyResult = await mockCompletedSessionProcessor.processRequest(VALID_REQUEST);
+
+			expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(2);
+			const coreFields = TXMA_CORE_FIELDS;
+			coreFields.timestamp = 1585695600;
+			coreFields.event_timestamp_ms = 1585695600000;
+			expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(coreFields);
+			const vcIssued =  TXMA_VC_ISSUED;
+			vcIssued.event_name = "F2F_CRI_VC_ISSUED";
+			vcIssued.timestamp = 1585695600;
+			vcIssued.event_timestamp_ms = 1585695600000;
+			expect(mockF2fService.sendToTXMA).toHaveBeenNthCalledWith(2, vcIssued);
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledTimes(1);
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				"https://vocab.account.gov.uk/v1/credentialJWT": [JSON.stringify({
+					"sub":"testsub",
+					"nbf":absoluteTimeNow(),
+					"iss":"https://XXX-c.env.account.gov.uk",
+					"iat":absoluteTimeNow(),
+					"jti":Constants.URN_UUID_PREFIX + "sdfsdf",
+					"vc":{
+						"@context":[
+						Constants.W3_BASE_CONTEXT,
+						Constants.DI_CONTEXT,
+						],
+						"type": [Constants.VERIFIABLE_CREDENTIAL, Constants.IDENTITY_CHECK_CREDENTIAL],
+						"credentialSubject":{
+							"name":[
+									{
+									"nameParts":[
+												{
+											"value":"ANGELA",
+											"type":"GivenName",
+												},
+												{
+											"value":"ZOE",
+											"type":"GivenName",
+												},
+												{
+											"value":"UK SPECIMEN",
+											"type":"FamilyName",
+												},
+									],
+									},
+							],
+							"birthDate":[
+									{
+									"value":"1988-12-04",
+									},
+							],
+							"passport":[
+									{
+									"documentNumber":"533401372",
+									"expiryDate":"2025-09-28",
+									"icaoIssuerCode":"GBR",
+									},
+							],
+						},
+						"evidence":[
+							{
+									"type":"IdentityCheck",
+									"txn":"b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+									"strengthScore":3,
+									"validityScore":2,
+									"verificationScore":3,
+									"checkDetails":[
+									{
+												"checkMethod":"vri",
+												"identityCheckPolicy":"published",
+									},
+									{
+												"checkMethod":"pvr",
+												"photoVerificationProcessLevel":3,
+									},
+									],
+							},
+						],
+					},
+				})],
+			});
+			expect(out.statusCode).toBe(HttpCodesEnum.OK);
+			expect(out.body).toBe("OK");
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(3, "SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
+		});
+
+		it("Throws server error if no document IDs match the resource used in ID_DOCUMENT_AUTHENTICITY check", async () => {
+			const completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
+			completedYotiSessionClone.resources.id_documents = [
+				...completedYotiSessionClone.resources.id_documents,
+				{ ...completedYotiSessionClone.resources.id_documents[0], id: "877e0l80-9d2a-850c-a72e-e13q7417fb9a" },
+			];
+			const idDocumentAuthenticityCheck = completedYotiSessionClone.checks.find(
+  				(c: { type: string }) => c.type === "ID_DOCUMENT_AUTHENTICITY"
+			);
+			idDocumentAuthenticityCheck.resources_used = [
+				...["566e9f45-9b5a-950p-b76e-e13c7417fb9a"],
+			];
+		
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+	
+			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "Unsuccessful attempt to match document IDs",
+			}));
+			expect(logger.error).toHaveBeenCalledWith({ message: "Unsuccessful attempt to match document IDs" }, {
+				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
+			});
+			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : Unsuccessful attempt to match document IDs", {
+				messageCode: MessageCodes.ERROR_GENERATING_VC,
+				govUkSignInJourneyId: "sdfssg",
+				yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91"
+			});
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				error: "access_denied",
+    			error_description: "VC generation failed : Unsuccessful attempt to match document IDs",
+			});
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
+			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Unsuccessful attempt to match document IDs");
+		});
+
+		it("Throws server error if Yoti response contains no id_documents", async () => {
+			let completedYotiSessionClone = JSON.parse(JSON.stringify(completedYotiSession));
+			completedYotiSessionClone.resources.id_documents = []
+			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(completedYotiSessionClone);
+			mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
+			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
+	
+			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
+				statusCode: HttpCodesEnum.SERVER_ERROR,
+				message: "No documents found in Yoti response",
+			}));
+			expect(logger.error).toHaveBeenNthCalledWith(2, "VC generation failed : No documents found in Yoti response", {
+				messageCode: MessageCodes.ERROR_GENERATING_VC,
+				govUkSignInJourneyId: "sdfssg",
+            	yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
+			});
+			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
+				sub: "testsub",
+				state: "Y@atr",
+				error: "access_denied",
+    			error_description: "VC generation failed : No documents found in Yoti response",
+			});
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
+			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "No documents found in Yoti response");
 		});
 
 		it("Throws server error if session in Yoti does not contain media ID", async () => {
@@ -1070,7 +1249,6 @@ describe("YotiSessionCompletionProcessor", () => {
 				messageCode: MessageCodes.ERROR_GENERATING_VC,
 				govUkSignInJourneyId: "sdfssg",
             	yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-				numberOfDocumentFields: 1,
 			});
 			expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 				sub: "testsub",
@@ -1172,7 +1350,6 @@ describe("YotiSessionCompletionProcessor", () => {
 			messageCode: MessageCodes.ERROR_GENERATING_VC,
 			govUkSignInJourneyId: "sdfssg",
             yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-			numberOfDocumentFields: 1,
 		});
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "testsub",
@@ -1202,7 +1379,6 @@ describe("YotiSessionCompletionProcessor", () => {
 			messageCode: MessageCodes.ERROR_GENERATING_VC,
 			govUkSignInJourneyId: "sdfssg",
             yotiSessionID: "b988e9c8-47c6-430c-9ca3-8cdacd85ee91",
-			numberOfDocumentFields: 1,
 		});
 		expect(mockF2fService.sendToIPVCore).toHaveBeenCalledWith({
 			sub: "testsub",
