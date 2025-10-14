@@ -52,7 +52,7 @@ jobs:
           key: offline-mirror-oauth
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
   sam-validate:
     name: SAM Validate
     runs-on: ubuntu-latest
