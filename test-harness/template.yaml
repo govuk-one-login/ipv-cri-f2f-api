@@ -163,6 +163,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - DequeueHandler.ts
+        UseNpmCi: True
   
   ## DequeueIPVCoreHandler
   DequeueIPVCoreFunction:
@@ -215,6 +216,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - DequeueHandler.ts
+        UseNpmCi: True
 
   EventTestBucket:
     Type: "AWS::S3::Bucket"
