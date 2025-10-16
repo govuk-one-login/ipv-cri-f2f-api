@@ -119,7 +119,7 @@ export const MULTIPLE_DOCUMENT_FIELDS = {
 						]
 					},
 					{
-						"id": "355e9f80-6f2a-470c-a72e-e13c7417fb9a",
+						"id": "565f9f20-6f3b-626d-e75s-t16c8290fb9q",
 						"tasks": [
 								{
 										"type": "ID_DOCUMENT_TEXT_DATA_EXTRACTION",
