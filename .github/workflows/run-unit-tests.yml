@@ -43,7 +43,7 @@ jobs:
          key: offline-mirror-oauth
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run Unit tests
         run: npm run test:unit

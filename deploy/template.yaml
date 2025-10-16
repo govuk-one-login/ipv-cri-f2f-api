@@ -917,6 +917,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - SessionHandler.ts
+        UseNpmCi: true
 
   SessionFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1273,6 +1274,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - SessionConfigHandler.ts
+        UseNpmCi: true
 
   SessionConfigFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1523,6 +1525,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - AccessTokenHandler.ts
+        UseNpmCi: true
 
   TokenFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1769,6 +1772,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - AuthorizationCodeHandler.ts
+        UseNpmCi: true
 
   AuthorizationFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2063,6 +2067,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - DocumentSelectionHandler.ts
+        UseNpmCi: true
 
   DocumentSelectionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2307,6 +2312,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - AbortHandler.ts
+        UseNpmCi: true
 
   AbortLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2494,6 +2500,7 @@ Resources:
         Sourcemap: false
         EntryPoints:
           - PersonInfoHandler.ts
+        UseNpmCi: true
 
   PersonInfoFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2912,6 +2919,7 @@ Resources:
         Sourcemap: false
         EntryPoints:
           - PersonInfoKeyHandler.ts
+        UseNpmCi: true
 
   PersonInfoKeyFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3140,6 +3148,7 @@ Resources:
         Sourcemap: false
         EntryPoints:
           - AddressLocationsHandler.ts
+        UseNpmCi: true
 
   AddressLocationsFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3458,6 +3467,7 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - JwksHandler.ts
+        UseNpmCi: true
 
   JsonWebKeysLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3654,6 +3664,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - GovNotifyHandler.ts
+        UseNpmCi: true
 
   GovNotifyFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3855,6 +3866,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - UserInfoHandler.ts
+        UseNpmCi: true
 
   UserInfoFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4113,6 +4125,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - ReminderEmailHandler.ts
+        UseNpmCi: true
 
   ReminderEmailFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4302,6 +4315,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - ExpiredSessionsHandler.ts
+        UseNpmCi: true
 
   ExpiredSessionsFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4543,6 +4557,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - TriggerYotiCallbackStateMachineHandler.ts
+        UseNpmCi: true
 
   TriggerYotiCallbackStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4805,6 +4820,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - YotiSessionCompletionHandler.ts
+        UseNpmCi: true
 
   YotiCallbackFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4916,6 +4932,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - ThankYouEmailHandler.ts
+        UseNpmCi: true
 
   ThankYouEmailFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -5121,6 +5138,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - GenerateYotiLetterHandler.ts
+        UseNpmCi: true
 
   GenerateYotiLetterFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -5299,6 +5317,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - GeneratePrintedLetterHandler.ts
+        UseNpmCi: true
 
   GeneratePrintedLetterFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -5504,6 +5523,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - SendToGovNotifyHandler.ts
+        UseNpmCi: true
 
   SendToGovNotifyFunctionLogGroup:
     Type: AWS::Logs::LogGroup

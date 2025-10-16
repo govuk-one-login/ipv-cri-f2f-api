@@ -53,7 +53,7 @@ jobs:
           key: offline-mirror-oauth
 
       - name: Install dependencies
-        run: cd src && npm install
+        run: cd src && npm ci
 
       - name: Run Infra checks
         run: cd src && npm run test:infra

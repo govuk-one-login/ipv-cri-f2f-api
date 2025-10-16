@@ -52,7 +52,7 @@ jobs:
           key: offline-mirror-oauth
 
       - name: Install dependencies
-        run: cd src && npm install
+        run: cd src && npm ci
 
       - name: Run lint
         run: cd src && npm run lint
