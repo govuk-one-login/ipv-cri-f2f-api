@@ -49,7 +49,7 @@ describe("/callback endpoint", () => {
 		{ yotiMockId: "0124", documentType: "UkPassport", docSelectionData: dataPassport },
 		{ yotiMockId: "0125", documentType: "UkPassport", docSelectionData: dataPassport },
 		{ yotiMockId: "0133", documentType: "UkPassport", docSelectionData: dataPassport },
-		{ yotiMockId: "0135", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0134", documentType: "UkPassport", docSelectionData: dataPassport },
 		{ yotiMockId: "0200", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
 		{ yotiMockId: "0201", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
 		{ yotiMockId: "0202", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
