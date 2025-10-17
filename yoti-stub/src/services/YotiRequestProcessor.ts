@@ -865,14 +865,14 @@ export class YotiRequestProcessor {
                         DOCUMENT_FIELDS_SECOND_0133.resources.id_documents[1].document_fields.media.id = replaceLastUuidChars(DOCUMENT_FIELDS_SECOND_0133.resources.id_documents[1].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
                         return new Response(HttpCodesEnum.OK, JSON.stringify(DOCUMENT_FIELDS_SECOND_0133));
 										
-                    case '0135': // UK Passport Success - Multiple objects in id_documents array with different ids
+                    case '0134': // UK Passport Success - Multiple objects in id_documents array with different ids
                         logger.debug(JSON.stringify(yotiSessionRequest));
-                        const MULTIPLE_DOCUMENT_FIELDS_0135 = JSON.parse(JSON.stringify(MULTIPLE_DOCUMENT_FIELDS));
+                        const MULTIPLE_DOCUMENT_FIELDS_0134 = JSON.parse(JSON.stringify(MULTIPLE_DOCUMENT_FIELDS));
                         
-                        MULTIPLE_DOCUMENT_FIELDS_0135.session_id = sessionId;
-                        MULTIPLE_DOCUMENT_FIELDS_0135.resources.id_documents[0].document_fields.media.id = sessionId;
-                        MULTIPLE_DOCUMENT_FIELDS_0135.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(MULTIPLE_DOCUMENT_FIELDS_0135.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
-                        return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_0135));
+                        MULTIPLE_DOCUMENT_FIELDS_0134.session_id = sessionId;
+                        MULTIPLE_DOCUMENT_FIELDS_0134.resources.id_documents[0].document_fields.media.id = sessionId;
+                        MULTIPLE_DOCUMENT_FIELDS_0134.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(MULTIPLE_DOCUMENT_FIELDS_0134.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_0134));
 
                     case '0150': // UK Passport Success - Only FullName in DocumentFields
                         logger.debug(JSON.stringify(yotiSessionRequest));
