@@ -44,13 +44,11 @@ Mappings:
       IPVStubID: "5C584572"
       IPVSTUBURL: "ipvstub.review-o.dev.account.gov.uk"
       OAUTHFRONTBASEURI: "https://f2f-cri-front.review-o.dev.account.gov.uk"
-      OIDCBACKBASEURI: "https://api-f2f-cri-api.review-o.dev.account.gov.uk"
       AUD: "https://review-o.dev.account.gov.uk"
     build:
       IPVStubID: "BD7B2A5D"
       IPVSTUBURL: "ipvstub.review-o.build.account.gov.uk"
       OAUTHFRONTBASEURI:  "https://www.review-o.build.account.gov.uk"
-      OIDCBACKBASEURI: "https://api.review-o.build.account.gov.uk"
       AUD: "https://review-o.build.account.gov.uk"
     staging:
       IPVStubID: "9CDA6F61"
@@ -355,7 +353,10 @@ Resources:
             - IPVSTUBURL:
                 !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
           OIDC_FRONT_BASE_URI: !FindInMap [Configuration, !Ref Environment, OAUTHFRONTBASEURI]
-          OIDC_API_BASE_URI: !FindInMap [Configuration, !Ref Environment, OIDCBACKBASEURI]
+          OIDC_API_BASE_URI: !If
+            - CreateDevResources
+            - !Sub "https://api-${BackendStack}.review-o.dev.account.gov.uk"
+            - "https://api.review-o.build.account.gov.uk"
       Policies:
         - Statement:
             - Sid: KMSSignPolicy
@@ -605,20 +606,6 @@ Resources:
           Value: Test Encryption Key
         - Key: Environment
           Value: !Sub ${Environment}
-
-  # SSMParameter for .env variable
-  ProviderBaseUri:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Description: The Base URI from backend stack to test
-      Name: !Sub "/${Environment}/${AWS::StackName}/API/PROVIDER_BASE_URI"
-      Type: String
-      Value: !Sub
-        - "$https://${ImportProviderStack}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
-        - ImportProviderStack:
-            Fn::ImportValue: !Sub "${BackendStack}-F2FApiGatewayId"
-      Tags:
-        APP: !Sub f2f-${AWS::StackName}
 
   IPVStubId:
     Type: AWS::SSM::Parameter

@@ -46,6 +46,12 @@ Conditions:
           - !Ref PermissionsBoundary
           - "none"
 
+  EnableBackup:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref Environment
+          - "dev"
+
 Globals:
   Function:
     CodeSigningConfigArn: !If
@@ -150,6 +156,11 @@ Resources:
         KMSMasterKeyId: !Ref SessionTableKey
         SSEEnabled: true
         SSEType: KMS
+      Tags: !If
+        - EnableBackup
+        - - Key: BackupFrequency
+            Value: Daily
+        - []
 
   SessionTableKey:
     Type: AWS::KMS::Key
@@ -208,6 +219,11 @@ Resources:
         KMSMasterKeyId: !Ref PersonIdentityTableKey
         SSEEnabled: true
         SSEType: KMS
+      Tags: !If
+        - EnableBackup
+        - - Key: BackupFrequency
+            Value: Daily
+        - []
 
   PersonIdentityTableKey:
     Type: AWS::KMS::Key

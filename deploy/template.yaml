@@ -722,12 +722,6 @@ Resources:
 
   ### End of API Gateway definition.
 
-  WAFv2ACLAssociation:
-    Type: AWS::WAFv2::WebACLAssociation
-    Properties:
-      ResourceArn: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${F2FRestApi}/stages/${F2FRestApi.Stage}"
-      WebACLArn: !Sub "{{resolve:ssm:/${Environment}/Platform/Security/Block/WafArn}}"
-
   ### API Gateway Custom Domain definition
 
   F2FApiCustomDomainName:
@@ -8542,8 +8536,10 @@ Outputs:
   F2FIPVStubExecuteURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F IPV Stub"
-    Value:
-      Fn::ImportValue: !Sub '${IPVStubStackName}-IPVStubExecuteUrl'
+    Value: !If
+      - CreateDevResources
+      - !Sub "https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/"
+      - "https://ipvstub.review-o.build.account.gov.uk/"
   F2FYotiStubURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Yoti Stub"
