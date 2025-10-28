@@ -52,8 +52,8 @@ describe("Yoti Stub", () => {
 		{ responseCode: 400, sessionId: "4400" },
 		{ responseCode: 401, sessionId: "4401" },
 		{ responseCode: 404, sessionId: "4404" },
-		{ responseCode: 500, sessionId: "4500" },
 		{ responseCode: 409, sessionId: "4409" },
+		{ responseCode: 500, sessionId: "4500" },
 		{ responseCode: 503, sessionId: "4503" },
 	];
 	it.each(getInstructionsParams)("Yoti - expect '%i' response on GET/sessions/instructions/pdf '/sessions/%s/instructions/pdf'", async ({ responseCode, sessionId } : { responseCode: number; sessionId: string }) => {
@@ -66,7 +66,6 @@ describe("Yoti Stub retry responses", () => {
 	const retryPostSessionsParams = [
 		{ responseCode: 503, userTrackerId: "1601" },
 		{ responseCode: 503, userTrackerId: "1601" },
-		{ responseCode: 503, userTrackerId: "1601" },
 		{ responseCode: 201, userTrackerId: "1601" },
 	];
 	it.each(retryPostSessionsParams)("Expect retry behaviour on POST /sessions with appropriate response for iteration", async ({ responseCode, userTrackerId } : { responseCode: number; userTrackerId: string }) => {
@@ -75,7 +74,6 @@ describe("Yoti Stub retry responses", () => {
 	});
 
 	const retryGetConfigurationParams = [
-		{ responseCode: 503, sessionId: "1601" },
 		{ responseCode: 503, sessionId: "1601" },
 		{ responseCode: 503, sessionId: "1601" },
 		{ responseCode: 200, sessionId: "1601" },
@@ -88,7 +86,6 @@ describe("Yoti Stub retry responses", () => {
 	const retryPutInstructionsParams = [
 		{ responseCode: 503, sessionId: "1601" },
 		{ responseCode: 503, sessionId: "1601" },
-		{ responseCode: 503, sessionId: "1601" },
 		{ responseCode: 200, sessionId: "1601" },
 	];
 	it.each(retryPutInstructionsParams)("Expect retry behaviour on PUT /sessions/{id}/instructions with appropriate response for iteration", async ({ responseCode, sessionId } : { responseCode: number; sessionId: string }) => {
@@ -98,7 +95,6 @@ describe("Yoti Stub retry responses", () => {
 	});
 
 	const retryGetInstructionsParams = [
-		{ responseCode: 503, sessionId: "1601" },
 		{ responseCode: 503, sessionId: "1601" },
 		{ responseCode: 503, sessionId: "1601" },
 		{ responseCode: 200, sessionId: "1601" },

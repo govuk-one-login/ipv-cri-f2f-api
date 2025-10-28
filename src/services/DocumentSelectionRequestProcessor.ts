@@ -319,7 +319,6 @@ export class DocumentSelectionRequestProcessor {
 		selectedDocument: string,
 		countryCode: string,
 	): Promise<string> {
-
 		this.logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
 
 		const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, yotiBaseUrl, this.environmentVariables.yotiCallbackUrl());
