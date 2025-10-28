@@ -69,7 +69,7 @@ describe("Yoti Stub retry responses", () => {
 		{ responseCode: 503, userTrackerId: "1601" },
 		{ responseCode: 201, userTrackerId: "1601" },
 	];
-	it.each(retryPostSessionsParams)("Yoti - expect retry behaviour on POST/sessions with appropriate response for iteration", async ({ responseCode, userTrackerId } : { responseCode: number; userTrackerId: string }) => {
+	it.each(retryPostSessionsParams)("Expect retry behaviour on POST /sessions with appropriate response for iteration", async ({ responseCode, userTrackerId } : { responseCode: number; userTrackerId: string }) => {
 		const response = await postYotiSession(userTrackerId, yotiRequestData);
 		expect(response.status).toBe(responseCode);
 	});
@@ -80,7 +80,7 @@ describe("Yoti Stub retry responses", () => {
 		{ responseCode: 503, sessionId: "1601" },
 		{ responseCode: 200, sessionId: "1601" },
 	];
-	it.each(retryGetConfigurationParams)("Yoti - expect '%i' response on GET/sessions/configuration '/sessions/%s/configuration'", async ({ responseCode, sessionId } : { responseCode: number; sessionId: string }) => {
+	it.each(retryGetConfigurationParams)("Expect retry behaviour on GET /sessions/{id}/configuration with appropriate response for iteration", async ({ responseCode, sessionId } : { responseCode: number; sessionId: string }) => {
 		const response = await getYotiSessionsConfiguration(sessionId);
 		expect(response.status).toBe(responseCode);
 	});
@@ -91,7 +91,7 @@ describe("Yoti Stub retry responses", () => {
 		{ responseCode: 503, sessionId: "1601" },
 		{ responseCode: 200, sessionId: "1601" },
 	];
-	it.each(retryPutInstructionsParams)("Yoti - expect '%i' response on PUT/sessions/{id}/instructions '/sessions/%s/instructions'", async ({ responseCode, sessionId } : { responseCode: number; sessionId: string }) => {
+	it.each(retryPutInstructionsParams)("Expect retry behaviour on PUT /sessions/{id}/instructions with appropriate response for iteration", async ({ responseCode, sessionId } : { responseCode: number; sessionId: string }) => {
 		const fadcodePayload = { "branch": { "fad_code":"1234567" } };
 		const response = await putYotiSessionsInstructions(sessionId, fadcodePayload);
 		expect(response.status).toBe(responseCode);
@@ -103,7 +103,7 @@ describe("Yoti Stub retry responses", () => {
 		{ responseCode: 503, sessionId: "1601" },
 		{ responseCode: 200, sessionId: "1601" },
 	];
-	it.each(retryGetInstructionsParams)("Yoti - expect '%i' response on GET/sessions/instructions/pdf '/sessions/%s/instructions/pdf'", async ({ responseCode, sessionId } : { responseCode: number; sessionId: string }) => {
+	it.each(retryGetInstructionsParams)("Expect retry behaviour on /sessions/{sessionId}/instructions/pdf with appropriate response for iteration", async ({ responseCode, sessionId } : { responseCode: number; sessionId: string }) => {
 		const response = await getYotiSessionsInstructions(sessionId);
 		expect(response.status).toBe(responseCode);
 	});
