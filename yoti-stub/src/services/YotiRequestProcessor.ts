@@ -1168,7 +1168,7 @@ export class YotiRequestProcessor {
         const replaceLastUuidChars = (str: string, lastUuidChars: string): string => {
             return str.replace(/\d{4}$/, lastUuidChars);
         };
-        
+
         // without this bit, the API won't run scenarios for the different document types
         if ((lastUuidChars.substring(0, 2) === '00') || (lastUuidChars.substring(0, 2) === '01') || (lastUuidChars.substring(0, 2) === '02') ||
             (lastUuidChars.substring(0, 2) === '03') || (lastUuidChars.substring(0, 2) === '04') || (lastUuidChars.substring(0, 2) === '05')) {
