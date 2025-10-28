@@ -872,21 +872,21 @@ export class YotiRequestProcessor {
 
                     case '0133': // UK Passport Success - document_fields object 2nd in list of resources
                         logger.debug(JSON.stringify(yotiSessionRequest));
-                        const DOCUMENT_FIELDS_SECOND_1033 = JSON.parse(JSON.stringify(DOCUMENT_FIELDS_SECOND));
+                        const DOCUMENT_FIELDS_SECOND_0133 = JSON.parse(JSON.stringify(DOCUMENT_FIELDS_SECOND));
 
-                        DOCUMENT_FIELDS_SECOND_1033.session_id = sessionId;
-                        DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id = sessionId;
-                        DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id = replaceLastUuidChars(DOCUMENT_FIELDS_SECOND_1033.resources.id_documents[1].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
-                        return new Response(HttpCodesEnum.OK, JSON.stringify(DOCUMENT_FIELDS_SECOND_1033));
-
-                    case '0134': // UK Passport Success - Multiple document_fields objects in list of resources
+                        DOCUMENT_FIELDS_SECOND_0133.session_id = sessionId;
+                        DOCUMENT_FIELDS_SECOND_0133.resources.id_documents[1].document_fields.media.id = sessionId;
+                        DOCUMENT_FIELDS_SECOND_0133.resources.id_documents[1].document_fields.media.id = replaceLastUuidChars(DOCUMENT_FIELDS_SECOND_0133.resources.id_documents[1].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(DOCUMENT_FIELDS_SECOND_0133));
+										
+                    case '0134': // UK Passport Success - Multiple objects in id_documents array with different ids
                         logger.debug(JSON.stringify(yotiSessionRequest));
-                        const MULTIPLE_DOCUMENT_FIELDS_1034 = JSON.parse(JSON.stringify(MULTIPLE_DOCUMENT_FIELDS));
-
-                        MULTIPLE_DOCUMENT_FIELDS_1034.session_id = sessionId;
-                        MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id = sessionId;
-                        MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(MULTIPLE_DOCUMENT_FIELDS_1034.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
-                        return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_1034));
+                        const MULTIPLE_DOCUMENT_FIELDS_0134 = JSON.parse(JSON.stringify(MULTIPLE_DOCUMENT_FIELDS));
+                        
+                        MULTIPLE_DOCUMENT_FIELDS_0134.session_id = sessionId;
+                        MULTIPLE_DOCUMENT_FIELDS_0134.resources.id_documents[0].document_fields.media.id = sessionId;
+                        MULTIPLE_DOCUMENT_FIELDS_0134.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(MULTIPLE_DOCUMENT_FIELDS_0134.resources.id_documents[0].document_fields.media.id, UK_PASSPORT_MEDIA_ID);
+                        return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_0134));
 
                     case '0150': // UK Passport Success - Only FullName in DocumentFields
                         logger.debug(JSON.stringify(yotiSessionRequest));
