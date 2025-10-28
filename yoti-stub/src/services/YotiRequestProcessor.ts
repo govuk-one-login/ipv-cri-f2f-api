@@ -250,8 +250,8 @@ export class YotiRequestProcessor {
                 this.logger.info("I am awake, returning now");
                 return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
             case '1601': // Retries - 2 fails then success
-                this.createSessionRequestCount++;
                 if (this.createSessionRequestCount < 3) {
+                    this.createSessionRequestCount++;
                     return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(POST_SESSIONS_503), ERROR_RESPONSE_HEADERS)
                 } else {
                     this.createSessionRequestCount = 0;
@@ -1180,8 +1180,8 @@ export class YotiRequestProcessor {
         
         // Retries - 2 fails then success
         if (lastUuidChars === '1601') {
-            this.createSessionRequestCount++;
             if (this.createSessionRequestCount < 3) {
+                this.createSessionRequestCount++;
                 return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(GET_SESSIONS_503), ERROR_RESPONSE_HEADERS);
             } else {
                 this.createSessionRequestCount = 0;
@@ -1262,8 +1262,8 @@ export class YotiRequestProcessor {
                 await sleep(30000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_GET_SESSION_CONFIG_RESPONSE));
             case '1601': // Retries - 2 fails then success
-            this.createSessionRequestCount++;
             if (this.createSessionRequestCount < 3) {
+                this.createSessionRequestCount++;
                 return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(GET_SESSIONS_CONFIG_503), ERROR_RESPONSE_HEADERS);
             } else {
                 this.createSessionRequestCount = 0;
@@ -1325,8 +1325,8 @@ export class YotiRequestProcessor {
                 await new Promise(resolve => setTimeout(resolve, 30000));
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
             case '1601': // Retries - 2 fails then success
-                this.createSessionRequestCount++;
                 if (this.createSessionRequestCount < 3) {
+                    this.createSessionRequestCount++;
                     return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(PUT_INSTRUCTIONS_500), ERROR_RESPONSE_HEADERS);
                 } else {
                     this.createSessionRequestCount = 0;
@@ -1398,8 +1398,8 @@ export class YotiRequestProcessor {
                 await sleep(30000);
                 return successResp;
             case '1601': // Retries - 2 fails then success
-                this.createSessionRequestCount++;
                 if (this.createSessionRequestCount < 3) {
+                    this.createSessionRequestCount++;
                     return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(GET_INSTRUCTIONS_PDF_503), ERROR_RESPONSE_HEADERS);
                 } else {
                     this.createSessionRequestCount = 0;
@@ -1477,8 +1477,8 @@ export class YotiRequestProcessor {
                 return new Response(HttpCodesEnum.OK, JSON.stringify(GBR_PASSPORT));
             case '1601': // Retries - 2 fails then success
                 logger.info({message: "last 4 ID chars", lastUuidChars});
-                this.createSessionRequestCount++;
                 if (this.createSessionRequestCount < 3) {
+                    this.createSessionRequestCount++;
                     return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(GET_MEDIA_CONTENT_400), ERROR_RESPONSE_HEADERS);
                 } else {
                     this.createSessionRequestCount = 0;
