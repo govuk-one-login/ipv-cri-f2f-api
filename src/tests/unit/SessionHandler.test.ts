@@ -18,7 +18,7 @@ describe("SessionHandler", () => {
 
 		await lambdaHandler(VALID_SESSION, CONTEXT);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockedSessionRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
 });

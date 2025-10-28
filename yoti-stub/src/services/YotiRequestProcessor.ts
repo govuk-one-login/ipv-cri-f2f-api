@@ -1219,17 +1219,7 @@ export class YotiRequestProcessor {
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));
             case '5503':
                 this.logger.info({message: "Responding with 503 error response", lastUuidChars});
-                return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(GET_SESSIONS_503), ERROR_RESPONSE_HEADERS);
-            case '1060':
-                this.logger.info({message: "Yoti document_fields not populated", lastUuidChars});
-                return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(YOTI_DOCUMENT_FIELDS_NOT_POPULATED_500), ERROR_RESPONSE_HEADERS);
-            case '1061':
-                this.logger.info({message: "Multiple document_fields in response", lastUuidChars});
-                return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_IN_RESPONSE_500), ERROR_RESPONSE_HEADERS);
-            case '1062':
-                this.logger.info({message: "Yoti document_fields media ID not found", lastUuidChars});
-                return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(YOTI_DOCUMENT_FIELDS_MEDIA_ID_NOT_FOUND_500), ERROR_RESPONSE_HEADERS);
-                    
+                return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(GET_SESSIONS_503), ERROR_RESPONSE_HEADERS);        
             default:
                 return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`, ERROR_RESPONSE_HEADERS);
         }

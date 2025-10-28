@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
 import { ExpiredSessionsProcessor } from "../../../services/ExpiredSessionsProcessor";
 import { F2fService } from "../../../services/F2fService";
 import { Logger } from "@aws-lambda-powertools/logger";

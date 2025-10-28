@@ -33,14 +33,14 @@ jobs:
         working-directory: infra-l2-outbound-proxy
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: true
 
-      - name: Setup nodeJS v20
-        uses: actions/setup-node@v3
+      - name: Setup nodeJS v22
+        uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Set offline mirror path
         id: offline-mirror-path
@@ -67,7 +67,7 @@ jobs:
         working-directory: infra-l2-outbound-proxy
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: true
 

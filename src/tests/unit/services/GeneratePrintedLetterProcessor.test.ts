@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
 import { captor, mock } from "jest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";

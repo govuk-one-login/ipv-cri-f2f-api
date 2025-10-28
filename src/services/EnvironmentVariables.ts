@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+ 
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
@@ -168,7 +168,7 @@ export class EnvironmentVariables {
 					!this.ENCRYPTION_KEY_IDS || this.ENCRYPTION_KEY_IDS.trim().length === 0 ||
 					!this.AUTH_SESSION_TTL_IN_SECS ||
 					!this.ISSUER || this.ISSUER.trim().length === 0 ||
-					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0) {
+					!this.TXMA_QUEUE_URL || this.TXMA_QUEUE_URL.trim().length === 0 ) {
 					logger.error("Environment variable SESSION_TABLE or CLIENT_CONFIG or ENCRYPTION_KEY_IDS or AUTH_SESSION_TTL_SECS is not configured");
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Session Service incorrectly configured");
 				}

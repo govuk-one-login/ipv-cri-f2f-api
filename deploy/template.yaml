@@ -42,10 +42,6 @@ Parameters:
     Description: "Set to the string value `true` to deploy alarms in a DEV environment"
     Type: String
     Default: false
-  SupportManualURL:
-    Description: "Link to the F2F support manual"
-    Type: String
-    Default: 'https://govukverify.atlassian.net/wiki/spaces/Kiwi/pages/4371940205/F2F+CRI+Support+Documentation'
   IPVStubStackName:
     Type: String
     Default: "f2f-ipv-stub"
@@ -110,6 +106,10 @@ Mappings:
     production:
       CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
 
+  StaticVariables:
+    urls:
+      F2FSupportManual: "https://govukverify.atlassian.net/wiki/spaces/Kiwi/pages/4372169068/6.4+F2F+Support+Documentation"
+
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
       YOTIBASEURL: "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk"
@@ -146,6 +146,7 @@ Mappings:
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
+      KEYROTATIONENABLED: true
     build:
       YOTIBASEURL: "https://yotistub.review-o.build.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
@@ -181,6 +182,7 @@ Mappings:
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
+      KEYROTATIONENABLED: true
     staging:
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
       ISSUER: 'https://review-o.staging.account.gov.uk'
@@ -205,6 +207,7 @@ Mappings:
         ]'
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
+      KEYROTATIONENABLED: true
     integration:
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
       ISSUER: 'https://review-o.integration.account.gov.uk'
@@ -229,6 +232,7 @@ Mappings:
         ]'
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
+      KEYROTATIONENABLED: true
     production:
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
       ISSUER: 'https://review-o.account.gov.uk'
@@ -253,6 +257,7 @@ Mappings:
         ]'
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
+      KEYROTATIONENABLED: true
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
     dev:
@@ -322,6 +327,10 @@ Conditions:
     - !Not [ !Equals [ !Ref TrafficTestRoleArn, none ]]
 
   UseCanaryDeploymentAlarms: !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
+  IsDevOrBuildOrStaging: !Or
+    - !Equals [ !Ref Environment, dev ]
+    - !Equals [ !Ref Environment, build ]
+    - !Equals [ !Ref Environment, staging ]
 
 Globals:
   Function:
@@ -343,9 +352,7 @@ Globals:
       - !Ref CodeSigningConfigArn
       - !Ref AWS::NoValue
     Layers:
-      - !Sub
-        - '{{resolve:secretsmanager:${SecretArn}:SecretString:NODEJS_LAYER}}' #pragma: allowlist secret # or PYTHON_LAYER or JAVA_LAYER
-        - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+      - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_313_2_20250404-043044_with_collector_nodejs:1
     Timeout: 30 # seconds
     Tracing: Active
     MemorySize: 1024
@@ -407,7 +414,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-S3Bucket-changes"
-      AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to S3 Bucket. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "A CloudWatch Alarm that triggers when changes are made to S3 Bucket. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -442,7 +451,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IGW-changes"
-      AlarmDescription: !Sub "Triggers CloudWatch Alarm when changes are made to an Internet Gateway in a VPC. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Triggers CloudWatch Alarm when changes are made to an Internet Gateway in a VPC. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       MetricName: IGatewayActivityEvent
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
@@ -471,7 +482,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-vpc-route-changes"
-      AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to a VPC's Route Table. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "A CloudWatch Alarm that triggers when changes are made to a VPC's Route Table. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       MetricName: VpcRouteTableEvent
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
@@ -500,7 +513,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-vpc-changes"
-      AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to a VPC. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "A CloudWatch Alarm that triggers when changes are made to a VPC. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       MetricName: VpcEventChanges
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
@@ -530,7 +545,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-organisations-changes"
-      AlarmDescription: !Sub "A CloudWatch Alarm that triggers when changes are made to AWS Organisations. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "A CloudWatch Alarm that triggers when changes are made to AWS Organisations. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       MetricName: OrganisationsEventChange
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
@@ -679,8 +696,8 @@ Resources:
         Service: backend
         Name: F2FRestApi
         Source: alphagov/di-devplatform-demo-sam-app/sam-app/template.yaml
-        FMSRegionalPolicy: false
-        CustomPolicy: true
+        FMSRegionalPolicy: !If [ IsDevOrBuildOrStaging, "false", "none" ]
+        CustomPolicy: !If [ IsDevOrBuildOrStaging, "true", "none" ]
 
   F2FAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -704,12 +721,6 @@ Resources:
           Value: APIGatewayAccessLogGroup
 
   ### End of API Gateway definition.
-
-  WAFv2ACLAssociation:
-    Type: AWS::WAFv2::WebACLAssociation
-    Properties:
-      ResourceArn: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${F2FRestApi}/stages/${F2FRestApi.Stage}"
-      WebACLArn: !Sub "{{resolve:ssm:/${Environment}/Platform/Security/Block/WafArn}}"
 
   ### API Gateway Custom Domain definition
 
@@ -770,7 +781,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-F2FRestAPI-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -845,6 +858,8 @@ Resources:
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           ENCRYPTION_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
+          KEY_ROTATION_ENABLED:
+            !FindInMap [EnvironmentVariables, !Ref Environment, KEYROTATIONENABLED]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -940,7 +955,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SessionFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -963,7 +980,9 @@ Resources:
     Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SessionFunctionLambdaErrors"
-      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - Trigger an alarm when lambda errors occurs. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -994,7 +1013,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-SessionFunctionCanary5xxErrors"
-      AlarmDescription: !Sub SessionFunction Lambda returning 5xx response. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - SessionFunction Lambda returning 5xx response. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -1025,7 +1046,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of Session is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of Session is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-SessionFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1050,7 +1073,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${SessionFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${SessionFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-SessionFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -1085,7 +1110,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-VerifyAuthorizeRequestFailedVerifyingJwtLowThresholdAlarm"
-      AlarmDescription: !Sub "There has been an error verifying the JWT using the RP's public key. This is likely an issue with the RP. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been an error verifying the JWT using the RP's public key. This is likely an issue with the RP. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -1118,7 +1145,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-VerifyAuthorizeRequestFailedVerifyingJwtCriticalAlarm"
-      AlarmDescription: !Sub "There has been an error verifying the JWT using the RP's public key. This is likely an issue with the RP. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been an error verifying the JWT using the RP's public key. This is likely an issue with the RP. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
@@ -1151,7 +1180,7 @@ Resources:
     Condition: DeployAlarms
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
-      FilterPattern: '{ $.messageCode = "KEY_ALIASES_UNAVAILABLE" }'
+      FilterPattern: '{ $.messageCode = "FAILED_DECRYPTING_JWE" }'
       MetricTransformations:
         - MetricValue: "1"
           MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
@@ -1164,7 +1193,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-KeyAliasesUnavailableAlarm"
-      AlarmDescription: !Sub "KEY_ALIASES_UNAVAILABLE critical ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "FAILED_DECRYPTING_JWE critical ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
@@ -1280,7 +1311,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SessionConfigFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -1303,7 +1336,9 @@ Resources:
     Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SessionConfigFunctionLambdaErrors"
-      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when lambda errors occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -1334,7 +1369,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-SessionConfigFunctionCanary5xxErrors"
-      AlarmDescription:  !Sub SessionConfigFunction Lambda returning 5xx response. ${SupportManualURL}
+      AlarmDescription:  !Sub 
+        - SessionConfigFunction Lambda returning 5xx response. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -1366,7 +1403,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: [ ]
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of Session is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of Session is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-SessionConfigFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1391,7 +1430,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: [ ]
-      AlarmDescription: !Sub "Trigger if the ${SessionConfigFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${SessionConfigFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-SessionConfigFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -1516,7 +1557,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TokenFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -1539,7 +1582,9 @@ Resources:
     Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TokenFunctionLambdaErrors"
-      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - Trigger an alarm when lambda errors occurs. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -1570,7 +1615,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-TokenFunctionCanary5xxErrors"
-      AlarmDescription:  !Sub TokenFunction Lambda returning 5xx response. ${SupportManualURL}
+      AlarmDescription:  !Sub 
+        - TokenFunction Lambda returning 5xx response. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -1601,7 +1648,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of Token concurrency is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of Token concurrency is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-TokenFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1626,7 +1675,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${TokenFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${TokenFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-TokenFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -1757,7 +1808,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -1780,7 +1833,9 @@ Resources:
     Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunctionLambdaErrors"
-      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - Trigger an alarm when lambda errors occurs. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -1811,7 +1866,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunctionCanary5xxErrors"
-      AlarmDescription:  !Sub AuthorizationFunction Lambda returning 5xx response. ${SupportManualURL}
+      AlarmDescription:  !Sub 
+        - AuthorizationFunction Lambda returning 5xx response. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -1842,7 +1899,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of authorization concurrency is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of authorization concurrency is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1867,7 +1926,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${AuthorizationFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${AuthorizationFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -2038,7 +2099,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DocumentSelection-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -2061,7 +2124,9 @@ Resources:
     Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunctionLambdaErrors"
-      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - Trigger an alarm when lambda errors occurs. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -2092,7 +2157,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunctionCanary5xxErrors"
-      AlarmDescription: !Sub DocumentSelectionFunction Lambda returning 5xx response. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - DocumentSelectionFunction Lambda returning 5xx response. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -2123,7 +2190,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of Document selection concurrency is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of Document selection concurrency is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -2148,7 +2217,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${DocumentSelectionFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${DocumentSelectionFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -2265,7 +2336,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AbortFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -2288,7 +2361,9 @@ Resources:
     Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AbortFunctionLambdaErrors"
-      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - Trigger an alarm when lambda errors occurs. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -2319,7 +2394,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-AbortFunctionCanary5xxErrors"
-      AlarmDescription: !Sub AbortFunction Lambda returning 5xx response. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - AbortFunction Lambda returning 5xx response. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -2457,7 +2534,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PersonInfoFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -2480,7 +2559,9 @@ Resources:
     Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PersonInfoFunctionLambdaErrors"
-      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - Trigger an alarm when lambda errors occurs. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -2511,7 +2592,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-PersonInfoFunctionCanary5xxErrors"
-      AlarmDescription: !Sub PersonInfoFunction Lambda returning 5xx response. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - PersonInfoFunction Lambda returning 5xx response. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -2543,7 +2626,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of PersonInfo is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of PersonInfo is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-PersonInfoFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -2568,7 +2653,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${PersonInfoFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${PersonInfoFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-PersonInfoFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -2588,7 +2675,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PersonInfo5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the PersonInfo endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 5XX errors on the PersonInfo endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -2650,7 +2739,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PersonInfo5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the PersonInfo endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a significant proportion of 5XX errors on the PersonInfo endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
@@ -2712,7 +2803,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PersonInfo4XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the PersonInfo endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 4XX errors on the PersonInfo endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false   # alarm reviewed in production and decision made to disable
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -2851,7 +2944,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -2874,7 +2969,9 @@ Resources:
     Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunctionLambdaErrors"
-      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - Trigger an alarm when lambda errors occurs. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -2905,7 +3002,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunctionCanary5xxErrors"
-      AlarmDescription: !Sub PersonInfoKeyFunction Lambda returning 5xx response. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - PersonInfoKeyFunction Lambda returning 5xx response. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -2936,7 +3035,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of PersonInfoKey is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of PersonInfoKey is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -2961,7 +3062,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${PersonInfoKeyFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${PersonInfoKeyFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -3069,7 +3172,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -3092,7 +3197,9 @@ Resources:
     Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunctionLambdaErrors"
-      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - Trigger an alarm when lambda errors occurs. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -3123,7 +3230,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunctionCanary5xxErrors"
-      AlarmDescription: !Sub AddressLocationsFunction Lambda returning 5xx response. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - AddressLocationsFunction Lambda returning 5xx response. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -3154,7 +3263,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of AddressLocations is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of AddressLocations is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -3179,7 +3290,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${AddressLocationsFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${AddressLocationsFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -3372,7 +3485,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -3400,7 +3515,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of JsonWeb Keys concurrency is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of JsonWeb Keys concurrency is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -3425,7 +3542,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${JsonWebKeysFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${JsonWebKeysFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-JsonWebKeysFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -3584,7 +3703,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -3607,7 +3728,9 @@ Resources:
     Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GovNotifyFunctionLambdaErrors"
-      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - Trigger an alarm when lambda errors occurs. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -3638,7 +3761,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of GovNotify concurrency is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of GovNotify concurrency is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-GovNotifyFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -3773,7 +3898,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-UserInfoFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -3796,7 +3923,9 @@ Resources:
     Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-UserInfoFunctionLambdaErrors"
-      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - Trigger an alarm when lambda errors occurs. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -3827,7 +3956,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       AlarmName: !Sub "${AWS::StackName}-UserInfoFunctionCanary5xxErrors"
-      AlarmDescription: !Sub UserInfoFunction Lambda returning 5xx response. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - UserInfoFunction Lambda returning 5xx response. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -3859,7 +3990,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of UserInfro concurrency is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of UserInfro concurrency is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-UserInfoFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -3884,7 +4017,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${UserInfoFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${UserInfoFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-UserInfoFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -4020,7 +4155,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ReminderEmailFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -4048,7 +4185,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of ReminderEmail is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of ReminderEmail is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-ReminderEmailFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -4073,7 +4212,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${ReminderEmailFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${ReminderEmailFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-ReminderEmailFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -4220,7 +4361,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ExpiredSessionsFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub Trigger an alarm when Fatal Error occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - Trigger an alarm when Fatal Error occurs. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -4442,7 +4585,9 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackStateMachineFatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -4465,7 +4610,9 @@ Resources:
     Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackStateMachineLambdaErrors"
-      AlarmDescription: !Sub Trigger an alarm when lambda errors occurs. ${SupportManualURL}
+      AlarmDescription: !Sub 
+        - Trigger an alarm when lambda errors occurs. ${RunbookUrl}
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -4496,7 +4643,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of Yoticallback is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of Yoticallback is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -4521,7 +4670,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${TriggerYotiCallbackStateMachine} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${TriggerYotiCallbackStateMachine} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-TriggerYotiCallbackStateMachine-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -4809,7 +4960,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ThankYouEmail-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -4845,7 +4998,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-ThankYouEmail-YotiCallbackRetriesExceededErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when we are unable to fetch Yoti session after max retries. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when we are unable to fetch Yoti session after max retries. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -4873,7 +5028,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of ThankYouEmail concurrency is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of ThankYouEmail concurrency is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-ThankYouEmailFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -4898,7 +5055,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${ThankYouEmailFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${ThankYouEmailFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-ThankYouEmailFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -5008,7 +5167,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GenerateYotiLetter-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -5036,7 +5197,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of GenerateYotiLetter concurrency is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of GenerateYotiLetter concurrency is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-GenerateYotiLetterFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -5061,7 +5224,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${GenerateYotiLetterFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${GenerateYotiLetterFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-GenerateYotiLetterFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -5180,7 +5345,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GeneratePrintedLetter-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -5208,7 +5375,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of GeneratePrintedLetter concurrency is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of GeneratePrintedLetter concurrency is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-GeneratePrintedLetterFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -5233,7 +5402,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${GeneratePrintedLetterFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${GeneratePrintedLetterFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-GeneratePrintedLetterFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -5379,7 +5550,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SendToGovNotify-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -5407,7 +5580,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of SendToGovNotify concurrency is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of SendToGovNotify concurrency is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-SendToGovNotifyFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -5432,7 +5607,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${SendToGovNotifyFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${SendToGovNotifyFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-SendToGovNotifyFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -5568,7 +5745,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -5604,7 +5783,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-YotiCallbackRetriesExceededErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when we are unable to fetch Yoti session after max retries. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when we are unable to fetch Yoti session after max retries. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -5632,7 +5813,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if over 80% of Yoticallback concurrency is used. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if over 80% of Yoticallback concurrency is used. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -5657,7 +5840,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger if the ${YotiCallbackFunction} lambda throttles. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger if the ${YotiCallbackFunction} lambda throttles. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
@@ -5763,7 +5948,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-5XXErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the backend api-gateway. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 5XX errors on the backend api-gateway. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -5813,7 +6000,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-5XXErrorCriticalAlarm"
-      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the backend api-gateway. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a significant proportion of 5XX errors on the backend api-gateway. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
@@ -5863,7 +6052,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DocumentSelection5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the DocumentSelection endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 5XX errors on the DocumentSelection endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -5925,7 +6116,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DocumentSelection5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the DocumentSelection endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a significant proportion of 5XX errors on the DocumentSelection endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
@@ -5987,7 +6180,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-UserInfo5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the UserInfo endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 5XX errors on the UserInfo endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -6049,7 +6244,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-UserInfo5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the UserInfo endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a significant proportion of 5XX errors on the UserInfo endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
@@ -6113,7 +6310,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Token5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the Token endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 5XX errors on the Token endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -6175,7 +6374,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Token5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Token endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a significant proportion of 5XX errors on the Token endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
@@ -6239,7 +6440,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Authorization5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the Authorization endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 5XX errors on the Authorization endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -6301,7 +6504,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Authorization5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Authorization endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a significant proportion of 5XX errors on the Authorization endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
@@ -6365,7 +6570,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Session5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the Session endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 5XX errors on the Session endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -6427,7 +6634,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Session5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Session endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a significant proportion of 5XX errors on the Session endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
@@ -6491,7 +6700,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-JsonWebKeys5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the userInfo endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 5XX errors on the userInfo endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -6553,7 +6764,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-JsonWebKeys5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the userInfo endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a significant proportion of 5XX errors on the userInfo endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-pagerduty-alert-topic
@@ -6617,7 +6830,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallback5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the YotiCallback endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 5XX errors on the YotiCallback endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -6679,7 +6894,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallback5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the YotiCallback endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a significant proportion of 5XX errors on the YotiCallback endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-critical-alert
@@ -6741,7 +6958,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DocumentSelection4XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the DocumentSelection endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 4XX errors on the DocumentSelection endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -6803,7 +7022,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-UserInfo4XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the UserInfo endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 4XX errors on the UserInfo endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -6865,7 +7086,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Token4XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the Token endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 4XX errors on the Token endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -6928,9 +7151,11 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Authorization4XXApiGwErrorAlarm"
       AlarmDescription:
-        Fn::Sub: >-
-          >=50% of invocations to the Authorization endpoint have generated a 4XX error in
-          4 or more out of the last 10 minutes. ${SupportManualURL}
+        Fn::Sub:
+          - >-
+            >=50% of invocations to the Authorization endpoint have generated a 4XX error in
+            4 or more out of the last 10 minutes. ${RunbookUrl}
+          - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -6992,7 +7217,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Session4XXApiGwErrorAlarm"
-      AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the Session endpoint. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been a small proportion of 4XX errors on the Session endpoint. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false   # alarm reviewed in production and decision made to disable
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -7055,9 +7282,11 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallback4XXApiGwErrorAlarm"
       AlarmDescription:
-        Fn::Sub: >-
-          >=50% of invocations to the YotiCallback endpoint have generated a 4XX error in
-          4 or more out of the last 10 minutes. ${SupportManualURL}
+        Fn::Sub:
+          - >-
+            >=50% of invocations to the YotiCallback endpoint have generated a 4XX error in
+            4 or more out of the last 10 minutes. ${RunbookUrl}
+          - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -7119,7 +7348,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-apiGWLatencyAlarm"
-      AlarmDescription: !Sub "There has been increased latency on backend api-gateway. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "There has been increased latency on backend api-gateway. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false  # disabled until we're ready for alarm actions to fire
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -7165,7 +7396,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TXMASQSOldMessagesAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when the age of the oldest TXMA message is 5 or more minutes. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when the age of the oldest TXMA message is 5 or more minutes. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -7190,7 +7423,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-TXMADLQMessagesVisibleAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when message gets added to TXMA DLQ. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when message gets added to TXMA DLQ. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -7215,7 +7450,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GovNotifySQSOldMessagesAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when the age of the oldest TXMA message is 5 or more minutes. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when the age of the oldest TXMA message is 5 or more minutes. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -7240,7 +7477,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-GovNotifyDLQMessagesVisibleAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when message gets added to GovNotify DLQ. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when message gets added to GovNotify DLQ. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -7265,7 +7504,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackOldMessagesAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when the age of the oldest YotiCallback message is 5 or more minutes. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when the age of the oldest YotiCallback message is 5 or more minutes. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -7290,7 +7531,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-YotiCallbackDLQMessagesVisibleAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when message gets added to YotiCallback DLQ. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when message gets added to YotiCallback DLQ. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -7315,7 +7558,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IPVCoreSQSOldMessagesAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when the age of the oldest TXMA message is 5 or more minutes. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when the age of the oldest TXMA message is 5 or more minutes. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -7340,7 +7585,9 @@ Resources:
     Condition: DeployAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IPVCoreDLQMessagesVisibleAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when message gets added to IPVCore DLQ. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger an alarm when message gets added to IPVCore DLQ. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
@@ -7370,7 +7617,9 @@ Resources:
       OKActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: []
-      AlarmDescription: !Sub "Trigger the alarm if any lambda in the account timesout 5 times within 5 minutes. ${SupportManualURL}"
+      AlarmDescription: !Sub 
+        - "Trigger the alarm if any lambda in the account timesout 5 times within 5 minutes. ${RunbookUrl}"
+        - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       AlarmName: !Sub "${AWS::StackName}-LambdaTimeoutAlarm"
       EvaluationPeriods: 5
       DatapointsToAlarm: 5
@@ -8273,8 +8522,10 @@ Outputs:
   F2FIPVStubExecuteURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F IPV Stub"
-    Value:
-      Fn::ImportValue: !Sub '${IPVStubStackName}-IPVStubExecuteUrl'
+    Value: !If
+      - CreateDevResources
+      - !Sub "https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/"
+      - "https://ipvstub.review-o.build.account.gov.uk/"
   F2FYotiStubURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Yoti Stub"

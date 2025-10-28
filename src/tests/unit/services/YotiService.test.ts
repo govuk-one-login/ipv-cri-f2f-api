@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/dot-notation */
+ 
+ 
 import axios from "axios";
 import { YotiService } from "../../../services/YotiService";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -177,7 +177,7 @@ const generateInstructionsPayload = {
 	},
 };
 
-// eslint-disable-next-line max-lines-per-function
+ 
 describe("YotiService", () => {
 	const logger = mock<Logger>();
 	const metrics = mock<Metrics>();

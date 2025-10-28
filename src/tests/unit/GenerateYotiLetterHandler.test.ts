@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
 import { lambdaHandler, logger } from "../../GenerateYotiLetterHandler";
 import { GenerateYotiLetterProcessor } from "../../services/GenerateYotiLetterProcessor";
 import { mock } from "jest-mock-extended";
@@ -76,7 +76,7 @@ describe("GenerateYotiLetterHandler", () => {
 
 		await lambdaHandler({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"POST" }, CONTEXT);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockedGenerateYotiLetterProcessor.processRequest).toHaveBeenCalledTimes(1);
 		expect(mockedGenerateYotiLetterProcessor.processRequest).toHaveBeenCalledWith({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"POST" });
 	});

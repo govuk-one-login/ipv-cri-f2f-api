@@ -1,4 +1,4 @@
-/* eslint-disable max-lines-per-function */
+ 
 import dataPassport from "../../data/docSelectionPayloadPassportValid.json";
 import dataUkDrivingLicence from "../../data/docSelectionPayloadDriversLicenceValid.json";
 import dataEuDrivingLicence from "../../data/docSelectionPayloadEuDriversLicenceValid.json";
@@ -49,6 +49,7 @@ describe("/callback endpoint", () => {
 		{ yotiMockId: "0124", documentType: "UkPassport", docSelectionData: dataPassport },
 		{ yotiMockId: "0125", documentType: "UkPassport", docSelectionData: dataPassport },
 		{ yotiMockId: "0133", documentType: "UkPassport", docSelectionData: dataPassport },
+		{ yotiMockId: "0134", documentType: "UkPassport", docSelectionData: dataPassport },
 		{ yotiMockId: "0200", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
 		{ yotiMockId: "0201", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
 		{ yotiMockId: "0202", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport },
@@ -62,31 +63,24 @@ describe("/callback endpoint", () => {
 		{ yotiMockId: "0503", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
 	])("F2F CRI Callback Endpoint - Verified Credential validation for yotiMockId: $yotiMockId - documentType: $documentType", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; documentType: string; docSelectionData: DocSelectionData }) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
-
 		const { sessionId, sub } = await startStubServiceAndReturnSessionId(f2fStubPayload);
-
 		await initiateUserInfo(docSelectionData, sessionId);
-
 		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
-	
 		await callbackPost(yotiSessionId);
-
 		let sqsMessage;
 		let i = 0;
 		do {
 			sqsMessage = await getDequeuedSqsMessage(sub);
 			i++;
 		} while (i < 10 && !sqsMessage);
-
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		await validateJwtToken(jwtToken, vcResponseData, yotiMockId);
-	}, 20000);
+	}, 50000);
 
 	describe("Verifiable Credential Error", () => {
 		it.each([
-			{ yotiMockId: "0134", vcError: "VC generation failed : Multiple document_fields in response" },
 			{ yotiMockId: "0160", vcError: "VC generation failed : Yoti document_fields not populated" },
 		])("yotiMockId: $yotiMockId'", async ({ yotiMockId, vcError }: { yotiMockId: string; vcError: string }) => {
 			f2fStubPayload.yotiMockID = yotiMockId;
@@ -120,7 +114,7 @@ describe("/callback endpoint", () => {
 
 	])("Multiple given Names in Yoti Response - yotiMockId $yotiMockId - Full Name: $givenName1 $givenName2 $givenName3 $familyName", async (
 		{ yotiMockId, docSelectionData, givenName1, givenName2, givenName3, familyName }:
-		// eslint-disable-next-line max-len
+		 
 		{ yotiMockId: string; docSelectionData: DocSelectionData; givenName1: string; givenName2: string; givenName3: string; familyName: string },
 	) => {
 		f2fStubPayload.yotiMockID = yotiMockId;

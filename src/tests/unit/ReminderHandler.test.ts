@@ -19,7 +19,7 @@ describe("ReminderEmailHandler", () => {
 
 		const result = await lambdaHandler("", CONTEXT);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockedReminderEmailProcessor.processRequest).toHaveBeenCalledTimes(1);
 		expect(result.statusCode).toBe(200);
 		expect(result.body).toBe("Success");
@@ -31,7 +31,7 @@ describe("ReminderEmailHandler", () => {
 
 		const result = await lambdaHandler("", CONTEXT);
 
-		// eslint-disable-next-line @typescript-eslint/unbound-method
+		 
 		expect(mockedReminderEmailProcessor.processRequest).toHaveBeenCalledTimes(1);
 		expect(result.statusCode).toBe(500);
 		expect(result.body).toBe("Server Error");
