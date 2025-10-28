@@ -379,7 +379,7 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - handlers/startF2fCheck.ts
-        UseNpmCi: True
+        UseNpmCi: true
 
   StartF2FCheckFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -429,7 +429,7 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - handlers/generateTokenRequest.ts
-        UseNpmCi: True
+        UseNpmCi: true
 
   GenerateTokenRequestF2FFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -481,7 +481,7 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - handlers/jsonWebKeys.ts
-        UseNpmCi: True
+        UseNpmCi: true
 
   JwksFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -514,7 +514,7 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - handlers/callback.ts
-        UseNpmCi: True
+        UseNpmCi: true
 
   IPVStubRedirectFunctionPermission:
     Type: AWS::Lambda::Permission
