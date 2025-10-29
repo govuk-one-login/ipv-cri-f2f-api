@@ -347,5 +347,12 @@
         "verificationScore": 3,
         "checkMethod": "vri,pvr",
         "ci": ""
+    },
+     "s1601":{
+        "strengthScore": 3,
+        "validityScore": 2,
+        "verificationScore": 3,
+        "checkMethod": "vri,bvr",
+        "ci": ""
     }
 }
