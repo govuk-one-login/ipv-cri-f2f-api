@@ -97,7 +97,7 @@ export async function getTxmaEventsFromTestHarness(sessionId: string, numberOfTx
 	let objectList: AllTxmaEvents = {};
 	let fileNames: any = [];
 
-	await new Promise(res => setTimeout(res, 3000));
+	await new Promise(res => setTimeout(res, 6000));
 	fileNames = await getTxMAS3FileNames(sessionId);
 
 	// AWS returns an array for multiple but an object for single

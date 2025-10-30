@@ -45,7 +45,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 
 							logger.info("PARSED JSON", {payloadParsed})
 							logger.info("Creating Mock YOTI Sessions");
-							return await YotiRequestProcessor.getInstance(logger, metrics).createSession(event, payloadParsed);
+							return await YotiRequestProcessor.getInstance(logger, metrics).createSession(payloadParsed);
 						}
 
 					} catch (err: any) {
