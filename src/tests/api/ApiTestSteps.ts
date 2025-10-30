@@ -496,11 +496,10 @@ export async function validateJwtToken(jwtToken: any, vcData: any, yotiId?: stri
 
 	// Validate Body 
 	const decodedBody = JSON.parse(jwtUtils.base64DecodeToString(rawBody.replace(/\W/g, "")));
-
 	expect(decodedBody.jti).toBeTruthy();
 	// Strength Score
-	const expecedStrengthScore = eval("vcData.s" + yotiId + ".strengthScore");
-	if (expecedStrengthScore) {
+	const expectedStrengthScore = eval("vcData.s" + yotiId + ".strengthScore");
+	if (expectedStrengthScore) {
 		expect(decodedBody.vc.evidence[0].strengthScore).toBe(eval("vcData.s" + yotiId + ".strengthScore"));
 	}
 	// Validity Score
