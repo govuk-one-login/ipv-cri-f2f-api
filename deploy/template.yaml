@@ -8629,3 +8629,4 @@ Outputs:
     Value: !GetAtt YotiLetterBucket.Arn
     Export:
       Name: !Sub ${AWS::StackName}-YotiLetterBucketArn
+      
