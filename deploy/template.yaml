@@ -331,6 +331,11 @@ Conditions:
     - !Equals [ !Ref Environment, dev ]
     - !Equals [ !Ref Environment, build ]
     - !Equals [ !Ref Environment, staging ]
+  EnableBackup:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref Environment
+          - "dev"
 
 Globals:
   Function:
@@ -593,9 +598,11 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      Tags:
-        - Key: BackupFrequency
-          Value: Daily
+      Tags: !If
+        - EnableBackup
+        - - Key: BackupFrequency
+            Value: Daily
+        - []
 
   JWKSBucketRole:
     Type: "AWS::IAM::Role"
@@ -646,9 +653,11 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      Tags:
-        - Key: BackupFrequency
-          Value: Daily
+      Tags: !If
+        - EnableBackup
+        - - Key: BackupFrequency
+            Value: Daily
+        - []
 
   ### Start of API Gateway definition.
 
