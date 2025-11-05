@@ -61,6 +61,9 @@ Conditions:
       - Fn::Equals:
           - !Ref PermissionsBoundary
           - "none"
+  IsDevOrBuild: !Or
+    - !Equals [ !Ref Environment, dev ]
+    - !Equals [ !Ref Environment, build ]
 
 Globals:
   Api:
@@ -368,6 +371,9 @@ Resources:
               produces:
                 - "application/json"
               responses: { }
+      Tags:
+        FMSRegionalPolicy: !If [ IsDevOrBuild, "false", "none" ]
+        CustomPolicy: !If [ IsDevOrBuild, "true", "none" ]
 
         Fn::Transform:
           Name: AWS::Include

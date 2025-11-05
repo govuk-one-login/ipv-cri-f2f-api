@@ -11,6 +11,9 @@ Conditions:
     - !Equals [ !Ref Environment, staging ]
     - !Equals [ !Ref Environment, integration ]
     - !Equals [ !Ref Environment, production ]
+  IsDevOrBuild: !Or
+    - !Equals [ !Ref Environment, dev ]
+    - !Equals [ !Ref Environment, build ]
 
 Mappings:
   EnvironmentVariables:
@@ -56,6 +59,22 @@ Resources:
       Name: !Sub outbound-proxy-${Environment}-${AWS::StackName}
       Description: !Sub "F2F Outbound Proxy API. ${AWS::StackName}"
       ProtocolType: HTTP
+
+  OutboundProxyApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: !Ref Environment
+      ApiId: !Ref OutboundProxyApiGatewayAPI
+      AutoDeploy: true
+      Tags:
+        Product: GOV.UK Sign In
+        System: OutboundProxy
+        Environment: !Ref Environment
+        Service: backend
+        Name: OutboundProxyApiStage
+        Source: OutboundProxy
+        FMSRegionalPolicy: !If [ IsDevOrBuild, "false", "none" ]
+        CustomPolicy: !If [ IsDevOrBuild, "true", "none" ]
 
   PostOfficeProxyApiGatewayIntegration:
     Type: 'AWS::ApiGatewayV2::Integration'

@@ -71,6 +71,9 @@ Conditions:
       - Fn::Equals:
           - !Ref PermissionsBoundary
           - "none"
+  IsDevOrBuild: !Or
+    - !Equals [ !Ref Environment, dev ]
+    - !Equals [ !Ref Environment, build ]
 
 Globals:
   Function:
@@ -132,6 +135,50 @@ Resources:
         {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":"*","Action":"execute-api:Invoke","Resource":["execute-api:/*"]}]}
       Parameters:
         endpointConfigurationTypes: REGIONAL
+
+  IPVStubApiGwStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: !Ref Environment
+      RestApiId: !Ref IPVStubApiGw
+      DeploymentId: !Ref IPVStubApiGwDeployment
+      AccessLogSetting:
+        DestinationArn: !GetAtt IPVStubApiAccessLogGroup.Arn
+        Format: >-
+          {
+          "requestId":"$context.requestId",
+          "ip": "$context.identity.sourceIp",
+          "requestTime":"$context.requestTime",
+          "httpMethod":"$context.httpMethod",
+          "path": "$context.path",
+          "routeKey":"$context.routeKey",
+          "status":"$context.status",
+          "protocol":"$context.protocol",
+          "responseLength":"$context.responseLength"
+          }
+      TracingEnabled: true
+      MethodSettings:
+      - ResourcePath: "/*"
+        HttpMethod: "*"
+        LoggingLevel: INFO
+        DataTraceEnabled: true
+      Tags:
+        - Key: Product
+          Value: GOV.UK Sign In
+        - Key: System
+          Value: IPVStub
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Service
+          Value: backend
+        - Key: Name
+          Value: IPVStubApiStage
+        - Key: Source
+          Value: IPVStub
+        - Key: FMSRegionalPolicy
+          Value: !If [ IsDevOrBuild, "false", "none" ]
+        - Key: CustomPolicy
+          Value: !If [ IsDevOrBuild, "true", "none" ]
 
   # Redirect ---------------------------------------
   RedirectPath:
@@ -301,25 +348,6 @@ Resources:
     Properties:
       RestApiId: !Ref IPVStubApiGw
       Description: This resource deploys an API Gateway RestApi resource to a stage so that clients can call the API over the internet
-      StageName: !Sub ${Environment}
-      StageDescription:
-        AccessLogSetting:
-          DestinationArn: !GetAtt IPVStubApiAccessLogGroup.Arn
-          Format: >-
-            {
-            "requestId":"$context.requestId",
-            "ip": "$context.identity.sourceIp",
-            "requestTime":"$context.requestTime",
-            "httpMethod":"$context.httpMethod",
-            "path": "$context.path",
-            "routeKey":"$context.routeKey",
-            "status":"$context.status",
-            "protocol":"$context.protocol",
-            "responseLength":"$context.responseLength"
-            }
-        DataTraceEnabled: true
-        LoggingLevel: INFO
-        TracingEnabled: true
 
   IPVStubApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -684,6 +712,7 @@ Resources:
       Stage: !Ref Environment
     DependsOn:
       - IPVStubApiGwDeployment
+      - IPVStubApiGwStage
 
 Outputs:
   IPVStubExecuteUrl:
