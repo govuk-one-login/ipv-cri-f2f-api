@@ -364,21 +364,11 @@ Resources:
       EndpointConfiguration:
         Type: REGIONAL
       DefinitionBody:
-        openapi: '3.0.2'
-        paths:
-          /myMethod:
-            post:
-              produces:
-                - "application/json"
-              responses: { }
-      Tags:
-        FMSRegionalPolicy: !If [ IsDevOrBuild, "false", "none" ]
-        CustomPolicy: !If [ IsDevOrBuild, "true", "none" ]
-
         Fn::Transform:
           Name: AWS::Include
           Parameters:
             Location: './test-harness-spec.yaml'
+          OpenApiVersion: 3.0.1
       MethodSettings:
         - LoggingLevel: INFO
           MetricsEnabled: true
@@ -395,7 +385,8 @@ Resources:
         Service: TestHarness
         Name: TestHarnessRestApi
         Source: alphagov/di-devplatform-demo-sam-app/sam-app/template.yaml
-
+        FMSRegionalPolicy: !If [ IsDevOrBuild, "false", "none" ]
+        CustomPolicy: !If [ IsDevOrBuild, "true", "none" ]
 
   TestHarnessAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
