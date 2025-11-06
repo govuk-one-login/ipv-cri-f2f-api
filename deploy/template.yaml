@@ -182,7 +182,7 @@ Mappings:
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::457601271792:root
       TESTHARNESSURL: "https://testharness.review-o.build.account.gov.uk/"
-      KEYROTATIONENABLED: false
+      KEYROTATIONENABLED: true
     staging:
       YOTISDK: "596d953d-2451-46c8-8553-ebb0d1a75698"
       ISSUER: 'https://review-o.staging.account.gov.uk'
@@ -207,7 +207,7 @@ Mappings:
         ]'
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::335257547869:root
-      KEYROTATIONENABLED: false
+      KEYROTATIONENABLED: true
     integration:
       YOTISDK: "cb78093e-0686-4f86-8e7c-ded6117502e8"
       ISSUER: 'https://review-o.integration.account.gov.uk'
@@ -232,7 +232,7 @@ Mappings:
         ]'
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::991138514218:root
-      KEYROTATIONENABLED: false
+      KEYROTATIONENABLED: true
     production:
       YOTISDK: "81402882-b37c-4348-b336-437cdbb232bb"
       ISSUER: 'https://review-o.account.gov.uk'
@@ -257,7 +257,7 @@ Mappings:
         ]'
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::075701497069:root
-      KEYROTATIONENABLED: false
+      KEYROTATIONENABLED: true
   TxMAAccounts:
     # EVENTS is used to egress to TxMA.
     dev:
@@ -718,12 +718,6 @@ Resources:
 
   ### End of API Gateway definition.
 
-  WAFv2ACLAssociation:
-    Type: AWS::WAFv2::WebACLAssociation
-    Properties:
-      ResourceArn: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${F2FRestApi}/stages/${F2FRestApi.Stage}"
-      WebACLArn: !Sub "{{resolve:ssm:/${Environment}/Platform/Security/Block/WafArn}}"
-
   ### API Gateway Custom Domain definition
 
   F2FApiCustomDomainName:
@@ -913,6 +907,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - SessionHandler.ts
+        UseNpmCi: true
 
   SessionFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1269,6 +1264,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - SessionConfigHandler.ts
+        UseNpmCi: true
 
   SessionConfigFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1519,6 +1515,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - AccessTokenHandler.ts
+        UseNpmCi: true
 
   TokenFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1765,6 +1762,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - AuthorizationCodeHandler.ts
+        UseNpmCi: true
 
   AuthorizationFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1990,6 +1988,8 @@ Resources:
           GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: 5000
+          FETCH_YOTI_SESSION_MAX_RETRIES: 3
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
           YOTI_SESSION_TTL_DAYS:
             !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS] 
@@ -2059,6 +2059,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - DocumentSelectionHandler.ts
+        UseNpmCi: true
 
   DocumentSelectionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2303,6 +2304,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - AbortHandler.ts
+        UseNpmCi: true
 
   AbortLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2490,6 +2492,7 @@ Resources:
         Sourcemap: false
         EntryPoints:
           - PersonInfoHandler.ts
+        UseNpmCi: true
 
   PersonInfoFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2908,6 +2911,7 @@ Resources:
         Sourcemap: false
         EntryPoints:
           - PersonInfoKeyHandler.ts
+        UseNpmCi: true
 
   PersonInfoKeyFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3136,6 +3140,7 @@ Resources:
         Sourcemap: false
         EntryPoints:
           - AddressLocationsHandler.ts
+        UseNpmCi: true
 
   AddressLocationsFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3454,6 +3459,7 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - JwksHandler.ts
+        UseNpmCi: true
 
   JsonWebKeysLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3595,6 +3601,8 @@ Resources:
           GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID:
               !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID ]
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: 5000
+          FETCH_YOTI_SESSION_MAX_RETRIES: 3
           GOVUKNOTIFY_API_KEY_SSM_PATH: !Sub "/${Environment}/f2f-gov-notify/GOVUKNOTIFY_API_KEY_ENCRYPTED"
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
           YOTI_SESSION_TTL_DAYS:             
@@ -3650,6 +3658,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - GovNotifyHandler.ts
+        UseNpmCi: true
 
   GovNotifyFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3851,6 +3860,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - UserInfoHandler.ts
+        UseNpmCi: true
 
   UserInfoFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4109,6 +4119,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - ReminderEmailHandler.ts
+        UseNpmCi: true
 
   ReminderEmailFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4298,6 +4309,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - ExpiredSessionsHandler.ts
+        UseNpmCi: true
 
   ExpiredSessionsFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4539,6 +4551,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - TriggerYotiCallbackStateMachineHandler.ts
+        UseNpmCi: true
 
   TriggerYotiCallbackStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4801,6 +4814,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - YotiSessionCompletionHandler.ts
+        UseNpmCi: true
 
   YotiCallbackFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4912,6 +4926,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - ThankYouEmailHandler.ts
+        UseNpmCi: true
 
   ThankYouEmailFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -5093,6 +5108,8 @@ Resources:
           YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
           YOTI_PDF_BUCKET_LETTER_FOLDER: pdf
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
+          FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: 5000
+          FETCH_YOTI_SESSION_MAX_RETRIES: 3
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -5117,6 +5134,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - GenerateYotiLetterHandler.ts
+        UseNpmCi: true
 
   GenerateYotiLetterFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -5295,6 +5313,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - GeneratePrintedLetterHandler.ts
+        UseNpmCi: true
 
   GeneratePrintedLetterFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -5500,6 +5519,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - SendToGovNotifyHandler.ts
+        UseNpmCi: true
 
   SendToGovNotifyFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -8518,8 +8538,10 @@ Outputs:
   F2FIPVStubExecuteURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F IPV Stub"
-    Value:
-      Fn::ImportValue: !Sub '${IPVStubStackName}-IPVStubExecuteUrl'
+    Value: !If
+      - CreateDevResources
+      - !Sub "https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/"
+      - "https://ipvstub.review-o.build.account.gov.uk/"
   F2FYotiStubURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Yoti Stub"
@@ -8607,3 +8629,4 @@ Outputs:
     Value: !GetAtt YotiLetterBucket.Arn
     Export:
       Name: !Sub ${AWS::StackName}-YotiLetterBucketArn
+      

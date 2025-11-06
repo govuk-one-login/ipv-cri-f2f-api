@@ -242,6 +242,7 @@ Resources:
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
           - MockYotiSessionHandler.ts
+        UseNpmCi: true
 
   MockYotiSessionFunctionLogGroup:
     Type: AWS::Logs::LogGroup

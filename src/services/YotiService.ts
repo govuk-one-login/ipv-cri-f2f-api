@@ -26,13 +26,19 @@ export class YotiService {
 
 	readonly YOTI_SESSION_TTL_DAYS: number;
 
-	readonly RESOURCES_TTL_SECS:number;
+	readonly RESOURCES_TTL_SECS: number;
+
+	readonly FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: number;
+
+	readonly FETCH_YOTI_SESSION_MAX_RETRIES: number;
 
 	readonly validationHelper: ValidationHelper;
 
-	constructor(logger: Logger, metrics: Metrics, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number, PEM_KEY: string) {
+	constructor(logger: Logger, metrics: Metrics, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number,  FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: number, FETCH_YOTI_SESSION_MAX_RETRIES: number, PEM_KEY: string) {
     	this.RESOURCES_TTL_SECS = RESOURCES_TTL_SECS;
     	this.YOTI_SESSION_TTL_DAYS = YOTI_SESSION_TTL_DAYS;
+		this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS = FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
+		this.FETCH_YOTI_SESSION_MAX_RETRIES = FETCH_YOTI_SESSION_MAX_RETRIES
     	this.logger = logger;
 		this.metrics = metrics;
     	this.CLIENT_SDK_ID = CLIENT_SDK_ID;
@@ -40,15 +46,17 @@ export class YotiService {
     	this.validationHelper = new ValidationHelper();
 	}
 
-	static getInstance(logger: Logger, metrics:Metrics, PEM_KEY: string): YotiService {
+	static getInstance(logger: Logger, metrics: Metrics, PEM_KEY: string): YotiService {
 		if (!YotiService.instance) {
-			const { YOTISDK, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS } = process.env;
+			const { YOTISDK, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS, FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS, FETCH_YOTI_SESSION_MAX_RETRIES } = process.env;
 			YotiService.instance = new YotiService(
 				logger,
 				metrics,
 				YOTISDK!,
 				Number(RESOURCES_TTL_SECS),
 				Number(YOTI_SESSION_TTL_DAYS),
+				Number(FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS),
+				Number(FETCH_YOTI_SESSION_MAX_RETRIES),
 				PEM_KEY,
 			);
 		}
@@ -198,33 +206,14 @@ export class YotiService {
 			yotiBaseUrl,
     		endpoint: "/sessions",
     	});
-    	try {
-    		const response = await axios.post(
-    			yotiRequest.url,
-    			payloadJSON,
-    			yotiRequest.config,
-    		);
-			const { data } = response;
-    		this.logger.appendKeys({ yotiSessionId: data.session_id });
 
-    		this.logger.info("Received response from Yoti for create /sessions");
+		const requestMetricName = "YotiService_session_creation_response";
+		const yotiRequestName = "createSession";
+		const messageCode = MessageCodes.FAILED_CREATING_YOTI_SESSION;
 
-			const singleMetric = this.metrics.singleMetric();
-			singleMetric.addDimension("status_code", response.status.toString());
-			singleMetric.addMetric("YotiService_session_creation_response", MetricUnits.Count, 1);
-
-    		return data.session_id;
-    	} catch (error: any) {
-			if (error.status) {
-				const singleMetric = this.metrics.singleMetric();
-				singleMetric.addDimension("status_code", error.status.toString());
-				singleMetric.addMetric("YotiService_session_creation_response", MetricUnits.Count, 1);
-			}
-
-    		const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
-    		this.logger.error({ message: "An error occurred when creating Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION, xRequestId });
-    		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error creating Yoti Session");
-    	}
+		const sessionResponse = await this.makeRetryableYotiRequest(() => this.yotiPostRequest(yotiRequest, payloadJSON, requestMetricName), yotiRequestName, messageCode);
+		this.logger.appendKeys({ yotiSessionId: sessionResponse?.session_id });
+		return sessionResponse?.session_id
 	}
 
 	async fetchSessionInfo(sessionId: string, yotiBaseUrl: string): Promise<YotiSessionInfo | undefined> {
@@ -233,30 +222,21 @@ export class YotiService {
 			yotiBaseUrl,
     		endpoint: `/sessions/${sessionId}/configuration`,
     	});
+
+		this.logger.info({
+			message: "fetchSessionInfo - trying to fetch Yoti session", 
+			yotiSessionId: sessionId,
+    	});
 		
-    	try {
-    		const response = await axios.get(yotiRequest.url, yotiRequest.config);
-			const { data } = response;
+		const requestMetricName = "YotiService_fetch_session_response";
+		const yotiRequestName = "fetchSessionInfo";
+		const messageCode = MessageCodes.FAILED_YOTI_GET_SESSION;
 
-			const singleMetric = this.metrics.singleMetric();
-			singleMetric.addDimension("status_code", response.status.toString());
-			singleMetric.addMetric("YotiService_fetch_session_response", MetricUnits.Count, 1);
-    		return data;
-    	} catch (error: any) {
-			if (error.status) {
-				const singleMetric = this.metrics.singleMetric();
-				singleMetric.addDimension("status_code", error.status.toString());
-				singleMetric.addMetric("YotiService_fetch_session_response", MetricUnits.Count, 1);
-			}
-
-    		const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
-    		this.logger.error({ message: "Error fetching Yoti session", yotiErrorMessage: error.message, yotiErrorCode: error.code, xRequestId });
-    		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti Session");
-    	}
+		return await this.makeRetryableYotiRequest(() => this.yotiGetRequest(yotiRequest, requestMetricName), yotiRequestName, messageCode)
 	}
 
 	async generateInstructions(
-    	sessionID: string,
+    	sessionId: string,
     	personDetails: PersonIdentityItem,
     	requirements: Array<{ requirement_id: string; document: { type: string; country_code: string; document_type: string } } | undefined>,
     	PostOfficeSelection: PostOfficeInfo,
@@ -282,34 +262,16 @@ export class YotiService {
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.PUT,
 			yotiBaseUrl,
-    		endpoint: `/sessions/${sessionID}/instructions`,
+    		endpoint: `/sessions/${sessionId}/instructions`,
     		payloadJSON: JSON.stringify(payloadJSON),
     	});
 
-    	try {
-    		const response = await axios.put(
-    			yotiRequest.url,
-    			payloadJSON,
-    			yotiRequest.config,
-    		);
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { data } = response;
+		const requestMetricName = "YotiService_generate_instructions_response";
+		const yotiRequestName = "generateInstructions";
+		const messageCode = MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS;
 
-			const singleMetric = this.metrics.singleMetric();
-			singleMetric.addDimension("status_code", response.status.toString());
-			singleMetric.addMetric("YotiService_generate_instructions_response", MetricUnits.Count, 1);
-    		return HttpCodesEnum.OK;
-    	} catch (error: any) {
-			if (error.status) {
-				const singleMetric = this.metrics.singleMetric();
-				singleMetric.addDimension("status_code", error.status.toString());
-				singleMetric.addMetric("YotiService_generate_instructions_response", MetricUnits.Count, 1);
-			}
-
-    		const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
-    		this.logger.error({ message: "An error occurred when generating Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, xRequestId });
-    		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error generating Yoti instructions PDF");
-    	}
+		await this.makeRetryableYotiRequest(() => this.yotiPutRequest(yotiRequest, payloadJSON, requestMetricName), yotiRequestName, messageCode);
+		return HttpCodesEnum.OK;
 	}
 
 	async fetchInstructionsPdf(sessionId: string, yotiBaseUrl: string): Promise<string | undefined> {
@@ -321,84 +283,25 @@ export class YotiService {
     		configResponseEncoding: "binary",
     	});
 
-    	if (yotiRequest && yotiRequest.config && yotiRequest.url) {
-    		try {
-    			const yotiRequestConfig =  yotiRequest.config;
-    			this.logger.debug("getPdf - Yoti", { yotiRequestConfig });
-    			const response = await axios.get(yotiRequest.url, yotiRequest.config);
-				const { data } = response;
+		const requestMetricName = "YotiService_fetch_instructions_response";
+		const yotiRequestName = "fetchInstructionsPdf";
+		const messageCode = MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS;
 
-				const singleMetric = this.metrics.singleMetric();
-				singleMetric.addDimension("status_code", response.status.toString());
-				singleMetric.addMetric("YotiService_fetch_instructions_response", MetricUnits.Count, 1);
-				return data;
-
-    		} catch (error: any) {
-				if (error.status) {
-					const singleMetric = this.metrics.singleMetric();
-					singleMetric.addDimension("status_code", error.status.toString());
-					singleMetric.addMetric("YotiService_fetch_instructions_response", MetricUnits.Count, 1);
-				}
-
-    			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
-    			this.logger.error({ message: "An error occurred when fetching Yoti instructions PDF", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS, xRequestId });
-    			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti instructions PDF");
-    		}
-    	} else {
-    		 
-    		this.logger.error({ message: "Missing Yoti request config ", yotiRequest });
-    	}
+		return await this.makeRetryableYotiRequest(() => this.yotiGetRequest(yotiRequest, requestMetricName), yotiRequestName, messageCode)
 	}
 
-	async getCompletedSessionInfo(sessionId: string, backoffPeriodMs: number, maxRetries: number, yotiBaseUrl: string): Promise<YotiCompletedSession | undefined> {
+	async getCompletedSessionInfo(sessionId: string, yotiBaseUrl: string): Promise<YotiCompletedSession | undefined> {
     	const yotiRequest = this.generateYotiRequest({
     		method: HttpVerbsEnum.GET,
 			yotiBaseUrl,
     		endpoint: `/sessions/${sessionId}`,
     	});
 
-    	let retryCount = 0;
-    	while (retryCount <= maxRetries) {
-    		this.logger.info({
-    			message: "getCompletedSessionInfo - trying to fetch Yoti session", 
-    			 
-    			yotiSessionId: sessionId,
-    			retryCount,
-    		});
-			
-    		try {
-    			const response = await axios.get(yotiRequest.url, yotiRequest.config);
+		const requestMetricName = "YotiService_get_completed_session_response";
+		const yotiRequestName = "getCompletedSessionInfo";
+		const messageCode = MessageCodes.FAILED_YOTI_GET_COMPLETED_SESSION;
 
-				const { data } = response;
-
-				const singleMetric = this.metrics.singleMetric();
-				singleMetric.addDimension("status_code", response.status.toString());
-				singleMetric.addMetric("YotiService_get_completed_session_response", MetricUnits.Count, 1);
-    			return data;
-    		} catch (error: any) {
-				if (error.status) {
-					const singleMetric = this.metrics.singleMetric();
-					singleMetric.addDimension("status_code", error.status.toString());
-					singleMetric.addMetric("YotiService_get_completed_session_response", MetricUnits.Count, 1);
-				}
-				
-    			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
-				
-    			if (((error.response?.status >= 500 && error.response?.status < 600) || error.response?.status === 429) && retryCount < maxRetries) {
-    				this.logger.warn({ message: `getCompletedSessionInfo - Retrying to fetch Yoti session. Sleeping for ${backoffPeriodMs} ms`, retryCount, yotiErrorMessage: error.message, yotiErrorCode: error.code, yotiErrorStatus: error.response?.status, messageCode: MessageCodes.FAILED_YOTI_GET_SESSION, xRequestId });
-    				await sleep(backoffPeriodMs);
-    				retryCount++;
-    			} else {
-					if (retryCount === maxRetries) {
-						this.logger.error({ message: `getCompletedSessionInfo - cannot fetch Yoti session even after ${maxRetries} retries.`, messageCode: MessageCodes.YOTI_RETRIES_EXCEEDED, xRequestId });
-    					throw new AppError(HttpCodesEnum.SERVER_ERROR, `Cannot fetch Yoti session even after ${maxRetries} retries.`);
-					}
-					const message = "An error occurred when fetching Yoti session";
-					this.logger.error({ message, yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_SESSION, xRequestId });
-    				throw new AppError(HttpCodesEnum.SERVER_ERROR, message);
-    			}
-    		}
-    	}
+		return await this.makeRetryableYotiRequest(() => this.yotiGetRequest(yotiRequest, requestMetricName), yotiRequestName, messageCode)
 	}
 
 	async getMediaContent(sessionId: string, yotiBaseUrl: string, mediaId: string): Promise<any> {
@@ -408,15 +311,115 @@ export class YotiService {
     		endpoint: `/sessions/${sessionId}/media/${mediaId}/content`,
     	});
 
-    	try {
-    		const response = await axios.get(yotiRequest.url, yotiRequest.config);
-			const { data } = response;
+		const requestMetricName = "YotiService_get_media_content_response";
+		const yotiRequestName = "getMediaContent";
+		const messageCode = MessageCodes.FAILED_YOTI_GET_MEDIA_CONTENT;
 
-    		return data;
-    	} catch (error: any) {
-    		const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
-    		this.logger.error({ message: "An error occurred when fetching Yoti media content", yotiErrorMessage: error.message, yotiErrorCode: error.code, messageCode: MessageCodes.FAILED_YOTI_GET_MEDIA_CONTENT, xRequestId });
-    		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching Yoti media content");
-    	}
+		return await this.makeRetryableYotiRequest(() => this.yotiGetRequest(yotiRequest, requestMetricName), yotiRequestName, messageCode)
+	}
+
+	async makeRetryableYotiRequest(yotiRequest: () => any, yotiRequestName: string, messageCode: string) {
+		let retryCount = 0;
+
+		const maxRetries = this.FETCH_YOTI_SESSION_MAX_RETRIES;
+		const backoffPeriodMs = this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
+		while (retryCount <= maxRetries) {
+			const yotiResponse = await yotiRequest();
+			if (!yotiResponse.isError) { 
+				return yotiResponse
+			}
+
+			const error = yotiResponse.error;
+			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
+
+			if (retryCount === maxRetries) {
+				this.logger.error({ message: `${yotiRequestName} - cannot get response from yoti even after ${maxRetries} retries.`, 
+					messageCode: MessageCodes.YOTI_RETRIES_EXCEEDED, 
+					xRequestId });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, `${yotiRequestName} - cannot get response from yoti even after ${maxRetries} retries.`);
+			}
+
+			const is5xx = (error.response?.status >= 500 && error.response?.status < 600);
+			const shouldRetry = (is5xx || error.response?.status === 429);
+
+			if (shouldRetry) {
+				this.logger.warn({ message: `${yotiRequestName} - Retrying request. Sleeping for ${backoffPeriodMs} ms`, 
+					retryCount, 
+					yotiErrorMessage: error.message, 
+					yotiErrorCode: error.code,
+					yotiErrorStatus: error.response?.status, 
+					messageCode: messageCode, 
+					xRequestId });
+				await sleep(backoffPeriodMs * retryCount);
+				retryCount++;
+			} else {
+
+				const message = "An error occurred when calling Yoti " + yotiRequestName;
+				this.logger.error({ message, yotiErrorMessage: error.message, 
+					yotiErrorCode: error.code, 
+					messageCode: messageCode, 
+					xRequestId });
+				throw new AppError(HttpCodesEnum.SERVER_ERROR, `${yotiRequestName} - Unretryable error`);
+			}
+		}
+	}
+
+	async yotiGetRequest(yotiRequest: { url: string; config: AxiosRequestConfig<any> | undefined }, requestMetricName: string):Promise<any> {
+				try {
+					const response = await axios.get(yotiRequest.url, yotiRequest.config);
+					const { data } = response;
+					this.collectResponseMetric(requestMetricName, response)
+					return data;
+				} catch (error: any) {
+					if (error.status) {
+						this.collectResponseMetric(requestMetricName, error);
+					}
+					return {isError: true, error: error};
+
+				}
+	}	
+
+	async yotiPostRequest(yotiRequest: { url: string; config: AxiosRequestConfig<any> | undefined }, payloadJSON:any, requestMetricName: string):Promise<any> {
+		try {
+			const response = await axios.post(
+				yotiRequest.url,
+				payloadJSON,
+				yotiRequest.config,
+			);
+			const { data } = response;
+			this.collectResponseMetric(requestMetricName, response)
+			this.logger.appendKeys({ yotiSessionId: data.session_id });
+			return data;
+		} catch (error: any) {
+			if (error.status) {
+				this.collectResponseMetric(requestMetricName, error);
+			}
+			return {isError: true, error: error};
+		}
+	}	
+
+	async yotiPutRequest(yotiRequest: { url: string; config: AxiosRequestConfig<any> | undefined }, payloadJSON:any, requestMetricName: string):Promise<any> {
+		try {
+			const response = await axios.put(
+				yotiRequest.url,
+				payloadJSON,
+				yotiRequest.config,
+			);
+			const { data } = response;
+			this.collectResponseMetric(requestMetricName, response)
+			this.logger.appendKeys({ yotiSessionId: data.session_id });
+			return data;
+		} catch (error: any) {
+			if (error.status) {
+				this.collectResponseMetric(requestMetricName, error);
+			}
+			return {isError: true, error: error};
+		}
+	}
+
+	collectResponseMetric(requestMetricName:string, response: any) {
+		const singleMetric = this.metrics.singleMetric();
+		singleMetric.addDimension("status_code", response.status.toString());
+		singleMetric.addMetric(requestMetricName, MetricUnits.Count, 1);
 	}
 }
