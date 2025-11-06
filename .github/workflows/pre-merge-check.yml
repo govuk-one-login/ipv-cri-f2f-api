@@ -105,4 +105,4 @@ jobs:
 
       - name: Placeholder for cleanup
         run: |
-          echo "Stacks cleanup will be added when stacks are deployed"
+          echo "Stacks cleanup will be added"
