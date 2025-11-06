@@ -55,7 +55,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: build
+    needs: setup
     concurrency:
       group: deploy-pre-merge-${{ github.head_ref || github.ref_name }}
     permissions:
