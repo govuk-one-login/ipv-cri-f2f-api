@@ -3,7 +3,7 @@ name: Pre-merge checks
 on:
   workflow_call:
     secrets:
-      AWS_PRE_MERGE_ROLE_ARN:
+      DEV_F2F_PRE_MERGE_ROLE_ARN:
         required: true
 
 jobs:
@@ -68,7 +68,7 @@ jobs:
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
+          role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
 
       - name: Steps for deployments
@@ -96,7 +96,7 @@ jobs:
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
+          role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
 
       - name: Placeholder for tests
