@@ -61,9 +61,6 @@ Conditions:
       - Fn::Equals:
           - !Ref PermissionsBoundary
           - "none"
-  IsDevOrBuild: !Or
-    - !Equals [ !Ref Environment, dev ]
-    - !Equals [ !Ref Environment, build ]
 
 Globals:
   Api:
@@ -385,8 +382,8 @@ Resources:
         Service: TestHarness
         Name: TestHarnessRestApi
         Source: alphagov/di-devplatform-demo-sam-app/sam-app/template.yaml
-        FMSRegionalPolicy: !If [ IsDevOrBuild, "false", "none" ]
-        CustomPolicy: !If [ IsDevOrBuild, "true", "none" ]
+        FMSRegionalPolicy: false
+        CustomPolicy: true
 
   TestHarnessAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup

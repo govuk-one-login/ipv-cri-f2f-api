@@ -67,10 +67,6 @@ Conditions:
       - Fn::Equals:
           - !Ref PermissionsBoundary
           - "none"
-  IsDevOrBuildOrStaging: !Or
-    - !Equals [ !Ref Environment, dev ]
-    - !Equals [ !Ref Environment, build ]
-    - !Equals [ !Ref Environment, staging ]
 
 Globals:
   Api:
@@ -158,8 +154,8 @@ Resources:
         Service: backend
         Name: MockYotiRestApi
         Source: yoti
-        FMSRegionalPolicy: !If [ IsDevOrBuildOrStaging, "false", "none" ]
-        CustomPolicy: !If [ IsDevOrBuildOrStaging, "true", "none" ]
+        FMSRegionalPolicy: false
+        CustomPolicy: true
 
   MockYotiAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup

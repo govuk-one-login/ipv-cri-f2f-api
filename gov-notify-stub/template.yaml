@@ -58,9 +58,6 @@ Conditions:
       - Fn::Equals:
           - !Ref PermissionsBoundary
           - "none"
-  IsDevOrBuild: !Or
-    - !Equals [ !Ref Environment, dev ]
-    - !Equals [ !Ref Environment, build ]
 
 Globals:
   Api:
@@ -148,8 +145,8 @@ Resources:
         Service: backend
         Name: MockGovNotifyRestApi
         Source: govnotify
-        FMSRegionalPolicy: !If [ IsDevOrBuild, "false", "none" ]
-        CustomPolicy: !If [ IsDevOrBuild, "true", "none" ]
+        FMSRegionalPolicy: false
+        CustomPolicy: true
 
   MockGovNotifyRestApiUsagePlan:
     DependsOn:
