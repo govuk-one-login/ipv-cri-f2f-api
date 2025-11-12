@@ -327,6 +327,11 @@ Conditions:
     - !Not [ !Equals [ !Ref TrafficTestRoleArn, none ]]
 
   UseCanaryDeploymentAlarms: !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
+  EnableBackup:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref Environment
+          - "dev"
 
 Globals:
   Function:
@@ -589,6 +594,11 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      Tags: !If
+        - EnableBackup
+        - - Key: BackupFrequency
+            Value: Daily
+        - []
 
   JWKSBucketRole:
     Type: "AWS::IAM::Role"
@@ -639,6 +649,11 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      Tags: !If
+        - EnableBackup
+        - - Key: BackupFrequency
+            Value: Daily
+        - []
 
   ### Start of API Gateway definition.
 
