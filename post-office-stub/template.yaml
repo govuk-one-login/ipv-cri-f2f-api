@@ -145,6 +145,8 @@ Resources:
         Service: backend
         Name: MockPostOfficeRestApi
         Source: postoffice
+        FMSRegionalPolicy: false
+        CustomPolicy: true
 
   MockPostOfficeRestApiUsagePlan:
     DependsOn:
