@@ -298,6 +298,9 @@ Conditions:
     - !Equals [ !Ref Environment, staging ]
     - !Equals [ !Ref Environment, integration ]
     - !Equals [ !Ref Environment, production ]
+  IsDevOrBuild: !Or
+    - !Equals [ !Ref Environment, dev ]
+    - !Equals [ !Ref Environment, build ]
   UseCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -654,6 +657,79 @@ Resources:
         - - Key: BackupFrequency
             Value: Daily
         - []
+
+  ### Bucket emptying & deletion
+
+  EmptyJsonWebKeysBucket:
+    Type: Custom::EmptyBucket
+    Condition: IsDevOrBuild
+    Properties:
+      ServiceToken: !GetAtt DeleteBucketFunction.Arn
+      BucketName: !Ref JsonWebKeysBucket
+    DependsOn: JsonWebKeysBucket
+
+  EmptyYotiLetterBucket:
+    Type: Custom::EmptyBucket
+    Condition: IsDevOrBuild
+    Properties:
+      ServiceToken: !GetAtt DeleteBucketFunction.Arn
+      BucketName: !Ref YotiLetterBucket
+    DependsOn: YotiLetterBucket
+
+  DeleteBucketFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.11
+      Handler: index.handler
+      InlineCode: |
+          import json, urllib3, boto3
+
+          http = urllib3.PoolManager()
+
+          def send(event, context, status, data):
+              physical_id = event.get("PhysicalResourceId", context.log_stream_name)
+              body = {
+                  "Status": status,
+                  "Reason": f"See CloudWatch Log Stream: {context.log_stream_name}",
+                  "PhysicalResourceId": physical_id,
+                  "StackId": event["StackId"],
+                  "RequestId": event["RequestId"],
+                  "LogicalResourceId": event["LogicalResourceId"],
+                  "Data": data,
+              }
+              json_body = json.dumps(body)
+              headers = {'content-type':'', 'content-length': str(len(json_body))}
+              try:
+                  http.request("PUT", event["ResponseURL"], body=json_body, headers=headers)
+              except Exception as e:
+                  print(f"send() failed: {e}")
+
+          def handler(event, context):
+              s3 = boto3.resource('s3')
+              bucket_name = event['ResourceProperties']['BucketName']
+              print(f"Handling {event['RequestType']} for {bucket_name}")
+
+              try:
+                  bucket = s3.Bucket(bucket_name)
+                  if event['RequestType'] == 'Delete':
+                      bucket.objects.all().delete()
+                      try:
+                          bucket.object_versions.all().delete()
+                      except Exception as e:
+                          print(f"No versions to delete: {e}")
+                  send(event, context, "SUCCESS", {"Message": f"{bucket_name} emptied"})
+              except Exception as e:
+                  print(f"Error deleting {bucket_name}: {e}")
+                  send(event, context, "FAILED", {"Message": str(e)})
+      Policies:
+      - Statement:
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:ListBucketVersions
+              - s3:DeleteObject
+              - s3:DeleteObjectVersion
+            Resource: '*'
 
   ### Start of API Gateway definition.
 
