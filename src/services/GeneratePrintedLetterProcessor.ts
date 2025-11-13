@@ -10,6 +10,7 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 
 import { PutObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { loadPdfMerger } = require("./pdfMergerBridge.cjs");
 import { PDFService } from "./PdfService";
 import { PDFDocument } from "pdf-lib";
