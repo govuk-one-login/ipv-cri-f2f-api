@@ -10,7 +10,7 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 
 import { PutObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
-import PDFMerger from "pdf-merger-js";
+const { loadPdfMerger } = require("./pdfMergerBridge.cjs");
 import { PDFService } from "./PdfService";
 import { PDFDocument } from "pdf-lib";
 
@@ -123,6 +123,7 @@ export class GeneratePrintedLetterProcessor {
 		try {
 			this.logger.info("Attempting to merge PDF's"); 
 
+			const PDFMerger = await loadPdfMerger();
 			const merger = new PDFMerger();
 			await merger.add(coverLetterPdfBuffer);
 			await merger.add(yotiPdfBuffer);
