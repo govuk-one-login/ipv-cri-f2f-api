@@ -36,7 +36,7 @@
     "yaml-cfn": "0.3.2"
   },
   "scripts": {
-    "test": "node --experimental-vm-modules ./node_modules/.bin/jest --testPathPattern=tests/",
+    "test": " ./node_modules/.bin/jest --testPathPattern=tests/",
     "lint": "./node_modules/.bin/eslint '*.ts'",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c .eslintrc.js --ext .ts .",
     "compile": "./node_modules/.bin/tsc"

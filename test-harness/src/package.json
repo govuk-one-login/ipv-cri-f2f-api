@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "compile": "./node_modules/.bin/tsc",
-    "unit": "node --experimental-vm-modules ./node_modules/.bin/jest --testPathPattern=tests/unit --coverage",
+    "unit": " ./node_modules/.bin/jest --testPathPattern=tests/unit --coverage",
     "test:unit": "npm run compile && npm run unit",
     "lint": "eslint --output-file ./reports/eslint/reportFile.html --format html -c .eslintrc.js --ext .ts",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c .eslintrc.js --ext .ts ."
