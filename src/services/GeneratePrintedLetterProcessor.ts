@@ -122,7 +122,7 @@ export class GeneratePrintedLetterProcessor {
 		// Merge retrieved PDF's
 		try {
 			this.logger.info("Attempting to merge PDF's"); 
-	
+
 			const merger = new PDFMerger();
 			await merger.add(coverLetterPdfBuffer);
 			await merger.add(yotiPdfBuffer);
