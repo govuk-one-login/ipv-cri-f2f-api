@@ -21,7 +21,7 @@
   },
   "scripts": {
     "test": "npm run infra",
-    "infra":" ./node_modules/.bin/jest --testPathPattern=tests/infra",
+    "infra":"./node_modules/.bin/jest --testPathPattern=tests/infra",
     "test:infra": "npm run infra"
   }
 }
