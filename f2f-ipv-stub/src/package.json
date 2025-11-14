@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@aws-sdk/client-kms": "3.782.0",
+    "@aws-sdk/client-kms": "3.930.0",
     "@smithy/node-http-handler": "4.0.4",
     "@types/js-yaml": "4.0.9",
     "axios": "1.8.4",
@@ -36,7 +36,7 @@
     "yaml-cfn": "0.3.2"
   },
   "scripts": {
-    "test": "./node_modules/.bin/jest --testPathPattern=tests/",
+    "test": "node --experimental-vm-modules ./node_modules/.bin/jest --testPathPattern=tests/",
     "lint": "./node_modules/.bin/eslint '*.ts'",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c .eslintrc.js --ext .ts .",
     "compile": "./node_modules/.bin/tsc"
