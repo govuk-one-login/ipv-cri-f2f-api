@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@aws-sdk/client-kms": "3.930.0",
+    "@aws-sdk/client-kms": "3.929.0",
     "@smithy/node-http-handler": "4.0.4",
     "@types/js-yaml": "4.0.9",
     "axios": "1.8.4",
