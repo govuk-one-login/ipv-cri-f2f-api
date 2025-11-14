@@ -678,7 +678,9 @@ Resources:
 
   DeleteBucketFunction:
     Type: AWS::Serverless::Function
+    DependsOn: DeleteBucketFunctionLogGroup
     Properties:
+      FunctionName: !Sub "F2F-DeleteBucket-${AWS::StackName}"
       Runtime: python3.11
       Handler: index.handler
       InlineCode: |
@@ -730,6 +732,17 @@ Resources:
               - s3:DeleteObject
               - s3:DeleteObjectVersion
             Resource: '*'
+
+  DeleteBucketFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-DeleteBucket-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
 
   ### Start of API Gateway definition.
 
