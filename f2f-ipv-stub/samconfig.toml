@@ -2,10 +2,10 @@ version = 0.1
 [dev]
 [dev.deploy]
 [dev.deploy.parameters]
-stack_name = "f2f-ipv-stub"
+stack_name = "f2f-ipv-stub2"
 s3_prefix = "f2f-ipv-stub"
 region = "eu-west-2"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
-parameter_overrides = "CodeSigningConfigArn=\"none\" Environment=\"dev\" PermissionsBoundary=\"none\"  VpcStackName=\"vpc-cri\" BackendStack=\"f2f-cri-api\" L2KMSStackName=\"cic-cri-kms\""
+parameter_overrides = "CodeSigningConfigArn=\"none\" Environment=\"dev\" PermissionsBoundary=\"none\"  VpcStackName=\"vpc-cri\" BackendStack=\"f2f-cri-api\" L2KMSStackName=\"f2f-cri-kms\""
 image_repositories = []
