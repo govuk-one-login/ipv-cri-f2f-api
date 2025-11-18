@@ -21,13 +21,13 @@
     "pdf-lib": "1.17.1"
   },
   "scripts": {
-    "unit": "node --experimental-vm-modules ./node_modules/.bin/jest --testPathPattern=tests/unit",
+    "unit": "./node_modules/.bin/jest --testPathPattern=tests/unit",
     "test:unit": "npm run compile && npm run unit",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c .eslintrc.js --ext .ts .",
     "compile": "./node_modules/.bin/tsc",
     "lint": "eslint --output-file ./reports/eslint/reportFile.html --format html -c .eslintrc.js --ext .ts",
-    "test:e2e": "node --experimental-vm-modules ./node_modules/.bin/jest --testMatch '**/e2e/?(*.)test.ts' --passWithNoTests",
-    "test:infra": "node --experimental-vm-modules ./node_modules/.bin/jest --testMatch '**/infra/?(*.)test.ts' "
+    "test:e2e": "./node_modules/.bin/jest --testMatch '**/e2e/?(*.)test.ts' --passWithNoTests",
+    "test:infra": "./node_modules/.bin/jest --testMatch '**/infra/?(*.)test.ts' "
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.148",
