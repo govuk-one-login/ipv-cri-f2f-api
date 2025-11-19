@@ -20,7 +20,7 @@
     "@smithy/node-http-handler": "4.0.4",
     "@types/node-jose": "1.1.13",
     "aws-xray-sdk-core": "3.10.3",
-    "axios": "1.8.4",
+    "axios": "1.13.2",
     "body-parser": "2.2.0",
     "class-validator": "0.14.1",
     "dotenv-cli": "7.4.4",
