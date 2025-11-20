@@ -368,7 +368,6 @@ Resources:
               produces:
                 - "application/json"
               responses: { }
-
         Fn::Transform:
           Name: AWS::Include
           Parameters:
@@ -389,7 +388,8 @@ Resources:
         Service: TestHarness
         Name: TestHarnessRestApi
         Source: alphagov/di-devplatform-demo-sam-app/sam-app/template.yaml
-
+        FMSRegionalPolicy: false
+        CustomPolicy: true
 
   TestHarnessAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
