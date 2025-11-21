@@ -104,3 +104,4 @@ async function sign(
   );
   return `${tokenComponents.header}.${tokenComponents.payload}.${tokenComponents.signature}`;
 }
+
