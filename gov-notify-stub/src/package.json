@@ -17,6 +17,7 @@
     "aws-xray-sdk-core": "3.4.1",
     "axios": "1.13.2",
     "class-validator": "0.14.0",
+    "validator": "13.15.20",
     "esbuild": "0.25.2",
     "pdf-lib": "1.17.1"
   },
