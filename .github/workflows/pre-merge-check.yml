@@ -5,12 +5,7 @@ on:
     secrets:
       DEV_F2F_PRE_MERGE_ROLE_ARN:
         required: true
-      AWS_PRE_MERGE_S3_BUCKET_NAME:
-        required: true
-      PREMERGE_PARAMETER_PREFIX_STACK_NAME:
-        required: true
       
-
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -19,11 +14,15 @@ jobs:
       group: build-pre-merge-${{ github.head_ref || github.ref_name }}
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
-      environments: development
+      environments: ${{ steps.set-env.outputs.environments }}
     defaults:
       run:
         working-directory: ./deploy/
     steps:
+      - id: set-env
+        run: |
+            echo "::set-env name=environments::[\"development\"]"
+
       - name: Check out repository code
         uses: actions/checkout@v5
         with:
