@@ -14,12 +14,7 @@ jobs:
       group: build-pre-merge-${{ github.head_ref || github.ref_name }}
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
-      environments: ${{ steps.set-output.outputs.environments }}
     steps:
-      - id: set-output
-        run: |
-            echo "::set-output name=environments::[\"development\"]"
-
       - name: Check out repository code
         uses: actions/checkout@v5
         with:
@@ -68,7 +63,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        environment: ${{ fromJson(needs.setup.outputs.environments) }}
+        environment: [ "development" ]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -84,18 +79,12 @@ jobs:
           role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
 
-      - name: Steps for deployments
-        run: |
-          echo "Deployment steps will be added in separate tickets:"
-          echo "Deploy API stack"
-          echo "Deploy test harness stack"
-          echo "Deploy IPV stub stack"
-
       - name: Deploy API stack
         uses: govuk-one-login/devplatform-upload-action@v3.11.0
         with:
             artifact-bucket-name: ${{ secrets[format('{0}_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
             signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
+            working-directory: deploy
             template-file: .aws-sam/build/template.yaml
   test:
     runs-on: ubuntu-latest
