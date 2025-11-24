@@ -68,6 +68,16 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v5
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: 'src/package-lock.json'
+
+      - name: Install dependencies
+        run: cd src && npm ci
+
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
         with:
@@ -78,6 +88,9 @@ jobs:
         with:
           role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
+
+      - name: SAM Build
+        run: sam build -t template.yaml
 
       - name: Deploy API stack
         uses: govuk-one-login/devplatform-upload-action@v3.11.0
