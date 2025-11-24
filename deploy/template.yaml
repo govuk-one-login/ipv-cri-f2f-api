@@ -1221,9 +1221,9 @@ Resources:
       Statistic: Sum
       Dimensions: [ ]
       Period: 60
-      EvaluationPeriods: 2
-      DatapointsToAlarm: 1
-      Threshold: 1
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
+      Threshold: 2
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
