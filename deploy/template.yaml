@@ -3452,7 +3452,7 @@ Resources:
               Resource:
                 - Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
                 - Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
-      # Disabled as CIC CRI now uses keys published by key rotation on the ./well-known e/p
+      # Disabled as F2F CRI now uses keys published by key rotation on the ./well-known e/p
       # Events:
       #   InvocationLevel:
       #     Type: Schedule
