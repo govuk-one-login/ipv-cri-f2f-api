@@ -1,14 +1,14 @@
 name: Pre-merge checks
 
 on:
-  workflow_dispatch: # deploy manually
-    # secrets:
-    #   DEV_F2F_PRE_MERGE_ROLE_ARN:
-    #     required: true
-    #   AWS_PRE_MERGE_S3_BUCKET_NAME:
-    #     required: true
-    #   PREMERGE_PARAMETER_PREFIX_STACK_NAME:
-    #     required: true
+  workflow_dispatch:
+    secrets:
+      DEV_F2F_PRE_MERGE_ROLE_ARN:
+        required: true
+      AWS_PRE_MERGE_S3_BUCKET_NAME:
+        required: true
+      PREMERGE_PARAMETER_PREFIX_STACK_NAME:
+        required: true
       
 
 jobs:
