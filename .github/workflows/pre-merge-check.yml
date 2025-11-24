@@ -20,6 +20,9 @@ jobs:
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
       environments: ${{ steps.vars.outputs.environments }}
+    defaults:
+      run:
+        working-directory: ./deploy/
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -73,6 +76,11 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
+
+      - name: Setup SAM CLI
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v4
