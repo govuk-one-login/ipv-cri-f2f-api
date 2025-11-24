@@ -15,9 +15,6 @@ jobs:
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
       environments: ${{ steps.set-env.outputs.environments }}
-    defaults:
-      run:
-        working-directory: ./deploy/
     steps:
       - id: set-env
         run: |
