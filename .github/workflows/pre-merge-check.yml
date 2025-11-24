@@ -66,7 +66,7 @@ jobs:
         run: sam build -t template.yaml
 
       - name: Deploy API stack
-        uses: govuk-one-login/github-actions/sam/deploy-stack@main
+        uses: govuk-one-login/github-actions/sam/deploy-stack
         id: deploy
         with:
           sam-deployment-bucket: ${{ secrets.AWS_PRE_MERGE_S3_BUCKET_NAME }}
@@ -76,6 +76,7 @@ jobs:
           s3-prefix: pre-merge
           pull-repository: true
           delete-failed-stack: true
+          template: template.yaml
 
   test:
     runs-on: ubuntu-latest
