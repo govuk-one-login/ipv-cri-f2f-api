@@ -1,7 +1,7 @@
 name: Pre-merge checks
 
 on:
-  workflow_dispatch:
+  workflow_call:
     secrets:
       DEV_F2F_PRE_MERGE_ROLE_ARN:
         required: true
@@ -19,9 +19,7 @@ jobs:
       group: build-pre-merge-${{ github.head_ref || github.ref_name }}
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
-    defaults:
-      run:
-        working-directory: ./deploy/
+      environments: ${{ steps.vars.outputs.environments }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -61,11 +59,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: setup
+    defaults:
+      run:
+        working-directory: ./deploy/
     concurrency:
       group: deploy-pre-merge-${{ github.head_ref || github.ref_name }}
     permissions:
       id-token: write
       contents: read
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.environments) }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -84,27 +88,11 @@ jobs:
           echo "Deploy IPV stub stack"
 
       - name: Deploy API stack
-        uses: govuk-one-login/github-actions/sam/deploy-stack@main
-        id: deploy
+        uses: govuk-one-login/devplatform-upload-action@v3.11.0
         with:
-          sam-deployment-bucket: ${{ secrets.AWS_PRE_MERGE_S3_BUCKET_NAME }}
-          aws-role-arn: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
-          stack-name: pre-merge-${{ needs.setup.outputs.sha_short }}
-          cache-name: ipv-cri-f2f-api-${{ needs.setup.outputs.sha_short }}
-          s3-prefix: pre-merge
-          pull-repository: true
-          delete-failed-stack: true
-          tags: |
-            cri:component=ipv-cri-f2f-api
-            cri:stack-type=pre-merge
-            cri:application=Kiwi
-            cri:deployment-source=github-actions
-          parameters: |
-            DeploymentType=pre-merge-integration
-            UseApiKey=" "
-            ParameterPrefix=${{ secrets.PREMERGE_PARAMETER_PREFIX_STACK_NAME }}
-            Environment=dev
-
+            artifact-bucket-name: ${{ secrets[format('{0}_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
+            signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
+            template-file: .aws-sam/build/template.yaml
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
