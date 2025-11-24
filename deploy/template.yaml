@@ -593,7 +593,7 @@ Resources:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
+              SSEAlgorithm: aws:kms
       Tags: !If
         - EnableBackup
         - - Key: BackupFrequency
@@ -648,7 +648,7 @@ Resources:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
+              SSEAlgorithm: aws:kms
       Tags: !If
         - EnableBackup
         - - Key: BackupFrequency
