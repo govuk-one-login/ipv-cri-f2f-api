@@ -14,40 +14,13 @@ jobs:
       group: build-pre-merge-${{ github.head_ref || github.ref_name }}
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
+      environment: ${{ steps.vars.outputs.environment }}
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
       - name: Get output variables
         id: vars
         run: |
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: 'npm'
-          cache-dependency-path: 'src/package-lock.json'
-
-      - name: Install dependencies
-        run: cd src && npm ci
-
-      - name: Setup SAM CLI
-        uses: aws-actions/setup-sam@v2
-        with:
-          use-installer: true
-
-      - name: SAM Build
-        run: sam build -t ./deploy/template.yaml
-
-      - name: Cache SAM build
-        uses: actions/cache/save@v4
-        with:
-          path: deploy/.aws-sam
-          key: sam-build-${{ github.sha }}
+          echo "environment=[\"dev\"]" >> $GITHUB_OUTPUT
 
   deploy:
     runs-on: ubuntu-latest
@@ -63,7 +36,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        environment: [ "development" ]
+        environment: ${{ fromJson(needs.setup.outputs.environment) }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -99,6 +72,7 @@ jobs:
             signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
             working-directory: deploy
             template-file: .aws-sam/build/template.yaml
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
