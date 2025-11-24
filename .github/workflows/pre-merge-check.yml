@@ -46,7 +46,7 @@ jobs:
           use-installer: true
 
       - name: SAM Build
-        run: sam build -t template.yaml
+        run: sam build -t ./deploy/template.yaml
 
       - name: Cache SAM build
         uses: actions/cache/save@v4
