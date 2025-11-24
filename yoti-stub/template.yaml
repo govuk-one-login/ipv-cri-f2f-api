@@ -154,6 +154,8 @@ Resources:
         Service: backend
         Name: MockYotiRestApi
         Source: yoti
+        FMSRegionalPolicy: false
+        CustomPolicy: true
 
   MockYotiAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
