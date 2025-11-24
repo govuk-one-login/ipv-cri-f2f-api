@@ -5,6 +5,11 @@ on:
     secrets:
       DEV_F2F_PRE_MERGE_ROLE_ARN:
         required: true
+      AWS_PRE_MERGE_S3_BUCKET_NAME:
+        required: true
+      PREMERGE_PARAMETER_PREFIX_STACK_NAME:
+        required: true
+      
 
 jobs:
   setup:
@@ -77,6 +82,28 @@ jobs:
           echo "Deploy API stack"
           echo "Deploy test harness stack"
           echo "Deploy IPV stub stack"
+
+      - name: Deploy API stack
+        uses: govuk-one-login/github-actions/sam/deploy-stack@main
+        id: deploy
+        with:
+          sam-deployment-bucket: ${{ secrets.AWS_PRE_MERGE_S3_BUCKET_NAME }}
+          aws-role-arn: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
+          stack-name: pre-merge-${{ needs.setup.outputs.sha_short }}
+          cache-name: ipv-cri-f2f-api-${{ needs.setup.outputs.sha_short }}
+          s3-prefix: pre-merge
+          pull-repository: true
+          delete-failed-stack: true
+          tags: |
+            cri:component=ipv-cri-f2f-api
+            cri:stack-type=pre-merge
+            cri:application=Kiwi
+            cri:deployment-source=github-actions
+          parameters: |
+            DeploymentType=pre-merge-integration
+            UseApiKey=" "
+            ParameterPrefix=${{ secrets.PREMERGE_PARAMETER_PREFIX_STACK_NAME }}
+            Environment=dev
 
   test:
     runs-on: ubuntu-latest
