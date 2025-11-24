@@ -14,11 +14,11 @@ jobs:
       group: build-pre-merge-${{ github.head_ref || github.ref_name }}
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
-      environments: ${{ steps.set-env.outputs.environments }}
+      environments: ${{ steps.set-output.outputs.environments }}
     steps:
-      - id: set-env
+      - id: set-output
         run: |
-            echo "::set-env name=environments::[\"development\"]"
+            echo "::set-output name=environments::[\"development\"]"
 
       - name: Check out repository code
         uses: actions/checkout@v5
