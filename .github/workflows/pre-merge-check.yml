@@ -66,12 +66,16 @@ jobs:
         run: sam build -t template.yaml
 
       - name: Deploy API stack
-        uses: govuk-one-login/devplatform-upload-action@v3.11.0
+        uses: govuk-one-login/github-actions/sam/deploy-stack@main
+        id: deploy
         with:
-            artifact-bucket-name: ${{ secrets[format('{0}_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
-            signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
-            working-directory: deploy
-            template-file: .aws-sam/build/template.yaml
+          sam-deployment-bucket: ${{ secrets.AWS_PRE_MERGE_S3_BUCKET_NAME }}
+          aws-role-arn: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
+          stack-name: pre-merge-${{ needs.setup.outputs.sha_short}}
+          cache-name: ipv-cri-f2f-api-${{ needs.setup.outputs.sha_short}}
+          s3-prefix: pre-merge
+          pull-repository: true
+          delete-failed-stack: true
 
   test:
     runs-on: ubuntu-latest
