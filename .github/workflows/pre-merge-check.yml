@@ -38,7 +38,7 @@ jobs:
           cache-dependency-path: 'src/package-lock.json'
 
       - name: Install dependencies
-        run: cd ../src && npm ci
+        run: cd src && npm ci
 
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
