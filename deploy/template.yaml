@@ -1221,9 +1221,9 @@ Resources:
       Statistic: Sum
       Dimensions: [ ]
       Period: 60
-      EvaluationPeriods: 2
-      DatapointsToAlarm: 1
-      Threshold: 1
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
+      Threshold: 2
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
@@ -3452,11 +3452,12 @@ Resources:
               Resource:
                 - Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
                 - Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
-      Events:
-        InvocationLevel:
-          Type: Schedule
-          Properties:
-            Schedule: cron(0 * * * ? *)
+      # Disabled as F2F CRI now uses keys published by key rotation on the ./well-known e/p
+      # Events:
+      #   InvocationLevel:
+      #     Type: Schedule
+      #     Properties:
+      #       Schedule: cron(0 * * * ? *)
 
       Environment:
         Variables:
