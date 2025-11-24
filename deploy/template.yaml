@@ -3452,11 +3452,12 @@ Resources:
               Resource:
                 - Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
                 - Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
-      Events:
-        InvocationLevel:
-          Type: Schedule
-          Properties:
-            Schedule: cron(0 * * * ? *)
+      # Disabled as CIC CRI now uses keys published by key rotation on the ./well-known e/p
+      # Events:
+      #   InvocationLevel:
+      #     Type: Schedule
+      #     Properties:
+      #       Schedule: cron(0 * * * ? *)
 
       Environment:
         Variables:
