@@ -19,7 +19,7 @@ jobs:
       group: build-pre-merge-${{ github.head_ref || github.ref_name }}
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
-      environments: ${{ steps.vars.outputs.environments }}
+      environments: development
     defaults:
       run:
         working-directory: ./deploy/
