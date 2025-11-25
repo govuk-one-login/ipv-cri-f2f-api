@@ -76,7 +76,7 @@ jobs:
           s3-prefix: pre-merge
           pull-repository: true
           delete-failed-stack: true
-          template: .aws-sam/build/template.yaml
+          template: deploy/aws-sam/build/template.yaml
 
   test:
     runs-on: ubuntu-latest
