@@ -34,6 +34,7 @@ describe("DeleteBucketProcessor", () => {
       });
       global.fetch = jest.fn().mockResolvedValue({ status: 200 });
       const response = await deleteBucketProcessor.processRequest(VALID_REQUEST)
+      expect(deleteBucketProcessor).toBeInstanceOf(DeleteBucketProcessor);
       expect(response).toEqual({ statusCode: HttpCodesEnum.OK, body: "Bucket deleted" })
     });
     
@@ -52,12 +53,14 @@ describe("DeleteBucketProcessor", () => {
       }
     });
       global.fetch = jest.fn().mockResolvedValue({ status: 200 });
-      const response = await deleteBucketProcessor.processRequest(VALID_REQUEST)
-      expect(response).toEqual({ statusCode: HttpCodesEnum.OK, body: "Bucket deleted" })
+      const response = await deleteBucketProcessor.processRequest(VALID_REQUEST);
+      expect(deleteBucketProcessor).toBeInstanceOf(DeleteBucketProcessor);
+      expect(response).toEqual({ statusCode: HttpCodesEnum.OK, body: "Bucket deleted" });
     });
 
     it("throws error when sendResponse fetch request fails", async () => {
       global.fetch = jest.fn().mockRejectedValue({});
+      expect(deleteBucketProcessor).toBeInstanceOf(DeleteBucketProcessor);
       await expect(deleteBucketProcessor.processRequest(VALID_REQUEST)).rejects.toThrow();
     });
 });
