@@ -26,6 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: setup
+    defaults:
+      run:
+        working-directory: ./deploy/
     concurrency:
       group: deploy-pre-merge-${{ github.head_ref || github.ref_name }}
     permissions:
@@ -46,7 +49,7 @@ jobs:
           cache-dependency-path: 'src/package-lock.json'
 
       - name: Install dependencies
-        run: cd src && npm ci
+        run: cd ../src && npm ci
 
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
@@ -66,7 +69,6 @@ jobs:
           ls -R .
 
       - name: SAM Build
-        working-directory: ./deploy
         run: sam build -t template.yaml
 
       - name: Debug paths 2
@@ -86,7 +88,15 @@ jobs:
           s3-prefix: pre-merge
           pull-repository: true
           delete-failed-stack: true
-          template: .aws-sam/build/template.yaml
+          template: template.yaml
+
+      - name: Deploy API stack
+        uses: govuk-one-login/devplatform-upload-action@v3.11.0
+        with:
+            artifact-bucket-name: ${{ secrets[format('{0}_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
+            signing-profile-name: ${{ secrets[format('{0}_CRI_F2F_SIGNING_PROFILE_NAME', matrix.environment)] }}
+            working-directory: deploy
+            template-file: .aws-sam/build/template.yaml
 
   test:
     runs-on: ubuntu-latest
