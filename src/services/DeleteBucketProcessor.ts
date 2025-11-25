@@ -36,40 +36,40 @@ export class DeleteBucketProcessor {
 		const bucketName = event?.ResourceProperties?.BucketName;
 
 		try {
-				const toDelete = []
-				let bucketVersions = await this.s3Client.send(new ListObjectVersionsCommand({ Bucket: bucketName}));
+			const toDelete = []
+			let bucketVersions = await this.s3Client.send(new ListObjectVersionsCommand({ Bucket: bucketName}));
 
-				if (bucketVersions?.Versions) {
-					for (const version of bucketVersions.Versions) {
-						toDelete.push({ Key: version.Key, VersionId: version.VersionId})
-					}
+			if (bucketVersions?.Versions) {
+				for (const version of bucketVersions.Versions) {
+					toDelete.push({ Key: version.Key, VersionId: version.VersionId})
 				}
+			}
 
-				if (bucketVersions?.DeleteMarkers) {
-					for (const deleteMarker of bucketVersions.DeleteMarkers) {
-						toDelete.push({ Key: deleteMarker.Key, VersionId: deleteMarker.VersionId })
-					}
+			if (bucketVersions?.DeleteMarkers) {
+				for (const deleteMarker of bucketVersions.DeleteMarkers) {
+					toDelete.push({ Key: deleteMarker.Key, VersionId: deleteMarker.VersionId })
 				}
+			}
 
-				if (toDelete.length > 0) {
-					await this.s3Client.send(
-						new DeleteObjectsCommand({
-							Bucket: bucketName,
-							Delete: { Objects: toDelete },
-						})
-					);
-        		}
+			if (toDelete.length > 0) {
+				await this.s3Client.send(
+					new DeleteObjectsCommand({
+						Bucket: bucketName,
+						Delete: { Objects: toDelete },
+					})
+				);
+			}
 
-				let bucket = await this.s3Client.send(new ListObjectsV2Command({ Bucket: bucketName }));
+			let bucket = await this.s3Client.send(new ListObjectsV2Command({ Bucket: bucketName }));
 
-				if (bucket?.Contents && bucket?.Contents.length > 0) {
+			if (bucket?.Contents && bucket?.Contents.length > 0) {
 				await this.s3Client.send(
 					new DeleteObjectsCommand({
 					Bucket: bucketName,
 					Delete: { Objects: bucket.Contents.map((objects) => ({ Key: objects.Key })) },
 					})
 				);
-				}
+			}
 			await this.sendResponse(event, "SUCCESS", { message: "Bucket deleted"} );
 			return { statusCode: HttpCodesEnum.OK, body: "Bucket deleted" }
 		} catch(error: any) {
