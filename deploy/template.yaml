@@ -617,8 +617,6 @@ Resources:
             Condition:
               Bool:
                 "aws:SecureTransport": false
-              NumericLessThan:
-                "s3:TlsVersion": "1.2"
     DependsOn: JsonWebKeysBucket
 
   JWKSBucketRole:
@@ -693,8 +691,6 @@ Resources:
             Condition:
               Bool:
                 "aws:SecureTransport": false
-              NumericLessThan:
-                "s3:TlsVersion": "1.2"
     DependsOn: YotiLetterBucket
   
 
