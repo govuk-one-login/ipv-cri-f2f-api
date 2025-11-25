@@ -16,6 +16,9 @@ jobs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
       environment: ${{ steps.vars.outputs.environment }}
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+        
       - name: Get output variables
         id: vars
         run: |
