@@ -11,7 +11,7 @@ export class DeleteBucketProcessor {
 
     private static instance: DeleteBucketProcessor;
 
-    private s3Client: S3Client;
+    readonly s3Client: S3Client;
 
     constructor() {
 		this.s3Client = new S3Client({
@@ -36,7 +36,6 @@ export class DeleteBucketProcessor {
 		const bucketName = event?.ResourceProperties?.BucketName;
 
 		try {
-			if (event.RequestType === "Delete") {
 				const toDelete = []
 				let bucketVersions = await this.s3Client.send(new ListObjectVersionsCommand({ Bucket: bucketName}));
 
@@ -71,7 +70,6 @@ export class DeleteBucketProcessor {
 					})
 				);
 				}
-			}
 			await this.sendResponse(event, "SUCCESS", { message: "Bucket deleted"} );
 			return { statusCode: HttpCodesEnum.OK, body: "Bucket deleted" }
 		} catch(error: any) {
