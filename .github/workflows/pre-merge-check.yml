@@ -63,6 +63,7 @@ jobs:
           aws-region: eu-west-2
 
       - name: SAM Build
+        working-directory: deploy
         run: sam build -t template.yaml
 
       - name: Deploy API stack
