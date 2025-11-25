@@ -83,10 +83,10 @@ jobs:
         run: |
           sam deploy \
           --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}" \
-          --environment dev \
           --s3-bucket ${{secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME}} \
           --template-file .aws-sam/build/template.yaml \
           --capabilities CAPABILITY_NAMED_IAM
+          --parameter-overrides Environment=dev
         
   test:
     runs-on: ubuntu-latest
