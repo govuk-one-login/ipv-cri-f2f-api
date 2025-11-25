@@ -63,7 +63,6 @@ jobs:
           aws-region: eu-west-2
 
       - name: SAM Build
-        working-directory: deploy
         run: sam build -t template.yaml
 
       - name: Deploy API stack
@@ -77,7 +76,7 @@ jobs:
           s3-prefix: pre-merge
           pull-repository: true
           delete-failed-stack: true
-          template: deploy/.aws-sam/build/template.yaml
+          template: .aws-sam/build/template.yaml
 
   test:
     runs-on: ubuntu-latest
