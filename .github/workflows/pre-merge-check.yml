@@ -65,9 +65,8 @@ jobs:
           role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
 
-      - name: Debug paths
+      - name: Directory
         run: |
-          echo "PWD=$(pwd)"
           echo "Contents:"
           ls -R .
 
@@ -81,7 +80,8 @@ jobs:
 
 
       - name: Deploy API stack
-        run: sam deploy \
+        run: |
+          sam deploy \
           --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}" \
           --s3-bucket ${{secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME}} \
           --template-file .aws-sam/build/template.yaml \
