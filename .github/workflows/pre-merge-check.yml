@@ -78,18 +78,12 @@ jobs:
           ls -R .
 
       - name: Deploy API stack
-        uses: govuk-one-login/github-actions/sam/deploy-stack@main
-        id: deploy
-        with:
-          sam-deployment-bucket: ${{ secrets.AWS_PRE_MERGE_S3_BUCKET_NAME }}
-          aws-role-arn: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
-          stack-name: pre-merge-${{ needs.setup.outputs.sha_short}}
-          cache-name: ipv-cri-f2f-api-${{ needs.setup.outputs.sha_short}}
-          s3-prefix: pre-merge
-          pull-repository: false
-          delete-failed-stack: true
-          template: deploy/.aws-sam/build/template.yaml
-
+        run: sam deploy \
+          --stack-name pre-merge-${{ needs.setup.outputs.sha_short}} \
+          --s3-bucket ${{ secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME }} \
+          --template-file .aws-sam/build/template.yaml \
+          --capabilities CAPABILITY_NAMED_IAM
+        
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
