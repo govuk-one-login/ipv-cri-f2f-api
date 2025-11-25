@@ -74,15 +74,15 @@ jobs:
       - name: SAM Build
         run: sam build -t template.yaml
 
-      - name: Debug paths 2
+      - name: Debug sha
         run: |
-          echo "PWD=$(pwd)"
-          echo "Contents:"
-          ls -R .
+            echo "sha_short='${{ needs.setup.outputs.sha_short }}'"
+            echo "stack-name='pre-merge-${{ needs.setup.outputs.sha_short }}'"
+
 
       - name: Deploy API stack
         run: sam deploy \
-          --stack-name pre-merge-${{needs.setup.outputs.sha_short}} \
+          --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}" \
           --s3-bucket ${{secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME}} \
           --template-file .aws-sam/build/template.yaml \
           --capabilities CAPABILITY_NAMED_IAM
