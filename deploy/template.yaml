@@ -335,7 +335,7 @@ Conditions:
 
 Globals:
   Function:
-    Runtime: nodejs20.x
+    Runtime: nodejs18.x
     VpcConfig:
       SecurityGroupIds:
         - !GetAtt LambdaEgressSecurityGroup.GroupId
@@ -757,7 +757,6 @@ Resources:
 
   F2FApiBasePath:
     Type: AWS::ApiGateway::BasePathMapping
-    DependsOn: "F2FApiCustomDomainName"
     Properties:
       DomainName: !Ref F2FApiCustomDomainName
       RestApiId: !Ref F2FRestApi
