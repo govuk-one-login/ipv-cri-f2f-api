@@ -14,7 +14,6 @@ jobs:
       group: build-pre-merge-${{ github.head_ref || github.ref_name }}
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
-      environment: ${{ steps.vars.outputs.environment }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -23,7 +22,6 @@ jobs:
         id: vars
         run: |
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "environment=[\"dev\"]" >> $GITHUB_OUTPUT
 
   deploy:
     runs-on: ubuntu-latest
@@ -72,7 +70,7 @@ jobs:
           --s3-bucket ${{secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME}} \
           --template-file .aws-sam/build/template.yaml \
           --capabilities CAPABILITY_NAMED_IAM \
-          --parameter-overrides Environment=\"${{ needs.setup.outputs.environment }}\"
+          --parameter-overrides Environment=dev
         
   test:
     runs-on: ubuntu-latest
