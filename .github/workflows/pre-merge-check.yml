@@ -5,7 +5,7 @@ on:
     secrets:
       DEV_F2F_PRE_MERGE_ROLE_ARN:
         required: true
-
+      
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -14,19 +14,30 @@ jobs:
       group: build-pre-merge-${{ github.head_ref || github.ref_name }}
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
-    defaults:
-      run:
-        working-directory: ./deploy/
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       - name: Get output variables
         id: vars
         run: |
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: setup
+    defaults:
+      run:
+        working-directory: ./deploy/
+    concurrency:
+      group: deploy-pre-merge-${{ github.head_ref || github.ref_name }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -43,33 +54,23 @@ jobs:
         with:
           use-installer: true
 
-      - name: SAM Build
-        run: sam build -t template.yaml
-
-      - name: Cache SAM build
-        uses: actions/cache/save@v4
-        with:
-          path: deploy/.aws-sam
-          key: sam-build-${{ github.sha }}
-
-  deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: setup
-    concurrency:
-      group: deploy-pre-merge-${{ github.head_ref || github.ref_name }}
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v5
-
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
+
+      - name: SAM Build
+        run: sam build -t template.yaml
+
+      - name: Deploy API stack
+        run: |
+          sam deploy \
+          --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}" \
+          --s3-bucket ${{secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME}} \
+          --template-file .aws-sam/build/template.yaml \
+          --capabilities CAPABILITY_NAMED_IAM \
+          --parameter-overrides Environment=dev
 
       - name: Steps for deployments
         run: |
@@ -77,7 +78,7 @@ jobs:
           echo "Deploy API stack"
           echo "Deploy test harness stack"
           echo "Deploy IPV stub stack"
-
+        
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
