@@ -29,7 +29,7 @@ describe("DeleteBucketProcessor", () => {
 
     it("successfully empties buckets", async () => {
       mockSend.mockImplementation((command) => {
-        if (command === ListObjectsV2Command) {
+        if (command instanceof ListObjectsV2Command) {
           return Promise.resolve({
             Contents: [
               { Key: "remaining1.txt" },
