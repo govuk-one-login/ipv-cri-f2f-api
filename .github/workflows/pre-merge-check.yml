@@ -65,19 +65,8 @@ jobs:
           role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
 
-      - name: Directory
-        run: |
-          echo "Contents:"
-          ls -R .
-
       - name: SAM Build
         run: sam build -t template.yaml
-
-      - name: Debug sha
-        run: |
-            echo "sha_short='${{ needs.setup.outputs.sha_short }}'"
-            echo "stack-name='pre-merge-${{ needs.setup.outputs.sha_short }}'"
-
 
       - name: Deploy API stack
         run: |
@@ -86,7 +75,7 @@ jobs:
           --s3-bucket ${{secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME}} \
           --template-file .aws-sam/build/template.yaml \
           --capabilities CAPABILITY_NAMED_IAM \
-          --parameter-overrides Environment=dev
+          --parameter-overrides Environment=\"dev\"
         
   test:
     runs-on: ubuntu-latest
