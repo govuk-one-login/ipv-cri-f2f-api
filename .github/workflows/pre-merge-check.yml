@@ -37,9 +37,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    strategy:
-      matrix:
-        environment: ${{ fromJson(needs.setup.outputs.environment) }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
