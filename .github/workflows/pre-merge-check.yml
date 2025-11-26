@@ -75,7 +75,6 @@ jobs:
       - name: Steps for deployments
         run: |
           echo "Deployment steps will be added in separate tickets:"
-          echo "Deploy API stack"
           echo "Deploy test harness stack"
           echo "Deploy IPV stub stack"
         
