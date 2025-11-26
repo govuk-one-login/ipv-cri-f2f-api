@@ -599,6 +599,25 @@ Resources:
         - - Key: BackupFrequency
             Value: Daily
         - []
+  
+  JsonWebKeysBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref JsonWebKeysBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Deny
+            Resource:
+              - !GetAtt JsonWebKeysBucket.Arn
+              - !Sub "${JsonWebKeysBucket.Arn}/*"
+            Principal: "*"
+            Action:
+              - "s3:*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": false
+    DependsOn: JsonWebKeysBucket
 
   JWKSBucketRole:
     Type: "AWS::IAM::Role"
@@ -654,6 +673,26 @@ Resources:
         - - Key: BackupFrequency
             Value: Daily
         - []
+  
+  YotiLetterBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref YotiLetterBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Deny
+            Resource:
+              - !GetAtt YotiLetterBucket.Arn
+              - !Sub "${YotiLetterBucket.Arn}/*"
+            Principal: "*"
+            Action:
+              - "s3:*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": false
+    DependsOn: YotiLetterBucket
+  
 
   ### Start of API Gateway definition.
 
@@ -1221,9 +1260,9 @@ Resources:
       Statistic: Sum
       Dimensions: [ ]
       Period: 60
-      EvaluationPeriods: 2
-      DatapointsToAlarm: 1
-      Threshold: 1
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
+      Threshold: 2
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
@@ -3452,11 +3491,12 @@ Resources:
               Resource:
                 - Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
                 - Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
-      Events:
-        InvocationLevel:
-          Type: Schedule
-          Properties:
-            Schedule: cron(0 * * * ? *)
+      # Disabled as F2F CRI now uses keys published by key rotation on the ./well-known e/p
+      # Events:
+      #   InvocationLevel:
+      #     Type: Schedule
+      #     Properties:
+      #       Schedule: cron(0 * * * ? *)
 
       Environment:
         Variables:
