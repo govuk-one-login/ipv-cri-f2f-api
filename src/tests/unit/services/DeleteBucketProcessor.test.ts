@@ -1,7 +1,7 @@
 import { DeleteBucketProcessor } from "../../../services/DeleteBucketProcessor";
 import { VALID_REQUEST } from "../data/delete-bucket-events";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-import { ListObjectVersionsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { DeleteObjectsCommand, ListObjectVersionsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
 const mockSend = jest.fn();
 
@@ -9,9 +9,15 @@ jest.mock("@aws-sdk/client-s3", () => ({
   S3Client: jest.fn().mockImplementation(() => ({
     send: mockSend,
   })),
-  ListObjectVersionsCommand: jest.fn().mockImplementation((args) => args),
-  ListObjectsV2Command: jest.fn().mockImplementation((args) => args),
-  DeleteObjectsCommand: jest.fn().mockImplementation((args) => args),
+  ListObjectVersionsCommand: jest.fn().mockImplementation((args) => {
+  return Object.setPrototypeOf(args, ListObjectVersionsCommand.prototype);
+  }),
+  ListObjectsV2Command: jest.fn().mockImplementation((args) => {
+    return Object.setPrototypeOf(args, ListObjectsV2Command.prototype);
+  }),
+  DeleteObjectsCommand: jest.fn().mockImplementation((args) => {
+    return Object.setPrototypeOf(args, DeleteObjectsCommand.prototype);
+  })
 }));
 
 let deleteBucketProcessor: DeleteBucketProcessor;
@@ -23,7 +29,7 @@ describe("DeleteBucketProcessor", () => {
 
     it("successfully empties buckets", async () => {
       mockSend.mockImplementation((command) => {
-        if (command instanceof ListObjectsV2Command) {
+        if (command === ListObjectsV2Command) {
           return Promise.resolve({
             Contents: [
               { Key: "remaining1.txt" },
