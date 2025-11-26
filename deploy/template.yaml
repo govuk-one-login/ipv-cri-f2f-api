@@ -599,6 +599,25 @@ Resources:
         - - Key: BackupFrequency
             Value: Daily
         - []
+  
+  JsonWebKeysBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref JsonWebKeysBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Deny
+            Resource:
+              - !GetAtt JsonWebKeysBucket.Arn
+              - !Sub "${JsonWebKeysBucket.Arn}/*"
+            Principal: "*"
+            Action:
+              - "s3:*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": false
+    DependsOn: JsonWebKeysBucket
 
   JWKSBucketRole:
     Type: "AWS::IAM::Role"
@@ -654,6 +673,26 @@ Resources:
         - - Key: BackupFrequency
             Value: Daily
         - []
+  
+  YotiLetterBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref YotiLetterBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Deny
+            Resource:
+              - !GetAtt YotiLetterBucket.Arn
+              - !Sub "${YotiLetterBucket.Arn}/*"
+            Principal: "*"
+            Action:
+              - "s3:*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": false
+    DependsOn: YotiLetterBucket
+  
 
   ### Start of API Gateway definition.
 
