@@ -1,5 +1,4 @@
 name: Pre-merge checks
-
 on:
   workflow_call:
     secrets:
@@ -33,7 +32,8 @@ jobs:
       id-token: write
       contents: read
     outputs:
-        api_url: ${{ steps.api_url.outputs.api_url }}
+      api_url: ${{ steps.api_url.outputs.api_url }}
+      test_harness_url: ${{ steps.test_harness_url.outputs.test_harness_url }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -73,6 +73,27 @@ jobs:
           echo "Deployment steps will be added in separate tickets:"
           echo "Deploy test harness stack"
           echo "Deploy IPV stub stack"
+
+      - name: SAM Build test harness stack
+        working-directory: ./test-harness
+        run: sam build -t template.yaml
+
+      - name: SAM Deploy F2F test harness stack
+        working-directory: ./test-harness
+        run: |
+          sam deploy \
+            --stack-name "pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}" \
+            --s3-bucket ${{ secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME }} \
+            --template-file .aws-sam/build/template.yaml \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --parameter-overrides \
+              Environment=dev \
+              BackendStack="pre-merge-${{ needs.setup.outputs.sha_short }}"
+
+      - name: Construct Test Harness URL
+        id: test_harness_url
+        run: |
+          echo "test_harness_url=https://pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}-testharness.review-o.dev.account.gov.uk/" >> $GITHUB_OUTPUT
         
   test:
     runs-on: ubuntu-latest
@@ -81,6 +102,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    env:
+      PRE_MERGE_API_URL: ${{ needs.deploy.outputs.api_url }}
+      PRE_MERGE_TEST_HARNESS_URL: ${{ needs.deploy.outputs.test_harness_url }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -96,6 +120,8 @@ jobs:
       - name: Placeholder for tests
         run: |
           echo "Test execution will be added"
+          echo "API URL: $PRE_MERGE_API_URL"
+          echo "Test Harness URL: $PRE_MERGE_TEST_HARNESS_URL"
 
       - name: Placeholder for cleanup
         run: |
