@@ -241,16 +241,15 @@ Resources:
             ExpirationInDays: 1
 
   EmptyEventTestBucket:
-  Type: Custom::EmptyBucket
-  Condition: IsDevOrBuild
-  Properties:
-    ServiceToken: !GetAtt DeleteTestHarnessBucketFunction.Arn
-    BucketName: !Ref EventTestBucket
-  DependsOn: EventTestBucket
+    Type: Custom::EmptyBucket
+    Properties:
+      ServiceToken: !GetAtt DeleteTestHarnessBucketFunction.Arn
+      BucketName: !Ref EventTestBucket
+    DependsOn: EventTestBucket
 
   DeleteTestHarnessBucketFunction:
     Type: AWS::Serverless::Function
-    DependsOn: DeleteBucketFunctionLogGroup
+    DependsOn: DeleteTestHarnessBucketFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-DeleteTestHarnessBucket-${AWS::StackName}"
       Handler: DeleteBucketHandler.lambdaHandler
@@ -275,7 +274,7 @@ Resources:
           - DeleteBucketHandler.ts
         UseNpmCi: true
 
-  DeleteBucketFunctionLogGroup:
+  DeleteTestHarnessBucketFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/F2F-DeleteTestHarnessBucket-${AWS::StackName}"
@@ -512,4 +511,3 @@ Outputs:
     Value: !Sub
       - "https://${URL}/"
       - URL: !Ref TestHarnessCustomDomain
-      
