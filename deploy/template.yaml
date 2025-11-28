@@ -753,6 +753,13 @@ Resources:
           logretentionindays,
         ]
 
+  DeleteBucketFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DeleteBucketFunction
+      Principal: apigateway.amazonaws.com
+
   ### Start of API Gateway definition.
 
   F2FRestApi:
