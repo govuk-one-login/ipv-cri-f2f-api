@@ -27,14 +27,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: setup
-    defaults:
-      run:
-        working-directory: ./deploy/
     concurrency:
       group: deploy-pre-merge-${{ github.head_ref || github.ref_name }}
     permissions:
       id-token: write
       contents: read
+    outputs:
+        api_url: ${{ steps.api_url.outputs.api_url }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -47,7 +46,8 @@ jobs:
           cache-dependency-path: 'src/package-lock.json'
 
       - name: Install dependencies
-        run: cd ../src && npm ci
+        working-directory: ./src
+        run: npm ci
 
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
@@ -60,17 +60,24 @@ jobs:
           role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
 
-      - name: SAM Build
+      - name: SAM Build API stack
+        working-directory: ./deploy
         run: sam build -t template.yaml
 
-      - name: Deploy API stack
+      - name: SAM Deploy API stack
+        working-directory: ./deploy
         run: |
           sam deploy \
-          --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}" \
+          --stack-name "api-pre-merge-${{ needs.setup.outputs.sha_short }}" \
           --s3-bucket ${{secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME}} \
-          --template-file .aws-sam/build/template.yaml \
+          --template-file ./.aws-sam/build/template.yaml \
           --capabilities CAPABILITY_NAMED_IAM \
           --parameter-overrides Environment=dev
+      
+      - name: Construct API URL
+        id: api_url
+        run: |
+          echo "api_url=api-pre-merge-${{ needs.setup.outputs.sha_short }}-review-o-dev.account.gov.uk" >> $GITHUB_OUTPUT 
 
       - name: Steps for deployments
         run: |
