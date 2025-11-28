@@ -54,7 +54,7 @@ jobs:
         environment: ${{ fromJson(needs.setup.outputs.environments) }}
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
