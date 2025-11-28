@@ -5,13 +5,15 @@ on:
     secrets:
       DEV_F2F_PRE_MERGE_ROLE_ARN:
         required: true
+
+concurrency:
+  group: pre-merge-check${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
       
 jobs:
   setup:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    concurrency:
-      group: build-pre-merge-${{ github.head_ref || github.ref_name }}
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
     steps:
@@ -30,24 +32,12 @@ jobs:
     defaults:
       run:
         working-directory: ./deploy/
-    concurrency:
-      group: deploy-pre-merge-${{ github.head_ref || github.ref_name }}
     permissions:
       id-token: write
       contents: read
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: 'npm'
-          cache-dependency-path: 'src/package-lock.json'
-
-      - name: Install dependencies
-        run: cd ../src && npm ci
 
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
@@ -76,8 +66,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: deploy
-    concurrency:
-      group: test-pre-merge-${{ github.head_ref || github.ref_name }}
     permissions:
       id-token: write
       contents: read
