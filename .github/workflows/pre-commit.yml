@@ -11,3 +11,8 @@ jobs:
     - uses: pre-commit/action@v3.0.1
       with:
         extra_args: "detect-secrets --all-files"
+
+    - name: Check ignore-scripts
+      run: |
+        echo "ignore-scripts?"
+        npm config get ignore-scripts
