@@ -135,6 +135,7 @@ jobs:
 
       - name: SAM Build
         run: |
+          rm -rf node_modules
           npm ci
           sam build -t template.yaml
 
