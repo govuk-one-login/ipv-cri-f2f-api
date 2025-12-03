@@ -57,11 +57,16 @@ jobs:
         working-directory: ./deploy
         run: |
           sam deploy \
-          --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}" \
-          --s3-bucket ${{secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME}} \
-          --template-file .aws-sam/build/template.yaml \
-          --capabilities CAPABILITY_NAMED_IAM \
-          --parameter-overrides Environment=dev
+            --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}" \
+            --s3-bucket ${{ secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME }} \
+            --template-file .aws-sam/build/template.yaml \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --parameter-overrides Environment=dev
+
+      - name: Construct API URL
+        id: api_url
+        run: |
+          echo "api_url=https://api-pre-merge-${{ needs.setup.outputs.sha_short }}.review-o.dev.account.gov.uk" >> $GITHUB_OUTPUT
 
       - name: SAM Build test harness stack
         working-directory: ./test-harness
@@ -72,7 +77,7 @@ jobs:
         run: |
           sam deploy \
             --stack-name "pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}" \
-            --s3-bucket ${{secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME}} \
+            --s3-bucket ${{ secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME }} \
             --template-file .aws-sam/build/template.yaml \
             --capabilities CAPABILITY_NAMED_IAM \
             --parameter-overrides \
@@ -83,15 +88,10 @@ jobs:
               VpcStackName=vpc-cri \
               BackendStack="pre-merge-${{ needs.setup.outputs.sha_short }}"
 
-      - name: Construct API URL
-        id: api_url
-        run: |
-          echo "api_url=https://api-pre-merge-${{ needs.setup.outputs.sha_short }}.review-o.dev.account.gov.uk" >> $GITHUB_OUTPUT 
-
       - name: Construct Test Harness URL
         id: test_harness_url
         run: |
-          echo "test_harness_url=https://test-harness-pre-merge-${{ needs.setup.outputs.sha_short }}.review-o.dev.account.gov.uk" >> $GITHUB_OUTPUT 
+          echo "test_harness_url=https://pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}-testharness.review-o.dev.account.gov.uk" >> $GITHUB_OUTPUT
 
       - name: Steps for deployments
         run: |
