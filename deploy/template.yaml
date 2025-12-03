@@ -298,9 +298,6 @@ Conditions:
     - !Equals [ !Ref Environment, staging ]
     - !Equals [ !Ref Environment, integration ]
     - !Equals [ !Ref Environment, production ]
-  IsDevOrBuild: !Or
-    - !Equals [ !Ref Environment, dev ]
-    - !Equals [ !Ref Environment, build ]
   UseCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -701,7 +698,7 @@ Resources:
 
   EmptyJsonWebKeysBucket:
     Type: Custom::EmptyBucket
-    Condition: IsDevOrBuild
+    Condition: IsNotProdLikeEnvironment
     Properties:
       ServiceToken: !GetAtt DeleteBucketFunction.Arn
       BucketName: !Ref JsonWebKeysBucket
@@ -709,7 +706,7 @@ Resources:
 
   EmptyYotiLetterBucket:
     Type: Custom::EmptyBucket
-    Condition: IsDevOrBuild
+    Condition: IsNotProdLikeEnvironment
     Properties:
       ServiceToken: !GetAtt DeleteBucketFunction.Arn
       BucketName: !Ref YotiLetterBucket
@@ -717,7 +714,7 @@ Resources:
 
   DeleteBucketFunction:
     Type: AWS::Serverless::Function
-    Condition: IsDevOrBuild
+    Condition: IsNotProdLikeEnvironment
     DependsOn: DeleteBucketFunctionLogGroup
     Properties:
       FunctionName: !Sub "F2F-DeleteBucket-${AWS::StackName}"
@@ -745,7 +742,7 @@ Resources:
 
   DeleteBucketFunctionLogGroup:
     Type: AWS::Logs::LogGroup
-    Condition: IsDevOrBuild
+    Condition: IsNotProdLikeEnvironment
     Properties:
       LogGroupName: !Sub "/aws/lambda/F2F-DeleteBucket-${AWS::StackName}"
       RetentionInDays:
@@ -757,7 +754,7 @@ Resources:
 
   DeleteBucketFunctionPermission:
     Type: AWS::Lambda::Permission
-    Condition: IsDevOrBuild
+    Condition: IsNotProdLikeEnvironment
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref DeleteBucketFunction
