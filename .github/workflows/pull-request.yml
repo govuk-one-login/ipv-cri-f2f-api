@@ -137,6 +137,6 @@ jobs:
         run: sam build -t template.yaml
 
   # This is a temporary trigger for the pre-merge check, set up for testing purposes. A decision will be made later regarding the actual pre-merge trigger.
-  # pre-merge-checks:
-  #   uses: ./.github/workflows/pre-merge-check.yml
-  #   secrets: inherit
+  pre-merge-checks:
+     uses: ./.github/workflows/pre-merge-check.yml
+     secrets: inherit

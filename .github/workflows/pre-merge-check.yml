@@ -33,6 +33,7 @@ jobs:
       contents: read
     outputs:
       api_url: ${{ steps.api_url.outputs.api_url }}
+      test_harness_url: ${{ steps.test_harness_url.outputs.test_harness_url }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -48,6 +49,7 @@ jobs:
           role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
 
+      # --- API stack ---
       - name: SAM Build API stack
         working-directory: ./deploy
         run: sam build -t template.yaml
@@ -62,27 +64,36 @@ jobs:
           --capabilities CAPABILITY_NAMED_IAM \
           --parameter-overrides Environment=dev
 
-      # KIWI-2383 – Deploy F2F Test Harness stack
+      # --- Test Harness stack (KIWI-2383) ---
+      - name: SAM Build test harness stack
+        working-directory: ./test-harness
+        run: sam build -t template.yaml
+
       - name: SAM Deploy F2F test harness stack
-        working-directory: ./deploy
+        working-directory: ./test-harness
         run: |
-          aws cloudformation deploy \
+          sam deploy \
             --stack-name "pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}" \
-            --template-file ../test-harness/template.yaml \
+            --s3-bucket ${{secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME}} \
+            --template-file .aws-sam/build/template.yaml \
             --capabilities CAPABILITY_NAMED_IAM \
-            --no-fail-on-empty-changeset \
             --parameter-overrides \
-              CodeSigningConfigArn="none" \
-              Environment="dev" \
-              PermissionsBoundary="none" \
-              SecretPrefix="none" \
-              VpcStackName="vpc-cri" \
+              CodeSigningConfigArn=none \
+              Environment=dev \
+              PermissionsBoundary=none \
+              SecretPrefix=none \
+              VpcStackName=vpc-cri \
               BackendStack="pre-merge-${{ needs.setup.outputs.sha_short }}"
 
       - name: Construct API URL
         id: api_url
         run: |
           echo "api_url=https://api-pre-merge-${{ needs.setup.outputs.sha_short }}.review-o.dev.account.gov.uk" >> $GITHUB_OUTPUT 
+
+      - name: Construct Test Harness URL
+        id: test_harness_url
+        run: |
+          echo "test_harness_url=https://test-harness-pre-merge-${{ needs.setup.outputs.sha_short }}.review-o.dev.account.gov.uk" >> $GITHUB_OUTPUT 
 
       - name: Steps for deployments
         run: |
@@ -96,6 +107,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    env:
+      PRE_MERGE_API_URL: ${{ needs.deploy.outputs.api_url }}
+      PRE_MERGE_TEST_HARNESS_URL: ${{ needs.deploy.outputs.test_harness_url }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v5
@@ -111,6 +125,8 @@ jobs:
       - name: Placeholder for tests
         run: |
           echo "Test execution will be added"
+          echo "API URL: $PRE_MERGE_API_URL"
+          echo "Test Harness URL: $PRE_MERGE_TEST_HARNESS_URL"
 
       - name: Placeholder for cleanup
         run: |
