@@ -49,7 +49,6 @@ jobs:
           role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
 
-      # --- API stack ---
       - name: SAM Build API stack
         working-directory: ./deploy
         run: sam build -t template.yaml
@@ -64,7 +63,6 @@ jobs:
           --capabilities CAPABILITY_NAMED_IAM \
           --parameter-overrides Environment=dev
 
-      # --- Test Harness stack (KIWI-2383) ---
       - name: SAM Build test harness stack
         working-directory: ./test-harness
         run: sam build -t template.yaml
