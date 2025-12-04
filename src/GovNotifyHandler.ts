@@ -19,6 +19,7 @@ const logger = new Logger({
 	serviceName: POWERTOOLS_SERVICE_NAME,
 });
 
+
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 let YOTI_PRIVATE_KEY: string;
