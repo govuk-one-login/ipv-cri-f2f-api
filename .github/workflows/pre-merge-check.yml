@@ -82,17 +82,13 @@ jobs:
             --template-file .aws-sam/build/template.yaml \
             --capabilities CAPABILITY_NAMED_IAM \
             --parameter-overrides \
-              CodeSigningConfigArn=none \
               Environment=dev \
-              PermissionsBoundary=none \
-              SecretPrefix=none \
-              VpcStackName=vpc-cri \
               BackendStack="pre-merge-${{ needs.setup.outputs.sha_short }}"
 
       - name: Construct Test Harness URL
         id: test_harness_url
         run: |
-          echo "test_harness_url=https://pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}-testharness.review-o.dev.account.gov.uk" >> $GITHUB_OUTPUT
+          echo "test_harness_url=https://pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}-testharness.review-o.dev.account.gov.uk/" >> $GITHUB_OUTPUT
 
       - name: SAM Build IPV stub
         working-directory: ./f2f-ipv-stub
