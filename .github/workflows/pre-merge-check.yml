@@ -88,11 +88,6 @@ jobs:
         id: test_harness_url
         run: |
           echo "test_harness_url=https://pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}-testharness.review-o.dev.account.gov.uk/" >> $GITHUB_OUTPUT
-
-      - name: Steps for deployments
-        run: |
-          echo "Deployment steps will be added in separate tickets:"
-          echo "Deploy IPV stub stack"
         
   test:
     runs-on: ubuntu-latest
