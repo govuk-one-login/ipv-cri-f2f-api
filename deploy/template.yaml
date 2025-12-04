@@ -962,6 +962,8 @@ Resources:
         EntryPoints:
           - SessionHandler.ts
         UseNpmCi: true
+        Environment:
+          npm_config_loglevel: verbose
 
   SessionFunctionLogGroup:
     Type: AWS::Logs::LogGroup
