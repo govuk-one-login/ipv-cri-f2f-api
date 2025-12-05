@@ -1,4 +1,5 @@
 name: Pre-merge checks
+
 on:
   workflow_call:
     secrets:
