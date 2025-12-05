@@ -141,6 +141,7 @@ jobs:
           echo 'ignore-scripts?'
           npm config get ignore-scripts
           cd ../deploy
+          pwd
           echo 'ignore-scripts?'
           npm config get ignore-scripts
           sam build -t template.yaml
