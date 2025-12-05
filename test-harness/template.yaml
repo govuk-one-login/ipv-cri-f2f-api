@@ -240,6 +240,58 @@ Resources:
             Status: Enabled
             ExpirationInDays: 1
 
+  EmptyEventTestBucket:
+    Type: Custom::EmptyBucket
+    Properties:
+      ServiceToken: !GetAtt DeleteTestHarnessBucketFunction.Arn
+      BucketName: !Ref EventTestBucket
+    DependsOn: EventTestBucket
+
+  DeleteTestHarnessBucketFunction:
+    Type: AWS::Serverless::Function
+    DependsOn: DeleteTestHarnessBucketFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-DeleteTestHarnessBucket-${AWS::StackName}"
+      Handler: DeleteBucketHandler.lambdaHandler
+      CodeUri: ../src/
+      Policies:
+      - Statement:
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:ListBucketVersions
+              - s3:DeleteObject
+              - s3:DeleteObjectVersion
+            Resource: '*'
+
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false
+        EntryPoints:
+          - DeleteBucketHandler.ts
+        UseNpmCi: true
+
+  DeleteTestHarnessBucketFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-DeleteTestHarnessBucket-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  DeleteTestHarnessBucketFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DeleteTestHarnessBucketFunction
+      Principal: apigateway.amazonaws.com
+
   AccessTestHarnessRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -459,4 +511,3 @@ Outputs:
     Value: !Sub
       - "https://${URL}/"
       - URL: !Ref TestHarnessCustomDomain
-      
