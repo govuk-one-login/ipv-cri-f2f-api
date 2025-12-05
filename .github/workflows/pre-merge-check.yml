@@ -18,7 +18,7 @@ jobs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Get output variables
         id: vars
@@ -36,7 +36,7 @@ jobs:
         api_url: ${{ steps.api_url.outputs.api_url }}
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v2
@@ -83,7 +83,7 @@ jobs:
       contents: read
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: true
 
