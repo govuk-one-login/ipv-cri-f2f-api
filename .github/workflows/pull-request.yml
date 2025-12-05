@@ -141,8 +141,8 @@ jobs:
           pwd
           echo 'ignore-scripts?'
           npm config get ignore-scripts
-          echo 'npm install @esbuild/linux-x64@0.25.9 --no-save'
-          npm install @esbuild/linux-x64@0.25.9 --no-save
+          echo 'npm install @esbuild/linux-x64@0.25.9'
+          npm install @esbuild/linux-x64@0.25.9
           echo 'cd ../deploy'
           cd ../deploy
           pwd
