@@ -136,10 +136,14 @@ jobs:
       - name: SAM Build
         run: |
           pwd
+          echo 'cd ../src'
           cd ../src
           pwd
           echo 'ignore-scripts?'
           npm config get ignore-scripts
+          echo 'npm install @esbuild/linux-x64@0.25.9 --no-save'
+          npm install @esbuild/linux-x64@0.25.9 --no-save
+          echo 'cd ../deploy'
           cd ../deploy
           pwd
           echo 'ignore-scripts?'
