@@ -61,7 +61,9 @@ jobs:
           --s3-bucket ${{secrets.DEV_CRI_F2F_ARTIFACT_SOURCE_BUCKET_NAME}} \
           --template-file .aws-sam/build/template.yaml \
           --capabilities CAPABILITY_NAMED_IAM \
-          --parameter-overrides Environment=dev
+          --parameter-overrides \
+              Environment=dev \
+              IPVStubStackName="pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}"
       
       - name: Construct API URL
         id: api_url
