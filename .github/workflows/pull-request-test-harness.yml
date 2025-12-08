@@ -98,6 +98,8 @@ jobs:
 
       - name: SAM Build
         run: |
+          cd ./src
           npm ci
           npx esbuild --version
+          cd ..
           sam build -t template.yaml
