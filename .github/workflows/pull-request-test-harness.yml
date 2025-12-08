@@ -99,6 +99,6 @@ jobs:
       - name: SAM Build
         run: |
           cd ./src
-          npm install @esbuild/linux-x64@0.25.9
+          npm install @esbuild/linux-x64@0.25.2
           cd ..
           sam build -t template.yaml
