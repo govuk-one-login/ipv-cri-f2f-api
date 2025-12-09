@@ -97,8 +97,4 @@ jobs:
         run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml
 
       - name: SAM Build
-        run: |
-          cd ../src
-          npm install @esbuild/linux-x64@0.25.9
-          cd ../test-harness
-          sam build -t template.yaml
+        run: sam build -t template.yaml
