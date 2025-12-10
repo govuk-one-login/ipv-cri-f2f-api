@@ -25,7 +25,6 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    # timeout-minutes: 15
     needs: setup
     permissions:
       id-token: write
@@ -98,6 +97,7 @@ jobs:
         run: sam build -t template.yaml
 
       - name: SAM Deploy IPV stub
+        if: ${{ github.actor != 'dependabot[bot]' }}
         working-directory: ./f2f-ipv-stub
         run: |
           sam deploy \
