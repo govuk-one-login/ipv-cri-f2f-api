@@ -706,6 +706,72 @@ Resources:
     DependsOn: YotiLetterBucket
   
 
+  ### Bucket emptying & deletion
+
+  EmptyJsonWebKeysBucket:
+    Type: Custom::EmptyBucket
+    Condition: IsNotProdLikeEnvironment
+    Properties:
+      ServiceToken: !GetAtt DeleteBucketFunction.Arn
+      BucketName: !Ref JsonWebKeysBucket
+    DependsOn: JsonWebKeysBucket
+
+  EmptyYotiLetterBucket:
+    Type: Custom::EmptyBucket
+    Condition: IsNotProdLikeEnvironment
+    Properties:
+      ServiceToken: !GetAtt DeleteBucketFunction.Arn
+      BucketName: !Ref YotiLetterBucket
+    DependsOn: YotiLetterBucket
+
+  DeleteBucketFunction:
+    Type: AWS::Serverless::Function
+    Condition: IsNotProdLikeEnvironment
+    DependsOn: DeleteBucketFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-DeleteBucket-${AWS::StackName}"
+      Handler: DeleteBucketHandler.lambdaHandler
+      CodeUri: ../src/
+      Policies:
+      - Statement:
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:ListBucketVersions
+              - s3:DeleteObject
+              - s3:DeleteObjectVersion
+            Resource: '*'
+
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false
+        EntryPoints:
+          - DeleteBucketHandler.ts
+        UseNpmCi: true
+
+  DeleteBucketFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: IsNotProdLikeEnvironment
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-DeleteBucket-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  DeleteBucketFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Condition: IsNotProdLikeEnvironment
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DeleteBucketFunction
+      Principal: apigateway.amazonaws.com
+
   ### Start of API Gateway definition.
 
   F2FRestApi:
