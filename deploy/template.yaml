@@ -53,7 +53,7 @@ Parameters:
   LambdaConcurrencyThreshold:
     Description: "Threshold for Reserved concurrency running in non-DEV environments"
     Type: Number
-    Default: 16  #80% of Lambda concurrency
+    Default: 16  #80% of Lambda concurrency 
   ApplyReservedConcurrencyInDev:
     Description: "Set to true to apply reserved concurrency when deploying in DEV environments"
     Type: String
@@ -3720,7 +3720,7 @@ Resources:
       Timeout: 300
       ReservedConcurrentExecutions: !If
         - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
+        - 40
         - !Ref AWS::NoValue
       Environment:
         Variables:
@@ -3913,7 +3913,7 @@ Resources:
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      Threshold: !Ref LambdaConcurrencyThreshold
+      Threshold: 32
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
