@@ -50,7 +50,7 @@ jobs:
 
       - name: Archive coverage results
         if: ${{ inputs.coverage-report }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ inputs.coverage-artifact }}
           retention-days: 3
