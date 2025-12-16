@@ -53,7 +53,7 @@ Parameters:
   LambdaConcurrencyThreshold:
     Description: "Threshold for Reserved concurrency running in non-DEV environments"
     Type: Number
-    Default: 16  #80% of Lambda concurrency
+    Default: 16  #80% of Lambda concurrency 
   ApplyReservedConcurrencyInDev:
     Description: "Set to true to apply reserved concurrency when deploying in DEV environments"
     Type: String
@@ -124,25 +124,25 @@ Mappings:
       GOVUKNOTIFYDYNAMICREMINDERTEMPLATEID: "c403df64-adcd-487b-bedf-ae649c80ee5a"
       YOTISESSIONTTLDAYS: 15 # Default: 15 days
       RESOURCETTLSECS: 1814400 # Default: 21 days
-      CLIENTS:
-        '[
+      CLIENTS: >
+        [
           {
-              "jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
+              "jwksEndpoint":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
               "clientId":"5C584572",
-              "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
+              "redirectUri":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk",
               "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify",
               "OsLocationsApi": "https://zilsfhaczg.execute-api.eu-west-2.amazonaws.com/dev/search/places/v1/postcode"
           },
           {
-              "jwksEndpoint":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
+              "jwksEndpoint":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
               "clientId":"SandboxJourneyFlow",
-              "redirectUri":"https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
+              "redirectUri":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
               "YotiBaseUrl": "https://f2f-cri-outbound-proxy-proxy.review-o.dev.account.gov.uk/yoti",
               "GovNotifyApi": "https://api.notifications.service.gov.uk",
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
           }
-        ]'
+        ]
       AUTHSESSIONTTLSECS: 1814400 # Default: 21 days
       IPVCOREACCOUNT: arn:aws:iam::130355686670:root
       TESTHARNESSURL: "https://f2f-test-harness-testharness.review-o.dev.account.gov.uk"
@@ -386,8 +386,20 @@ Globals:
             !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
         SESSION_TABLE:
           Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-name"
-        CLIENT_CONFIG:
-            !FindInMap [ EnvironmentVariables, !Ref Environment, CLIENTS ]
+        CLIENT_CONFIG: !If
+          - CreateDevResources
+          - !Join ['', [
+                !Select [0, !Split ['${IPVStubStackName}', !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTS]]],
+                !Ref IPVStubStackName,
+                !Select [1, !Split ['${IPVStubStackName}', !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTS]]],
+                !Ref IPVStubStackName,
+                !Select [2, !Split ['${IPVStubStackName}', !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTS]]],
+                !Ref IPVStubStackName,
+                !Select [3, !Split ['${IPVStubStackName}', !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTS]]],
+                !Ref IPVStubStackName,
+                !Select [4, !Split ['${IPVStubStackName}', !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTS]]]
+            ]]
+          - !FindInMap [EnvironmentVariables, !Ref Environment, CLIENTS]
         SECRET_PREFIX: !If [
           UseSecretPrefix,
           !Ref SecretPrefix,
@@ -693,6 +705,72 @@ Resources:
                 "aws:SecureTransport": false
     DependsOn: YotiLetterBucket
   
+
+  ### Bucket emptying & deletion
+
+  EmptyJsonWebKeysBucket:
+    Type: Custom::EmptyBucket
+    Condition: IsNotProdLikeEnvironment
+    Properties:
+      ServiceToken: !GetAtt DeleteBucketFunction.Arn
+      BucketName: !Ref JsonWebKeysBucket
+    DependsOn: JsonWebKeysBucket
+
+  EmptyYotiLetterBucket:
+    Type: Custom::EmptyBucket
+    Condition: IsNotProdLikeEnvironment
+    Properties:
+      ServiceToken: !GetAtt DeleteBucketFunction.Arn
+      BucketName: !Ref YotiLetterBucket
+    DependsOn: YotiLetterBucket
+
+  DeleteBucketFunction:
+    Type: AWS::Serverless::Function
+    Condition: IsNotProdLikeEnvironment
+    DependsOn: DeleteBucketFunctionLogGroup
+    Properties:
+      FunctionName: !Sub "F2F-DeleteBucket-${AWS::StackName}"
+      Handler: DeleteBucketHandler.lambdaHandler
+      CodeUri: ../src/
+      Policies:
+      - Statement:
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:ListBucketVersions
+              - s3:DeleteObject
+              - s3:DeleteObjectVersion
+            Resource: '*'
+
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: false
+        EntryPoints:
+          - DeleteBucketHandler.ts
+        UseNpmCi: true
+
+  DeleteBucketFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: IsNotProdLikeEnvironment
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/F2F-DeleteBucket-${AWS::StackName}"
+      RetentionInDays:
+        !FindInMap [
+          EnvironmentConfiguration,
+          !Ref Environment,
+          logretentionindays,
+        ]
+
+  DeleteBucketFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Condition: IsNotProdLikeEnvironment
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DeleteBucketFunction
+      Principal: apigateway.amazonaws.com
 
   ### Start of API Gateway definition.
 
@@ -1531,7 +1609,6 @@ Resources:
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
-          CLIENT_CONFIG: !FindInMap [ EnvironmentVariables, !Ref Environment, CLIENTS ]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -3643,7 +3720,7 @@ Resources:
       Timeout: 300
       ReservedConcurrentExecutions: !If
         - ApplyReservedConcurrency
-        - !Ref LambdaConcurrency
+        - 40
         - !Ref AWS::NoValue
       Environment:
         Variables:
@@ -3836,7 +3913,7 @@ Resources:
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      Threshold: !Ref LambdaConcurrencyThreshold
+      Threshold: 32
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
