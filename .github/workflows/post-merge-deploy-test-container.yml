@@ -55,7 +55,7 @@ jobs:
         environment: ${{ fromJson(needs.setup.outputs.environments) }}
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v4
