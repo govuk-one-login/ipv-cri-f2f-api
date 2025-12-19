@@ -43,3 +43,17 @@ To enable the authorization code flow to complete successfully the CRI must be a
 GET https://base.uri/stage/.well-known/jwks.json
 Accept: application/json
 ```
+
+## CURL commands to start session in dev & build environments
+
+#### dev
+
+curl --location --request POST 'https://f2f-ipv-stub-ipvstub.review-o.dev.account.gov.uk/start' \
+--header 'Cookie: lng=en' \
+--data '' | grep -o '"AuthorizeLocation":"[^"]*' | cut -d'"' -f4
+
+#### build
+
+curl --location --request POST 'https://ipvstub.review-o.build.account.gov.uk/start' \
+--header 'Cookie: lng=en' \
+--data '' | grep -o '"AuthorizeLocation":"[^"]*' | cut -d'"' -f4
