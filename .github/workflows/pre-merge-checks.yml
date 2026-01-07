@@ -134,7 +134,7 @@ jobs:
       DEV_F2F_SESSION_TABLE_NAME: ${{ secrets.DEV_F2F_SESSION_TABLE_NAME }}
       DEV_F2F_PERSON_IDENTITY_TABLE_NAME: ${{ secrets.DEV_F2F_PERSON_IDENTITY_TABLE_NAME }}
       DEV_EXPIRED_SESSIONS_LAMBDA_NAME: ${{ secrets.DEV_EXPIRED_SESSIONS_LAMBDA_NAME }}
-      DNS_SUFFIX: ${{ secrets.DNS_SUFFIX }}
+      DNS_SUFFIX: ${{ secrets.DEV_DNS_SUFFIX }}
       VC_SIGNING_KEY_ID: ${{ secrets.DEV_VC_SIGNING_KEY_ID }}     
     steps:
       - name: Check out repository code
