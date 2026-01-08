@@ -117,8 +117,8 @@ jobs:
         
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: [setup, deploy]
+    timeout-minutes: 15
+    needs: deploy
     permissions:
       id-token: write
       contents: read
@@ -137,21 +137,39 @@ jobs:
           role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
 
+      - name: Placeholder for tests
+        run: |
+          echo "Test execution will be added"
+          echo "API URL: $PRE_MERGE_API_URL"
+          echo "Test Harness URL: $PRE_MERGE_TEST_HARNESS_URL"
+
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: always()
+    needs: [setup, test]
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Assume temporary AWS role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
+          aws-region: eu-west-2
+
       - name: Delete IPV stub stack
-        if: always()
         run: |
           echo "Deleting IPV stub stack: pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}"
           aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}"
 
       - name: Delete test harness stack
-        if: always()
         run: |
           echo "Deleting test harness stack: pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}"
           aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}"
           aws cloudformation wait stack-delete-complete --region eu-west-2 --stack-name "pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}"
 
       - name: Delete API stack
-        if: always()
         run: |
           echo "Deleting API stack: pre-merge-${{ needs.setup.outputs.sha_short }}"
           aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}"
