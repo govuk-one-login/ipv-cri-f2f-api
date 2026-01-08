@@ -118,7 +118,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: deploy
+    needs: [setup, deploy]
     permissions:
       id-token: write
       contents: read
@@ -140,16 +140,19 @@ jobs:
       - name: Delete IPV stub stack
         if: always()
         run: |
+          echo "Deleting IPV stub stack: pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}"
           aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}"
 
       - name: Delete test harness stack
         if: always()
         run: |
+          echo "Deleting test harness stack: pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}"
           aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}"
           aws cloudformation wait stack-delete-complete --region eu-west-2 --stack-name "pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}"
 
       - name: Delete API stack
         if: always()
         run: |
+          echo "Deleting API stack: pre-merge-${{ needs.setup.outputs.sha_short }}"
           aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}"
           
