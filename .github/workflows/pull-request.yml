@@ -53,7 +53,7 @@ jobs:
         working-directory: ./src/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: true
 
@@ -67,7 +67,7 @@ jobs:
         run: echo "mirror-dir=${GITHUB_WORKSPACE}/npm-packages-offline-cache" >> $GITHUB_OUTPUT
 
       - name: Cache npm offline-mirror
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.offline-mirror-path.outputs.mirror-dir }}
           key: offline-mirror-oauth
@@ -106,7 +106,7 @@ jobs:
         working-directory: ./deploy/
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: true
 
@@ -122,7 +122,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Cache SAM builds
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ./di-ipv-cri-f2f-api/.aws-sam/cache
