@@ -1,6 +1,6 @@
 # di-ipv-cri-f2f-api
 
-Face to Face (F2F) CRI backend API. Deployed via AWS SAM from `deploy/template.yaml` as Node.js Lambdas (built with `esbuild` from `src/`). API contract is defined in `deploy/f2f-spec.yaml` (OpenAPI 3.0.1).
+Face to Face (F2F) CRI backend API. Deployed to AWS as Node.js Lambda functions via AWS SAM (see `deploy/template.yaml`). API contract is `deploy/f2f-spec.yaml` (OpenAPI 3.0.1).
 
 > [!IMPORTANT]
 > This repository is **public**. Do **not** commit secrets, credentials, internal URLs, account identifiers, or sensitive configuration values. Document **names** and **purposes** only.
@@ -23,7 +23,9 @@ Face to Face (F2F) CRI backend API. Deployed via AWS SAM from `deploy/template.y
 - [Further documentation](#further-documentation)
 - [Code owners](#code-owners)
 - [Pre-commit checks](#pre-commit-checks)
+- [Security](#security)
 - [Troubleshooting](#troubleshooting)
+- [Licence](#licence)
 
 ---
 
@@ -32,26 +34,28 @@ Face to Face (F2F) CRI backend API. Deployed via AWS SAM from `deploy/template.y
 - **SAM stack:** `deploy/template.yaml` + `deploy/samconfig.toml`
 - **Run tests against a deployed stack:** `./run-tests-locally.sh <stack-name>`
 - **GOV.UK Notify templates:** `gov-notify-templates/`
+- **Architecture decisions (ADRs):** `adr/`
 
 ---
 
 ## What this service does
 - Implements OAuth2-style flows:
   - `GET /authorization` issues an authorization code for a session.
-  - `POST /token` exchanges an authorization code for a bearer access token (`application/x-www-form-urlencoded`).
-- Exposes F2F CRI endpoints for session management and retrieval of user/person information.
+  - `POST /token` exchanges an authorization code for a Bearer access token (`application/x-www-form-urlencoded`).
+- Provides session management and configuration for the F2F frontend, and returns encrypted person information for pre-population where supported.
 - Integrates with Yoti for in-branch verification and session results.
-- Sends user communications via GOV.UK Notify.
-- Receives asynchronous notifications via `/callback` (processed out-of-band).
+- Sends user communications via GOV.UK Notify (email and, where configured, letters).
+- Receives asynchronous notifications via `POST /callback`.
 
 ---
 
 ## Repository layout
 - `deploy/` SAM template, OpenAPI spec, and deployment config
+- `adr/` Architecture Decision Records (ADRs)
 - `src/` Lambda handlers and shared code
 - `gov-notify-templates/` Notify templates used by the service
 - `test-harness/`, `traffic-tests/` Test tooling and harnesses
-- `*stub/` Local/vendor stubs (Yoti, Post Office, GOV Notify)
+- `*stub*/` Local/vendor stubs (for example, Yoti, Post Office, Notify)
 
 ---
 
@@ -69,9 +73,9 @@ Face to Face (F2F) CRI backend API. Deployed via AWS SAM from `deploy/template.y
 | `/addressLocations` | POST | Address lookup (postcode/address search) |
 | `/documentSelection` | POST | Persists user selections and initiates Yoti session |
 | `/authorization` | GET | Issues an authorization code for the session |
-| `/token` | POST | Exchanges authorization code for a bearer access token (`application/x-www-form-urlencoded`) |
-| `/userinfo` | POST | Returns pending/final response (bearer token required; see spec) |
-| `/callback` | POST | Receives Yoti notifications (API Gateway → queue) |
+| `/token` | POST | Exchanges authorization code for a Bearer access token (`application/x-www-form-urlencoded`) |
+| `/userinfo` | POST | Returns pending/final response (Bearer token required) |
+| `/callback` | POST | Receives Yoti notifications (asynchronous callback) |
 | `/abort` | POST | Terminates the user session in a failed state |
 | `/.well-known/jwks.json` | GET | Publishes service JWKS (see spec/template) |
 
@@ -80,7 +84,8 @@ Face to Face (F2F) CRI backend API. Deployed via AWS SAM from `deploy/template.y
 ## Getting started
 
 Prerequisites:
-- Node.js version per `src/package.json`
+- Node.js version per `src/package.json` (`engines.node`)
+- AWS Lambda runtime: nodejs20.x (see `deploy/template.yaml`)
 - npm
 - Docker and AWS credentials (required for the containerised integration tests)
 
@@ -118,22 +123,24 @@ What it does:
 > [!CAUTION]
 > The runner writes AWS credential env vars into `docker_vars.env` and writes stack outputs to `cf-output.txt`. Ensure these files are not committed.
 
-Suites executed (from `run-tests.sh`):
+Suites executed (defined in `run-tests.sh`; common paths include):
 - If `SAM_STACK_NAME=f2f-yoti-stub`: runs `npm run test:yoti`
 - If `SAM_STACK_NAME=f2f-cri-api`: runs:
   - `npm run test:api`
   - `npm run test:api-third-party`
-  - then installs `jq` and runs `npm run test:pii`
+  - then runs `npm run test:pii`
 
 ### Test environment variables (names only)
+
+Only variable names are documented here. Do not commit values derived from stack outputs or local credentials.
 
 Set by `run-tests-locally.sh`:
 
 | Variable | Purpose |
 |---|---|
 | `SAM_STACK` / `SAM_STACK_NAME` | Stack name (arg) |
-| `AWS_REGION` | Region used for CFN output lookup (script sets `eu-west-2`) |
-| `ENVIRONMENT` | Target env identifier (script sets `dev`) |
+| `AWS_REGION` | Region used for CFN output lookup (default in scripts) |
+| `ENVIRONMENT` | Target env identifier (default in scripts) |
 | `TEST_REPORT_DIR` / `TEST_REPORT_ABSOLUTE_DIR` | Test output dir |
 
 AWS credentials are passed through to the container if present:
@@ -161,23 +168,33 @@ For `f2f-yoti-stub`:
 
 ---
 
+### Local environment variables (.env)
+- Local development and some local test runs use `src/.env` (typically created from `src/.env.example` if present). 
+- `run-tests-locally.sh`/`run-tests.sh` run tests against a deployed stack and populate required env vars from CloudFormation outputs, writing temporary env files for Docker.
+- Do not commit `.env` or generated env/output files.
+
+---
+
 ## Authentication and required headers
 
 From `deploy/f2f-spec.yaml`:
-- `x-govuk-signin-session-id` (UUID): `sessionId` returned by `POST /session` (required by some endpoints).
-- `session-id` (string/UUID): session identifier used as DynamoDB primary key for some endpoints.
-- `Authorization: bearer <token>`: bearer access token issued by `POST /token` (required by some endpoints, e.g. `/userinfo` per spec).
-- Optional: `txma-audit-encoded` (audit metadata from FE).
+- `x-govuk-signin-session-id`: session identifier returned by `POST /session` (required by some endpoints).
+- `session-id`: session identifier used by some endpoints.
+- `Authorization: Bearer <token>`: Bearer access token issued by `POST /token` (required by some endpoints).
+- `txma-audit-encoded`: optional audit metadata header (where supported).
 
 > [!TIP]
 > Endpoint-by-endpoint header requirements are defined on each path in `deploy/f2f-spec.yaml` under `parameters:`.
 
 ---
 
-## Curl examples (sanitised)
+## Curl examples
 
 > [!IMPORTANT]
 > Replace placeholders; do not commit tokens or environment-specific values.
+
+> [!NOTE]
+> Full curl documentation for IPV stubs is still being finalised and will be completed under KIWI-1753. Examples here are placeholders.
 
 POST `/token` (form-encoded)
 ```sh
@@ -197,7 +214,7 @@ curl -sS -X GET "https://<service-base-url>/authorization" \
 POST `/userinfo` (bearer token)
 ```sh
 curl -sS -X POST "https://<service-base-url>/userinfo" \
-  -H "Authorization: bearer <access_token>" \
+  -H "Authorization: Bearer <access_token>" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -206,19 +223,19 @@ POST `/callback` (Yoti async callback)
 ```sh
 curl -sS -X POST "https://<service-base-url>/callback" \
   -H "Content-Type: application/json" \
-  -d '<callback_payload_json>'
+  -d '{"example":"payload"}'
 ```
 
 ---
 
 ## IPV stub: start journey (curl)
-Some environments provide an IPV stub `/start` endpoint which returns an `AuthorizeLocation` used to enter the F2F journey.
+Some deployments use an IPV stub `/start` endpoint which returns an `AuthorizeLocation` used to enter the F2F journey.
 
 > [!NOTE]
 > The `/start` endpoint belongs to the IPV stub service, not this repository. It is included here as a convenience for manual end-to-end testing.
 
 > [!IMPORTANT]
-> Do not add real internal environment hostnames to this public repo. Use placeholders and refer to internal documentation for current URLs.
+> Do not add real environment hostnames to this public repo. Use placeholders and refer to your team documentation for environment-specific URLs.
 
 ```sh
 curl --location --request POST "https://<ipv-stub-host>/start" \
@@ -229,15 +246,16 @@ curl --location --request POST "https://<ipv-stub-host>/start" \
 ---
 
 ## Async processing
-- `POST /callback` uses API Gateway → queue integration (see `deploy/f2f-spec.yaml`) to accept asynchronous notifications from Yoti.
-- A queue consumer triggers a Step Function workflow (`src/stepFunctions/yotiCallback.asl.json`) which routes notifications to handler Lambdas.
-- Notifications drive downstream processing such as session completion handling and user communications (e.g. instruction/thank-you emails).
-- Notification handling may trigger Notify comms and publish messages to downstream queues (see `deploy/template.yaml`).
+- `POST /callback` is an asynchronous integration point. Events are processed out-of-band and may trigger workflow orchestration (for example, Step Functions) and downstream actions such as session completion and user communications. Infrastructure wiring is defined in `deploy/template.yaml`.
+- Where configured, callback processing may invoke Step Functions workflows defined under `src/stepFunctions/` (see `deploy/template.yaml`).
+
+### Printed customer letters (optional journey path)
+Where configured for postal delivery, the service can request a PDF letter via GOV.UK Notify.
 
 ---
 
 ## Integrations
-- **Yoti:** asynchronous callback via `/callback` and session retrieval/processing in `src/`.
+- **Yoti:** third-party identity verification provider; asynchronous callback via `/callback` and session retrieval/processing.
 - **GOV.UK Notify:** templates in `gov-notify-templates/` (used by Lambda handlers in `src/`).
 
 > [!IMPORTANT]
@@ -257,27 +275,31 @@ Pipeline-provided parameters referenced in `deploy/template.yaml` (injected by t
 - `TrafficTestRoleArn`
 - `LambdaDeploymentPreference`
 
-This repo does not include the pipeline configuration; follow your internal platform/pipeline documentation for triggers, approvals, and status.
+This repository does not include pipeline configuration; deployment is typically managed via the owning team’s CI/CD tooling.
 
 Local / ephemeral stack deployment in Dev (exceptional):
 ```sh
-cd ./deploy
+cd deploy
 sam build --parallel
-sam deploy --resolve-s3 --stack-name "YOUR_STACK_NAME" --confirm-changeset --config-env dev --parameter-overrides \
-  "CodeSigningConfigArn=\"none\" Environment=\"dev\" PermissionsBoundary=\"none\" SecretPrefix=\"none\" VpcStackName=\"vpc-cri\" L2DynamoStackName=\"infra-l2-dynamo\" L2KMSStackName=\"infra-l2-kms\" PowertoolsLogLevel=\"DEBUG\""
+sam deploy --resolve-s3 --stack-name "YOUR_STACK_NAME" --confirm-changeset --config-env dev
 ```
+
+---
+
+### Dev / personal stack naming
+Deploy with a custom stack name (include your initials) to avoid overwriting a shared API stack. Set the stack name in `deploy/samconfig.toml` (for example, `f2f-cri-api-<initials>` or similar). After deploying, update the test harness SAM config in `test-harness/deploy/samconfig.toml` to reference the custom API stack name so the harness targets the correct stack.
 
 ---
 
 ## Further documentation
 - API contract: `deploy/f2f-spec.yaml`
 - Architecture decisions: `adr/`
-- Internal (requires access): Confluence — “F2F CRI Guide”
+- Further documentation may exist for team members (not included in this repository).
 
 ---
 
 ## Code owners
-A `CODEOWNERS` file exists at repo root and PRs require review by code owners.
+If a `CODEOWNERS` file is present at the repo root, PRs require review by code owners.
 
 ---
 
@@ -288,6 +310,11 @@ Install and enable:
 ```sh
 pre-commit install
 ```
+
+---
+
+## Security
+If you believe you have found a security vulnerability, please do not raise it in a public GitHub issue. Follow your organisation’s responsible disclosure process.
 
 ---
 
@@ -306,10 +333,9 @@ Token exchange fails (`POST /token`):
 401/403 responses:
 - Confirm required headers per endpoint in `deploy/f2f-spec.yaml`:
   - Session headers (`x-govuk-signin-session-id` or `session-id`)
-  - Bearer token: `Authorization: bearer <access_token>`
+  - Bearer token: `Authorization: Bearer <access_token>`
 
-chrome error responses:
-- When recieveing a (`"chrome-error:chromewebdata/“`) error when expecting (`https://www.gov.uk/`)
-  - Turn off VPN and re-run
-  - Clear browser cache
-  - Change search engine to firefox/ internet explorer and re-run
+---
+
+## Licence
+This repository does not currently publish a `LICENSE`/`LICENCE` file. If you need reuse/distribution terms, consult the owning organisation’s guidance before redistributing.
