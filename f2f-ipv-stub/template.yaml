@@ -49,11 +49,13 @@ Mappings:
       IPVSTUBURL: "ipvstub.review-o.dev.account.gov.uk"
       OAUTHFRONTBASEURI: "https://f2f-cri-front.review-o.dev.account.gov.uk"
       AUD: "https://review-o.dev.account.gov.uk"
+      DNSSUFFIX: review-o.dev.account.gov.uk
     build:
       IPVStubID: "BD7B2A5D"
       IPVSTUBURL: "ipvstub.review-o.build.account.gov.uk"
       OAUTHFRONTBASEURI:  "https://www.review-o.build.account.gov.uk"
       AUD: "https://review-o.build.account.gov.uk"
+      DNSSUFFIX: review-o.build.account.gov.uk
     staging:
       IPVStubID: "9CDA6F61"
     integration:
@@ -185,23 +187,32 @@ Resources:
           Value: !If [ IsDevOrBuild, "true", "none" ]
 
   # Redirect ---------------------------------------
-  RedirectPath:
+  CredentialIssuerPath:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref IPVStubApiGw
       ParentId: !GetAtt IPVStubApiGw.RootResourceId
-      PathPart: redirect
+      PathPart: credential-issuer
+
+  CallbackPath:
+    DependsOn:
+      - CredentialIssuerPath
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref IPVStubApiGw
+      ParentId: !Ref CredentialIssuerPath
+      PathPart: callback
 
   RedirectMethodGet:
     DependsOn:
-      - RedirectPath
+      - CallbackPath
       - IPVStubRedirectFunction
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: NONE
       RestApiId: !Ref IPVStubApiGw
-      ResourceId: !Ref RedirectPath
-      HttpMethod: POST
+      ResourceId: !Ref CallbackPath
+      HttpMethod: GET
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -380,11 +391,11 @@ Resources:
           REDIRECT_URI: !If
           - CreateDevResources
           - !Sub
-            - "https://${AWS::StackName}-${IPVSTUBURL}/redirect?id=f2f"
+            - "https://${AWS::StackName}-${IPVSTUBURL}/credential-issuer/callback?id=f2f"
             - IPVSTUBURL:
                 !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
           - !Sub
-            - "https://${IPVSTUBURL}/redirect?id=f2f"
+            - "https://${IPVSTUBURL}/credential-issuer/callback?id=f2f"
             - IPVSTUBURL:
                 !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
           OIDC_FRONT_BASE_URI: !FindInMap [Configuration, !Ref Environment, OAUTHFRONTBASEURI]
@@ -545,6 +556,16 @@ Resources:
       FunctionName: !Sub "IPVStubRedirect-${AWS::StackName}"
       Handler: callback.handler
       CodeUri: src/
+      Environment:
+        Variables:
+          DEV_IPV_F2F_STUB_URL: !Sub
+              - "https://${AWS::StackName}-${IPVSTUBURL}"
+              - IPVSTUBURL:
+                  !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
+          DEV_CRI_F2F_API_URL: !Sub
+              - "https://api-${BackendStack}.${DNSSUFFIX}"
+              - DNSSUFFIX:
+                  !FindInMap [ Configuration, !Ref Environment, DNSSUFFIX ]
       Role: !GetAtt IPVStubLambdaRole.Arn
     Metadata:
       BuildMethod: esbuild

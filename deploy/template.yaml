@@ -129,7 +129,7 @@ Mappings:
           {
               "jwksEndpoint":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
               "clientId":"5C584572",
-              "redirectUri":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
+              "redirectUri":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk",
               "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify",
               "OsLocationsApi": "https://zilsfhaczg.execute-api.eu-west-2.amazonaws.com/dev/search/places/v1/postcode"
@@ -137,7 +137,7 @@ Mappings:
           {
               "jwksEndpoint":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
               "clientId":"SandboxJourneyFlow",
-              "redirectUri":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/redirect?id=f2f",
+              "redirectUri":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://f2f-cri-outbound-proxy-proxy.review-o.dev.account.gov.uk/yoti",
               "GovNotifyApi": "https://api.notifications.service.gov.uk",
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
@@ -165,7 +165,7 @@ Mappings:
           {
               "jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json",
               "clientId":"BD7B2A5D",
-              "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
+              "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://yotistub.review-o.build.account.gov.uk",
               "GovNotifyApi": "https://govnotifystub.review-o.build.account.gov.uk/govnotify",
               "OsLocationsApi": "https://vq96n2kz0g.execute-api.eu-west-2.amazonaws.com/build/search/places/v1/postcode"
@@ -173,7 +173,7 @@ Mappings:
           {
               "jwksEndpoint":"https://ipvstub.review-o.build.account.gov.uk/.well-known/jwks.json",
               "clientId":"SandboxJourneyFlow",
-              "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/redirect?id=f2f",
+              "redirectUri":"https://ipvstub.review-o.build.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://proxy.review-o.build.account.gov.uk/yoti",
               "GovNotifyApi": "https://api.notifications.service.gov.uk",
               "OsLocationsApi": "https://api.os.uk/search/places/v1/postcode"
