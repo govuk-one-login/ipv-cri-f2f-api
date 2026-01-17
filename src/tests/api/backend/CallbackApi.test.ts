@@ -20,6 +20,9 @@ import { constants } from "../ApiConstants";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";
 import { DocSelectionData } from "../types";
 
+//QualityGateIntegrationTest 
+//QualityGateRegressionTest
+//QualityGateStackTest
 describe("/callback endpoint", () => {
 	jest.setTimeout(60000);
 
