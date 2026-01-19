@@ -159,7 +159,36 @@ jobs:
         working-directory: ./src
         run: npm run test:api
 
-      - name: Placeholder for cleanup
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    if: always()
+    needs: [setup, test]
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Assume temporary AWS role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Delete IPV stub stack
         run: |
-          echo "Stacks cleanup will be added"
+          echo "Deleting IPV stub stack: pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}"
+          aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}"
+          aws cloudformation wait stack-delete-complete --region eu-west-2 --stack-name "pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}"
+
+      - name: Delete test harness stack
+        run: |
+          echo "Deleting test harness stack: pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}"
+          aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}"
+          aws cloudformation wait stack-delete-complete --region eu-west-2 --stack-name "pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}"
+
+      - name: Delete API stack
+        run: |
+          echo "Deleting API stack: pre-merge-${{ needs.setup.outputs.sha_short }}"
+          aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}"
+          aws cloudformation wait stack-delete-complete --region eu-west-2 --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}"
           
