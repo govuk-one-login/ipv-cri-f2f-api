@@ -24,6 +24,7 @@ import { randomUUID } from "crypto";
 
 //QualityGateIntegrationTest 
 //QualityGateRegressionTest
+//QualityGateStackTest
 describe("Unhappy Path Tests", () => {
 
 	describe("/session endpoint", () => {
