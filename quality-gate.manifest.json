@@ -34,7 +34,7 @@
           }
         },
         {
-          "check-types": ["accessibility", "stack", "integration"],
+          "check-types": ["regression", "stack", "integration"],
           "provider": "GitHub",
           "phase": "pre-merge",
           "config": {
