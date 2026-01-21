@@ -231,80 +231,7 @@ const CODE_STYLING_RULES = {
   // "computed-property-spacing": ["error", "always"],
   'comma-spacing': 'error',
   'semi-spacing': 'error',
-  'rest-spread-spacing': 'error',
-  '@typescript-eslint/tslint/config': [
-    'error',
-    {
-      rules: {
-        ban: [
-          true,
-          {
-            name: [
-              'it',
-              'skip'
-            ]
-          },
-          {
-            name: [
-              'it',
-              'only'
-            ]
-          },
-          {
-            name: [
-              'it',
-              'async',
-              'skip'
-            ]
-          },
-          {
-            name: [
-              'it',
-              'async',
-              'only'
-            ]
-          },
-          {
-            name: [
-              'describe',
-              'skip'
-            ]
-          },
-          {
-            name: [
-              'describe',
-              'only'
-            ]
-          },
-          {
-            name: 'parseInt',
-            message: 'tsstyle#type-coercion'
-          },
-          {
-            name: 'parseFloat',
-            message: 'tsstyle#type-coercion'
-          },
-          {
-            name: 'Array',
-            message: 'tsstyle#array-constructor'
-          },
-          {
-            name: [
-              '*',
-              'innerText'
-            ],
-            message: 'Use .textContent instead. tsstyle#browser-oddities'
-          }
-        ],
-        'prefer-method-signature': true,
-        typedef: [
-          true,
-          'call-signature',
-          'property-declaration'
-        ]
-      }
-    }
-  ]
+  'rest-spread-spacing': 'error'
 }
 
 const JEST_RULES = {
@@ -386,7 +313,6 @@ module.exports = {
     'eslint-plugin-jsdoc',
     'eslint-plugin-prefer-arrow',
     '@typescript-eslint',
-    '@typescript-eslint/tslint',
     'jest',
     'security'
   ],
