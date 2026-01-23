@@ -137,6 +137,5 @@ jobs:
         run: sam build -t template.yaml
 
   pre-merge-checks:
-    if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/pre-merge-checks.yml
     secrets: inherit
