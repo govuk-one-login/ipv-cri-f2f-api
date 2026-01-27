@@ -54,7 +54,6 @@ jobs:
         run: sam build -t template.yaml
 
       - name: SAM Deploy API stack
-        if: ${{ github.actor != 'dependabot[bot]' }}
         working-directory: ./deploy
         run: |
           sam deploy \
@@ -76,7 +75,6 @@ jobs:
         run: sam build -t template.yaml
 
       - name: SAM Deploy F2F test harness stack
-        if: ${{ github.actor != 'dependabot[bot]' }}
         working-directory: ./test-harness
         run: |
           sam deploy \
@@ -98,7 +96,6 @@ jobs:
         run: sam build -t template.yaml
 
       - name: SAM Deploy IPV stub
-        if: ${{ github.actor != 'dependabot[bot]' }}
         working-directory: ./f2f-ipv-stub
         run: |
           sam deploy \
