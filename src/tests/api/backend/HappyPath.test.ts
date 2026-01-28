@@ -1,4 +1,3 @@
- 
 import {
 	sessionPost,
 	stubStartPost,
@@ -39,6 +38,10 @@ import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
 import fs from "fs";
 import { convertPdfToImages } from "../../visual/helpers";
 import { toMatchImageSnapshot } from "jest-image-snapshot";
+
+//QualityGateIntegrationTest 
+//QualityGateRegressionTest
+//QualityGateStackTest
 
 describe("/session endpoint", () => {
 
