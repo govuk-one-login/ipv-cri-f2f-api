@@ -144,7 +144,7 @@ jobs:
           aws-region: eu-west-2
       
       - name: Setup nodeJS v22
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 22
       
