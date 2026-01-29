@@ -55,7 +55,7 @@ jobs:
         environment: ${{ fromJson(needs.setup.outputs.environments) }}
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v5
@@ -84,7 +84,7 @@ jobs:
           cosign sign --key awskms:///${CONTAINER_SIGN_KMS_KEY} $ECR_REGISTRY/$TEST_ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Build, push traffic test image to ECR
-        uses: govuk-one-login/devplatform-upload-action-ecr@224346cd422f5bdfb6b68d0f8e189e55354b2804 # pin@1.4.0 
+        uses: govuk-one-login/devplatform-upload-action-ecr@f82c8774a6390f200b15112b3cbb9faf3442173c # pin@1.5.0
         with:
           artifact-bucket-name: ""
           container-sign-kms-key-arn: ${{ secrets[format('{0}_CONTAINER_SIGN_KMS_KEY', matrix.environment)] }}

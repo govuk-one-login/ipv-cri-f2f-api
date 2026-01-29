@@ -33,6 +33,10 @@ Parameters:
       calling this stuff.
     Default: vpc-cri
     Type: String
+  L2KMSStackName:
+    Description: The name of the L2 DynamoDB stack deployed.
+    Default: "f2f-cri-kms"
+    Type: String
   PermissionsBoundary:
     Description: "The ARN of the permissions boundary to apply when creating IAM roles. Mandatory."
     Type: String
@@ -71,6 +75,9 @@ Conditions:
       - Fn::Equals:
           - !Ref PermissionsBoundary
           - "none"
+  IsDevOrBuild: !Or
+    - !Equals [ !Ref Environment, dev ]
+    - !Equals [ !Ref Environment, build ]
 
 Globals:
   Function:
@@ -99,9 +106,9 @@ Resources:
                   - kms:Sign
                   - kms:GetPublicKey
                 Resource:
-                  - !GetAtt IPVStubKMSSigningKey.Arn
-                  - !GetAtt IPVStubKMSAdditionalKey.Arn
-                  - !GetAtt IPVStubKMSAdditionalEncryptionKey.Arn
+                  - Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-signing-key"
+                  - Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-additional-signing-key"
+                  - Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-additional-encryption-key"
               - Effect: Allow
                 Action:
                   - "logs:CreateLogGroup"
@@ -132,6 +139,50 @@ Resources:
         {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":"*","Action":"execute-api:Invoke","Resource":["execute-api:/*"]}]}
       Parameters:
         endpointConfigurationTypes: REGIONAL
+
+  IPVStubApiGwStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: !Ref Environment
+      RestApiId: !Ref IPVStubApiGw
+      DeploymentId: !Ref IPVStubApiGwDeployment
+      AccessLogSetting:
+        DestinationArn: !GetAtt IPVStubApiAccessLogGroup.Arn
+        Format: >-
+          {
+          "requestId":"$context.requestId",
+          "ip": "$context.identity.sourceIp",
+          "requestTime":"$context.requestTime",
+          "httpMethod":"$context.httpMethod",
+          "path": "$context.path",
+          "routeKey":"$context.routeKey",
+          "status":"$context.status",
+          "protocol":"$context.protocol",
+          "responseLength":"$context.responseLength"
+          }
+      TracingEnabled: true
+      MethodSettings:
+      - ResourcePath: "/*"
+        HttpMethod: "*"
+        LoggingLevel: INFO
+        DataTraceEnabled: true
+      Tags:
+        - Key: Product
+          Value: GOV.UK Sign In
+        - Key: System
+          Value: IPVStub
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Service
+          Value: backend
+        - Key: Name
+          Value: IPVStubApiStage
+        - Key: Source
+          Value: IPVStub
+        - Key: FMSRegionalPolicy
+          Value: !If [ IsDevOrBuild, "false", "none" ]
+        - Key: CustomPolicy
+          Value: !If [ IsDevOrBuild, "true", "none" ]
 
   # Redirect ---------------------------------------
   RedirectPath:
@@ -301,25 +352,6 @@ Resources:
     Properties:
       RestApiId: !Ref IPVStubApiGw
       Description: This resource deploys an API Gateway RestApi resource to a stage so that clients can call the API over the internet
-      StageName: !Sub ${Environment}
-      StageDescription:
-        AccessLogSetting:
-          DestinationArn: !GetAtt IPVStubApiAccessLogGroup.Arn
-          Format: >-
-            {
-            "requestId":"$context.requestId",
-            "ip": "$context.identity.sourceIp",
-            "requestTime":"$context.requestTime",
-            "httpMethod":"$context.httpMethod",
-            "path": "$context.path",
-            "routeKey":"$context.routeKey",
-            "status":"$context.status",
-            "protocol":"$context.protocol",
-            "responseLength":"$context.responseLength"
-            }
-        DataTraceEnabled: true
-        LoggingLevel: INFO
-        TracingEnabled: true
 
   IPVStubApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -338,9 +370,12 @@ Resources:
       CodeUri: src/
       Environment:
         Variables:
-          SIGNING_KEY: !Ref IPVStubKMSSigningKey
-          ADDITIONAL_SIGNING_KEY: !Ref IPVStubKMSAdditionalKey
-          ADDITIONAL_ENCRYPTION_KEY: !Ref IPVStubKMSAdditionalEncryptionKey
+          SIGNING_KEY: 
+            Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-signing-key" 
+          ADDITIONAL_SIGNING_KEY: 
+            Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-additional-signing-key"
+          ADDITIONAL_ENCRYPTION_KEY: 
+            Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-additional-encryption-key"
           CLIENT_ID: !FindInMap [Configuration, !Ref Environment, IPVStubID]
           REDIRECT_URI: !If
           - CreateDevResources
@@ -364,8 +399,8 @@ Resources:
               Action:
                 - kms:Sign
               Resource:
-                - !GetAtt IPVStubKMSSigningKey.Arn
-                - !GetAtt IPVStubKMSAdditionalKey.Arn
+                - Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-signing-key"
+                - Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-additional-signing-key"
       Role: !GetAtt IPVStubLambdaRole.Arn
       PermissionsBoundary: !If
         - UsePermissionsBoundary
@@ -405,8 +440,10 @@ Resources:
       CodeUri: src/
       Environment:
         Variables:
-          SIGNING_KEY: !Ref IPVStubKMSSigningKey
-          ADDITIONAL_SIGNING_KEY: !Ref IPVStubKMSAdditionalKey
+          SIGNING_KEY: 
+            Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-signing-key"
+          ADDITIONAL_SIGNING_KEY: 
+            Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-additional-signing-key"
           JWT_AUDIENCE: !FindInMap [Configuration, !Ref Environment, AUD]
       Policies:
         - Statement:
@@ -415,7 +452,7 @@ Resources:
               Action:
                 - kms:Sign
               Resource:
-                - !GetAtt IPVStubKMSSigningKey.Arn
+                - Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-signing-key"
       Role: !GetAtt IPVStubLambdaRole.Arn
       PermissionsBoundary: !If
         - UsePermissionsBoundary
@@ -455,9 +492,12 @@ Resources:
       CodeUri: src/
       Environment:
         Variables:
-          SIGNING_KEY: !Ref IPVStubKMSSigningKey
-          ADDITIONAL_SIGNING_KEY: !Ref IPVStubKMSAdditionalKey
-          ADDITIONAL_ENCRYPTION_KEY: !Ref IPVStubKMSAdditionalEncryptionKey
+          SIGNING_KEY: 
+            Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-signing-key"
+          ADDITIONAL_SIGNING_KEY: 
+            Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-additional-signing-key"
+          ADDITIONAL_ENCRYPTION_KEY: 
+            Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-additional-encryption-key"
       Policies:
         - Statement:
             - Sid: KMSSignPolicy
@@ -465,9 +505,9 @@ Resources:
               Action:
                 - kms:GetPublicKey
               Resource:
-                - !GetAtt IPVStubKMSSigningKey.Arn
-                - !GetAtt IPVStubKMSAdditionalKey.Arn
-                - !GetAtt IPVStubKMSAdditionalEncryptionKey.Arn
+                - Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-signing-key"
+                - Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-additional-signing-key"
+                - Fn::ImportValue: !Sub "${L2KMSStackName}-ipvstub-additional-encryption-key"
       Role: !GetAtt IPVStubLambdaRole.Arn
       PermissionsBoundary: !If
         - UsePermissionsBoundary
@@ -529,126 +569,6 @@ Resources:
       RetentionInDays: 30
       LogGroupName: !Sub "/aws/lambda/IPVStubRedirect-${AWS::StackName}"
 
-  IPVStubKMSSigningKey:
-    Type: AWS::KMS::Key
-    Properties:
-      Description: A KMS Key for testing signing KMS integration in the development account.
-      Enabled: true
-      EnableKeyRotation: false
-      KeyPolicy:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action:
-              - "kms:*"
-            Resource:
-              - "*"
-      KeySpec: ECC_NIST_P256
-      KeyUsage: SIGN_VERIFY
-      MultiRegion: false
-      PendingWindowInDays: 7
-      Tags:
-        - Key: KeyType
-          Value: Test Signing Key
-        - Key: Environment
-          Value: !Sub ${Environment}
-
-  IPVStubKMSAdditionalKey:
-    Type: AWS::KMS::Key
-    Properties:
-      Description: A additional valid signing key in KMS to reflect multiple JWK's returned by the 'well-known' endpoint.
-      Enabled: true
-      EnableKeyRotation: false
-      KeyPolicy:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action:
-              - "kms:*"
-            Resource:
-              - "*"
-      KeySpec: ECC_NIST_P256
-      KeyUsage: SIGN_VERIFY
-      MultiRegion: false
-      PendingWindowInDays: 7
-      Tags:
-        - Key: KeyType
-          Value: Test Signing Key
-        - Key: Environment
-          Value: !Sub ${Environment}
-
-  IPVStubKMSAdditionalEncryptionKey:
-    Type: AWS::KMS::Key
-    Properties:
-      Description: A unique public encryption key not available at the CRI's /well-known/jwks.json endpoint to test scenarios where decryption fails
-      Enabled: true
-      EnableKeyRotation: false
-      KeyPolicy:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action:
-              - "kms:*"
-            Resource:
-              - "*"
-      KeySpec: RSA_2048
-      KeyUsage: ENCRYPT_DECRYPT
-      MultiRegion: false
-      PendingWindowInDays: 7
-      Tags:
-        - Key: KeyType
-          Value: Test Encryption Key
-        - Key: Environment
-          Value: !Sub ${Environment}
-
-  IPVStubId:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Description: The ID that identifies the client
-      Name: !Sub "/${Environment}/${AWS::StackName}/API/TEST_CLIENT_ID"
-      Type: String
-      Value: !FindInMap [Configuration, !Ref Environment, IPVStubID]
-      Tags:
-        APP: !Sub f2f-${AWS::StackName}
-
-  RedirectEndpointUri:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Description: The Redirect URI
-      Name: !Sub "/${Environment}/${AWS::StackName}/API/TEST_CLIENT_REDIRECT_ENDPOINT"
-      Type: String
-      Value: !Sub
-        - "https://${testRedirectUri}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/redirect"
-        - testRedirectUri: !Ref IPVStubApiGw
-      Tags:
-        APP: !Sub f2f-${AWS::StackName}
-
-  IPVStubSigningKey:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Description: The Base URI from backend stack to test
-      Name: !Sub "/${Environment}/${AWS::StackName}/API/TEST_CLIENT_SIGNING_KEY"
-      Type: String
-      Value: !Ref IPVStubKMSSigningKey
-      Tags:
-        APP: !Sub f2f-${AWS::StackName}
-
-  IPVStubJwksEndpoint:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Description: The Base URI from backend stack to test
-      Name: !Sub "/${Environment}/${AWS::StackName}/API/TEST_CLIENT_JWKS_ENDPOINT"
-      Type: String
-      Value: !Sub "https://${IPVStubApiGw}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/.well-known/jwks.json"
-      Tags:
-        APP: !Sub f2f-${AWS::StackName}
-
   IPVStubExternalApiCustomDomain:
     Type: AWS::ApiGatewayV2::DomainName
     Properties:
@@ -684,6 +604,7 @@ Resources:
       Stage: !Ref Environment
     DependsOn:
       - IPVStubApiGwDeployment
+      - IPVStubApiGwStage
 
 Outputs:
   IPVStubExecuteUrl:

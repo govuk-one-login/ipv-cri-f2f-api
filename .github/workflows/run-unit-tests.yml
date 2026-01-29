@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pull repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Node
         uses: actions/setup-node@v5
@@ -37,7 +37,7 @@ jobs:
         run: echo "mirror-dir=${GITHUB_WORKSPACE}/npm-packages-offline-cache" >> $GITHUB_OUTPUT
 
       - name: Cache npm offline-mirror
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
          path: ${{ steps.offline-mirror-path.outputs.mirror-dir }}
          key: offline-mirror-oauth
@@ -50,7 +50,7 @@ jobs:
 
       - name: Archive coverage results
         if: ${{ inputs.coverage-report }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ inputs.coverage-artifact }}
           retention-days: 3

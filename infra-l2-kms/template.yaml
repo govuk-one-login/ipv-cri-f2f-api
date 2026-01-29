@@ -46,6 +46,10 @@ Conditions:
       - Fn::Equals:
           - !Ref PermissionsBoundary
           - "none"
+  
+  CreateDevResources: !Or
+    - !Equals [!Ref Environment, 'dev']
+    - !Equals [!Ref Environment, 'build']
 
 Globals:
   Function:
@@ -126,12 +130,115 @@ Resources:
     Properties:
       AliasName: !Sub "alias/${AWS::StackName}-encryption-key"
       TargetKeyId: !Ref KMSEncryptionKey
-  
-  KMSEncryptionKeyAliasKeyRotationActive:
-    Type: 'AWS::KMS::Alias'
+
+# KMS keys for the IPV stub, only deployed to Dev and Build
+  IPVStubSigningKey:
+    Type: AWS::KMS::Key
+    Condition: CreateDevResources
     Properties:
-      AliasName: !Sub "alias/session_decryption_key_active_alias"
-      TargetKeyId: !Ref KMSEncryptionKey
+      Description: A KMS Key for testing signing KMS integration in the development account.
+      Enabled: true
+      EnableKeyRotation: false
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource:
+              - "*"
+      KeySpec: ECC_NIST_P256
+      KeyUsage: SIGN_VERIFY
+      MultiRegion: false
+      PendingWindowInDays: !Ref KmsPendingWindowInDays
+      Tags:
+        - Key: KeyType
+          Value: Test Signing Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+        - Key: CheckovRulesToSkip
+          Value: CKV_AWS_7
+
+  IPVStubSigningKeyAlias:
+    Type: 'AWS::KMS::Alias'
+    Condition: CreateDevResources
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-ipvstub-signing-key"
+      TargetKeyId: !Ref IPVStubSigningKey
+
+  IPVStubAdditionalSigningKey:
+    Type: AWS::KMS::Key
+    Condition: CreateDevResources
+    Properties:
+      Description: A additional valid signing key in KMS to reflect multiple JWK's returned by the 'well-known' endpoint
+      Enabled: true
+      EnableKeyRotation: false
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource:
+              - "*"
+      KeySpec: ECC_NIST_P256
+      KeyUsage: SIGN_VERIFY
+      MultiRegion: false
+      PendingWindowInDays: !Ref KmsPendingWindowInDays
+      Tags:
+        - Key: KeyType
+          Value: Test Signing Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+        - Key: CheckovRulesToSkip
+          Value: CKV_AWS_7
+
+  IPVStubAdditionalSigningKeyAlias:
+    Type: 'AWS::KMS::Alias'
+    Condition: CreateDevResources
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-ipvstub-additional-signing-key"
+      TargetKeyId: !Ref IPVStubAdditionalSigningKey
+
+  IPVStubAdditionalEncryptionKey:
+    Type: AWS::KMS::Key
+    Condition: CreateDevResources
+    Properties:
+      Description: A unique public encryption key not available at the CRI's /well-known/jwks.json endpoint to test scenarios where decryption fails
+      Enabled: true
+      EnableKeyRotation: false
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource:
+              - "*"
+      KeySpec: RSA_2048
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      PendingWindowInDays: !Ref KmsPendingWindowInDays
+      Tags:
+        - Key: KeyType
+          Value: Test Encryption Key
+        - Key: Environment
+          Value: !Sub ${Environment}
+        - Key: CheckovRulesToSkip
+          Value: CKV_AWS_7
+
+  IPVStubAdditionalEncryptionKeyAlias:
+    Type: 'AWS::KMS::Alias'
+    Condition: CreateDevResources
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-ipvstub-additional-encryption-key"
+      TargetKeyId: !Ref IPVStubAdditionalEncryptionKey
 
 Outputs:
   SigningKeyArn:
@@ -160,3 +267,53 @@ Outputs:
   EncryptionKeyAlias:
     Description: "The ARN of the encryption key"
     Value: !Ref KMSEncryptionKeyAlias
+
+# Outputs for IPV stub keys, only referenced in Dev and Build
+  IPVStubSigningKeyArn:
+    Condition: CreateDevResources
+    Description: "The Arn of the IPVStubSigningKey"
+    Value: !GetAtt IPVStubSigningKey.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ipvstub-signing-key"
+  IPVStubSigningKeyId:
+    Condition: CreateDevResources
+    Description: "The Id of the IPVStubSigningKey"
+    Value: !Ref IPVStubSigningKey
+    Export:
+      Name: !Sub "${AWS::StackName}-ipvstub-signing-key-id"
+  IPVStubSigningKeyAlias:
+    Condition: CreateDevResources
+    Description: "The Alias of the IPVStubSigningKey"
+    Value: !Ref IPVStubSigningKeyAlias
+  IPVStubAdditionalSigningKeyArn:
+    Condition: CreateDevResources
+    Description: "The Arn of the IPVStubAdditionalSigningKey"
+    Value: !GetAtt IPVStubAdditionalSigningKey.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ipvstub-additional-signing-key"
+  IPVStubAdditionalSigningKeyId:
+    Condition: CreateDevResources
+    Description: "The Id of the IPVStubAdditionalSigningKey"
+    Value: !Ref IPVStubAdditionalSigningKey
+    Export:
+      Name: !Sub "${AWS::StackName}-ipvstub-additional-signing-key-id"
+  IPVStubAdditionalSigningKeyAlias:
+    Condition: CreateDevResources
+    Description: "The Alias of the IPVStubAdditionalSigningKey"
+    Value: !Ref IPVStubAdditionalSigningKeyAlias
+  IPVStubAdditionalEncryptionKeyArn:
+    Condition: CreateDevResources
+    Description: "The Arn of the IPVStubAdditionalEncryptionKey"
+    Value: !GetAtt IPVStubAdditionalEncryptionKey.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ipvstub-additional-encryption-key"
+  IPVStubAdditionalEncryptionKeyId:
+    Condition: CreateDevResources
+    Description: "The Id of the IPVStubAdditionalEncryptionKey"
+    Value: !Ref IPVStubAdditionalEncryptionKey
+    Export:
+      Name: !Sub "${AWS::StackName}-ipvstub-additional-encryption-key-id"
+  IPVStubAdditionalEncryptionKeyAlias:
+    Condition: CreateDevResources
+    Description: "The Alias of the IPVStubAdditionalEncryptionKey"
+    Value: !Ref IPVStubAdditionalEncryptionKeyAlias

@@ -1,0 +1,191 @@
+name: Pre-merge checks
+on:
+  workflow_call:
+    secrets:
+      DEV_F2F_PRE_MERGE_ROLE_ARN:
+        required: true
+
+concurrency:
+  group: pre-merge-check${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      sha_short: ${{ steps.vars.outputs.sha_short }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+
+      - name: Get output variables
+        id: vars
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: setup
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      api_url: ${{ steps.api_url.outputs.api_url }}
+      test_harness_url: ${{ steps.test_harness_url.outputs.test_harness_url }}
+      ipv_stub_url: ${{ steps.ipv_stub_url.outputs.ipv_stub_url }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+
+      - name: Setup SAM CLI
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Assume temporary AWS role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: SAM Build API stack
+        working-directory: ./deploy
+        run: sam build -t template.yaml
+
+      - name: SAM Deploy API stack
+        working-directory: ./deploy
+        run: |
+          sam deploy \
+          --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}" \
+          --s3-bucket ${{secrets.DEV_CRI_F2F_PRE_MERGE_ARTIFACT_SOURCE_BUCKET_NAME}} \
+          --template-file .aws-sam/build/template.yaml \
+          --capabilities CAPABILITY_NAMED_IAM \
+          --parameter-overrides \
+              Environment=dev \
+              IPVStubStackName="pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}"
+      
+      - name: Construct API URL
+        id: api_url
+        run: |
+          echo "api_url=https://api-pre-merge-${{ needs.setup.outputs.sha_short }}.review-o.dev.account.gov.uk" >> $GITHUB_OUTPUT 
+
+      - name: SAM Build test harness stack
+        working-directory: ./test-harness
+        run: sam build -t template.yaml
+
+      - name: SAM Deploy F2F test harness stack
+        working-directory: ./test-harness
+        run: |
+          sam deploy \
+            --stack-name "pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}" \
+            --s3-bucket ${{ secrets.DEV_CRI_F2F_PRE_MERGE_ARTIFACT_SOURCE_BUCKET_NAME }} \
+            --template-file .aws-sam/build/template.yaml \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --parameter-overrides \
+              Environment=dev \
+              BackendStack="pre-merge-${{ needs.setup.outputs.sha_short }}"
+
+      - name: Construct Test Harness URL
+        id: test_harness_url
+        run: |
+          echo "test_harness_url=https://pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}-testharness.review-o.dev.account.gov.uk/" >> $GITHUB_OUTPUT
+
+      - name: SAM Build IPV stub
+        working-directory: ./f2f-ipv-stub
+        run: sam build -t template.yaml
+
+      - name: SAM Deploy IPV stub
+        working-directory: ./f2f-ipv-stub
+        run: |
+          sam deploy \
+            --stack-name "pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}" \
+            --s3-bucket ${{ secrets.DEV_CRI_F2F_PRE_MERGE_ARTIFACT_SOURCE_BUCKET_NAME }} \
+            --template-file .aws-sam/build/template.yaml \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --parameter-overrides \
+              Environment=dev \
+              BackendStack="pre-merge-${{ needs.setup.outputs.sha_short }}"
+
+      - name: Construct IPV stub URL
+        id: ipv_stub_url
+        run: |
+          echo "ipv_stub_url=https://pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}-ipvstub.review-o.dev.account.gov.uk/" >> $GITHUB_OUTPUT
+        
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [setup, deploy]
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      DEV_CRI_F2F_API_URL: ${{ needs.deploy.outputs.api_url }}
+      DEV_F2F_TEST_HARNESS_URL: ${{ needs.deploy.outputs.test_harness_url }}
+      DEV_IPV_F2F_STUB_URL: ${{ needs.deploy.outputs.ipv_stub_url }}
+      GOV_NOTIFY_API: ${{ secrets.DEV_F2F_GOV_NOTIFY_STUB_URL }}
+      DEV_F2F_YOTI_STUB_URL: ${{ secrets.DEV_F2F_YOTI_STUB_URL }}
+      DEV_F2F_PO_STUB_URL: ${{ secrets.DEV_F2F_PO_STUB_URL }}
+      DEV_F2F_SESSION_TABLE_NAME: ${{ secrets.DEV_F2F_SESSION_TABLE_NAME }}
+      DEV_F2F_PERSON_IDENTITY_TABLE_NAME: ${{ secrets.DEV_F2F_PERSON_IDENTITY_TABLE_NAME }}
+      DEV_EXPIRED_SESSIONS_LAMBDA_NAME: F2F-ExpiredSessions-pre-merge-${{ needs.setup.outputs.sha_short }}
+      DNS_SUFFIX: ${{ secrets.DEV_DNS_SUFFIX }}
+      VC_SIGNING_KEY_ID: ${{ secrets.DEV_VC_SIGNING_KEY_ID }}     
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Assume temporary AWS role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
+          aws-region: eu-west-2
+      
+      - name: Setup nodeJS v22
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      
+      - name: Install dependencies
+        working-directory: ./src
+        run: npm ci
+
+      - name: Run API tests
+        working-directory: ./src
+        run: npm run test:api
+
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    if: always()
+    needs: [setup, test]
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Assume temporary AWS role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Delete IPV stub stack
+        run: |
+          echo "Deleting IPV stub stack: pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}"
+          aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}"
+          aws cloudformation wait stack-delete-complete --region eu-west-2 --stack-name "pre-merge-ipv-stub-${{ needs.setup.outputs.sha_short }}"
+
+      - name: Delete test harness stack
+        run: |
+          echo "Deleting test harness stack: pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}"
+          aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}"
+          aws cloudformation wait stack-delete-complete --region eu-west-2 --stack-name "pre-merge-test-harness-${{ needs.setup.outputs.sha_short }}"
+
+      - name: Delete API stack
+        run: |
+          echo "Deleting API stack: pre-merge-${{ needs.setup.outputs.sha_short }}"
+          aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}"
+          aws cloudformation wait stack-delete-complete --region eu-west-2 --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}"
+          

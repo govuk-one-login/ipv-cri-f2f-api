@@ -47,3 +47,12 @@ To check if there are any linting issues, run `npm lint`. If there are any criti
 will fail prompting developer to fix those issues. The report will be present under `reports` folder as an
 html file. Once those critical errors are fixed, re running `npm lint` should not return any errors.
 In order to fix some simple formatting issues, one can run `npm lint:fix` which should fix most of those automatically.
+
+### Quality Gate Tags
+
+All API tests should be tagged with `@QualityGateIntegrationTest`. If a test runs in our pipelines (ie in Build), and tests live features, we should tag them with `@QualityGateRegressionTest`.
+If the test is for an in-development feature, we should tag it with `@QualityGateNewFeatureTest`.
+
+Once a feature goes live, `@QualityGateNewFeatureTest` tags need to be updated to `@QualityGateRegressionTest`.
+To facilitate this update, API tests for in-development work should be placed in their own feature files, if possible, so the tests can be tagged at the Feature level rather than the Scenario level.
+Ideally, tests tagged with `@QualityGateNewFeatureTest` should be marked with a TODO and reference a post-go-live clean-up ticket so they can be easily identified and updated.
