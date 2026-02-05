@@ -181,7 +181,9 @@ private populateEnglishPages(doc: PDFKit.PDFDocument, user: string, expiryString
 
 	this.boldTextOnNewline(doc, "After you’ve been to the Post Office");
 
-	this.lightTextOnNewline(doc, "You’ll get an email from GOV.UK One Login about the result of your identity check – usually within a day of going to the Post Office.");
+	this.lightTextOnNewline(doc, "The result of your identity check will usually be available within 24 hours of going to the Post Office.");
+
+	this.lightTextOnNewline(doc, "When it’s ready, you’ll get an email from GOV.UK One Login. You can view your result by signing in.");
 
 	this.boldTextOnNewline(doc, "Which Post Office to go to");
  
@@ -237,7 +239,9 @@ private populateWelshPages(doc: PDFKit.PDFDocument, user: string, expiryString: 
 	
 	this.boldTextOnNewline(doc, "Ar ôl i chi fod yn Swyddfa’r Post");
 
-	this.lightTextOnNewline(doc, "Byddwch yn derbyn e-bost gan GOV.UK One Login am ganlyniad eich gwiriad hunaniaeth – fel arfer o fewn diwrnod o fynd i Swyddfa’r Post.");
+	this.lightTextOnNewline(doc, "Bydd canlyniad eich gwiriad hunaniaeth fel arfer ar gael o fewn 24 awr o fynd i'r Swyddfa Bost.");
+
+	this.lightTextOnNewline(doc, "Pan fydd yn barod, byddwch yn cael e-bost gan GOV.UK One Login. Gallwch weld eich canlyniad trwy fewngofnodi.");
 
 	this.boldTextOnNewline(doc, "Pa Swyddfa’r Post i fynd iddi");
 
