@@ -237,9 +237,7 @@ private populateWelshPages(doc: PDFKit.PDFDocument, user: string, expiryString: 
 	
 	this.boldTextOnNewline(doc, "Ar ôl i chi fod yn Swyddfa’r Post");
 
-	this.lightTextOnNewline(doc, "Bydd canlyniad eich gwiriad hunaniaeth fel arfer ar gael o fewn 24 awr o fynd i'r Swyddfa Bost.");
-
-	this.lightTextOnNewline(doc, "Pan fydd yn barod, byddwch yn cael e-bost gan GOV.UK One Login. Gallwch weld eich canlyniad trwy fewngofnodi.");
+	this.lightTextOnNewline(doc, "Bydd canlyniad eich gwiriad hunaniaeth fel arfer ar gael o fewn 24 awr o fynd i'r Swyddfa Bost. \n\nPan fydd yn barod, byddwch yn cael e-bost gan GOV.UK One Login. Gallwch weld eich canlyniad trwy fewngofnodi.");
 
 	this.boldTextOnNewline(doc, "Pa Swyddfa’r Post i fynd iddi");
 
