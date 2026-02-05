@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { getDocument, PDFPageProxy} from "pdfjs-dist/legacy/build/pdf.js";
+import { getDocument, PDFPageProxy} from "pdfjs-dist/legacy/build/pdf.mjs";
 import { createCanvas, Canvas } from "canvas";
 
 /**
