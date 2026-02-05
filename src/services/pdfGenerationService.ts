@@ -181,9 +181,7 @@ private populateEnglishPages(doc: PDFKit.PDFDocument, user: string, expiryString
 
 	this.boldTextOnNewline(doc, "After you’ve been to the Post Office");
 
-	this.lightTextOnNewline(doc, "The result of your identity check will usually be available within 24 hours of going to the Post Office.");
-
-	this.lightTextOnNewline(doc, "When it’s ready, you’ll get an email from GOV.UK One Login. You can view your result by signing in.");
+	this.lightTextOnNewline(doc, "The result of your identity check will usually be available within 24 hours of going to the Post Office. \n\nWhen it’s ready, you’ll get an email from GOV.UK One Login. You can view your result by signing in.");
 
 	this.boldTextOnNewline(doc, "Which Post Office to go to");
  
