@@ -245,7 +245,7 @@ describe("SendEmailProcessor", () => {
 		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
-		expect(mockSendEmail).toHaveBeenCalledWith("59cdab0d-3b81-4711-ae47-6cfb80b07f56", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
+		expect(mockSendEmail).toHaveBeenCalledWith("c403df64-adcd-487b-bedf-ae649c80ee5a", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
 			"chosen photo ID": "PASSPORT",
 			"date": "18 February", 
 			"first name": "Frederick", 
