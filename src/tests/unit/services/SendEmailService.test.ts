@@ -224,7 +224,7 @@ describe("SendEmailProcessor", () => {
 		const emailResponse = await sendEmailServiceTest.sendReminderEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
-		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837115", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
+		expect(mockSendEmail).toHaveBeenCalledWith("59cdab0d-3b81-4711-ae47-6cfb80b07f56", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
 			"date": "18 February", 
 			"link_to_file": { 
 				"confirm_email_before_download": true, 
@@ -245,7 +245,7 @@ describe("SendEmailProcessor", () => {
 		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
-		expect(mockSendEmail).toHaveBeenCalledWith("1490de9b-d986-4404-b260-ece7f1837116", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
+		expect(mockSendEmail).toHaveBeenCalledWith("59cdab0d-3b81-4711-ae47-6cfb80b07f56", "bhavana.hemanth@digital.cabinet-office.gov.uk", { "personalisation": { 
 			"chosen photo ID": "PASSPORT",
 			"date": "18 February", 
 			"first name": "Frederick", 
