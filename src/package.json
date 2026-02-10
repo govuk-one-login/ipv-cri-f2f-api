@@ -97,7 +97,7 @@
     "eslint-plugin-prefer-arrow": "1.2.3",
     "eslint-plugin-prettier": "5.5.4",
     "eslint-plugin-security": "1.6.0",
-    "express": "4.21.2",
+    "express": "4.22.1",
     "express-asyncify": "2.1.2",
     "fast-xml-parser": "4.2.7",
     "jest": "29.7.0",
