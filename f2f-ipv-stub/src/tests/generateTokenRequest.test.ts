@@ -8,7 +8,6 @@ import {
   describe,
 } from "@jest/globals";
 import { mockClient } from "aws-sdk-client-mock";
-import "aws-sdk-client-mock-jest";
 import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import format from "ecdsa-sig-formatter";
 
