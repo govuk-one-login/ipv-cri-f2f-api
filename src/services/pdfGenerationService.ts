@@ -305,25 +305,27 @@ mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 	if (postalAddress.organisationName) {
 		address.push(postalAddress.organisationName);
 	}
-	if (postalAddress.subBuildingName) {
-		address.push(postalAddress.subBuildingName);
-	}
-	if (postalAddress.buildingName) {
+
+	if (postalAddress.subBuildingName && postalAddress.buildingName) {
+		address.push(`${postalAddress.subBuildingName}, ${postalAddress.buildingName}`);
+	} else if (postalAddress.buildingName && !postalAddress.subBuildingName) {
 		address.push(postalAddress.buildingName);
 	}
-	if (postalAddress.dependentStreetName) {
-		address.push(postalAddress.dependentStreetName);
-	}
-	if (postalAddress.streetName) {
+
+	if (postalAddress.dependentStreetName && postalAddress.streetName) {
+		const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
+		address.push(`${buildingNumber}${postalAddress.dependentStreetName}, ${postalAddress.streetName}`);
+	} else if (postalAddress.streetName) {
 		const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
 		address.push(buildingNumber + postalAddress.streetName);
 	}
-	if (postalAddress.dependentAddressLocality) {
-		address.push(postalAddress.dependentAddressLocality);
-	}
-	if (postalAddress.addressLocality) {
+
+	if (postalAddress.dependentAddressLocality && postalAddress.addressLocality) {
+		address.push(`${postalAddress.dependentAddressLocality}, ${postalAddress.addressLocality}`);
+	} else if (postalAddress.addressLocality && !postalAddress.dependentAddressLocality) {
 		address.push(postalAddress.addressLocality);
 	}
+
 	if (postalAddress.postalCode) {
 		address.push(postalAddress.postalCode);
 	}

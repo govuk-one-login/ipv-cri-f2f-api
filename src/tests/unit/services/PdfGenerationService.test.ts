@@ -5,7 +5,8 @@ import fs from "fs";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { mock } from "jest-mock-extended";
 
-import { PersonIdentityAddress, PersonIdentityItem } from "../../../models/PersonIdentityItem";
+import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
+import { person, personAddressSubBuildingName, personAddressDependentAddressLocality, personAddressDependentStreetName } from "../data/postalAddress-events";
 import { F2fService } from "../../../services/F2fService";
 import { PDFGenerationService } from "../../../services/pdfGenerationService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -17,51 +18,6 @@ const logger = mock<Logger>();
 const metrics = mock<Metrics>();
 
 const sessionId = "sessionId";
-
-const person: PersonIdentityItem = {
-	"addresses": [
-		{
-			"addressCountry": "GB",
-			"organisationName": "Test org",
-			"departmentName": "Test dept",
-			"buildingName": "Sherman",
-			"subBuildingName": "Flat 5",
-			"uprn": 123456789,
-			"streetName": "Wallaby Way",
-			"postalCode": "F1 1SH",
-			"buildingNumber": "32",
-			"addressLocality": "Sidney",
-			"preferredAddress": true,
-		},
-	],
-	"sessionId": "RandomF2FSessionID",
-	"emailAddress": "viveak.vadivelkarasan@digital.cabinet-office.gov.uk",
-	"birthDate": [
-		{
-			"value":"1960-02-02",
-		},
-	],
-	"name": [
-		{
-			"nameParts": [
-				{
-					"type": "GivenName",
-					"value": "Frederick",
-				},
-				{
-					"type": "GivenName",
-					"value": "Joseph",
-				},
-				{
-					"type": "FamilyName",
-					"value": "Flintstone",
-				},
-			],
-		},
-	],
-	expiryDate: 1612345678,
-	createdDate: 1612335678,
-};
 
 describe("PdfGenerationServiceTest", () => {
 	beforeAll(() => {
@@ -99,32 +55,57 @@ describe("PdfGenerationServiceTest", () => {
 	});
 
 	describe("#mapToAddressLines", () => {
+		
 		it("should map all fields correctly when present", () => {
 			const postalAddress: PersonIdentityAddress = person.addresses[0];
 			const result = pdfGenerationService.mapToAddressLines(postalAddress);
 			expect(result).toEqual([
 				"Test dept",
 				"Test org",
-				"Flat 5",
 				"Sherman",
 				"32 Wallaby Way",
 				"Sidney",
 				"F1 1SH",
 			]);
 		});
-	});
 
-	it("should omit missing fields from mapped address", () => {
-		const { ...postalAddress }: PersonIdentityAddress = person.addresses[0];
-		const result = pdfGenerationService.mapToAddressLines(postalAddress);
-		expect(result).toEqual([
-			"Test dept",
-			"Test org",
-			"Flat 5",
-			"Sherman",
-			"32 Wallaby Way",
-			"Sidney",
-			"F1 1SH",
-		]);
+		it("should populate subBuildingName & buildingName on the same line", () => {
+			const { ...postalAddress }: PersonIdentityAddress = personAddressSubBuildingName.addresses[0];
+			const result = pdfGenerationService.mapToAddressLines(postalAddress);
+			expect(result).toEqual([
+				"Test dept",
+				"Test org",
+				"Flat 5, Sherman",
+				"32 Wallaby Way",
+				"Sidney",
+				"F1 1SH",
+			]);
+		});
+
+		it("should populate dependentAddressLocality & addressLocality on the same line", () => {
+			const { ...postalAddress }: PersonIdentityAddress = personAddressDependentAddressLocality.addresses[0];
+			const result = pdfGenerationService.mapToAddressLines(postalAddress);
+			expect(result).toEqual([
+				"Test dept",
+				"Test org",
+				"Sherman",
+				"32 Wallaby Way",
+				"Southside, Sidney",
+				"F1 1SH",
+			]);
+		});
+
+		it("should populate dependentStreetName & streetName on the same line", () => {
+			const { ...postalAddress }: PersonIdentityAddress = personAddressDependentStreetName.addresses[0];
+			const result = pdfGenerationService.mapToAddressLines(postalAddress);
+			expect(result).toEqual([
+				"Test dept",
+				"Test org",
+				"Sherman",
+				"32 Ocean View, Wallaby Way",
+				"Sidney",
+				"F1 1SH",
+			]);
+		});
 	});
 });
