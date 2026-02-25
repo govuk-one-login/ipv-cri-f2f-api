@@ -1,92 +1,361 @@
-# di-ipv-cri-f2f-api 
+# Face to Face (F2F) CRI service
 
-# Gov Notify Templates
-The gov-notify-templates directory contains the templates required for sending email notification to the user. The name of the file matches the name of the template in the Gov notify portal for Face to Face Production service. The content of the file has the subject line and the message which should be copied without any changes as it includes gov notify formatting markdown.
+This repository contains the F2F API, an IPV stub for end-to-end testing, and a test harness.
 
+The F2F API is deployed to AWS as Node.js Lambda functions via AWS SAM (see `deploy/template.yaml`). API contract is `deploy/f2f-spec.yaml` (OpenAPI 3.0.1).
 
-## Stack deployment in DEV
+> [!IMPORTANT]
+> This repository is **public**. Do **not** commit secrets, credentials, internal URLs, account identifiers, template IDs, or sensitive configuration values. Document **names** and **purposes** only. Use placeholders in examples.
 
-To deploy an individual stack in the DEV account from a local branch with full DEBUG logging in the lambdas:
+---
 
-```shell
-cd ./deploy
-sam build --parallel
-sam deploy --resolve-s3 --stack-name "YOUR_STACK_NAME" --confirm-changeset --config-env dev --parameter-overrides \
-  "CodeSigningConfigArn=\"none\" Environment=\"dev\" PermissionsBoundary=\"none\" SecretPrefix=\"none\" VpcStackName=\"vpc-cri\" L2DynamoStackName=\"infra-l2-dynamo\" L2KMSStackName=\"infra-l2-kms\" PowertoolsLogLevel=\"DEBUG\""
+## Table of contents
+- [Quick links](#quick-links)
+- [What this service does](#what-this-service-does)
+- [Repository layout](#repository-layout)
+- [API surface](#api-surface)
+- [Getting started](#getting-started)
+- [Environment file (.env)](#environment-file-env)
+- [Local test before Deployment](#local-test-before-deployment)
+- [Deployment](#deployment)
+- [Running tests](#running-tests)
+- [Authentication and required headers](#authentication-and-required-headers)
+- [Curl examples](#curl-examples)
+- [IPV stub: start journey](#ipv-stub-start-journey)
+- [Integrations](#integrations)
+- [Code owners](#code-owners)
+- [Pre-commit checks](#pre-commit-checks)
+- [Security](#security)
+- [Troubleshooting](#troubleshooting)
+- [Licence](#licence)
+- [Quality Gate Tags](#quality-gate-tags)
+
+---
+
+## Quick links
+- **API contract:** `deploy/f2f-spec.yaml`
+- **SAM template:** `deploy/template.yaml`
+- **SAM config:** `deploy/samconfig.toml`
+- **GOV.UK Notify templates:** `gov-notify-templates/` *(currently deprecated; see below)*
+- **Architecture decisions (ADRs):** `adr/`
+
+---
+
+## What this service does
+F2F supports the asynchronous "Face to Face" in-person part of the One Login IPV journey
+
+At a high level it:
+- Provides session management and configuration for the F2F frontend, and returns encrypted person information for **pre-population** and for constructing the **Yoti payload**, where supported.
+- Integrates with Yoti for in-branch verification **initiation/submission** and session results.
+- Is secured using the Oauth 2 code flow. Surfacing endpoints:
+  - `GET /authorization` issues an authorization code for a session.
+  - `POST /token` exchanges an authorization code for a Bearer access token (`application/x-www-form-urlencoded`).
+- Sends user communications via GOV.UK Notify (email and, where configured, letters).
+- Receives asynchronous notifications via `POST /callback`.
+
+> [!TIP]
+> The **spec is the source of truth**. Use `deploy/f2f-spec.yaml` for request/response shapes, headers, and per-endpoint requirements.
+
+---
+
+## Repository layout
+- `deploy/` – SAM template, OpenAPI spec, and deployment config
+- `adr/` – architecture decision records (ADRs)
+- `src/` – Lambda handlers and shared code
+- `gov-notify-templates/` – Notify templates used by the service *(currently deprecated; see Integrations)*
+- `test-harness/`, `traffic-tests/` – utilised in tests to query the database and assert against SQS audit events
+- `*stub*/` – local/vendor stubs (for example, Yoti, Post Office, Notify)
+
+---
+
+## API surface
+
+> [!TIP]
+> For request/response shapes and required headers per endpoint, use `deploy/f2f-spec.yaml` as the source of truth.
+
+| Path | Method | Summary |
+|---|---:|---|
+| `/session` | POST | Validate incoming request and create/return session material |
+| `/sessionConfiguration` | GET | Return session configuration used by the frontend |
+| `/person-info` | GET | Return encrypted person info for FE prepopulation |
+| `/person-info-key` | GET | Return key material required to decrypt `/person-info` |
+| `/addressLocations` | POST | Address lookup (postcode/address search) |
+| `/documentSelection` | POST | Persist user selections and initiate Yoti session |
+| `/authorization` | GET | Issue an authorization code for the session |
+| `/token` | POST | Exchange authorization code for a Bearer access token (`application/x-www-form-urlencoded`) |
+| `/userinfo` | POST | Return pending/final response (Bearer token required; see spec) |
+| `/callback` | POST | Receive Yoti notifications (asynchronous callback) |
+| `/abort` | POST | Terminate the user session in a failed state |
+| `/.well-known/jwks.json` | GET | Publish service JWKS (see spec/template) |
+
+---
+
+## Getting started
+
+Prerequisites:
+- Node.js version per `src/package.json` (`engines.node`) for local development
+- AWS Lambda runtime: nodejs20.x (see `deploy/template.yaml`)
+- npm
+- AWS credentials (only required to run tests against a deployed stack)
+
+Common local dev commands are defined in `src/package.json` under `scripts`. A typical workflow is:
+
+```sh
+cd src
+npm ci
+npm run compile
+npm run lint
+npm run test:unit
 ```
 
-If you need the reserved concurrencies set in DEV then add `ApplyReservedConcurrencyInDev=\"true\"` in to the `--parameter-overrides`.
-Please only do this whilst you need them, if lots of stacks are deployed with these in DEV then deployments will start failing.
+> [!NOTE]
+> This repo does not document a supported sam local start-api workflow. Integration tests are designed to run against a deployed stack.
 
-### Code Owners
+---
 
+## Environment file (.env)
+`src/.env.example` is the source of truth for required environment variables.  
+If a new variable is introduced, update `.env.example` accordingly.
+
+```sh
+cd src
+cp .env.example .env
+```
+
+> [!IMPORTANT]
+> Do not commit `.env` or any real secrets to this public repo.
+
+---
+
+## Local test before Deployment
+
+Prior to deploying code it is important to locally test your changes to ensure testing resource best practices.
+
+### Unit tests
+```sh
+cd src
+npm run test:unit
+```
+
+### Lint and compile tests
+Run from `src/`:
+
+```sh
+cd src
+npm run compile
+npm run lint
+```
+
+---
+
+## Deployment
+Deployment definition/config:
+- `deploy/template.yaml`
+- `deploy/samconfig.toml`
+
+The standard deployment route is via the CI/CD pipeline for this repository. Local SAM deployments is the primary way of local testing.
+
+> [!NOTE]
+> Parameter overrides and environment-specific deployment values are intentionally not documented here (public repo hygiene). Use your organisation’s internal runbooks for environment-specific instructions.
+
+### Dev and personal stack naming
+Deploy with a custom stack name (include your initials) to avoid overwriting shared stacks (for example `f2f-cri-api-<initials>`).
+
+Set the stack name in `deploy/samconfig.toml`, or provide it explicitly via `sam deploy --stack-name`.
+
+Example (dev/personal stack):
+
+```sh
+cd deploy
+sam build --parallel
+sam deploy --resolve-s3 --stack-name "f2f-cri-api-xy" --confirm-changeset --config-env dev
+```
+> (Use initials + placeholders, no real env values.)
+
+After deploying, update the test harness SAM config in `test-harness/deploy/samconfig.toml` (if used) to reference the custom API stack name so the harness targets the correct stack.
+
+### Local and ephemeral deployment (exceptional)
+```sh
+cd deploy
+sam build --parallel
+sam deploy --resolve-s3 --stack-name "YOUR_STACK_NAME" --confirm-changeset --config-env dev
+```
+
+---
+
+## Running tests
+All scripts are defined in `src/package.json`.
+
+### Unit tests
+```sh
+cd src
+npm run test:unit
+```
+
+### API tests
+```sh
+cd src
+npm run test:api
+```
+
+### E2E tests
+```sh
+cd src
+npm run test:e2e
+```
+
+### Infra tests
+```sh
+cd src
+npm run test:infra
+```
+
+### Log and PII checks
+```sh
+cd src
+npm run test:pii
+```
+
+### Contract (Pact) tests
+This repo includes provider verification tests that validate the provider against a published Pact and (in CI) publish results to the Pact Broker. See `src/package.json` scripts for the exact workflows.
+
+> [!IMPORTANT]
+> Keep broker credentials and broker URLs out of this public repo. Document names only and use placeholders in examples.
+
+#### Environment variables (names only)
+- `PACT_BROKER_USER`
+- `PACT_BROKER_PASSWORD`
+- `PACT_BROKER_URL`
+- `PACT_PROVIDER_NAME`
+- `PACT_PROVIDER_VERSION`
+
+#### Run contract tests (local / CI-style)
+```sh
+cd src
+npm run test:contract:ci
+```
+
+> [!CAUTION]
+> These runners may write AWS credential environment variables into temporary files and may write stack outputs to files (for example `cf-output.txt`). Ensure these generated files are not committed.
+
+---
+
+## Authentication and required headers
+Per `deploy/f2f-spec.yaml`, endpoints typically rely on a combination of:
+- Session headers (for example `session-id` and/or `x-govuk-signin-session-id` depending on the endpoint)
+- Bearer access token for protected endpoints:
+
+```
+Authorization: Bearer <token>
+```
+
+> [!TIP]
+> Confirm exact header names and `required: true` flags in `deploy/f2f-spec.yaml` under each path’s `parameters:` section.
+
+---
+
+## Curl examples
+Please refer to `f2f-ipv-stub/README.md` for specific curl commands.
+
+---
+
+## IPV stub: start journey
+Some deployments use an IPV stub `/start` endpoint which returns an AuthorizeLocation used to enter the F2F journey.
+
+For IPV stub usage including the `/start` endpoint, see the [IPV stub README](f2f-ipv-stub/README.md).
+
+---
+
+## Integrations
+Yoti: third-party identity verification provider; in-branch initiation/submission and asynchronous callback via /callback.
+
+GOV.UK Notify: templates in gov-notify-templates/ (currently deprecated/unmaintained in-repo; we plan to revisit. Treat as non-authoritative until updated.)
+
+> [!IMPORTANT]
+> Do not add Notify API keys, template IDs, internal URLs, or real customer examples to this repo.
+
+---
+
+## Code owners
 This repo has a `CODEOWNERS` file in the root and is configured to require PRs to reviewed by Code Owners.
 
-## Pre-Commit Checking / Verification
+---
 
-There is a `.pre-commit-config.yaml` configuration setup in this repo, this uses [pre-commit](https://pre-commit.com/) to verify your commit before actually committing, it runs the following checks:
+## Pre-commit checks
+This repo uses pre-commit configuration:
+- `.pre-commit-config.yaml`
+- `.secrets.baseline`
 
-- Check Json files for formatting issues
-- Fixes end of file issues (it will auto correct if it spots an issue - you will need to run the git commit again after it has fixed the issue)
-- Automatically removes trailing whitespaces (again will need to run commit again after it detects and fixes the issue)
-- Detects aws credentials or private keys accidentally added to the repo
-- runs cloud formation linter and detects issues
-- runs checkov and checks for any issues
-- runs detect-secrets to check for secrets accidentally added - where these are false positives, the `.secrets.baseline` file should be updated by running `detect-secrets scan > .secrets.baseline`
+Install hooks:
 
-### Dependency Installation
-
-To use this locally you will first need to install the dependencies, this can be done in 2 ways:
-
-#### Method 1 - Python pip
-
-Run the following in a terminal:
-
-```
-sudo -H pip3 install checkov pre-commit cfn-lint
-```
-
-this should work across platforms
-
-#### Method 2 - Brew
-
-If you have brew installed please run the following:
-
-```
-brew install pre-commit ;\
-brew install cfn-lint ;\
-brew install checkov
-```
-
-### Post Installation Configuration
-
-once installed run:
-
-```
+```sh
 pre-commit install
 ```
 
-To update the various versions of the pre-commit plugins, this can be done by running:
+Run hooks manually (optional):
 
-```
-pre-commit autoupdate && pre-commit install
-```
-
-This will install / configure the pre-commit git hooks, if it detects an issue while committing it will produce an output like the following:
-
-```
- git commit -a
-check json...........................................(no files to check)Skipped
-fix end of files.........................................................Passed
-trim trailing whitespace.................................................Passed
-detect aws credentials...................................................Passed
-detect private key.......................................................Passed
-AWS CloudFormation Linter................................................Failed
-- hook id: cfn-python-lint
-- exit code: 4
-W3011 Both UpdateReplacePolicy and DeletionPolicy are needed to protect Resources/PublicHostedZone from deletion
-core/deploy/dns-zones/template.yaml:20:3
-Checkov..............................................(no files to check)Skipped
-- hook id: checkov
+```sh
+pre-commit run --all-files
 ```
 
+---
+
+## Security
+To check active vulnerabilities on this repository perform the following:
+
+```sh
+git pull
+```
+
+```sh
+npm audit
+```
+Based on the alerts returned flag any to the team reported as 'high' or 'critical'.
+
+Utilise descriptions preovided from audit result to directly update the vulnerable package or for transitive, the vulnerable parent version - rerunning to ensure it is no longer pulling the vulnerability.
+
+To ensure the `package.json` and `package-lock.json` are aligned after updates ensure you have installed the fixed versions then run:
+
+```sh
+rm -rf node_modules package-lock.json
+```
+then re-install
+
+---
+
+## Troubleshooting
+### Tests won't run
+Ensure AWS credentials exist in your environment (CloudFormation outputs are queried).
+
+### “Lint” or “compile” failures
+Run from `src/`:
+
+```sh
+npm ci
+npm run compile
+npm run lint
+```
+
+### Tests failing unexpectedly
+Run the relevant suite explicitly:
+
+```sh
+cd src
+npm run test:unit
+npm run test:api
+npm run test:infra
+npm run test:e2e
+```
+### Multiple Axios failures
+Check .env varibales using `run-tests.sh` as source of truth for required parameters
+
+### Contract tests won’t start
+Ensure required Pact environment variables are set (names listed above) and required ports used by local test tooling are available. See scripts under `src/tests/contract/`.
+
+## Licence
+If you need reuse/distribution terms, consult the `LICENCE`file's guidance before redistributing.
+
+### Quality Gate Tags
+
+All API tests should be tagged with `//QualityGateIntegrationTest`, `//QualityGateRegressionTest`
+and `//QualityGateStackTest`
