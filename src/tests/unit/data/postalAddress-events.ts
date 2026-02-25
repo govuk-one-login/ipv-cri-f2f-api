@@ -25,15 +25,14 @@ export const postalAddressDifferentInputRecord: PersonIdentityAddress = {
 export const person: PersonIdentityItem = {
 	"addresses": [
 		{
-			"addressCountry": "GB",
-			"organisationName": "Test org",
-			"departmentName": "Test dept",
-			"buildingName": "Sherman",
 			"uprn": 123456789,
+			"organisationName": "Test org",
+			"buildingName": "Sherman",
 			"streetName": "Wallaby Way",
-			"postalCode": "F1 1SH",
 			"buildingNumber": "32",
 			"addressLocality": "Sidney",
+			"postalCode": "F1 1SH",
+			"addressCountry": "GB",
 			"preferredAddress": true,
 		},
 	],
@@ -66,32 +65,15 @@ export const person: PersonIdentityItem = {
 	createdDate: 1612335678,
 };
 
-export const personAddressSubBuildingName: PersonIdentityItem = {
+export const personAddressAllAddressFields: PersonIdentityItem = {
   ...person,
   addresses: [
     {
       ...person.addresses[0],
-      subBuildingName: "Flat 5",
-    },
-  ],
-};
-
-export const personAddressDependentAddressLocality: PersonIdentityItem = {
-	...person,
-  addresses: [
-    {
-      ...person.addresses[0],
-      dependentAddressLocality: "Southside",
-    },
-  ],
-};
-
-export const personAddressDependentStreetName: PersonIdentityItem = {
-	...person,
-  addresses: [
-    {
-      ...person.addresses[0],
-      dependentStreetName: "Ocean View",
+	  departmentName: "Test dept",
+	  subBuildingName: "Flat 5",
+	  dependentStreetName: "Ocean View",
+	  dependentAddressLocality: "Southside"
     },
   ],
 };

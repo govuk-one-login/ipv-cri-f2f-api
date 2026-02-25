@@ -6,7 +6,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { mock } from "jest-mock-extended";
 
 import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
-import { person, personAddressSubBuildingName, personAddressDependentAddressLocality, personAddressDependentStreetName } from "../data/postalAddress-events";
+import { person, personAddressAllAddressFields } from "../data/postalAddress-events";
 import { F2fService } from "../../../services/F2fService";
 import { PDFGenerationService } from "../../../services/pdfGenerationService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
@@ -57,52 +57,24 @@ describe("PdfGenerationServiceTest", () => {
 	describe("#mapToAddressLines", () => {
 		
 		it("should map all fields correctly when present", () => {
-			const postalAddress: PersonIdentityAddress = person.addresses[0];
+			const postalAddress: PersonIdentityAddress = personAddressAllAddressFields.addresses[0];
 			const result = pdfGenerationService.mapToAddressLines(postalAddress);
 			expect(result).toEqual([
-				"Test dept",
-				"Test org",
-				"Sherman",
-				"32 Wallaby Way",
-				"Sidney",
-				"F1 1SH",
-			]);
-		});
-
-		it("should populate subBuildingName & buildingName on the same line", () => {
-			const { ...postalAddress }: PersonIdentityAddress = personAddressSubBuildingName.addresses[0];
-			const result = pdfGenerationService.mapToAddressLines(postalAddress);
-			expect(result).toEqual([
-				"Test dept",
-				"Test org",
+				"Test dept, Test org",
 				"Flat 5, Sherman",
-				"32 Wallaby Way",
-				"Sidney",
-				"F1 1SH",
-			]);
-		});
-
-		it("should populate dependentAddressLocality & addressLocality on the same line", () => {
-			const { ...postalAddress }: PersonIdentityAddress = personAddressDependentAddressLocality.addresses[0];
-			const result = pdfGenerationService.mapToAddressLines(postalAddress);
-			expect(result).toEqual([
-				"Test dept",
-				"Test org",
-				"Sherman",
-				"32 Wallaby Way",
+				"32 Ocean View, Wallaby Way",
 				"Southside, Sidney",
 				"F1 1SH",
 			]);
 		});
-
-		it("should populate dependentStreetName & streetName on the same line", () => {
-			const { ...postalAddress }: PersonIdentityAddress = personAddressDependentStreetName.addresses[0];
+		
+		it("should omit missing fields from mapped address", () => {
+			const { ...postalAddress }: PersonIdentityAddress = person.addresses[0];
 			const result = pdfGenerationService.mapToAddressLines(postalAddress);
 			expect(result).toEqual([
-				"Test dept",
 				"Test org",
 				"Sherman",
-				"32 Ocean View, Wallaby Way",
+				"32 Wallaby Way",
 				"Sidney",
 				"F1 1SH",
 			]);

@@ -299,19 +299,21 @@ private getLongDate(today: Date, locale: string):string {
 
 mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 	const address = [];
-	if (postalAddress.departmentName) {
+	// Line 1
+	if (postalAddress.departmentName && postalAddress.organisationName) {
+		address.push(`${postalAddress.departmentName}, ${postalAddress.organisationName}`);
+	} else if (postalAddress.departmentName && !postalAddress.organisationName) {
 		address.push(postalAddress.departmentName);
-	}
-	if (postalAddress.organisationName) {
+	} else if (postalAddress.organisationName && !postalAddress.departmentName) {
 		address.push(postalAddress.organisationName);
 	}
-
+	// Line 2
 	if (postalAddress.subBuildingName && postalAddress.buildingName) {
 		address.push(`${postalAddress.subBuildingName}, ${postalAddress.buildingName}`);
 	} else if (postalAddress.buildingName && !postalAddress.subBuildingName) {
 		address.push(postalAddress.buildingName);
 	}
-
+	// Line 3
 	if (postalAddress.dependentStreetName && postalAddress.streetName) {
 		const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
 		address.push(`${buildingNumber}${postalAddress.dependentStreetName}, ${postalAddress.streetName}`);
@@ -319,13 +321,13 @@ mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 		const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
 		address.push(buildingNumber + postalAddress.streetName);
 	}
-
+	// Line 4
 	if (postalAddress.dependentAddressLocality && postalAddress.addressLocality) {
 		address.push(`${postalAddress.dependentAddressLocality}, ${postalAddress.addressLocality}`);
 	} else if (postalAddress.addressLocality && !postalAddress.dependentAddressLocality) {
 		address.push(postalAddress.addressLocality);
 	}
-
+	// Line 5
 	if (postalAddress.postalCode) {
 		address.push(postalAddress.postalCode);
 	}
