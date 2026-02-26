@@ -314,11 +314,10 @@ mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 		address.push(postalAddress.buildingName);
 	}
 	// Line 3
+	const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
 	if (postalAddress.dependentStreetName && postalAddress.streetName) {
-		const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
 		address.push(`${buildingNumber}${postalAddress.dependentStreetName}, ${postalAddress.streetName}`);
-	} else if (postalAddress.streetName) {
-		const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
+	} else if (postalAddress.streetName && !postalAddress.dependentStreetName) {
 		address.push(buildingNumber + postalAddress.streetName);
 	}
 	// Line 4

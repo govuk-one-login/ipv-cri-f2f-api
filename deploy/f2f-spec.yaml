@@ -1418,15 +1418,15 @@ components:
               description: Number of building on street
               example: "32"
               maxLength: 30
-            streetName:
-              type: string
-              description: Street name
-              example: "Hazelnut Street"
-              maxLength: 60
             dependentStreetName:
               type: string
               description: Named thoroughfares/streets within other named thoroughfares/streets
               example: "Peanut Row"
+              maxLength: 60
+            streetName:
+              type: string
+              description: Street name
+              example: "Hazelnut Street"
               maxLength: 60
             addressLocality:
               type: string
