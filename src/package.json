@@ -105,7 +105,7 @@
     "jest-image-snapshot": "6.4.0",
     "jest-junit": "16.0.0",
     "jest-mock-extended": "4.0.0",
-    "pdfjs-dist": "2.16.105",
+    "pdfjs-dist": "5.4.624",
     "prettier": "3.6.2",
     "ts-jest": "29.2.5",
     "ts-node": "10.9.2",
