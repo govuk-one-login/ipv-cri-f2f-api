@@ -28,9 +28,9 @@
             {
                 "uprn": 123456789,
                 "buildingNumber": "32",
-                "buildingName": "London",
+                "buildingName": "Big Building",
                 "subBuildingName": "Flat 20",
-                "streetName": "Demo",
+                "streetName": "Demo Road",
                 "addressLocality": "London",
                 "addressCountry": "GB",
                 "postalCode": "SW19 4NS"
