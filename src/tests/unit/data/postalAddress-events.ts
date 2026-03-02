@@ -65,15 +65,10 @@ export const person: PersonIdentityItem = {
 	createdDate: 1612335678,
 };
 
-export const personAddressAllAddressFields: PersonIdentityItem = {
-  ...person,
-  addresses: [
-    {
-      ...person.addresses[0],
-	  departmentName: "Test dept",
-	  subBuildingName: "Flat 5",
-	  dependentStreetName: "Ocean View",
-	  dependentAddressLocality: "Southside"
-    },
-  ],
+export const personAddressAllAddressFields: PersonIdentityAddress = {
+  	...person.addresses[0],
+	departmentName: "Test dept",
+	subBuildingName: "Flat 5",
+	dependentStreetName: "Ocean View",
+	dependentAddressLocality: "Southside"
 };

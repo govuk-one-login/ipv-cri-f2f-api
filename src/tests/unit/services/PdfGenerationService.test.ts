@@ -55,27 +55,26 @@ describe("PdfGenerationServiceTest", () => {
 	});
 
 	describe("#mapToAddressLines", () => {
-		
-		it("should map all fields correctly when present", () => {
-			const postalAddress: PersonIdentityAddress = personAddressAllAddressFields.addresses[0];
-			const result = pdfGenerationService.mapToAddressLines(postalAddress);
-			expect(result).toEqual([
-				"Test dept, Test org",
-				"Flat 5, Sherman",
-				"32 Ocean View, Wallaby Way",
-				"Southside, Sidney",
-				"F1 1SH",
-			]);
-		});
-		
 		it("should omit missing fields from mapped address", () => {
-			const { ...postalAddress }: PersonIdentityAddress = person.addresses[0];
+			const postalAddress : PersonIdentityAddress = person.addresses[0];
 			const result = pdfGenerationService.mapToAddressLines(postalAddress);
 			expect(result).toEqual([
 				"Test org",
 				"Sherman",
 				"32 Wallaby Way",
 				"Sidney",
+				"F1 1SH",
+			]);
+		});
+		
+		it("should map all fields correctly when present", () => {
+			const postalAddress = personAddressAllAddressFields
+			const result = pdfGenerationService.mapToAddressLines(postalAddress);
+			expect(result).toEqual([
+				"Test dept, Test org",
+				"Flat 5, Sherman",
+				"32 Ocean View, Wallaby Way",
+				"Southside, Sidney",
 				"F1 1SH",
 			]);
 		});
