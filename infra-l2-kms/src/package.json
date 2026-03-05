@@ -20,7 +20,7 @@
         "ts-jest": "29.4.6"
     },
     "scripts": {
-        "infra": "./node_modules/.bin/jest --testPathPattern=tests/infra",
+        "infra": "./node_modules/.bin/jest --testPathPatterns=tests/infra",
         "test:infra": "npm run infra"
     }
 }
