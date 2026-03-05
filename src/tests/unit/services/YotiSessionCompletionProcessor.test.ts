@@ -884,7 +884,7 @@ describe("YotiSessionCompletionProcessor", () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 			// @ts-expect-error linting to be updated
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
-
+			
 			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "FullName mismatch between F2F & YOTI",
