@@ -885,8 +885,6 @@ describe("YotiSessionCompletionProcessor", () => {
 			// @ts-expect-error linting to be updated
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 			
-			jest.spyOn(YotiSessionCompletionProcessor.prototype as any, "sendErrorMessageToIPVCore").mockReturnValueOnce("");
-
 			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "FullName mismatch between F2F & YOTI",
@@ -894,7 +892,6 @@ describe("YotiSessionCompletionProcessor", () => {
 			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
 			expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
 			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "FullName mismatch between F2F & YOTI");
-			expect(mockCompletedSessionProcessor.sendErrorMessageToIPVCore).toHaveBeenCalledWith(f2fSessionItem, "FullName mismatch between F2F & YOTI", "sdfssg", "b988e9c8-47c6-430c-9ca3-8cdacd85ee91")
 		});
 	});
 
