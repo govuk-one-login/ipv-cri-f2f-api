@@ -136,6 +136,6 @@ jobs:
       - name: SAM Build
         run: sam build -t template.yaml
 
-  # pre-merge-checks:
-  #   uses: ./.github/workflows/pre-merge-checks.yml
-  #   secrets: inherit
+  pre-merge-checks:
+    uses: ./.github/workflows/pre-merge-checks.yml
+    secrets: inherit
