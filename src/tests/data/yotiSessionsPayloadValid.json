@@ -14,7 +14,9 @@
         "CHECK_COMPLETION",
         "SESSION_COMPLETION",
         "NEW_PDF_SUPPLIED",
-        "INSTRUCTIONS_EMAIL_REQUESTED"
+        "INSTRUCTIONS_EMAIL_REQUESTED",
+        "THANK_YOU_EMAIL_REQUESTED",
+        "FIRST_BRANCH_VISIT"
     ],
     "auth_token": "string",
     "auth_type": "BASIC"
