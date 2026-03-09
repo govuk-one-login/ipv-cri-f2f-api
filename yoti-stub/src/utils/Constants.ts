@@ -28,6 +28,8 @@ export const UK_PASSPORT_FAMILY_NAME_MEDIA_ID: string = '0152'
 
 export const UK_PASSPORT_GIVEN_NAME_WRONG_SPLIT: string = '0153'
 
+export const UK_PASSPORT_MEDIA_ID_MISSING_FAMILY_NAME: string = '0180'
+
 export const NON_UK_PASSPORT_MEDIA_ID: string = '0200'
 
 export const NON_UK_PASSPORT_WRONG_SPLIT_SURNAME: string = '0206'
