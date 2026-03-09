@@ -112,7 +112,7 @@ Mappings:
 
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
-      YOTIBASEURL: "https://f2f-yoti-stub-1999-yotistub.review-o.dev.account.gov.uk"
+      YOTIBASEURL: "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk"
       YOTISDK: "1f9edc97-c60c-40d7-becb-c1c6a2ec4963"
       ISSUER: 'https://review-o.dev.account.gov.uk'
       DNSSUFFIX: review-o.dev.account.gov.uk
@@ -130,7 +130,7 @@ Mappings:
               "jwksEndpoint":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",
               "clientId":"5C584572",
               "redirectUri":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/credential-issuer/callback?id=f2f",
-              "YotiBaseUrl": "https://f2f-yoti-stub-1999-yotistub.review-o.dev.account.gov.uk",
+              "YotiBaseUrl": "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk",
               "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify",
               "OsLocationsApi": "https://zilsfhaczg.execute-api.eu-west-2.amazonaws.com/dev/search/places/v1/postcode"
           },
