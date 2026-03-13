@@ -66,7 +66,9 @@ export class ThankYouEmailProcessor {
 	}
 
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
-		if (!this.validationHelper.checkRequiredYotiVars()) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		if (!this.validationHelper.checkRequiredYotiVars()) {
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
 		
 	  	const yotiSessionID = CallbackSessionHelper.getYotiSessionIdOrThrow(
 			eventBody,
