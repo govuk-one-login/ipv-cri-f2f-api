@@ -86,6 +86,9 @@ describe("/callback endpoint", () => {
 	describe("Verifiable Credential Error", () => {
 		it.each([
 			{ yotiMockId: "0160", vcError: "VC generation failed : Yoti document_fields not populated" },
+			{ yotiMockId: "0170", vcError: "VC generation failed : Yoti document_fields media ID not found" },
+			{ yotiMockId: "0180", vcError: "VC generation failed : FullName mismatch between F2F & YOTI" },
+			
 		])("yotiMockId: $yotiMockId'", async ({ yotiMockId, vcError }: { yotiMockId: string; vcError: string }) => {
 			f2fStubPayload.yotiMockID = yotiMockId;
 			const { sessionId, sub } = await startStubServiceAndReturnSessionId(f2fStubPayload);

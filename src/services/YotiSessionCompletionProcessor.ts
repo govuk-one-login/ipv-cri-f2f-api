@@ -292,8 +292,8 @@ export class YotiSessionCompletionProcessor {
 				try {
   					VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(personDetails, documentFields, this.logger);
 				} catch (error: any) {
-					this.constructNotReturnedErrorMetric(error.message);
-					throw error;
+					await this.sendErrorMessageToIPVCore(f2fSession, error.message, govUkSignInJourneyId, yotiSessionID);
+  					throw new AppError(HttpCodesEnum.SERVER_ERROR, error.message);
 				}
   			} else {
   				this.logger.info("Getting NameParts using Yoti DocumentFields Info");
