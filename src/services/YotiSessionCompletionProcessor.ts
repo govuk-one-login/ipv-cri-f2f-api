@@ -24,7 +24,6 @@ import { ISessionItem } from "../models/ISessionItem";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { getClientConfig } from "../utils/ClientConfig";
 import { ValidationHelper } from "../utils/ValidationHelper";
-import { Constants } from "../utils/Constants";
 import { APIGatewayProxyResult } from "aws-lambda";
 import { CallbackSessionHelper } from "./callback/CallbackSessionHelper";
 
@@ -96,22 +95,15 @@ export class YotiSessionCompletionProcessor {
 
 	 
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
-		if (!this.validationHelper.checkRequiredYotiVars()) {
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
-		}
-	  	const yotiSessionID = CallbackSessionHelper.getYotiSessionIdOrThrow(
+		CallbackSessionHelper.throwIfMissingRequiredYotiVars(this.validationHelper);
+		const { yotiSessionID, f2fSession } = await CallbackSessionHelper.getSessionContextOrThrow({
 			eventBody,
-			this.logger,
-			"No yoti sessionId provided",
-			MessageCodes.MISSING_SESSION_ID,
-			HttpCodesEnum.SERVER_ERROR,
-			"",
-		);
-
-		const f2fSession = await CallbackSessionHelper.getSessionByYotiIdOrThrow({
+			missingSessionLogMessage: "No yoti sessionId provided",
+			missingSessionMessageCode: MessageCodes.MISSING_SESSION_ID,
+			missingSessionStatusCode: HttpCodesEnum.SERVER_ERROR,
+			missingSessionErrorMessage: "",
 			f2fService: this.f2fService,
 			logger: this.logger,
-			yotiSessionID,
 			notFoundStatusCode: HttpCodesEnum.SERVER_ERROR,
 			notFoundErrorMessage: "Missing Info in Session Table",
 			onLookupError: (error) => this.constructNotReturnedErrorMetric(error.message),

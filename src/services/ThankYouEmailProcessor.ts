@@ -15,7 +15,6 @@ import { YotiService } from "./YotiService";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { getClientConfig } from "../utils/ClientConfig";
 import { ValidationHelper } from "../utils/ValidationHelper";
-import { Constants } from "../utils/Constants";
 import { APIGatewayProxyResult } from "aws-lambda";
 import { CallbackSessionHelper } from "./callback/CallbackSessionHelper";
 
@@ -66,23 +65,15 @@ export class ThankYouEmailProcessor {
 	}
 
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
-		if (!this.validationHelper.checkRequiredYotiVars()) {
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
-		}
-		
-	  	const yotiSessionID = CallbackSessionHelper.getYotiSessionIdOrThrow(
+		CallbackSessionHelper.throwIfMissingRequiredYotiVars(this.validationHelper);
+		const { yotiSessionID, f2fSession } = await CallbackSessionHelper.getSessionContextOrThrow({
 			eventBody,
-			this.logger,
-			"Event does not include yoti session_id",
-			MessageCodes.MISSING_SESSION_ID,
-			HttpCodesEnum.SERVER_ERROR,
-			"Event does not include yoti session_id",
-		);
-
-	  	const f2fSession = await CallbackSessionHelper.getSessionByYotiIdOrThrow({
+			missingSessionLogMessage: "Event does not include yoti session_id",
+			missingSessionMessageCode: MessageCodes.MISSING_SESSION_ID,
+			missingSessionStatusCode: HttpCodesEnum.SERVER_ERROR,
+			missingSessionErrorMessage: "Event does not include yoti session_id",
 			f2fService: this.f2fService,
 			logger: this.logger,
-			yotiSessionID,
 			notFoundStatusCode: HttpCodesEnum.SERVER_ERROR,
 			notFoundErrorMessage: "Missing info in session table",
 		});

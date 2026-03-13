@@ -4,6 +4,8 @@ import { YotiCallbackPayload } from "../../type/YotiCallbackPayload";
 import { AppError } from "../../utils/AppError";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { F2fService } from "../F2fService";
+import { ValidationHelper } from "../../utils/ValidationHelper";
+import { Constants } from "../../utils/Constants";
 
 type SessionLookupOptions = {
 	f2fService: F2fService;
@@ -18,7 +20,30 @@ type SessionLookupOptions = {
 	appendLogKeys?: boolean;
 };
 
+type SessionContextOptions = {
+	eventBody: YotiCallbackPayload;
+	logger: Logger;
+	f2fService: F2fService;
+	missingSessionLogMessage: string;
+	missingSessionMessageCode: MessageCodes;
+	missingSessionStatusCode: HttpCodesEnum;
+	missingSessionErrorMessage: string;
+	notFoundStatusCode?: HttpCodesEnum;
+	notFoundErrorMessage?: string;
+	notFoundLogMessage?: string;
+	notFoundMessageCode?: MessageCodes;
+	onLookupError?: (error: any) => void;
+	onNotFound?: () => void;
+	appendLogKeys?: boolean;
+};
+
 export class CallbackSessionHelper {
+	static throwIfMissingRequiredYotiVars(validationHelper: ValidationHelper): void {
+		if (!validationHelper.checkRequiredYotiVars()) {
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
+	}
+
 	static getYotiSessionIdOrThrow(
 		eventBody: YotiCallbackPayload,
 		logger: Logger,
@@ -77,5 +102,48 @@ export class CallbackSessionHelper {
 		}
 
 		return f2fSession;
+	}
+
+	static async getSessionContextOrThrow(options: SessionContextOptions): Promise<{ yotiSessionID: string; f2fSession: any }> {
+		const {
+			eventBody,
+			logger,
+			f2fService,
+			missingSessionLogMessage,
+			missingSessionMessageCode,
+			missingSessionStatusCode,
+			missingSessionErrorMessage,
+			notFoundStatusCode,
+			notFoundErrorMessage,
+			notFoundLogMessage,
+			notFoundMessageCode,
+			onLookupError,
+			onNotFound,
+			appendLogKeys,
+		} = options;
+
+		const yotiSessionID = this.getYotiSessionIdOrThrow(
+			eventBody,
+			logger,
+			missingSessionLogMessage,
+			missingSessionMessageCode,
+			missingSessionStatusCode,
+			missingSessionErrorMessage,
+		);
+
+		const f2fSession = await this.getSessionByYotiIdOrThrow({
+			f2fService,
+			logger,
+			yotiSessionID,
+			notFoundStatusCode,
+			notFoundErrorMessage,
+			notFoundLogMessage,
+			notFoundMessageCode,
+			onLookupError,
+			onNotFound,
+			appendLogKeys,
+		});
+
+		return { yotiSessionID, f2fSession };
 	}
 }
