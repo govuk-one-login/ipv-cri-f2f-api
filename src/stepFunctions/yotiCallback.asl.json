@@ -14,6 +14,11 @@
           "Variable": "$.topic",
           "StringEquals": "thank_you_email_requested",
           "Next": "ThankYouEmailFunction"
+        },
+        {
+          "Variable": "$.topic",
+          "StringEquals": "first_branch_visit",
+          "Next": "FirstBranchVisitFunction"
         }
       ]
     },
@@ -25,6 +30,11 @@
     "ThankYouEmailFunction": {
       "Type": "Task",
       "Resource": "${ThankYouEmailFunctionArn}",
+      "End": true
+    },
+    "FirstBranchVisitFunction": {
+      "Type": "Task",
+      "Resource": "${FirstBranchVisitFunctionArn}",
       "End": true
     }
   }

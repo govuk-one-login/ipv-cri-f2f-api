@@ -15,8 +15,8 @@ import { YotiService } from "./YotiService";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { getClientConfig } from "../utils/ClientConfig";
 import { ValidationHelper } from "../utils/ValidationHelper";
-import { Constants } from "../utils/Constants";
 import { APIGatewayProxyResult } from "aws-lambda";
+import { CallbackSessionHelper } from "./callback/CallbackSessionHelper";
 
 export class ThankYouEmailProcessor {
 
@@ -65,28 +65,21 @@ export class ThankYouEmailProcessor {
 	}
 
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
-		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
-		
-  	const yotiSessionID = eventBody.session_id;
+		CallbackSessionHelper.throwIfMissingRequiredYotiVars(this.validationHelper);
+		const { yotiSessionID, f2fSession } = await CallbackSessionHelper.getSessionContextOrThrow({
+			eventBody,
+			missingSessionLogMessage: "Event does not include yoti session_id",
+			missingSessionMessageCode: MessageCodes.MISSING_SESSION_ID,
+			missingSessionStatusCode: HttpCodesEnum.SERVER_ERROR,
+			missingSessionErrorMessage: "Event does not include yoti session_id",
+			f2fService: this.f2fService,
+			logger: this.logger,
+			notFoundStatusCode: HttpCodesEnum.SERVER_ERROR,
+			notFoundErrorMessage: "Missing info in session table",
+		});
 
-  	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
-	  if (yotiSessionID) {
-		  const f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
-
-  		if (!f2fSession) {
-			  this.logger.error("Session not found", {
-				  messageCode: MessageCodes.SESSION_NOT_FOUND,
-			  });
-			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing info in session table");
-		  }
-
-  		this.logger.appendKeys({
-			  sessionId: f2fSession.sessionId,
-			  govuk_signin_journey_id: f2fSession.clientSessionId,
-		  });
-
-			//Initialise Yoti Service base on session client_id
-			const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId, this.logger);
+				//Initialise Yoti Service base on session client_id
+				const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId, this.logger);
 
 			if (!clientConfig) {
 				this.logger.error("Unrecognised client in request", {
@@ -132,12 +125,7 @@ export class ThankYouEmailProcessor {
   			},
   		});
 
-		this.metrics.addMetric("document_uploaded_at_PO", MetricUnits.Count, 1);
-  		return Response(HttpCodesEnum.OK, "OK");
-
-  	} else {
-  		this.logger.error("Event does not include yoti session_id", { messageCode: MessageCodes.MISSING_SESSION_ID });
-  		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Event does not include yoti session_id");
-  	}
+			this.metrics.addMetric("document_uploaded_at_PO", MetricUnits.Count, 1);
+	  		return Response(HttpCodesEnum.OK, "OK");
 	}
 }
