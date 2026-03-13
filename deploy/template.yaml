@@ -8766,6 +8766,35 @@ Resources:
             ]
           }
 
+  FirstPostOfficeVisitDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub '${AWS::StackName}-First-Post-Office-Visit-Metrics'
+      DashboardBody:
+        Fn::Sub: >
+          {
+            "widgets": [
+              {
+                "height": 6,
+                "width": 24,
+                "y": 0,
+                "x": 0,
+                "type": "metric",
+                "properties": {
+                  "title": "First Post Office Visit Events - ${AWS::StackName}",
+                  "view": "timeSeries",
+                  "stacked": false,
+                  "region": "${AWS::Region}",
+                  "stat": "Sum",
+                  "period": 300,
+                  "metrics": [
+                    [ "F2F-CRI", "first_branch_visit", { "label": "first_branch_visit" } ]
+                  ]
+                }
+              }
+            ]
+          }
+
 
 
 Outputs:

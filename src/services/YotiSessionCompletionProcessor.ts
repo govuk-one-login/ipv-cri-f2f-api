@@ -26,6 +26,7 @@ import { getClientConfig } from "../utils/ClientConfig";
 import { ValidationHelper } from "../utils/ValidationHelper";
 import { Constants } from "../utils/Constants";
 import { APIGatewayProxyResult } from "aws-lambda";
+import { CallbackSessionHelper } from "./callback/CallbackSessionHelper";
 
 export class YotiSessionCompletionProcessor {
 
@@ -95,35 +96,30 @@ export class YotiSessionCompletionProcessor {
 
 	 
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
-		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
-  	const yotiSessionID = eventBody.session_id;
+		if (!this.validationHelper.checkRequiredYotiVars()) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+	  	const yotiSessionID = CallbackSessionHelper.getYotiSessionIdOrThrow(
+			eventBody,
+			this.logger,
+			"No yoti sessionId provided",
+			MessageCodes.MISSING_SESSION_ID,
+			HttpCodesEnum.SERVER_ERROR,
+			"",
+		);
 
-  	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
-	  if (yotiSessionID) {
-		  let f2fSession;
-		  try {
-		  	f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
-		  } catch (error: any) {
-			this.constructNotReturnedErrorMetric(error.message);
-			throw error;
-		  }
-		  if (!f2fSession) {
-			  this.logger.error("Session not found", {
-				  messageCode: MessageCodes.SESSION_NOT_FOUND,
-			  });
-			  this.constructNotReturnedErrorMetric("Session not found");
-			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
-		  }
+		const f2fSession = await CallbackSessionHelper.getSessionByYotiIdOrThrow({
+			f2fService: this.f2fService,
+			logger: this.logger,
+			yotiSessionID,
+			notFoundStatusCode: HttpCodesEnum.SERVER_ERROR,
+			notFoundErrorMessage: "Missing Info in Session Table",
+			onLookupError: (error) => this.constructNotReturnedErrorMetric(error.message),
+			onNotFound: () => this.constructNotReturnedErrorMetric("Session not found"),
+		});
 
-		  const govUkSignInJourneyId = f2fSession.clientSessionId
+		const govUkSignInJourneyId = f2fSession.clientSessionId
 
-		  this.logger.appendKeys({
-			  sessionId: f2fSession.sessionId,
-			  govuk_signin_journey_id: govUkSignInJourneyId,
-		  });
-
-			//Initialise Yoti Service base on session client_id
-			const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId, this.logger);
+				//Initialise Yoti Service base on session client_id
+				const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId, this.logger);
 
 			if (!clientConfig) {
 				this.logger.error("Unrecognised client in request", {
@@ -368,17 +364,13 @@ export class YotiSessionCompletionProcessor {
 			  this.metrics.addMetric("state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
 			  this.metrics.addMetric("SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
 			  return Response(HttpCodesEnum.OK, "OK");
-		  } else {
-			  this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
-			  await this.sendErrorMessageToIPVCore(f2fSession, "AuthSession is in wrong Auth state", govUkSignInJourneyId, yotiSessionID); 
-			  return Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED} or ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${f2fSession.authSessionState}`);
-		  }
-	  } else {
-		  this.logger.error({ message: "No yoti sessionId provided"});
-		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "");
-	  }
+			  } else {
+				  this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
+				  await this.sendErrorMessageToIPVCore(f2fSession, "AuthSession is in wrong Auth state", govUkSignInJourneyId, yotiSessionID); 
+				  return Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED} or ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${f2fSession.authSessionState}`);
+			  }
 
-	}
+		}
 
 	checkMissingField(field: string, fieldName: string): boolean {
   	if (!field || field.trim() === "") {
@@ -513,4 +505,3 @@ export class YotiSessionCompletionProcessor {
 		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
 	}
 }
-

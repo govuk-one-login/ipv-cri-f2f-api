@@ -9,7 +9,7 @@ import { YotiCallbackPayload } from "./type/YotiCallbackPayload";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { AppError } from "./utils/AppError";
 import { Constants } from "./utils/Constants";
-import { getParameter } from "./utils/Config";
+import { YotiPrivateKeyProvider } from "./services/callback/YotiPrivateKeyProvider";
 
 const {
 	POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE,
@@ -23,8 +23,6 @@ const logger = new Logger({
 });
 
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
-
-let YOTI_PRIVATE_KEY: string;
 
 class ThankYouEmailHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.THANK_YOU_EMAIL_SERVICE);
@@ -40,10 +38,9 @@ class ThankYouEmailHandler implements LambdaInterface {
 		try {
 			logger.appendKeys({	yotiSessionId: event.session_id });
 
-			if (!YOTI_PRIVATE_KEY) {
-				logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
+				let yotiPrivateKey: string;
 				try {
-					YOTI_PRIVATE_KEY = await getParameter(this.environmentVariables.yotiKeySsmPath());
+					yotiPrivateKey = await YotiPrivateKeyProvider.getYotiPrivateKey(logger, this.environmentVariables);
 				} catch (error) {
 					logger.error(`failed to get param from ssm at ${this.environmentVariables.yotiKeySsmPath()}`, {
 						messageCode: MessageCodes.MISSING_CONFIGURATION,
@@ -51,9 +48,8 @@ class ThankYouEmailHandler implements LambdaInterface {
 					});
 					return new AppError(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
-			}
 
-			await ThankYouEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY).processRequest(event);
+				await ThankYouEmailProcessor.getInstance(logger, metrics, yotiPrivateKey).processRequest(event);
 			logger.debug("Finished processing record from SQS");
 
 		} catch (error: any) {
