@@ -19,6 +19,7 @@ import "dotenv/config";
 import { constants } from "../ApiConstants";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";
 import { DocSelectionData } from "../types";
+import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 
 //QualityGateIntegrationTest 
 //QualityGateRegressionTest
@@ -198,5 +199,24 @@ describe("/callback endpoint", () => {
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_EMAILED", schemaName: "F2F_YOTI_PDF_EMAILED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_YOTI_RESPONSE_RECEIVED", schemaName: "F2F_YOTI_RESPONSE_RECEIVED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_CRI_VC_ISSUED", schemaName: "F2F_CRI_VC_ISSUED_01_SCHEMA" }, allTxmaEventBodies);
+	}, 20000);
+
+	it("E2E Journey with FIRST_BRANCH_VISIT callback does not transition auth session state", async () => {
+		const yotiMockID = "0101";
+		f2fStubPayload.yotiMockID = yotiMockID;
+
+		const { sessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		await initiateUserInfo(dataPassport, sessionId);
+
+		const sessionBefore = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const yotiSessionId = sessionBefore?.yotiSessionId;
+		expect(yotiSessionId).toBeTruthy();
+		expect(sessionBefore?.authSessionState).toBeTruthy();
+
+		await callbackPost(yotiSessionId, "first_branch_visit");
+
+		const sessionAfter = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		expect(sessionAfter?.authSessionState).toBe(sessionBefore?.authSessionState);
+		expect(sessionAfter?.authSessionState).not.toBe(AuthSessionState.F2F_CREDENTIAL_ISSUED);
 	}, 20000);
 });

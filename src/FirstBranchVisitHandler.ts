@@ -10,7 +10,7 @@ import { Constants } from "./utils/Constants";
 
 const {
 	POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE,
-	POWERTOOLS_LOG_LEVEL = Constants.DEBUG,
+	POWERTOOLS_LOG_LEVEL = Constants.INFO,
 	POWERTOOLS_SERVICE_NAME = "FirstBranchVisitHandler",
 } = process.env;
 
