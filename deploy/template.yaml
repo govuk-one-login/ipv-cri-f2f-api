@@ -4602,13 +4602,13 @@ Resources:
       DefinitionUri: ../src/stepFunctions/yotiCallback.asl.json
       DefinitionSubstitutions:
         YotiSessionCompletionFunctionArn: !GetAtt YotiCallbackFunction.Arn
-        ThankYouEmailFunctionArn: !GetAtt ThankYouEmailFunction.Arn
+        PostOfficeVisitFunctionArn: !GetAtt PostOfficeVisitFunction.Arn
       Policies:
         - AWSXrayWriteOnlyAccess
         - LambdaInvokePolicy:
             FunctionName: !Ref YotiCallbackFunction
         - LambdaInvokePolicy:
-            FunctionName: !Ref ThankYouEmailFunction
+            FunctionName: !Ref PostOfficeVisitFunction
       Tracing:
         Enabled: true
       PermissionsBoundary: !If
@@ -4976,16 +4976,16 @@ Resources:
 
 ####################################################################
 #                                                                  #
-# ThankYou Email Function                                          #
+# Post Office Visit Callback Function                              #
 #                                                                  #
 ####################################################################
 
-  ThankYouEmailFunction:
+  PostOfficeVisitFunction:
     Type: AWS::Serverless::Function
-    DependsOn: ThankYouEmailFunctionLogGroup
+    DependsOn: PostOfficeVisitFunctionLogGroup
     Properties:
-      FunctionName: !Sub "F2F-ThankYouEmail-${AWS::StackName}"
-      Handler: ThankYouEmailHandler.lambdaHandler
+      FunctionName: !Sub "F2F-PostOfficeVisit-${AWS::StackName}"
+      Handler: PostOfficeVisitHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
         - ApplyReservedConcurrency
@@ -4993,7 +4993,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: ThankYouEmailHandler
+          POWERTOOLS_SERVICE_NAME: PostOfficeVisitHandler
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
@@ -5057,13 +5057,13 @@ Resources:
         Target: "es2020"
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
-          - ThankYouEmailHandler.ts
+          - PostOfficeVisitHandler.ts
         UseNpmCi: true
 
-  ThankYouEmailFunctionLogGroup:
+  PostOfficeVisitFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/F2F-ThankYouEmail-${AWS::StackName}"
+      LogGroupName: !Sub "/aws/lambda/F2F-PostOfficeVisit-${AWS::StackName}"
       RetentionInDays:
         !FindInMap [
           EnvironmentConfiguration,
@@ -5071,40 +5071,40 @@ Resources:
           logretentionindays,
         ]
 
-  ThankYouEmailFunctionLogsSubscriptionFilterCSLS:
+  PostOfficeVisitFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsProdLikeEnvironment
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
-      LogGroupName: !Ref ThankYouEmailFunctionLogGroup
+      LogGroupName: !Ref PostOfficeVisitFunctionLogGroup
 
-  ThankYouEmailFunctionPermission:
+  PostOfficeVisitFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref ThankYouEmailFunction
+      FunctionName: !Ref PostOfficeVisitFunction
       Principal: apigateway.amazonaws.com
 
-  ThankYouEmailFatalErorMetricFilter:
+  PostOfficeVisitFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Condition: DeployAlarms
     Properties:
-      LogGroupName: !Ref ThankYouEmailFunctionLogGroup
+      LogGroupName: !Ref PostOfficeVisitFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
       MetricTransformations:
         -
           MetricValue: "1"
           MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
-          MetricName: "ThankYouEmail-Fatalerror"
+          MetricName: "PostOfficeVisit-Fatalerror"
 
-  ThankYouEmailFatalErrorAlarm:
+  PostOfficeVisitFatalErrorAlarm:
     DependsOn:
-      - "ThankYouEmailFatalErorMetricFilter"
+      - "PostOfficeVisitFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-ThankYouEmail-FatalErrorAlarm"
+      AlarmName: !Sub "${AWS::StackName}-PostOfficeVisit-FatalErrorAlarm"
       AlarmDescription: !Sub 
         - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
@@ -5114,7 +5114,7 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: [ ]
-      MetricName: ThankYouEmail-Fatalerror
+      MetricName: PostOfficeVisit-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
       Dimensions: [ ]
@@ -5125,24 +5125,24 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ThankYouEmailRetriesExceededErrorMetricFilter:
+  PostOfficeVisitRetriesExceededErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
-      LogGroupName: !Ref ThankYouEmailFunctionLogGroup
+      LogGroupName: !Ref PostOfficeVisitFunctionLogGroup
       FilterPattern: '{ $.level = "ERROR" && $.messageCode = "YOTI_RETRIES_EXCEEDED" }'
       MetricTransformations:
         -
           MetricValue: "1"
           MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
-          MetricName: "ThankYouEmail-GetCompletedSessionInfoRetriesExceeded-error"
+          MetricName: "PostOfficeVisit-GetCompletedSessionInfoRetriesExceeded-error"
 
-  ThankYouEmailRetriesExceededErrorAlarm:
+  PostOfficeVisitRetriesExceededErrorAlarm:
     DependsOn:
-      - "ThankYouEmailRetriesExceededErrorMetricFilter"
+      - "PostOfficeVisitRetriesExceededErrorMetricFilter"
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-ThankYouEmail-YotiCallbackRetriesExceededErrorAlarm"
+      AlarmName: !Sub "${AWS::StackName}-PostOfficeVisit-YotiCallbackRetriesExceededErrorAlarm"
       AlarmDescription: !Sub 
         - "Trigger an alarm when we are unable to fetch Yoti session after max retries. ${RunbookUrl}"
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
@@ -5152,7 +5152,7 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-topic-slack-warning-alert
       InsufficientDataActions: [ ]
-      MetricName: ThankYouEmail-GetCompletedSessionInfoRetriesExceeded-error
+      MetricName: PostOfficeVisit-GetCompletedSessionInfoRetriesExceeded-error
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
       Dimensions: [ ]
@@ -5163,7 +5163,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ThankYouEmailConcurrency80Alarm:
+  PostOfficeVisitConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "ApplyReservedConcurrency"
     Properties:
@@ -5174,14 +5174,14 @@ Resources:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub 
-        - "Trigger the alarm if over 80% of ThankYouEmail concurrency is used. ${RunbookUrl}"
+        - "Trigger the alarm if over 80% of PostOfficeVisit concurrency is used. ${RunbookUrl}"
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
-      AlarmName: !Sub "${AWS::StackName}-ThankYouEmailFunction-concurrency"
+      AlarmName: !Sub "${AWS::StackName}-PostOfficeVisitFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
       Dimensions:
         - Name: FunctionName
-          Value: !Ref ThankYouEmailFunction
+          Value: !Ref PostOfficeVisitFunction
       Statistic: Maximum
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
@@ -5190,7 +5190,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
-  ThankYouEmailThrottleAlarm:
+  PostOfficeVisitThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
@@ -5201,15 +5201,15 @@ Resources:
         - !ImportValue platform-alarm-topic-critical-alert
       InsufficientDataActions: []
       AlarmDescription: !Sub 
-        - "Trigger if the ${ThankYouEmailFunction} lambda throttles. ${RunbookUrl}"
+        - "Trigger if the ${PostOfficeVisitFunction} lambda throttles. ${RunbookUrl}"
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
-      AlarmName: !Sub "${AWS::StackName}-ThankYouEmailFunction-throttles"
+      AlarmName: !Sub "${AWS::StackName}-PostOfficeVisitFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
       Dimensions:
         - Name: FunctionName
-          Value: !Ref ThankYouEmailFunction
+          Value: !Ref PostOfficeVisitFunction
       TreatMissingData: notBreaching
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
@@ -7961,9 +7961,9 @@ Resources:
                   "x": 12,
                   "type": "metric",
                   "properties": {
-                    "title": "ThankYouEmail 80% Concurrency - ${AWS::StackName}",
+                    "title": "PostOfficeVisit 80% Concurrency - ${AWS::StackName}",
                     "annotations": {
-                      "alarms": ["${ThankYouEmailConcurrency80Alarm.Arn}"]
+                      "alarms": ["${PostOfficeVisitConcurrency80Alarm.Arn}"]
                     },
                     "view": "timeSeries",
                     "stacked": false
@@ -8152,9 +8152,9 @@ Resources:
                   "x": 12,
                   "type": "metric",
                   "properties": {
-                    "title": "ThankYouEmail Throttles - ${AWS::StackName}",
+                    "title": "PostOfficeVisit Throttles - ${AWS::StackName}",
                     "annotations": {
-                      "alarms": ["${ThankYouEmailThrottleAlarm.Arn}"]
+                      "alarms": ["${PostOfficeVisitThrottleAlarm.Arn}"]
                     },
                     "view": "timeSeries",
                     "stacked": false
@@ -8651,8 +8651,6 @@ Resources:
               }
             ]
           }
-
-
 
 Outputs:
   F2FApiGatewayId:
