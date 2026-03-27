@@ -4995,6 +4995,7 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: PostOfficeVisitHandler
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
