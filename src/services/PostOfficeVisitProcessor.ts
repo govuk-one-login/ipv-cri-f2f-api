@@ -77,6 +77,7 @@ export class PostOfficeVisitProcessor {
 		}
 
 		this.logger.info({ message: "Ignoring unsupported yoti callback topic", topic: eventBody.topic });
+		return Response(HttpCodesEnum.OK, "Ignored unsupported yoti callback topic");
 	}
 
 	async processFirstBranchVisit(eventBody: YotiCallbackPayload): Promise<void> {

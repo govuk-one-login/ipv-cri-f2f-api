@@ -6,7 +6,7 @@ import { AppError } from "../../utils/AppError";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 
 export class YotiPrivateKeyProvider {
-	private static yotiPrivateKey: string;
+	private static yotiPrivateKey: string | undefined;
 
 	static async getYotiPrivateKey(logger: Logger, environmentVariables: EnvironmentVariables): Promise<string> {
 		if (!this.yotiPrivateKey) {

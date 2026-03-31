@@ -15,7 +15,7 @@ import { YotiPrivateKeyProvider } from "./services/callback/YotiPrivateKeyProvid
 const {
 	POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE,
 	POWERTOOLS_LOG_LEVEL = Constants.DEBUG,
-	POWERTOOLS_SERVICE_NAME = "PostOfficeVisitHandler",
+	POWERTOOLS_SERVICE_NAME = Constants.YOTI_CALLBACK_SVC_NAME,
 } = process.env;
 
 const logger = new Logger({

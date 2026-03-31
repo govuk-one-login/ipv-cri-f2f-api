@@ -1,26 +1,23 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { mock } from "jest-mock-extended";
-import { lambdaHandler } from "../../PostOfficeVisitHandler";
-import { AuthSessionState } from "../../models/enums/AuthSessionState";
-import { MessageCodes } from "../../models/enums/MessageCodes";
-import { TxmaEventNames } from "../../models/enums/TxmaEvents";
-import { ISessionItem } from "../../models/ISessionItem";
-import { YotiCompletedSession } from "../../models/YotiPayloads";
-import { F2fService } from "../../services/F2fService";
-import { PostOfficeVisitProcessor } from "../../services/PostOfficeVisitProcessor";
-import { YotiService } from "../../services/YotiService";
-import { YotiPrivateKeyProvider } from "../../services/callback/YotiPrivateKeyProvider";
-import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
-import { AppError } from "../../utils/AppError";
-import { VALID_FIRST_BRANCH_VISIT_EVENT, VALID_THANK_YOU_EMAIL_EVENT } from "./data/callback-events";
-import { mockYotiSessionItemBST, mockYotiSessionItemGMT } from "./data/yoti-session";
+import { AuthSessionState } from "../../../models/enums/AuthSessionState";
+import { MessageCodes } from "../../../models/enums/MessageCodes";
+import { YotiCallbackTopics } from "../../../models/enums/YotiCallbackTopics";
+import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
+import { ISessionItem } from "../../../models/ISessionItem";
+import { YotiCompletedSession } from "../../../models/YotiPayloads";
+import { F2fService } from "../../../services/F2fService";
+import { PostOfficeVisitProcessor } from "../../../services/PostOfficeVisitProcessor";
+import { YotiService } from "../../../services/YotiService";
+import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
+import { VALID_FIRST_BRANCH_VISIT_EVENT, VALID_THANK_YOU_EMAIL_EVENT } from "../data/callback-events";
+import { mockYotiSessionItemBST, mockYotiSessionItemGMT } from "../data/yoti-session";
 
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 const logger = mock<Logger>();
 const metrics = mock<Metrics>();
-const mockedPostOfficeVisitProcessor = mock<PostOfficeVisitProcessor>();
 // pragma: allowlist nextline secret
 const YOTI_PRIVATE_KEY = "YOTI_PRIVATE_KEY";
 const sessionId = "RandomF2FSessionID";
@@ -52,39 +49,6 @@ function getMockSessionItem(): ISessionItem {
 	return sessionInfo;
 }
 
-describe("PostOfficeVisitHandler", () => {
-	beforeEach(() => {
-		jest.clearAllMocks();
-		jest.spyOn(PostOfficeVisitProcessor, "getInstance").mockReturnValue(mockedPostOfficeVisitProcessor);
-		jest.spyOn(YotiPrivateKeyProvider, "getYotiPrivateKey").mockResolvedValue(YOTI_PRIVATE_KEY);
-	});
-
-	afterEach(() => {
-		jest.restoreAllMocks();
-	});
-
-	it("return success response when PostOfficeVisitProcessor is successful", async () => {
-		await lambdaHandler(VALID_THANK_YOU_EMAIL_EVENT, "F2F");
-		expect(mockedPostOfficeVisitProcessor.processRequest).toHaveBeenCalledTimes(1);
-	});
-
-	it("processes first_branch_visit using PostOfficeVisitProcessor", async () => {
-		await lambdaHandler(VALID_FIRST_BRANCH_VISIT_EVENT, "F2F");
-		expect(mockedPostOfficeVisitProcessor.processRequest).toHaveBeenCalledTimes(1);
-	});
-
-	it("errors when PostOfficeVisitProcessor throws AppError", async () => {
-		jest.spyOn(PostOfficeVisitProcessor, "getInstance").mockImplementation(() => {
-			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send VC");
-		});
-
-		await expect(lambdaHandler(VALID_THANK_YOU_EMAIL_EVENT, "F2F")).rejects.toThrow(expect.objectContaining({
-			statusCode: HttpCodesEnum.SERVER_ERROR,
-			message: "Failed to process post office visit callback event",
-		}));
-	});
-});
-
 describe("PostOfficeVisitProcessor", () => {
 	beforeAll(() => {
 		postOfficeVisitProcessor = new PostOfficeVisitProcessor(logger, metrics, YOTI_PRIVATE_KEY);
@@ -101,12 +65,52 @@ describe("PostOfficeVisitProcessor", () => {
 		jest.clearAllMocks();
 	});
 
+	describe("#processRequest", () => {
+		it("routes first_branch_visit to processFirstBranchVisit", async () => {
+			const processFirstBranchVisitSpy = jest
+				.spyOn(postOfficeVisitProcessor, "processFirstBranchVisit")
+				.mockResolvedValue();
+
+			await postOfficeVisitProcessor.processRequest(VALID_FIRST_BRANCH_VISIT_EVENT);
+
+			expect(processFirstBranchVisitSpy).toHaveBeenCalledWith(VALID_FIRST_BRANCH_VISIT_EVENT);
+			processFirstBranchVisitSpy.mockRestore();
+		});
+
+		it("routes thank_you_email_requested to processThankYouEmail", async () => {
+			const processThankYouEmailSpy = jest
+				.spyOn(postOfficeVisitProcessor, "processThankYouEmail")
+				.mockResolvedValue({ statusCode: HttpCodesEnum.OK, headers: {}, body: "OK" });
+
+			await postOfficeVisitProcessor.processRequest(VALID_THANK_YOU_EMAIL_EVENT);
+
+			expect(processThankYouEmailSpy).toHaveBeenCalledWith(VALID_THANK_YOU_EMAIL_EVENT);
+			processThankYouEmailSpy.mockRestore();
+		});
+
+		it("returns OK response for unsupported topic", async () => {
+			const response = await postOfficeVisitProcessor.processRequest({
+				session_id: "123456789",
+				topic: "unsupported_topic",
+			});
+
+			expect(logger.info).toHaveBeenCalledWith({
+				message: "Ignoring unsupported yoti callback topic",
+				topic: "unsupported_topic",
+			});
+			expect(response).toEqual(expect.objectContaining({
+				statusCode: HttpCodesEnum.OK,
+				body: "Ignored unsupported yoti callback topic",
+			}));
+		});
+	});
+
 	describe("#processFirstBranchVisit", () => {
 		it("throws error if session_id is missing", async () => {
 			await expect(
 				postOfficeVisitProcessor.processFirstBranchVisit({
 					session_id: "",
-					topic: "first_branch_visit",
+					topic: YotiCallbackTopics.FIRST_BRANCH_VISIT,
 				}),
 			).rejects.toThrow(
 				expect.objectContaining({
@@ -128,7 +132,7 @@ describe("PostOfficeVisitProcessor", () => {
 			await expect(
 				postOfficeVisitProcessor.processFirstBranchVisit({
 					session_id: "123456789",
-					topic: "first_branch_visit",
+					topic: YotiCallbackTopics.FIRST_BRANCH_VISIT,
 				}),
 			).rejects.toThrow(
 				expect.objectContaining({
@@ -151,7 +155,7 @@ describe("PostOfficeVisitProcessor", () => {
 
 			await postOfficeVisitProcessor.processFirstBranchVisit({
 				session_id: "123456789",
-				topic: "first_branch_visit",
+				topic: YotiCallbackTopics.FIRST_BRANCH_VISIT,
 			});
 
 			expect(mockF2fService.getSessionByYotiId).toHaveBeenCalledWith("123456789");
@@ -165,7 +169,7 @@ describe("PostOfficeVisitProcessor", () => {
 
 	describe("#processThankYouEmail", () => {
 		it("throws error if not yoti session ID has been provided", async () => {
-			await expect(postOfficeVisitProcessor.processThankYouEmail({ session_id: "", topic: "thank_you_email_requested" })).rejects.toThrow(expect.objectContaining({
+			await expect(postOfficeVisitProcessor.processThankYouEmail({ session_id: "", topic: YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED })).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Event does not include yoti session_id",
 			}));
@@ -178,7 +182,7 @@ describe("PostOfficeVisitProcessor", () => {
 		it("throws error if F2F session can't be found", async () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(undefined);
 
-			await expect(postOfficeVisitProcessor.processThankYouEmail({ session_id: sessionId, topic: "thank_you_email_requested" })).rejects.toThrow(expect.objectContaining({
+			await expect(postOfficeVisitProcessor.processThankYouEmail({ session_id: sessionId, topic: YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED })).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Missing info in session table",
 			}));
@@ -192,7 +196,7 @@ describe("PostOfficeVisitProcessor", () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValue(f2fSessionItem);
 			mockYotiService.getCompletedSessionInfo.mockResolvedValueOnce(undefined);
 
-			await expect(postOfficeVisitProcessor.processThankYouEmail({ session_id: sessionId, topic: "thank_you_email_requested" })).rejects.toThrow(expect.objectContaining({
+			await expect(postOfficeVisitProcessor.processThankYouEmail({ session_id: sessionId, topic: YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED })).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Yoti Session not found",
 			}));
@@ -203,11 +207,11 @@ describe("PostOfficeVisitProcessor", () => {
 			expect(metrics.addMetric).not.toHaveBeenCalled();
 		});
 
-		it("sends correctly formatted message to TxMA if all checks pass", async () => {
+		it("records metric and sends correctly formatted message to TxMA if all checks pass", async () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValue(f2fSessionItem);
 			mockYotiService.getCompletedSessionInfo.mockResolvedValue(yotiSessionItem);
 
-			await postOfficeVisitProcessor.processThankYouEmail({ session_id: sessionId, topic: "thank_you_email_requested" });
+			await postOfficeVisitProcessor.processThankYouEmail({ session_id: sessionId, topic: YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED });
 
 			expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({
 				event_name: TxmaEventNames.F2F_DOCUMENT_UPLOADED,
@@ -236,7 +240,7 @@ describe("PostOfficeVisitProcessor", () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValue(f2fSessionItem);
 			mockYotiService.getCompletedSessionInfo.mockResolvedValue(yotiSessionItem);
 
-			await postOfficeVisitProcessor.processThankYouEmail({ session_id: sessionId, topic: "thank_you_email_requested" });
+			await postOfficeVisitProcessor.processThankYouEmail({ session_id: sessionId, topic: YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED });
 
 			expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith({
 				event_name: TxmaEventNames.F2F_DOCUMENT_UPLOADED,
