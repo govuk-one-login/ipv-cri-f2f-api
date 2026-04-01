@@ -5,7 +5,6 @@ import { YotiPrivateKeyProvider } from "../../services/callback/YotiPrivateKeyPr
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 import { AppError } from "../../utils/AppError";
 import { VALID_FIRST_BRANCH_VISIT_EVENT, VALID_THANK_YOU_EMAIL_EVENT } from "./data/callback-events";
-import { MessageCodes } from "../../models/enums/MessageCodes";
 
 const mockedPostOfficeVisitProcessor = mock<PostOfficeVisitProcessor>();
 // pragma: allowlist nextline secret
