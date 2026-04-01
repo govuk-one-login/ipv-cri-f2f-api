@@ -43,7 +43,6 @@ case "$SAM_STACK_NAME" in
         export DNS_SUFFIX=$(remove_quotes "$CFN_DNSSuffix")
         export DEV_F2F_SESSION_TABLE_NAME=$(remove_quotes "$CFN_SessionTableName")
         export DEV_EXPIRED_SESSIONS_LAMBDA_NAME=$(remove_quotes "$CFN_ExpiredSessionsLambdaName")
-
         export DEV_F2F_PERSON_IDENTITY_TABLE_NAME=$(remove_quotes "$CFN_PersonIdentityTableName")
 
         run_tests "test:api" "test:api-third-party"

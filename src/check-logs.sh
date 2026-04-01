@@ -39,7 +39,7 @@ log_groups=(
     "/aws/lambda/F2F-GovNotify-$stack_name"
     "/aws/lambda/F2F-YotiCallback-$stack_name"
     "/aws/lambda/F2F-TriggerYotiCallbackStateMachine-$stack_name"
-    "/aws/lambda/F2F-ThankYouEmail-$stack_name"
+    "/aws/lambda/F2F-PostOfficeVisit-$stack_name"
     "/aws/lambda/Abort-$stack_name"
     "/aws/lambda/User-Info-$stack_name"
 )
