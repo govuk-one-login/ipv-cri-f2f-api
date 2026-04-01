@@ -13,7 +13,12 @@
         {
           "Variable": "$.topic",
           "StringEquals": "thank_you_email_requested",
-          "Next": "ThankYouEmailFunction"
+          "Next": "PostOfficeVisitFunction"
+        },
+        {
+          "Variable": "$.topic",
+          "StringEquals": "first_branch_visit",
+          "Next": "PostOfficeVisitFunction"
         }
       ]
     },
@@ -22,9 +27,9 @@
       "Resource": "${YotiSessionCompletionFunctionArn}",
       "End": true
     },
-    "ThankYouEmailFunction": {
+    "PostOfficeVisitFunction": {
       "Type": "Task",
-      "Resource": "${ThankYouEmailFunctionArn}",
+      "Resource": "${PostOfficeVisitFunctionArn}",
       "End": true
     }
   }

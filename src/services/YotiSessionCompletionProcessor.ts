@@ -24,8 +24,8 @@ import { ISessionItem } from "../models/ISessionItem";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { getClientConfig } from "../utils/ClientConfig";
 import { ValidationHelper } from "../utils/ValidationHelper";
-import { Constants } from "../utils/Constants";
 import { APIGatewayProxyResult } from "aws-lambda";
+import { Constants } from "../utils/Constants";
 
 export class YotiSessionCompletionProcessor {
 
@@ -95,75 +95,83 @@ export class YotiSessionCompletionProcessor {
 
 	 
 	async processRequest(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
-		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
-  	const yotiSessionID = eventBody.session_id;
+		if (!this.validationHelper.checkRequiredYotiVars()) {
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		}
 
-  	this.logger.info({ message: "Fetching F2F Session info with Yoti SessionID" }, { yotiSessionID });
-	  if (yotiSessionID) {
-		  let f2fSession;
-		  try {
-		  	f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
-		  } catch (error: any) {
+		const yotiSessionID = eventBody.session_id;
+		if (!yotiSessionID) {
+			this.logger.error("No yoti sessionId provided", {
+				messageCode: MessageCodes.MISSING_SESSION_ID,
+			});
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "");
+		}
+
+		this.logger.info("Fetching F2F Session info with Yoti SessionID", { yotiSessionID });
+		let f2fSession: ISessionItem | undefined;
+		try {
+			f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
+		} catch (error: any) {
 			this.constructNotReturnedErrorMetric(error.message);
 			throw error;
-		  }
-		  if (!f2fSession) {
-			  this.logger.error("Session not found", {
-				  messageCode: MessageCodes.SESSION_NOT_FOUND,
-			  });
-			  this.constructNotReturnedErrorMetric("Session not found");
-			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
-		  }
+		}
 
-		  const govUkSignInJourneyId = f2fSession.clientSessionId
+		if (!f2fSession) {
+			this.logger.error("Session not found", {
+				messageCode: MessageCodes.SESSION_NOT_FOUND,
+			});
+			this.constructNotReturnedErrorMetric("Session not found");
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
+		}
 
-		  this.logger.appendKeys({
-			  sessionId: f2fSession.sessionId,
-			  govuk_signin_journey_id: govUkSignInJourneyId,
-		  });
+		this.logger.appendKeys({
+			sessionId: f2fSession.sessionId,
+			govuk_signin_journey_id: f2fSession.clientSessionId,
+		});
 
-			//Initialise Yoti Service base on session client_id
-			const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId, this.logger);
+		const govUkSignInJourneyId = f2fSession.clientSessionId;
 
-			if (!clientConfig) {
-				this.logger.error("Unrecognised client in request", {
-					messageCode: MessageCodes.UNRECOGNISED_CLIENT,
-				});
-				this.constructNotReturnedErrorMetric("Unrecognised client in request");
-				return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
-			}
+		//Initialise Yoti Service base on session client_id
+		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId, this.logger);
 
-			this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY);
+		if (!clientConfig) {
+			this.logger.error("Unrecognised client in request", {
+				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
+			});
+			this.constructNotReturnedErrorMetric("Unrecognised client in request");
+			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
+		}
 
+		this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY);
 
-		  this.logger.info({ message: "Fetching status for Yoti SessionID" });
-		   
-		  let completedYotiSessionInfo;
-		  try {
-		  completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, clientConfig.YotiBaseUrl);
-		  } catch (error: any) {
+		this.logger.info({ message: "Fetching status for Yoti SessionID" });
+
+		let completedYotiSessionInfo;
+		try {
+			completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, clientConfig.YotiBaseUrl);
+		} catch (error: any) {
 			this.constructNotReturnedErrorMetric(error.message);
 			throw error;
-		  }
-		  if (!completedYotiSessionInfo) {
-			  this.logger.error({ message: "No YOTI Session found with ID:" }, {
-				  messageCode: MessageCodes.VENDOR_SESSION_NOT_FOUND,
-			  });
-			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti Session not found", govUkSignInJourneyId, yotiSessionID);
-			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not found");
-		  }
+		}
+		if (!completedYotiSessionInfo) {
+			this.logger.error({ message: "No YOTI Session found with ID:" }, {
+				messageCode: MessageCodes.VENDOR_SESSION_NOT_FOUND,
+			});
+			await this.sendErrorMessageToIPVCore(f2fSession, "Yoti Session not found", govUkSignInJourneyId, yotiSessionID);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not found");
+		}
 
-		  if (completedYotiSessionInfo.state !== YotiSessionDocument.COMPLETED) {
-			  this.logger.error({ message: "Session in Yoti does not have status COMPLETED" }, {
-				  messageCode: MessageCodes.VENDOR_SESSION_STATE_MISMATCH,
-			  });
-			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti Session not complete", govUkSignInJourneyId, yotiSessionID);
-			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not complete", { shouldThrow: true });
-		  }
+		if (completedYotiSessionInfo.state !== YotiSessionDocument.COMPLETED) {
+			this.logger.error({ message: "Session in Yoti does not have status COMPLETED" }, {
+				messageCode: MessageCodes.VENDOR_SESSION_STATE_MISMATCH,
+			});
+			await this.sendErrorMessageToIPVCore(f2fSession, "Yoti Session not complete", govUkSignInJourneyId, yotiSessionID);
+			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not complete", { shouldThrow: true });
+		}
 
-		  this.logger.appendKeys({
-			  yotiUserTrackingId: completedYotiSessionInfo.user_tracking_id,
-		  });
+		this.logger.appendKeys({
+			yotiUserTrackingId: completedYotiSessionInfo.user_tracking_id,
+		});
 
   		const idDocuments = completedYotiSessionInfo.resources.id_documents;
 		
@@ -226,11 +234,11 @@ export class YotiSessionCompletionProcessor {
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
 		  }
 
-		  // Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED" or "F2F_AUTH_CODE_ISSUED"
-		  if (
-			  f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
-			  f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED
-		  ) {
+		// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED" or "F2F_AUTH_CODE_ISSUED"
+		if (
+			f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
+			f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED
+		) {
   			const coreEventFields = buildCoreEventFields(f2fSession, this.environmentVariables.issuer(), f2fSession.clientIpAddress);
 			  try {
 				  await this.f2fService.sendToTXMA({
@@ -365,19 +373,17 @@ export class YotiSessionCompletionProcessor {
 				  AuthSessionState.F2F_CREDENTIAL_ISSUED,
 			  );
 
-			  this.metrics.addMetric("state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
-			  this.metrics.addMetric("SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
-			  return Response(HttpCodesEnum.OK, "OK");
-		  } else {
-			  this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
-			  await this.sendErrorMessageToIPVCore(f2fSession, "AuthSession is in wrong Auth state", govUkSignInJourneyId, yotiSessionID); 
-			  return Response(HttpCodesEnum.UNAUTHORIZED, `AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED} or ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${f2fSession.authSessionState}`);
-		  }
-	  } else {
-		  this.logger.error({ message: "No yoti sessionId provided"});
-		  throw new AppError(HttpCodesEnum.SERVER_ERROR, "");
-	  }
+			this.metrics.addMetric("state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
+			this.metrics.addMetric("SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
+			return Response(HttpCodesEnum.OK, "OK");
+		}
 
+		this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
+		await this.sendErrorMessageToIPVCore(f2fSession, "AuthSession is in wrong Auth state", govUkSignInJourneyId, yotiSessionID);
+		return Response(
+			HttpCodesEnum.UNAUTHORIZED,
+			`AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED} or ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${f2fSession.authSessionState}`,
+		);
 	}
 
 	checkMissingField(field: string, fieldName: string): boolean {
@@ -513,4 +519,3 @@ export class YotiSessionCompletionProcessor {
 		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
 	}
 }
-

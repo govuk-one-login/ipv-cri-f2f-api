@@ -1,5 +1,5 @@
  
-import {  INVALID_YOTI_TOPIC_SQS_EVENT, VALID_SESSION_COMPLETION_SQS_EVENT, VALID_THANK_YOU_SQS_EVENT } from "./data/sqs-events";
+import {  INVALID_YOTI_TOPIC_SQS_EVENT, VALID_SESSION_COMPLETION_SQS_EVENT, VALID_THANK_YOU_SQS_EVENT, VALID_FIRST_BRANCH_VISIT_SQS_EVENT, } from "./data/sqs-events";
 import { handlerClass, lambdaHandler, logger } from "../../TriggerYotiCallbackStateMachineHandler";
 import { MessageCodes } from "../../models/enums/MessageCodes";
 import { passEntireBatch, failEntireBatch } from "../../utils/SqsBatchResponseHelper";
@@ -48,6 +48,7 @@ describe("TriggerYotiCallbackStateMachineHandler", () => {
 	it.each([
 		{ topic: "session_completion", event: VALID_SESSION_COMPLETION_SQS_EVENT },
 		{ topic: "thank_you_email_requested", event: VALID_THANK_YOU_SQS_EVENT },
+		{ topic: "first_branch_visit", event: VALID_FIRST_BRANCH_VISIT_SQS_EVENT },
 	])("invokes step function when $topic event is passed", async ({ topic, event }) => {
 		await lambdaHandler(event, "F2F");
 		expect(logger.appendKeys).toHaveBeenCalledWith({
