@@ -80,7 +80,7 @@ export class PostOfficeVisitProcessor {
 		return Response(HttpCodesEnum.OK, "Ignored unsupported yoti callback topic");
 	}
 
-	async processFirstBranchVisit(eventBody: YotiCallbackPayload): Promise<void> {
+	async processFirstBranchVisit(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {
 		const yotiSessionID = eventBody.session_id;
 		if (!yotiSessionID) {
 			this.logger.error("Missing session_id in FIRST_BRANCH_VISIT payload", {
@@ -108,6 +108,7 @@ export class PostOfficeVisitProcessor {
 			sessionId: f2fSession.sessionId,
 			yotiSessionId: yotiSessionID,
 		});
+		return Response(HttpCodesEnum.OK, "OK");
 	}
 
 	async processThankYouEmail(eventBody: YotiCallbackPayload): Promise<APIGatewayProxyResult> {

@@ -18,7 +18,7 @@ const {
 	POWERTOOLS_SERVICE_NAME = Constants.YOTI_CALLBACK_SVC_NAME,
 } = process.env;
 
-const logger = new Logger({
+export const logger = new Logger({
 	logLevel: POWERTOOLS_LOG_LEVEL,
 	serviceName: POWERTOOLS_SERVICE_NAME,
 });
@@ -45,7 +45,7 @@ class PostOfficeVisitHandler implements LambdaInterface {
 			}
 
 			await PostOfficeVisitProcessor.getInstance(logger, metrics, yotiPrivateKey).processRequest(event);
-			logger.debug("Finished processing record from SQS");
+			logger.info("Finished processing record from SQS");
 
 		} catch (error: any) {
 			logger.error({ message: "Failed to process post office visit callback event",

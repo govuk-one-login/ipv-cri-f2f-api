@@ -62,19 +62,18 @@ describe("PostOfficeVisitProcessor", () => {
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		jest.restoreAllMocks();
 	});
 
 	describe("#processRequest", () => {
 		it("routes first_branch_visit to processFirstBranchVisit", async () => {
 			const processFirstBranchVisitSpy = jest
 				.spyOn(postOfficeVisitProcessor, "processFirstBranchVisit")
-				.mockResolvedValue();
+				.mockResolvedValue({ statusCode: HttpCodesEnum.OK, headers: {}, body: "OK" });
 
 			await postOfficeVisitProcessor.processRequest(VALID_FIRST_BRANCH_VISIT_EVENT);
 
 			expect(processFirstBranchVisitSpy).toHaveBeenCalledWith(VALID_FIRST_BRANCH_VISIT_EVENT);
-			processFirstBranchVisitSpy.mockRestore();
 		});
 
 		it("routes thank_you_email_requested to processThankYouEmail", async () => {
@@ -85,7 +84,6 @@ describe("PostOfficeVisitProcessor", () => {
 			await postOfficeVisitProcessor.processRequest(VALID_THANK_YOU_EMAIL_EVENT);
 
 			expect(processThankYouEmailSpy).toHaveBeenCalledWith(VALID_THANK_YOU_EMAIL_EVENT);
-			processThankYouEmailSpy.mockRestore();
 		});
 
 		it("returns OK response for unsupported topic", async () => {
