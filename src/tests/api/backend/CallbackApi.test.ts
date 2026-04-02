@@ -20,6 +20,7 @@ import { constants } from "../ApiConstants";
 import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";
 import { DocSelectionData } from "../types";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
+import { YotiCallbackTopics } from "../../../models/enums/YotiCallbackTopics";
 
 //QualityGateIntegrationTest 
 //QualityGateRegressionTest
@@ -73,7 +74,7 @@ describe("/callback endpoint", () => {
 		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
-		await callbackPost(yotiSessionId);
+		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 200);
 		let sqsMessage;
 		let i = 0;
 		do {
@@ -100,7 +101,7 @@ describe("/callback endpoint", () => {
 			const yotiSessionId = session?.yotiSessionId;
 			expect(yotiSessionId).toBeTruthy();
 		
-			await callbackPost(yotiSessionId);
+			await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 200);
 	
 			let sqsMessage;
 			let i = 0;
@@ -138,7 +139,7 @@ describe("/callback endpoint", () => {
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
 	
-		await callbackPost(yotiSessionId);
+		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 200);
 
 		let sqsMessage;
 		let i = 0;
@@ -168,7 +169,7 @@ describe("/callback endpoint", () => {
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
 
-		await callbackPost(yotiSessionId);
+		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 200);
 
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 7);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
@@ -192,7 +193,7 @@ describe("/callback endpoint", () => {
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
 	
-		await callbackPost(yotiSessionId);
+		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 200);
 
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 6);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
@@ -216,10 +217,19 @@ describe("/callback endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 		expect(sessionBefore?.authSessionState).toBeTruthy();
 
-		await callbackPost(yotiSessionId, "first_branch_visit");
+		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 200);
 
 		const sessionAfter = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		expect(sessionAfter?.authSessionState).toBe(sessionBefore?.authSessionState);
 		expect(sessionAfter?.authSessionState).not.toBe(AuthSessionState.F2F_CREDENTIAL_ISSUED);
+
+		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 2);
+		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: "F2F_YOTI_START_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_CRI_AUTH_CODE_ISSUED", schemaName: "F2F_CRI_AUTH_CODE_ISSUED_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_CRI_END", schemaName: "F2F_CRI_END_SCHEMA" }, allTxmaEventBodies);
+		expect(allTxmaEventBodies.F2F_YOTI_RESPONSE_RECEIVED).toBeUndefined();
+		expect(allTxmaEventBodies.F2F_CRI_VC_ISSUED).toBeUndefined();
+		expect(allTxmaEventBodies.F2F_DOCUMENT_UPLOADED).toBeUndefined();
 	}, 20000);
 });

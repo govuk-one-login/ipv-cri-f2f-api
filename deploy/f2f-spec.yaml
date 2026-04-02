@@ -1206,6 +1206,7 @@ components:
             - "check_completion"
             - "session_completion"
             - "thank_you_email_requested"
+            - "first_branch_visit"
           description: indicates notification message type
           example: "session_completion"
         task_id:
