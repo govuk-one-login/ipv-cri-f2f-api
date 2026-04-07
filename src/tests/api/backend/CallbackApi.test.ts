@@ -169,7 +169,7 @@ describe("/callback endpoint", () => {
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
 
-		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 200);
+		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 7);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);

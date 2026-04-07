@@ -245,7 +245,7 @@ export async function userInfoPost(accessToken: string, expectedStatus?: number)
 	}
 }
 
-export async function callbackPost(sessionId?: string, topic = "session_completion", expectedStatus = 202): Promise<AxiosResponse<string>> {
+export async function callbackPost(sessionId?: string, topic = "session_completion", expectedStatus = 200): Promise<AxiosResponse<string>> {
 	const path = "/callback";
 	if (!sessionId) throw new Error("no yoti session ID provided");
 	try {
