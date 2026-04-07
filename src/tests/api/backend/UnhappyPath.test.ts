@@ -34,7 +34,7 @@ describe("Unhappy Path Tests", () => {
 			newf2fStubPayload.shared_claims.name[0].nameParts[0].value = "";
 			newf2fStubPayload.shared_claims.name[0].nameParts[1].value = "";
 			const stubResponse = await stubStartPost(newf2fStubPayload);
-			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request, 401);
 			expect(sessionResponse.status).toBe(401);
 			expect(sessionResponse.data).toBe("Unauthorized");
 		});
@@ -44,7 +44,7 @@ describe("Unhappy Path Tests", () => {
 			newf2fStubPayload.yotiMockID = "";
 			newf2fStubPayload.shared_claims.name[0].nameParts[2].value = "";
 			const stubResponse = await stubStartPost(newf2fStubPayload);
-			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request, 401);
 			expect(sessionResponse.status).toBe(401);
 			expect(sessionResponse.data).toBe("Unauthorized");
 		});
@@ -53,7 +53,7 @@ describe("Unhappy Path Tests", () => {
 			const newf2fStubPayload = structuredClone(f2fStubPayload);
 			newf2fStubPayload.shared_claims.emailAddress = "";
 			const stubResponse = await stubStartPost(newf2fStubPayload);
-			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request, 401);
 			expect(sessionResponse.status).toBe(401);
 			expect(sessionResponse.data).toBe("Unauthorized");
 		});
@@ -62,14 +62,14 @@ describe("Unhappy Path Tests", () => {
 			const newf2fStubPayload = structuredClone(f2fStubPayload);
 			newf2fStubPayload.shared_claims.address[0].addressCountry = "XY";
 			const stubResponse = await stubStartPost(newf2fStubPayload);
-			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request, 401);
 			expect(sessionResponse.status).toBe(401);
 			expect(sessionResponse.data).toBe("Unauthorized");
 		});
 
 		it("Unsuccessful Request Tests - Incorrect Address Format", async () => {
 			const stubResponse = await stubStartPost(addressSessionPayload as StubStartRequest);
-			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request, 401);
 			expect(sessionResponse.status).toBe(401);
 			expect(sessionResponse.data).toBe("Unauthorized");
 		});
@@ -77,7 +77,7 @@ describe("Unhappy Path Tests", () => {
 		it("Unsuccessful Request Tests - Invalid Kid Test", async () => {
 			const newf2fStubPayload = structuredClone(f2fStubPayload);
 			const stubResponse = await stubStartPost(newf2fStubPayload, { journeyType: 'invalidSigningKid' });
-			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request, 401);
 			expect(sessionResponse.status).toBe(401);
 			expect(sessionResponse.data).toBe("Unauthorized");
 		});
@@ -85,7 +85,7 @@ describe("Unhappy Path Tests", () => {
 		it("Unsuccessful Request Tests - Missing Kid Test", async () => {
 			const newf2fStubPayload = structuredClone(f2fStubPayload);
 			const stubResponse = await stubStartPost(newf2fStubPayload, { journeyType: 'missingSigningKid' });
-			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
+			const sessionResponse = await sessionPost(stubResponse.data.clientId, stubResponse.data.request, 401);
 			expect(sessionResponse.status).toBe(401);
 			expect(sessionResponse.data).toBe("Unauthorized");
 		});
@@ -95,7 +95,7 @@ describe("Unhappy Path Tests", () => {
 
 		it("Unsuccessful Request Tests - 4XX Returned", async () => {
 			const sessionId = randomUUID();
-			const personInfoResponse = await personInfoGet(sessionId);
+			const personInfoResponse = await personInfoGet(sessionId, 401);
 			expect(personInfoResponse.status).toBe(401);
 			expect(personInfoResponse.data).toBe(`No session found with the session id: ${sessionId}`);	
 		});
@@ -142,11 +142,11 @@ describe("Unhappy Path Tests", () => {
 			newf2fStubPayload.yotiMockID = "0000";
 			const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 			sessionId = newSessionId;
-			await postDocumentSelection(dataPassport, sessionId);
+			await postDocumentSelection(dataPassport, sessionId, 200);
 		});
 
 		it("Unsuccessful Request Tests - Invalid Kid in Token JWT", async () => {
-			const authResponse = await authorizationGet(sessionId);
+			const authResponse = await authorizationGet(sessionId, 200);
 			const startTokenResponse = await startTokenPost({ journeyType: 'invalidSigningKid' });
 			const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
 			expect(tokenResponse.status).toBe(401);
@@ -154,7 +154,7 @@ describe("Unhappy Path Tests", () => {
 		});
 
 		it("Unsuccessful Request Tests - Missing Kid in Token JWT", async () => {
-			const authResponse = await authorizationGet(sessionId);
+			const authResponse = await authorizationGet(sessionId, 200);
 			const startTokenResponse = await startTokenPost({ journeyType: 'missingSigningKid' });
 			const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
 			expect(tokenResponse.status).toBe(401);
@@ -162,14 +162,14 @@ describe("Unhappy Path Tests", () => {
 		});
 
 		it("Unsuccessful Request Tests - Request does not include client_assertion", async () => {
-			const authResponse = await authorizationGet(sessionId);
+			const authResponse = await authorizationGet(sessionId, 200);
 			const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, "");
 			expect(tokenResponse.status).toBe(401);
 			expect(tokenResponse.data).toBe("Invalid request: Missing client_assertion parameter");
 		});
 
 		it("Unsuccessful Request Tests - Request does not include client_assertion_type", async () => {
-			const authResponse = await authorizationGet(sessionId);
+			const authResponse = await authorizationGet(sessionId, 200);
 			const startTokenResponse = await startTokenPost();
 			const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data, " ");
 			expect(tokenResponse.status).toBe(401);
@@ -189,10 +189,10 @@ describe("Unhappy Path Tests", () => {
 		});
 
 		it("Unsuccessful Request Tests - Invalid Signature", async () => {
-			await postDocumentSelection(dataPassport, sessionId);
-			const authResponse = await authorizationGet(sessionId);
+			await postDocumentSelection(dataPassport, sessionId, 200);
+			const authResponse = await authorizationGet(sessionId, 200);
 			const startTokenResponse = await startTokenPost();
-			await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
+			await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data, undefined, 200);
 			const userInfoResponse = await userInfoPost("Bearer 123");
 
 			expect(userInfoResponse.status).toBe(400);
@@ -200,10 +200,10 @@ describe("Unhappy Path Tests", () => {
 		});
 
 		it("Unsuccessful Request Tests - Invalid Authorization Header", async () => {
-			await postDocumentSelection(dataPassport, sessionId);
-			const authResponse = await authorizationGet(sessionId);
+			await postDocumentSelection(dataPassport, sessionId, 200);
+			const authResponse = await authorizationGet(sessionId, 200);
 			const startTokenResponse = await startTokenPost();
-			const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
+			const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data, undefined, 200);
 			const userInfoResponse = await userInfoPost(tokenResponse.data.access_token);
 
 			expect(userInfoResponse.status).toBe(400);

@@ -62,7 +62,7 @@ interface KidOptions {
 	journeyType: 'invalidSigningKid' | 'missingSigningKid';
 }
 
-export async function stubStartPost(stubPayload: StubStartRequest, options?: KidOptions): Promise<AxiosResponse<StubStartResponse>> {
+export async function stubStartPost(stubPayload: StubStartRequest, options?: KidOptions, expectedStatus = 200): Promise<AxiosResponse<StubStartResponse>> {
 	const path = constants.DEV_IPV_F2F_STUB_URL! + "start";
   
 	if (constants.THIRD_PARTY_CLIENT_ID) {
@@ -79,15 +79,18 @@ export async function stubStartPost(stubPayload: StubStartRequest, options?: Kid
   
 	try {
 	  const postRequest = await axios.post(path, stubPayload);
-	  expect(postRequest.status).toBe(200);
+	  expect(postRequest.status).toBe(expectedStatus);
 	  return postRequest;
 	} catch (error: any) {
 	  console.error(`Error response from ${path} endpoint: ${error}`);
+	  if (error.response) {
+		  expect(error.response.status).toBe(expectedStatus);
+	  }
 	  return error.response;
 	}
 }
 
-export async function startTokenPost(options?: KidOptions): Promise<AxiosResponse<string>> {
+export async function startTokenPost(options?: KidOptions, expectedStatus = 200): Promise<AxiosResponse<string>> {
 	const path = constants.DEV_IPV_F2F_STUB_URL! + "generate-token-request";
 	let postRequest: AxiosResponse<string>;
 
@@ -98,6 +101,9 @@ export async function startTokenPost(options?: KidOptions): Promise<AxiosRespons
 			postRequest = await axios.post(path, payload);
 		} catch (error: any) {
 			console.error(`Error response from ${path} endpoint: ${error}`);
+			if (error.response) {
+				expect(error.response.status).toBe(expectedStatus);
+			}
 			return error.response;
 		}
 	} else {
@@ -105,46 +111,58 @@ export async function startTokenPost(options?: KidOptions): Promise<AxiosRespons
 			postRequest = await axios.post(path);
 		} catch (error: any) {
 			console.error(`Error response from ${path} endpoint: ${error}`);
+			if (error.response) {
+				expect(error.response.status).toBe(expectedStatus);
+			}
 			return error.response;
 		}
 	}
 
-	expect(postRequest.status).toBe(200);
+	expect(postRequest.status).toBe(expectedStatus);
 	return postRequest;
 }
 
-export async function sessionPost(clientId: string, request: string): Promise<AxiosResponse<SessionResponse>> {
+export async function sessionPost(clientId: string, request: string, expectedStatus = 200): Promise<AxiosResponse<SessionResponse>> {
 	const path = "/session";
 	try {
 		const postRequest = await API_INSTANCE.post(path, { client_id: clientId, request }, { headers: { "x-forwarded-for": "ip-address", "txma-audit-encoded": "encoded-header" } });
-		expect(postRequest.status).toBe(200);
+		expect(postRequest.status).toBe(expectedStatus);
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
+		if (error.response) {
+			expect(error.response.status).toBe(expectedStatus);
+		}
 		return error.response;
 	}
 }
 
-export async function personInfoGet(sessionId: string): Promise<AxiosResponse<string>> {
+export async function personInfoGet(sessionId: string, expectedStatus = 200): Promise<AxiosResponse<string>> {
 	const path = "/person-info";
 	try {
 		const getRequest = await API_INSTANCE.get(path, { headers: { "x-govuk-signin-session-id": sessionId, "txma-audit-encoded": "encoded-header" } });
-		expect(getRequest.status).toBe(200);
+		expect(getRequest.status).toBe(expectedStatus);
 		return getRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
+		if (error.response) {
+			expect(error.response.status).toBe(expectedStatus);
+		}
 		return error.response;
 	}
 }
 
-export async function personInfoKeyGet(): Promise<AxiosResponse<{ key: string }>> {
+export async function personInfoKeyGet(expectedStatus = 200): Promise<AxiosResponse<{ key: string }>> {
 	const path = "/person-info-key";
 	try {
 		const getRequest = await API_INSTANCE.get(path);
-		expect(getRequest.status).toBe(200);
+		expect(getRequest.status).toBe(expectedStatus);
 		return getRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}.`);
+		if (error.response) {
+			expect(error.response.status).toBe(expectedStatus);
+		}
 		return error.response;
 	}
 }
@@ -157,73 +175,108 @@ export function validatePersonInfoResponse(personInfoKey: string, personInfoResp
 }
 
 
-export async function postDocumentSelection(userData: DocSelectionData, sessionId: string): Promise<AxiosResponse<string>> {
+export async function postDocumentSelection(userData: DocSelectionData, sessionId: string, expectedStatus?: number): Promise<AxiosResponse<string>> {
 	const path = "/documentSelection";
 	try {
 		const postRequest = await API_INSTANCE.post(path, userData, { headers: { "x-govuk-signin-session-id": sessionId, "txma-audit-encoded": "encoded-header" } });
+		if (expectedStatus !== undefined) {
+			expect(postRequest.status).toBe(expectedStatus);
+		}
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
+		if (expectedStatus !== undefined && error.response) {
+			expect(error.response.status).toBe(expectedStatus);
+		}
 		return error.response;
 	}
 }
 
 
-export async function authorizationGet(sessionId: string): Promise<AxiosResponse<AuthorizationResponse>> {
+export async function authorizationGet(sessionId: string, expectedStatus?: number): Promise<AxiosResponse<AuthorizationResponse>> {
 	const path = "/authorization";
 	try {
 		const getRequest = await API_INSTANCE.get(path, { headers: { "session-id": sessionId } });
+		if (expectedStatus !== undefined) {
+			expect(getRequest.status).toBe(expectedStatus);
+		}
 		return getRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
+		if (expectedStatus !== undefined && error.response) {
+			expect(error.response.status).toBe(expectedStatus);
+		}
 		return error.response;
 	}
 }
 
-export async function tokenPost(authCode: string, redirectUri: string, clientAssertionJwt: string, clientAssertionType?: string): Promise<AxiosResponse<TokenResponse>> {
+export async function tokenPost(authCode: string, redirectUri: string, clientAssertionJwt: string, clientAssertionType?: string, expectedStatus?: number): Promise<AxiosResponse<TokenResponse>> {
 	const path = "/token";
 	const assertionType = clientAssertionType || Constants.CLIENT_ASSERTION_TYPE_JWT_BEARER;
 	try {
 		const postRequest = await API_INSTANCE.post(path, `code=${authCode}&grant_type=authorization_code&redirect_uri=${redirectUri}&client_assertion_type=${assertionType}&client_assertion=${clientAssertionJwt}`, { headers: { "Content-Type": "text/plain" } });
+		if (expectedStatus !== undefined) {
+			expect(postRequest.status).toBe(expectedStatus);
+		}
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
+		if (expectedStatus !== undefined && error.response) {
+			expect(error.response.status).toBe(expectedStatus);
+		}
 		return error.response;
 	}
 }
 
-export async function userInfoPost(accessToken: string): Promise<AxiosResponse<UserInfoResponse>> {
+export async function userInfoPost(accessToken: string, expectedStatus?: number): Promise<AxiosResponse<UserInfoResponse>> {
 	const path = "/userinfo";
 	try {
 		const postRequest = await API_INSTANCE.post(path, null, { headers: { "Authorization": `${accessToken}` } });
+		if (expectedStatus !== undefined) {
+			expect(postRequest.status).toBe(expectedStatus);
+		}
 		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
+		if (expectedStatus !== undefined && error.response) {
+			expect(error.response.status).toBe(expectedStatus);
+		}
 		return error.response;
 	}
 }
 
-export async function callbackPost(sessionId?: string, topic = "session_completion"): Promise<void> {
+export async function callbackPost(sessionId?: string, topic = "session_completion", expectedStatus = 200): Promise<AxiosResponse<string>> {
 	const path = "/callback";
 	if (!sessionId) throw new Error("no yoti session ID provided");
 	try {
-		await API_INSTANCE.post(path, {
+		const postRequest = await API_INSTANCE.post(path, {
 			session_id: sessionId,
 			topic,
 		});
+		expect(postRequest.status).toBe(expectedStatus);
+		return postRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
+		if (error.response) {
+			expect(error.response.status).toBe(expectedStatus);
+		}
 		return error.response;
 	}
 }
 
-export async function sessionConfigurationGet(sessionId: string): Promise<AxiosResponse<SessionConfigResponse>> {
+export async function sessionConfigurationGet(sessionId: string, expectedStatus?: number): Promise<AxiosResponse<SessionConfigResponse>> {
 	const path = "/sessionConfiguration";
 	try {
 		const getRequest = await API_INSTANCE.get(path, { headers: { "x-govuk-signin-session-id": sessionId } });
+		if (expectedStatus !== undefined) {
+			expect(getRequest.status).toBe(expectedStatus);
+		}
 		return getRequest;
 	} catch (error: any) {
 		console.log(`Error response from ${path} endpoint: ${error}`);
+		if (expectedStatus !== undefined && error.response) {
+			expect(error.response.status).toBe(expectedStatus);
+		}
 		return error.response;
 	}
 }
