@@ -66,7 +66,7 @@ export class GenerateYotiLetterProcessor {
 
 	async processRequest(event: any): Promise<any> {
 
-		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		if (!this.validationHelper.checkRequiredYotiVars()) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 
   	const f2fSessionInfo = await this.f2fService.getSessionById(event.sessionId);
   	this.logger.appendKeys({
