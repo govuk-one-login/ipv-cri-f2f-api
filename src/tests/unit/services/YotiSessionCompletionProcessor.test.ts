@@ -54,7 +54,7 @@ function getMockSessionItem(): ISessionItem {
 		persistentSessionId: "sdgsdg",
 		clientIpAddress: "127.0.0.1",
 		attemptCount: 1,
-		authSessionState: AuthSessionState.F2F_ACCESS_TOKEN_ISSUED,
+		authSessionState: AuthSessionState.F2F_POST_OFFICE_VISITED,
 	};
 	return sessionInfo;
 }
@@ -1294,7 +1294,7 @@ describe("YotiSessionCompletionProcessor", () => {
 			error_description: "VC generation failed : AuthSession is in wrong Auth state",
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
-		expect(out.body).toBe("AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED, F2F_AUTH_CODE_ISSUED or F2F_POST_OFFICE_VISITED actual state- F2F_YOTI_SESSION_CREATED");
+		expect(out.body).toBe("AuthSession is in wrong Auth state: Expected state- F2F_POST_OFFICE_VISITED actual state- F2F_YOTI_SESSION_CREATED");
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "AuthSession is in wrong Auth state");
 	});
