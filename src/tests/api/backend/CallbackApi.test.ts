@@ -206,7 +206,7 @@ describe("/callback endpoint", () => {
 		validateTxMAEventData({ eventName: "F2F_CRI_VC_ISSUED", schemaName: "F2F_CRI_VC_ISSUED_01_SCHEMA" }, allTxmaEventBodies);
 	}, 20000);
 
-	it.only("E2E Journey with FIRST_BRANCH_VISIT callback changes auth session state to F2F_POST_OFFICE_VISITED", async () => {
+	it("E2E Journey with FIRST_BRANCH_VISIT callback changes auth session state to F2F_POST_OFFICE_VISITED", async () => {
 		const yotiMockID = "0101";
 		f2fStubPayload.yotiMockID = yotiMockID;
 
