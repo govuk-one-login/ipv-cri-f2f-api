@@ -109,6 +109,12 @@ export class PostOfficeVisitProcessor {
 			sessionId: f2fSession.sessionId,
 			yotiSessionId: yotiSessionID,
 		});
+
+		await this.f2fService.updateSessionAuthState(
+			f2fSession.sessionId,
+			AuthSessionState.F2F_POST_OFFICE_VISITED,
+		);
+
 		return Response(HttpCodesEnum.OK, "OK");
 	}
 
@@ -190,7 +196,7 @@ export class PostOfficeVisitProcessor {
 
 		await this.f2fService.updateSessionAuthState(
 			f2fSession.sessionId,
-			AuthSessionState.F2F_POST_OFFICE_VISITED,
+			AuthSessionState.F2F_YOTI_SESSION_COMPLETE,
 		);
 
 		this.metrics.addMetric("document_uploaded_at_PO", MetricUnits.Count, 1);

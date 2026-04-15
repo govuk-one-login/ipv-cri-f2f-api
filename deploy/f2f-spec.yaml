@@ -1660,7 +1660,6 @@ components:
             - F2F_SESSION_ABORTED
             - F2F_AUTH_CODE_ISSUED
             - F2F_ACCESS_TOKEN_ISSUED
-            - F2F_POST_OFFICE_VISITED
     AbortRequest:
       type: object
       additionalProperties: true

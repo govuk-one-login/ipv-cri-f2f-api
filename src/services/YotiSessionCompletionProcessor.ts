@@ -234,10 +234,11 @@ export class YotiSessionCompletionProcessor {
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
 		  }
 
-		// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED" or "F2F_AUTH_CODE_ISSUED"
+		// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED", "F2F_AUTH_CODE_ISSUED" or "F2F_POST_OFFICE_VISITED"
 		if (
 			f2fSession.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED ||
-			f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED
+			f2fSession.authSessionState === AuthSessionState.F2F_AUTH_CODE_ISSUED ||
+			f2fSession.authSessionState === AuthSessionState.F2F_POST_OFFICE_VISITED
 		) {
   			const coreEventFields = buildCoreEventFields(f2fSession, this.environmentVariables.issuer(), f2fSession.clientIpAddress);
 			  try {
@@ -382,7 +383,7 @@ export class YotiSessionCompletionProcessor {
 		await this.sendErrorMessageToIPVCore(f2fSession, "AuthSession is in wrong Auth state", govUkSignInJourneyId, yotiSessionID);
 		return Response(
 			HttpCodesEnum.UNAUTHORIZED,
-			`AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED} or ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state- ${f2fSession.authSessionState}`,
+			`AuthSession is in wrong Auth state: Expected state- ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, ${AuthSessionState.F2F_AUTH_CODE_ISSUED} or ${AuthSessionState.F2F_POST_OFFICE_VISITED} actual state- ${f2fSession.authSessionState}`,
 		);
 	}
 
