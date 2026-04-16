@@ -163,10 +163,23 @@ describe("PostOfficeVisitProcessor", () => {
 			});
 			expect(metrics.addMetric).toHaveBeenCalledWith("first_branch_visit", MetricUnits.Count, 1);
 		});
+
+		it("processFirstBranchVisit changes AuthSessionState to F2F_POST_OFFICE_VISITED", async () => {
+			mockF2fService.getSessionByYotiId.mockResolvedValue(f2fSessionItem);
+
+			await(postOfficeVisitProcessor.processFirstBranchVisit({
+					session_id: "123456789",
+					topic: YotiCallbackTopics.FIRST_BRANCH_VISIT,
+				}))
+			expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(
+				"RandomF2FSessionID",
+				AuthSessionState.F2F_POST_OFFICE_VISITED,
+			)
+		});
 	});
 
 	describe("#processThankYouEmail", () => {
-		it("throws error if not yoti session ID has been provided", async () => {
+		it("throws error if yoti session ID has not been provided", async () => {
 			await expect(postOfficeVisitProcessor.processThankYouEmail({ session_id: "", topic: YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED })).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "Event does not include yoti session_id",
@@ -260,6 +273,19 @@ describe("PostOfficeVisitProcessor", () => {
 			});
 			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "7 September 2023", postOfficeTimeOfVisit: "3:30 pm" });
 			expect(metrics.addMetric).toHaveBeenCalledWith("document_uploaded_at_PO", MetricUnits.Count, 1);
+		});
+
+		it("processThankYouEmail changes AuthSessionState to F2F_YOTI_SESSION_COMPLETE", async () => {
+			mockF2fService.getSessionByYotiId.mockResolvedValue(f2fSessionItem);
+
+			await(postOfficeVisitProcessor.processThankYouEmail({
+					session_id: sessionId,
+					topic: YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED,
+				}))
+			expect(mockF2fService.updateSessionAuthState).toHaveBeenCalledWith(
+				"RandomF2FSessionID",
+				AuthSessionState.F2F_YOTI_SESSION_COMPLETE,
+			)
 		});
 	});
 });

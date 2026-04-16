@@ -514,7 +514,7 @@ export async function updateDynamoDbRecord(sessionId: string, tableName: string,
  * @returns {any} - returns either the body of the SQS message or undefined if no such message found
  */
 export async function getDequeuedSqsMessage(prefix: string): Promise<any> {
-	await sleep(1000);
+	await sleep(2000);
 
 	const listObjectsResponse = await HARNESS_API_INSTANCE.get("/bucket/", {
 		params: {
