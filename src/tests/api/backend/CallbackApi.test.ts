@@ -75,6 +75,7 @@ describe("/callback endpoint", () => {
 		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
+		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 		let sqsMessage;
 		let i = 0;
@@ -102,6 +103,7 @@ describe("/callback endpoint", () => {
 			const yotiSessionId = session?.yotiSessionId;
 			expect(yotiSessionId).toBeTruthy();
 		
+			await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
 			await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 	
 			let sqsMessage;
@@ -140,6 +142,7 @@ describe("/callback endpoint", () => {
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
 	
+		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 
 		let sqsMessage;
@@ -170,6 +173,7 @@ describe("/callback endpoint", () => {
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
 
+		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 7);
@@ -194,6 +198,7 @@ describe("/callback endpoint", () => {
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
 	
+		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 6);
