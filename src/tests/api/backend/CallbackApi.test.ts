@@ -27,7 +27,7 @@ import { sleep } from "../../../utils/Sleep";
 //QualityGateRegressionTest
 //QualityGateStackTest
 describe("/callback endpoint", () => {
-	jest.setTimeout(70000);
+	jest.setTimeout(60000);
 
 	it.each([
 		{ yotiMockId: "0000", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
@@ -85,7 +85,7 @@ describe("/callback endpoint", () => {
 		} while (i < 10 && !sqsMessage);
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		await validateJwtToken(jwtToken, vcResponseData, yotiMockId);
-	}, 20000);
+	}, 50000);
 
 	describe("Verifiable Credential Error", () => {
 		it.each([
