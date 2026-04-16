@@ -219,7 +219,7 @@ describe("/callback endpoint", () => {
 		expect(sessionBefore?.authSessionState).toBeTruthy();
 
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-		await sleep(1000)
+		await sleep(2000)
 		const sessionAfter = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		expect(sessionAfter?.authSessionState).not.toEqual(sessionBefore?.authSessionState);
 		expect(sessionAfter?.authSessionState).toEqual(AuthSessionState.F2F_POST_OFFICE_VISITED);
