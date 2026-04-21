@@ -54,22 +54,22 @@
             }
           ]
         },
-        "post_office_timings": {
+        "post_office_visit_details": {
           "type": "array",
           "items": [
             {
               "type": "object",
               "properties": {
-                "post_office_date": {
+                "post_office_date_of_visit": {
                   "type": "string"
                 },
-                "post_office_time": {
+                "post_office_time_of_visit": {
                   "type": "string"
                 }
               },
               "required": [
-                "post_office_date",
-                "post_office_time"
+                "post_office_date_of_visit",
+                "post_office_time_of_visit"
               ]
             }
           ]
@@ -78,7 +78,7 @@
       "required": [
         "previous_govuk_signin_journey_id",
         "evidence",
-        "post_office_timings"
+        "post_office_visit_details"
       ]
     }
   },
