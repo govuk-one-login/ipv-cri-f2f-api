@@ -193,7 +193,7 @@ export class PostOfficeVisitProcessor {
 				}],
 				evidence: [
   					{
-  						txn: f2fSession.yotiSessionId ?? "",
+  						txn: f2fSession.sessionId ?? "",
   					},
   				],
 			},

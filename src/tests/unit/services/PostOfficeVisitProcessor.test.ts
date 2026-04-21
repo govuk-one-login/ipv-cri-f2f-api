@@ -240,6 +240,11 @@ describe("PostOfficeVisitProcessor", () => {
 					post_office_visit_details: [{
 						post_office_date_of_visit: "7 February 2023", post_office_time_of_visit: "2:30 pm",
 					}],
+					evidence: [
+  					{
+  						txn: sessionId,
+  					},
+  				],
 				},
 			});
 			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "7 February 2023", postOfficeTimeOfVisit: "2:30 pm" });
@@ -269,6 +274,11 @@ describe("PostOfficeVisitProcessor", () => {
 					post_office_visit_details: [{
 						post_office_date_of_visit: "7 September 2023", post_office_time_of_visit: "3:30 pm",
 					}],
+					evidence: [
+  					{
+  						txn: sessionId,
+  					},
+  				],
 				},
 			});
 			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "7 September 2023", postOfficeTimeOfVisit: "3:30 pm" });
