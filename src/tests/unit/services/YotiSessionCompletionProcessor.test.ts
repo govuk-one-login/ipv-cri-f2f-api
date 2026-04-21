@@ -54,7 +54,7 @@ function getMockSessionItem(): ISessionItem {
 		persistentSessionId: "sdgsdg",
 		clientIpAddress: "127.0.0.1",
 		attemptCount: 1,
-		authSessionState: AuthSessionState.F2F_POST_OFFICE_VISITED,
+		authSessionState: AuthSessionState.F2F_YOTI_SESSION_COMPLETE,
 	};
 	return sessionInfo;
 }
