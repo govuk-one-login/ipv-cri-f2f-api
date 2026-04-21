@@ -27,9 +27,10 @@ import { sleep } from "../../../utils/Sleep";
 //QualityGateRegressionTest
 //QualityGateStackTest
 describe("/callback endpoint", () => {
-	jest.setTimeout(60000);
+	jest.setTimeout(70000);
 
 	it.each([
+		{ yotiMockId: "1601", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
 		{ yotiMockId: "0000", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
 		{ yotiMockId: "0001", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
 		{ yotiMockId: "0003", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
@@ -67,16 +68,20 @@ describe("/callback endpoint", () => {
 		{ yotiMockId: "0501", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
 		{ yotiMockId: "0502", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
 		{ yotiMockId: "0503", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
-		{ yotiMockId: "1601", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
 	])("F2F CRI Callback Endpoint - Verified Credential validation for yotiMockId: $yotiMockId - documentType: $documentType", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; documentType: string; docSelectionData: DocSelectionData }) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
 		const { sessionId, sub } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		await sleep(5000)
 		await initiateUserInfo(docSelectionData, sessionId);
 		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
+		await sleep(5000)
+		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
+		await sleep(5000)
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
+		
 		let sqsMessage;
 		let i = 0;
 		do {
@@ -85,7 +90,7 @@ describe("/callback endpoint", () => {
 		} while (i < 10 && !sqsMessage);
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		await validateJwtToken(jwtToken, vcResponseData, yotiMockId);
-	}, 50000);
+	}, 60000);
 
 	describe("Verifiable Credential Error", () => {
 		it.each([
@@ -104,6 +109,9 @@ describe("/callback endpoint", () => {
 			expect(yotiSessionId).toBeTruthy();
 		
 			await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
+			await sleep(5000)
+			await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
+			await sleep(5000)
 			await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 	
 			let sqsMessage;
@@ -114,7 +122,7 @@ describe("/callback endpoint", () => {
 			} while (i < 10 && !sqsMessage);
 	
 			expect(sqsMessage?.error_description).toBe(vcError);
-		}, 20000);
+		}, 30000);
 	});
 
 	it.each([
@@ -143,6 +151,9 @@ describe("/callback endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 	
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
+		await sleep(5000)
+		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
+		await sleep(5000)
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 
 		let sqsMessage;
@@ -174,17 +185,21 @@ describe("/callback endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
+		await sleep(5000)
+		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
+		await sleep(5000)
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 
-		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 7);
+		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 8);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: yotiStartSchema }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_CRI_AUTH_CODE_ISSUED", schemaName: "F2F_CRI_AUTH_CODE_ISSUED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_CRI_END", schemaName: "F2F_CRI_END_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_EMAILED", schemaName: "F2F_YOTI_PDF_EMAILED_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_DOCUMENT_UPLOADED", schemaName: "F2F_DOCUMENT_UPLOADED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_YOTI_RESPONSE_RECEIVED", schemaName: "F2F_YOTI_RESPONSE_RECEIVED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_CRI_VC_ISSUED", schemaName: vcIssuedSchema }, allTxmaEventBodies);
-	}, 20000);
+	}, 30000);
 
 	it("E2E Journey with Callback and Thank you Email TxMA event Validation for yotiMockID: 0101 - documentType: UkPassport", async () => {
 		const yotiMockID = "0101";
@@ -199,17 +214,21 @@ describe("/callback endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 	
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
+		await sleep(5000)
+		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
+		await sleep(5000)
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 
-		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 6);
+		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 8);
 		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: "F2F_YOTI_START_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_CRI_AUTH_CODE_ISSUED", schemaName: "F2F_CRI_AUTH_CODE_ISSUED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_CRI_END", schemaName: "F2F_CRI_END_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_YOTI_PDF_EMAILED", schemaName: "F2F_YOTI_PDF_EMAILED_SCHEMA" }, allTxmaEventBodies);
+		validateTxMAEventData({ eventName: "F2F_DOCUMENT_UPLOADED", schemaName: "F2F_DOCUMENT_UPLOADED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_YOTI_RESPONSE_RECEIVED", schemaName: "F2F_YOTI_RESPONSE_RECEIVED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_CRI_VC_ISSUED", schemaName: "F2F_CRI_VC_ISSUED_01_SCHEMA" }, allTxmaEventBodies);
-	}, 20000);
+	}, 30000);
 
 	it("E2E Journey with FIRST_BRANCH_VISIT callback changes auth session state to F2F_POST_OFFICE_VISITED", async () => {
 		const yotiMockID = "0101";

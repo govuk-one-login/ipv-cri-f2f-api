@@ -234,8 +234,8 @@ export class YotiSessionCompletionProcessor {
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti document fields info not found");
 		  }
 
-		// Validate the AuthSessionState to be "F2F_POST_OFFICE_VISITED"
-		if (f2fSession.authSessionState === AuthSessionState.F2F_POST_OFFICE_VISITED) {
+		// Validate the AuthSessionState to be AuthSessionState.F2F_YOTI_SESSION_COMPLETE"
+		if (f2fSession.authSessionState === AuthSessionState.F2F_YOTI_SESSION_COMPLETE) {
   			const coreEventFields = buildCoreEventFields(f2fSession, this.environmentVariables.issuer(), f2fSession.clientIpAddress);
 			  try {
 				  await this.f2fService.sendToTXMA({
