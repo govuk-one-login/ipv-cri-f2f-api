@@ -76,7 +76,11 @@ describe("/callback endpoint", () => {
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
 		await sleep(5000)
 		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
-		await sleep(5000)
+		if (yotiMockId === "1601") {
+			await sleep(10000)
+		} else {
+			await sleep(5000)
+		}
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 		
 		let sqsMessage;
