@@ -164,7 +164,7 @@ describe("PostOfficeVisitProcessor", () => {
 			expect(metrics.addMetric).toHaveBeenCalledWith("first_branch_visit", MetricUnits.Count, 1);
 		});
 
-		it("processFirstBranchVisit changes AuthSessionState to F2F_POST_OFFICE_VISITED", async () => {
+		it("changes AuthSessionState to F2F_POST_OFFICE_VISITED", async () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValue(f2fSessionItem);
 
 			await(postOfficeVisitProcessor.processFirstBranchVisit({
