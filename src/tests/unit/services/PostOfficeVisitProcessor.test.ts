@@ -285,7 +285,7 @@ describe("PostOfficeVisitProcessor", () => {
 			expect(metrics.addMetric).toHaveBeenCalledWith("document_uploaded_at_PO", MetricUnits.Count, 1);
 		});
 
-		it("processThankYouEmail changes AuthSessionState to F2F_YOTI_SESSION_COMPLETE", async () => {
+		it("changes AuthSessionState to F2F_YOTI_SESSION_COMPLETE", async () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValue(f2fSessionItem);
 
 			await(postOfficeVisitProcessor.processThankYouEmail({
