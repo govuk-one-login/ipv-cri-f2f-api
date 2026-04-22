@@ -27,10 +27,7 @@ import { sleep } from "../../../utils/Sleep";
 //QualityGateRegressionTest
 //QualityGateStackTest
 describe("/callback endpoint", () => {
-	jest.setTimeout(70000);
-
 	it.each([
-		{ yotiMockId: "1601", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
 		{ yotiMockId: "0000", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
 		{ yotiMockId: "0001", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
 		{ yotiMockId: "0003", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
@@ -68,10 +65,10 @@ describe("/callback endpoint", () => {
 		{ yotiMockId: "0501", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
 		{ yotiMockId: "0502", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
 		{ yotiMockId: "0503", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
+		{ yotiMockId: "1601", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
 	])("F2F CRI Callback Endpoint - Verified Credential validation for yotiMockId: $yotiMockId - documentType: $documentType", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; documentType: string; docSelectionData: DocSelectionData }) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
 		const { sessionId, sub } = await startStubServiceAndReturnSessionId(f2fStubPayload);
-		await sleep(5000)
 		await initiateUserInfo(docSelectionData, sessionId);
 		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		const yotiSessionId = session?.yotiSessionId;
