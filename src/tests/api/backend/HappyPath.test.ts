@@ -38,6 +38,7 @@ import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
 import fs from "fs";
 import { convertPdfToImages } from "../../visual/helpers";
 import { toMatchImageSnapshot } from "jest-image-snapshot";
+import { sleep } from "../../../utils/Sleep";
 
 //QualityGateIntegrationTest 
 //QualityGateRegressionTest
@@ -126,6 +127,11 @@ describe("/documentSelection Endpoint", () => {
 		newf2fStubPayload.yotiMockID = yotiMockId;
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
+		// yotiMockId 1601 is a retry scenario that necessitates an increased wait time to account for a longer running asynchronous process
+		if (yotiMockId === "1601") {
+			await sleep(50000)
+		}
+								
 		await postDocumentSelection(docSelectionData, sessionId, 200);
 
 		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
