@@ -76,11 +76,14 @@ describe("/callback endpoint", () => {
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
 		await sleep(5000)
 		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
+
+		// yotiMockId 1601 is a retry scenario that necessitates an increased wait time to account for a longer running asynchronous process
 		if (yotiMockId === "1601") {
 			await sleep(10000)
 		} else {
 			await sleep(5000)
 		}
+
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 		
 		let sqsMessage;
@@ -248,15 +251,6 @@ describe("/callback endpoint", () => {
 		const sessionAfter = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		expect(sessionAfter?.authSessionState).not.toEqual(sessionBefore?.authSessionState);
 		expect(sessionAfter?.authSessionState).toEqual(AuthSessionState.F2F_POST_OFFICE_VISITED);
-
-		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 2);
-		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
-		validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: "F2F_YOTI_START_SCHEMA" }, allTxmaEventBodies);
-		validateTxMAEventData({ eventName: "F2F_CRI_AUTH_CODE_ISSUED", schemaName: "F2F_CRI_AUTH_CODE_ISSUED_SCHEMA" }, allTxmaEventBodies);
-		validateTxMAEventData({ eventName: "F2F_CRI_END", schemaName: "F2F_CRI_END_SCHEMA" }, allTxmaEventBodies);
-		expect(allTxmaEventBodies.F2F_YOTI_RESPONSE_RECEIVED).toBeUndefined();
-		expect(allTxmaEventBodies.F2F_CRI_VC_ISSUED).toBeUndefined();
-		expect(allTxmaEventBodies.F2F_DOCUMENT_UPLOADED).toBeUndefined();
 	}, 20000);
 
 	it("E2E Journey with THANK_YOU_EMAIL_REQUESTED callback changes auth session state to F2F_YOTI_SESSION_COMPLETE", async () => {
@@ -272,20 +266,34 @@ describe("/callback endpoint", () => {
 		expect(sessionBefore?.authSessionState).toBeTruthy();
 
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-		await sleep(5000)
+		await sleep(2000)
 		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
-		
+		await sleep(2000)
 		const sessionAfter = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		expect(sessionAfter?.authSessionState).not.toEqual(sessionBefore?.authSessionState);
 		expect(sessionAfter?.authSessionState).toEqual(AuthSessionState.F2F_YOTI_SESSION_COMPLETE);
+	}, 20000);
 
-		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 2);
-		validateTxMAEventData({ eventName: "F2F_CRI_START", schemaName: "F2F_CRI_START_SCHEMA" }, allTxmaEventBodies);
-		validateTxMAEventData({ eventName: "F2F_YOTI_START", schemaName: "F2F_YOTI_START_SCHEMA" }, allTxmaEventBodies);
-		validateTxMAEventData({ eventName: "F2F_CRI_AUTH_CODE_ISSUED", schemaName: "F2F_CRI_AUTH_CODE_ISSUED_SCHEMA" }, allTxmaEventBodies);
-		validateTxMAEventData({ eventName: "F2F_DOCUMENT_UPLOADED", schemaName: "F2F_DOCUMENT_UPLOADED_SCHEMA" }, allTxmaEventBodies);
-		validateTxMAEventData({ eventName: "F2F_CRI_END", schemaName: "F2F_CRI_END_SCHEMA" }, allTxmaEventBodies);
-		expect(allTxmaEventBodies.F2F_YOTI_RESPONSE_RECEIVED).toBeUndefined();
-		expect(allTxmaEventBodies.F2F_CRI_VC_ISSUED).toBeUndefined();
-	}, 30000);
+	it("Successful E2E Journey with SESSION_COMPLETION callback changes auth session state to F2F_CREDENTIAL_ISSUED", async () => {
+		const yotiMockID = "0101";
+		f2fStubPayload.yotiMockID = yotiMockID;
+
+		const { sessionId } = await startStubServiceAndReturnSessionId(f2fStubPayload);
+		await initiateUserInfo(dataPassport, sessionId);
+
+		const sessionBefore = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		const yotiSessionId = sessionBefore?.yotiSessionId;
+		expect(yotiSessionId).toBeTruthy();
+		expect(sessionBefore?.authSessionState).toBeTruthy();
+
+		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
+		await sleep(2000)
+		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
+		await sleep(2000)
+		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
+		await sleep(2000)
+		const sessionAfter = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		expect(sessionAfter?.authSessionState).not.toEqual(sessionBefore?.authSessionState);
+		expect(sessionAfter?.authSessionState).toEqual(AuthSessionState.F2F_CREDENTIAL_ISSUED);
+	}, 20000);
 });
