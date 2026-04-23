@@ -296,15 +296,26 @@ describe("F2f Service", () => {
 			{
 				sessionId: "SESSIDFOUR",
 				expiryDate: absoluteTimeNow() + 500,
-			}],
+			},
+			{
+				sessionId: "SESSIDFIVE",
+				expiryDate: absoluteTimeNow() + 500,
+			},
+			{
+				sessionId: "SESSIDSIX",
+				expiryDate: absoluteTimeNow() + 500,
+			}
+		],
 		});
 
-		const result = await f2fService.getSessionsByAuthSessionStates(["F2F_YOTI_SESSION_CREATED", "F2F_AUTH_CODE_ISSUED", "F2F_ACCESS_TOKEN_ISSUED", "F2F_POST_OFFICE_VISITED"]);
+		const result = await f2fService.getSessionsByAuthSessionStates(["F2F_YOTI_SESSION_CREATED", "F2F_AUTH_CODE_ISSUED", "F2F_ACCESS_TOKEN_ISSUED", "F2F_POST_OFFICE_VISITED", "F2F_YOTI_SESSION_COMPLETE", "F2F_CREDENTIAL_ISSUED"]);
 		expect(result).toEqual([
 			{ "expiryDate": expect.any(Number), sessionId },
 			{ "expiryDate": expect.any(Number), "sessionId": "SESSIDTWO" },
 			{ "expiryDate": expect.any(Number), "sessionId": "SESSIDTHREE" },
 			{ "expiryDate": expect.any(Number), "sessionId": "SESSIDFOUR" },
+			{ "expiryDate": expect.any(Number), "sessionId": "SESSIDFIVE" },
+			{ "expiryDate": expect.any(Number), "sessionId": "SESSIDSIX" },
 		]);
 		expect(mockDynamoDbClient.query).toHaveBeenNthCalledWith(1, {
 			"ExpressionAttributeValues": { ":authSessionState": "F2F_YOTI_SESSION_CREATED" },
