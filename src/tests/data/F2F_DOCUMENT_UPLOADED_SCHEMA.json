@@ -38,22 +38,6 @@
         "previous_govuk_signin_journey_id": {
           "type": "string"
         },
-        "evidence": {
-          "type": "array",
-          "items": [
-            {
-              "type": "object",
-              "properties": {
-                "txn": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "txn"
-              ]
-            }
-          ]
-        },
         "post_office_visit_details": {
           "type": "array",
           "items": [
@@ -66,20 +50,11 @@
                 "post_office_time_of_visit": {
                   "type": "string"
                 }
-              },
-              "required": [
-                "post_office_date_of_visit",
-                "post_office_time_of_visit"
-              ]
+              }
             }
           ]
         }
-      },
-      "required": [
-        "previous_govuk_signin_journey_id",
-        "evidence",
-        "post_office_visit_details"
-      ]
+      }
     }
   },
   "required": [

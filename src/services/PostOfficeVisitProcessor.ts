@@ -191,11 +191,6 @@ export class PostOfficeVisitProcessor {
 					post_office_date_of_visit: postOfficeDateOfVisit,
 					post_office_time_of_visit: postOfficeTimeOfVisit,
 				}],
-				evidence: [
-  					{
-  						txn: f2fSession.sessionId ?? "",
-  					},
-  				],
 			},
 		});
 
