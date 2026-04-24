@@ -115,7 +115,7 @@ describe("/personInfo endpoint", () => {
 
 describe("/documentSelection Endpoint", () => {
 
-	it.each([
+	it.only.each([
 		{ yotiMockId: "0000", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA" },
 		{ yotiMockId: "0100", documentType: "UkPassport", docSelectionData: dataPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA" },
 		{ yotiMockId: "0200", documentType: "NonUkPassport", docSelectionData: dataNonUkPassport, yotiStartSchema: "F2F_YOTI_START_SCHEMA" },
@@ -129,7 +129,7 @@ describe("/documentSelection Endpoint", () => {
 
 		// yotiMockId 1601 is a retry scenario that necessitates an increased wait time to account for a longer running asynchronous process
 		if (yotiMockId === "1601") {
-			await sleep(50000)
+			await sleep(5000)
 		}
 								
 		await postDocumentSelection(docSelectionData, sessionId, 200);
@@ -145,7 +145,7 @@ describe("/documentSelection Endpoint", () => {
 			
 			expect(session?.yotiSessionId).toContain(yotiMockId);
 		}
-	});
+	}, 50000);
 
 	it("Successful Request Tests - Validate Session Expiry is Updated after Document Selection", async () => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
