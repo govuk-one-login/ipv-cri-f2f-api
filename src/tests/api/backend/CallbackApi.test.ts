@@ -85,6 +85,7 @@ describe("/callback endpoint", () => {
 		}
 
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
+		await sleep(5000)
 		
 		let sqsMessage;
 		let i = 0;
