@@ -32,6 +32,7 @@ export class ExpiredSessionsProcessor {
   			AuthSessionState.F2F_YOTI_SESSION_CREATED,
   			AuthSessionState.F2F_AUTH_CODE_ISSUED,
   			AuthSessionState.F2F_ACCESS_TOKEN_ISSUED,
+			AuthSessionState.F2F_POST_OFFICE_VISITED,
   		];
 
   		const records = await this.f2fService.getSessionsByAuthSessionStates(sessionStates, Constants.EXPIRED_SESSIONS_INDEX_NAME);
