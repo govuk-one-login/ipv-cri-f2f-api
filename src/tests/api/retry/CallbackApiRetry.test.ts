@@ -18,6 +18,9 @@ import { sleep } from "../../../utils/Sleep";
 //QualityGateIntegrationTest 
 //QualityGateStackTest
 describe("/callback endpoint", () => {
+
+	// This test has been moved to its own test file in order to exclude it from pipeline test runs. This is due to its potential to fail
+	// when multiple instances of the Yoti stub are running, which invalidates the in memory mapper counter used for retries
 	it("F2F CRI Callback Endpoint - Verified Credential validation for yotiMockId: 1601 - documentType: UkDrivingLicence with retry", async () => {
 		const yotiMockId = "1601";
 		f2fStubPayload.yotiMockID = yotiMockId;
