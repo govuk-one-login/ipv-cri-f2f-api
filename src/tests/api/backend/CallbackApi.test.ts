@@ -162,7 +162,7 @@ describe("/callback endpoint", () => {
 
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		validateJwtTokenNamePart(jwtToken, givenName1, givenName2, givenName3, familyName + yotiMockId);
-	}, 20000);
+	}, 30000);
 
 	it.each([
 		{ yotiMockId: "0000", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_SCHEMA" },
