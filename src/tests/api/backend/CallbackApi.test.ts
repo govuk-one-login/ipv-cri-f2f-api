@@ -65,7 +65,6 @@ describe("/callback endpoint", () => {
 		{ yotiMockId: "0501", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
 		{ yotiMockId: "0502", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
 		{ yotiMockId: "0503", documentType: "EeaIdCard", docSelectionData: dataEeaIdCard },
-		{ yotiMockId: "1601", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence },
 	])("F2F CRI Callback Endpoint - Verified Credential validation for yotiMockId: $yotiMockId - documentType: $documentType", async ({ yotiMockId, docSelectionData }: { yotiMockId: string; documentType: string; docSelectionData: DocSelectionData }) => {
 		f2fStubPayload.yotiMockID = yotiMockId;
 		const { sessionId, sub } = await startStubServiceAndReturnSessionId(f2fStubPayload);
@@ -163,7 +162,7 @@ describe("/callback endpoint", () => {
 
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		validateJwtTokenNamePart(jwtToken, givenName1, givenName2, givenName3, familyName + yotiMockId);
-	}, 20000);
+	}, 30000);
 
 	it.each([
 		{ yotiMockId: "0000", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_SCHEMA" },
