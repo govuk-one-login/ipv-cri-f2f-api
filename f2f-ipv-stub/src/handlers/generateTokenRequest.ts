@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { SignCommand } from "@aws-sdk/client-kms";
 import crypto from "node:crypto";
-import { util } from "node-jose";
+import { util } from "jose";
 import format from "ecdsa-sig-formatter";
 import { JWTPayload, JwtHeader } from "../auth.types";
 import { getHashedKid } from "../utils/hashing";
