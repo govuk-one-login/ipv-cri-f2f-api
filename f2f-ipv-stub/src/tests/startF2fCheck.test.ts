@@ -11,7 +11,6 @@ import {
 import { mockClient } from "aws-sdk-client-mock";
 import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import format from "ecdsa-sig-formatter";
-import base64url from "base64url";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
