@@ -18,7 +18,6 @@
     "@aws-sdk/credential-providers": "3.1001.0",
     "@aws-sdk/lib-dynamodb": "3.1001.0",
     "@smithy/node-http-handler": "4.0.4",
-    "@types/node-jose": "1.1.13",
     "aws-xray-sdk-core": "3.10.3",
     "axios": "1.15.0",
     "body-parser": "2.2.2",
@@ -26,9 +25,8 @@
     "dotenv-cli": "7.4.4",
     "ecdsa-sig-formatter": "1.0.11",
     "esbuild": "0.25.9",
-    "jose": "5.10.0",
+    "jose": "6.2.3",
     "jsonpath": "1.2.1",
-    "node-jose": "2.2.0",
     "node-rsa": "1.1.1",
     "notifications-node-client": "7.0.6",
     "pdf-lib": "1.17.1",
@@ -66,7 +64,7 @@
     "start:dynamodblocal": "cd tests/contract; ./scripts/setup-dynamodb-local.sh",
     "test:pactconnection": "cd tests/contract; ./scripts/test-pact-connection.sh",
     "start:contract": "npm run start:dynamodblocal && npm run test:pactconnection && npm run wait-start:contract",
-    "wait-start:contract": "wait-on tcp:127.0.0.1:8000 && cd tests/contract && ts-node ./app.ts",
+    "wait-start:contract": "wait-on tcp:127.0.0.1:8000 && cd tests/contract && tsx ./app.ts",
     "test:provider": "./node_modules/.bin/jest --testMatch '**/contract/F2fCriProvider.test.ts' --coverage=false",
     "test:contract": "wait-on tcp:127.0.0.1:3000; cd tests/contract; npm run test:provider && npm run kill:dynamodblocal",
     "test:contract:ci": "dotenv -e.env.contract -- bash -c 'npm run start:contract & npm run test:contract && kill $!'",
@@ -104,15 +102,13 @@
     "pdfjs-dist": "2.16.105",
     "prettier": "3.6.2",
     "ts-jest": "29.4.6",
-    "ts-node": "10.9.2",
     "typescript": "4.9.5",
     "wait-on": "9.0.5",
+    "tsx": "4.21.0",
     "yaml-cfn": "0.3.2"
   },
   "engines": {
     "node": "22.*"
   },
-  "overrides": {
-    "form-data": ">=4.0.4"
-  }
+    "type": "module"
 }

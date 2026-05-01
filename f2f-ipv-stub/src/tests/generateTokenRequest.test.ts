@@ -28,6 +28,8 @@ describe("Start F2F Check Endpoint", () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date(1585695600000)); // == 2020-03-31T23:00:00.000Z
 
+    kmsClient.reset();
+
     kmsClient.on(SignCommand).resolves({
       Signature: new Uint8Array([
         197, 213, 5, 202, 58, 74, 45, 36, 122, 168, 27, 155, 70, 15, 9, 123, 11,
@@ -42,6 +44,7 @@ describe("Start F2F Check Endpoint", () => {
   });
 
   afterEach(() => {
+    kmsClient.restore();
     jest.useRealTimers();
     jest.resetAllMocks();
   });
