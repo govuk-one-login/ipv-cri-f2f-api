@@ -102,7 +102,7 @@ const startCustomMissingSigningKey = {
   isBase64Encoded: false,
 };
 
-module.exports = {
+export default {
   startDefault,
   startCustom,
   startCustomInvalidSigningKey,
