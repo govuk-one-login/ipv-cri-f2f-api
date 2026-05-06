@@ -48,7 +48,11 @@ class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 
 			logger.debug("Parsed SQS event body", body);
 
-			if (body.topic === YotiCallbackTopics.SESSION_COMPLETION || body.topic ===  YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED) {
+			if (
+				body.topic === YotiCallbackTopics.SESSION_COMPLETION ||
+				body.topic === YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED ||
+				body.topic === YotiCallbackTopics.FIRST_BRANCH_VISIT
+				) {
 				logger.info("Matched topic, triggering state machine", { topic: body.topic });
 
 				const params = {

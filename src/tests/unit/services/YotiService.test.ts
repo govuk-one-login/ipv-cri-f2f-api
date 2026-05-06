@@ -74,7 +74,7 @@ const createSessionPayload = {
 	user_tracking_id: "RandomF2FSessionID",
 	notifications: {
 		endpoint: "https://example.com/callback",
-		topics: ["SESSION_COMPLETION", "INSTRUCTIONS_EMAIL_REQUESTED", "THANK_YOU_EMAIL_REQUESTED"],
+		topics: ["SESSION_COMPLETION", "INSTRUCTIONS_EMAIL_REQUESTED", "THANK_YOU_EMAIL_REQUESTED", "FIRST_BRANCH_VISIT"],
 		auth_token: "string",
 		auth_type: "BASIC",
 	},

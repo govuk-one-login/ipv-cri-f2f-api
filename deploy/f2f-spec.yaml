@@ -1206,6 +1206,7 @@ components:
             - "check_completion"
             - "session_completion"
             - "thank_you_email_requested"
+            - "first_branch_visit"
           description: indicates notification message type
           example: "session_completion"
         task_id:
@@ -1418,6 +1419,11 @@ components:
               description: Number of building on street
               example: "32"
               maxLength: 30
+            dependentStreetName:
+              type: string
+              description: Named thoroughfares/streets within other named thoroughfares/streets
+              example: "Peanut Row"
+              maxLength: 60
             streetName:
               type: string
               description: Street name

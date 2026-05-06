@@ -54,7 +54,7 @@ function getMockSessionItem(): ISessionItem {
 		persistentSessionId: "sdgsdg",
 		clientIpAddress: "127.0.0.1",
 		attemptCount: 1,
-		authSessionState: AuthSessionState.F2F_ACCESS_TOKEN_ISSUED,
+		authSessionState: AuthSessionState.F2F_YOTI_SESSION_COMPLETE,
 	};
 	return sessionInfo;
 }
@@ -884,13 +884,12 @@ describe("YotiSessionCompletionProcessor", () => {
 			mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 			// @ts-expect-error linting to be updated
 			mockCompletedSessionProcessor.verifiableCredentialService.kmsJwtAdapter = passingKmsJwtAdapterFactory();
-
 			await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 				statusCode: HttpCodesEnum.SERVER_ERROR,
 				message: "FullName mismatch between F2F & YOTI",
 			}));
 			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+			expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
 			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "FullName mismatch between F2F & YOTI");
 		});
 	});
@@ -1295,7 +1294,7 @@ describe("YotiSessionCompletionProcessor", () => {
 			error_description: "VC generation failed : AuthSession is in wrong Auth state",
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
-		expect(out.body).toBe("AuthSession is in wrong Auth state: Expected state- F2F_ACCESS_TOKEN_ISSUED or F2F_AUTH_CODE_ISSUED, actual state- F2F_YOTI_SESSION_CREATED");
+		expect(out.body).toBe("AuthSession is in wrong Auth state: Expected state- F2F_POST_OFFICE_VISITED actual state- F2F_YOTI_SESSION_CREATED");
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "AuthSession is in wrong Auth state");
 	});

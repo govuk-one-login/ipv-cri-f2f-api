@@ -432,9 +432,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: S3BucketActivityEventChanges
       Namespace: AWS/S3
@@ -475,9 +475,9 @@ Resources:
       Threshold: '1'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       TreatMissingData: notBreaching
   # Log metric filter and alarm for route table changes
   RouteTableChangesMetricFilter:
@@ -506,9 +506,9 @@ Resources:
       Threshold: '1'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       TreatMissingData: notBreaching
   # Log metric filter and alarm when changes are made to VPC.
   VpcChangesEventMetricFilter:
@@ -538,9 +538,9 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       TreatMissingData: notBreaching
   # Log metric and alarm when changes are made to AWS Organisations.
   OrganisationChangesEventMetricFilter:
@@ -570,9 +570,9 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       TreatMissingData: notBreaching
 
 
@@ -914,9 +914,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: F2FResetAPI-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -1089,9 +1089,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: SessionFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -1114,9 +1114,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -1138,9 +1138,9 @@ Resources:
     Properties:
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmName: !Sub "${AWS::StackName}-SessionFunctionCanary5xxErrors"
       AlarmDescription: !Sub 
         - SessionFunction Lambda returning 5xx response. ${RunbookUrl}
@@ -1171,9 +1171,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of Session is used. ${RunbookUrl}"
@@ -1198,9 +1198,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${SessionFunction} lambda throttles. ${RunbookUrl}"
@@ -1244,9 +1244,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 1
@@ -1279,11 +1279,11 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -1327,11 +1327,11 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
-        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
-        - !ImportValue platform-alarm-pagerduty-alert-topic
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
       InsufficientDataActions: [ ]
       MetricName: KeyAliasesUnavailable
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -1446,9 +1446,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: SessionConfigFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -1471,9 +1471,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -1495,9 +1495,9 @@ Resources:
     Properties:
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmName: !Sub "${AWS::StackName}-SessionConfigFunctionCanary5xxErrors"
       AlarmDescription:  !Sub 
         - SessionConfigFunction Lambda returning 5xx response. ${RunbookUrl}
@@ -1529,9 +1529,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of Session is used. ${RunbookUrl}"
@@ -1556,9 +1556,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       AlarmDescription: !Sub 
         - "Trigger if the ${SessionConfigFunction} lambda throttles. ${RunbookUrl}"
@@ -1692,9 +1692,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: TokenFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -1717,9 +1717,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -1741,9 +1741,9 @@ Resources:
     Properties:
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmName: !Sub "${AWS::StackName}-TokenFunctionCanary5xxErrors"
       AlarmDescription:  !Sub 
         - TokenFunction Lambda returning 5xx response. ${RunbookUrl}
@@ -1774,9 +1774,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of Token concurrency is used. ${RunbookUrl}"
@@ -1801,9 +1801,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${TokenFunction} lambda throttles. ${RunbookUrl}"
@@ -1944,9 +1944,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: AuthorizationFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -1969,9 +1969,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -1993,9 +1993,9 @@ Resources:
     Properties:
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunctionCanary5xxErrors"
       AlarmDescription:  !Sub 
         - AuthorizationFunction Lambda returning 5xx response. ${RunbookUrl}
@@ -2026,9 +2026,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of authorization concurrency is used. ${RunbookUrl}"
@@ -2053,9 +2053,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${AuthorizationFunction} lambda throttles. ${RunbookUrl}"
@@ -2236,9 +2236,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: DocumentSelection-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -2261,9 +2261,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -2285,9 +2285,9 @@ Resources:
     Properties:
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmName: !Sub "${AWS::StackName}-DocumentSelectionFunctionCanary5xxErrors"
       AlarmDescription: !Sub 
         - DocumentSelectionFunction Lambda returning 5xx response. ${RunbookUrl}
@@ -2318,9 +2318,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of Document selection concurrency is used. ${RunbookUrl}"
@@ -2345,9 +2345,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${DocumentSelectionFunction} lambda throttles. ${RunbookUrl}"
@@ -2474,9 +2474,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: AbortFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -2499,9 +2499,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -2523,9 +2523,9 @@ Resources:
     Properties:
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmName: !Sub "${AWS::StackName}-AbortFunctionCanary5xxErrors"
       AlarmDescription: !Sub 
         - AbortFunction Lambda returning 5xx response. ${RunbookUrl}
@@ -2673,9 +2673,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: PersonInfoFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -2698,9 +2698,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -2722,9 +2722,9 @@ Resources:
     Properties:
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmName: !Sub "${AWS::StackName}-PersonInfoFunctionCanary5xxErrors"
       AlarmDescription: !Sub 
         - PersonInfoFunction Lambda returning 5xx response. ${RunbookUrl}
@@ -2756,9 +2756,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of PersonInfo is used. ${RunbookUrl}"
@@ -2783,9 +2783,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${PersonInfoFunction} lambda throttles. ${RunbookUrl}"
@@ -2814,9 +2814,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2878,9 +2878,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2942,9 +2942,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false   # alarm reviewed in production and decision made to disable
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -3084,9 +3084,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: PersonInfoKeyFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -3109,9 +3109,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -3133,9 +3133,9 @@ Resources:
     Properties:
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmName: !Sub "${AWS::StackName}-PersonInfoKeyFunctionCanary5xxErrors"
       AlarmDescription: !Sub 
         - PersonInfoKeyFunction Lambda returning 5xx response. ${RunbookUrl}
@@ -3166,9 +3166,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of PersonInfoKey is used. ${RunbookUrl}"
@@ -3193,9 +3193,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${PersonInfoKeyFunction} lambda throttles. ${RunbookUrl}"
@@ -3313,9 +3313,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: AddressLocationsFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -3338,9 +3338,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -3362,9 +3362,9 @@ Resources:
     Properties:
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmName: !Sub "${AWS::StackName}-AddressLocationsFunctionCanary5xxErrors"
       AlarmDescription: !Sub 
         - AddressLocationsFunction Lambda returning 5xx response. ${RunbookUrl}
@@ -3395,9 +3395,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of AddressLocations is used. ${RunbookUrl}"
@@ -3422,9 +3422,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${AddressLocationsFunction} lambda throttles. ${RunbookUrl}"
@@ -3628,9 +3628,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: JsonWebKeysFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -3649,9 +3649,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of JsonWeb Keys concurrency is used. ${RunbookUrl}"
@@ -3676,9 +3676,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${JsonWebKeysFunction} lambda throttles. ${RunbookUrl}"
@@ -3847,9 +3847,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: GovNotifyFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -3872,9 +3872,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -3896,9 +3896,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of GovNotify concurrency is used. ${RunbookUrl}"
@@ -4043,9 +4043,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: UserInfoFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -4068,9 +4068,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -4092,9 +4092,9 @@ Resources:
     Properties:
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmName: !Sub "${AWS::StackName}-UserInfoFunctionCanary5xxErrors"
       AlarmDescription: !Sub 
         - UserInfoFunction Lambda returning 5xx response. ${RunbookUrl}
@@ -4126,9 +4126,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of UserInfro concurrency is used. ${RunbookUrl}"
@@ -4153,9 +4153,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${UserInfoFunction} lambda throttles. ${RunbookUrl}"
@@ -4301,9 +4301,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: ReminderEmailFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -4322,9 +4322,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of ReminderEmail is used. ${RunbookUrl}"
@@ -4349,9 +4349,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${ReminderEmailFunction} lambda throttles. ${RunbookUrl}"
@@ -4508,9 +4508,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: ExpiredSessionsFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -4602,13 +4602,13 @@ Resources:
       DefinitionUri: ../src/stepFunctions/yotiCallback.asl.json
       DefinitionSubstitutions:
         YotiSessionCompletionFunctionArn: !GetAtt YotiCallbackFunction.Arn
-        ThankYouEmailFunctionArn: !GetAtt ThankYouEmailFunction.Arn
+        PostOfficeVisitFunctionArn: !GetAtt PostOfficeVisitFunction.Arn
       Policies:
         - AWSXrayWriteOnlyAccess
         - LambdaInvokePolicy:
             FunctionName: !Ref YotiCallbackFunction
         - LambdaInvokePolicy:
-            FunctionName: !Ref ThankYouEmailFunction
+            FunctionName: !Ref PostOfficeVisitFunction
       Tracing:
         Enabled: true
       PermissionsBoundary: !If
@@ -4733,9 +4733,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: TriggerYotiCallbackFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -4758,9 +4758,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -4782,9 +4782,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of Yoticallback is used. ${RunbookUrl}"
@@ -4809,9 +4809,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${TriggerYotiCallbackStateMachine} lambda throttles. ${RunbookUrl}"
@@ -4976,16 +4976,16 @@ Resources:
 
 ####################################################################
 #                                                                  #
-# ThankYou Email Function                                          #
+# Post Office Visit Callback Function                              #
 #                                                                  #
 ####################################################################
 
-  ThankYouEmailFunction:
+  PostOfficeVisitFunction:
     Type: AWS::Serverless::Function
-    DependsOn: ThankYouEmailFunctionLogGroup
+    DependsOn: PostOfficeVisitFunctionLogGroup
     Properties:
-      FunctionName: !Sub "F2F-ThankYouEmail-${AWS::StackName}"
-      Handler: ThankYouEmailHandler.lambdaHandler
+      FunctionName: !Sub "F2F-PostOfficeVisit-${AWS::StackName}"
+      Handler: PostOfficeVisitHandler.lambdaHandler
       CodeUri: ../src/
       ReservedConcurrentExecutions: !If
         - ApplyReservedConcurrency
@@ -4993,8 +4993,9 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: ThankYouEmailHandler
+          POWERTOOLS_SERVICE_NAME: PostOfficeVisitHandler
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
+          YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
@@ -5011,6 +5012,9 @@ Resources:
             TableName:
               Fn::ImportValue:
                 !Sub "${L2DynamoStackName}-session-table-name"
+        - DynamoDBWritePolicy:
+            TableName: !ImportValue
+              Fn::Sub: "${L2DynamoStackName}-session-table-name"
         - KMSDecryptPolicy:
             KeyId:
               Fn::ImportValue:
@@ -5057,13 +5061,13 @@ Resources:
         Target: "es2020"
         Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
         EntryPoints:
-          - ThankYouEmailHandler.ts
+          - PostOfficeVisitHandler.ts
         UseNpmCi: true
 
-  ThankYouEmailFunctionLogGroup:
+  PostOfficeVisitFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/F2F-ThankYouEmail-${AWS::StackName}"
+      LogGroupName: !Sub "/aws/lambda/F2F-PostOfficeVisit-${AWS::StackName}"
       RetentionInDays:
         !FindInMap [
           EnvironmentConfiguration,
@@ -5071,50 +5075,50 @@ Resources:
           logretentionindays,
         ]
 
-  ThankYouEmailFunctionLogsSubscriptionFilterCSLS:
+  PostOfficeVisitFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsProdLikeEnvironment
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
-      LogGroupName: !Ref ThankYouEmailFunctionLogGroup
+      LogGroupName: !Ref PostOfficeVisitFunctionLogGroup
 
-  ThankYouEmailFunctionPermission:
+  PostOfficeVisitFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref ThankYouEmailFunction
+      FunctionName: !Ref PostOfficeVisitFunction
       Principal: apigateway.amazonaws.com
 
-  ThankYouEmailFatalErorMetricFilter:
+  PostOfficeVisitFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Condition: DeployAlarms
     Properties:
-      LogGroupName: !Ref ThankYouEmailFunctionLogGroup
+      LogGroupName: !Ref PostOfficeVisitFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
       MetricTransformations:
         -
           MetricValue: "1"
           MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
-          MetricName: "ThankYouEmail-Fatalerror"
+          MetricName: "PostOfficeVisit-Fatalerror"
 
-  ThankYouEmailFatalErrorAlarm:
+  PostOfficeVisitFatalErrorAlarm:
     DependsOn:
-      - "ThankYouEmailFatalErorMetricFilter"
+      - "PostOfficeVisitFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-ThankYouEmail-FatalErrorAlarm"
+      AlarmName: !Sub "${AWS::StackName}-PostOfficeVisit-FatalErrorAlarm"
       AlarmDescription: !Sub 
         - "Trigger an alarm when Fatal Error occurs. ${RunbookUrl}"
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
-      MetricName: ThankYouEmail-Fatalerror
+      MetricName: PostOfficeVisit-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
       Dimensions: [ ]
@@ -5125,34 +5129,34 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ThankYouEmailRetriesExceededErrorMetricFilter:
+  PostOfficeVisitRetriesExceededErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
-      LogGroupName: !Ref ThankYouEmailFunctionLogGroup
+      LogGroupName: !Ref PostOfficeVisitFunctionLogGroup
       FilterPattern: '{ $.level = "ERROR" && $.messageCode = "YOTI_RETRIES_EXCEEDED" }'
       MetricTransformations:
         -
           MetricValue: "1"
           MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
-          MetricName: "ThankYouEmail-GetCompletedSessionInfoRetriesExceeded-error"
+          MetricName: "PostOfficeVisit-GetCompletedSessionInfoRetriesExceeded-error"
 
-  ThankYouEmailRetriesExceededErrorAlarm:
+  PostOfficeVisitRetriesExceededErrorAlarm:
     DependsOn:
-      - "ThankYouEmailRetriesExceededErrorMetricFilter"
+      - "PostOfficeVisitRetriesExceededErrorMetricFilter"
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-ThankYouEmail-YotiCallbackRetriesExceededErrorAlarm"
+      AlarmName: !Sub "${AWS::StackName}-PostOfficeVisit-YotiCallbackRetriesExceededErrorAlarm"
       AlarmDescription: !Sub 
         - "Trigger an alarm when we are unable to fetch Yoti session after max retries. ${RunbookUrl}"
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
-      MetricName: ThankYouEmail-GetCompletedSessionInfoRetriesExceeded-error
+      MetricName: PostOfficeVisit-GetCompletedSessionInfoRetriesExceeded-error
       Namespace: !Sub "${AWS::StackName}/LogMessages"
       Statistic: Sum
       Dimensions: [ ]
@@ -5163,25 +5167,25 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ThankYouEmailConcurrency80Alarm:
+  PostOfficeVisitConcurrency80Alarm:
     Type: AWS::CloudWatch::Alarm
     Condition: "ApplyReservedConcurrency"
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
-        - "Trigger the alarm if over 80% of ThankYouEmail concurrency is used. ${RunbookUrl}"
+        - "Trigger the alarm if over 80% of PostOfficeVisit concurrency is used. ${RunbookUrl}"
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
-      AlarmName: !Sub "${AWS::StackName}-ThankYouEmailFunction-concurrency"
+      AlarmName: !Sub "${AWS::StackName}-PostOfficeVisitFunction-concurrency"
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
       Dimensions:
         - Name: FunctionName
-          Value: !Ref ThankYouEmailFunction
+          Value: !Ref PostOfficeVisitFunction
       Statistic: Maximum
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
@@ -5190,26 +5194,26 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
-  ThankYouEmailThrottleAlarm:
+  PostOfficeVisitThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
-        - "Trigger if the ${ThankYouEmailFunction} lambda throttles. ${RunbookUrl}"
+        - "Trigger if the ${PostOfficeVisitFunction} lambda throttles. ${RunbookUrl}"
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
-      AlarmName: !Sub "${AWS::StackName}-ThankYouEmailFunction-throttles"
+      AlarmName: !Sub "${AWS::StackName}-PostOfficeVisitFunction-throttles"
       MetricName: Throttles
       Namespace: AWS/Lambda
       Statistic: Sum
       Dimensions:
         - Name: FunctionName
-          Value: !Ref ThankYouEmailFunction
+          Value: !Ref PostOfficeVisitFunction
       TreatMissingData: notBreaching
       Period: 60 # This is the minimum value for the AWS Namespace
       EvaluationPeriods: 1
@@ -5243,6 +5247,8 @@ Resources:
           FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: 5000
           FETCH_YOTI_SESSION_MAX_RETRIES: 3
           YOTISDK: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISDK]
+          YOTI_SESSION_TTL_DAYS:
+            !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS] 
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -5318,9 +5324,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: GenerateYotiLetter-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -5339,9 +5345,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of GenerateYotiLetter concurrency is used. ${RunbookUrl}"
@@ -5366,9 +5372,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${GenerateYotiLetterFunction} lambda throttles. ${RunbookUrl}"
@@ -5497,9 +5503,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: GeneratePrintedLetter-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -5518,9 +5524,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of GeneratePrintedLetter concurrency is used. ${RunbookUrl}"
@@ -5545,9 +5551,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${GeneratePrintedLetterFunction} lambda throttles. ${RunbookUrl}"
@@ -5703,9 +5709,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: SendToGovNotify-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -5724,9 +5730,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of SendToGovNotify concurrency is used. ${RunbookUrl}"
@@ -5751,9 +5757,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${SendToGovNotifyFunction} lambda throttles. ${RunbookUrl}"
@@ -5898,9 +5904,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: YotiCallbackFunction-Fatalerror
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -5936,9 +5942,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: YotiCallbackFunction-GetCompletedSessionInfoRetriesExceeded-error
       Namespace: !Sub "${AWS::StackName}/LogMessages"
@@ -5957,9 +5963,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if over 80% of Yoticallback concurrency is used. ${RunbookUrl}"
@@ -5984,9 +5990,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger if the ${YotiCallbackFunction} lambda throttles. ${RunbookUrl}"
@@ -6101,9 +6107,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6153,9 +6159,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6205,9 +6211,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6269,9 +6275,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6333,9 +6339,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6397,11 +6403,11 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6463,9 +6469,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6527,11 +6533,11 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6593,9 +6599,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6657,11 +6663,11 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6723,9 +6729,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6787,11 +6793,11 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6853,9 +6859,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6917,11 +6923,11 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-pagerduty-alert-topic
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-PagerDutySNSTopicArn
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -6983,9 +6989,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -7047,9 +7053,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-critical-alert
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -7111,9 +7117,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -7175,9 +7181,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -7239,9 +7245,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -7306,9 +7312,9 @@ Resources:
           - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 10
@@ -7370,9 +7376,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false   # alarm reviewed in production and decision made to disable
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -7437,9 +7443,9 @@ Resources:
           - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 10
@@ -7501,9 +7507,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: false  # disabled until we're ready for alarm actions to fire
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -7549,9 +7555,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: ApproximateAgeOfOldestMessage
       Namespace: AWS/SQS
@@ -7576,9 +7582,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: ApproximateNumberOfMessagesVisible
       Namespace: AWS/SQS
@@ -7603,9 +7609,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: ApproximateAgeOfOldestMessage
       Namespace: AWS/SQS
@@ -7630,9 +7636,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: ApproximateNumberOfMessagesVisible
       Namespace: AWS/SQS
@@ -7657,9 +7663,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: ApproximateAgeOfOldestMessage
       Namespace: AWS/SQS
@@ -7684,9 +7690,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: ApproximateNumberOfMessagesVisible
       Namespace: AWS/SQS
@@ -7711,9 +7717,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: ApproximateAgeOfOldestMessage
       Namespace: AWS/SQS
@@ -7738,9 +7744,9 @@ Resources:
         - RunbookUrl: !FindInMap [StaticVariables, urls, F2FSupportManual]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: ApproximateNumberOfMessagesVisible
       Namespace: AWS/SQS
@@ -7761,9 +7767,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
       AlarmDescription: !Sub 
         - "Trigger the alarm if any lambda in the account timesout 5 times within 5 minutes. ${RunbookUrl}"
@@ -7961,9 +7967,9 @@ Resources:
                   "x": 12,
                   "type": "metric",
                   "properties": {
-                    "title": "ThankYouEmail 80% Concurrency - ${AWS::StackName}",
+                    "title": "PostOfficeVisit 80% Concurrency - ${AWS::StackName}",
                     "annotations": {
-                      "alarms": ["${ThankYouEmailConcurrency80Alarm.Arn}"]
+                      "alarms": ["${PostOfficeVisitConcurrency80Alarm.Arn}"]
                     },
                     "view": "timeSeries",
                     "stacked": false
@@ -8152,9 +8158,9 @@ Resources:
                   "x": 12,
                   "type": "metric",
                   "properties": {
-                    "title": "ThankYouEmail Throttles - ${AWS::StackName}",
+                    "title": "PostOfficeVisit Throttles - ${AWS::StackName}",
                     "annotations": {
-                      "alarms": ["${ThankYouEmailThrottleAlarm.Arn}"]
+                      "alarms": ["${PostOfficeVisitThrottleAlarm.Arn}"]
                     },
                     "view": "timeSeries",
                     "stacked": false
@@ -8651,8 +8657,6 @@ Resources:
               }
             ]
           }
-
-
 
 Outputs:
   F2FApiGatewayId:
