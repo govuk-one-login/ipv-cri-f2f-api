@@ -70,9 +70,6 @@ export class AddressLocationsProcessor {
 	}
 
 	async getOsLocations(postCode: string, apiKey: string, osLocationsApiUrl: string): Promise<string> {
-		console.log("POSTCODE!", postCode)
-		console.log("API KEY!", apiKey)
-		console.log("OS LOCATIONS API URL!", osLocationsApiUrl)
 		try {
 			const response = await axios.get(osLocationsApiUrl, 
 				{
@@ -81,9 +78,7 @@ export class AddressLocationsProcessor {
 						key: apiKey,
 					},
 				});
-				console.log("RESPONSE!", response)
 			const { data } = response;	
-			console.log("DATA!", data)
 			const singleMetric = this.metrics.singleMetric();
 			singleMetric.addDimension("status_code", response.status.toString());
 			singleMetric.addMetric("OS_response", MetricUnits.Count, 1);
@@ -100,11 +95,8 @@ export class AddressLocationsProcessor {
 
 				this.logger.error("Error response data:", error.response?.data);
 			  } else {
-				this.logger.error("Error retrieving OS locations data", error);
+				this.logger.error("Error retrieving OS locations data");
 			  }
-			console.log("POSTCODE! 2", postCode)
-			console.log("API KEY! 2", apiKey)
-			console.log("OS LOCATIONS API URL! 2", osLocationsApiUrl)
     		const message = "Error retrieving OS locations data";
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, message);
 		}
