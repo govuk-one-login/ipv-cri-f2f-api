@@ -2,46 +2,59 @@ import { handlerClass, lambdaHandler, logger} from "../../JwksHandler";
 import { Jwk, Algorithm } from "../../utils/IVeriCredential";
 import crypto from "crypto";
 
-jest.mock("@aws-lambda-powertools/logger", () => ({
-	Logger: jest.fn().mockImplementation(() => ({
-		info: jest.fn(),
-		error: jest.fn(),
-		warn: jest.fn(),
-	})),
+vi.mock("@aws-lambda-powertools/logger", () => ({
+	Logger: vi.fn(function () {
+		return {
+			info: vi.fn(),
+			error: vi.fn(),
+			warn: vi.fn(),
+		};
+	}),
 }));
 
-jest.mock("@aws-sdk/client-kms", () => ({
-	KMS: jest.fn().mockImplementation(() => ({
-		getPublicKey: jest.fn(),
-	})),
+vi.mock("@aws-sdk/client-kms", () => ({
+	KMS: vi.fn(function () {
+		return {
+			getPublicKey: vi.fn(),
+		};
+	}),
 }));
 
-jest.mock("crypto", () => ({
-	createPublicKey: jest.fn().mockImplementation(() => ({
-		export: jest.fn().mockImplementation(() => ({
+vi.mock("crypto", () => ({
+	default: {
+		createPublicKey: vi.fn().mockImplementation(() => ({
+			export: vi.fn().mockImplementation(() => ({
+				key: "123456789",
+			})),
+		})),
+	},
+	createPublicKey: vi.fn().mockImplementation(() => ({
+		export: vi.fn().mockImplementation(() => ({
 			key: "123456789",
 		})),
 	})),
 }));
 
-jest.mock("@aws-sdk/client-s3", () => ({
-	S3Client: jest.fn().mockImplementation(() => ({
-		send: jest.fn(),
-	})),
-	PutObjectCommand: jest.fn().mockImplementation((args) => args),
-	CopyObjectCommand: jest.fn().mockImplementation((args) => args),
+vi.mock("@aws-sdk/client-s3", () => ({
+	S3Client: vi.fn(function () {
+		return {
+			send: vi.fn().mockResolvedValue({}),
+		};
+	}),
+	PutObjectCommand: vi.fn(function (args) { return args; }),
+	CopyObjectCommand: vi.fn(function (args) { return args; }),
 }));
 
-jest.mock("../../utils/JwtUtils", () => ({
+vi.mock("../../utils/JwtUtils", () => ({
 	jwtUtils: {
-		getHashedKid: jest.fn().mockImplementation((args) => {return args;}),
+		getHashedKid: vi.fn().mockImplementation((args) => {return args;}),
 	},
 }));
 
 describe("JwksHandler", () => {
 	describe("#handler", () => {
 		beforeEach(() => {
-			jest.clearAllMocks(); 
+			vi.clearAllMocks(); 
 		});
 
 		it("uploads keys to s3", async () => {
@@ -78,7 +91,7 @@ describe("JwksHandler", () => {
 			const keyId = "f2f-cri-api-vc-signing-key";
 			// pragma: allowlist nextline secret
 			const publicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAES4sDJifz8h3GDznZZ6NC3QN5qlQn8Zf2mck4yBmlwqvXzZu7Wkwc4QuOxXhGHXamfkoG5d0UJVXJwwvFxiSzRQ==";
-			jest.spyOn(handlerClass.kmsClient, "getPublicKey").mockImplementationOnce(() => ({
+			vi.spyOn(handlerClass.kmsClient, "getPublicKey").mockImplementationOnce(() => ({
 				KeySpec: "ECC_NIST_P256",
 				KeyId: keyId,
 				KeyUsage: "ENCRYPT_DECRYPT",
@@ -103,7 +116,7 @@ describe("JwksHandler", () => {
 
 		it("logs error if no key is fetched", async () => {
 			const keyId = "f2f-cri-api-vc-signing-key";
-			jest.spyOn(handlerClass.kmsClient, "getPublicKey").mockImplementationOnce(() => null);
+			vi.spyOn(handlerClass.kmsClient, "getPublicKey").mockImplementationOnce(() => null);
 
 			const result = await handlerClass.getAsJwk(keyId);
 
@@ -115,7 +128,7 @@ describe("JwksHandler", () => {
 			const keyId = "f2f-cri-api-vc-signing-key";
 			// pragma: allowlist nextline secret
 			const publicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAES4sDJifz8h3GDznZZ6NC3QN5qlQn8Zf2mck4yBmlwqvXzZu7Wkwc4QuOxXhGHXamfkoG5d0UJVXJwwvFxiSzRQ==";
-			jest.spyOn(handlerClass.kmsClient, "getPublicKey").mockImplementationOnce(() => ({
+			vi.spyOn(handlerClass.kmsClient, "getPublicKey").mockImplementationOnce(() => ({
 				KeyId: keyId,
 				KeyUsage: "ENCRYPT_DECRYPT",
 				PublicKey: publicKey,
@@ -131,7 +144,7 @@ describe("JwksHandler", () => {
 			const keyId = "f2f-cri-api-vc-signing-key";
 			// pragma: allowlist nextline secret
 			const publicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAES4sDJifz8h3GDznZZ6NC3QN5qlQn8Zf2mck4yBmlwqvXzZu7Wkwc4QuOxXhGHXamfkoG5d0UJVXJwwvFxiSzRQ==";
-			jest.spyOn(handlerClass.kmsClient, "getPublicKey").mockImplementationOnce(() => ({
+			vi.spyOn(handlerClass.kmsClient, "getPublicKey").mockImplementationOnce(() => ({
 				KeySpec: "ECC_NIST_P256",
 				KeyUsage: "ENCRYPT_DECRYPT",
 				PublicKey: publicKey,
@@ -148,7 +161,7 @@ describe("JwksHandler", () => {
 
 		it("logs error if fetched key does not contain PublicKey", async () => {
 			const keyId = "f2f-cri-api-vc-signing-key";
-			jest.spyOn(handlerClass.kmsClient, "getPublicKey").mockImplementationOnce(() => ({
+			vi.spyOn(handlerClass.kmsClient, "getPublicKey").mockImplementationOnce(() => ({
 				KeySpec: "ECC_NIST_P256",
 				KeyUsage: "ENCRYPT_DECRYPT",
 				KeyId: keyId,

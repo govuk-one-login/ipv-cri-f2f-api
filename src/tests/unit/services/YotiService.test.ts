@@ -1,3 +1,4 @@
+import type { Mocked } from "vitest";
  
  
 import axios from "axios";
@@ -6,14 +7,14 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { sleep } from "../../../utils/Sleep";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
-jest.mock("@aws-lambda-powertools/logger");
-jest.mock("axios");
-jest.mock(("../../../utils/Sleep"), () => ({
-	sleep: jest.fn(),
+vi.mock("@aws-lambda-powertools/logger");
+vi.mock("axios");
+vi.mock(("../../../utils/Sleep"), () => ({
+	sleep: vi.fn(),
 }));
 
 const errorResponseHeaders = {					
@@ -182,12 +183,12 @@ describe("YotiService", () => {
 	const logger = mock<Logger>();
 	const metrics = mock<Metrics>();
 	
-	let axiosMock: jest.Mocked<typeof axios>;
+	let axiosMock: Mocked<typeof axios>;
 	let yotiService: YotiService;
 
 	beforeEach(() => {
 		metrics.singleMetric.mockReturnValue(metrics);
-		axiosMock = axios as jest.Mocked<typeof axios>;
+		axiosMock = axios as Mocked<typeof axios>;
 
 		yotiService = new YotiService(
 			logger,
@@ -202,12 +203,12 @@ describe("YotiService", () => {
 	});
 
 	afterEach(() => {
-		jest.resetAllMocks();
+		vi.resetAllMocks();
 	});
 
 	describe("getRSASignatureForMessage", () => {
 		it("should return the mocked signature", () => {
-			const getRSASignatureForMessageSpy = jest.spyOn(yotiService as any, "getRSASignatureForMessage").mockReturnValue("mockedSignature");
+			const getRSASignatureForMessageSpy = vi.spyOn(yotiService as any, "getRSASignatureForMessage").mockReturnValue("mockedSignature");
 
 			const message = "test message";
 			const signature = yotiService["getRSASignatureForMessage"](message);
@@ -261,15 +262,15 @@ describe("YotiService", () => {
 		const YOTIBASEURL = "https://example.com/";
 
 		it("should create a Yoti session and return the session ID", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions",
 				config: {},
 			});
 
 			axiosMock.post.mockResolvedValue({ status: 201, data: { session_id: "session123" } });
-			jest.useFakeTimers();
+			vi.useFakeTimers();
 			const fakeTime = 1684933200.123;
-			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
+			vi.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
 
 			const sessionId = await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTIBASEURL, YOTICALLBACKURL);
 
@@ -281,15 +282,15 @@ describe("YotiService", () => {
 		});
 
 		it("should calculate session_deadline correctly", async () => {
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions",
 				config: {},
 			});
 
 			axiosMock.post.mockResolvedValue({ status:201, data: { session_id: "session123" } });
-			jest.useFakeTimers();
+			vi.useFakeTimers();
 			const fakeTime = 1684933200.123;
-			jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
+			vi.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
 
 			await yotiService.createSession(personDetails, selectedDocument, "GBR", YOTIBASEURL, YOTICALLBACKURL);
 
@@ -300,7 +301,7 @@ describe("YotiService", () => {
 		});
 
 		it("should throw an AppError if there is an error creating the Yoti session", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions",
 				config: {},
 			});
@@ -328,12 +329,12 @@ describe("YotiService", () => {
 		});
 
 		it("createSession retries when there is a 429 error creating the Yoti session", async () => {
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
 
-			jest.useRealTimers();
+			vi.useRealTimers();
 
 			axiosMock.post.mockRejectedValue({
 				"message": "Failed to create session",
@@ -360,12 +361,12 @@ describe("YotiService", () => {
 		});
 
 		it("createSession retries when there is a 503 error creating the Yoti session", async () => {
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
 
-			jest.useRealTimers();
+			vi.useRealTimers();
 
 			axiosMock.post.mockRejectedValue({
 				"message": "Failed to create session",
@@ -558,7 +559,7 @@ describe("YotiService", () => {
 		};
 
 		it("should fetch Yoti session info and return the data", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123/configuration",
 				config: {},
 			});
@@ -575,7 +576,7 @@ describe("YotiService", () => {
 		});
 
 		it("should throw an AppError if there is an error fetching the Yoti session info", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123/configuration",
 				config: {},
 			});
@@ -599,12 +600,12 @@ describe("YotiService", () => {
 		});
 
 		it("fetchSessionInfo retries when there is a 429 error fetching the Yoti instructions", async () => {
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
 
-			jest.useRealTimers();
+			vi.useRealTimers();
 
 			axiosMock.get.mockRejectedValue({
 				"message": "Failed to fetch session info",
@@ -631,12 +632,12 @@ describe("YotiService", () => {
 		});
 
 		it("fetchSessionInfo retries when there is a 503 error fetching the Yoti instructions", async () => {
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
 
-			jest.useRealTimers();
+			vi.useRealTimers();
 
 			axiosMock.get.mockRejectedValue({
 				"message": "Failed to fetch session info",
@@ -686,7 +687,7 @@ describe("YotiService", () => {
 		};
 
 		it("should generate instructions and return OK status code", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123/instructions",
 				config: {},
 			});
@@ -707,7 +708,7 @@ describe("YotiService", () => {
 		});
 
 		it("should throw an AppError if there is an error generating the instructions PDF", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123/instructions",
 				config: {},
 			});
@@ -737,12 +738,12 @@ describe("YotiService", () => {
 		});
 
 		it("generateInstructions retries when there is a 429 error fetching the Yoti instructions", async () => {
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
 
-			jest.useRealTimers();
+			vi.useRealTimers();
 
 			axiosMock.put.mockRejectedValue({
 				"message": "Failed to generate instructions",
@@ -769,12 +770,12 @@ describe("YotiService", () => {
 		});
 
 		it("generateInstructions retries when there is a 503 error fetching the Yoti instructions", async () => {
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
 
-			jest.useRealTimers();
+			vi.useRealTimers();
 
 			axiosMock.put.mockRejectedValue({
 				"message": "Failed to generate instructions",
@@ -805,7 +806,7 @@ describe("YotiService", () => {
 		const sessionId = "session123";
 
 		it("should fetch Yoti instructions PDF and return the PDF data", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123/instructions/pdf",
 				config: {
 					responseType: "arraybuffer",
@@ -829,7 +830,7 @@ describe("YotiService", () => {
 		});
 
 		it("should throw an AppError if there is an error fetching the Yoti instructions PDF", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123/instructions/pdf",
 				config: {
 					responseType: "arraybuffer",
@@ -859,12 +860,12 @@ describe("YotiService", () => {
 		});
 
 		it("fetchInstructionsPdf retries when there is a 429 error fetching the Yoti instructions", async () => {
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
 
-			jest.useRealTimers();
+			vi.useRealTimers();
 
 			axiosMock.get.mockRejectedValue({
 				"message": "Failed to fetch instructions PDF",
@@ -891,12 +892,12 @@ describe("YotiService", () => {
 		});
 
 		it("fetchInstructionsPdf retries when there is a 503 error fetching the Yoti instructions", async () => {
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
 
-			jest.useRealTimers();
+			vi.useRealTimers();
 
 			axiosMock.get.mockRejectedValue({
 				"message": "Failed to fetch instructions PDF",
@@ -927,7 +928,7 @@ describe("YotiService", () => {
 		const sessionId = "session123";
 
 		it("should fetch completed Yoti session info and return the data", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
@@ -944,7 +945,7 @@ describe("YotiService", () => {
 		});
 
 		it("should throw an AppError if there is an error fetching the completed Yoti session info", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
@@ -970,7 +971,7 @@ describe("YotiService", () => {
 		});
 
 		it("should throw an AppError and doesn't retry if there is a non 5XX or 429 error while fetching the completed Yoti session info", async () => {
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
@@ -1001,12 +1002,12 @@ describe("YotiService", () => {
 		it("getCompletedSessionInfo retries when there is a 429 error fetching the completed Yoti session info", async () => {
 			// Used for testing
 			/* eslint-disable @typescript-eslint/no-unused-vars */
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
 
-			jest.useRealTimers();
+			vi.useRealTimers();
 
 			axiosMock.get.mockRejectedValue({
 				"message": "Failed to fetch completed session info",
@@ -1045,7 +1046,7 @@ describe("YotiService", () => {
 				url: "https://example.com/api/sessions/session123/media/media123/content",
 				config: {},
 			};
-			const generateYotiRequestMock = jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue(yotiRequest);
+			const generateYotiRequestMock = vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue(yotiRequest);
 			axiosMock.get.mockResolvedValueOnce({ status:200, data: {} });
 
 			const result = await yotiService.getMediaContent(sessionId, mediaId, "http://localhost");
@@ -1063,7 +1064,7 @@ describe("YotiService", () => {
 				url: "https://example.com/api/sessions/session123/media/media123/content",
 				config: {},
 			};
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue(yotiRequest);	
+			vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue(yotiRequest);	
 			
 			axiosMock.get.mockRejectedValueOnce({
 				"message": "Failed to fetch media content",
@@ -1083,12 +1084,12 @@ describe("YotiService", () => {
 		});
 
 		it("getMediaContent retries when there is a 429 error fetching the Yoti media content", async () => {
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
 
-			jest.useRealTimers();
+			vi.useRealTimers();
 
 			axiosMock.get.mockRejectedValue({
 				"message": "Failed to fetch media content",
@@ -1115,12 +1116,12 @@ describe("YotiService", () => {
 		});
 
 		it("getMediaContent retries when there is a 503 error fetching the Yoti media content", async () => {
-			jest.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
+			vi.spyOn(yotiService as any, "generateYotiRequest").mockReturnValue({
 				url: "https://example.com/api/sessions/session123",
 				config: {},
 			});
 
-			jest.useRealTimers();
+			vi.useRealTimers();
 
 			axiosMock.get.mockRejectedValue({
 				"message": "Failed to fetch media content",

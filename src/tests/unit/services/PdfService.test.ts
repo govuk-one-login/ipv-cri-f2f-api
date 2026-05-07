@@ -1,21 +1,23 @@
  
  
 import { Logger } from "@aws-lambda-powertools/logger";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
 import { PDFService } from "../../../services/PdfService";
 import { S3Client } from "@aws-sdk/client-s3";
 import { PDFGenerationService } from "../../../services/pdfGenerationService";
 
-jest.mock("@aws-sdk/client-s3", () => ({
-	S3Client: jest.fn().mockImplementation(() => ({
-		send: jest.fn(),
-	})),
-	PutObjectCommand: jest.fn().mockImplementation((args) => args),
+vi.mock("@aws-sdk/client-s3", () => ({
+	S3Client: vi.fn(function () {
+		return {
+			send: vi.fn(),
+		};
+	}),
+	PutObjectCommand: vi.fn(function (args) { return args; }),
 }));
 
-const mockS3Client = mock<S3Client>();
+const mockS3Client = mock<S3Client>({ send: vi.fn() as any });
 
 let pdfServiceTest: PDFService;
 const mockPdfGenerationService = mock<PDFGenerationService>();

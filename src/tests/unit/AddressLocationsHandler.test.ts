@@ -1,8 +1,9 @@
+import type { MockInstance } from "vitest";
  
 import { lambdaHandler, logger } from "../../AddressLocationsHandler";
 import { VALID_ADDRESS_LOCATIONS } from "./data//addressLocations-event";
 import { CONTEXT } from "./data/context";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { HttpCodesEnum } from "../../models/enums/HttpCodesEnum";
 import { AddressLocationsProcessor } from "../../services/AddressLocationsProcessor";
 import { Constants } from "../../utils/Constants";
@@ -10,7 +11,7 @@ import { MessageCodes } from "../../models/enums/MessageCodes";
 import { randomUUID } from "crypto";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
-jest.mock("../../utils/Config", () => ({
+vi.mock("../../utils/Config", () => ({
 	getParameter: (parameter: string) => parameter,
 }));
 
@@ -18,12 +19,12 @@ const mockedAddressLocationsProcessor = mock<AddressLocationsProcessor>();
 
  
 describe("AddressLocationsHandler", () => {
-	let loggerSpy: jest.SpyInstance;
-	let metricsSpy: jest.SpyInstance;
+	let loggerSpy: MockInstance;
+	let metricsSpy: MockInstance;
 
 	beforeEach(() => {
-		metricsSpy = jest.spyOn(Metrics.prototype, "addMetric");
-		loggerSpy = jest.spyOn(logger, "error");
+		metricsSpy = vi.spyOn(Metrics.prototype, "addMetric");
+		loggerSpy = vi.spyOn(logger, "error");
 	});
 
 	it("returns error when both headers aren't passed", async () => {
@@ -71,7 +72,7 @@ describe("AddressLocationsHandler", () => {
 	});
 
 	it("return success when AddressLocationsProcessor completes successfully", async () => {
-		AddressLocationsProcessor.getInstance = jest.fn().mockReturnValue(mockedAddressLocationsProcessor);
+		AddressLocationsProcessor.getInstance = vi.fn().mockReturnValue(mockedAddressLocationsProcessor);
 
 		await lambdaHandler(VALID_ADDRESS_LOCATIONS, CONTEXT);
 
@@ -79,7 +80,7 @@ describe("AddressLocationsHandler", () => {
 	});
 
 	it("return error when AddressLocationsProcessor throws an error", async () => {
-		AddressLocationsProcessor.getInstance = jest.fn().mockReturnValue(mockedAddressLocationsProcessor);
+		AddressLocationsProcessor.getInstance = vi.fn().mockReturnValue(mockedAddressLocationsProcessor);
 		mockedAddressLocationsProcessor.processRequest.mockImplementation(() => {
 			throw new Error();
 		  });

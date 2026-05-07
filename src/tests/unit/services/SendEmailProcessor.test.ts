@@ -4,7 +4,7 @@ import { SQSEvent } from "aws-lambda";
 import { VALID_SQS_EVENT, VALID_DYNAMIC_REMINDER_SQS_EVENT, VALID_REMINDER_SQS_EVENT } from "../data/sqs-events";
 import { SendEmailProcessor } from "../../../services/SendEmailProcessor";
 import { SendEmailService } from "../../../services/SendEmailService";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { EmailResponse } from "../../../models/EmailResponse";
 
 let sendEmailProcessorTest: SendEmailProcessor;
@@ -34,7 +34,7 @@ describe("SendEmailProcessor", () => {
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 		sqsEvent = VALID_SQS_EVENT;
 		metrics.singleMetric.mockReturnValue(metrics);
 	});

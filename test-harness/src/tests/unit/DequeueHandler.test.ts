@@ -1,20 +1,21 @@
 import { SQSEvent } from "aws-lambda";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { lambdaHandler, logger, s3Client } from "../../DequeueHandler";
 import { BatchItemFailure } from "../../utils/BatchItemFailure";
 
-jest.useFakeTimers().setSystemTime(new Date("2020-01-01"));
+vi.useFakeTimers().setSystemTime(new Date("2020-01-01"));
 
-jest.mock("@aws-sdk/client-s3", () => ({
-	S3Client: jest.fn().mockImplementation(() => ({
-		send: jest.fn(),
+vi.mock("@aws-sdk/client-s3", () => ({
+	S3Client: vi.fn().mockImplementation(() => ({
+		send: vi.fn(),
 	})),
-	PutObjectCommand: jest.fn().mockImplementation(() => ({})),
+	PutObjectCommand: vi.fn().mockImplementation(() => ({})),
 }));
 
-jest.mock("@aws-lambda-powertools/logger", () => ({
-	Logger: jest.fn().mockImplementation(() => ({
-		info: jest.fn(),
-		error: jest.fn(),
+vi.mock("@aws-lambda-powertools/logger", () => ({
+	Logger: vi.fn().mockImplementation(() => ({
+		info: vi.fn(),
+		error: vi.fn(),
 	})),
 }));
 
@@ -41,7 +42,7 @@ describe("DequeueHandler", () => {
   });
 
   it("Returns no batchItemFailures if all events were successfully sent to S3 where property name is sub", async () => {
-    jest.spyOn(s3Client, "send").mockReturnValueOnce();
+    vi.spyOn(s3Client, "send").mockReturnValueOnce();
 
     const result = await lambdaHandler(event as SQSEvent);
     expect(logger.info).toHaveBeenCalledWith("Starting to process records");
@@ -76,7 +77,7 @@ describe("DequeueHandler", () => {
       ],
     };
 
-    jest.spyOn(s3Client, "send").mockReturnValueOnce();
+    vi.spyOn(s3Client, "send").mockReturnValueOnce();
 
     const result = await lambdaHandler(txmaEvent as SQSEvent);
     expect(logger.info).toHaveBeenCalledWith("Starting to process records");
@@ -92,7 +93,7 @@ describe("DequeueHandler", () => {
 
   it("Returns batchItemFailures if events failed to send to S3", async () => {
     const error = new Error("Failed to send to S3");
-    jest.spyOn(s3Client, "send").mockImplementationOnce(() => {
+    vi.spyOn(s3Client, "send").mockImplementationOnce(() => {
 			throw error;
 		});
 

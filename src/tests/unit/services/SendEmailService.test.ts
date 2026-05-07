@@ -6,7 +6,7 @@ import { SQSEvent } from "aws-lambda";
 import { NotifyClient } from "notifications-node-client";
 import { VALID_SQS_EVENT, VALID_REMINDER_SQS_EVENT, VALID_DYNAMIC_REMINDER_SQS_EVENT } from "../data/sqs-events";
 import { SendEmailService } from "../../../services/SendEmailService";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { EmailResponse } from "../../../models/EmailResponse";
 import { Email } from "../../../models/Email";
 import { YotiService } from "../../../services/YotiService";
@@ -19,9 +19,9 @@ import { DynamicReminderEmail } from "../../../models/DynamicReminderEmail";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 
 
-jest.mock("notifications-node-client", () => {
+vi.mock("notifications-node-client", () => {
 	return {
-		NotifyClient: jest.fn(),
+		NotifyClient: vi.fn(),
 	};
 });
 
@@ -62,35 +62,35 @@ function getMockSessionItem(): ISessionItem {
 }
 
 const timestamp = 1689952318;
-const mockSendEmail = jest.fn();
+const mockSendEmail = vi.fn();
 
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
+		NotifyClient.mockImplementation(function () {
+			return {
+				sendEmail: mockSendEmail,
+				// Mock other methods as necessary
+			};
+		});
 		sendEmailServiceTest = SendEmailService.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-expect-error linting to be updated
 		sendEmailServiceTest.f2fService = mockF2fService;
 		sqsEvent = VALID_SQS_EVENT;
 		reminderEmailEvent = VALID_REMINDER_SQS_EVENT;
 		dynamicEmailEvent = VALID_DYNAMIC_REMINDER_SQS_EVENT;
-		YotiService.getInstance = jest.fn(() => mockYotiService);
+		YotiService.getInstance = vi.fn(() => mockYotiService);
 
-		NotifyClient.mockImplementation(() => {
-			return {
-				sendEmail: mockSendEmail,
-				// Mock other methods as necessary
-			};
-		});
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
-		jest.useFakeTimers();
-		jest.setSystemTime(new Date(timestamp * 1000));
+		vi.clearAllMocks();
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(timestamp * 1000));
 		sqsEvent = VALID_SQS_EVENT;
 	});
 
 	afterEach(() => {
-		jest.useRealTimers();
+		vi.useRealTimers();
 	});
 
 	it("Returns EmailResponse when YOTI PDF email is sent successfully", async () => {
@@ -151,7 +151,7 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("SendEmailService retries when GovNotify throws a 500 error", async () => {
-		jest.useRealTimers();
+		vi.useRealTimers();
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("instructionsPdf");
 		mockSendEmail.mockRejectedValue({
 			"response": {
@@ -174,7 +174,7 @@ describe("SendEmailProcessor", () => {
 	});
 
 	it("SendEmailService retries when GovNotify throws a 429 error", async () => {
-		jest.useRealTimers();
+		vi.useRealTimers();
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("instructionsPdf");
 		mockSendEmail.mockRejectedValue({
 			"response": {

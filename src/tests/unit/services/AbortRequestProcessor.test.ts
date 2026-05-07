@@ -1,4 +1,4 @@
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AbortRequestProcessor } from "../../../services/AbortRequestProcessor";
@@ -50,7 +50,7 @@ describe("AbortRequestProcessor", () => {
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("throws error if session cannot be found", async () => {

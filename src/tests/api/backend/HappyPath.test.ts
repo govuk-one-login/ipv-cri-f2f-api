@@ -37,7 +37,9 @@ import { DocSelectionData } from "../types";
 import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
 import fs from "fs";
 import { convertPdfToImages } from "../../visual/helpers";
-import { toMatchImageSnapshot } from "jest-image-snapshot";
+import { imageMatcher } from "vitest-image-snapshot";
+
+imageMatcher();
 
 //QualityGateIntegrationTest 
 //QualityGateRegressionTest
@@ -191,7 +193,6 @@ describe("/documentSelection Endpoint", () => {
 		{ stubPayload: f2fStubPayload },
 		{ stubPayload: f2fStubPayload2Addresses },
 	])("Successful Request Tests - Email + Posted Letter with Original Address with Snapshot Validation", async ({ stubPayload }) => {
-		expect.extend({ toMatchImageSnapshot });
 		const newf2fStubPayload = structuredClone(stubPayload);
 		newf2fStubPayload.yotiMockID = "0100";
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
@@ -248,19 +249,15 @@ describe("/documentSelection Endpoint", () => {
 					await convertPdfToImages(pdfBuffer, pdfImagesLocation);
 
 					const files = fs.readdirSync(pdfImagesLocation);
-					files.forEach(fileName => {
+					for (const fileName of files) {
 						const imagePath = pdfImagesLocation + "/" + fileName;
 						const image = fs.readFileSync(imagePath);
 						
-						expect(image).toMatchImageSnapshot({
-							runInProcess: true,
-							customDiffDir: "tests/visual/__snapshots-diff__",
-							customSnapshotsDir: "tests/visual/__snapshots__",
-							failureThreshold: 0.1,
-							failureThresholdType: "percent",
-
+						await expect(image).toMatchImage({
+							name: fileName,
+							allowedPixelRatio: 0.001,
 						});
-					});
+					}
 				} finally {
 					//remove temp files
 					fs.rmSync(pdfImagesLocation, { recursive: true });

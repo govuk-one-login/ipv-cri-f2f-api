@@ -2,7 +2,7 @@
  
  
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
@@ -28,12 +28,12 @@ const mockYotiService = mock<YotiService>();
 
 const logger = mock<Logger>();
 const metrics = mock<Metrics>();
-jest.mock("crypto", () => ({
-	...jest.requireActual("crypto"),
+vi.mock("crypto", async () => ({
+	...(await vi.importActual<typeof import("crypto")>("crypto")),
 	randomUUID: () => "sdfsdf",
 }));
 
-jest.mock("../../../utils/KmsJwtAdapter");
+vi.mock("../../../utils/KmsJwtAdapter");
 const passingKmsJwtAdapterFactory = () => new MockKmsJwtAdapterForVc(true);
 
 function getMockSessionItem(): ISessionItem {
@@ -116,7 +116,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.f2fService = mockF2fService;
 
-		YotiService.getInstance = jest.fn(() => mockYotiService);
+		YotiService.getInstance = vi.fn(() => mockYotiService);
 
 		completedYotiSession = getCompletedYotiSession();
 		documentFields = getDocumentFields();
@@ -127,15 +127,15 @@ describe("YotiSessionCompletionProcessor", () => {
 
 	beforeEach(() => {
 		metrics.singleMetric.mockReturnValue(metrics);
-		jest.clearAllMocks();
-		jest.useFakeTimers();
-		jest.setSystemTime(new Date(1585695600000));
+		vi.clearAllMocks();
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(1585695600000));
 		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 	});
 
 	afterEach(() => {
-		jest.useRealTimers();
+		vi.useRealTimers();
 	});
 
 	it("Return successful response with 200 OK when YOTI session created with UK Passport", async () => {
@@ -1339,7 +1339,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
-		jest.spyOn(VerifiableCredentialService.prototype as any, "signGeneratedVerifiableCredentialJwt").mockReturnValue("");
+		vi.spyOn(VerifiableCredentialService.prototype as any, "signGeneratedVerifiableCredentialJwt").mockReturnValue("");
 
 		await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
@@ -1368,7 +1368,7 @@ describe("YotiSessionCompletionProcessor", () => {
 		mockYotiService.getMediaContent.mockResolvedValueOnce(documentFields);
 		mockF2fService.getSessionByYotiId.mockResolvedValueOnce(f2fSessionItem);
 
-		jest.spyOn(VerifiableCredentialService.prototype as any, "signGeneratedVerifiableCredentialJwt").mockRejectedValueOnce(new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt"));
+		vi.spyOn(VerifiableCredentialService.prototype as any, "signGeneratedVerifiableCredentialJwt").mockRejectedValueOnce(new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to sign Jwt"));
 
 		await expect(mockCompletedSessionProcessor.processRequest(VALID_REQUEST)).resolves.toEqual(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,

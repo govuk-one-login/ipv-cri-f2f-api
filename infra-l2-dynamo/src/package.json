@@ -1,6 +1,6 @@
 {
     "name": "l2-dynamo-test",
-    "description": "Nodejs package configuration for the platform jest tests",
+    "description": "Nodejs package configuration for the platform tests",
     "version": "0.0.1",
     "private": true,
     "dependencies": {
@@ -8,19 +8,17 @@
     },
     "devDependencies": {
         "@types/aws-lambda": "8.10.148",
-        "@types/jest": "29.5.14",
-        "@types/node": "20.14.8",
-        "aws-cdk-lib": "2.241.0",
         "@types/js-yaml": "4.0.9",
-        "jest": "30.2.0",
-        "jest-junit": "14.0.1",
+        "@types/node": "20.14.8",
+        "@vitest/coverage-v8": "4.1.4",
+        "aws-cdk-lib": "2.241.0",
         "ts-node": "10.9.2",
         "typescript": "4.9.4",
-        "yaml-cfn": "0.3.2",
-        "ts-jest": "29.4.6"
+        "vitest": "4.1.4",
+        "yaml-cfn": "0.3.2"
     },
     "scripts": {
-        "infra": "./node_modules/.bin/jest --testPathPatterns=tests/infra",
+        "infra": "./node_modules/.bin/vitest run tests/infra",
         "test:infra": "npm run infra"
     }
 }

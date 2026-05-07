@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { handler } from "../handlers/callback";
 import callbackSuccess from "../events/callbackSuccess.json";
 import axios from "axios";
@@ -18,10 +19,10 @@ const token = {
   },
 };
 
-jest.mock("axios");
+vi.mock("axios");
 
 describe("Callback Endpoint", () => {
-  const mockedAxios = axios as jest.Mocked<typeof axios>;
+  const mockedAxios = axios as ReturnType<typeof vi.mocked<typeof axios>>;
 
   beforeEach(() => {
     mockedAxios.post

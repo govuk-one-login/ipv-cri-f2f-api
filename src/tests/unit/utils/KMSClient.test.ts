@@ -1,25 +1,30 @@
+import type { MockInstance } from "vitest";
 import * as AWS from "@aws-sdk/client-kms";
 import { mockKmsClient } from "../../../tests/contract/mocks/kmsClient";
 import { createKmsClient } from "../../../utils/KMSClient";
 import { Logger } from "@aws-lambda-powertools/logger";
 import AWSXRay from "aws-xray-sdk-core";
 
-jest.mock("aws-xray-sdk-core", () => ({
-    captureAWSv3Client: jest.fn((client) => client),
-    setContextMissingStrategy: jest.fn(),
+vi.mock("aws-xray-sdk-core", () => ({
+    default: {
+        captureAWSv3Client: vi.fn((client) => client),
+        setContextMissingStrategy: vi.fn(),
+    },
+    captureAWSv3Client: vi.fn((client) => client),
+    setContextMissingStrategy: vi.fn(),
 }));
 
 describe("createKmsClient", () => {
 
-	let loggerSpy: jest.SpyInstance;
+	let loggerSpy: MockInstance;
 
 	beforeEach(() => {
-		loggerSpy = jest.spyOn(Logger.prototype, 'info');
+		loggerSpy = vi.spyOn(Logger.prototype, 'info');
 	});
 
     afterEach(() => {
 		loggerSpy.mockRestore();
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
 	it("should use the mocked client and log correctly when USE_MOCKED is true", () => {

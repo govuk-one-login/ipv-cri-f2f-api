@@ -1,6 +1,6 @@
  
 import { Metrics } from "@aws-lambda-powertools/metrics";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
@@ -13,9 +13,9 @@ import { APIGatewayProxyResult } from "aws-lambda";
 let sessionConfigRequestProcessorTest: SessionConfigRequestProcessor;
 const mockF2fService = mock<F2fService>();
 
-jest.mock("../../../utils/Config", () => {
+vi.mock("../../../utils/Config", () => {
 	return {
-		getParameter: jest.fn(() => "true" ),
+		getParameter: vi.fn(() => "true" ),
 	};
 });
 
@@ -53,7 +53,7 @@ describe("SessionConfigRequestProcessor", () => {
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("Return successful response with 200 OK when evidence_requested is missing", async () => {
