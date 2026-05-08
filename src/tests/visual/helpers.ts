@@ -18,7 +18,13 @@ export async function convertPdfToImages(pdfBuffer: Buffer, outputDir: string): 
 		}
 
 		// Load the original PDF using pdf.js
-		const loadingTask = getDocument({ data: pdfBuffer });
+		const standardFontDataUrl = path.join(
+			process.cwd(),
+			"node_modules",
+			"pdfjs-dist",
+			"standard_fonts",
+		) + path.sep;
+		const loadingTask = getDocument({ data: pdfBuffer, standardFontDataUrl });
 		const pdfDocument = await loadingTask.promise;
 
 		// Loop through each page of the PDF
