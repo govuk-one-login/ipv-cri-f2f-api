@@ -430,12 +430,12 @@ describe("/sessionConfiguration endpoint", () => {
 });
 
 describe("/addressLocations endpoint", () => {
-	it.only("Successful Request Tests - Address Locations - value returned", async () => {
+	it("Successful Request Tests - Address Locations - value returned", async () => {
 		const newf2fStubPayload = structuredClone(f2fStubPayload);
 		newf2fStubPayload.yotiMockID = "0000";
 		const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 		const sessionId = newSessionId;
-		const postCode = "POSTCODE"
+		const postCode = "SW1A1AA"
 	
 		const response = await addressLocationsPost(sessionId, postCode);
 		expect(response.status).toBe(200);
