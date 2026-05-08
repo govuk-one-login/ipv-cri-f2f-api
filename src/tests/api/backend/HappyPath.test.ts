@@ -19,6 +19,7 @@ import {
 	validatePersonInfoResponse,
 	initiateUserInfo,
 	getMergedYotiPdf,
+	addressLocationsPost,
 } from "../ApiTestSteps";
 import { getYotiLetterFileContents, getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
@@ -429,6 +430,19 @@ describe("/sessionConfiguration endpoint", () => {
 
 		expect(sessionConfigurationResponse.status).toBe(200);
 		expect(sessionConfigurationResponse.data).not.toHaveProperty("evidence_requested");
+	});
+});
+
+describe("/addressLocations endpoint", () => {
+	it("Successful Request Tests - Address Locations - value returned", async () => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = "0000";
+		const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+		const sessionId = newSessionId;
+		const postCode = "SW1A1AA"
+	
+		const response = await addressLocationsPost(sessionId, postCode);
+		expect(response.status).toBe(200);
 	});
 });
 
