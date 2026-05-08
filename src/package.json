@@ -96,6 +96,7 @@
     "express": "4.22.1",
     "express-asyncify": "2.1.2",
     "fast-xml-parser": "5.5.7",
+    "js-yaml": "4.1.1",
     "pdfjs-dist": "2.16.105",
     "prettier": "3.6.2",
     "ts-node": "10.9.2",
