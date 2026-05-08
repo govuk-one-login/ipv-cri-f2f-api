@@ -36,10 +36,9 @@ import { constants } from "../ApiConstants";
 import { DocSelectionData } from "../types";
 import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
 import fs from "fs";
+import path from "path";
 import { convertPdfToImages } from "../../visual/helpers";
-import { imageMatcher } from "vitest-image-snapshot";
-
-imageMatcher();
+import { compareImages } from "vitest-image-snapshot";
 
 //QualityGateIntegrationTest 
 //QualityGateRegressionTest
@@ -252,11 +251,19 @@ describe("/documentSelection Endpoint", () => {
 					for (const fileName of files) {
 						const imagePath = pdfImagesLocation + "/" + fileName;
 						const image = fs.readFileSync(imagePath);
+						const pageNumber = path.parse(fileName).name.replace("page_", "");
+						const snapshotPath = path.join(
+							"tests",
+							"visual",
+							"__snapshots__",
+							`happy-path-test-ts-document-selection-endpoint-successful-request-tests-email-posted-letter-with-original-address-with-snapshot-validation-${pageNumber}-snap.png`,
+						);
+						const snapshot = fs.readFileSync(snapshotPath);
 						
-						await expect(image).toMatchImage({
-							name: fileName,
+						const comparison = await compareImages(snapshot, image, {
 							allowedPixelRatio: 0.001,
 						});
+						expect(comparison.pass, comparison.message).toBe(true);
 					}
 				} finally {
 					//remove temp files

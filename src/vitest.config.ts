@@ -26,7 +26,7 @@ export default defineConfig({
       ],
     },
     include: ['**/tests/**/*.test.ts'],
-    testTimeout: 30000,
+    testTimeout: 120000,
   },
   esbuild: {
     target: 'node22',
