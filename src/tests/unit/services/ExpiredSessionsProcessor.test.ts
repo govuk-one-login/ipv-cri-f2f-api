@@ -52,6 +52,14 @@ describe("ExpiredSessionsProcessor", () => {
 			authSessionState: "F2F_AUTH_CODE_ISSUED",
 			expiredNotificationSent: true,
 		},
+		{
+			subject: "4a5e98b9-5118-423f-9137-972d33bccf7f",
+			createdDate: 2034504966,
+			sessionId: "9b655a2e-44e4-4b21-a626-7825abd9c93i",
+			expiryDate: 1518381130000,
+			authSessionState: "F2F_POST_OFFICE_VISITED",
+			expiredNotificationSent: true,
+		},
 	];
 
 	beforeAll(() => {
@@ -76,6 +84,7 @@ describe("ExpiredSessionsProcessor", () => {
 			"F2F_YOTI_SESSION_CREATED",
 			"F2F_AUTH_CODE_ISSUED",
 			"F2F_ACCESS_TOKEN_ISSUED",
+			"F2F_POST_OFFICE_VISITED",
 		], "expiredCheck-index");
 		expect(mockF2fService.sendToIPVCore).toHaveBeenNthCalledWith(1, {
 			sub: "9a1e98b9-5118-423f-9137-972d33bccf7b",
@@ -108,7 +117,7 @@ describe("ExpiredSessionsProcessor", () => {
 		const result = await expiredSessionsProcessor.processRequest();
 
 		expect(result).toEqual({ statusCode: 200, body: "No Session Records matching state" });
-		expect(mockLogger.info).toHaveBeenCalledWith("No users with session states F2F_YOTI_SESSION_CREATED,F2F_AUTH_CODE_ISSUED,F2F_ACCESS_TOKEN_ISSUED");
+		expect(mockLogger.info).toHaveBeenCalledWith("No users with session states F2F_YOTI_SESSION_CREATED,F2F_AUTH_CODE_ISSUED,F2F_ACCESS_TOKEN_ISSUED,F2F_POST_OFFICE_VISITED");
 	});
 
 	it("should log if no sessions older than specified TTL", async () => {
@@ -126,7 +135,7 @@ describe("ExpiredSessionsProcessor", () => {
 		const result = await expiredSessionsProcessor.processRequest();
 
 		expect(result).toEqual({ statusCode: 200, body: "No Sessions older than specified TTL" });
-		expect(mockLogger.info).toHaveBeenCalledWith("No users with session states F2F_YOTI_SESSION_CREATED,F2F_AUTH_CODE_ISSUED,F2F_ACCESS_TOKEN_ISSUED older than 11 days");
+		expect(mockLogger.info).toHaveBeenCalledWith("No users with session states F2F_YOTI_SESSION_CREATED,F2F_AUTH_CODE_ISSUED,F2F_ACCESS_TOKEN_ISSUED,F2F_POST_OFFICE_VISITED older than 11 days");
 	});
 
 	it("should handle error during processing", async () => {
