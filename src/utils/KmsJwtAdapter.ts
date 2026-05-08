@@ -96,7 +96,7 @@ export class KmsJwtAdapter {
 			const cacheControl = oidcProviderJwks.headers['cache-control'];
 
 			// If header is missing or doesn't match the expected format, maxAgeMatch will be null, and we set cache time to default value of 300 (5 minutes)
-			const maxAge = cacheControl ? parseInt(cacheControl.match(/max-age=(\d+)/)?.[1], 10) || 300 : 300;
+			const maxAge = typeof cacheControl === 'string' ? parseInt(cacheControl.match(/max-age=(\d+)/)?.[1] ?? '', 10) || 300 : 300;
 			this.cachedTime = new Date(Date.now() + (maxAge * 1000));
 		}
 		const signingKey = this.cachedJwks.find((key: Jwk) => key.kid === targetKid);
