@@ -1,22 +1,28 @@
 import { SQSEvent } from "aws-lambda";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { lambdaHandler, logger, s3Client } from "../../DequeueHandler";
 import { BatchItemFailure } from "../../utils/BatchItemFailure";
 
 vi.useFakeTimers().setSystemTime(new Date("2020-01-01"));
 
 vi.mock("@aws-sdk/client-s3", () => ({
-	S3Client: vi.fn().mockImplementation(() => ({
+	S3Client: vi.fn().mockImplementation(function () {
+		return {
 		send: vi.fn(),
-	})),
-	PutObjectCommand: vi.fn().mockImplementation(() => ({})),
+		};
+	}),
+	PutObjectCommand: vi.fn().mockImplementation(function () {
+		return {};
+	}),
 }));
 
 vi.mock("@aws-lambda-powertools/logger", () => ({
-	Logger: vi.fn().mockImplementation(() => ({
+	Logger: vi.fn().mockImplementation(function () {
+		return {
 		info: vi.fn(),
 		error: vi.fn(),
-	})),
+		};
+	}),
 }));
 
 describe("DequeueHandler", () => {
@@ -39,6 +45,10 @@ describe("DequeueHandler", () => {
     process.env.BUCKET_FOLDER_PREFIX = "ipv-core/";
     process.env.EVENT_TEST_BUCKET_NAME = "test-bucket";
     process.env.PROPERTY_NAME = "sub";
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   it("Returns no batchItemFailures if all events were successfully sent to S3 where property name is sub", async () => {
