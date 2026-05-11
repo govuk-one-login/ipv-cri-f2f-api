@@ -13,7 +13,7 @@
     "@vitest/coverage-v8": "4.1.4",
     "aws-cdk-lib": "2.241.0",
     "js-yaml": "4.1.1",
-    "ts-node": "10.9.2",
+    "tsx": "4.21.0",
     "typescript": "4.9.4",
     "vitest": "4.1.4",
     "yaml-cfn": "0.3.2"
@@ -22,5 +22,6 @@
     "test": "npm run infra",
     "infra": "./node_modules/.bin/vitest run tests/infra",
     "test:infra": "npm run infra"
-  }
+  },
+  "type": "module"
 }

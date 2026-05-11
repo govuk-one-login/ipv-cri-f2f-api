@@ -11,7 +11,7 @@ import {
 import { mockClient } from "aws-sdk-client-mock";
 import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import format from "ecdsa-sig-formatter";
-import base64url from "base64url";
+import { base64url } from "jose";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -61,6 +61,8 @@ describe("Start F2F Check Endpoint", () => {
     vi.setSystemTime(new Date(1585695600000)); // == 2020-03-31T23:00:00.000Z
     vi.spyOn(axios, "get").mockResolvedValue({ data: mockJwks });
 
+    kmsClient.reset();
+
     kmsClient.on(SignCommand).resolves({
       Signature: new Uint8Array([
         197, 213, 5, 202, 58, 74, 45, 36, 122, 168, 27, 155, 70, 15, 9, 123, 11,
@@ -76,6 +78,7 @@ describe("Start F2F Check Endpoint", () => {
   });
 
   afterEach(() => {
+    kmsClient.restore();
     vi.useRealTimers();
     vi.resetAllMocks();
   });
@@ -87,7 +90,7 @@ describe("Start F2F Check Endpoint", () => {
 
     const body = JSON.parse(response.body);
     const [protectedHeaderBase64] = body.request.split(".");
-    const protectedHeader = JSON.parse(base64url.decode(protectedHeaderBase64));
+    const protectedHeader = JSON.parse(Buffer.from(base64url.decode(protectedHeaderBase64)).toString());
 
     expect(body.request).toBeDefined();
     expect(body.responseType).toBeDefined();
@@ -105,7 +108,7 @@ describe("Start F2F Check Endpoint", () => {
 
     const body = JSON.parse(response.body);
     const [protectedHeaderBase64] = body.request.split(".");
-    const protectedHeader = JSON.parse(base64url.decode(protectedHeaderBase64));
+    const protectedHeader = JSON.parse(Buffer.from(base64url.decode(protectedHeaderBase64)).toString());
 
     expect(body.request).toBeDefined();
     expect(body.responseType).toBeDefined();
