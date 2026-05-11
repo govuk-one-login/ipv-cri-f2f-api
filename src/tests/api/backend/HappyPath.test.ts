@@ -41,6 +41,8 @@ import path from "path";
 import { convertPdfToImages } from "../../visual/helpers";
 import { compareImages } from "vitest-image-snapshot";
 
+const UPDATE_PDF_VISUAL_SNAPSHOTS = process.env.UPDATE_PDF_VISUAL_SNAPSHOTS === "true";
+
 //QualityGateIntegrationTest 
 //QualityGateRegressionTest
 //QualityGateStackTest
@@ -252,17 +254,21 @@ describe("/documentSelection Endpoint", () => {
 					for (const fileName of files) {
 						const imagePath = pdfImagesLocation + "/" + fileName;
 						const image = fs.readFileSync(imagePath);
-						const pageNumber = path.parse(fileName).name.replace("page_", "");
+						const pageName = path.parse(fileName).name;
+						const pageNumber = pageName.replace("page_", "");
 						const snapshotPath = path.join(
 							"tests",
 							"visual",
 							"__snapshots__",
 							`happy-path-test-ts-document-selection-endpoint-successful-request-tests-email-posted-letter-with-original-address-with-snapshot-validation-${pageNumber}-snap.png`,
 						);
+						if (UPDATE_PDF_VISUAL_SNAPSHOTS) {
+							fs.writeFileSync(snapshotPath, image);
+						}
 						const snapshot = fs.readFileSync(snapshotPath);
 						
 						const comparison = await compareImages(snapshot, image, {
-							allowedPixelRatio: 0.025,
+							allowedPixelRatio: 0.001,
 							includeAA: false,
 						});
 						expect(comparison.pass, `${fileName}: ${comparison.message}`).toBe(true);
