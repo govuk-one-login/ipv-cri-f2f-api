@@ -4,7 +4,7 @@
 
 # Javascript / Typescript
 *.js
-!jest.config.ts
+!vitest.config.ts
 *.d.ts
 node_modules
 
