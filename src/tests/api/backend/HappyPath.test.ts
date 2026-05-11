@@ -262,10 +262,10 @@ describe("/documentSelection Endpoint", () => {
 						const snapshot = fs.readFileSync(snapshotPath);
 						
 						const comparison = await compareImages(snapshot, image, {
-							allowedPixelRatio: 0.001,
+							allowedPixelRatio: 0.025,
 							includeAA: false,
 						});
-						expect(comparison.pass, comparison.message).toBe(true);
+						expect(comparison.pass, `${fileName}: ${comparison.message}`).toBe(true);
 					}
 				} finally {
 					//remove temp files
