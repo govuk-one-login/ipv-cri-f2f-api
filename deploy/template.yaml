@@ -132,7 +132,7 @@ Mappings:
               "redirectUri":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/credential-issuer/callback?id=f2f",
               "YotiBaseUrl": "https://f2f-yoti-stub-yotistub.review-o.dev.account.gov.uk",
               "GovNotifyApi": "https://f2f-gov-notify-stub-govnotifystub.review-o.dev.account.gov.uk/govnotify",
-              "OsLocationsApi": "https://zilsfhaczg.execute-api.eu-west-2.amazonaws.com/dev/search/places/v1/postcode"
+              "OsLocationsApi": "https://opgzd9dy2e.execute-api.eu-west-2.amazonaws.com/dev/search/places/v1/postcode"
           },
           {
               "jwksEndpoint":"https://${IPVStubStackName}-ipvstub.review-o.dev.account.gov.uk/.well-known/jwks.json",

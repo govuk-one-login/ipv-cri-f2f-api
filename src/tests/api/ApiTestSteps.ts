@@ -245,6 +245,23 @@ export async function userInfoPost(accessToken: string, expectedStatus?: number)
 	}
 }
 
+export async function addressLocationsPost(sessionId: string, postCode: string, expectedStatus?: number): Promise<AxiosResponse<SessionConfigResponse>> {
+	const path = "/addressLocations";
+	try {
+		const postRequest = await API_INSTANCE.post(path, {}, { headers: { "x-govuk-signin-session-id": sessionId, "postcode": postCode } });
+		if (expectedStatus !== undefined) {
+			expect(postRequest.status).toBe(expectedStatus);
+		}
+		return postRequest;
+	} catch (error: any) {
+		console.log(`Error response from ${path} endpoint: ${error}`);
+		if (expectedStatus !== undefined && error.response) {
+			expect(error.response.status).toBe(expectedStatus);
+		}
+		return error.response;
+	}
+}
+
 export async function callbackPost(sessionId?: string, topic = "session_completion", expectedStatus = 200): Promise<AxiosResponse<string>> {
 	const path = "/callback";
 	if (!sessionId) throw new Error("no yoti session ID provided");

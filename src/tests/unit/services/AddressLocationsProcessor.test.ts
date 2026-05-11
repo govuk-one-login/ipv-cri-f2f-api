@@ -122,8 +122,9 @@ describe("AddressLocationsProcessor", () => {
 		const f2fSessionItem = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		axiosMock.get.mockResolvedValue({ status: 200, data: { results: { address: "12 test street" } } });
-		const response =  await addressLocationsProcessor.processRequest(sessionId, "postcode");
+		const response = await addressLocationsProcessor.processRequest(sessionId, "postcode");
         
+		expect(axios.get).toHaveBeenCalledWith("https://test-os-locations-stub", {"headers": {"key": "osAPIKey"}, "params": {"postcode": "postcode"}});
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "200");
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "OS_response", MetricUnits.Count, 1);
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "OSAddress_success", MetricUnits.Count, 1);
