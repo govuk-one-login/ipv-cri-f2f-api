@@ -247,7 +247,7 @@ describe("/documentSelection Endpoint", () => {
 
 					await convertPdfToImages(pdfBuffer, pdfImagesLocation);
 
-					const files = fs.readdirSync(pdfImagesLocation);
+					const files = fs.readdirSync(pdfImagesLocation).sort();
 					for (const fileName of files) {
 						const imagePath = pdfImagesLocation + "/" + fileName;
 						const image = fs.readFileSync(imagePath);
@@ -262,6 +262,7 @@ describe("/documentSelection Endpoint", () => {
 						
 						const comparison = await compareImages(snapshot, image, {
 							allowedPixelRatio: 0.001,
+							includeAA: false,
 						});
 						expect(comparison.pass, comparison.message).toBe(true);
 					}
