@@ -19,6 +19,7 @@ import {
 	validatePersonInfoResponse,
 	initiateUserInfo,
 	getMergedYotiPdf,
+	addressLocationsPost,
 } from "../ApiTestSteps";
 import { getYotiLetterFileContents, getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
@@ -126,7 +127,7 @@ describe("/documentSelection Endpoint", () => {
 		newf2fStubPayload.yotiMockID = yotiMockId;
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
-		await postDocumentSelection(docSelectionData, sessionId);
+		await postDocumentSelection(docSelectionData, sessionId, 200);
 
 		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		expect(session?.authSessionState).toBe("F2F_YOTI_SESSION_CREATED");
@@ -334,9 +335,9 @@ describe("/authorization endpoint", () => {
 		newf2fStubPayload.yotiMockID = yotiMockId;
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
-		await postDocumentSelection(docSelectionData, sessionId);
+		await postDocumentSelection(docSelectionData, sessionId, 200);
 
-		const authResponse = await authorizationGet(sessionId);
+		const authResponse = await authorizationGet(sessionId, 200);
 		expect(authResponse.status).toBe(200);
 
 		await getSessionAndVerifyKey(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "authSessionState", "F2F_AUTH_CODE_ISSUED");
@@ -365,11 +366,11 @@ describe("/token endpoint", () => {
 		newf2fStubPayload.yotiMockID = yotiMockId;
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
-		await postDocumentSelection(docSelectionData, sessionId);
+		await postDocumentSelection(docSelectionData, sessionId, 200);
 
-		const authResponse = await authorizationGet(sessionId);
+		const authResponse = await authorizationGet(sessionId, 200);
 		const startTokenResponse = await startTokenPost();
-		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data, undefined, 200);
 		expect(tokenResponse.status).toBe(200);
 
 
@@ -390,13 +391,13 @@ describe("/userinfo endpoint", () => {
 		newf2fStubPayload.yotiMockID = yotiMockId;
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
-		await postDocumentSelection(docSelectionData, sessionId);
+		await postDocumentSelection(docSelectionData, sessionId, 200);
 
-		const authResponse = await authorizationGet(sessionId);
+		const authResponse = await authorizationGet(sessionId, 200);
 
 		const startTokenResponse = await startTokenPost();
 		
-		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data);
+		const tokenResponse = await tokenPost(authResponse.data.authorizationCode.value, authResponse.data.redirect_uri, startTokenResponse.data, undefined, 200);
 
 		const userInfoResponse = await userInfoPost("Bearer " + tokenResponse.data.access_token);
 		expect(userInfoResponse.status).toBe(202);
@@ -425,6 +426,19 @@ describe("/sessionConfiguration endpoint", () => {
 
 		expect(sessionConfigurationResponse.status).toBe(200);
 		expect(sessionConfigurationResponse.data).not.toHaveProperty("evidence_requested");
+	});
+});
+
+describe("/addressLocations endpoint", () => {
+	it("Successful Request Tests - Address Locations - value returned", async () => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = "0000";
+		const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+		const sessionId = newSessionId;
+		const postCode = "SW1A1AA"
+	
+		const response = await addressLocationsPost(sessionId, postCode);
+		expect(response.status).toBe(200);
 	});
 });
 
@@ -492,7 +506,7 @@ describe("Expired User Sessions", () => {
 		const postRequest = await sessionPost(stubResponse.data.clientId, stubResponse.data.request);
 		const sessionId = postRequest.data.session_id;
 		console.log(sessionId);
-		await postDocumentSelection(dataUkDrivingLicence, sessionId);
+		await postDocumentSelection(dataUkDrivingLicence, sessionId, 200);
 
 		const newCreatedDateTimestamp = getEpochTimestampXDaysAgo(22);
 		await updateDynamoDbRecord(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME, "createdDate", newCreatedDateTimestamp, "N");

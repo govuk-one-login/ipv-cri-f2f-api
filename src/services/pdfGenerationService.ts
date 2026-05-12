@@ -181,7 +181,7 @@ private populateEnglishPages(doc: PDFKit.PDFDocument, user: string, expiryString
 
 	this.boldTextOnNewline(doc, "After you’ve been to the Post Office");
 
-	this.lightTextOnNewline(doc, "You’ll get an email from GOV.UK One Login about the result of your identity check – usually within a day of going to the Post Office.");
+	this.lightTextOnNewline(doc, "The result of your identity check will usually be available within 24 hours of going to the Post Office. \n\nWhen it’s ready, you’ll get an email from GOV.UK One Login. You can view your result by signing in.");
 
 	this.boldTextOnNewline(doc, "Which Post Office to go to");
  
@@ -237,7 +237,7 @@ private populateWelshPages(doc: PDFKit.PDFDocument, user: string, expiryString: 
 	
 	this.boldTextOnNewline(doc, "Ar ôl i chi fod yn Swyddfa’r Post");
 
-	this.lightTextOnNewline(doc, "Byddwch yn derbyn e-bost gan GOV.UK One Login am ganlyniad eich gwiriad hunaniaeth – fel arfer o fewn diwrnod o fynd i Swyddfa’r Post.");
+	this.lightTextOnNewline(doc, "Bydd canlyniad eich gwiriad hunaniaeth fel arfer ar gael o fewn 24 awr o fynd i'r Swyddfa Bost. \n\nPan fydd yn barod, byddwch yn cael e-bost gan GOV.UK One Login. Gallwch weld eich canlyniad trwy fewngofnodi.");
 
 	this.boldTextOnNewline(doc, "Pa Swyddfa’r Post i fynd iddi");
 
@@ -299,31 +299,34 @@ private getLongDate(today: Date, locale: string):string {
 
 mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 	const address = [];
-	if (postalAddress.departmentName) {
+	// Line 1
+	if (postalAddress.departmentName && postalAddress.organisationName) {
+		address.push(`${postalAddress.departmentName}, ${postalAddress.organisationName}`);
+	} else if (postalAddress.departmentName && !postalAddress.organisationName) {
 		address.push(postalAddress.departmentName);
-	}
-	if (postalAddress.organisationName) {
+	} else if (postalAddress.organisationName && !postalAddress.departmentName) {
 		address.push(postalAddress.organisationName);
 	}
-	if (postalAddress.subBuildingName) {
-		address.push(postalAddress.subBuildingName);
-	}
-	if (postalAddress.buildingName) {
+	// Line 2
+	if (postalAddress.subBuildingName && postalAddress.buildingName) {
+		address.push(`${postalAddress.subBuildingName}, ${postalAddress.buildingName}`);
+	} else if (postalAddress.buildingName && !postalAddress.subBuildingName) {
 		address.push(postalAddress.buildingName);
 	}
-	if (postalAddress.dependentStreetName) {
-		address.push(postalAddress.dependentStreetName);
-	}
-	if (postalAddress.streetName) {
-		const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
+	// Line 3
+	const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
+	if (postalAddress.dependentStreetName && postalAddress.streetName) {
+		address.push(`${buildingNumber}${postalAddress.dependentStreetName}, ${postalAddress.streetName}`);
+	} else if (postalAddress.streetName && !postalAddress.dependentStreetName) {
 		address.push(buildingNumber + postalAddress.streetName);
 	}
-	if (postalAddress.dependentAddressLocality) {
-		address.push(postalAddress.dependentAddressLocality);
-	}
-	if (postalAddress.addressLocality) {
+	// Line 4
+	if (postalAddress.dependentAddressLocality && postalAddress.addressLocality) {
+		address.push(`${postalAddress.dependentAddressLocality}, ${postalAddress.addressLocality}`);
+	} else if (postalAddress.addressLocality && !postalAddress.dependentAddressLocality) {
 		address.push(postalAddress.addressLocality);
 	}
+	// Line 5
 	if (postalAddress.postalCode) {
 		address.push(postalAddress.postalCode);
 	}

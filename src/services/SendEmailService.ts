@@ -405,7 +405,7 @@ export class SendEmailService {
   	message: Email | DynamicReminderEmail | ReminderEmail,
   	yotiBaseUrl: string,
   ): Promise<string> {
-  	if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+  	if (!this.validationHelper.checkRequiredYotiVars()) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
   	let yotiInstructionsPdfRetryCount = 0;
   	//retry for maxRetry count configured value if fails
   	while (

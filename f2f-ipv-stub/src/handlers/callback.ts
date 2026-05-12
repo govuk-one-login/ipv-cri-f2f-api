@@ -2,7 +2,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import axios, { AxiosResponse } from "axios";
 import { constants } from "../ApiConstants";
 import { Constants } from "../Constants";
-import { jwtUtils } from "../JwtUtils";
 
 export const handler = async (
   event: APIGatewayProxyEvent

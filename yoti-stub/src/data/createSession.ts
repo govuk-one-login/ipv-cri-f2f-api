@@ -7,7 +7,7 @@ export const CREATE_SESSION = {
   "user_tracking_id": "some_id",
   "notifications": {
       "endpoint": "https://some-domain.example",
-      "topics": ["SESSION_COMPLETION"],
+      "topics": ["SESSION_COMPLETION", "INSTRUCTIONS_EMAIL_REQUESTED", "THANK_YOU_EMAIL_REQUESTED", "FIRST_BRANCH_VISIT"],
       "auth_token": "string",
       "auth_type": "BASIC"
   },

@@ -71,7 +71,7 @@ export class DocumentSelectionRequestProcessor {
 
 	async processRequest(event: APIGatewayProxyEvent, sessionId: string, encodedHeader: string): Promise<APIGatewayProxyResult> {
 
-		if (!this.validationHelper.checkRequiredYotiVars) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
+		if (!this.validationHelper.checkRequiredYotiVars()) throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
 		
   	let postOfficeSelection: PostOfficeInfo;
   	let selectedDocument;
