@@ -79,7 +79,7 @@ jobs:
           use-installer: true
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.GH_DEV_TEST_HARNESS_VALIDATE_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
