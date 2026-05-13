@@ -2,7 +2,7 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Constants } from "../../utils/Constants";
 import { lambdaHandler } from "../../SessionConfigHandler";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 
 import { AppError } from "../../utils/AppError";
 import { SessionConfigRequestProcessor } from "../../services/SessionConfigRequestProcessor";
@@ -17,7 +17,7 @@ describe("SessionConfigHandler", () => {
 	} as APIGatewayProxyEvent;
 
 	afterEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("should return BAD_REQUEST when sessionId header is missing", async () => {
@@ -36,7 +36,7 @@ describe("SessionConfigHandler", () => {
 	});
 
 	it("should call processRequest when sessionId is valid", async () => {
-		SessionConfigRequestProcessor.getInstance = jest.fn().mockReturnValue(mockSessionConfigRequestProcessor);
+		SessionConfigRequestProcessor.getInstance = vi.fn().mockReturnValue(mockSessionConfigRequestProcessor);
 		await lambdaHandler(VALID_SESSION_CONFIG, {});
 		expect(mockSessionConfigRequestProcessor.processRequest).toHaveBeenCalledTimes(1);
 	});
@@ -44,7 +44,7 @@ describe("SessionConfigHandler", () => {
 	it("should return custom AppError when thrown from the processor", async () => {
 		const customError = new AppError(500, "Random Error");
 		mockSessionConfigRequestProcessor.processRequest.mockRejectedValueOnce(customError);
-		SessionConfigRequestProcessor.getInstance = jest.fn().mockReturnValue(mockSessionConfigRequestProcessor);
+		SessionConfigRequestProcessor.getInstance = vi.fn().mockReturnValue(mockSessionConfigRequestProcessor);
 
 		const response = await lambdaHandler(VALID_SESSION_CONFIG, {});
 		expect(response.statusCode).toBe(500);
@@ -53,7 +53,7 @@ describe("SessionConfigHandler", () => {
 
 	it("should return SERVER_ERROR when any unexpected error occurs", async () => {
 		mockSessionConfigRequestProcessor.processRequest.mockRejectedValueOnce(new Error("Unexpected error"));
-		SessionConfigRequestProcessor.getInstance = jest.fn().mockReturnValue(mockSessionConfigRequestProcessor);
+		SessionConfigRequestProcessor.getInstance = vi.fn().mockReturnValue(mockSessionConfigRequestProcessor);
 
 		const response = await lambdaHandler(VALID_SESSION_CONFIG, {});
 		expect(response.statusCode).toBe(500);

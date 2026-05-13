@@ -1,9 +1,10 @@
+import type { MockInstance } from "vitest";
  
  
  
  
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
@@ -32,7 +33,7 @@ import { APIGatewayProxyResult } from "aws-lambda";
 
 
 let mockDocumentSelectionRequestProcessor: DocumentSelectionRequestProcessor;
-let yotiLetterStateMachineSpy: jest.SpyInstance;
+let yotiLetterStateMachineSpy: MockInstance;
 
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
@@ -186,11 +187,13 @@ function getYotiSessionInfo(): YotiSessionInfo {
 	return yotiSessionInfo;
 }
 
-jest.mock("@aws-sdk/client-sfn", () => ({
-	SFNClient: jest.fn().mockImplementation(() => ({
-		send: jest.fn(),
-	})),
-	StartExecutionCommand: jest.fn().mockImplementation((params) => params),
+vi.mock("@aws-sdk/client-sfn", () => ({
+	SFNClient: vi.fn(function () {
+		return {
+			send: vi.fn(),
+		};
+	}),
+	StartExecutionCommand: vi.fn(function (params) { return params; }),
 }));
 
 describe("DocumentSelectionRequestProcessor", () => {
@@ -200,9 +203,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 		// @ts-expect-error linting to be updated
 		mockDocumentSelectionRequestProcessor.f2fService = mockF2fService;
 
-		yotiLetterStateMachineSpy = jest.spyOn(mockDocumentSelectionRequestProcessor, 'startStateMachine');
+		yotiLetterStateMachineSpy = vi.spyOn(mockDocumentSelectionRequestProcessor, 'startStateMachine');
 
-		YotiService.getInstance = jest.fn(() => mockYotiService);
+		YotiService.getInstance = vi.fn(() => mockYotiService);
 
 		yotiSessionInfo = getYotiSessionInfo();
 		f2fSessionItem = getMockSessionItem();
@@ -211,14 +214,14 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 	beforeEach(() => {
 		
-		jest.clearAllMocks();
-		jest.useFakeTimers();
-		jest.setSystemTime(new Date(1585695600000));
+		vi.clearAllMocks();
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(1585695600000));
 		personIdentityItem = getPersonIdentityItem();
 	});
 
 	afterEach(() => {
-		jest.useRealTimers();
+		vi.useRealTimers();
 	});
 
 	it("Return successful response with 200 OK when YOTI session created", async () => {
@@ -367,9 +370,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		jest.useFakeTimers();
+		vi.useFakeTimers();
 		const fakeTime = 1684933200.123;
-		jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.000Z
+		vi.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.000Z
 
 		await mockDocumentSelectionRequestProcessor.processRequest(VALID_REQUEST, "RandomF2FSessionID", encodedHeader);
 
@@ -649,9 +652,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		mockYotiService.generateInstructions.mockResolvedValueOnce(HttpCodesEnum.OK);
 
-		jest.useFakeTimers();
+		vi.useFakeTimers();
 		const fakeTime = 1684933200.123;
-		jest.setSystemTime(new Date(fakeTime * 1000));
+		vi.setSystemTime(new Date(fakeTime * 1000));
 
 		mockF2fService.updateSessionTtl.mockRejectedValueOnce("Got error updating SESSIONTABLE ttl");
 

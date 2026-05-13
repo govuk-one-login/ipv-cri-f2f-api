@@ -2,12 +2,12 @@ import axios from "axios";
 import { handler } from "../handlers/startF2fCheck";
 import {
   expect,
-  jest,
   it,
   beforeEach,
   afterEach,
   describe,
-} from "@jest/globals";
+  vi,
+} from "vitest";
 import { mockClient } from "aws-sdk-client-mock";
 import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import format from "ecdsa-sig-formatter";
@@ -17,7 +17,7 @@ import base64url from "base64url";
 // @ts-ignore
 import testData from "../events/startEvents.js";
 
-jest.setTimeout(30000);
+vi.setConfig({ testTimeout: 30000 });
 
 const mockJwks = {
   keys: [
@@ -57,9 +57,9 @@ describe("Start F2F Check Endpoint", () => {
     // webcrypto.getRandomValues = () => {
     //     return new Uint8Array([ 197, 213, 5, 202, 58, 74, 45, 36, 122, 168, 27, 155, 70, 15, 9, 123, 11, 241, 205, 87, 23, 13, 32, 168, 12, 73, 48, 158, 96, 159, 247, 211 ])
     // }
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(1585695600000)); // == 2020-03-31T23:00:00.000Z
-    jest.spyOn(axios, "get").mockResolvedValue({ data: mockJwks });
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(1585695600000)); // == 2020-03-31T23:00:00.000Z
+    vi.spyOn(axios, "get").mockResolvedValue({ data: mockJwks });
 
     kmsClient.on(SignCommand).resolves({
       Signature: new Uint8Array([
@@ -68,7 +68,7 @@ describe("Start F2F Check Endpoint", () => {
       ]),
     });
 
-    jest
+    vi
       .spyOn(format, "derToJose")
       .mockReturnValue(
         "PmBhykH4w94xj3dSDSR-tE5XSh60SjKAP6hHGc6c_fx7ia87hEkKgfhSTCT000RaDhH0MaV47FsUjztCb0m1qg"
@@ -76,8 +76,8 @@ describe("Start F2F Check Endpoint", () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
-    jest.resetAllMocks();
+    vi.useRealTimers();
+    vi.resetAllMocks();
   });
 
   it("returns JAR data and target uri", async () => {

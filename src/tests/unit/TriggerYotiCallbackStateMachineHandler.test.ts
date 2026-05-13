@@ -4,23 +4,27 @@ import { handlerClass, lambdaHandler, logger } from "../../TriggerYotiCallbackSt
 import { MessageCodes } from "../../models/enums/MessageCodes";
 import { passEntireBatch, failEntireBatch } from "../../utils/SqsBatchResponseHelper";
 
-jest.mock("@aws-lambda-powertools/logger", () => ({
-	Logger: jest.fn().mockImplementation(() => ({
-		debug: jest.fn(),
-		warn: jest.fn(),
-		info: jest.fn(),
-		error: jest.fn(),
-		setPersistentLogAttributes: jest.fn(),
-		addContext: jest.fn(),
-		appendKeys: jest.fn(),
-	})),
+vi.mock("@aws-lambda-powertools/logger", () => ({
+	Logger: vi.fn(function () {
+		return {
+			debug: vi.fn(),
+			warn: vi.fn(),
+			info: vi.fn(),
+			error: vi.fn(),
+			setPersistentLogAttributes: vi.fn(),
+			addContext: vi.fn(),
+			appendKeys: vi.fn(),
+		};
+	}),
 }));
 
-jest.mock("@aws-sdk/client-sfn", () => ({
-	SFNClient: jest.fn().mockImplementation(() => ({
-		send: jest.fn(),
-	})),
-	StartExecutionCommand: jest.fn().mockImplementation((params) => params),
+vi.mock("@aws-sdk/client-sfn", () => ({
+	SFNClient: vi.fn(function () {
+		return {
+			send: vi.fn(),
+		};
+	}),
+	StartExecutionCommand: vi.fn(function (params) { return params; }),
 }));
 
 describe("TriggerYotiCallbackStateMachineHandler", () => {
@@ -60,7 +64,7 @@ describe("TriggerYotiCallbackStateMachineHandler", () => {
 
 	it("error is returned if step function fails", async () => {
 		const error = new Error("Failed to execute step function");
-		jest.spyOn(handlerClass.stepFunctionsClient, "send").mockImplementationOnce(() => {
+		vi.spyOn(handlerClass.stepFunctionsClient, "send").mockImplementationOnce(() => {
 			throw error;
 		});
 

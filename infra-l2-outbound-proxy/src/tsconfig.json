@@ -19,6 +19,10 @@
     "inlineSources": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
+    "types": [
+      "vitest/globals",
+      "node"
+    ],
     "typeRoots": [
       "./node_modules/@types"
     ]

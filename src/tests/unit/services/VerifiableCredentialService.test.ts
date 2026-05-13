@@ -5,16 +5,16 @@ import { AppError } from "../../../utils/AppError";
 import { Constants } from "../../../utils/Constants";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { KmsJwtAdapter } from "../../../utils/KmsJwtAdapter";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import Ajv, { ValidateFunction } from "ajv";
 import SpotSchema from "../data/spot-schema.json";
 
 const ajv: Ajv = new Ajv({ strict: false, allErrors: true, verbose: true });
-jest.mock("../../../utils/KmsJwtAdapter");
-jest.mock("crypto", () => ({
-	...jest.requireActual("crypto"),
+vi.mock("../../../utils/KmsJwtAdapter");
+vi.mock("crypto", async () => ({
+	...(await vi.importActual<typeof import("crypto")>("crypto")),
 	randomUUID: () => "sdfsdf",
 }));
 
@@ -105,7 +105,7 @@ describe("VerifiableCredentialService", () => {
 	});
 
 	afterEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	describe("generateSignedVerifiableCredentialJwt", () => {
@@ -131,10 +131,10 @@ describe("VerifiableCredentialService", () => {
 		};
 
 		it("should generate a signed verifiable credential JWT", async () => {
-			const getNow = jest.fn().mockReturnValue(123456789);
+			const getNow = vi.fn().mockReturnValue(123456789);
 
 			const signedJwt = "signed-jwt";
-			const signMock = jest.spyOn(kmsJwtAdapter, "sign").mockResolvedValue(signedJwt);
+			const signMock = vi.spyOn(kmsJwtAdapter, "sign").mockResolvedValue(signedJwt);
 
 			const jwt = verifiableCredentialService.generateVerifiableCredentialJwt(
 				sessionItem,
@@ -153,7 +153,7 @@ describe("VerifiableCredentialService", () => {
 		it("should throw an AppError if signing the JWT fails", async () => {
 			const error = new Error("Failed to sign JWT");
 
-			const signMock = jest.spyOn(kmsJwtAdapter, "sign").mockRejectedValue(error);
+			const signMock = vi.spyOn(kmsJwtAdapter, "sign").mockRejectedValue(error);
 			await expect(verifiableCredentialService.signGeneratedVerifiableCredentialJwt({
 				"sub": "testsub",
 				"nbf": 123456789,
@@ -264,7 +264,7 @@ describe("VerifiableCredentialService", () => {
 		});
 
 		it("generated unsigned VC should conform to SPOT schema", () => {
-			const getNow = jest.fn().mockReturnValue(123456789);
+			const getNow = vi.fn().mockReturnValue(123456789);
 			const result = verifiableCredentialService.generateVerifiableCredentialJwt(
 				sessionItem,
 				credentialSubject,

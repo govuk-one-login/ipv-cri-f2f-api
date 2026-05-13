@@ -36,9 +36,7 @@ import dataEeaIdCard from "../../data/docSelectionPayloadEeaIdCardValid.json";
 import { constants } from "../ApiConstants";
 import { DocSelectionData } from "../types";
 import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
-import fs from "fs";
-import { convertPdfToImages } from "../../visual/helpers";
-import { toMatchImageSnapshot } from "jest-image-snapshot";
+import { comparePdfToVisualSnapshots } from "../../visual/helpers";
 
 //QualityGateIntegrationTest 
 //QualityGateRegressionTest
@@ -189,10 +187,9 @@ describe("/documentSelection Endpoint", () => {
 	});
 
 	it.each([
-		{ stubPayload: f2fStubPayload },
-		{ stubPayload: f2fStubPayload2Addresses },
-	])("Successful Request Tests - Email + Posted Letter with Original Address with Snapshot Validation", async ({ stubPayload }) => {
-		expect.extend({ toMatchImageSnapshot });
+		{ stubPayload: f2fStubPayload, compareVisualSnapshot: false },
+		{ stubPayload: f2fStubPayload2Addresses, compareVisualSnapshot: true },
+	])("Successful Request Tests - Email + Posted Letter with Original Address with Snapshot Validation", async ({ stubPayload, compareVisualSnapshot }) => {
 		const newf2fStubPayload = structuredClone(stubPayload);
 		newf2fStubPayload.yotiMockID = "0100";
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
@@ -238,34 +235,12 @@ describe("/documentSelection Endpoint", () => {
 			validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.extensions.differentPostalAddress", expectedValue: false }, allTxmaEventBodies);
 			validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.restricted.postalAddress[0]", expectedValue: addressFromRecord }, allTxmaEventBodies);
 
-			// Snapshot testing only desired for single test
-			if (stubPayload.shared_claims.address.length > 1) {
+			// Run the PDF visual comparison once for this journey.
+			// Other table row covers the same API behaviour without repeating image snapshot check.
+			if (compareVisualSnapshot) {
 				const pdfData = await getMergedYotiPdf(sessionRecord?.yotiSessionId);
-				const pdfImagesLocation = "./generated_images";
-
-				try {
-					const pdfBuffer = convertPdfToBuffer(pdfData);
-
-					await convertPdfToImages(pdfBuffer, pdfImagesLocation);
-
-					const files = fs.readdirSync(pdfImagesLocation);
-					files.forEach(fileName => {
-						const imagePath = pdfImagesLocation + "/" + fileName;
-						const image = fs.readFileSync(imagePath);
-						
-						expect(image).toMatchImageSnapshot({
-							runInProcess: true,
-							customDiffDir: "tests/visual/__snapshots-diff__",
-							customSnapshotsDir: "tests/visual/__snapshots__",
-							failureThreshold: 0.1,
-							failureThresholdType: "percent",
-
-						});
-					});
-				} finally {
-					//remove temp files
-					fs.rmSync(pdfImagesLocation, { recursive: true });
-				}
+				const pdfBuffer = convertPdfToBuffer(pdfData);
+				await comparePdfToVisualSnapshots(pdfBuffer);
 			}
 
 		} catch (error) {
@@ -563,10 +538,8 @@ describe("Yoti Letter Validation Tests", () => {
 });
 
 function convertPdfToBuffer(pdfData: any): Buffer {
-	const response = pdfData === undefined ? Buffer.alloc(0) : pdfData;
-	const binaryPdf = Buffer.from(response.data.toString(), "base64");
-
-	fs.writeFileSync("./api-letter.pdf", binaryPdf, "base64");
-	const pdfBuffer = fs.readFileSync("./api-letter.pdf");
-	return pdfBuffer;
+	if (pdfData === undefined) {
+		return Buffer.alloc(0);
+	}
+	return Buffer.from(pdfData.data.toString(), "base64");
 }

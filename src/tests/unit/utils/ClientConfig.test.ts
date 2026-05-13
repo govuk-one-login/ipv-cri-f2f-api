@@ -1,5 +1,5 @@
  
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { getClientConfig } from "../../../utils/ClientConfig";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";

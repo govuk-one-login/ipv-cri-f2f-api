@@ -1,6 +1,6 @@
 {
-    "jest.jestCommandLine": "./node_modules/.bin/jest",
-    "jest.rootPath": "./src",
+    "vitest.commandLine": "npx vitest",
+    "vitest.rootPath": "./src",
     "eslint.workingDirectories": [
         "src"
     ]

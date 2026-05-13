@@ -1,4 +1,4 @@
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { lambdaHandler } from "../../YotiSessionCompletionHandler";
 import { YotiSessionCompletionProcessor } from "../../services/YotiSessionCompletionProcessor";
 import { VALID_SESSION_COMPLETION_EVENT } from "./data/callback-events";
@@ -7,21 +7,21 @@ import { AppError } from "../../utils/AppError";
 
 const mockedYotiSessionCompletionProcessor = mock<YotiSessionCompletionProcessor>();
 
-jest.mock("../../services/YotiSessionCompletionProcessor", () => {
+vi.mock("../../services/YotiSessionCompletionProcessor", () => {
 	return {
-		YotiSessionCompletionProcessor: jest.fn(() => mockedYotiSessionCompletionProcessor),
+		YotiSessionCompletionProcessor: vi.fn(() => mockedYotiSessionCompletionProcessor),
 	};
 });
 
-jest.mock("../../utils/Config", () => {
+vi.mock("../../utils/Config", () => {
 	return {
-		getParameter: jest.fn(() => "dgsdgsg"),
+		getParameter: vi.fn(() => "dgsdgsg"),
 	};
 });
 
 describe("YotiSessionCompletionHandler", () => {
 	it("return success response for YotiCallback", async () => {
-		YotiSessionCompletionProcessor.getInstance = jest.fn().mockReturnValue(mockedYotiSessionCompletionProcessor);
+		YotiSessionCompletionProcessor.getInstance = vi.fn().mockReturnValue(mockedYotiSessionCompletionProcessor);
 		await lambdaHandler(VALID_SESSION_COMPLETION_EVENT, "F2F");
 
 		 
@@ -29,7 +29,7 @@ describe("YotiSessionCompletionHandler", () => {
 	});
 
 	it("errors when YotiSessionCompletionProcessor throws AppError", async () => {
-		YotiSessionCompletionProcessor.getInstance = jest.fn().mockImplementation(() => {
+		YotiSessionCompletionProcessor.getInstance = vi.fn().mockImplementation(() => {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to send VC");
 		});
 		await expect(lambdaHandler(VALID_SESSION_COMPLETION_EVENT, "F2F")).rejects.toThrow(expect.objectContaining({

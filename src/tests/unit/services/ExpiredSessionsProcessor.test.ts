@@ -3,7 +3,7 @@ import { ExpiredSessionsProcessor } from "../../../services/ExpiredSessionsProce
 import { F2fService } from "../../../services/F2fService";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 
 describe("ExpiredSessionsProcessor", () => {
 	let expiredSessionsProcessor: ExpiredSessionsProcessor;

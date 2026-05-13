@@ -1,3 +1,4 @@
+import type { Mock } from "vitest";
  
  
  
@@ -8,7 +9,7 @@ import { EmailResponse } from "../../../models/EmailResponse";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { SendToGovNotifyService } from "../../../services/SendToGovNotifyService";
@@ -16,21 +17,23 @@ import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { fetchEncodedFileFromS3Bucket } from "../../../utils/S3Client";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
-jest.mock("notifications-node-client", () => {
+vi.mock("notifications-node-client", () => {
 	return {
-		NotifyClient: jest.fn(),
+		NotifyClient: vi.fn(),
 	};
 });
 
-jest.mock("@aws-sdk/client-s3", () => ({
-	S3Client: jest.fn().mockImplementation(() => ({
-		send: jest.fn(),
-	})),
-	PutObjectCommand: jest.fn().mockImplementation(() => ({})),
+vi.mock("@aws-sdk/client-s3", () => ({
+	S3Client: vi.fn(function () {
+		return {
+			send: vi.fn(),
+		};
+	}),
+	PutObjectCommand: vi.fn(function () { return {}; }),
 }));
 
-jest.mock("../../../utils/S3Client", () => ({
-	fetchEncodedFileFromS3Bucket: jest.fn(),
+vi.mock("../../../utils/S3Client", () => ({
+	fetchEncodedFileFromS3Bucket: vi.fn(),
 }));
 
 
@@ -139,32 +142,31 @@ function getMockPersonItem(communicationPreference?: string): PersonIdentityItem
 }
 
 const timestamp = 1689952318;
-const mockSendEmail = jest.fn();
-const mockSendPrecompiledLetter = jest.fn();
+const mockSendEmail = vi.fn();
+const mockSendPrecompiledLetter = vi.fn();
 
 describe("SendToGovNotifyService", () => {
 	beforeAll(() => {
-		sendToGovNotifyServiceTest = SendToGovNotifyService.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, "serviceId");
-		// @ts-expect-error linting to be updated
-		sendToGovNotifyServiceTest.f2fService = mockF2fService;
-
-		NotifyClient.mockImplementation(() => {
+		NotifyClient.mockImplementation(function () {
 			return {
 				sendEmail: mockSendEmail,
 				sendPrecompiledLetter: mockSendPrecompiledLetter,
 			};
 		});
+		sendToGovNotifyServiceTest = SendToGovNotifyService.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, "serviceId");
+		// @ts-expect-error linting to be updated
+		sendToGovNotifyServiceTest.f2fService = mockF2fService;
 		metrics.singleMetric.mockReturnValue(metrics);
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
-		jest.useFakeTimers();
-		jest.setSystemTime(new Date(timestamp * 1000));
+		vi.clearAllMocks();
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(timestamp * 1000));
 	});
 
 	afterEach(() => {
-		jest.useRealTimers();
+		vi.useRealTimers();
 	});
 
 	it("Returns EmailResponse when YOTI PDF email is sent successfully", async () => {
@@ -175,7 +177,7 @@ describe("SendToGovNotifyService", () => {
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
-		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValueOnce(encoded);
+		(fetchEncodedFileFromS3Bucket as Mock).mockResolvedValueOnce(encoded);
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
         
 		const emailResponse = await sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId);
@@ -231,7 +233,7 @@ describe("SendToGovNotifyService", () => {
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
-		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValueOnce(encoded);
+		(fetchEncodedFileFromS3Bucket as Mock).mockResolvedValueOnce(encoded);
 
 		
 		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow("sendYotiInstructions - Cannot send Email");
@@ -242,13 +244,13 @@ describe("SendToGovNotifyService", () => {
 	});
     
 	it("SendToGovNotifyService retries when GovNotify throws a 500 error", async () => {
-		jest.useRealTimers();
+		vi.useRealTimers();
 		const session = getMockSessionItem();
 		const person = getMockPersonItem();
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
-		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValueOnce(encoded);
+		(fetchEncodedFileFromS3Bucket as Mock).mockResolvedValueOnce(encoded);
 		mockSendEmail.mockRejectedValue({
 			"response": {
 				"data": {
@@ -272,13 +274,13 @@ describe("SendToGovNotifyService", () => {
 	});
     
 	it("SendToGovNotifyService retries when GovNotify throws a 429 error", async () => {
-		jest.useRealTimers();
+		vi.useRealTimers();
 		const session = getMockSessionItem();
 		const person = getMockPersonItem();
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
-		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValueOnce(encoded);
+		(fetchEncodedFileFromS3Bucket as Mock).mockResolvedValueOnce(encoded);
 		mockSendEmail.mockRejectedValue({
 			"response": {
 				"data": {
@@ -307,7 +309,7 @@ describe("SendToGovNotifyService", () => {
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
-		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValueOnce(encoded);
+		(fetchEncodedFileFromS3Bucket as Mock).mockResolvedValueOnce(encoded);
 		mockF2fService.sendToTXMA.mockRejectedValue({});
     
 		const mockEmailResponse = { status: 201, data: new EmailResponse(new Date().toISOString(), "", 201, "1009") };
@@ -336,13 +338,13 @@ describe("SendToGovNotifyService", () => {
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
-		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+		(fetchEncodedFileFromS3Bucket as Mock).mockResolvedValue(encoded);
 		
 
 		mockSendPrecompiledLetter.mockResolvedValue(mockLetterResponse);
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
         
-		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+		(fetchEncodedFileFromS3Bucket as Mock).mockResolvedValue(encoded);
 
     	const emailResponse = await sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId);
     
@@ -429,10 +431,10 @@ describe("SendToGovNotifyService", () => {
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
-		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+		(fetchEncodedFileFromS3Bucket as Mock).mockResolvedValue(encoded);
 		mockSendPrecompiledLetter.mockResolvedValue(mockLetterResponse);
 		mockSendEmail.mockResolvedValue(mockEmailResponse);
-		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+		(fetchEncodedFileFromS3Bucket as Mock).mockResolvedValue(encoded);
 
 		await sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId);
 
@@ -481,7 +483,7 @@ describe("SendToGovNotifyService", () => {
 		const encoded = "gwegwtb";
 		mockF2fService.getSessionById.mockResolvedValue(session);
 		mockF2fService.getPersonIdentityById.mockResolvedValue(person);
-		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+		(fetchEncodedFileFromS3Bucket as Mock).mockResolvedValue(encoded);
 		
 
 		mockSendPrecompiledLetter.mockResolvedValue("success");
@@ -500,7 +502,7 @@ describe("SendToGovNotifyService", () => {
 			},
 		});
         
-		(fetchEncodedFileFromS3Bucket as jest.Mock).mockResolvedValue(encoded);
+		(fetchEncodedFileFromS3Bucket as Mock).mockResolvedValue(encoded);
 
     	const emailResponse = await sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId);
     
