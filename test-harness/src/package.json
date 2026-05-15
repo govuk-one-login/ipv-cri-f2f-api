@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "compile": "./node_modules/.bin/tsc",
-    "unit": "./node_modules/.bin/vitest run tests/unit",
+    "unit": "vitest run tests/unit",
     "test:unit": "npm run compile && npm run unit",
     "lint": "eslint -c eslint.config.mjs *.ts .",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c eslint.config.mjs --ext *.ts ."

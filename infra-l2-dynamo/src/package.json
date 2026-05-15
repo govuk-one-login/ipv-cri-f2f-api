@@ -19,7 +19,7 @@
         "yaml-cfn": "0.3.2"
     },
     "scripts": {
-        "infra": "./node_modules/.bin/vitest run tests/infra",
+        "infra": "vitest run tests/infra",
         "test:infra": "npm run infra"
     }
 }

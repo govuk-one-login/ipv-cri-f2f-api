@@ -20,7 +20,6 @@
     "@types/uuid": "8.3.4",
     "@typescript-eslint/eslint-plugin": "8.56.1",
     "@typescript-eslint/parser": "8.56.1",
-    "@vitest/ui": "4.1.4",
     "aws-cdk-lib": "2.253.1",
     "aws-sdk-client-mock": "4.1.0",
     "eslint": "10.0.2",
@@ -36,9 +35,7 @@
     "test": "vitest run --reporter=verbose",
     "lint": "eslint -c eslint.config.mjs *.ts .",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c eslint.config.mjs --ext *.ts .",
-    "compile": "./node_modules/.bin/tsc",
-    "test:watch": "vitest watch",
-    "test:ui": "vitest --ui"
+    "compile": "./node_modules/.bin/tsc"
   },
   "engines": {
     "node": "22.*"

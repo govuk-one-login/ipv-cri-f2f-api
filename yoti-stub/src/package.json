@@ -21,13 +21,13 @@
     "pdf-lib": "1.17.1"
   },
   "scripts": {
-    "unit": "./node_modules/.bin/vitest run tests/unit --passWithNoTests",
+    "unit": "vitest run tests/unit --passWithNoTests",
     "test:unit": "npm run compile && npm run unit",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c eslint.config.mjs --ext *.ts .",
     "compile": "./node_modules/.bin/tsc",
     "lint": "eslint -c eslint.config.mjs *.ts .",
-    "test:e2e": "./node_modules/.bin/vitest run tests/e2e --passWithNoTests",
-    "test:infra": "./node_modules/.bin/vitest run tests/infra --passWithNoTests"
+    "test:e2e": "vitest run tests/e2e --passWithNoTests",
+    "test:infra": "vitest run tests/infra --passWithNoTests"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.148",
