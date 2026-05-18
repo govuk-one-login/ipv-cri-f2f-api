@@ -1,13 +1,5 @@
 import axios from "axios";
 import { handler } from "../handlers/startF2fCheck";
-import {
-  expect,
-  it,
-  beforeEach,
-  afterEach,
-  describe,
-  vi,
-} from "vitest";
 import { mockClient } from "aws-sdk-client-mock";
 import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import format from "ecdsa-sig-formatter";
@@ -16,8 +8,6 @@ import base64url from "base64url";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import testData from "../events/startEvents.js";
-
-vi.setConfig({ testTimeout: 30000 });
 
 const mockJwks = {
   keys: [

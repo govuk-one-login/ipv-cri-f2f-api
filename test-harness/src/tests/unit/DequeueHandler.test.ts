@@ -1,5 +1,4 @@
 import { SQSEvent } from "aws-lambda";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { lambdaHandler, logger, s3Client } from "../../DequeueHandler";
 import { BatchItemFailure } from "../../utils/BatchItemFailure";
 

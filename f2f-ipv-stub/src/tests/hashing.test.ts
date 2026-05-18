@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import { getHashedKid } from "../utils/hashing";
 
 describe("hashing", () => {

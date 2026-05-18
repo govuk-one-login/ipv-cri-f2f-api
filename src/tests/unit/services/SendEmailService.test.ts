@@ -69,7 +69,6 @@ describe("SendEmailProcessor", () => {
 		NotifyClient.mockImplementation(function () {
 			return {
 				sendEmail: mockSendEmail,
-				// Mock other methods as necessary
 			};
 		});
 		sendEmailServiceTest = SendEmailService.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");

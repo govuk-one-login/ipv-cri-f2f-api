@@ -36,13 +36,13 @@
     "pdfkit": "0.16.0"
   },
   "scripts": {
-    "unit": "vitest run --coverage tests/unit/",
+    "unit": "vitest run --no-color --coverage tests/unit/",
     "test:unit": "npm run compile && npm run unit",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c eslint.config.mjs --ext *.ts .",
     "compile": "./node_modules/.bin/tsc",
     "lint": "eslint -c eslint.config.mjs *.ts .",
-    "test:e2e": "vitest run \"**/e2e/?(*.)test.ts\" --passWithNoTests",
-    "test:infra": "vitest run tests/infra",
+    "test:e2e": "vitest run --no-color \"**/e2e/?(*.)test.ts\" --passWithNoTests",
+    "test:infra": "vitest run --no-color tests/infra",
     "api": "VITEST_JUNIT_OUTPUT_NAME=api-report.xml vitest run --no-file-parallelism --maxWorkers=1 tests/api/backend tests/api/retry",
     "api-pipeline": "VITEST_JUNIT_OUTPUT_NAME=api-report.xml vitest run --no-file-parallelism --maxWorkers=1 tests/api/backend",
     "api-traffic": "VITEST_JUNIT_OUTPUT_NAME=api-report.xml vitest run --no-file-parallelism --maxWorkers=1 tests/api/backend/HappyPath.test.ts tests/api/backend/CallbackApi.test.ts",

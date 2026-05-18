@@ -101,7 +101,7 @@ describe("GenerateYotiLetterProcessor", () => {
 		});
 		const response =  await generatePrintedLetterProcessor.processRequest({ sessionId, pdf_preference });
 
-		const myCaptor = captor();
+		const myCaptor = captor<string | NodeJS.ArrayBufferView>();
 
 		expect(mockS3Client.send).toHaveBeenNthCalledWith(1, expect.objectContaining({
 			Bucket: "YOTI_LETTER_BUCKET",
@@ -115,7 +115,7 @@ describe("GenerateYotiLetterProcessor", () => {
 			Body: myCaptor,
 		}));
 		
-		const mergedPdf = myCaptor.value as string | NodeJS.ArrayBufferView;
+		const mergedPdf = myCaptor.value;
 
 		fs.writeFileSync("tests/unit/resources/merged.pdf", mergedPdf);
 

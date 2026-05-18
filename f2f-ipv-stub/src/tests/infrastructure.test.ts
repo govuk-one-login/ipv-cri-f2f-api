@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeAll } from 'vitest';
 import { Template, Capture, Match } from "aws-cdk-lib/assertions";
 import path from "path";
 import { schema } from "yaml-cfn";

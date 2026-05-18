@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { handler } from "../handlers/callback";
 import callbackSuccess from "../events/callbackSuccess.json";
 import axios from "axios";
@@ -22,7 +21,7 @@ const token = {
 vi.mock("axios");
 
 describe("Callback Endpoint", () => {
-  const mockedAxios = axios as ReturnType<typeof vi.mocked<typeof axios>>;
+  const mockedAxios = vi.mocked(axios);
 
   beforeEach(() => {
     mockedAxios.post

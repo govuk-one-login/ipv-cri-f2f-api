@@ -1,5 +1,5 @@
 {
-    "vitest.commandLine": "npx vitest",
+    "vitest.commandLine": "./node_modules/.bin/vitest",
     "vitest.rootPath": "./src",
     "eslint.workingDirectories": [
         "src"

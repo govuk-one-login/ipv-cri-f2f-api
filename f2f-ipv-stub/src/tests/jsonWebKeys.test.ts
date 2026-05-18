@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { KMSClient, GetPublicKeyCommand } from "@aws-sdk/client-kms";
 import { handler } from "../handlers/jsonWebKeys";
 import { mockClient } from "aws-sdk-client-mock";

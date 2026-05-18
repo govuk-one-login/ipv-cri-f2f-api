@@ -1,12 +1,4 @@
 import { handler } from "../handlers/generateTokenRequest";
-import {
-  expect,
-  it,
-  beforeEach,
-  afterEach,
-  describe,
-  vi,
-} from "vitest";
 import { mockClient } from "aws-sdk-client-mock";
 import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import format from "ecdsa-sig-formatter";
@@ -14,8 +6,6 @@ import format from "ecdsa-sig-formatter";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import testData from "../events/startEvents.js";
-
-vi.setConfig({ testTimeout: 30000 });
 
 process.env.SIGNING_KEY = "key-id";
 process.env.ADDITIONAL_SIGNING_KEY = "additional-signing-key-id";

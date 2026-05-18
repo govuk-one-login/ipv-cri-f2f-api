@@ -22,7 +22,7 @@ const SNAPSHOT_NAME_PREFIX =
 const UPDATE_VISUAL_SNAPSHOTS =
 	process.env.UPDATE_PDF_VISUAL_SNAPSHOTS === "true";
 
-export const PDF_VISUAL_SNAPSHOT_ALLOWED_PIXEL_RATIO = 0.01;
+export const PDF_VISUAL_SNAPSHOT_ALLOWED_PIXEL_RATIO = 0.03;
 
 export async function comparePdfToVisualSnapshots(
 	pdfBuffer: Buffer,

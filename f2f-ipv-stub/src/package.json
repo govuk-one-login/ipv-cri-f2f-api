@@ -32,7 +32,7 @@
     "yaml-cfn": "0.3.2"
   },
   "scripts": {
-    "test": "vitest run --reporter=verbose",
+    "test": "vitest run tests/",
     "lint": "eslint -c eslint.config.mjs *.ts .",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c eslint.config.mjs --ext *.ts .",
     "compile": "./node_modules/.bin/tsc"

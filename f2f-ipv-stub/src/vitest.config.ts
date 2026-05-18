@@ -6,13 +6,10 @@ export default defineConfig({
     environment: 'node',
     clearMocks: true,
     setupFiles: ['./vitest.setup.ts'],
-    reporters: ['default', 'junit'],
-    outputFile: {
-      junit: './results/report.xml',
-    },
+    reporters: ['default'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text'],
       include: ['./**/*.ts'],
       exclude: [
         './**/tests/**/*.ts',
