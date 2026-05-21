@@ -85,11 +85,9 @@ describe("F2f Service", () => {
 		vi.resetAllMocks();
 		f2fService = F2fService.getInstance(tableName, logger, metrics, mockDynamoDbClient);
 		mockSend = vi.fn();
-		(SQSClient as Mock).mockImplementation(function () {
-			return {
-				send: mockSend,
-			};
-		});
+		(SQSClient as Mock).mockImplementation(() => ({
+			send: mockSend,
+		}));
 	});
 
 	it("Should return a session item when passed a valid session Id", async () => {

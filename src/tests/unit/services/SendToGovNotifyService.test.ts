@@ -24,12 +24,10 @@ vi.mock("notifications-node-client", () => {
 });
 
 vi.mock("@aws-sdk/client-s3", () => ({
-	S3Client: vi.fn(function () {
-		return {
-			send: vi.fn(),
-		};
-	}),
-	PutObjectCommand: vi.fn(function () { return {}; }),
+	S3Client: vi.fn(() => ({
+		send: vi.fn(),
+	})),
+	PutObjectCommand: vi.fn(() => ({})),
 }));
 
 vi.mock("../../../utils/S3Client", () => ({
@@ -147,12 +145,10 @@ const mockSendPrecompiledLetter = vi.fn();
 
 describe("SendToGovNotifyService", () => {
 	beforeAll(() => {
-		NotifyClient.mockImplementation(function () {
-			return {
-				sendEmail: mockSendEmail,
-				sendPrecompiledLetter: mockSendPrecompiledLetter,
-			};
-		});
+		NotifyClient.mockImplementation(() => ({
+			sendEmail: mockSendEmail,
+			sendPrecompiledLetter: mockSendPrecompiledLetter,
+		}));
 		sendToGovNotifyServiceTest = SendToGovNotifyService.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-expect-error linting to be updated
 		sendToGovNotifyServiceTest.f2fService = mockF2fService;

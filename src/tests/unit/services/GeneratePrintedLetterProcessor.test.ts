@@ -19,13 +19,11 @@ const logger = mock<Logger>();
 const metrics = mock<Metrics>();
 
 vi.mock("@aws-sdk/client-s3", () => ({
-	S3Client: vi.fn(function () {
-		return {
-			send: vi.fn(),
-		};
-	}),
-	PutObjectCommand: vi.fn(function (args) { return args; }),
-	GetObjectCommand: vi.fn(function (args) { return args; }),
+	S3Client: vi.fn(() => ({
+		send: vi.fn(),
+	})),
+	PutObjectCommand: vi.fn((args) => args),
+	GetObjectCommand: vi.fn((args) => args),
 }));
 
 const mockS3Client = mock<S3Client>({ send: vi.fn() as any });

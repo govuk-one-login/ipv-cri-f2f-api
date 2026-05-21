@@ -7,16 +7,6 @@ export default defineConfig({
     clearMocks: true,
     setupFiles: ['./vitest.setup.ts'],
     reporters: ['default'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text'],
-      include: ['./**/*.ts'],
-      exclude: [
-        './**/tests/**/*.ts',
-        './tests/**/*.ts',
-        './vitest.config.ts',
-      ],
-    },
     include: ['**/tests/**/*.test.ts'],
     testTimeout: 30000,
   },

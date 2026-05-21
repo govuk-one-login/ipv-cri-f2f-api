@@ -3,13 +3,9 @@ import * as AWS from "@aws-sdk/client-kms";
 import { mockKmsClient } from "../../../tests/contract/mocks/kmsClient";
 import { createKmsClient } from "../../../utils/KMSClient";
 import { Logger } from "@aws-lambda-powertools/logger";
-import AWSXRay from "aws-xray-sdk-core";
+import { captureAWSv3Client } from "aws-xray-sdk-core";
 
 vi.mock("aws-xray-sdk-core", () => ({
-    default: {
-        captureAWSv3Client: vi.fn((client) => client),
-        setContextMissingStrategy: vi.fn(),
-    },
     captureAWSv3Client: vi.fn((client) => client),
     setContextMissingStrategy: vi.fn(),
 }));
@@ -49,14 +45,14 @@ describe("createKmsClient", () => {
         process.env.XRAY_ENABLED = "true";
         process.env.REGION = "eu-west-2";
         createKmsClient();
-        expect(AWSXRay.captureAWSv3Client).toHaveBeenCalledWith(expect.any(AWS.KMS));
+        expect(captureAWSv3Client).toHaveBeenCalledWith(expect.any(AWS.KMS));
     });
 
     it("should return a raw SSM client when XRAY_ENABLED is false and USE_MOCKED is not set", () => {
         process.env.XRAY_ENABLED = "false";
         process.env.REGION = "eu-west-2"; // Or your desired region
         const ssmClient = createKmsClient();
-        expect(AWSXRay.captureAWSv3Client).not.toHaveBeenCalled();
+        expect(captureAWSv3Client).not.toHaveBeenCalled();
         expect(ssmClient).toBeInstanceOf(AWS.KMS);
     });
 
@@ -64,7 +60,7 @@ describe("createKmsClient", () => {
     it("should return a raw SSM client when XRAY_ENABLED is not set and USE_MOCKED is not set", () => {
         process.env.REGION = "eu-west-2"; // Or your desired region
         const ssmClient = createKmsClient();
-        expect(AWSXRay.captureAWSv3Client).not.toHaveBeenCalled();
+        expect(captureAWSv3Client).not.toHaveBeenCalled();
         expect(ssmClient).toBeInstanceOf(AWS.KMS);
     });
 

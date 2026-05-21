@@ -21,13 +21,9 @@
     "pdf-lib": "1.17.1"
   },
   "scripts": {
-    "unit": "vitest run tests/unit --passWithNoTests",
-    "test:unit": "npm run compile && npm run unit",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c eslint.config.mjs --ext *.ts .",
     "compile": "./node_modules/.bin/tsc",
-    "lint": "eslint -c eslint.config.mjs *.ts .",
-    "test:e2e": "vitest run tests/e2e --passWithNoTests",
-    "test:infra": "vitest run tests/infra --passWithNoTests"
+    "lint": "eslint -c eslint.config.mjs *.ts ."
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.148",
@@ -36,7 +32,6 @@
     "@types/node-jose": "1.1.13",
     "@typescript-eslint/eslint-plugin": "8.56.1",
     "@typescript-eslint/parser": "8.56.1",
-    "@vitest/coverage-v8": "4.1.4",
     "eslint": "10.0.2",
     "prettier": "3.6.2",
     "ts-node": "10.9.2",

@@ -19,8 +19,6 @@ const DIFF_DIR = path.join(
 );
 const SNAPSHOT_NAME_PREFIX =
 	"happy-path-test-ts-document-selection-endpoint-successful-request-tests-email-posted-letter-with-original-address-with-snapshot-validation";
-const UPDATE_VISUAL_SNAPSHOTS =
-	process.env.UPDATE_PDF_VISUAL_SNAPSHOTS === "true";
 
 export const PDF_VISUAL_SNAPSHOT_ALLOWED_PIXEL_RATIO = 0.03;
 
@@ -49,7 +47,8 @@ export async function comparePdfToVisualSnapshots(
 			const snapshotPath = getSnapshotPath(pageNumber);
 
 			if (!fs.existsSync(snapshotPath)) {
-				if (UPDATE_VISUAL_SNAPSHOTS) {
+				if (shouldUpdateVisualSnapshots()) {
+					logSnapshotUpdate(snapshotPath);
 					writeSnapshot(snapshotPath, imagePath);
 					continue;
 				}
@@ -66,13 +65,17 @@ export async function comparePdfToVisualSnapshots(
 			});
 
 			if (!comparison.pass) {
-				if (UPDATE_VISUAL_SNAPSHOTS) {
+				if (shouldUpdateVisualSnapshots()) {
+					logSnapshotUpdate(snapshotPath);
 					writeSnapshot(snapshotPath, imagePath);
 					continue;
 				}
 				const diffPath = writeDiffImage(pageNumber, comparison.diffBuffer);
 				const diffMessage = diffPath ? ` Diff written to ${diffPath}.` : "";
-				throw new Error(`${fileName}: ${comparison.message}.${diffMessage}`);
+				// Include the configured tolerance alongside the library mismatch output so failures show the accepted margin of error.
+				throw new Error(
+					`${fileName}: ${comparison.message}. Allowed pixel ratio: ${PDF_VISUAL_SNAPSHOT_ALLOWED_PIXEL_RATIO}.${diffMessage}`,
+				);
 			}
 		}
 	} finally {
@@ -165,6 +168,15 @@ function getSnapshotPath(pageNumber: number): string {
 function writeSnapshot(snapshotPath: string, imagePath: string): void {
 	fs.mkdirSync(path.dirname(snapshotPath), { recursive: true });
 	fs.copyFileSync(imagePath, snapshotPath);
+}
+
+function shouldUpdateVisualSnapshots(): boolean {
+	return process.env.UPDATE_PDF_VISUAL_SNAPSHOTS === "true";
+}
+
+function logSnapshotUpdate(snapshotPath: string): void {
+	// This log makes deliberate snapshot rewrites visible; set UPDATE_PDF_VISUAL_SNAPSHOTS=true in src/.env to opt in.
+	console.info(`Updating PDF visual snapshot: ${snapshotPath}`);
 }
 
 function writeDiffImage(

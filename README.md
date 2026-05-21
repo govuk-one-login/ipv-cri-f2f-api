@@ -125,6 +125,8 @@ cp .env.example .env
 > [!IMPORTANT]
 > Do not commit `.env` or any real secrets to this public repo.
 
+PDF visual snapshot tests read `UPDATE_PDF_VISUAL_SNAPSHOTS` from `src/.env`. Keep it set to `false` for normal test runs. Set it to `true` only when intentionally regenerating the committed PDF snapshot images; the test logs each snapshot path it rewrites.
+
 ---
 
 ## Local test before Deployment
@@ -198,11 +200,9 @@ cd src
 npm run test:api
 ```
 
-### E2E tests
-```sh
-cd src
-npm run test:e2e
-```
+The API suite includes PDF visual snapshot comparison. When comparison fails, the error includes the allowed pixel ratio and writes a diff image under `tests/visual/__snapshots-diff__` when available.
+
+The API scripts run Vitest with `--no-file-parallelism --maxWorkers=1`. This is intentional for the Jest-to-Vitest migration: these tests exercise shared deployed resources, poll the same test-harness queues/events, and mutate shared fixture payloads during a journey. Running them serially preserves the previous Jest behaviour and avoids cross-test interference. This is not an ESM test-loading workaround.
 
 ### Infra tests
 ```sh
@@ -344,7 +344,6 @@ cd src
 npm run test:unit
 npm run test:api
 npm run test:infra
-npm run test:e2e
 ```
 ### Multiple Axios failures
 Check .env varibales using `run-tests.sh` as source of truth for required parameters

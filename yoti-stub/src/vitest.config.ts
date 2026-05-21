@@ -7,11 +7,6 @@ export default defineConfig({
     outputFile: {
       junit: "./results/report.xml",
     },
-    coverage: {
-      enabled: true,
-      provider: "v8",
-      reportsDirectory: "coverage",
-    },
     environment: "node",
     globals: true,
     include: ["**/*.test.ts"],

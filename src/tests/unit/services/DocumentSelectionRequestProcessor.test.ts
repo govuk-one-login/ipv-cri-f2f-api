@@ -188,12 +188,10 @@ function getYotiSessionInfo(): YotiSessionInfo {
 }
 
 vi.mock("@aws-sdk/client-sfn", () => ({
-	SFNClient: vi.fn(function () {
-		return {
-			send: vi.fn(),
-		};
-	}),
-	StartExecutionCommand: vi.fn(function (params) { return params; }),
+	SFNClient: vi.fn(() => ({
+		send: vi.fn(),
+	})),
+	StartExecutionCommand: vi.fn((params) => params),
 }));
 
 describe("DocumentSelectionRequestProcessor", () => {

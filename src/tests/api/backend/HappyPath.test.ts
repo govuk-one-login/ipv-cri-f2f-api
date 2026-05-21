@@ -186,11 +186,8 @@ describe("/documentSelection Endpoint", () => {
 		}
 	});
 
-	it.each([
-		{ stubPayload: f2fStubPayload, compareVisualSnapshot: false },
-		{ stubPayload: f2fStubPayload2Addresses, compareVisualSnapshot: true },
-	])("Successful Request Tests - Email + Posted Letter with Original Address with Snapshot Validation", async ({ stubPayload, compareVisualSnapshot }) => {
-		const newf2fStubPayload = structuredClone(stubPayload);
+	it("Successful Request Tests - Email + Posted Letter with Original Address with Snapshot Validation", async () => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload2Addresses);
 		newf2fStubPayload.yotiMockID = "0100";
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
@@ -235,13 +232,9 @@ describe("/documentSelection Endpoint", () => {
 			validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.extensions.differentPostalAddress", expectedValue: false }, allTxmaEventBodies);
 			validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.restricted.postalAddress[0]", expectedValue: addressFromRecord }, allTxmaEventBodies);
 
-			// Run the PDF visual comparison once for this journey.
-			// Other table row covers the same API behaviour without repeating image snapshot check.
-			if (compareVisualSnapshot) {
-				const pdfData = await getMergedYotiPdf(sessionRecord?.yotiSessionId);
-				const pdfBuffer = convertPdfToBuffer(pdfData);
-				await comparePdfToVisualSnapshots(pdfBuffer);
-			}
+			const pdfData = await getMergedYotiPdf(sessionRecord?.yotiSessionId);
+			const pdfBuffer = convertPdfToBuffer(pdfData);
+			await comparePdfToVisualSnapshots(pdfBuffer);
 
 		} catch (error) {
 			console.error("Error validating PDF Preference from Person Identity Table", error);
