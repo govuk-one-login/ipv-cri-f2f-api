@@ -6,12 +6,20 @@ import { DeleteObjectsCommand, ListObjectVersionsCommand, ListObjectsV2Command }
 const mockSend = vi.fn();
 
 vi.mock("@aws-sdk/client-s3", () => ({
-  S3Client: vi.fn(() => ({
-    send: mockSend,
-  })),
-  ListObjectVersionsCommand: vi.fn((args) => Object.setPrototypeOf(args, ListObjectVersionsCommand.prototype)),
-  ListObjectsV2Command: vi.fn((args) => Object.setPrototypeOf(args, ListObjectsV2Command.prototype)),
-  DeleteObjectsCommand: vi.fn((args) => Object.setPrototypeOf(args, DeleteObjectsCommand.prototype))
+  S3Client: vi.fn(function () {
+    return {
+      send: mockSend,
+    };
+  }),
+  ListObjectVersionsCommand: vi.fn(function (args) {
+    return Object.setPrototypeOf(args, ListObjectVersionsCommand.prototype);
+  }),
+  ListObjectsV2Command: vi.fn(function (args) {
+    return Object.setPrototypeOf(args, ListObjectsV2Command.prototype);
+  }),
+  DeleteObjectsCommand: vi.fn(function (args) {
+    return Object.setPrototypeOf(args, DeleteObjectsCommand.prototype);
+  })
 }));
 
 let deleteBucketProcessor: DeleteBucketProcessor;

@@ -3,17 +3,21 @@ import { Jwk, Algorithm } from "../../utils/IVeriCredential";
 import crypto from "crypto";
 
 vi.mock("@aws-lambda-powertools/logger", () => ({
-	Logger: vi.fn(() => ({
-		info: vi.fn(),
-		error: vi.fn(),
-		warn: vi.fn(),
-	})),
+	Logger: vi.fn(function () {
+		return {
+			info: vi.fn(),
+			error: vi.fn(),
+			warn: vi.fn(),
+		};
+	}),
 }));
 
 vi.mock("@aws-sdk/client-kms", () => ({
-	KMS: vi.fn(() => ({
-		getPublicKey: vi.fn(),
-	})),
+	KMS: vi.fn(function () {
+		return {
+			getPublicKey: vi.fn(),
+		};
+	}),
 }));
 
 vi.mock("crypto", () => ({
@@ -32,11 +36,17 @@ vi.mock("crypto", () => ({
 }));
 
 vi.mock("@aws-sdk/client-s3", () => ({
-	S3Client: vi.fn(() => ({
-		send: vi.fn().mockResolvedValue({}),
-	})),
-	PutObjectCommand: vi.fn((args) => args),
-	CopyObjectCommand: vi.fn((args) => args),
+	S3Client: vi.fn(function () {
+		return {
+			send: vi.fn().mockResolvedValue({}),
+		};
+	}),
+	PutObjectCommand: vi.fn(function (args) {
+		return args;
+	}),
+	CopyObjectCommand: vi.fn(function (args) {
+		return args;
+	}),
 }));
 
 vi.mock("../../utils/JwtUtils", () => ({

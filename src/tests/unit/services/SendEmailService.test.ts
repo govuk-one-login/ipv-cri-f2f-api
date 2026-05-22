@@ -66,9 +66,11 @@ const mockSendEmail = vi.fn();
 
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
-		NotifyClient.mockImplementation(() => ({
-			sendEmail: mockSendEmail,
-		}));
+		NotifyClient.mockImplementation(function () {
+			return {
+				sendEmail: mockSendEmail,
+			};
+		});
 		sendEmailServiceTest = SendEmailService.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-expect-error linting to be updated
 		sendEmailServiceTest.f2fService = mockF2fService;

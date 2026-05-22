@@ -15,9 +15,11 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 const encryptMock = vi.fn();
 vi.mock("node-rsa", () => {
 	return {
-		default: vi.fn(() => ({
-			encrypt: encryptMock,
-		})),
+		default: vi.fn(function () {
+			return {
+				encrypt: encryptMock,
+			};
+		}),
 	};
 });
 

@@ -5,22 +5,28 @@ import { MessageCodes } from "../../models/enums/MessageCodes";
 import { passEntireBatch, failEntireBatch } from "../../utils/SqsBatchResponseHelper";
 
 vi.mock("@aws-lambda-powertools/logger", () => ({
-	Logger: vi.fn(() => ({
-		debug: vi.fn(),
-		warn: vi.fn(),
-		info: vi.fn(),
-		error: vi.fn(),
-		setPersistentLogAttributes: vi.fn(),
-		addContext: vi.fn(),
-		appendKeys: vi.fn(),
-	})),
+	Logger: vi.fn(function () {
+		return {
+			debug: vi.fn(),
+			warn: vi.fn(),
+			info: vi.fn(),
+			error: vi.fn(),
+			setPersistentLogAttributes: vi.fn(),
+			addContext: vi.fn(),
+			appendKeys: vi.fn(),
+		};
+	}),
 }));
 
 vi.mock("@aws-sdk/client-sfn", () => ({
-	SFNClient: vi.fn(() => ({
-		send: vi.fn(),
-	})),
-	StartExecutionCommand: vi.fn((params) => params),
+	SFNClient: vi.fn(function () {
+		return {
+			send: vi.fn(),
+		};
+	}),
+	StartExecutionCommand: vi.fn(function (params) {
+		return params;
+	}),
 }));
 
 describe("TriggerYotiCallbackStateMachineHandler", () => {
