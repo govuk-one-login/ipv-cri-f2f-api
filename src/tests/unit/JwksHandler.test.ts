@@ -28,11 +28,6 @@ vi.mock("crypto", () => ({
 			})),
 		})),
 	},
-	createPublicKey: vi.fn().mockImplementation(() => ({
-		export: vi.fn().mockImplementation(() => ({
-			key: "123456789",
-		})),
-	})),
 }));
 
 vi.mock("@aws-sdk/client-s3", () => ({

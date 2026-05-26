@@ -36,7 +36,7 @@ import dataEeaIdCard from "../../data/docSelectionPayloadEeaIdCardValid.json";
 import { constants } from "../ApiConstants";
 import { DocSelectionData } from "../types";
 import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
-import { comparePdfToVisualSnapshots } from "../../visual/helpers";
+import { comparePdfToVisualSnapshots, convertPdfToBuffer } from "../../visual/helpers";
 
 //QualityGateIntegrationTest 
 //QualityGateRegressionTest
@@ -529,10 +529,3 @@ describe("Yoti Letter Validation Tests", () => {
 
 	});
 });
-
-function convertPdfToBuffer(pdfData: any): Buffer {
-	if (pdfData === undefined) {
-		return Buffer.alloc(0);
-	}
-	return Buffer.from(pdfData.data.toString(), "base64");
-}

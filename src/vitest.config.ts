@@ -1,10 +1,6 @@
 import 'dotenv/config';
 import { defineConfig } from 'vitest/config';
 
-const junitOutputFile = process.env.VITEST_JUNIT_OUTPUT_NAME
-  ? `./results/${process.env.VITEST_JUNIT_OUTPUT_NAME}`
-  : './results/report.xml';
-
 export default defineConfig({
   plugins: [{
     name: 'test-asset-file-paths',
@@ -19,11 +15,7 @@ export default defineConfig({
     environment: 'node',
     clearMocks: true,
     setupFiles: ['./vitest.setup.ts'],
-    reporters: ['default', 'junit', 'html'],
-    outputFile: {
-      junit: junitOutputFile,
-      html: './results/test-report.html',
-    },
+    reporters: ['default'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

@@ -27,7 +27,7 @@ vi.mock("@aws-sdk/client-s3", () => ({
 	}),
 }));
 
-const mockS3Client = mock<S3Client>({ send: vi.fn() as any });
+const mockS3Client = new S3Client({});
 
 let generateYotiLetterProcessor: GenerateYotiLetterProcessor;
 const sessionId = "RandomF2FSessionID";

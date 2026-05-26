@@ -32,7 +32,7 @@ vi.mock("@aws-sdk/client-s3", () => ({
 	}),
 }));
 
-const mockS3Client = mock<S3Client>({ send: vi.fn() as any });
+const mockS3Client = new S3Client({});
 
 let generatePrintedLetterProcessor: GeneratePrintedLetterProcessor;
 const sessionId = "RandomF2FSessionID";
@@ -105,7 +105,7 @@ describe("GenerateYotiLetterProcessor", () => {
 		});
 		const response =  await generatePrintedLetterProcessor.processRequest({ sessionId, pdf_preference });
 
-		const myCaptor = captor<string | NodeJS.ArrayBufferView>();
+		const myCaptor = captor<Uint8Array>();
 
 		expect(mockS3Client.send).toHaveBeenNthCalledWith(1, expect.objectContaining({
 			Bucket: "YOTI_LETTER_BUCKET",

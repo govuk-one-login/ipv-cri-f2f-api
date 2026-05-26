@@ -19,8 +19,6 @@ vi.mock("ecdsa-sig-formatter", () => ({
 		derToJose: vi.fn().mockImplementation(() => "JOSE-formatted signature"),
 		joseToDer: vi.fn().mockImplementation(() => "DER-formatted signature"),
 	},
-	derToJose: vi.fn().mockImplementation(() => "JOSE-formatted signature"),
-	joseToDer: vi.fn().mockImplementation(() => "DER-formatted signature"),
 }));
 
 vi.mock("../../../utils/JwtUtils", () => ({

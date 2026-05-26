@@ -125,7 +125,7 @@ cp .env.example .env
 > [!IMPORTANT]
 > Do not commit `.env` or any real secrets to this public repo.
 
-PDF visual snapshot tests read `UPDATE_PDF_VISUAL_SNAPSHOTS` from `src/.env`. Keep it set to `false` for normal test runs. Set it to `true` only when intentionally regenerating the committed PDF snapshot images; the test logs each snapshot path it rewrites.
+To update PDF visual snapshot tests images enable `UPDATE_PDF_VISUAL_SNAPSHOTS` from `src/.env`. Otherwise keep it set to `false` for normal test runs. When set to `true`, it will intentionally regenerate the committed PDF snapshot images - output new difference ratio in the test logs and also each new snapshot path it rewrites.
 
 ---
 
@@ -199,10 +199,6 @@ npm run test:unit
 cd src
 npm run test:api
 ```
-
-The API suite includes PDF visual snapshot comparison. When comparison fails, the error includes the allowed pixel ratio and writes a diff image under `tests/visual/__snapshots-diff__` when available.
-
-The API scripts run Vitest with `--no-file-parallelism --maxWorkers=1`. This is intentional for the Jest-to-Vitest migration: these tests exercise shared deployed resources, poll the same test-harness queues/events, and mutate shared fixture payloads during a journey. Running them serially preserves the previous Jest behaviour and avoids cross-test interference. This is not an ESM test-loading workaround.
 
 ### Infra tests
 ```sh

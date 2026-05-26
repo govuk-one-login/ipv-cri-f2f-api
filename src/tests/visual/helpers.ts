@@ -17,10 +17,16 @@ const DIFF_DIR = path.join(
 	"visual",
 	"__snapshots-diff__",
 );
-const SNAPSHOT_NAME_PREFIX =
-	"happy-path-test-ts-document-selection-endpoint-successful-request-tests-email-posted-letter-with-original-address-with-snapshot-validation";
+const SNAPSHOT_NAME_PREFIX = "posted-letter-original-address";
 
 export const PDF_VISUAL_SNAPSHOT_ALLOWED_PIXEL_RATIO = 0.03;
+
+export function convertPdfToBuffer(pdfData: { data: Buffer } | undefined): Buffer {
+	if (pdfData === undefined) {
+		return Buffer.alloc(0);
+	}
+	return Buffer.from(pdfData.data.toString(), "base64");
+}
 
 export async function comparePdfToVisualSnapshots(
 	pdfBuffer: Buffer,
@@ -47,11 +53,6 @@ export async function comparePdfToVisualSnapshots(
 			const snapshotPath = getSnapshotPath(pageNumber);
 
 			if (!fs.existsSync(snapshotPath)) {
-				if (shouldUpdateVisualSnapshots()) {
-					logSnapshotUpdate(snapshotPath);
-					writeSnapshot(snapshotPath, imagePath);
-					continue;
-				}
 				throw new Error(
 					`Missing PDF visual snapshot for ${fileName}: expected ${snapshotPath}`,
 				);
@@ -65,6 +66,7 @@ export async function comparePdfToVisualSnapshots(
 			});
 
 			if (!comparison.pass) {
+				// check if flag to automatically update snapshots is enabled
 				if (shouldUpdateVisualSnapshots()) {
 					logSnapshotUpdate(snapshotPath);
 					writeSnapshot(snapshotPath, imagePath);
@@ -72,7 +74,7 @@ export async function comparePdfToVisualSnapshots(
 				}
 				const diffPath = writeDiffImage(pageNumber, comparison.diffBuffer);
 				const diffMessage = diffPath ? ` Diff written to ${diffPath}.` : "";
-				// Include the configured tolerance alongside the library mismatch output so failures show the accepted margin of error.
+				// Surface the tolerance and diff path in test output to see margin of failure
 				throw new Error(
 					`${fileName}: ${comparison.message}. Allowed pixel ratio: ${PDF_VISUAL_SNAPSHOT_ALLOWED_PIXEL_RATIO}.${diffMessage}`,
 				);
@@ -175,7 +177,7 @@ function shouldUpdateVisualSnapshots(): boolean {
 }
 
 function logSnapshotUpdate(snapshotPath: string): void {
-	// This log makes deliberate snapshot rewrites visible; set UPDATE_PDF_VISUAL_SNAPSHOTS=true in src/.env to opt in.
+	// This log makes deliberate snapshot rewrites visible, set UPDATE_PDF_VISUAL_SNAPSHOTS=true in src/.env enable.
 	console.info(`Updating PDF visual snapshot: ${snapshotPath}`);
 }
 

@@ -3,10 +3,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     clearMocks: true,
-    reporters: ["default", "junit"],
-    outputFile: {
-      junit: "./results/report.xml",
-    },
+    reporters: ["default"],
     coverage: {
       enabled: true,
       exclude: ["**/tests/**", "vitest.config.ts"],

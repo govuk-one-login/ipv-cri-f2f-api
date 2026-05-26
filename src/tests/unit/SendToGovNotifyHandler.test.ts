@@ -6,7 +6,7 @@ import { AppError } from "../../utils/AppError";
 import { CONTEXT } from "./data/context";
 
 const mockedSendToGovNotifyProcessor = mock<SendToGovNotifyProcessor>();
-const mockGetParameter = vi.hoisted(() => vi.fn());
+const mockGetParameter = vi.hoisted(() => vi.fn().mockResolvedValue("KEY"));
 
 vi.mock("../../services/SendToGovNotifyProcessor", () => {
 	return {
@@ -41,10 +41,6 @@ const event = {
 };
 
 describe("GovNotifyHandler", () => {
-	beforeEach(() => {
-		mockGetParameter.mockResolvedValue("KEY");
-	});
-
 	it("successfully calls the SendToGovNotifyProcessor with incoming event", async () => {
         
 		SendToGovNotifyProcessor.getInstance = vi.fn().mockReturnValue(mockedSendToGovNotifyProcessor);
@@ -63,7 +59,7 @@ describe("GovNotifyHandler", () => {
 	});
 
 	it("errors when there is a failure to fetch GOVUKNOTIFY_API_KEY from SSM", async () => {
-		mockGetParameter.mockRejectedValue(new Error("Parameter not found"));
+		mockGetParameter.mockRejectedValueOnce(new Error("Parameter not found"));
 		await expect(lambdaHandler("any", CONTEXT)).rejects.toThrow("Email could not be sent. Returning failed message");
 	});
 });
