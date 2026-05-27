@@ -1,6 +1,6 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { YotiCallbackTopics } from "../../../models/enums/YotiCallbackTopics";
@@ -53,22 +53,21 @@ describe("PostOfficeVisitProcessor", () => {
 	beforeAll(() => {
 		postOfficeVisitProcessor = new PostOfficeVisitProcessor(logger, metrics, YOTI_PRIVATE_KEY);
 		postOfficeVisitProcessor.f2fService = mockF2fService;
-		YotiService.getInstance = jest.fn(() => mockYotiService);
+		YotiService.getInstance = vi.fn(() => mockYotiService);
 
 		f2fSessionItem = getMockSessionItem();
 		yotiSessionItem = mockYotiSessionItemGMT;
-		jest.useFakeTimers();
-		jest.setSystemTime(new Date(1585695600000)); // == 2020-03-31T23:00:00.000Z
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(1585695600000)); // == 2020-03-31T23:00:00.000Z
 	});
 
 	beforeEach(() => {
-		jest.restoreAllMocks();
+		vi.restoreAllMocks();
 	});
 
 	describe("#processRequest", () => {
 		it("routes first_branch_visit to processFirstBranchVisit", async () => {
-			const processFirstBranchVisitSpy = jest
-				.spyOn(postOfficeVisitProcessor, "processFirstBranchVisit")
+			const processFirstBranchVisitSpy = vi.spyOn(postOfficeVisitProcessor, "processFirstBranchVisit")
 				.mockResolvedValue({ statusCode: HttpCodesEnum.OK, headers: {}, body: "OK" });
 
 			await postOfficeVisitProcessor.processRequest(VALID_FIRST_BRANCH_VISIT_EVENT);
@@ -77,8 +76,7 @@ describe("PostOfficeVisitProcessor", () => {
 		});
 
 		it("routes thank_you_email_requested to processThankYouEmail", async () => {
-			const processThankYouEmailSpy = jest
-				.spyOn(postOfficeVisitProcessor, "processThankYouEmail")
+			const processThankYouEmailSpy = vi.spyOn(postOfficeVisitProcessor, "processThankYouEmail")
 				.mockResolvedValue({ statusCode: HttpCodesEnum.OK, headers: {}, body: "OK" });
 
 			await postOfficeVisitProcessor.processRequest(VALID_THANK_YOU_EMAIL_EVENT);

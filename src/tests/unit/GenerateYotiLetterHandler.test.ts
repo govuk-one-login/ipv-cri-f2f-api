@@ -1,34 +1,35 @@
+import type { Mock, MockInstance } from "vitest";
  
 import { lambdaHandler, logger } from "../../GenerateYotiLetterHandler";
 import { GenerateYotiLetterProcessor } from "../../services/GenerateYotiLetterProcessor";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { CONTEXT } from "./data/context";
 import { getParameter } from "../../utils/Config";
 import { MessageCodes } from "../../models/enums/MessageCodes";
 
 const mockedGenerateYotiLetterProcessor = mock<GenerateYotiLetterProcessor>();
 
-jest.mock("../../services/GenerateYotiLetterProcessor", () => {
+vi.mock("../../services/GenerateYotiLetterProcessor", () => {
 	return {
-		GenerateYotiLetterProcessor: jest.fn(() => mockedGenerateYotiLetterProcessor),
+		GenerateYotiLetterProcessor: vi.fn(() => mockedGenerateYotiLetterProcessor),
 	};
 });
 
-jest.mock("../../utils/Config", () => ({
-	getParameter: jest.fn(),
+vi.mock("../../utils/Config", () => ({
+	getParameter: vi.fn(),
 }));
 
 
 describe("GenerateYotiLetterHandler", () => {
-	let loggerSpy: jest.SpyInstance;
+	let loggerSpy: MockInstance;
 
 	beforeEach(() => {
-		loggerSpy = jest.spyOn(logger, "error");
+		loggerSpy = vi.spyOn(logger, "error");
 	});
 
 	it("throws error if sessionId is missing from lambda event", async () => {
 
-		GenerateYotiLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
+		GenerateYotiLetterProcessor.getInstance = vi.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
 
 		await expect(lambdaHandler(({ "sessionId":"", "pdfPreference":"POST" }), CONTEXT)).rejects.toThrow();
 
@@ -37,7 +38,7 @@ describe("GenerateYotiLetterHandler", () => {
 
 	it("throws error if sessionId is malformed", async () => {
 
-		GenerateYotiLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
+		GenerateYotiLetterProcessor.getInstance = vi.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
 
 		await expect(lambdaHandler(({ "sessionId":"abcdefgh", "pdfPreference":"POST" }), CONTEXT)).rejects.toThrow();
 
@@ -46,7 +47,7 @@ describe("GenerateYotiLetterHandler", () => {
 
 	it("throws error if pdfPreference is missing from lambda event", async () => {
 
-		GenerateYotiLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
+		GenerateYotiLetterProcessor.getInstance = vi.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
 
 		await expect(lambdaHandler(({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"" }), CONTEXT)).rejects.toThrow();
 
@@ -54,8 +55,8 @@ describe("GenerateYotiLetterHandler", () => {
 	});
 
 	it("fails to call GenerateYotiLetterProcessor if there is an error retrieving Yoti SSM key", async () => {
-		GenerateYotiLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
-		(getParameter as jest.Mock).mockRejectedValueOnce("Error");
+		GenerateYotiLetterProcessor.getInstance = vi.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
+		(getParameter as Mock).mockRejectedValueOnce("Error");
 		
 		const result = await lambdaHandler({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"POST" }, CONTEXT);
 
@@ -71,8 +72,8 @@ describe("GenerateYotiLetterHandler", () => {
 
 	it("calls GenerateYotiLetterProcessor if Yoti SSM key is present", async () => {
 		const key = "YOTI/PRIVATE_KEY";
-		(getParameter as jest.Mock).mockResolvedValueOnce(key);
-		GenerateYotiLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
+		(getParameter as Mock).mockResolvedValueOnce(key);
+		GenerateYotiLetterProcessor.getInstance = vi.fn().mockReturnValue(mockedGenerateYotiLetterProcessor);
 
 		await lambdaHandler({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"POST" }, CONTEXT);
 

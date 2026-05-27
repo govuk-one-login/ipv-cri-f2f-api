@@ -3,7 +3,7 @@ import { ReminderEmailProcessor } from "../../../services/ReminderEmailProcessor
 import { F2fService } from "../../../services/F2fService";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
@@ -162,13 +162,13 @@ describe("ReminderEmailProcessor", () => {
 	});
 
 	beforeEach(() => {
-		jest.useFakeTimers();
-		jest.setSystemTime(new Date(1695808788)); // Sep 27 2023 08:53:12 GMT+0000
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(1695808788)); // Sep 27 2023 08:53:12 GMT+0000
 	});
 
 	afterEach(() => {
-		jest.useRealTimers();
-		jest.resetAllMocks();
+		vi.useRealTimers();
+		vi.resetAllMocks();
 	});
 
 	describe("Should process request successfully", () => {

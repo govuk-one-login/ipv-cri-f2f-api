@@ -1,37 +1,38 @@
+import type { MockInstance } from "vitest";
  
 import { lambdaHandler, logger } from "../../GeneratePrintedLetterHandler";
 import { GeneratePrintedLetterProcessor } from "../../services/GeneratePrintedLetterProcessor";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { CONTEXT } from "./data/context";
 import { MessageCodes } from "../../models/enums/MessageCodes";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
 const mockedGeneratePrintedLetterProcessor = mock<GeneratePrintedLetterProcessor>();
 
-jest.mock("../../services/GenerateYotiLetterProcessor", () => {
+vi.mock("../../services/GenerateYotiLetterProcessor", () => {
 	return {
-		GeneratePrintedLetterProcessor: jest.fn(() => mockedGeneratePrintedLetterProcessor),
+		GeneratePrintedLetterProcessor: vi.fn(() => mockedGeneratePrintedLetterProcessor),
 	};
 });
 
-jest.mock("../../utils/Config", () => ({
-	getParameter: jest.fn(),
+vi.mock("../../utils/Config", () => ({
+	getParameter: vi.fn(),
 }));
 
 describe("GeneratePrintedLetterHandler", () => {
 	// Used for testing
 	/* eslint-disable @typescript-eslint/no-unused-vars */
-	let loggerSpy: jest.SpyInstance;
-	let metricsSpy: jest.SpyInstance;
+	let loggerSpy: MockInstance;
+	let metricsSpy: MockInstance;
 
 	beforeEach(() => {
-		metricsSpy = jest.spyOn(Metrics.prototype, "addMetric");
-		loggerSpy = jest.spyOn(logger, "error");
+		metricsSpy = vi.spyOn(Metrics.prototype, "addMetric");
+		loggerSpy = vi.spyOn(logger, "error");
 	});
 
 	it("throws error if sessionId is missing from lambda event", async () => {
 
-		GeneratePrintedLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
+		GeneratePrintedLetterProcessor.getInstance = vi.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
 
 		await lambdaHandler(({ "sessionId":"", "pdfPreference":"POST" }), CONTEXT);
 
@@ -42,7 +43,7 @@ describe("GeneratePrintedLetterHandler", () => {
 
 	it("throws error if sessionId is malformed", async () => {
 
-		GeneratePrintedLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
+		GeneratePrintedLetterProcessor.getInstance = vi.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
 
 		await lambdaHandler(({ "sessionId":"abcdefgh", "pdfPreference":"POST" }), CONTEXT);
 
@@ -51,7 +52,7 @@ describe("GeneratePrintedLetterHandler", () => {
 	});
 
 	it("calls GenerateYotiLetterProcessor if required attributes are present", async () => {
-		GeneratePrintedLetterProcessor.getInstance = jest.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
+		GeneratePrintedLetterProcessor.getInstance = vi.fn().mockReturnValue(mockedGeneratePrintedLetterProcessor);
 
 		await lambdaHandler({ "sessionId":"1b655a2e-44e4-4b21-a626-7825abd9c93e", "pdfPreference":"POST" }, CONTEXT);
 

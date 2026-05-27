@@ -57,12 +57,12 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup SAM CLI
-        uses: aws-actions/setup-sam@v2
+        uses: aws-actions/setup-sam@v3
         with:
           use-installer: true
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets[format('{0}_F2F_DDB_GH_ACTIONS_ROLE_ARN', matrix.environment)] }}
           aws-region: ${{ env.AWS_REGION }}
@@ -74,7 +74,7 @@ jobs:
         run: sam build -t template.yaml
 
       - name: Deploy SAM app
-        uses: govuk-one-login/devplatform-upload-action@v3.11.1
+        uses: govuk-one-login/devplatform-upload-action@v3.14.0
         with:
             artifact-bucket-name: ${{ secrets[format('{0}_F2F_DDB_ARTIFACT_SOURCE_BUCKET_NAME', matrix.environment)] }}
             working-directory: infra-l2-dynamo

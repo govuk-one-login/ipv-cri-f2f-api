@@ -71,13 +71,14 @@ export class AddressLocationsProcessor {
 
 	async getOsLocations(postCode: string, apiKey: string, osLocationsApiUrl: string): Promise<string> {
 		try {
-			const response = await axios.get(osLocationsApiUrl, 
-				{
-					params: {
-						postcode: postCode,
-						key: apiKey,
-					},
-				});
+			const response = await axios.get(osLocationsApiUrl, {
+				headers: {
+					key: apiKey,
+				},
+				params: {
+					postcode: postCode,
+				},
+			});
 			const { data } = response;	
 			const singleMetric = this.metrics.singleMetric();
 			singleMetric.addDimension("status_code", response.status.toString());

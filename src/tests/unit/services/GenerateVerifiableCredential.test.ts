@@ -1,6 +1,6 @@
  
  
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { GenerateVerifiableCredential } from "../../../services/GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../../../utils/YotiPayloadEnums";
@@ -40,8 +40,8 @@ describe("GenerateVerifiableCredential", () => {
 	});
 
 	afterEach(() => {
-		jest.resetAllMocks();
-		jest.restoreAllMocks();
+		vi.resetAllMocks();
+		vi.restoreAllMocks();
 		expect(metrics.addMetric).not.toHaveBeenCalled();
 	});
 
@@ -200,7 +200,7 @@ describe("GenerateVerifiableCredential", () => {
 			() => {
 
 				const reason = "UNKNOWN_REASON";
-				const contraIndicator = [undefined];
+				const contraIndicator: string[] = [];
 
 				const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
 					value: "REJECT",
@@ -258,7 +258,7 @@ describe("GenerateVerifiableCredential", () => {
 	it("should return the contra indicator array [] for authenticity rejection reason UNKNOWN_REASON", () => {
 			
 		const reason = "UNKNOWN_REASON";
-		const contraIndicator = [undefined];
+		const contraIndicator: string[] = [];
 			
 			
 		const ID_DOCUMENT_FACE_MATCH_RECOMMENDATION = {
@@ -450,7 +450,7 @@ describe("GenerateVerifiableCredential", () => {
 		])(
 			"should return the verified credential information with failedCheckDetails where $scoreName is 0",
 			({ scoreCalculator, expectedScores }) => {
-				jest.spyOn(GenerateVerifiableCredential.prototype as any, scoreCalculator).mockReturnValueOnce(0);
+				vi.spyOn(GenerateVerifiableCredential.prototype as any, scoreCalculator).mockReturnValueOnce(0);
 				const result = generateVerifiableCredential.getVerifiedCredentialInformation(
 					mockYotiSessionId,
 					mockCompletedYotiSessionPayload,

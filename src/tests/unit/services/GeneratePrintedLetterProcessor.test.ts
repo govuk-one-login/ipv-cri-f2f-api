@@ -1,5 +1,5 @@
  
-import { captor, mock } from "jest-mock-extended";
+import { captor, mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { GeneratePrintedLetterProcessor } from "../../../services/GeneratePrintedLetterProcessor";
@@ -18,15 +18,21 @@ const mockPdfService = mock<PDFService>();
 const logger = mock<Logger>();
 const metrics = mock<Metrics>();
 
-jest.mock("@aws-sdk/client-s3", () => ({
-	S3Client: jest.fn().mockImplementation(() => ({
-		send: jest.fn(),
-	})),
-	PutObjectCommand: jest.fn().mockImplementation((args) => args),
-	GetObjectCommand: jest.fn().mockImplementation((args) => args),
+vi.mock("@aws-sdk/client-s3", () => ({
+	S3Client: vi.fn(function () {
+		return {
+			send: vi.fn(),
+		};
+	}),
+	PutObjectCommand: vi.fn(function (args) {
+		return args;
+	}),
+	GetObjectCommand: vi.fn(function (args) {
+		return args;
+	}),
 }));
 
-const mockS3Client = mock<S3Client>();
+const mockS3Client = new S3Client({});
 
 let generatePrintedLetterProcessor: GeneratePrintedLetterProcessor;
 const sessionId = "RandomF2FSessionID";
@@ -70,7 +76,7 @@ describe("GenerateYotiLetterProcessor", () => {
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("throws error if session cannot be found", async () => {
@@ -92,14 +98,14 @@ describe("GenerateYotiLetterProcessor", () => {
 
 		mockPdfService.createPdf.mockResolvedValueOnce(await asyncIterableToBuffer(fileToAsyncIterable("tests/unit/resources/letter.pdf")));
 
-		jest.spyOn(mockS3Client, "send").mockImplementation(() => {
+		vi.spyOn(mockS3Client, "send").mockImplementation(() => {
 			return {
 				"Body": fileToAsyncIterable("tests/unit/resources/letter.pdf"),
 			};
 		});
 		const response =  await generatePrintedLetterProcessor.processRequest({ sessionId, pdf_preference });
 
-		const myCaptor = captor();
+		const myCaptor = captor<Uint8Array>();
 
 		expect(mockS3Client.send).toHaveBeenNthCalledWith(1, expect.objectContaining({
 			Bucket: "YOTI_LETTER_BUCKET",
@@ -141,7 +147,7 @@ describe("GenerateYotiLetterProcessor", () => {
 	it("When error retreving from S3 assert service throws error", async () => {
 		const f2fSessionItem = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
-		jest.spyOn(mockS3Client, "send").mockImplementationOnce(() => {
+		vi.spyOn(mockS3Client, "send").mockImplementationOnce(() => {
 			throw new Error("error");
 		});
 		await expect(generatePrintedLetterProcessor.processRequest({ sessionId, pdf_preference })).rejects.toThrow(expect.objectContaining({

@@ -1,20 +1,20 @@
 import { lambdaHandler } from "../../ExpiredSessionsHandler";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { ExpiredSessionsProcessor } from "../../services/ExpiredSessionsProcessor";
 import { CONTEXT } from "./data/context";
 import { Response } from "../../utils/Response";
 
 const mockedExpiredSessionsProcessor = mock<ExpiredSessionsProcessor>();
 
-jest.mock("../../services/ExpiredSessionsProcessor", () => {
+vi.mock("../../services/ExpiredSessionsProcessor", () => {
 	return {
-		ExpiredSessionsProcessor: jest.fn(() => mockedExpiredSessionsProcessor),
+		ExpiredSessionsProcessor: vi.fn(() => mockedExpiredSessionsProcessor),
 	};
 });
 
 describe("ExpiredSessionHandler", () => {
 	it("return success response for ReminderEmail", async () => {
-		ExpiredSessionsProcessor.getInstance = jest.fn().mockReturnValue(mockedExpiredSessionsProcessor);
+		ExpiredSessionsProcessor.getInstance = vi.fn().mockReturnValue(mockedExpiredSessionsProcessor);
 		mockedExpiredSessionsProcessor.processRequest.mockResolvedValueOnce(Response(200, "Success"));
 
 		const result = await lambdaHandler("", CONTEXT);
@@ -26,7 +26,7 @@ describe("ExpiredSessionHandler", () => {
 	});
 
 	it("returns error if ExpiredSessionsProcessor fails", async () => {
-		ExpiredSessionsProcessor.getInstance = jest.fn().mockReturnValue(mockedExpiredSessionsProcessor);
+		ExpiredSessionsProcessor.getInstance = vi.fn().mockReturnValue(mockedExpiredSessionsProcessor);
 		mockedExpiredSessionsProcessor.processRequest.mockRejectedValueOnce(Response(500, "ERROR"));
 
 		const result = await lambdaHandler("", CONTEXT);

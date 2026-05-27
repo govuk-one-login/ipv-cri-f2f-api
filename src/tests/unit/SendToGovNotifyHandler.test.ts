@@ -1,4 +1,4 @@
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { lambdaHandler } from "../../SendToGovNotifyHandler";
 import { SendToGovNotifyProcessor } from "../../services/SendToGovNotifyProcessor";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
@@ -6,15 +6,17 @@ import { AppError } from "../../utils/AppError";
 import { CONTEXT } from "./data/context";
 
 const mockedSendToGovNotifyProcessor = mock<SendToGovNotifyProcessor>();
-jest.mock("../../services/SendToGovNotifyProcessor", () => {
+const mockGetParameter = vi.hoisted(() => vi.fn().mockResolvedValue("KEY"));
+
+vi.mock("../../services/SendToGovNotifyProcessor", () => {
 	return {
-		SendToGovNotifyProcessor: jest.fn(() => mockedSendToGovNotifyProcessor),
+		SendToGovNotifyProcessor: vi.fn(() => mockedSendToGovNotifyProcessor),
 	};
 });
 
-jest.mock("../../utils/Config", () => {
+vi.mock("../../utils/Config", () => {
 	return {
-		getParameter: jest.fn().mockResolvedValue("KEY"),
+		getParameter: mockGetParameter,
 	};
 });	
 
@@ -41,7 +43,7 @@ const event = {
 describe("GovNotifyHandler", () => {
 	it("successfully calls the SendToGovNotifyProcessor with incoming event", async () => {
         
-		SendToGovNotifyProcessor.getInstance = jest.fn().mockReturnValue(mockedSendToGovNotifyProcessor);
+		SendToGovNotifyProcessor.getInstance = vi.fn().mockReturnValue(mockedSendToGovNotifyProcessor);
 		await lambdaHandler(event, CONTEXT);
 
 		 
@@ -49,7 +51,7 @@ describe("GovNotifyHandler", () => {
 	});
 
 	it("errors when SendToGovNotifyProcessor throws AppError", async () => {
-		SendToGovNotifyProcessor.getInstance = jest.fn().mockImplementation(() => {
+		SendToGovNotifyProcessor.getInstance = vi.fn().mockImplementation(() => {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sendYotiInstructions - Cannot send Email");
 		});
 
@@ -57,11 +59,7 @@ describe("GovNotifyHandler", () => {
 	});
 
 	it("errors when there is a failure to fetch GOVUKNOTIFY_API_KEY from SSM", async () => {
-		jest.mock("../../utils/Config", () => {
-			return {
-				getParameter: jest.fn().mockRejectedValue(new Error("Parameter not found")),
-			};
-		});	
+		mockGetParameter.mockRejectedValueOnce(new Error("Parameter not found"));
 		await expect(lambdaHandler("any", CONTEXT)).rejects.toThrow("Email could not be sent. Returning failed message");
 	});
 });

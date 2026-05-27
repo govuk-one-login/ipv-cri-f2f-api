@@ -2,7 +2,7 @@
  
 import { SessionRequestProcessor } from "../../../services/SessionRequestProcessor";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
 import { VALID_SESSION, SESSION_WITH_INVALID_CLIENT, VALID_SESSION_MISSING_XFORWARDEDFOR } from "../data/session-events";
@@ -22,8 +22,8 @@ const mockKmsJwtAdapter = mock<KmsJwtAdapter>();
 const logger = mock<Logger>();
 const metrics = mock<Metrics>();
 const mockValidationHelper = mock<ValidationHelper>();
-jest.mock("crypto", () => ({
-	...jest.requireActual("crypto"),
+vi.mock("crypto", async () => ({
+	...(await vi.importActual<typeof import("crypto")>("crypto")),
 	randomUUID: () => "session-id",
 }));
 
@@ -122,13 +122,13 @@ const F2F_SESSION_STARTED_TXMA_EVENT = {
 
 describe("SessionRequestProcessor", () => {
 	beforeEach(() => {
-		jest.useFakeTimers();
-		jest.setSystemTime(new Date(1585695600000)); // == 2020-03-31T23:00:00.000Z
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(1585695600000)); // == 2020-03-31T23:00:00.000Z
 	});
 
 	afterEach(() => {
-		jest.useRealTimers();
-		jest.resetAllMocks();
+		vi.useRealTimers();
+		vi.resetAllMocks();
 	});
 
 	beforeAll(() => {
@@ -474,9 +474,9 @@ describe("SessionRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 		mockF2fService.createAuthSession.mockResolvedValue();
 		mockF2fService.savePersonIdentity.mockRejectedValue("error");
-		jest.useFakeTimers();
+		vi.useFakeTimers();
 		const fakeTime = 1684933200.123;
-		jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.000Z
+		vi.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.000Z
 
 		await sessionRequestProcessor.processRequest(VALID_SESSION);
 
@@ -490,7 +490,7 @@ describe("SessionRequestProcessor", () => {
 		// this will break in the year 2286!
 		const actualExpiryDate = mockF2fService.createAuthSession.mock.calls[0][0].expiryDate;
 		expect(actualExpiryDate).toBeLessThan(10000000000);
-		jest.useRealTimers();
+		vi.useRealTimers();
 	});
 	
 	it("the session created should have an empty subjectId", async () => {
@@ -507,9 +507,9 @@ describe("SessionRequestProcessor", () => {
 		mockF2fService.getSessionById.mockResolvedValue(undefined);
 		mockF2fService.createAuthSession.mockResolvedValue();
 		mockF2fService.savePersonIdentity.mockRejectedValue("error");
-		jest.useFakeTimers();
+		vi.useFakeTimers();
 		const fakeTime = 1684933200.123;
-		jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.000Z
+		vi.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.000Z
 
 		await sessionRequestProcessor.processRequest(VALID_SESSION);
 
@@ -524,6 +524,6 @@ describe("SessionRequestProcessor", () => {
 		// this will break in the year 2286!
 		const actualExpiryDate = mockF2fService.createAuthSession.mock.calls[0][0].expiryDate;
 		expect(actualExpiryDate).toBeLessThan(10000000000);
-		jest.useRealTimers();
+		vi.useRealTimers();
 	});	
 });

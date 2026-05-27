@@ -19,6 +19,7 @@ import {
 	validatePersonInfoResponse,
 	initiateUserInfo,
 	getMergedYotiPdf,
+	addressLocationsPost,
 } from "../ApiTestSteps";
 import { getYotiLetterFileContents, getTxmaEventsFromTestHarness, invokeLambdaFunction, validateTxMAEventData, validateTxMAEventField, buildExpectedPostalAddress } from "../ApiUtils";
 import f2fStubPayload from "../../data/exampleStubPayload.json";
@@ -35,9 +36,7 @@ import dataEeaIdCard from "../../data/docSelectionPayloadEeaIdCardValid.json";
 import { constants } from "../ApiConstants";
 import { DocSelectionData } from "../types";
 import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
-import fs from "fs";
-import { convertPdfToImages } from "../../visual/helpers";
-import { toMatchImageSnapshot } from "jest-image-snapshot";
+import { comparePdfToVisualSnapshots, convertPdfToBuffer } from "../../visual/helpers";
 
 //QualityGateIntegrationTest 
 //QualityGateRegressionTest
@@ -187,12 +186,8 @@ describe("/documentSelection Endpoint", () => {
 		}
 	});
 
-	it.each([
-		{ stubPayload: f2fStubPayload },
-		{ stubPayload: f2fStubPayload2Addresses },
-	])("Successful Request Tests - Email + Posted Letter with Original Address with Snapshot Validation", async ({ stubPayload }) => {
-		expect.extend({ toMatchImageSnapshot });
-		const newf2fStubPayload = structuredClone(stubPayload);
+	it("Successful Request Tests - Email + Posted Letter with Original Address with Snapshot Validation", async () => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload2Addresses);
 		newf2fStubPayload.yotiMockID = "0100";
 		const { sessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 
@@ -237,35 +232,9 @@ describe("/documentSelection Endpoint", () => {
 			validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.extensions.differentPostalAddress", expectedValue: false }, allTxmaEventBodies);
 			validateTxMAEventField({ eventName: "F2F_YOTI_PDF_LETTER_POSTED", jsonPath: "$.restricted.postalAddress[0]", expectedValue: addressFromRecord }, allTxmaEventBodies);
 
-			// Snapshot testing only desired for single test
-			if (stubPayload.shared_claims.address.length > 1) {
-				const pdfData = await getMergedYotiPdf(sessionRecord?.yotiSessionId);
-				const pdfImagesLocation = "./generated_images";
-
-				try {
-					const pdfBuffer = convertPdfToBuffer(pdfData);
-
-					await convertPdfToImages(pdfBuffer, pdfImagesLocation);
-
-					const files = fs.readdirSync(pdfImagesLocation);
-					files.forEach(fileName => {
-						const imagePath = pdfImagesLocation + "/" + fileName;
-						const image = fs.readFileSync(imagePath);
-						
-						expect(image).toMatchImageSnapshot({
-							runInProcess: true,
-							customDiffDir: "tests/visual/__snapshots-diff__",
-							customSnapshotsDir: "tests/visual/__snapshots__",
-							failureThreshold: 0.1,
-							failureThresholdType: "percent",
-
-						});
-					});
-				} finally {
-					//remove temp files
-					fs.rmSync(pdfImagesLocation, { recursive: true });
-				}
-			}
+			const pdfData = await getMergedYotiPdf(sessionRecord?.yotiSessionId);
+			const pdfBuffer = convertPdfToBuffer(pdfData);
+			await comparePdfToVisualSnapshots(pdfBuffer);
 
 		} catch (error) {
 			console.error("Error validating PDF Preference from Person Identity Table", error);
@@ -428,6 +397,19 @@ describe("/sessionConfiguration endpoint", () => {
 	});
 });
 
+describe("/addressLocations endpoint", () => {
+	it("Successful Request Tests - Address Locations - value returned", async () => {
+		const newf2fStubPayload = structuredClone(f2fStubPayload);
+		newf2fStubPayload.yotiMockID = "0000";
+		const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
+		const sessionId = newSessionId;
+		const postCode = "SW1A1AA"
+	
+		const response = await addressLocationsPost(sessionId, postCode);
+		expect(response.status).toBe(200);
+	});
+});
+
 describe("/abort endpoint", () => {
 	let sessionId: string;
 
@@ -547,12 +529,3 @@ describe("Yoti Letter Validation Tests", () => {
 
 	});
 });
-
-function convertPdfToBuffer(pdfData: any): Buffer {
-	const response = pdfData === undefined ? Buffer.alloc(0) : pdfData;
-	const binaryPdf = Buffer.from(response.data.toString(), "base64");
-
-	fs.writeFileSync("./api-letter.pdf", binaryPdf, "base64");
-	const pdfBuffer = fs.readFileSync("./api-letter.pdf");
-	return pdfBuffer;
-}

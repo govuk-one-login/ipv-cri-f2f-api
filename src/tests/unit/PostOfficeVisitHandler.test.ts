@@ -1,4 +1,5 @@
-import { mock } from "jest-mock-extended";
+import type { MockInstance } from "vitest";
+import { mock } from "vitest-mock-extended";
 import { lambdaHandler, logger } from "../../PostOfficeVisitHandler";
 import { PostOfficeVisitProcessor } from "../../services/PostOfficeVisitProcessor";
 import { YotiPrivateKeyProvider } from "../../services/callback/YotiPrivateKeyProvider";
@@ -12,19 +13,19 @@ const YOTI_PRIVATE_KEY = "YOTI_PRIVATE_KEY";
 
 describe("PostOfficeVisitHandler", () => {
 
-	let loggerSpy: jest.SpyInstance;
+	let loggerSpy: MockInstance;
 
 	let successMessage = "Finished processing record from SQS"
 
 	beforeEach(() => {
-		jest.clearAllMocks();
-		jest.spyOn(PostOfficeVisitProcessor, "getInstance").mockReturnValue(mockedPostOfficeVisitProcessor);
-		jest.spyOn(YotiPrivateKeyProvider, "getYotiPrivateKey").mockResolvedValue(YOTI_PRIVATE_KEY);
-		loggerSpy = jest.spyOn(logger, "info");
+		vi.clearAllMocks();
+		vi.spyOn(PostOfficeVisitProcessor, "getInstance").mockReturnValue(mockedPostOfficeVisitProcessor);
+		vi.spyOn(YotiPrivateKeyProvider, "getYotiPrivateKey").mockResolvedValue(YOTI_PRIVATE_KEY);
+		loggerSpy = vi.spyOn(logger, "info");
 	});
 
 	afterEach(() => {
-		jest.restoreAllMocks();
+		vi.restoreAllMocks();
 	});
 
 	it("it succesfully processes thank you email topic and retrieves yoti key", async () => {
@@ -42,7 +43,7 @@ describe("PostOfficeVisitHandler", () => {
 	});
 
 	it("errors when PostOfficeVisitProcessor throws AppError", async () => {
-		jest.spyOn(PostOfficeVisitProcessor, "getInstance").mockImplementation(() => {
+		vi.spyOn(PostOfficeVisitProcessor, "getInstance").mockImplementation(() => {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "error");
 		});
 

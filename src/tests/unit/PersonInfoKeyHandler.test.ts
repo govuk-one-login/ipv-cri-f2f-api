@@ -1,3 +1,4 @@
+import type { Mock, MockInstance } from "vitest";
  
 import { lambdaHandler, logger } from "../../PersonInfoKeyHandler";
 import { VALID_AUTHCODE } from "./data/auth-events";
@@ -6,20 +7,20 @@ import { HttpCodesEnum } from "../../models/enums/HttpCodesEnum";
 import { MessageCodes } from "../../models/enums/MessageCodes";
 import { getParameter } from "../../utils/Config";
 
-jest.mock("../../utils/Config", () => ({
-	getParameter: jest.fn(),
+vi.mock("../../utils/Config", () => ({
+	getParameter: vi.fn(),
 }));
 
 describe("PersonInfoKeyHandler", () => {
-	let loggerSpy: jest.SpyInstance;
+	let loggerSpy: MockInstance;
 
 	beforeEach(() => {
-		loggerSpy = jest.spyOn(logger, "error");
+		loggerSpy = vi.spyOn(logger, "error");
 	});
 
 	it("returns key fetched from SSM", async () => {
 		const key = "person-info/PRIVATE_KEY";
-		(getParameter as jest.Mock).mockResolvedValueOnce(key);
+		(getParameter as Mock).mockResolvedValueOnce(key);
 		const response = await lambdaHandler(VALID_AUTHCODE, CONTEXT);
 
 		expect(response.statusCode).toEqual(HttpCodesEnum.OK);
@@ -27,7 +28,7 @@ describe("PersonInfoKeyHandler", () => {
 	});
 
 	it("returns error if there is a problem fetching from SSM", async () => {
-		(getParameter as jest.Mock).mockRejectedValueOnce("Error");
+		(getParameter as Mock).mockRejectedValueOnce("Error");
 		const response = await lambdaHandler(VALID_AUTHCODE, CONTEXT);
 
 		expect(response.statusCode).toEqual(HttpCodesEnum.SERVER_ERROR);

@@ -3,11 +3,11 @@ import { EU_DL_COUNTRIES } from "../../../models/EuDrivingLicenceCodes";
 describe("EuDrivingLicenceCodes", () => {
 	
 	beforeAll(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	beforeEach(() => {
-		jest.resetAllMocks();
+		vi.resetAllMocks();
 
 	});
 

@@ -5,11 +5,11 @@ const govNotifyErrorMapper = new GovNotifyErrorMapper();
 describe("GovNotifyErrorMapper", () => {
 
 	beforeAll(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	beforeEach(() => {
-		jest.resetAllMocks();
+		vi.resetAllMocks();
 
 	});
 

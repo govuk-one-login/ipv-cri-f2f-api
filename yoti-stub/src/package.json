@@ -8,43 +8,33 @@
   "dependencies": {
     "@aws-lambda-powertools/logger": "1.5.1",
     "@aws-lambda-powertools/metrics": "1.5.1",
-    "@aws-sdk/client-dynamodb": "3.1001.0",
-    "@aws-sdk/client-kms": "3.1001.0",
-    "@aws-sdk/client-s3": "3.1001.0",
-    "@aws-sdk/client-sqs": "3.1001.0",
-    "@aws-sdk/credential-providers": "3.1001.0",
-    "@aws-sdk/lib-dynamodb": "3.1001.0",
+    "@aws-sdk/client-dynamodb": "3.1045.0",
+    "@aws-sdk/client-kms": "3.1045.0",
+    "@aws-sdk/client-s3": "3.1045.0",
+    "@aws-sdk/client-sqs": "3.1045.0",
+    "@aws-sdk/credential-providers": "3.1045.0",
+    "@aws-sdk/lib-dynamodb": "3.1045.0",
     "aws-xray-sdk-core": "3.4.1",
-    "axios": "1.15.0",
+    "axios": "1.16.0",
     "class-validator": "0.14.0",
     "esbuild": "0.25.2",
     "pdf-lib": "1.17.1"
   },
   "scripts": {
-    "unit": "./node_modules/.bin/jest --testPathPatterns=tests/unit",
-    "test:unit": "npm run compile && npm run unit",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c eslint.config.mjs --ext *.ts .",
     "compile": "./node_modules/.bin/tsc",
-    "lint": "eslint -c eslint.config.mjs *.ts .",
-    "test:e2e": "./node_modules/.bin/jest --testMatch '**/e2e/?(*.)test.ts' --passWithNoTests",
-    "test:infra": "./node_modules/.bin/jest --testMatch '**/infra/?(*.)test.ts' "
+    "lint": "eslint -c eslint.config.mjs *.ts ."
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.148",
-    "@types/jest": "29.5.14",
-    "@types/js-yaml": "4.0.9",
     "@types/node": "20.14.8",
     "@types/node-jose": "1.1.13",
     "@typescript-eslint/eslint-plugin": "8.56.01",
     "@typescript-eslint/parser": "8.56.1",
     "eslint": "10.0.2",
-    "jest": "30.2.0",
-    "jest-mock-extended": "4.0.0",
     "prettier": "2.8.8",
-    "ts-jest": "29.4.6",
     "ts-node": "10.9.2",
-    "typescript": "4.9.4",
-    "yaml-cfn": "0.3.2"
+    "typescript": "4.9.4"
   },
   "engines": {
     "node": "22.*"

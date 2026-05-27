@@ -1,6 +1,6 @@
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
-import AWSXRay from "aws-xray-sdk-core";
+import { captureAWSv3Client, setContextMissingStrategy } from "aws-xray-sdk-core";
 import { mockSqsClient } from "../tests/contract/mocks/sqsClient";
 import { Logger } from "@aws-lambda-powertools/logger";
 
@@ -16,7 +16,7 @@ const createSqsClient = () => {
 		sqsClient = mockSqsClient as unknown as SQSClient;
 	} else {
 
-		AWSXRay.setContextMissingStrategy("LOG_ERROR");
+		setContextMissingStrategy("LOG_ERROR");
 
 		const sqsClientRaw = new SQSClient({
 			region: process.env.REGION,
@@ -26,7 +26,7 @@ const createSqsClient = () => {
 				socketTimeout: 29000,
 			}),
 		});
-		sqsClient = process.env.XRAY_ENABLED === "true" ? AWSXRay.captureAWSv3Client(sqsClientRaw as any) : sqsClientRaw;
+		sqsClient = process.env.XRAY_ENABLED === "true" ? captureAWSv3Client(sqsClientRaw as any) : sqsClientRaw;
 
 	}
 	return sqsClient;

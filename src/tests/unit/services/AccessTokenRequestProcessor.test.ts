@@ -1,7 +1,7 @@
  
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { MetricUnits } from "@aws-lambda-powertools/metrics";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
@@ -25,7 +25,7 @@ let accessTokenRequestProcessorTest: AccessTokenRequestProcessor;
 let mockSession: ISessionItem;
 let request: APIGatewayProxyEvent;
 
-jest.mock("../../../utils/KmsJwtAdapter");
+vi.mock("../../../utils/KmsJwtAdapter");
 const logger = mock<Logger>();
 const metrics = mock<Metrics>();
 const mockF2fService = mock<F2fService>();
@@ -72,7 +72,7 @@ describe("AccessTokenRequestProcessor", () => {
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 		//@ts-expect-error linting to be updated
 		accessTokenRequestProcessorTest.kmsJwtAdapter = passingKmsJwtAdapterFactory();
 		request.body = `code=${AUTHORIZATION_CODE}&grant_type=authorization_code&redirect_uri=${ENCODED_REDIRECT_URI}&client_assertion_type=${Constants.CLIENT_ASSERTION_TYPE_JWT_BEARER}&client_assertion=${clientAssertionJwt}`;

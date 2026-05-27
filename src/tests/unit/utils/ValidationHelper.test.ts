@@ -52,12 +52,12 @@ const validationHelper = new ValidationHelper();
 describe("ValidationHelper", () => {
 	
 	beforeAll(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 		jwtPayload = getMockJwtPayload();
 	});
 
 	beforeEach(() => {
-		jest.resetAllMocks();
+		vi.resetAllMocks();
 		jwtPayload = getMockJwtPayload();
 	});
 

@@ -4,10 +4,10 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@aws-sdk/client-kms": "3.1001.0",
+    "@aws-sdk/client-kms": "3.1045.0",
     "@smithy/node-http-handler": "4.0.4",
     "@types/js-yaml": "4.0.9",
-    "axios": "1.15.0",
+    "axios": "1.16.0",
     "ecdsa-sig-formatter": "1.0.11",
     "esbuild": "0.25.2",
     "node-jose": "2.2.0"
@@ -15,26 +15,24 @@
   "devDependencies": {
     "@babel/preset-env": "7.26.9",
     "@types/aws-lambda": "8.10.148",
-    "@types/jest": "27.5.2",
-    "@types/node": "17.0.45",
+    "@types/node": "20.14.8",
     "@types/node-jose": "1.1.13",
     "@types/uuid": "8.3.4",
     "@typescript-eslint/eslint-plugin": "8.56.1",
     "@typescript-eslint/parser": "8.56.1",
-    "aws-cdk-lib": "2.241.0",
+    "aws-cdk-lib": "2.253.1",
     "aws-sdk-client-mock": "4.1.0",
     "eslint": "10.0.2",
-    "jest": "30.2.0",
     "js-yaml": "4.1.1",
     "prettier": "3.6.2",
-    "ts-jest": "29.4.6",
     "ts-node": "10.9.2",
     "typescript": "4.9.5",
     "uuid": "9.0.1",
+    "vitest": "4.1.4",
     "yaml-cfn": "0.3.2"
   },
   "scripts": {
-    "test": "./node_modules/.bin/jest --testPathPatterns=tests/",
+    "test": "vitest run tests/",
     "lint": "eslint -c eslint.config.mjs *.ts .",
     "lint:fix": "eslint --fix --output-file ./reports/eslint/report.html --format html -c eslint.config.mjs --ext *.ts .",
     "compile": "./node_modules/.bin/tsc"

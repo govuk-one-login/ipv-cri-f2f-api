@@ -1,5 +1,6 @@
+import type { Mocked } from "vitest";
  
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { F2fService } from "../../../services/F2fService";
@@ -11,7 +12,7 @@ import { AddressLocationsProcessor } from "../../../services/AddressLocationsPro
 import axios from "axios";
 
 const mockF2fService = mock<F2fService>();
-jest.mock("axios");
+vi.mock("axios");
 
 const logger = mock<Logger>();
 const metrics = mock<Metrics>();
@@ -43,12 +44,12 @@ function getMockSessionItem(): ISessionItem {
 }
 
 describe("AddressLocationsProcessor", () => {
-	let axiosMock: jest.Mocked<typeof axios>;
+	let axiosMock: Mocked<typeof axios>;
 
 	beforeAll(() => {
 		metrics.singleMetric.mockReturnValue(metrics);
 		
-		axiosMock = axios as jest.Mocked<typeof axios>;
+		axiosMock = axios as Mocked<typeof axios>;
 
 		addressLocationsProcessor = new AddressLocationsProcessor(logger, metrics, "osAPIKey" );
 		// @ts-expect-error linting to be updated
@@ -56,7 +57,7 @@ describe("AddressLocationsProcessor", () => {
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("throws error if session cannot be found", async () => {
@@ -121,8 +122,9 @@ describe("AddressLocationsProcessor", () => {
 		const f2fSessionItem = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		axiosMock.get.mockResolvedValue({ status: 200, data: { results: { address: "12 test street" } } });
-		const response =  await addressLocationsProcessor.processRequest(sessionId, "postcode");
+		const response = await addressLocationsProcessor.processRequest(sessionId, "postcode");
         
+		expect(axios.get).toHaveBeenCalledWith("https://test-os-locations-stub", {"headers": {"key": "osAPIKey"}, "params": {"postcode": "postcode"}});
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "200");
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "OS_response", MetricUnits.Count, 1);
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "OSAddress_success", MetricUnits.Count, 1);

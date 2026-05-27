@@ -2,7 +2,7 @@
  
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import NodeRSA from "node-rsa";
 import { HttpCodesEnum } from "../../../models/enums/HttpCodesEnum";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
@@ -12,11 +12,15 @@ import { F2fService } from "../../../services/F2fService";
 import { PersonInfoRequestProcessor } from "../../../services/PersonInfoRequestProcessor";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 
-const encryptMock = jest.fn();
-jest.mock("node-rsa", () => {
-	return jest.fn().mockImplementation(() => ({
-		encrypt: encryptMock,
-	}));
+const encryptMock = vi.fn();
+vi.mock("node-rsa", () => {
+	return {
+		default: vi.fn(function () {
+			return {
+				encrypt: encryptMock,
+			};
+		}),
+	};
 });
 
 let personInfoRequestProcessorTest: PersonInfoRequestProcessor;
@@ -132,7 +136,7 @@ describe("PersonInfoRequestProcessor", () => {
 			mockF2fService.getPersonIdentityById.mockResolvedValueOnce(person);
 			const sess = getMockSessionItem();
 			mockF2fService.getSessionById.mockResolvedValueOnce(sess);
-			const encryptSpy = jest.spyOn(personInfoRequestProcessorTest, "encryptResponse").mockReturnValueOnce("Encrypted name");
+			const encryptSpy = vi.spyOn(personInfoRequestProcessorTest, "encryptResponse").mockReturnValueOnce("Encrypted name");
 
 			const response = await personInfoRequestProcessorTest.processRequest(sessionId);
 
