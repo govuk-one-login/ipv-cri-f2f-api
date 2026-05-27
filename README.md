@@ -125,6 +125,8 @@ cp .env.example .env
 > [!IMPORTANT]
 > Do not commit `.env` or any real secrets to this public repo.
 
+To update PDF visual snapshot tests images enable `UPDATE_PDF_VISUAL_SNAPSHOTS` from `src/.env`. Otherwise keep it set to `false` for normal test runs. When set to `true`, it will intentionally regenerate the committed PDF snapshot images - output new difference ratio in the test logs and also each new snapshot path it rewrites.
+
 ---
 
 ## Local test before Deployment
@@ -196,12 +198,6 @@ npm run test:unit
 ```sh
 cd src
 npm run test:api
-```
-
-### E2E tests
-```sh
-cd src
-npm run test:e2e
 ```
 
 ### Infra tests
@@ -344,7 +340,6 @@ cd src
 npm run test:unit
 npm run test:api
 npm run test:infra
-npm run test:e2e
 ```
 ### Multiple Axios failures
 Check .env varibales using `run-tests.sh` as source of truth for required parameters

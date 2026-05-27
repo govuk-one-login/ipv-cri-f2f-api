@@ -1,5 +1,5 @@
  
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { GenerateYotiLetterProcessor } from "../../../services/GenerateYotiLetterProcessor";
@@ -16,14 +16,18 @@ const mockYotiService = mock<YotiService>();
 const logger = mock<Logger>();
 const metrics = mock<Metrics>();
 
-jest.mock("@aws-sdk/client-s3", () => ({
-	S3Client: jest.fn().mockImplementation(() => ({
-		send: jest.fn(),
-	})),
-	PutObjectCommand: jest.fn().mockImplementation((args) => args),
+vi.mock("@aws-sdk/client-s3", () => ({
+	S3Client: vi.fn(function () {
+		return {
+			send: vi.fn(),
+		};
+	}),
+	PutObjectCommand: vi.fn(function (args) {
+		return args;
+	}),
 }));
 
-const mockS3Client = mock<S3Client>();
+const mockS3Client = new S3Client({});
 
 let generateYotiLetterProcessor: GenerateYotiLetterProcessor;
 const sessionId = "RandomF2FSessionID";
@@ -58,14 +62,14 @@ describe("GenerateYotiLetterProcessor", () => {
 		generateYotiLetterProcessor = new GenerateYotiLetterProcessor(logger, metrics, yotiPrivateKey );
 		// @ts-expect-error linting to be updated
 		generateYotiLetterProcessor.f2fService = mockF2fService;
-		YotiService.getInstance = jest.fn(() => mockYotiService);
+		YotiService.getInstance = vi.fn(() => mockYotiService);
 		// @ts-expect-error linting to be updated
 		generateYotiLetterProcessor.s3Client = mockS3Client;
 
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("throws error if session cannot be found", async () => {
@@ -121,7 +125,7 @@ describe("GenerateYotiLetterProcessor", () => {
 		const f2fSessionItem = getMockSessionItem();
 		mockF2fService.getSessionById.mockResolvedValueOnce(f2fSessionItem);
 		mockYotiService.fetchInstructionsPdf.mockResolvedValueOnce("test-data");
-		jest.spyOn(mockS3Client, "send").mockImplementationOnce(() => {
+		vi.spyOn(mockS3Client, "send").mockImplementationOnce(() => {
 			throw new Error("error");
 		});
 		await expect(generateYotiLetterProcessor.processRequest({ sessionId, pdfPreference })).rejects.toThrow(expect.objectContaining({

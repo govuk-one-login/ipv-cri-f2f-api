@@ -1,7 +1,7 @@
  
 import { personIdentityUtils } from "../../../utils/PersonIdentityUtils";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
@@ -85,11 +85,11 @@ const expectedStructuralPostalAddress =  {
 describe("PersonIdentityUtils", () => {
 	
 	beforeAll(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	beforeEach(() => {
-		jest.resetAllMocks();
+		vi.resetAllMocks();
 	});
 
 

@@ -1,5 +1,5 @@
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
-import AWSXRay from "aws-xray-sdk-core";
+import { captureAWSv3Client, setContextMissingStrategy } from "aws-xray-sdk-core";
 import { mockSsmClient } from "../tests/contract/mocks/ssmClient";
 import { Logger } from "@aws-lambda-powertools/logger";
 
@@ -15,11 +15,11 @@ const createSsmClient = () => {
 		ssmClient = mockSsmClient as unknown as SSMClient;
 	} else {
         
-		AWSXRay.setContextMissingStrategy("LOG_ERROR");
+		setContextMissingStrategy("LOG_ERROR");
 
 		const ssmClientRaw = new SSMClient({ region: process.env.REGION });
 
-		ssmClient = process.env.XRAY_ENABLED === "true" ? AWSXRay.captureAWSv3Client(ssmClientRaw as any) : ssmClientRaw;
+		ssmClient = process.env.XRAY_ENABLED === "true" ? captureAWSv3Client(ssmClientRaw as any) : ssmClientRaw;
 	}
 	return ssmClient;
 };

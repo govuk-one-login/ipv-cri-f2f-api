@@ -1,4 +1,5 @@
-import { mock } from "jest-mock-extended";
+import type { Mock } from "vitest";
+import { mock } from "vitest-mock-extended";
 import { F2fService } from "../../../services/F2fService";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { randomUUID } from "crypto";
@@ -24,11 +25,11 @@ let f2fService: F2fService;
 const tableName = "SESSIONTABLE";
 const personTableName = "PERSONTABLE";
 const sessionId = "SESSID";
-const mockDynamoDbClient = jest.mocked(createDynamoDbClient());
+const mockDynamoDbClient = vi.mocked(createDynamoDbClient());
 
-jest.mock('@aws-sdk/client-sqs', () => ({
-    SQSClient: jest.fn(),
-    SendMessageCommand: jest.fn(),
+vi.mock('@aws-sdk/client-sqs', () => ({
+    SQSClient: vi.fn(),
+    SendMessageCommand: vi.fn(),
 }));
 
 const FAILURE_VALUE = "throw_me";
@@ -71,7 +72,7 @@ function getIPVCoreEventPayload(): IPVCoreEvent {
 }
 
 describe("F2f Service", () => {
-	let mockSend: jest.Mock;
+	let mockSend: Mock;
 	let txmaEventPayload: TxmaEvent, govNotifyEventPayload: GovNotifyEvent, ipvCoreEventPayload: IPVCoreEvent;
 
 	beforeAll(() => {
@@ -81,22 +82,24 @@ describe("F2f Service", () => {
 	});
 
 	beforeEach(() => {
-		jest.resetAllMocks();
+		vi.resetAllMocks();
 		f2fService = F2fService.getInstance(tableName, logger, metrics, mockDynamoDbClient);
-		mockSend = jest.fn();
-		(SQSClient as jest.Mock).mockImplementation(() => ({
-			send: mockSend,
-		}));
+		mockSend = vi.fn();
+		(SQSClient as Mock).mockImplementation(function () {
+			return {
+				send: mockSend,
+			};
+		});
 	});
 
 	it("Should return a session item when passed a valid session Id", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: SESSION_RECORD });
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({ Item: SESSION_RECORD });
 		const result = await f2fService.getSessionById(sessionId);
 		expect(result).toEqual({ sessionId });
 	});
 
 	it("Should not throw an error and return undefined when session doesn't exist", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 		await expect(f2fService.getSessionById("1234")).resolves.toBeUndefined();
 	});
 
@@ -105,7 +108,7 @@ describe("F2f Service", () => {
 			...SESSION_RECORD,
 			expiryDate: absoluteTimeNow() - 500,
 		};
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: expiredSession });
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({ Item: expiredSession });
 		await expect(f2fService.getSessionById("1234")).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.UNAUTHORIZED,
 			message: "Session with session id: 1234 has expired",
@@ -114,13 +117,13 @@ describe("F2f Service", () => {
 	});
 
 	it("Should not throw an error and return undefined when set AuthorizationCode F2F data doesn't exist", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 		await expect(f2fService.setAuthorizationCode(sessionId, randomUUID())).resolves.toBeUndefined();
 		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_AUTH_CODE_ISSUED", MetricUnits.Count, 1)
 	});
 
 	it("should throw 500 if request fails when setting AuthorizationCode", async () => {
-		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+		mockDynamoDbClient.send = vi.fn().mockRejectedValue({});
 		await expect(f2fService.setAuthorizationCode(FAILURE_VALUE, randomUUID())).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 		}));
@@ -128,7 +131,7 @@ describe("F2f Service", () => {
 	});
 
 	it("should throw 500 if request fails during update Session data with access token details", async () => {
-		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+		mockDynamoDbClient.send = vi.fn().mockRejectedValue({});
 
 		await expect(f2fService.updateSessionWithAccessTokenDetails(sessionId, 12345)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
@@ -137,14 +140,14 @@ describe("F2f Service", () => {
 	});
 
 	it("Should not throw an error and return undefined when set access token details do not exist", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 
 		await expect(f2fService.updateSessionWithAccessTokenDetails(sessionId, 12345)).resolves.toBeUndefined();
 		expect(metrics.addMetric).toHaveBeenCalledWith("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnits.Count, 1)
 	});
 
 	it("should throw 500 if request fails during update Session data with yoti session details", async () => {
-		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+		mockDynamoDbClient.send = vi.fn().mockRejectedValue({});
 
 		await expect(f2fService.updateSessionWithYotiIdAndStatus(sessionId, "12345", "4567")).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
@@ -152,7 +155,7 @@ describe("F2f Service", () => {
 	});
 
 	it("Should log success if session details update with Yoti SessionId", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce("Session Updated");
+		mockDynamoDbClient.send = vi.fn().mockResolvedValueOnce("Session Updated");
 		await f2fService.updateSessionWithYotiIdAndStatus("123", "456", "YOTI_SESSION_CREATED");
 		expect(logger.info).toHaveBeenCalledWith({ message: "Updated Yoti session details in dynamodb" });
 	});
@@ -198,13 +201,13 @@ describe("F2f Service", () => {
 	});
 
 	it("should return undefined when session item is not found by authorization code", async () => {
-		mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [] });
+		mockDynamoDbClient.query = vi.fn().mockResolvedValue({ Items: [] });
 
 		await expect(f2fService.getSessionByAuthorizationCode("1234")).rejects.toThrow("Error retrieving Session by authorization code");
 	});
 
 	it("should throw error when multiple session items are found by authorization code", async () => {
-		mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [{ sessionId: "SESSID1" }, { sessionId: "SESSID2" }] });
+		mockDynamoDbClient.query = vi.fn().mockResolvedValue({ Items: [{ sessionId: "SESSID1" }, { sessionId: "SESSID2" }] });
 
 		await expect(f2fService.getSessionByAuthorizationCode("1234")).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
@@ -218,7 +221,7 @@ describe("F2f Service", () => {
 	});
 
 	it("should throw error when session item has expired by authorization code", async () => {
-		mockDynamoDbClient.query = jest.fn().mockResolvedValue({
+		mockDynamoDbClient.query = vi.fn().mockResolvedValue({
 			Items: [{
 				sessionId,
 				expiryDate: absoluteTimeNow() - 500,
@@ -237,7 +240,7 @@ describe("F2f Service", () => {
 	});
 
 	it("should return session item when session is found by authorization code", async () => {
-		mockDynamoDbClient.query = jest.fn().mockResolvedValue({
+		mockDynamoDbClient.query = vi.fn().mockResolvedValue({
 			Items: [{
 				sessionId,
 				expiryDate: absoluteTimeNow() + 500,
@@ -255,14 +258,14 @@ describe("F2f Service", () => {
 	});
 
 	it("should return empty array when session items are not found by auth session state", async () => {
-		mockDynamoDbClient.query = jest.fn().mockResolvedValue({ Items: [] });
+		mockDynamoDbClient.query = vi.fn().mockResolvedValue({ Items: [] });
 
 		const result = await f2fService.getSessionsByAuthSessionStates(["F2F_SESSION_STARTED"]);
 		expect(result).toEqual([]);
 	});
 
 	it("should not return any session Items if the expiryDate has passed", async () => {
-		mockDynamoDbClient.query = jest.fn().mockResolvedValue({
+		mockDynamoDbClient.query = vi.fn().mockResolvedValue({
 			Items: [
 				{
 					sessionId: "SESSIDTHREE",
@@ -280,7 +283,7 @@ describe("F2f Service", () => {
 	});
 
 	it("should return session items when sessions are found matching the auth session state", async () => {
-		mockDynamoDbClient.query = jest.fn().mockResolvedValue({
+		mockDynamoDbClient.query = vi.fn().mockResolvedValue({
 			Items: [{
 				sessionId,
 				expiryDate: absoluteTimeNow() + 500,
@@ -345,7 +348,7 @@ describe("F2f Service", () => {
 
 
 	it("should update session with reminded flag", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 		await f2fService.updateReminderEmailFlag(sessionId, true);
 		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
 			input: {
@@ -362,7 +365,7 @@ describe("F2f Service", () => {
 	});
 
 	it("should update session with expired notification flag", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 		await f2fService.markSessionAsExpired(sessionId);
 		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
 			input: {
@@ -382,7 +385,7 @@ describe("F2f Service", () => {
 
 
 	it("should update session auth state", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 		await f2fService.updateSessionAuthState(sessionId, "AUTH_STATE");
 		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
 			input: {
@@ -399,7 +402,7 @@ describe("F2f Service", () => {
 	});
 
 	it("should create auth session", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 		await f2fService.createAuthSession(SESSION_RECORD as ISessionItem);
 		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
 			input: {
@@ -413,7 +416,7 @@ describe("F2f Service", () => {
 
 	it("should create and save a PersonIdentity record", async () => {
 		// Arrange
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 
 		// Act
 		await f2fService.savePersonIdentity(personIdentityInputRecord, "1234");
@@ -431,10 +434,10 @@ describe("F2f Service", () => {
 
 	it("should add createdDate and expiryDate to a PersonIdentity record", async () => {
 		// Arrange
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
-		jest.useFakeTimers();
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
+		vi.useFakeTimers();
 		const fakeTime = 1684933200.123;
-		jest.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
+		vi.setSystemTime(new Date(fakeTime * 1000)); // 2023-05-24T13:00:00.123Z
 
 		// Act
 		await f2fService.savePersonIdentity(personIdentityInputRecord, "1234");
@@ -450,11 +453,11 @@ describe("F2f Service", () => {
 				}),
 			}),
 		}));
-		jest.useRealTimers();
+		vi.useRealTimers();
 	});
 
 	it("Should throw an error when session by yoti sessionId doesn't exist", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 		await expect(f2fService.getSessionByYotiId("1234")).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Error retrieving Session by yoti session id",
@@ -463,7 +466,7 @@ describe("F2f Service", () => {
 	});
 
 	it("Should throw an error when Person record by sessionId doesn't exist", async () => {
-		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+		mockDynamoDbClient.send = vi.fn().mockRejectedValue({});
 		await expect(f2fService.getPersonIdentityById("1234")).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Error retrieving Session",
@@ -475,7 +478,7 @@ describe("F2f Service", () => {
 		["should update session table with updated ttl", 123456, "SESSIONTABLE"],
 		["should update person identity table with updated ttl", 123456, "PERSONTABLE"],
 	])("update ttl - %s", async (description, expiryDate, testTableName) => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 		await f2fService.updateSessionTtl(sessionId, expiryDate, testTableName);
 		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
 			input: {
@@ -496,7 +499,7 @@ describe("F2f Service", () => {
 		["should throw 500 if fails to update session ttl", "SESSIONTABLE"],
 		["should throw 500 if fails to update person identity ttl", "PERSONTABLE"],
 	])("update ttl - %s", async (description, testTableName) => {
-		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+		mockDynamoDbClient.send = vi.fn().mockRejectedValue({});
 		await expect(f2fService.updateSessionTtl(FAILURE_VALUE, 123456, testTableName)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: `updateItem - failed: got error updating ${testTableName} ttl`,
@@ -504,7 +507,7 @@ describe("F2f Service", () => {
 	});	
 
 	it("should update session table with documentUsed", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 		await f2fService.addUsersSelectedDocument(sessionId, "passport", "SESSIONTABLE");
 		expect(mockDynamoDbClient.send).toHaveBeenCalledWith(expect.objectContaining({
 			input: {
@@ -522,7 +525,7 @@ describe("F2f Service", () => {
 	
 
 	it("should throw 500 if fails to update documentUsed", async () => {
-		mockDynamoDbClient.send = jest.fn().mockRejectedValue({});
+		mockDynamoDbClient.send = vi.fn().mockRejectedValue({});
 		await expect(f2fService.addUsersSelectedDocument(sessionId, "passport", "SESSIONTABLE")).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "updateItem - failed: got error updating SESSIONTABLE",
@@ -530,7 +533,7 @@ describe("F2f Service", () => {
 	});	
 
 	it("should add user PDF instructions preference to the person record if email only chosen", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: personIdentityOutputRecord });
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({ Item: personIdentityOutputRecord });
 		await f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.EMAIL_ONLY, undefined, personTableName);
 		expect(mockDynamoDbClient.send).toHaveBeenNthCalledWith(2, expect.objectContaining({
 			input: {
@@ -547,7 +550,7 @@ describe("F2f Service", () => {
 	});
 
 	it("should add user PDF instructions preference to the person record if letter chosen but postal address matches shared claims", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: personIdentityOutputRecord });
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({ Item: personIdentityOutputRecord });
 		await f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressSameInputRecord, personTableName);
 		expect(mockDynamoDbClient.send).toHaveBeenNthCalledWith(2, expect.objectContaining({
 			input: {
@@ -566,7 +569,7 @@ describe("F2f Service", () => {
 	});
 
 	it("should add user PDF instructions preference and postal address to the person record if letter chosen and postal address is different to shared claims", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValue({ Item: personIdentityOutputRecordTwoAddresses });
+		mockDynamoDbClient.send = vi.fn().mockResolvedValue({ Item: personIdentityOutputRecordTwoAddresses });
 		await f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressDifferentInputRecord, personTableName);
 		expect(mockDynamoDbClient.send).toHaveBeenNthCalledWith(2, expect.objectContaining({
 			input: {
@@ -586,7 +589,7 @@ describe("F2f Service", () => {
 	});
 
 	it("should throw an error when update fails for pdfPreference", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce({ Item: personIdentityOutputRecord }).mockRejectedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValueOnce({ Item: personIdentityOutputRecord }).mockRejectedValue({});
 		await expect(f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressSameInputRecord, personTableName)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "updateItem - failed: got error updating pdfPreference in PERSONTABLE",
@@ -594,7 +597,7 @@ describe("F2f Service", () => {
 	});
 
 	it("should throw an error when update fails for pdfPreference or postal address", async () => {
-		mockDynamoDbClient.send = jest.fn().mockResolvedValueOnce({ Item: personIdentityOutputRecordTwoAddresses }).mockRejectedValue({});
+		mockDynamoDbClient.send = vi.fn().mockResolvedValueOnce({ Item: personIdentityOutputRecordTwoAddresses }).mockRejectedValue({});
 		await expect(f2fService.saveUserPdfPreferences(sessionId, PdfPreferenceEnum.PRINTED_LETTER, postalAddressDifferentInputRecord, personTableName)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "updateItem - failed: got error updating pdfPreference or postal address details in PERSONTABLE",

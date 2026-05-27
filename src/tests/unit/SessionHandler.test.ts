@@ -1,20 +1,20 @@
 import { lambdaHandler } from "../../SessionHandler";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { VALID_SESSION } from "./data/session-events";
 import { SessionRequestProcessor } from "../../services/SessionRequestProcessor";
 import { CONTEXT } from "./data/context";
 
 const mockedSessionRequestProcessor = mock<SessionRequestProcessor>();
 
-jest.mock("../../services/SessionRequestProcessor", () => {
+vi.mock("../../services/SessionRequestProcessor", () => {
 	return {
-		SessionRequestProcessor: jest.fn(() => mockedSessionRequestProcessor),
+		SessionRequestProcessor: vi.fn(() => mockedSessionRequestProcessor),
 	};
 });
 
 describe("SessionHandler", () => {
 	it("return success response for session", async () => {
-		SessionRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedSessionRequestProcessor);
+		SessionRequestProcessor.getInstance = vi.fn().mockReturnValue(mockedSessionRequestProcessor);
 
 		await lambdaHandler(VALID_SESSION, CONTEXT);
 

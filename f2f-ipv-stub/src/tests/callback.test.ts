@@ -18,10 +18,10 @@ const token = {
   },
 };
 
-jest.mock("axios");
+vi.mock("axios");
 
 describe("Callback Endpoint", () => {
-  const mockedAxios = axios as jest.Mocked<typeof axios>;
+  const mockedAxios = vi.mocked(axios);
 
   beforeEach(() => {
     mockedAxios.post

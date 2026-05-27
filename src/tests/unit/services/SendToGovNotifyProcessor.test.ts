@@ -1,7 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
 import { SendToGovNotifyService } from "../../../services/SendToGovNotifyService";
 import { SendToGovNotifyProcessor } from "../../../services/SendToGovNotifyProcessor";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
 
@@ -23,7 +23,7 @@ describe("SendToGovNotify processor", () => {
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("successfully calls the SendToGovNotifyService with incoming event", async () => {

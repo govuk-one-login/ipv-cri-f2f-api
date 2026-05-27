@@ -1,24 +1,25 @@
+import type { MockInstance } from "vitest";
  
 import { lambdaHandler, logger } from "../../PersonInfoHandler";
 import { VALID_PERSON_INFO } from "./data/person-info-events";
 import { CONTEXT } from "./data/context";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { HttpCodesEnum } from "../../models/enums/HttpCodesEnum";
 import { PersonInfoRequestProcessor } from "../../services/PersonInfoRequestProcessor";
 import { Constants } from "../../utils/Constants";
 import { MessageCodes } from "../../models/enums/MessageCodes";
 
 const mockedPersonInfoRequestProcessor = mock<PersonInfoRequestProcessor>();
-jest.mock("../../utils/Config", () => ({
+vi.mock("../../utils/Config", () => ({
 	getParameter: (parameter: string) => parameter,
 }));
 
  
 describe("PersonInfoHandler", () => {
-	let loggerSpy: jest.SpyInstance;
+	let loggerSpy: MockInstance;
 
 	beforeEach(() => {
-		loggerSpy = jest.spyOn(logger, "error");
+		loggerSpy = vi.spyOn(logger, "error");
 	});
 
 	it("returns error when x-govuk-signin-session-id header isn't passed", async () => {
@@ -42,7 +43,7 @@ describe("PersonInfoHandler", () => {
 	});
 
 	it("return success when PersonInfoRequestProcessor completes successfully", async () => {
-		PersonInfoRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedPersonInfoRequestProcessor);
+		PersonInfoRequestProcessor.getInstance = vi.fn().mockReturnValue(mockedPersonInfoRequestProcessor);
 
 		await lambdaHandler(VALID_PERSON_INFO, CONTEXT);
 
@@ -50,7 +51,7 @@ describe("PersonInfoHandler", () => {
 	});
 
 	it("return error when PersonInfoRequestProcessor throws an error", async () => {
-		PersonInfoRequestProcessor.getInstance = jest.fn().mockReturnValue(mockedPersonInfoRequestProcessor);
+		PersonInfoRequestProcessor.getInstance = vi.fn().mockReturnValue(mockedPersonInfoRequestProcessor);
 		mockedPersonInfoRequestProcessor.processRequest.mockRejectedValueOnce("Error");
 
 		const response = await lambdaHandler(VALID_PERSON_INFO, CONTEXT);

@@ -3,7 +3,7 @@
 import fs from "fs";
 
 import { Logger } from "@aws-lambda-powertools/logger";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 
 import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
 import { person, personAddressAllAddressFields } from "../data/postalAddress-events";

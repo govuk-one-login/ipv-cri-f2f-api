@@ -22,6 +22,10 @@ describe("JWKS Endpoint", () => {
     });
   });
 
+  afterEach(() => {
+    mockKmsClient.restore();
+  });
+
   it("provides at least two signing keys", async () => {
     const response = await handler();
     expect(response.statusCode).toBe(200);

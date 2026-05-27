@@ -1,20 +1,20 @@
 import { lambdaHandler } from "../../ReminderEmailHandler";
-import { mock } from "jest-mock-extended";
+import { mock } from "vitest-mock-extended";
 import { ReminderEmailProcessor } from "../../services/ReminderEmailProcessor";
 import { CONTEXT } from "./data/context";
 import { Response } from "../../utils/Response";
 
 const mockedReminderEmailProcessor = mock<ReminderEmailProcessor>();
 
-jest.mock("../../services/ReminderEmailProcessor", () => {
+vi.mock("../../services/ReminderEmailProcessor", () => {
 	return {
-		ReminderEmailProcessor: jest.fn(() => mockedReminderEmailProcessor),
+		ReminderEmailProcessor: vi.fn(() => mockedReminderEmailProcessor),
 	};
 });
 
 describe("ReminderEmailHandler", () => {
 	it("return success response for ReminderEmail", async () => {
-		ReminderEmailProcessor.getInstance = jest.fn().mockReturnValue(mockedReminderEmailProcessor);
+		ReminderEmailProcessor.getInstance = vi.fn().mockReturnValue(mockedReminderEmailProcessor);
 		mockedReminderEmailProcessor.processRequest.mockResolvedValueOnce(Response(200, "Success"));
 
 		const result = await lambdaHandler("", CONTEXT);
@@ -26,7 +26,7 @@ describe("ReminderEmailHandler", () => {
 	});
 
 	it("returns error if ReminderEmailProcessor fails", async () => {
-		ReminderEmailProcessor.getInstance = jest.fn().mockReturnValue(mockedReminderEmailProcessor);
+		ReminderEmailProcessor.getInstance = vi.fn().mockReturnValue(mockedReminderEmailProcessor);
 		mockedReminderEmailProcessor.processRequest.mockRejectedValueOnce(Response(500, "ERROR"));
 
 		const result = await lambdaHandler("", CONTEXT);

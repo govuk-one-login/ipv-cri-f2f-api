@@ -1,25 +1,26 @@
+import type { MockInstance } from "vitest";
 import * as AWS from "@aws-sdk/client-ssm";
 import { mockSsmClient } from "../../contract/mocks/ssmClient";
 import { createSsmClient } from "../../../utils/SSMClient";
 import { Logger } from "@aws-lambda-powertools/logger";
-import AWSXRay from "aws-xray-sdk-core";
+import { captureAWSv3Client } from "aws-xray-sdk-core";
 
-jest.mock("aws-xray-sdk-core", () => ({
-    captureAWSv3Client: jest.fn((client) => client),
-    setContextMissingStrategy: jest.fn(),
+vi.mock("aws-xray-sdk-core", () => ({
+    captureAWSv3Client: vi.fn((client) => client),
+    setContextMissingStrategy: vi.fn(),
 }));
 
 describe("createSsmClient", () => {
 
-	let loggerSpy: jest.SpyInstance;
+	let loggerSpy: MockInstance;
 
 	beforeEach(() => {
-		loggerSpy = jest.spyOn(Logger.prototype, 'info');
+		loggerSpy = vi.spyOn(Logger.prototype, 'info');
 	});
 
     afterEach(() => {
 		loggerSpy.mockRestore();
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
 	it("should use the mocked client and log correctly when USE_MOCKED is true", () => {
@@ -44,14 +45,14 @@ describe("createSsmClient", () => {
         process.env.XRAY_ENABLED = "true";
         process.env.REGION = "eu-west-2";
         createSsmClient();
-        expect(AWSXRay.captureAWSv3Client).toHaveBeenCalledWith(expect.any(AWS.SSMClient));
+        expect(captureAWSv3Client).toHaveBeenCalledWith(expect.any(AWS.SSMClient));
     });
 
     it("should return a raw SSM client when XRAY_ENABLED is false and USE_MOCKED is not set", () => {
         process.env.XRAY_ENABLED = "false";
         process.env.REGION = "eu-west-2"; // Or your desired region
         const ssmClient = createSsmClient();
-        expect(AWSXRay.captureAWSv3Client).not.toHaveBeenCalled();
+        expect(captureAWSv3Client).not.toHaveBeenCalled();
         expect(ssmClient).toBeInstanceOf(AWS.SSMClient);
     });
 
@@ -59,7 +60,7 @@ describe("createSsmClient", () => {
     it("should return a raw SSM client when XRAY_ENABLED is not set and USE_MOCKED is not set", () => {
         process.env.REGION = "eu-west-2"; // Or your desired region
         const ssmClient = createSsmClient();
-        expect(AWSXRay.captureAWSv3Client).not.toHaveBeenCalled();
+        expect(captureAWSv3Client).not.toHaveBeenCalled();
         expect(ssmClient).toBeInstanceOf(AWS.SSMClient);
     });
 

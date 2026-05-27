@@ -1,12 +1,4 @@
 import { handler } from "../handlers/generateTokenRequest";
-import {
-  expect,
-  jest,
-  it,
-  beforeEach,
-  afterEach,
-  describe,
-} from "@jest/globals";
 import { mockClient } from "aws-sdk-client-mock";
 import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
 import format from "ecdsa-sig-formatter";
@@ -14,8 +6,6 @@ import format from "ecdsa-sig-formatter";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import testData from "../events/startEvents.js";
-
-jest.setTimeout(30000);
 
 process.env.SIGNING_KEY = "key-id";
 process.env.ADDITIONAL_SIGNING_KEY = "additional-signing-key-id";
@@ -25,8 +15,8 @@ const kmsClient = mockClient(KMSClient);
 
 describe("Start F2F Check Endpoint", () => {
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(1585695600000)); // == 2020-03-31T23:00:00.000Z
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(1585695600000)); // == 2020-03-31T23:00:00.000Z
 
     kmsClient.on(SignCommand).resolves({
       Signature: new Uint8Array([
@@ -35,15 +25,15 @@ describe("Start F2F Check Endpoint", () => {
       ]),
     });
 
-    jest.spyOn(format, "derToJose").mockReturnValue(
+    vi.spyOn(format, "derToJose").mockReturnValue(
       // pragma: allowlist nextline secret
       "PmBhykH4w94xj3dSDSR-tE5XSh60SjKAP6hHGc6c_fx7ia87hEkKgfhSTCT000RaDhH0MaV47FsUjztCb0m1qg"
     );
   });
 
   afterEach(() => {
-    jest.useRealTimers();
-    jest.resetAllMocks();
+    vi.useRealTimers();
+    vi.resetAllMocks();
   });
 
   it("returns JWT data", async () => {
