@@ -87,7 +87,7 @@
     "aws-cdk-lib": "2.253.1",
     "aws4-axios": "3.4.0",
     "canvas": "3.1.0",
-    "dotenv": "16.4.7",
+    "dotenv": "17.4.2",
     "eslint": "10.0.2",
     "express": "4.22.1",
     "express-asyncify": "2.1.2",
