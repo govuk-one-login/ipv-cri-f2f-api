@@ -1,9 +1,9 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { fromEnv } from "@aws-sdk/credential-providers";
-import { captureAWSv3Client, setContextMissingStrategy } from "aws-xray-sdk-core";
+import AWSXRay from "aws-xray-sdk-core";
 
-setContextMissingStrategy("LOG_ERROR");
+AWSXRay.setContextMissingStrategy("LOG_ERROR");
 
 const awsRegion = process.env.AWS_REGION;
 export const createDynamoDbClient = () => {
@@ -20,5 +20,5 @@ export const createDynamoDbClient = () => {
 	const endpoint = useMocks ? "http://localhost:8000" : undefined;
 	const dbClient = new DynamoDBClient({ region: awsRegion, credentials: fromEnv(), endpoint });
 	const dbClientRaw = DynamoDBDocument.from(dbClient, translateConfig);
-	return process.env.XRAY_ENABLED === "true" ? captureAWSv3Client(dbClientRaw as any) : dbClientRaw;
+	return process.env.XRAY_ENABLED === "true" ? AWSXRay.captureAWSv3Client(dbClientRaw as any) : dbClientRaw;
 };
