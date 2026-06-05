@@ -1,5 +1,7 @@
-import 'dotenv/config';
+import dotenv from "dotenv";
 import { defineConfig } from 'vitest/config';
+
+dotenv.config();
 
 const junitOutputFile = process.env.VITEST_JUNIT_OUTPUT_NAME
   ? `./results/${process.env.VITEST_JUNIT_OUTPUT_NAME}`
