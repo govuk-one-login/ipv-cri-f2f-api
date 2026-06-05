@@ -10,7 +10,7 @@
         "@types/aws-lambda": "8.10.148",
         "@types/js-yaml": "4.0.9",
         "@types/node": "20.14.8",
-        "aws-cdk-lib": "2.253.1",
+        "aws-cdk-lib": "2.257.0",
         "js-yaml": "4.1.1",
         "typescript": "4.9.4",
         "vitest": "4.1.4",
