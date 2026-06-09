@@ -78,5 +78,23 @@ describe("PdfGenerationServiceTest", () => {
 				"F1 1SH",
 			]);
 		});
+
+		it("should map sub-building name correctly when building name is not present", () => {
+			const postalAddressWithoutBuildingName: PersonIdentityAddress = {
+				...person.addresses[0],
+				subBuildingName: "Flat 5",
+				buildingName: "",
+			};
+
+			const result = pdfGenerationService.mapToAddressLines(postalAddressWithoutBuildingName);
+
+			expect(result).toEqual([
+				"Test org",
+				"Flat 5",
+				"32 Wallaby Way",
+				"Sidney",
+				"F1 1SH",
+			]);
+		});
 	});
 });
