@@ -96,5 +96,125 @@ describe("PdfGenerationServiceTest", () => {
 				"F1 1SH",
 			]);
 		});
+
+		it.each<[string, PersonIdentityAddress, string[]]>([
+			[
+				"should map a flat address without a building name",
+				{
+					...person.addresses[0],
+					organisationName: "",
+					subBuildingName: "Flat 2B",
+					buildingName: "",
+					buildingNumber: "221B",
+					streetName: "Baker Street",
+					addressLocality: "London",
+					postalCode: "NW1 6XE",
+				},
+				[
+					"Flat 2B",
+					"221B Baker Street",
+					"London",
+					"NW1 6XE",
+				],
+			],
+			[
+				"should map a business unit with department and organisation names",
+				{
+					...person.addresses[0],
+					departmentName: "Accounts Payable",
+					organisationName: "Example Trading Ltd",
+					subBuildingName: "Unit 12",
+					buildingName: "Alpha House",
+					buildingNumber: "",
+					dependentStreetName: "Service Yard",
+					streetName: "Industrial Estate",
+					dependentAddressLocality: "North Quarter",
+					addressLocality: "Manchester",
+					postalCode: "M1 1AA",
+				},
+				[
+					"Accounts Payable, Example Trading Ltd",
+					"Unit 12, Alpha House",
+					"Service Yard, Industrial Estate",
+					"North Quarter, Manchester",
+					"M1 1AA",
+				],
+			],
+			[
+				"should map an apartment in a named building",
+				{
+					...person.addresses[0],
+					organisationName: "",
+					subBuildingName: "Studio 3",
+					buildingName: "The Old Mill",
+					buildingNumber: "",
+					dependentStreetName: "Mill Lane",
+					streetName: "River Road",
+					addressLocality: "Bristol",
+					postalCode: "BS1 4ST",
+				},
+				[
+					"Studio 3, The Old Mill",
+					"Mill Lane, River Road",
+					"Bristol",
+					"BS1 4ST",
+				],
+			],
+			[
+				"should map a department address without an organisation name",
+				{
+					...person.addresses[0],
+					departmentName: "Post Room",
+					organisationName: "",
+					subBuildingName: "Suite 9",
+					buildingName: "",
+					buildingNumber: "10",
+					streetName: "Market Street",
+					addressLocality: "Leeds",
+					postalCode: "LS1 1UR",
+				},
+				[
+					"Post Room",
+					"Suite 9",
+					"10 Market Street",
+					"Leeds",
+					"LS1 1UR",
+				],
+			],
+		])("%s", (_testName, postalAddress, expectedAddressLines) => {
+			const result = pdfGenerationService.mapToAddressLines(postalAddress);
+
+			expect(result).toEqual(expectedAddressLines);
+		});
+
+		it("should print the maximum of five mapped address lines", () => {
+			const result = pdfGenerationService.mapToAddressLines(personAddressAllAddressFields);
+
+			expect(result).toHaveLength(5);
+			expect(result).toEqual([
+				"Test dept, Test org",
+				"Flat 5, Sherman",
+				"32 Ocean View, Wallaby Way",
+				"Southside, Sidney",
+				"F1 1SH",
+			]);
+		});
+
+		it("should print the minimum mapped address lines when optional address fields are missing", () => {
+			const minimumPostalAddress: PersonIdentityAddress = {
+				...person.addresses[0],
+				organisationName: "",
+				buildingName: "",
+			};
+
+			const result = pdfGenerationService.mapToAddressLines(minimumPostalAddress);
+
+			expect(result).toHaveLength(3);
+			expect(result).toEqual([
+				"32 Wallaby Way",
+				"Sidney",
+				"F1 1SH",
+			]);
+		});
 	});
 });
