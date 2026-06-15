@@ -30,7 +30,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Set offline mirror path
         id: offline-mirror-path

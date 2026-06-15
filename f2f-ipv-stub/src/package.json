@@ -36,7 +36,7 @@
     "compile": "./node_modules/.bin/tsc"
   },
   "engines": {
-    "node": "22.*"
+    "node": "24.*"
   },
   "type": "module"
 }
