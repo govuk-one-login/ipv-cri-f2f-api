@@ -4,7 +4,7 @@
     "version": "0.0.1",
     "private": true,
     "dependencies": {
-        "esbuild": "0.25.2"
+        "esbuild": "0.28.1"
     },
     "devDependencies": {
         "@types/aws-lambda": "8.10.148",
