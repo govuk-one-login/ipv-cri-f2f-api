@@ -1,5 +1,5 @@
 import { F2fService } from "./F2fService";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { MessageCodes } from "../models/enums/MessageCodes";
@@ -102,7 +102,7 @@ export class PostOfficeVisitProcessor {
 			govuk_signin_journey_id: f2fSession.clientSessionId,
 		});
 
-		this.metrics.addMetric("first_branch_visit", MetricUnits.Count, 1);
+		this.metrics.addMetric("first_branch_visit", MetricUnit.Count, 1);
 
 		this.logger.info({
 			message: "Recorded FIRST_BRANCH_VISIT metric",
@@ -199,7 +199,7 @@ export class PostOfficeVisitProcessor {
 			AuthSessionState.F2F_YOTI_SESSION_COMPLETE,
 		);
 
-		this.metrics.addMetric("document_uploaded_at_PO", MetricUnits.Count, 1);
+		this.metrics.addMetric("document_uploaded_at_PO", MetricUnit.Count, 1);
 		return Response(HttpCodesEnum.OK, "OK");
 	}
 }

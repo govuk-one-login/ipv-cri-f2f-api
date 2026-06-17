@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { randomUUID } from "crypto";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -55,14 +55,14 @@ export class AuthorizationRequestProcessor {
 				govuk_signin_journey_id: session?.clientSessionId,
 			});
 
-			this.metrics.addMetric("found session", MetricUnits.Count, 1);
+			this.metrics.addMetric("found session", MetricUnit.Count, 1);
 			if (session.authSessionState === AuthSessionState.F2F_YOTI_SESSION_CREATED) {
 
 				const authorizationCode = randomUUID();
 
 				await this.f2fService.setAuthorizationCode(sessionId, authorizationCode);
 
-				this.metrics.addMetric("Set authorization code", MetricUnits.Count, 1);
+				this.metrics.addMetric("Set authorization code", MetricUnit.Count, 1);
 				try {
 					const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress);
 					await this.f2fService.sendToTXMA({
@@ -109,7 +109,7 @@ export class AuthorizationRequestProcessor {
 
 				return Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));
 			} else {
-				this.metrics.addMetric("AuthRequest_error_user_state_incorrect", MetricUnits.Count, 1);
+				this.metrics.addMetric("AuthRequest_error_user_state_incorrect", MetricUnit.Count, 1);
 				this.logger.warn( { message: `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_YOTI_SESSION_CREATED}, actual state - ${session.authSessionState}` }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
 				return Response(HttpCodesEnum.UNAUTHORIZED, `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_YOTI_SESSION_CREATED}, actual state - ${session.authSessionState}`);
 			}

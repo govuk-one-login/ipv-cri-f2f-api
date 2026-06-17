@@ -2,7 +2,7 @@
  
 import { Response, SECURITY_HEADERS } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -46,7 +46,7 @@ export class SessionRequestProcessor {
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.SESSION_SERVICE);
   	logger.debug("metrics is  " + JSON.stringify(this.metrics));
-  	this.metrics.addMetric("Called", MetricUnits.Count, 1);
+  	this.metrics.addMetric("Called", MetricUnit.Count, 1);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
   	this.kmsDecryptor = new KmsJwtAdapter(this.environmentVariables.encryptionKeyIds(), logger);
   	this.validationHelper = new ValidationHelper();
@@ -200,7 +200,7 @@ export class SessionRequestProcessor {
 
   	try {
   		await this.f2fService.createAuthSession(session);
-		this.metrics.addMetric("state-F2F_SESSION_CREATED", MetricUnits.Count, 1);
+		this.metrics.addMetric("state-F2F_SESSION_CREATED", MetricUnit.Count, 1);
   	} catch (error) {
   		this.logger.error("Failed to create session in session table", {
   			error,
@@ -243,7 +243,7 @@ export class SessionRequestProcessor {
 
   	this.logger.info("Session created successfully. Returning 200OK");
 
-	this.metrics.addMetric("session_created", MetricUnits.Count, 1);
+	this.metrics.addMetric("session_created", MetricUnit.Count, 1);
 
   	return {
   		statusCode: HttpCodesEnum.OK,

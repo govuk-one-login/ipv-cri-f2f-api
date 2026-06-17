@@ -22,7 +22,7 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { IPVCoreEvent } from "../utils/IPVCoreEvent";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { PdfPreferenceEnum } from "../utils/PdfPreferenceEnum";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 
 export class F2fService {
 	readonly tableName: string;
@@ -148,7 +148,7 @@ export class F2fService {
 
 		try {
 			await this.dynamo.send(updateSessionCommand);
-			this.metrics.addMetric("state-F2F_AUTH_CODE_ISSUED", MetricUnits.Count, 1);
+			this.metrics.addMetric("state-F2F_AUTH_CODE_ISSUED", MetricUnit.Count, 1);
 
 			this.logger.info({ message: "updated authorizationCode in dynamodb" });
 		} catch (error: any) {
@@ -332,7 +332,7 @@ export class F2fService {
 
 		try {
 			await this.dynamo.send(updateStateCommand);
-			this.metrics.addMetric("state-F2F_SESSION_EXPIRED", MetricUnits.Count, 1);
+			this.metrics.addMetric("state-F2F_SESSION_EXPIRED", MetricUnit.Count, 1);
 			this.logger.info({ message: "Session marked as expired", sessionId });
 		} catch (error) {
 			this.logger.error({ message: "Got error marking session as expired", error });
@@ -354,7 +354,7 @@ export class F2fService {
 		this.logger.info({ message: "updating Access token details in dynamodb" }, { tableName: this.tableName });
 		try {
 			await this.dynamo.send(updateAccessTokenDetailsCommand);
-			this.metrics.addMetric("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnits.Count, 1);
+			this.metrics.addMetric("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnit.Count, 1);
 
 			this.logger.info({ message: "updated Access token details in dynamodb" });
 		} catch (error) {

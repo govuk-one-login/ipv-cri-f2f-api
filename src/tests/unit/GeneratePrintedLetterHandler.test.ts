@@ -5,7 +5,7 @@ import { GeneratePrintedLetterProcessor } from "../../services/GeneratePrintedLe
 import { mock } from "vitest-mock-extended";
 import { CONTEXT } from "./data/context";
 import { MessageCodes } from "../../models/enums/MessageCodes";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 
 const mockedGeneratePrintedLetterProcessor = mock<GeneratePrintedLetterProcessor>();
 
@@ -37,7 +37,7 @@ describe("GeneratePrintedLetterHandler", () => {
 		await lambdaHandler(({ "sessionId":"", "pdfPreference":"POST" }), CONTEXT);
 
 		expect(logger.error).toHaveBeenCalledWith({ message: "Invalid request: missing sessionId", messageCode: MessageCodes.MISSING_SESSION_ID });
-		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter", MetricUnits.Count, 1);
+		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter", MetricUnit.Count, 1);
 
 	});
 
@@ -48,7 +48,7 @@ describe("GeneratePrintedLetterHandler", () => {
 		await lambdaHandler(({ "sessionId":"abcdefgh", "pdfPreference":"POST" }), CONTEXT);
 
 		expect(logger.error).toHaveBeenCalledWith({ message: "Invalid request: sessionId is not a valid uuid", messageCode: MessageCodes.INVALID_SESSION_ID });
-		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter", MetricUnits.Count, 1);
+		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter", MetricUnit.Count, 1);
 	});
 
 	it("calls GenerateYotiLetterProcessor if required attributes are present", async () => {

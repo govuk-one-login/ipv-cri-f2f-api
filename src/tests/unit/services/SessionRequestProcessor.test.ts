@@ -1,7 +1,7 @@
  
  
 import { SessionRequestProcessor } from "../../../services/SessionRequestProcessor";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "../../../services/F2fService";
@@ -378,8 +378,8 @@ describe("SessionRequestProcessor", () => {
 			sessionId: expect.any(String),
 			govuk_signin_journey_id: "abcdef",
 		});
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "state-F2F_SESSION_CREATED", MetricUnits.Count, 1);
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "session_created", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "state-F2F_SESSION_CREATED", MetricUnit.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "session_created", MetricUnit.Count, 1)
 	});
 
 	it("ip_address is X_FORWARDED_FOR header if present in event header", async () => {
@@ -458,8 +458,8 @@ describe("SessionRequestProcessor", () => {
 			sessionId: expect.any(String),
 			govuk_signin_journey_id: "abcdef",
 		});
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "state-F2F_SESSION_CREATED", MetricUnits.Count, 1);
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "session_created", MetricUnits.Count, 1)
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "state-F2F_SESSION_CREATED", MetricUnit.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "session_created", MetricUnit.Count, 1)
 	});
 
 	// the test below fails as the session processor is not writing the expiryDate value correctly in

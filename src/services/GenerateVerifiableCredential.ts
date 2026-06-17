@@ -10,7 +10,7 @@ import {
 	VerifiedCredentialSubject,
 	Name,
 } from "../utils/IVeriCredential";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 
 export class GenerateVerifiableCredential {
   readonly logger: Logger;
@@ -499,6 +499,6 @@ export class GenerateVerifiableCredential {
   private constructNotReturnedErrorMetric(dimension: string) {
 	const singleMetric = this.metrics.singleMetric();
 	singleMetric.addDimension("error", dimension);
-	singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+	singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnit.Count, 1);
 }
 }

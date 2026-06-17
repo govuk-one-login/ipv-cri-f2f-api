@@ -1,5 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import crypto, { randomUUID } from "crypto";
 import axios, { AxiosRequestConfig } from "axios";
 import { AppError } from "../utils/AppError";
@@ -420,6 +420,6 @@ export class YotiService {
 	collectResponseMetric(requestMetricName:string, response: any) {
 		const singleMetric = this.metrics.singleMetric();
 		singleMetric.addDimension("status_code", response.status.toString());
-		singleMetric.addMetric(requestMetricName, MetricUnits.Count, 1);
+		singleMetric.addMetric(requestMetricName, MetricUnit.Count, 1);
 	}
 }
