@@ -312,6 +312,8 @@ mapToAddressLines(postalAddress: PersonIdentityAddress): string[] {
 		address.push(`${postalAddress.subBuildingName}, ${postalAddress.buildingName}`);
 	} else if (postalAddress.buildingName && !postalAddress.subBuildingName) {
 		address.push(postalAddress.buildingName);
+	} else if (postalAddress.subBuildingName && !postalAddress.buildingName) {
+		address.push(postalAddress.subBuildingName);
 	}
 	// Line 3
 	const buildingNumber = postalAddress.buildingNumber ? `${postalAddress.buildingNumber} ` : "";
