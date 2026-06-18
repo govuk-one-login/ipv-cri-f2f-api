@@ -2,7 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { SendToGovNotifyService } from "../../../services/SendToGovNotifyService";
 import { SendToGovNotifyProcessor } from "../../../services/SendToGovNotifyProcessor";
 import { mock } from "vitest-mock-extended";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 
 
 let sendToGovNotifyProcessor: SendToGovNotifyProcessor;
@@ -38,7 +38,7 @@ describe("SendToGovNotify processor", () => {
 
 		await expect(sendToGovNotifyProcessor.processRequest("sessionId")).rejects.toThrow("sendYotiInstructions - Cannot send Email");
 		 
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_failed_to_send_instructions", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_failed_to_send_instructions", MetricUnit.Count, 1);
 
 	});
 

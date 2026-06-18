@@ -1,5 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { SendEmailService } from "./SendEmailService";
 import { Constants } from "../utils/Constants";
 import { Email } from "../models/Email";
@@ -45,8 +45,8 @@ export class SendEmailProcessor {
   			const pdfEmailResponse = this.govNotifyService.sendYotiPdfEmail(email);
 
 			singleMetric.addDimension("emailType", "Pdf");
-  			singleMetric.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
-			this.metrics.addMetric("GovNotify_PDF_email_sent", MetricUnits.Count, 1);
+  			singleMetric.addMetric("GovNotify_email_sent", MetricUnit.Count, 1);
+			this.metrics.addMetric("GovNotify_PDF_email_sent", MetricUnit.Count, 1);
 			return pdfEmailResponse;
 		}
   		case Constants.REMINDER_EMAIL_DYNAMIC: {
@@ -55,7 +55,7 @@ export class SendEmailProcessor {
   			const dynamicReminderEmailResponse = this.govNotifyService.sendDynamicReminderEmail(dynamicReminderEmail);
 
 			singleMetric.addDimension("emailType", "dynamic_reminder");
-  			singleMetric.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
+  			singleMetric.addMetric("GovNotify_email_sent", MetricUnit.Count, 1);
 			return dynamicReminderEmailResponse;
 		}
   		case Constants.REMINDER_EMAIL: {
@@ -64,7 +64,7 @@ export class SendEmailProcessor {
   			const reminderEmailResponse = this.govNotifyService.sendReminderEmail(reminderEmail);
 
 			singleMetric.addDimension("emailType", "reminder");
-  			singleMetric.addMetric("GovNotify_email_sent", MetricUnits.Count, 1);
+  			singleMetric.addMetric("GovNotify_email_sent", MetricUnit.Count, 1);
 			return reminderEmailResponse;
 		}
   	}

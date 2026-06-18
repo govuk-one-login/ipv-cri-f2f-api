@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { ValidationHelper } from "../utils/ValidationHelper";
@@ -57,7 +57,7 @@ export class SessionConfigRequestProcessor {
 				govuk_signin_journey_id: session?.clientSessionId,
 			});
 
-			this.metrics.addMetric("found session", MetricUnits.Count, 1);
+			this.metrics.addMetric("found session", MetricUnit.Count, 1);
 
 			const f2fResp : { [key: string]: any } = {
 				evidence_requested: session.evidence_requested,

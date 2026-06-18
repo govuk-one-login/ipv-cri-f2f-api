@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { LogLevel } from "@aws-lambda-powertools/logger/lib/esm/types/Logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
-import { LambdaInterface } from "@aws-lambda-powertools/commons";
+import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
@@ -19,7 +20,7 @@ const {
 
 
 const logger = new Logger({
-	logLevel: POWERTOOLS_LOG_LEVEL,
+	logLevel: POWERTOOLS_LOG_LEVEL as LogLevel,
 	serviceName: POWERTOOLS_SERVICE_NAME,
 });
 

@@ -2,7 +2,7 @@ import type { Mocked } from "vitest";
  
 import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { F2fService } from "../../../services/F2fService";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
@@ -100,7 +100,7 @@ describe("AddressLocationsProcessor", () => {
 		}));
 
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "400");
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "OS_response", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "OS_response", MetricUnit.Count, 1);
 	});
 
 	it("throws error if OS returns 500", async () => {
@@ -115,7 +115,7 @@ describe("AddressLocationsProcessor", () => {
 		}));
 
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "500");
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "OS_response", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "OS_response", MetricUnit.Count, 1);
 	});
 
 	it("Address successfully retrieved from OS and returned", async () => {
@@ -126,8 +126,8 @@ describe("AddressLocationsProcessor", () => {
         
 		expect(axios.get).toHaveBeenCalledWith("https://test-os-locations-stub", {"headers": {"key": "osAPIKey"}, "params": {"postcode": "postcode"}});
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "200");
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "OS_response", MetricUnits.Count, 1);
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "OSAddress_success", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "OS_response", MetricUnit.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "OSAddress_success", MetricUnit.Count, 1);
 
 		expect(response.body).toBe("{\"address\":\"12 test street\"}");
 	});

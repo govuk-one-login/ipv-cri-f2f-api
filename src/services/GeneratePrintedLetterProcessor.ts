@@ -1,7 +1,7 @@
 import { F2fService } from "./F2fService";
 import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { EnvironmentVariables } from "./EnvironmentVariables";
@@ -112,7 +112,7 @@ export class GeneratePrintedLetterProcessor {
 
 			const singleMetric = this.metrics.singleMetric();
 			singleMetric.addDimension("error", "unable_to_retrieve_yoti_instructions");
-			singleMetric.addMetric("GeneratePrintedLetter_error", MetricUnits.Count, 1);
+			singleMetric.addMetric("GeneratePrintedLetter_error", MetricUnit.Count, 1);
 
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Yoti PDF from S3 bucket");
 		}
@@ -157,7 +157,7 @@ export class GeneratePrintedLetterProcessor {
 
 			const singleMetric = this.metrics.singleMetric();
 			singleMetric.addDimension("error", "unable_to_save_merged_pdf");
-			singleMetric.addMetric("GeneratePrintedLetter_error", MetricUnits.Count, 1);
+			singleMetric.addMetric("GeneratePrintedLetter_error", MetricUnit.Count, 1);
 
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error uploading merged PDF");
 		}

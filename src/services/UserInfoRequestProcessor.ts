@@ -1,5 +1,5 @@
 import { Response } from "../utils/Response";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { ValidationHelper } from "../utils/ValidationHelper";
@@ -74,18 +74,18 @@ export class UserInfoRequestProcessor {
     		return Response(HttpCodesEnum.BAD_REQUEST, `No session found with the sessionId: ${sub}`);
     	}
 
-    	this.metrics.addMetric("found session", MetricUnits.Count, 1);
+    	this.metrics.addMetric("found session", MetricUnit.Count, 1);
     	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
     	if (session.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED) {
 			this.logger.info("Returning success response");
-			this.metrics.addMetric("UserInfo_pending_VC_returned", MetricUnits.Count, 1);
+			this.metrics.addMetric("UserInfo_pending_VC_returned", MetricUnit.Count, 1);
 
 			return Response(HttpCodesEnum.ACCEPTED, JSON.stringify({
 				sub: session.subject,
 				"https://vocab.account.gov.uk/v1/credentialStatus": "pending",
 			}));
 		} else {
-			this.metrics.addMetric("UserInfo_error_user_state_incorrect", MetricUnits.Count, 1);
+			this.metrics.addMetric("UserInfo_error_user_state_incorrect", MetricUnit.Count, 1);
 			this.logger.error({ message: `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state - ${session.authSessionState}` }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
 			return Response(HttpCodesEnum.UNAUTHORIZED, `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state - ${session.authSessionState}`);
 		}

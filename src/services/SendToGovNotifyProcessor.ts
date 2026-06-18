@@ -6,7 +6,7 @@ import { EmailResponse } from "../models/EmailResponse";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 
 export class SendToGovNotifyProcessor {
   private static instance: SendToGovNotifyProcessor;
@@ -37,7 +37,7 @@ export class SendToGovNotifyProcessor {
   			messageCode: MessageCodes.FAILED_TO_SEND_PDF_EMAIL,
   		});
 		
-  		this.metrics.addMetric("SendToGovNotify_failed_to_send_instructions", MetricUnits.Count, 1);
+  		this.metrics.addMetric("SendToGovNotify_failed_to_send_instructions", MetricUnit.Count, 1);
 
   		throw new AppError(
   			HttpCodesEnum.SERVER_ERROR,

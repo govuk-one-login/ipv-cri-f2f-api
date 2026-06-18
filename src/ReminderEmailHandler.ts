@@ -1,10 +1,11 @@
 import { Logger } from "@aws-lambda-powertools/logger";
+import { LogLevel } from "@aws-lambda-powertools/logger/lib/esm/types/Logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Response } from "./utils/Response";
 import { ReminderEmailProcessor } from "./services/ReminderEmailProcessor";
 import { AppError } from "./utils/AppError";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
-import { LambdaInterface } from "@aws-lambda-powertools/commons";
+import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { Constants } from "./utils/Constants";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { APIGatewayProxyResult } from "aws-lambda";
@@ -15,7 +16,7 @@ const {
 	POWERTOOLS_SERVICE_NAME = Constants.REMINDER_EMAIL_LOGGER_SVC_NAME,
 } = process.env;
 
-const logger = new Logger({ logLevel: POWERTOOLS_LOG_LEVEL, serviceName: POWERTOOLS_SERVICE_NAME });
+const logger = new Logger({ logLevel: POWERTOOLS_LOG_LEVEL as LogLevel, serviceName: POWERTOOLS_SERVICE_NAME });
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 class Session implements LambdaInterface {

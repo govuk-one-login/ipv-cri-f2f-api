@@ -1,7 +1,7 @@
  
 import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { GenerateYotiLetterProcessor } from "../../../services/GenerateYotiLetterProcessor";
 import { F2fService } from "../../../services/F2fService";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
@@ -117,7 +117,7 @@ describe("GenerateYotiLetterProcessor", () => {
 			sessionId: "RandomF2FSessionID",
 			pdfPreference: "post",
 		});
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GenerateYotiLetter_instructions_saved", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GenerateYotiLetter_instructions_saved", MetricUnit.Count, 1);
 
 	});
 

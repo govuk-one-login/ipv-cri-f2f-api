@@ -1,5 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 
 import { PDFGenerationService } from "./pdfGenerationService";
 
@@ -44,7 +44,7 @@ export class PDFService {
 		
   		const singleMetric = this.metrics.singleMetric();
   		singleMetric.addDimension("error", "unable_to_create_cover_letter");
-  		singleMetric.addMetric("GeneratePrintedLetter_error", MetricUnits.Count, 1);
+  		singleMetric.addMetric("GeneratePrintedLetter_error", MetricUnit.Count, 1);
 
   		throw error;
   	}

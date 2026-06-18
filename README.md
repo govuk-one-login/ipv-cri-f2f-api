@@ -94,7 +94,7 @@ At a high level it:
 
 Prerequisites:
 - Node.js version per `src/package.json` (`engines.node`) for local development
-- AWS Lambda runtime: nodejs20.x (see `deploy/template.yaml`)
+- AWS Lambda runtime: nodejs24.x (see `deploy/template.yaml`)
 - npm
 - AWS credentials (only required to run tests against a deployed stack)
 
