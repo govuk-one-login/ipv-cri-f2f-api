@@ -1,6 +1,7 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
-import { LambdaInterface } from "@aws-lambda-powertools/commons";
+import { LogLevel } from "@aws-lambda-powertools/logger/lib/esm/types/Logger";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { Constants } from "./utils/Constants";
 import { AppError } from "./utils/AppError";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
@@ -15,7 +16,7 @@ const {
 } = process.env;
 
 export const logger = new Logger({
-	logLevel: POWERTOOLS_LOG_LEVEL,
+	logLevel: POWERTOOLS_LOG_LEVEL as LogLevel,
 	serviceName: POWERTOOLS_SERVICE_NAME,
 });
 
@@ -41,7 +42,7 @@ export class GeneratePrintedLetterHandler implements LambdaInterface {
 				messageCode: MessageCodes.SERVER_ERROR,
 			});
 
-			metrics.addMetric("GeneratePrintedLetter_error_generating_printed_letter", MetricUnits.Count, 1);
+			metrics.addMetric("GeneratePrintedLetter_error_generating_printed_letter", MetricUnit.Count, 1);
 
 			if (error instanceof AppError) {
 				return Response(error.statusCode, error.message);

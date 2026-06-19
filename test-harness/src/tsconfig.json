@@ -12,7 +12,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./build/",
-    "module": "commonjs"
+    "module": "es2022"
   },
   "exclude": ["node_modules"]
 }

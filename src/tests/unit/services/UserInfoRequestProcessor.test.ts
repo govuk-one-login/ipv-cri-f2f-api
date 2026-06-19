@@ -1,5 +1,5 @@
 import { UserInfoRequestProcessor } from "../../../services/UserInfoRequestProcessor";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { MISSING_AUTH_HEADER_USERINFO, VALID_USERINFO } from "../data/userInfo-events";
@@ -79,8 +79,8 @@ describe("UserInfoRequestProcessor", () => {
 		expect(logger.appendKeys).toHaveBeenCalledWith({
 			sessionId: "sdfsdg",
 		});
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "found session", MetricUnits.Count, 1);
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "UserInfo_pending_VC_returned", MetricUnits.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "found session", MetricUnit.Count, 1);
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "UserInfo_pending_VC_returned", MetricUnit.Count, 1);
 	});
 
 	it("Return 401 when Authorization header is missing in the request", async () => {
@@ -150,8 +150,8 @@ describe("UserInfoRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			{ message: "Session for journey sdfssg is in the wrong Auth state: expected state - F2F_ACCESS_TOKEN_ISSUED, actual state - F2F_AUTH_CODE_ISSUED" }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
 		);
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "found session", MetricUnits.Count, 1);
-		expect(metrics.addMetric).not.toHaveBeenNthCalledWith(2, "UserInfo_pending_VC_returned", MetricUnits.Count, 1);	
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "UserInfo_error_user_state_incorrect", MetricUnits.Count, 1);	
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "found session", MetricUnit.Count, 1);
+		expect(metrics.addMetric).not.toHaveBeenNthCalledWith(2, "UserInfo_pending_VC_returned", MetricUnit.Count, 1);	
+		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "UserInfo_error_user_state_incorrect", MetricUnit.Count, 1);	
 	});
 });

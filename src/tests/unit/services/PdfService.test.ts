@@ -2,7 +2,7 @@
  
 import { Logger } from "@aws-lambda-powertools/logger";
 import { mock } from "vitest-mock-extended";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 
 import { PDFService } from "../../../services/PdfService";
 import { S3Client } from "@aws-sdk/client-s3";
@@ -65,7 +65,7 @@ describe("PdfServiceTest", () => {
 				
 				expect(metrics.addDimension).toHaveBeenCalledWith("error", "unable_to_create_cover_letter");
 				
-				expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error", MetricUnits.Count, 1);
+				expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error", MetricUnit.Count, 1);
 			}
 		});
 	});

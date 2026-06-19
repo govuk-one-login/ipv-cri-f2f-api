@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { YotiService } from "./YotiService";
@@ -262,7 +262,7 @@ export class YotiSessionCompletionProcessor {
 				  });
 			  }
 			
-			this.metrics.addMetric("SessionCompletion_yoti_response_parsed", MetricUnits.Count, 1);
+			this.metrics.addMetric("SessionCompletion_yoti_response_parsed", MetricUnit.Count, 1);
 
   			const { given_names, family_name, full_name } = documentFields;
 
@@ -314,7 +314,7 @@ export class YotiSessionCompletionProcessor {
 					failureReasons.push(rejectionReason.reason)
 				};
 				singleMetric.addDimension("failure_reasons", failureReasons.toString());
-				singleMetric.addMetric("Yoti_Check_Failure", MetricUnits.Count, 1);
+				singleMetric.addMetric("Yoti_Check_Failure", MetricUnit.Count, 1);
 			  }
 
 			  if (!credentialSubject || !evidence) {
@@ -370,8 +370,8 @@ export class YotiSessionCompletionProcessor {
 				  AuthSessionState.F2F_CREDENTIAL_ISSUED,
 			  );
 
-			this.metrics.addMetric("state-F2F_CREDENTIAL_ISSUED", MetricUnits.Count, 1);
-			this.metrics.addMetric("SessionCompletion_VC_issued_successfully", MetricUnits.Count, 1);
+			this.metrics.addMetric("state-F2F_CREDENTIAL_ISSUED", MetricUnit.Count, 1);
+			this.metrics.addMetric("SessionCompletion_VC_issued_successfully", MetricUnit.Count, 1);
 			return Response(HttpCodesEnum.OK, "OK");
 		}
 
@@ -494,7 +494,7 @@ export class YotiSessionCompletionProcessor {
   	
 	const singleMetric = this.metrics.singleMetric();
 	singleMetric.addDimension("error", errorMessage);
-	singleMetric.addMetric("Session_Completion_Error_Returned_To_Core", MetricUnits.Count, 1);
+	singleMetric.addMetric("Session_Completion_Error_Returned_To_Core", MetricUnit.Count, 1);
   	try {
   		await this.f2fService.sendToIPVCore({
   			sub: f2fSession.subject,
@@ -513,6 +513,6 @@ export class YotiSessionCompletionProcessor {
 	private constructNotReturnedErrorMetric(errorDimension: string) {
 		const singleMetric = this.metrics.singleMetric();
 		singleMetric.addDimension("error", errorDimension);
-		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnits.Count, 1);
+		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnit.Count, 1);
 	}
 }

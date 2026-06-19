@@ -1,4 +1,4 @@
-import { LambdaInterface } from "@aws-lambda-powertools/commons";
+import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { DeleteBucketProcessor } from "./services/DeleteBucketProcessor";
 import { Response } from "./utils/Response";

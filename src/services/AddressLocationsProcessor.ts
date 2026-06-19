@@ -1,4 +1,4 @@
-import { Metrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { F2fService } from "./F2fService";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
@@ -82,8 +82,8 @@ export class AddressLocationsProcessor {
 			const { data } = response;	
 			const singleMetric = this.metrics.singleMetric();
 			singleMetric.addDimension("status_code", response.status.toString());
-			singleMetric.addMetric("OS_response", MetricUnits.Count, 1);
-			this.metrics.addMetric("OSAddress_success", MetricUnits.Count, 1);
+			singleMetric.addMetric("OS_response", MetricUnit.Count, 1);
+			this.metrics.addMetric("OSAddress_success", MetricUnit.Count, 1);
 
 			return JSON.stringify(data.results);
 		} catch (error: any) {
@@ -91,7 +91,7 @@ export class AddressLocationsProcessor {
 				if (error?.response?.status) {
 					const singleMetric = this.metrics.singleMetric();
 					singleMetric.addDimension("status_code", error.response.status.toString());
-					singleMetric.addMetric("OS_response", MetricUnits.Count, 1);
+					singleMetric.addMetric("OS_response", MetricUnit.Count, 1);
 				}
 
 				this.logger.error("Error response data:", error.response?.data);

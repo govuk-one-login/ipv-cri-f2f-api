@@ -143,10 +143,10 @@ jobs:
           role-to-assume: ${{ secrets.DEV_F2F_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
       
-      - name: Setup nodeJS v22
+      - name: Setup nodeJS v24
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
       
       - name: Install dependencies
         working-directory: ./src
