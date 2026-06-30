@@ -1,8 +1,9 @@
 {
-  "$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.11.0/schemas/schema.json",
+  "$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.13.0/schemas/schema.json",
   "services": [
     {
-      "serviceTag": "f2f-api",
+      "product": "Face-To-Face-CRI",
+      "component": "Face-To-Face-CRI API",
       "promotionType": "securePipelines",
       "checks": [
         {
