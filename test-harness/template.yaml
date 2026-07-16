@@ -69,14 +69,6 @@ Globals:
       - "application/octet-stream"
   Function:
     Runtime: nodejs24.x
-    VpcConfig:
-      SecurityGroupIds:
-        - !GetAtt LambdaEgressSecurityGroup.GroupId
-      SubnetIds:
-        - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdA"
-        - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdB"
     PermissionsBoundary: !If
       - UsePermissionsBoundary
       - !Ref PermissionsBoundary
@@ -98,20 +90,6 @@ Globals:
     AutoPublishAlias: live
 
 Resources:
-  LambdaEgressSecurityGroup:
-    Type: "AWS::EC2::SecurityGroup"
-    Properties:
-      GroupDescription: >-
-        Permits outbound on port 443 from within the VPC to the internet.
-      SecurityGroupEgress:
-        - CidrIp: 0.0.0.0/0
-          Description: Allow to the wider internet on port 443
-          FromPort: 443
-          IpProtocol: tcp
-          ToPort: 443
-      VpcId:
-        Fn::ImportValue: !Sub "${VpcStackName}-VpcId"
-
   ### Function Definition
   ## DequeueTxMAHandler
   DequeueTxMAFunction:
