@@ -15,7 +15,7 @@
     "@aws-sdk/credential-providers": "3.1045.0",
     "@aws-sdk/lib-dynamodb": "3.1045.0",
     "aws-xray-sdk-core": "3.4.1",
-    "axios": "1.16.0",
+    "axios": "1.18.1",
     "class-validator": "0.14.0",
     "esbuild": "0.28.1",
     "pdf-lib": "1.17.1"
