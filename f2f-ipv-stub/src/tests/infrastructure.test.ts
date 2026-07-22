@@ -1,6 +1,5 @@
 import { Template, Capture, Match } from "aws-cdk-lib/assertions";
 import path from "path";
-import { schema } from "yaml-cfn";
 import { readFileSync } from "fs";
 import { load } from "js-yaml";
 
@@ -9,8 +8,7 @@ describe("IPV Stub Infrastructure", () => {
 
   beforeAll(() => {
     const templateYaml: any = load(
-      readFileSync(path.resolve("../template.yaml"), "utf-8"),
-      { schema }
+      readFileSync(path.resolve("../template.yaml"), "utf-8")
     );
     delete templateYaml.Resources.IPVStubApiGw.Properties.DefinitionBody; // To be removed, not SAM compatible.
     template = Template.fromJSON(templateYaml);
