@@ -13,7 +13,8 @@
     "aws-cdk-lib": "2.261.0",
     "js-yaml": "4.3.0",
     "typescript": "4.9.4",
-    "vitest": "4.1.10"
+    "vitest": "4.1.10",
+    "yaml-cfn": "0.3.2"
   },
   "scripts": {
     "test": "npm run infra",
