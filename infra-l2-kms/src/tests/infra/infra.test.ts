@@ -1,4 +1,5 @@
 import { Template } from 'aws-cdk-lib/assertions';
+import { schema } from "yaml-cfn";
 import { readFileSync } from 'fs';
 import { load } from 'js-yaml';
 
@@ -7,7 +8,7 @@ import { load } from 'js-yaml';
 let template: Template;
 
 beforeAll(() => {
-  let yamlTemplate: any = load(readFileSync('../template.yaml', 'utf-8'))
+  let yamlTemplate: any = load(readFileSync('../template.yaml', 'utf-8'), { schema: schema })
   template = Template.fromJSON(yamlTemplate)
 })
 
