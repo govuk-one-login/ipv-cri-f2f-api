@@ -33,7 +33,7 @@ class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: SQSEvent, context: any): Promise<any> {
 
-		logger.setPersistentLogAttributes({});
+		logger.resetKeys();
 		logger.addContext(context);
 
 		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());

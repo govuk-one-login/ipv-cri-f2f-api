@@ -28,8 +28,8 @@ export class PersonInfoKeyHandler implements LambdaInterface {
     @metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 
     async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
-    	logger.setPersistentLogAttributes({});
-    	logger.addContext(context);
+		logger.resetKeys();
+		logger.addContext(context);
 
     	try {
     		const privateKeyPath = this.environmentVariables.privateKeySsmPath();

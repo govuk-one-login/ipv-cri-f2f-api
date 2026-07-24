@@ -22,7 +22,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 class Session implements LambdaInterface {
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: any, context: any): Promise<APIGatewayProxyResult> {
-		logger.setPersistentLogAttributes({});
+		logger.resetKeys();
 		logger.addContext(context);
 
 		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());

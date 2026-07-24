@@ -30,7 +30,7 @@ export class AddressLocationsHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
-		logger.setPersistentLogAttributes({});
+		logger.resetKeys();
 		logger.addContext(context);
 
 		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());

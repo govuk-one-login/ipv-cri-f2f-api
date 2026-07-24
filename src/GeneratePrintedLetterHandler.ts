@@ -27,7 +27,7 @@ export class GeneratePrintedLetterHandler implements LambdaInterface {
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: any, context: any): Promise<any> {
 
-		logger.setPersistentLogAttributes({});
+		logger.resetKeys();
 		logger.addContext(context);
 
 		try {

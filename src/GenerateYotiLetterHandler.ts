@@ -33,7 +33,7 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: { sessionId: string; pdfPreference: string }, context: any): Promise<any> {
-		logger.setPersistentLogAttributes({});
+		logger.resetKeys();
 		logger.addContext(context);
 		this.validateEvent(event);
 

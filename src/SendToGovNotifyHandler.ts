@@ -32,8 +32,8 @@ class SendToGovNotifyHandler implements LambdaInterface {
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: any, context: Context): Promise<any> {
-		// clear PersistentLogAttributes set by any previous invocation, and add lambda context for this invocation
-		logger.setPersistentLogAttributes({});
+		// clear logger state set by any previous invocation, and add lambda context for this invocation
+		logger.resetKeys();
 		logger.addContext(context);
 
 		logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());
