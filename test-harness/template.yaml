@@ -69,14 +69,6 @@ Globals:
       - "application/octet-stream"
   Function:
     Runtime: nodejs24.x
-    VpcConfig:
-      SecurityGroupIds:
-        - !GetAtt LambdaEgressSecurityGroup.GroupId
-      SubnetIds:
-        - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdA"
-        - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdB"
     PermissionsBoundary: !If
       - UsePermissionsBoundary
       - !Ref PermissionsBoundary
@@ -98,25 +90,23 @@ Globals:
     AutoPublishAlias: live
 
 Resources:
-  LambdaEgressSecurityGroup:
-    Type: "AWS::EC2::SecurityGroup"
-    Properties:
-      GroupDescription: >-
-        Permits outbound on port 443 from within the VPC to the internet.
-      SecurityGroupEgress:
-        - CidrIp: 0.0.0.0/0
-          Description: Allow to the wider internet on port 443
-          FromPort: 443
-          IpProtocol: tcp
-          ToPort: 443
-      VpcId:
-        Fn::ImportValue: !Sub "${VpcStackName}-VpcId"
 
   ### Function Definition
   ## DequeueTxMAHandler
   DequeueTxMAFunction:
     Type: AWS::Serverless::Function
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       FunctionName: !Sub "F2F-Test-Dequeue-TxMA-${AWS::StackName}"
       Handler: DequeueHandler.lambdaHandler
       CodeUri: ./src/
@@ -174,6 +164,17 @@ Resources:
   DequeueIPVCoreFunction:
     Type: AWS::Serverless::Function
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       FunctionName: !Sub "F2F-Test-Dequeue-IPV-core-${AWS::StackName}"
       Handler: DequeueHandler.lambdaHandler
       CodeUri: ./src/
@@ -252,15 +253,29 @@ Resources:
 
   EmptyEventTestBucket:
     Type: Custom::EmptyBucket
+    DependsOn:
+      - EventTestBucket # Required to ensure bucket and function are removed before custom action
+      - DeleteTestHarnessBucketFunction    
     Properties:
       ServiceToken: !GetAtt DeleteTestHarnessBucketFunction.Arn
       BucketName: !Ref EventTestBucket
-    DependsOn: EventTestBucket
+
 
   DeleteTestHarnessBucketFunction:
     Type: AWS::Serverless::Function
     DependsOn: DeleteTestHarnessBucketFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       FunctionName: !Sub "F2F-DeleteTestHarnessBucket-${AWS::StackName}"
       Handler: DeleteBucketHandler.lambdaHandler
       CodeUri: ../src/
@@ -299,13 +314,6 @@ Resources:
           !Ref Environment,
           logretentionindays,
         ]
-
-  DeleteTestHarnessBucketFunctionPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref DeleteTestHarnessBucketFunction
-      Principal: apigateway.amazonaws.com
 
   AccessTestHarnessRole:
     Type: "AWS::IAM::Role"

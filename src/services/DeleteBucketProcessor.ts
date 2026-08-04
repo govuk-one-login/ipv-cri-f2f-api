@@ -41,15 +41,12 @@ export class DeleteBucketProcessor {
 				await this.deleteBucket(bucketName)
 
 				await this.sendResponse(event, "SUCCESS", { message: "Bucket deleted"} );
-				return { statusCode: HttpCodesEnum.OK, body: "Bucket deleted" }
 			} else {
 				// For Create or Update events. Response sent to prevent Cloudformation hanging
 				await this.sendResponse(event, "SUCCESS", { message: `${event.RequestType} success` });
-				return { statusCode: 200, body: `${event.RequestType} success` };
 			}
 		} catch(error: any) {
 			await this.sendResponse(event, "FAILED", { message: `Bucket deletion failed with error: ${error}`})
-			return { statusCode: HttpCodesEnum.SERVER_ERROR, body: `Bucket deletion failed with error: ${error}` }	
 		}
     }
 
