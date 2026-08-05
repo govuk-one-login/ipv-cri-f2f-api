@@ -27,7 +27,7 @@ class SessionConfigHandler implements LambdaInterface {
 	async handler(event: APIGatewayProxyEvent, context: any): Promise<APIGatewayProxyResult> {
 
 		try {
-			logger.setPersistentLogAttributes({});
+			logger.resetKeys();
 			logger.addContext(context);
 
 			logger.info("Ensuring service is " + POWERTOOLS_SERVICE_NAME + " deployed - " + new Date().toDateString());

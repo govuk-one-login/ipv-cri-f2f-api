@@ -11,7 +11,7 @@ vi.mock("@aws-lambda-powertools/logger", () => ({
 			warn: vi.fn(),
 			info: vi.fn(),
 			error: vi.fn(),
-			setPersistentLogAttributes: vi.fn(),
+			resetKeys: vi.fn(),
 			addContext: vi.fn(),
 			appendKeys: vi.fn(),
 		};
