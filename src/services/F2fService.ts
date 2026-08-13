@@ -147,6 +147,7 @@ export class F2fService {
 		this.logger.info( { message: "updating authorizationCode dynamodb" }, { tableName: this.tableName } );
 
 		try {
+			console.log("SET AUTHORIZATION CODE UPDATE SESSION COMMAND", updateSessionCommand)
 			await this.dynamo.send(updateSessionCommand);
 			this.metrics.addMetric("state-F2F_AUTH_CODE_ISSUED", MetricUnit.Count, 1);
 
@@ -344,7 +345,7 @@ export class F2fService {
 		const updateAccessTokenDetailsCommand = new UpdateCommand({
 			TableName: this.tableName,
 			Key: { sessionId },
-			UpdateExpression: "SET authSessionState = :authSessionState, accessTokenExpiryDate = :accessTokenExpiryDate REMOVE authorizationCode",
+			UpdateExpression: "SET authSessionState = :authSessionState, accessTokenExpiryDate = :accessTokenExpiryDate",
 			ExpressionAttributeValues: {
 				":authSessionState": AuthSessionState.F2F_ACCESS_TOKEN_ISSUED,
 				":accessTokenExpiryDate": accessTokenExpiryDate,
@@ -353,6 +354,7 @@ export class F2fService {
 
 		this.logger.info({ message: "updating Access token details in dynamodb" }, { tableName: this.tableName });
 		try {
+			console.log("UPDATE ACCESS TOKEN DETAILS COMMAND", updateAccessTokenDetailsCommand) // REMOVE command taken out to see if auth code persists
 			await this.dynamo.send(updateAccessTokenDetailsCommand);
 			this.metrics.addMetric("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnit.Count, 1);
 

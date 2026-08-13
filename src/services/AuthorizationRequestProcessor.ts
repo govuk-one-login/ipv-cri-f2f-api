@@ -13,6 +13,7 @@ import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
+import { sleep } from "../utils/Sleep";
 
 export class AuthorizationRequestProcessor {
 	private static instance: AuthorizationRequestProcessor;
@@ -40,6 +41,7 @@ export class AuthorizationRequestProcessor {
 	}
 
 	async processRequest(event: APIGatewayProxyEvent, sessionId: string): Promise<APIGatewayProxyResult> {
+		console.log("AUTHORIZATION REQUEST PROCESSOR EVENT", event)
 		this.logger.appendKeys({ sessionId });
 		const session = await this.f2fService.getSessionById(sessionId);
 
@@ -58,11 +60,12 @@ export class AuthorizationRequestProcessor {
 			this.metrics.addMetric("found session", MetricUnit.Count, 1);
 			if (session.authSessionState === AuthSessionState.F2F_YOTI_SESSION_CREATED) {
 
-				const authorizationCode = randomUUID();
-
+				const authorizationCode = randomUUID();	
+				console.log("BACKEND AUTHORIZATION CODE", authorizationCode)
 				await this.f2fService.setAuthorizationCode(sessionId, authorizationCode);
-
 				this.metrics.addMetric("Set authorization code", MetricUnit.Count, 1);
+				console.log("AWAITING SLEEP 10000")
+				await sleep(10000)
 				try {
 					const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress);
 					await this.f2fService.sendToTXMA({

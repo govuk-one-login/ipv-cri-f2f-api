@@ -16,6 +16,7 @@ import { AuthSessionState } from "../models/enums/AuthSessionState";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AppError } from "../utils/AppError";
 import { Jwt } from "../utils/IVeriCredential";
+import { sleep } from "../utils/Sleep";
 
 interface ClientConfig {
 	jwksEndpoint: string;
@@ -57,6 +58,7 @@ export class AccessTokenRequestProcessor {
 	}
 
 	async processRequest(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+		console.log("ACCESS TOKEN REQUEST PROCESSOR EVENT", event)
 		try {
 			let requestPayload;
 			try {
@@ -70,6 +72,8 @@ export class AccessTokenRequestProcessor {
 			let session: ISessionItem | undefined;
 
 				session = await this.f2fService.getSessionByAuthorizationCode(requestPayload.code);
+				console.log("SESSION", session)
+				console.log("SESSION WITH AUTHORIZATION CODE", session?.authorizationCode)
 				if (!session) {
 					this.logger.info(`No session found by authorization code: : ${requestPayload.code}`, { messageCode: MessageCodes.SESSION_NOT_FOUND });
 					return Response(HttpCodesEnum.UNAUTHORIZED, `No session found by authorization code: ${requestPayload.code}`);
@@ -154,10 +158,15 @@ export class AccessTokenRequestProcessor {
 					}
 					return Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the accessToken Jwt");
 				}
-
+				console.log("AWAITING SLEEP 10000")
+				const checkSessionAuthCode  = await this.f2fService.getSessionByAuthorizationCode(requestPayload.code);
+				console.log("SESSION AUTH CODE PRE ACCESS TOKEN DDB CALL", checkSessionAuthCode?.authorizationCode)
+				await sleep(10000)
+				console.log("DDB UPDATING WITH ACCESS TOKEN")
 				// Update the sessionTable with accessTokenExpiryDate and AuthSessionState.
 				await this.f2fService.updateSessionWithAccessTokenDetails(session.sessionId, jwtPayload.exp);
-
+				const checkSessionAuthCode2  = await this.f2fService.getSessionByAuthorizationCode(requestPayload.code);
+				console.log("SESSION POST ACCESS TOKEN DDB CALL - AUTH CODE PRESENT?", checkSessionAuthCode2)
 				this.logger.info({ message: "Access token generated successfully" });
 
 				return {
