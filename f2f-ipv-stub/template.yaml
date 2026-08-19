@@ -573,8 +573,14 @@ Resources:
       CodeUri: src/
       Environment:
         Variables:
-          DEV_IPV_F2F_STUB_URL: !Sub
+          DEV_IPV_F2F_STUB_URL: !If
+          - CreateDevResources
+          - !Sub
               - "https://${AWS::StackName}-${IPVSTUBURL}"
+              - IPVSTUBURL:
+                  !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
+          - !Sub
+              - "https://${IPVSTUBURL}"
               - IPVSTUBURL:
                   !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
           DEV_CRI_F2F_API_URL: !Sub
