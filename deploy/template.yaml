@@ -336,14 +336,6 @@ Conditions:
 Globals:
   Function:
     Runtime: nodejs24.x
-    VpcConfig:
-      SecurityGroupIds:
-        - !GetAtt LambdaEgressSecurityGroup.GroupId
-      SubnetIds:
-        - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdA"
-        - Fn::ImportValue:
-            "Fn::Sub": "${VpcStackName}-ProtectedSubnetIdB"
     PermissionsBoundary: !If
       - UsePermissionsBoundary
       - !Ref PermissionsBoundary
@@ -575,21 +567,6 @@ Resources:
         - !ImportValue build-notifications-WarningAlertsTopicArn
       TreatMissingData: notBreaching
 
-
-  LambdaEgressSecurityGroup:
-    Type: "AWS::EC2::SecurityGroup"
-    Properties:
-      GroupDescription: >-
-        Permits outbound on port 443 from within the VPC to the internet.
-      SecurityGroupEgress:
-        - CidrIp: 0.0.0.0/0
-          Description: Allow to the wider internet on port 443
-          FromPort: 443
-          IpProtocol: tcp
-          ToPort: 443
-      VpcId:
-        Fn::ImportValue: !Sub "${VpcStackName}-VpcId"
-
   JsonWebKeysBucket:
     Type: "AWS::S3::Bucket"
     DeletionPolicy: Delete
@@ -714,7 +691,9 @@ Resources:
     Properties:
       ServiceToken: !GetAtt DeleteBucketFunction.Arn
       BucketName: !Ref JsonWebKeysBucket
-    DependsOn: JsonWebKeysBucket
+    DependsOn: 
+      - JsonWebKeysBucket # Required to ensure bucket and function are removed before custom action
+      - DeleteBucketFunction    
 
   EmptyYotiLetterBucket:
     Type: Custom::EmptyBucket
@@ -722,13 +701,25 @@ Resources:
     Properties:
       ServiceToken: !GetAtt DeleteBucketFunction.Arn
       BucketName: !Ref YotiLetterBucket
-    DependsOn: YotiLetterBucket
+    DependsOn: 
+      - YotiLetterBucket # Required to ensure bucket and function are removed before custom action
+      - DeleteBucketFunction    
 
   DeleteBucketFunction:
     Type: AWS::Serverless::Function
     Condition: IsNotProdLikeEnvironment
-    DependsOn: DeleteBucketFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       FunctionName: !Sub "F2F-DeleteBucket-${AWS::StackName}"
       Handler: DeleteBucketHandler.lambdaHandler
       CodeUri: ../src/
@@ -769,14 +760,6 @@ Resources:
           logretentionindays,
         ]
 
-  DeleteBucketFunctionPermission:
-    Type: AWS::Lambda::Permission
-    Condition: IsNotProdLikeEnvironment
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref DeleteBucketFunction
-      Principal: apigateway.amazonaws.com
-
   ### Start of API Gateway definition.
 
   F2FRestApi:
@@ -784,7 +767,15 @@ Resources:
     Properties:
       StageName: !Ref Environment
       OpenApiVersion: 3.0.1
-      AlwaysDeploy: true
+      DefinitionBody:
+        openapi: 3.0.1
+        paths: # workaround to get `sam validate` to work
+          /never-created:
+            options: { } # workaround to get `sam validate` to work
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: './f2f-spec.yaml'
       AccessLogSetting:
         Format: >-
           {
@@ -803,12 +794,14 @@ Resources:
         DestinationArn: !GetAtt F2FAPIGatewayAccessLogGroup.Arn
       EndpointConfiguration:
         Type: REGIONAL
-      DefinitionBody:
-        Fn::Transform:
-          Name: AWS::Include
-          Parameters:
-            Location: './f2f-spec.yaml'
-        OpenApiVersion: 3.0.1
+      Auth:
+        ResourcePolicy:
+          CustomStatements:
+            - Action: 'execute-api:Invoke'
+              Effect: Allow
+              Principal: '*'
+              Resource:
+                - 'execute-api:/*'
       MethodSettings:
         - LoggingLevel: INFO
           MetricsEnabled: true
@@ -962,8 +955,18 @@ Resources:
 
   SessionFunction:
     Type: AWS::Serverless::Function
-    DependsOn: SessionFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdC"
       FunctionName: !Sub "F2F-Session-${AWS::StackName}"
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
@@ -986,8 +989,6 @@ Resources:
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           ENCRYPTION_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
@@ -1028,13 +1029,6 @@ Resources:
                 - "kms:Decrypt"
                 - "kms:GenerateDataKey"
               Resource: !GetAtt TxMAKMSEncryptionKey.Arn
-      Events:
-        session:
-          Type: Api
-          Properties:
-            Path: /session
-            Method: post
-            RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
@@ -1074,7 +1068,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref SessionFunction
+      FunctionName: !GetAtt SessionFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  SessionFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SessionFunction.Alias
       Principal: apigateway.amazonaws.com
 
   SessionFunctionFatalErorMetricFilter:
@@ -1362,8 +1363,18 @@ Resources:
 
   SessionConfigFunction:
     Type: AWS::Serverless::Function
-    DependsOn: SessionConfigFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       FunctionName: !Sub "F2F-SessionConfig-${AWS::StackName}"
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
@@ -1390,13 +1401,6 @@ Resources:
         - KMSDecryptPolicy:
             KeyId:
               Fn::ImportValue: !Sub "${L2DynamoStackName}-session-table-key-id"
-      Events:
-        session:
-          Type: Api
-          Properties:
-            Path: /sessionConfiguration
-            Method: get
-            RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
@@ -1436,7 +1440,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref SessionConfigFunction
+      FunctionName: !GetAtt SessionConfigFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  SessionConfigFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SessionConfigFunction.Alias
       Principal: apigateway.amazonaws.com
 
   SessionConfigFunctionFatalErrorMetricFilter:
@@ -1600,8 +1611,18 @@ Resources:
 
   TokenFunction:
     Type: AWS::Serverless::Function
-    DependsOn: TokenFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdC"
       FunctionName: !Sub "Access-Token-${AWS::StackName}"
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
@@ -1621,9 +1642,9 @@ Resources:
           POWERTOOLS_SERVICE_NAME: AccessTokenHandler
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
+          DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-          DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -1646,13 +1667,6 @@ Resources:
                 - kms:Sign
               Resource:
                 Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
-      Events:
-        userInfo:
-          Type: Api
-          Properties:
-            Path: /token
-            Method: post
-            RestApiId: !Ref F2FRestApi
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -1687,7 +1701,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref TokenFunction
+      FunctionName: !GetAtt TokenFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  TokenFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TokenFunction.Alias
       Principal: apigateway.amazonaws.com
 
   TokenFunctionFatalErorMetricFilter:
@@ -1850,8 +1871,18 @@ Resources:
 
   AuthorizationFunction:
     Type: AWS::Serverless::Function
-    DependsOn: AuthorizationFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       FunctionName: !Sub "F2F-Authorization-${AWS::StackName}"
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
@@ -1897,13 +1928,6 @@ Resources:
                 - "kms:Decrypt"
                 - "kms:GenerateDataKey"
               Resource: !GetAtt TxMAKMSEncryptionKey.Arn
-      Events:
-        authorization:
-          Type: Api
-          Properties:
-            Path: /authorization
-            Method: get
-            RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
@@ -1944,7 +1968,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref AuthorizationFunction
+      FunctionName: !GetAtt AuthorizationFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  AuthorizationFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref AuthorizationFunction.Alias
       Principal: apigateway.amazonaws.com
 
   AuthorizationFunctionFatalErorMetricFilter:
@@ -2107,8 +2138,18 @@ Resources:
 
   DocumentSelectionFunction:
     Type: AWS::Serverless::Function
-    DependsOn: DocumentSelectionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdC"
       FunctionName: !Sub "Document-Selection-${AWS::StackName}"
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
@@ -2200,13 +2241,6 @@ Resources:
                 Action:
                   - "states:StartExecution"
                 Resource: !GetAtt SendYotiLetterStateMachine.Arn
-      Events:
-        documentSelection:
-          Type: Api
-          Properties:
-            Path: /documentSelection
-            Method: post
-            RestApiId: !Ref F2FRestApi
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -2241,7 +2275,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref DocumentSelectionFunction
+      FunctionName: !GetAtt DocumentSelectionFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  DocumentSelectionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DocumentSelectionFunction.Alias
       Principal: apigateway.amazonaws.com
 
   DocumentSelectionFatalErorMetricFilter:
@@ -2404,8 +2445,18 @@ Resources:
 
   AbortFunction:
     Type: AWS::Serverless::Function
-    DependsOn: AbortLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       FunctionName: !Sub "Abort-${AWS::StackName}"
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
@@ -2450,13 +2501,7 @@ Resources:
                 - "kms:Decrypt"
                 - "kms:GenerateDataKey"
               Resource: !GetAtt [TxMAKMSEncryptionKey, Arn]
-      Events:
-        abort:
-          Type: Api
-          Properties:
-            Path: /abort
-            Method: post
-            RestApiId: !Ref F2FRestApi
+
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -2590,14 +2635,31 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref AbortFunction
+      FunctionName: !GetAtt AbortFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  AbortAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref AbortFunction.Alias
       Principal: apigateway.amazonaws.com
 
   ## PersonInfoHandler
   PersonInfoFunction:
     Type: AWS::Serverless::Function
-    DependsOn: PersonInfoFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       FunctionName: !Sub "F2F-person-info-${AWS::StackName}"
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
@@ -2642,13 +2704,6 @@ Resources:
                 - kms:*
               Resource:
                 "*"
-      Events:
-        personInfo:
-          Type: Api
-          Properties:
-            Path: /person-info
-            Method: get
-            RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
@@ -2688,7 +2743,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref PersonInfoFunction
+      FunctionName: !GetAtt PersonInfoFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  PersonInfoFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PersonInfoFunction.Alias
       Principal: apigateway.amazonaws.com
 
   PersonInfoFunctionFatalErorMetricFilter:
@@ -3039,8 +3101,18 @@ Resources:
   ## PersonInfoKeyHandler
   PersonInfoKeyFunction:
     Type: AWS::Serverless::Function
-    DependsOn: PersonInfoKeyFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       FunctionName: !Sub "F2F-person-info-key-${AWS::StackName}"
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
@@ -3059,20 +3131,11 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: PersonInfoKeyHandler
           PRIVATE_KEY_SSM_PATH: !Sub "/${Environment}/person-info/PRIVATE_KEY"
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${Environment}/person-info/PRIVATE_KEY"
-      Events:
-        personInfoKey:
-          Type: Api
-          Properties:
-            Path: /person-info-key
-            Method: get
-            RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
@@ -3104,7 +3167,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref PersonInfoKeyFunction
+      FunctionName: !GetAtt PersonInfoKeyFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  PersonInfoKeyFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PersonInfoKeyFunction.Alias
       Principal: apigateway.amazonaws.com
 
   PersonInfoKeyFunctionFatalErorMetricFilter:
@@ -3262,8 +3332,18 @@ Resources:
   ## AddressLocationsHandler
   AddressLocationsFunction:
     Type: AWS::Serverless::Function
-    DependsOn: AddressLocationsFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdC"
       FunctionName: !Sub "F2F-addressLocations-${AWS::StackName}"
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
@@ -3300,13 +3380,6 @@ Resources:
                 - kms:*
               Resource:
                 "*"
-      Events:
-        AddressLocations:
-          Type: Api
-          Properties:
-            Path: /addressLocations
-            Method: post
-            RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
@@ -3338,7 +3411,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref AddressLocationsFunction
+      FunctionName: !GetAtt AddressLocationsFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  AddressLocationsFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref AddressLocationsFunction.Alias
       Principal: apigateway.amazonaws.com
 
   AddressLocationsFunctionFatalErorMetricFilter:
@@ -3588,9 +3668,18 @@ Resources:
 
   JsonWebKeysFunction:
     Type: AWS::Serverless::Function
-    DependsOn:
-      - "JsonWebKeysLogGroup"
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       FunctionName: !Sub "JsonWebKeys-${AWS::StackName}"
       CodeUri: ../src/
       Handler: JwksHandler.lambdaHandler
@@ -3659,6 +3748,13 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt JsonWebKeysFunction.Arn
+      Principal: events.amazonaws.com
+
+  JsonWebKeysFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref JsonWebKeysFunction.Alias
       Principal: events.amazonaws.com
 
   JsonWebKeysFunctionFatalErorMetricFilter:
@@ -3760,8 +3856,18 @@ Resources:
 
   GovNotifyFunction:
     Type: AWS::Serverless::Function
-    DependsOn: GovNotifyFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdC"
       FunctionName: !Sub "F2F-GovNotify-${AWS::StackName}"
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
@@ -3875,10 +3981,10 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref GovNotifyFunction
+      FunctionName: !GetAtt GovNotifyFunction.Arn
       Principal: apigateway.amazonaws.com
 
-  GovNotifyFunctionPermissionAlias:
+  GovNotifyFunctionAliasPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
@@ -3985,8 +4091,18 @@ Resources:
 
   UserInfoFunction:
     Type: AWS::Serverless::Function
-    DependsOn: UserInfoFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       FunctionName: !Sub "User-Info-${AWS::StackName}"
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
@@ -4037,13 +4153,6 @@ Resources:
                 - "kms:Decrypt"
                 - "kms:GenerateDataKey"
               Resource: !GetAtt TxMAKMSEncryptionKey.Arn
-      Events:
-        userInfo:
-          Type: Api
-          Properties:
-            Path: /userinfo
-            Method: post
-            RestApiId: !Ref F2FRestApi
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -4083,7 +4192,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref UserInfoFunction
+      FunctionName: !GetAtt UserInfoFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  UserInfoFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref UserInfoFunction.Alias
       Principal: apigateway.amazonaws.com
 
   UserInfoFunctionFatalErorMetricFilter:
@@ -4247,8 +4363,18 @@ Resources:
 
   ReminderEmailFunction:
     Type: AWS::Serverless::Function
-    DependsOn: ReminderEmailFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdC"
       FunctionName: !Sub "F2F-ReminderEmail-${AWS::StackName}"
       Handler: ReminderEmailHandler.lambdaHandler
       CodeUri: ../src/
@@ -4263,8 +4389,6 @@ Resources:
           GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           ENCRYPTION_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
       Policies:
@@ -4346,7 +4470,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref ReminderEmailFunction
+      FunctionName: !GetAtt ReminderEmailFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  ReminderEmailFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ReminderEmailFunction.Alias
       Principal: apigateway.amazonaws.com
 
   ReminderEmailFunctionFatalErorMetricFilter:
@@ -4448,8 +4579,18 @@ Resources:
 
   ExpiredSessionsFunction:
     Type: AWS::Serverless::Function
-    DependsOn: ExpiredSessionsFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       FunctionName: !Sub "F2F-ExpiredSessions-${AWS::StackName}"
       Handler: ExpiredSessionsHandler.lambdaHandler
       CodeUri: ../src/
@@ -4461,8 +4602,6 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: ExpiredSessionsHandler
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           ENCRYPTION_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
           AUTH_SESSION_TTL_SECS:
@@ -4541,9 +4680,15 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref ExpiredSessionsFunction
+      FunctionName: !GetAtt ExpiredSessionsFunction.Arn
       Principal: apigateway.amazonaws.com
 
+  ExpiredSessionsFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ExpiredSessionsFunction.Alias
+      Principal: apigateway.amazonaws.com
 
   ExpiredSessionFunctionTestRolePermission:
     Type: AWS::Lambda::Permission
@@ -4693,7 +4838,6 @@ Resources:
 
   TriggerYotiCallbackStateMachine:
     Type: AWS::Serverless::Function
-    DependsOn: TriggerYotiCallbackStateMachineLogGroup
     Properties:
       FunctionName: !Sub "F2F-TriggerYotiCallbackStateMachine-${AWS::StackName}"
       DeploymentPreference:
@@ -4780,7 +4924,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref TriggerYotiCallbackStateMachine
+      FunctionName: !GetAtt TriggerYotiCallbackStateMachine.Arn
+      Principal: apigateway.amazonaws.com
+
+  TriggerYotiCallbackStateMachineAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TriggerYotiCallbackStateMachine.Alias
       Principal: apigateway.amazonaws.com
 
   TriggerYotiCallbackStateMachineFilterCSLS:
@@ -4931,8 +5082,18 @@ Resources:
 
   YotiCallbackFunction:
     Type: AWS::Serverless::Function
-    DependsOn: YotiCallbackFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdC"
       FunctionName: !Sub "F2F-YotiCallback-${AWS::StackName}"
       Handler: YotiSessionCompletionHandler.lambdaHandler
       CodeUri: ../src/
@@ -4952,12 +5113,12 @@ Resources:
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: 5000
           FETCH_YOTI_SESSION_MAX_RETRIES: 3
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           DNSSUFFIX: !FindInMap [ EnvironmentVariables, !Ref Environment, DNSSUFFIX ]
           IPV_CORE_QUEUE_URL: !Ref IPVCoreSQSQueue
           YOTI_SESSION_TTL_DAYS:             
             !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
+          KMS_KEY_ARN:
+            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -5056,7 +5217,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref YotiCallbackFunction
+      FunctionName: !GetAtt YotiCallbackFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  YotiCallbackFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref YotiCallbackFunction.Alias
       Principal: apigateway.amazonaws.com
 
 ####################################################################
@@ -5067,8 +5235,18 @@ Resources:
 
   PostOfficeVisitFunction:
     Type: AWS::Serverless::Function
-    DependsOn: PostOfficeVisitFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdC"
       FunctionName: !Sub "F2F-PostOfficeVisit-${AWS::StackName}"
       Handler: PostOfficeVisitHandler.lambdaHandler
       CodeUri: ../src/
@@ -5086,8 +5264,6 @@ Resources:
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
           FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: 5000
           FETCH_YOTI_SESSION_MAX_RETRIES: 3
-          KMS_KEY_ARN:
-            Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -5177,7 +5353,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref PostOfficeVisitFunction
+      FunctionName: !GetAtt PostOfficeVisitFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  PostOfficeVisitFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PostOfficeVisitFunction.Alias
       Principal: apigateway.amazonaws.com
 
   PostOfficeVisitFatalErorMetricFilter:
@@ -5319,8 +5502,18 @@ Resources:
 
   GenerateYotiLetterFunction:
     Type: AWS::Serverless::Function
-    DependsOn: GenerateYotiLetterFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdC"
       FunctionName: !Sub "F2F-GenerateYotiLetter-${AWS::StackName}"
       Handler: GenerateYotiLetterHandler.lambdaHandler
       CodeUri: ../src/
@@ -5392,7 +5585,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref GenerateYotiLetterFunction
+      FunctionName: !GetAtt GenerateYotiLetterFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  GenerateYotiLetterFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GenerateYotiLetterFunction.Alias
       Principal: apigateway.amazonaws.com
 
   GenerateYotiLetterFatalErorMetricFilter:
@@ -5496,8 +5696,18 @@ Resources:
 
   GeneratePrintedLetterFunction:
     Type: AWS::Serverless::Function
-    DependsOn: GeneratePrintedLetterFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdC"
       FunctionName: !Sub "F2F-GeneratePrintedLetter-${AWS::StackName}"
       Handler: GeneratePrintedLetterHandler.lambdaHandler
       CodeUri: ../src/
@@ -5576,7 +5786,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref GeneratePrintedLetterFunction
+      FunctionName: !GetAtt GeneratePrintedLetterFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  GeneratePrintedLetterFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GeneratePrintedLetterFunction.Alias
       Principal: apigateway.amazonaws.com
 
   GeneratePrintedLetterFatalErorMetricFilter:
@@ -5680,8 +5897,18 @@ Resources:
 
   SendToGovNotifyFunction:
     Type: AWS::Serverless::Function
-    DependsOn: SendToGovNotifyFunctionLogGroup
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdC"
       FunctionName: !Sub "F2F-SendToGovNotify-${AWS::StackName}"
       Handler: SendToGovNotifyHandler.lambdaHandler
       CodeUri: ../src/
@@ -5787,7 +6014,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref SendToGovNotifyFunction
+      FunctionName: !GetAtt SendToGovNotifyFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  SendToGovNotifyFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SendToGovNotifyFunction.Alias
       Principal: apigateway.amazonaws.com
 
   SendToGovNotifyFatalErorMetricFilter:
