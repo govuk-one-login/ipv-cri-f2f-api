@@ -583,8 +583,14 @@ Resources:
               - "https://${IPVSTUBURL}"
               - IPVSTUBURL:
                   !FindInMap [ Configuration, !Ref Environment, IPVSTUBURL ]
-          DEV_CRI_F2F_API_URL: !Sub
+          DEV_CRI_F2F_API_URL: !If
+          - CreateDevResources
+          - !Sub
               - "https://api-${BackendStack}.${DNSSUFFIX}"
+              - DNSSUFFIX:
+                  !FindInMap [ Configuration, !Ref Environment, DNSSUFFIX ]
+          - !Sub
+              - "https://api.${DNSSUFFIX}"
               - DNSSUFFIX:
                   !FindInMap [ Configuration, !Ref Environment, DNSSUFFIX ]
       Role: !GetAtt IPVStubLambdaRole.Arn
