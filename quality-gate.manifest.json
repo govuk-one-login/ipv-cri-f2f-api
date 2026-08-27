@@ -3,7 +3,7 @@
   "services": [
     {
       "product": "Face-To-Face-CRI",
-      "component": "Face-To-Face-CRI API",
+      "component": "ipv-cri-f2f-api",
       "promotionType": "securePipelines",
       "automated": [
         {
