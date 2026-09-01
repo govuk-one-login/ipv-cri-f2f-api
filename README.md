@@ -197,7 +197,11 @@ npm run test:unit
 ### API tests
 ```sh
 cd src
+# Runs the pipeline-safe backend API tests
 npm run test:api
+
+# Runs Yoti stub integration and Yoti service tests to verify retry mechanism
+npm run test:api-retry
 ```
 
 ### Infra tests

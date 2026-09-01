@@ -23,6 +23,31 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { YotiCallbackTopics } from "../../../models/enums/YotiCallbackTopics";
 import { sleep } from "../../../utils/Sleep";
 
+async function waitForAuthSessionState(
+	sessionId: string,
+	expectedState: AuthSessionState,
+	timeoutInMilliseconds = 10000,
+): Promise<void> {
+	const pollingIntervalInMilliseconds = 500;
+	const timeoutAt = Date.now() + timeoutInMilliseconds;
+	let lastObservedState: string | undefined;
+
+	while (Date.now() < timeoutAt) {
+		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		lastObservedState = session?.authSessionState;
+
+		if (lastObservedState === expectedState) {
+			return;
+		}
+
+		await sleep(pollingIntervalInMilliseconds);
+	}
+
+	throw new Error(
+		`Session ${sessionId} did not reach ${expectedState} within ${timeoutInMilliseconds}ms. Last observed state: ${lastObservedState}`,
+	);
+}
+
 //QualityGateIntegrationTest 
 //QualityGateRegressionTest
 //QualityGateStackTest
@@ -73,11 +98,10 @@ describe("/callback endpoint", () => {
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-		await sleep(5000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_POST_OFFICE_VISITED);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
-		await sleep(5000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_YOTI_SESSION_COMPLETE);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
-		await sleep(5000)
 		
 		let sqsMessage;
 		let i = 0;
@@ -87,7 +111,7 @@ describe("/callback endpoint", () => {
 		} while (i < 10 && !sqsMessage);
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		await validateJwtToken(jwtToken, vcResponseData, yotiMockId);
-	}, 60000);
+	}, 90000);
 
 	describe("Verifiable Credential Error", () => {
 		it.each([
@@ -106,9 +130,9 @@ describe("/callback endpoint", () => {
 			expect(yotiSessionId).toBeTruthy();
 		
 			await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-			await sleep(5000)
+			await waitForAuthSessionState(sessionId, AuthSessionState.F2F_POST_OFFICE_VISITED);
 			await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
-			await sleep(5000)
+			await waitForAuthSessionState(sessionId, AuthSessionState.F2F_YOTI_SESSION_COMPLETE);
 			await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 	
 			let sqsMessage;
@@ -119,7 +143,7 @@ describe("/callback endpoint", () => {
 			} while (i < 10 && !sqsMessage);
 	
 			expect(sqsMessage?.error_description).toBe(vcError);
-		}, 30000);
+		}, 90000);
 	});
 
 	it.each([
