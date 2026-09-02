@@ -17,11 +17,10 @@ import {
 } from "../ApiTestSteps";
 import "dotenv/config";
 import { constants } from "../ApiConstants";
-import { getTxmaEventsFromTestHarness, validateTxMAEventData } from "../ApiUtils";
+import { getTxmaEventsFromTestHarness, validateTxMAEventData, waitForAuthSessionState } from "../ApiUtils";
 import { DocSelectionData } from "../types";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { YotiCallbackTopics } from "../../../models/enums/YotiCallbackTopics";
-import { sleep } from "../../../utils/Sleep";
 
 //QualityGateIntegrationTest 
 //QualityGateRegressionTest
@@ -73,11 +72,10 @@ describe("/callback endpoint", () => {
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-		await sleep(5000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_POST_OFFICE_VISITED);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
-		await sleep(5000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_YOTI_SESSION_COMPLETE);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
-		await sleep(5000)
 		
 		let sqsMessage;
 		let i = 0;
@@ -87,7 +85,7 @@ describe("/callback endpoint", () => {
 		} while (i < 10 && !sqsMessage);
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		await validateJwtToken(jwtToken, vcResponseData, yotiMockId);
-	}, 60000);
+	}, 90000);
 
 	describe("Verifiable Credential Error", () => {
 		it.each([
@@ -106,9 +104,9 @@ describe("/callback endpoint", () => {
 			expect(yotiSessionId).toBeTruthy();
 		
 			await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-			await sleep(5000)
+			await waitForAuthSessionState(sessionId, AuthSessionState.F2F_POST_OFFICE_VISITED);
 			await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
-			await sleep(5000)
+			await waitForAuthSessionState(sessionId, AuthSessionState.F2F_YOTI_SESSION_COMPLETE);
 			await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 	
 			let sqsMessage;
@@ -119,7 +117,7 @@ describe("/callback endpoint", () => {
 			} while (i < 10 && !sqsMessage);
 	
 			expect(sqsMessage?.error_description).toBe(vcError);
-		}, 30000);
+		}, 90000);
 	});
 
 	it.each([
@@ -148,9 +146,9 @@ describe("/callback endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 	
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-		await sleep(5000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_POST_OFFICE_VISITED);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
-		await sleep(5000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_YOTI_SESSION_COMPLETE);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 
 		let sqsMessage;
@@ -162,7 +160,7 @@ describe("/callback endpoint", () => {
 
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		validateJwtTokenNamePart(jwtToken, givenName1, givenName2, givenName3, familyName + yotiMockId);
-	}, 30000);
+	}, 90000);
 
 	it.each([
 		{ yotiMockId: "0000", documentType: "UkDrivingLicence", docSelectionData: dataUkDrivingLicence, yotiStartSchema: "F2F_YOTI_START_00_SCHEMA", vcIssuedSchema: "F2F_CRI_VC_ISSUED_SCHEMA" },
@@ -182,9 +180,9 @@ describe("/callback endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-		await sleep(5000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_POST_OFFICE_VISITED);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
-		await sleep(5000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_YOTI_SESSION_COMPLETE);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 8);
@@ -196,7 +194,7 @@ describe("/callback endpoint", () => {
 		validateTxMAEventData({ eventName: "F2F_DOCUMENT_UPLOADED", schemaName: "F2F_DOCUMENT_UPLOADED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_YOTI_RESPONSE_RECEIVED", schemaName: "F2F_YOTI_RESPONSE_RECEIVED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_CRI_VC_ISSUED", schemaName: vcIssuedSchema }, allTxmaEventBodies);
-	}, 30000);
+	}, 90000);
 
 	it("E2E Journey with Callback and Thank you Email TxMA event Validation for yotiMockID: 0101 - documentType: UkPassport", async () => {
 		const yotiMockID = "0101";
@@ -211,9 +209,9 @@ describe("/callback endpoint", () => {
 		expect(yotiSessionId).toBeTruthy();
 	
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-		await sleep(5000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_POST_OFFICE_VISITED);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
-		await sleep(5000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_YOTI_SESSION_COMPLETE);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
 
 		const allTxmaEventBodies = await getTxmaEventsFromTestHarness(sessionId, 8);
@@ -225,7 +223,7 @@ describe("/callback endpoint", () => {
 		validateTxMAEventData({ eventName: "F2F_DOCUMENT_UPLOADED", schemaName: "F2F_DOCUMENT_UPLOADED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_YOTI_RESPONSE_RECEIVED", schemaName: "F2F_YOTI_RESPONSE_RECEIVED_SCHEMA" }, allTxmaEventBodies);
 		validateTxMAEventData({ eventName: "F2F_CRI_VC_ISSUED", schemaName: "F2F_CRI_VC_ISSUED_01_SCHEMA" }, allTxmaEventBodies);
-	}, 30000);
+	}, 90000);
 
 	it("E2E Journey with FIRST_BRANCH_VISIT callback changes auth session state to F2F_POST_OFFICE_VISITED", async () => {
 		const yotiMockID = "0101";
@@ -240,7 +238,7 @@ describe("/callback endpoint", () => {
 		expect(sessionBefore?.authSessionState).toBeTruthy();
 
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-		await sleep(2000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_POST_OFFICE_VISITED);
 		const sessionAfter = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		expect(sessionAfter?.authSessionState).not.toEqual(sessionBefore?.authSessionState);
 		expect(sessionAfter?.authSessionState).toEqual(AuthSessionState.F2F_POST_OFFICE_VISITED);
@@ -259,13 +257,13 @@ describe("/callback endpoint", () => {
 		expect(sessionBefore?.authSessionState).toBeTruthy();
 
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-		await sleep(2000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_POST_OFFICE_VISITED);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
-		await sleep(2000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_YOTI_SESSION_COMPLETE);
 		const sessionAfter = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		expect(sessionAfter?.authSessionState).not.toEqual(sessionBefore?.authSessionState);
 		expect(sessionAfter?.authSessionState).toEqual(AuthSessionState.F2F_YOTI_SESSION_COMPLETE);
-	}, 20000);
+	}, 30000);
 
 	it("Successful E2E Journey with SESSION_COMPLETION callback changes auth session state to F2F_CREDENTIAL_ISSUED", async () => {
 		const yotiMockID = "0101";
@@ -280,13 +278,13 @@ describe("/callback endpoint", () => {
 		expect(sessionBefore?.authSessionState).toBeTruthy();
 
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-		await sleep(2000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_POST_OFFICE_VISITED);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
-		await sleep(2000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_YOTI_SESSION_COMPLETE);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
-		await sleep(2000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_CREDENTIAL_ISSUED);
 		const sessionAfter = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
 		expect(sessionAfter?.authSessionState).not.toEqual(sessionBefore?.authSessionState);
 		expect(sessionAfter?.authSessionState).toEqual(AuthSessionState.F2F_CREDENTIAL_ISSUED);
-	}, 20000);
+	}, 40000);
 });
