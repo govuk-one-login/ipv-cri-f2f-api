@@ -10,10 +10,11 @@ import {
 	getSessionById,
 	callbackPost,
 } from "../ApiTestSteps";
+import { waitForAuthSessionState } from "../ApiUtils";
 import "dotenv/config";
 import { constants } from "../ApiConstants";
 import { YotiCallbackTopics } from "../../../models/enums/YotiCallbackTopics";
-import { sleep } from "../../../utils/Sleep";
+import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 
 //QualityGateIntegrationTest 
 //QualityGateStackTest
@@ -30,11 +31,10 @@ describe("/callback endpoint", () => {
 		const yotiSessionId = session?.yotiSessionId;
 		expect(yotiSessionId).toBeTruthy();
 		await callbackPost(yotiSessionId, YotiCallbackTopics.FIRST_BRANCH_VISIT, 202);
-		await sleep(5000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_POST_OFFICE_VISITED);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED, 202);
-		await sleep(5000)
+		await waitForAuthSessionState(sessionId, AuthSessionState.F2F_YOTI_SESSION_COMPLETE);
 		await callbackPost(yotiSessionId, YotiCallbackTopics.SESSION_COMPLETION, 202);
-		await sleep(5000)
 		
 		let sqsMessage;
 		let i = 0;
@@ -44,5 +44,5 @@ describe("/callback endpoint", () => {
 		} while (i < 10 && !sqsMessage);
 		const jwtToken = sqsMessage["https://vocab.account.gov.uk/v1/credentialJWT"][0];
 		await validateJwtToken(jwtToken, vcResponseData, yotiMockId);
-	}, 60000);
+	}, 90000);
 });

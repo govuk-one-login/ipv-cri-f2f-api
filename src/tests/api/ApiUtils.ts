@@ -1,7 +1,10 @@
 import Ajv from "ajv";
 import { XMLParser } from "fast-xml-parser";
-import { HARNESS_API_INSTANCE } from "./ApiTestSteps";
+import { getSessionById, HARNESS_API_INSTANCE } from "./ApiTestSteps";
+import { constants } from "./ApiConstants";
 import { TxmaEvent, TxmaEventName } from "../../utils/TxmaEvent";
+import { sleep } from "../../utils/Sleep";
+import { AuthSessionState } from "../../models/enums/AuthSessionState";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import jp from "jsonpath";
 const client = new LambdaClient({ region: process.env.REGION });
@@ -50,6 +53,31 @@ ajv.addSchema(F2F_YOTI_START_05_SCHEMA, "F2F_YOTI_START_05_SCHEMA");
 ajv.addSchema(F2F_CRI_SESSION_ABORTED_SCHEMA, "F2F_CRI_SESSION_ABORTED_SCHEMA");
 
 const xmlParser = new XMLParser();
+
+export async function waitForAuthSessionState(
+	sessionId: string,
+	expectedState: AuthSessionState,
+	timeoutInMilliseconds = 10000,
+): Promise<void> {
+	const pollingIntervalInMilliseconds = 2000;
+	const timeoutAt = Date.now() + timeoutInMilliseconds;
+	let lastObservedState: string | undefined;
+
+	while (Date.now() < timeoutAt) {
+		const session = await getSessionById(sessionId, constants.DEV_F2F_SESSION_TABLE_NAME);
+		lastObservedState = session?.authSessionState;
+
+		if (lastObservedState === expectedState) {
+			return;
+		}
+
+		await sleep(pollingIntervalInMilliseconds);
+	}
+
+	throw new Error(
+		`Session ${sessionId} did not reach ${expectedState} within ${timeoutInMilliseconds}ms. Last observed state: ${lastObservedState}`,
+	);
+}
 
 interface TestHarnessReponse {
 	data: TxmaEvent;
@@ -244,4 +272,3 @@ export async function invokeLambdaFunction(lambdaName: string, payload: object):
 		throw new Error(`Failed to invoke Lambda function: ${error}`);
 	}
 }
-
