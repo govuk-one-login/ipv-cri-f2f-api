@@ -144,7 +144,7 @@ jobs:
           aws-region: eu-west-2
       
       - name: Setup nodeJS v24
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
       
