@@ -1,204 +1,277 @@
 {
-  "$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.2.0/schemas/schema.json",
+  "$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.19.0/schemas/schema.json",
   "services": [
     {
-      "service-tag": "f2f-api",
-      "quality-gates": [
+      "product": "Face-To-Face-CRI",
+      "component": "ipv-cri-f2f-api",
+      "promotionType": "securePipelines",
+      "automated": [
         {
-          "check-types": ["secret scanning"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pre-commit.yml",
-            "path": "jobs.pre-commit"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "secret scanning"
+            }
+          ],
+          "file": ".github/workflows/pre-commit.yml",
+          "path": "$.jobs.pre-commit"
         },
         {
-          "check-types": ["code style and linting", "unit", "contract"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request.yml",
-            "path": "jobs.run-code-check",
-            "name": "Code Checks"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            },
+            {
+              "name": "unit"
+            },
+            {
+              "name": "contract"
+            }
+          ],
+          "file": ".github/workflows/pull-request.yml",
+          "path": "$.jobs.run-code-check"
         },
         {
-          "check-types": ["code style and linting"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request.yml",
-            "path": "jobs.sam-validate",
-            "name": "SAM Validate"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            }
+          ],
+          "file": ".github/workflows/pull-request.yml",
+          "path": "$.jobs.sam-validate"
         },
         {
-          "check-types": ["regression", "stack", "integration"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request.yml",
-            "path": "jobs.pre-merge-checks"
-          }
-        }, 
-        {
-          "check-types": ["unit"],
           "provider": "GitHub",
-          "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-sonar.yml",
-            "path": "jobs.unit-tests"
-          }
+          "checks": [
+            {
+              "name": "integration",
+              "purpose": [
+                "regression"
+              ],
+              "scope": "component"
+            }
+          ],
+          "file": ".github/workflows/pull-request.yml",
+          "path": "$.jobs.pre-merge-checks"
         },
         {
-          "check-types": ["unit test coverage", "code quality"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-sonar.yml",
-            "path": "jobs.run-sonar-pr",
-            "name": "run-sonar-pr"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "unit"
+            }
+          ],
+          "file": ".github/workflows/pull-request-sonar.yml",
+          "path": "$.jobs.unit-tests"
         },
         {
-          "check-types": ["code style and linting", "regression", "stack"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-Dynamo.yml",
-            "path": "jobs.run-code-check",
-            "name": "Code Checks"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "unit test coverage"
+            },
+            {
+              "name": "code quality"
+            }
+          ],
+          "file": ".github/workflows/pull-request-sonar.yml",
+          "path": "$.jobs.run-sonar-pr"
         },
         {
-          "check-types": ["code style and linting"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-Dynamo.yml",
-            "path": "jobs.sam-validate",
-            "name": "SAM Validate"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            },
+            {
+              "name": "integration",
+              "scope": "component",
+              "purpose": [
+                "regression"
+              ]
+            }
+          ],
+          "file": ".github/workflows/pull-request-Dynamo.yml",
+          "path": "$.jobs.run-code-check"
         },
         {
-          "check-types": ["code style and linting"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-gov-notify-stub.yml",
-            "path": "jobs.sam-validate",
-            "name": "SAM Validate"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            }
+          ],
+          "file": ".github/workflows/pull-request-Dynamo.yml",
+          "path": "$.jobs.sam-validate"
         },
         {
-          "check-types": ["code style and linting", "regression", "unit", "stack"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-ipv-stub.yml",
-            "path": "jobs.run-code-check",
-            "name": "Code Checks"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            }
+          ],
+          "file": ".github/workflows/pull-request-gov-notify-stub.yml",
+          "path": "$.jobs.sam-validate"
         },
         {
-          "check-types": ["code style and linting"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-ipv-stub.yml",
-            "path": "jobs.sam-validate",
-            "name": "SAM Validate"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            },
+            {
+              "name": "unit",
+              "purpose": [
+                "regression"
+              ]
+            },
+            {
+              "name": "integration",
+              "scope": "component"
+            }
+          ],
+          "file": ".github/workflows/pull-request-ipv-stub.yml",
+          "path": "$.jobs.run-code-check"
         },
         {
-          "check-types": ["code style and linting", "regression", "stack"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-KMS.yml",
-            "path": "jobs.run-code-check",
-            "name": "Code Checks"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            }
+          ],
+          "file": ".github/workflows/pull-request-ipv-stub.yml",
+          "path": "$.jobs.sam-validate"
         },
         {
-          "check-types": ["code style and linting"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-KMS.yml",
-            "path": "jobs.sam-validate",
-            "name": "SAM Validate"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            },
+            {
+              "name": "integration",
+              "scope": "component",
+              "purpose": [
+                "regression"
+              ]
+            }
+          ],
+          "file": ".github/workflows/pull-request-KMS.yml",
+          "path": "$.jobs.run-code-check"
         },
         {
-          "check-types": ["code style and linting", "regression", "stack"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-outbound-proxy.yml",
-            "path": "jobs.run-code-check",
-            "name": "Code Checks"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            }
+          ],
+          "file": ".github/workflows/pull-request-KMS.yml",
+          "path": "$.jobs.sam-validate"
         },
         {
-          "check-types": ["code style and linting"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-outbound-proxy.yml",
-            "path": "jobs.sam-validate",
-            "name": "SAM Validate"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            },
+            {
+              "name": "integration",
+              "scope": "component",
+              "purpose": [
+                "regression"
+              ]
+            }
+          ],
+          "file": ".github/workflows/pull-request-outbound-proxy.yml",
+          "path": "$.jobs.run-code-check"
         },
         {
-          "check-types": ["code style and linting"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-postoffice-mock.yml",
-            "path": "jobs.sam-validate",
-            "name": "SAM Validate"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            }
+          ],
+          "file": ".github/workflows/pull-request-outbound-proxy.yml",
+          "path": "$.jobs.sam-validate"
         },
         {
-          "check-types": ["code style and linting", "unit"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-test-harness.yml",
-            "path": "jobs.run-code-check",
-            "name": "Code Checks"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            }
+          ],
+          "file": ".github/workflows/pull-request-postoffice-mock.yml",
+          "path": "$.jobs.sam-validate"
         },
         {
-          "check-types": ["code style and linting"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-test-harness.yml",
-            "path": "jobs.sam-validate",
-            "name": "SAM Validate"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            },
+            {
+              "name": "unit"
+            }
+          ],
+          "file": ".github/workflows/pull-request-test-harness.yml",
+          "path": "$.jobs.run-code-check"
         },
         {
-          "check-types": ["code style and linting"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pull-request-yoti-stub.yml",
-            "path": "jobs.sam-validate",
-            "name": "SAM Validate"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            }
+          ],
+          "file": ".github/workflows/pull-request-test-harness.yml",
+          "path": "$.jobs.sam-validate"
         },
         {
-          "check-types": ["vulnerability detection"],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/dependabot.yml"
-          }
-        } 
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code style and linting"
+            }
+          ],
+          "file": ".github/workflows/pull-request-yoti-stub.yml",
+          "path": "$.jobs.sam-validate"
+        },
+        {
+          "phase": "pre-merge",
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "vulnerability detection"
+            }
+          ],
+          "file": ".github/dependabot.yml"
+        }
       ]
     }
   ]
