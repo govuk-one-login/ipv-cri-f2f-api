@@ -16,7 +16,7 @@ jobs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Get output variables
         id: vars
@@ -36,7 +36,7 @@ jobs:
       ipv_stub_url: ${{ steps.ipv_stub_url.outputs.ipv_stub_url }}
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup SAM CLI
         uses: aws-actions/setup-sam@v3
@@ -133,7 +133,7 @@ jobs:
       VC_SIGNING_KEY_ID: ${{ secrets.DEV_VC_SIGNING_KEY_ID }}     
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           submodules: true
 
