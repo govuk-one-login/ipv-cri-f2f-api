@@ -24,10 +24,10 @@
     "@types/node": "20.14.8",
     "@typescript-eslint/eslint-plugin": "8.65.0",
     "@typescript-eslint/parser": "8.65.0",
-    "@vitest/coverage-v8": "4.1.10",
+    "@vitest/coverage-v8": "4.1.11",
     "eslint": "10.7.0",
     "typescript": "4.9.4",
-    "vitest": "4.1.10",
+    "vitest": "4.1.11",
     "vitest-mock-extended": "3.1.0"
   },
   "engines": {
