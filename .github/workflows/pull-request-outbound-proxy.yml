@@ -52,10 +52,10 @@ jobs:
           key: offline-mirror-oauth
 
       - name: Install dependencies
-        run: cd .. && cd src && npm ci
+        run: cd ../src && && npm ci
 
       - name: Run Infra checks
-        run: cd .. && cd src && npm run test:infra:outbound-proxy
+        run: cd ../src && && npm run test:infra:outbound-proxy
 
   sam-validate:
     name: SAM Validate

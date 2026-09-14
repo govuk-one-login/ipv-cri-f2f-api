@@ -53,10 +53,10 @@ jobs:
           key: offline-mirror-oauth
 
       - name: Install dependencies
-        run: cd .. && cd src && npm ci
+        run: cd ../src && && npm ci
 
       - name: Run Infra checks
-        run: cd .. && cd src && npm run test:infra:kms
+        run: cd ../src && && npm run test:infra:kms
   sam-validate:
     name: SAM Validate
     runs-on: ubuntu-latest
