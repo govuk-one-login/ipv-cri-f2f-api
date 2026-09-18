@@ -1,7 +1,6 @@
  
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
-import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
@@ -19,7 +18,6 @@ vi.mock("../../../utils/Config", () => {
 	};
 });
 
-vi.mock("@govuk-one-login/cri-logger");
 const metrics = new Metrics({ namespace: "F2F" });
 
 function getMockSessionItem(): ISessionItem {

@@ -1,5 +1,4 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { LogLevel } from "@aws-lambda-powertools/logger/lib/esm/types/Logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { Constants } from "./utils/Constants";

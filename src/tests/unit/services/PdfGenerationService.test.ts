@@ -1,10 +1,5 @@
- 
- 
 import fs from "fs";
-
-import { logger } from "@govuk-one-login/cri-logger";
 import { mock } from "vitest-mock-extended";
-
 import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
 import { person, personAddressAllAddressFields } from "../data/postalAddress-events";
 import { F2fService } from "../../../services/F2fService";
@@ -14,7 +9,6 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 let pdfGenerationService: PDFGenerationService;
 const mockF2fService = mock<F2fService>();
 
-vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 
 const sessionId = "sessionId";

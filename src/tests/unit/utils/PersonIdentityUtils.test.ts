@@ -1,7 +1,6 @@
  
 import { personIdentityUtils } from "../../../utils/PersonIdentityUtils";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
-import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";

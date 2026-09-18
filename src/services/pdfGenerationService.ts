@@ -2,7 +2,6 @@
 import PDFDocument from "pdfkit";
 
 import { EnvironmentVariables } from "./EnvironmentVariables";
-import { logger } from "@govuk-one-login/cri-logger";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 

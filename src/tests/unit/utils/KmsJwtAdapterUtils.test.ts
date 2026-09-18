@@ -5,7 +5,6 @@ import { Constants } from "../../../utils/Constants";
 import { absoluteTimeNow } from "../../../utils/DateTimeUtils";
 import { jwtUtils } from "../../../utils/JwtUtils";
 import { logger } from "@govuk-one-login/cri-logger";
-import { mock } from "vitest-mock-extended";
 import axios from "axios";
 import crypto from "crypto";
 import { DecryptCommandOutput } from "@aws-sdk/client-kms";

@@ -1,4 +1,3 @@
-import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { SendEmailService } from "./SendEmailService";
 import { Constants } from "../utils/Constants";

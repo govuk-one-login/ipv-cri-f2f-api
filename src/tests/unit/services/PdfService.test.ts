@@ -1,6 +1,5 @@
  
  
-import { logger } from "@govuk-one-login/cri-logger";
 import { mock } from "vitest-mock-extended";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 
@@ -25,7 +24,6 @@ let pdfServiceTest: PDFService;
 const mockPdfGenerationService = mock<PDFGenerationService>();
 
 const metrics = mock<Metrics>();
-vi.mock("@govuk-one-login/cri-logger");
 const sessionId = "sessionId";
 
 describe("PdfServiceTest", () => {

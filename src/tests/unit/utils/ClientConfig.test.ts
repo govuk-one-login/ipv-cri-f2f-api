@@ -1,5 +1,4 @@
  
-import { mock } from "vitest-mock-extended";
 import { getClientConfig } from "../../../utils/ClientConfig";
 import { logger } from "@govuk-one-login/cri-logger";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
