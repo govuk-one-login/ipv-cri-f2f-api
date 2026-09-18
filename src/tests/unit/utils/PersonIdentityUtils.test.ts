@@ -1,12 +1,11 @@
  
 import { personIdentityUtils } from "../../../utils/PersonIdentityUtils";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
-import { mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const personDetails: PersonIdentityItem = {
 	addresses: [
 		{
@@ -94,14 +93,14 @@ describe("PersonIdentityUtils", () => {
 
 
 	it("should return the expected structured_postal_address when all fields are present", () => {
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0]);
 
 		expect(addressDetails).toStrictEqual(expectedStructuralPostalAddress);
 	});
 
 	it("should return the expected structured_postal_address when sub_building is empty", () => {
 		personDetails.addresses[0].subBuildingName = "";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0]);
 
 		expectedStructuralPostalAddress.sub_building = "";
 		expectedStructuralPostalAddress.address_line1 = "Sherman";
@@ -112,7 +111,7 @@ describe("PersonIdentityUtils", () => {
 	it("should map the address correctly when building_name is absent", () => {
 		personDetails.addresses[0].buildingName = "";
 		personDetails.addresses[0].subBuildingName = "Flat 5";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0]);
 
 		expectedStructuralPostalAddress.building = "";
 		expectedStructuralPostalAddress.sub_building = "Flat 5";
@@ -124,7 +123,7 @@ describe("PersonIdentityUtils", () => {
 	it("should map the address correctly when sub_building and building_name are absent", () => {
 		delete personDetails.addresses[0].subBuildingName;
 		personDetails.addresses[0].buildingName = " ";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0]);
 
 		expectedStructuralPostalAddress.sub_building = "";
 		expectedStructuralPostalAddress.building = "";
@@ -138,7 +137,7 @@ describe("PersonIdentityUtils", () => {
 	it("should map the address correctly when sub_building and building_name are empty or having white spaces", () => {
 		personDetails.addresses[0].subBuildingName = " ";
 		personDetails.addresses[0].buildingName = "   ";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0]);
 
 		expectedStructuralPostalAddress.sub_building = "";
 		expectedStructuralPostalAddress.building = "";
@@ -153,7 +152,7 @@ describe("PersonIdentityUtils", () => {
 		personDetails.addresses[0].subBuildingName = "Flat 5";
 		personDetails.addresses[0].buildingName = "Sherman";
 		personDetails.addresses[0].buildingNumber = "";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0]);
 
 		expectedStructuralPostalAddress.sub_building = "Flat 5";
 		expectedStructuralPostalAddress.building = "Sherman";
@@ -168,7 +167,7 @@ describe("PersonIdentityUtils", () => {
 		personDetails.addresses[0].subBuildingName = "Flat 5";
 		personDetails.addresses[0].buildingName = "";
 		personDetails.addresses[0].buildingNumber = "";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0]);
 
 		expectedStructuralPostalAddress.sub_building = "Flat 5";
 		expectedStructuralPostalAddress.building = "";
@@ -183,7 +182,7 @@ describe("PersonIdentityUtils", () => {
 		personDetails.addresses[0].subBuildingName = "Flat 5";
 		personDetails.addresses[0].buildingName = " ";
 		personDetails.addresses[0].buildingNumber = "   ";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0]);
 
 		expectedStructuralPostalAddress.sub_building = "Flat 5";
 		expectedStructuralPostalAddress.building = "";
@@ -198,7 +197,7 @@ describe("PersonIdentityUtils", () => {
 		personDetails.addresses[0].subBuildingName = "";
 		personDetails.addresses[0].buildingName = "Sherman";
 		personDetails.addresses[0].buildingNumber = "";
-		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);
+		const addressDetails = personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0]);
 
 		expectedStructuralPostalAddress.sub_building = "";
 		expectedStructuralPostalAddress.building = "Sherman";
@@ -215,7 +214,7 @@ describe("PersonIdentityUtils", () => {
 		personDetails.addresses[0].buildingNumber = "   ";
 		personDetails.addresses[0].streetName = "";
 
-		expect(()=>{personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);}).toThrow(new AppError(HttpCodesEnum.BAD_REQUEST, "Missing all mandatory postalAddress fields, unable to create the session"));
+		expect(()=>{personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0]);}).toThrow(new AppError(HttpCodesEnum.BAD_REQUEST, "Missing all mandatory postalAddress fields, unable to create the session"));
 		expect(logger.error).toHaveBeenCalledWith({ "message": "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session" }, { "messageCode": "MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS" });
 	});
 
@@ -225,7 +224,7 @@ describe("PersonIdentityUtils", () => {
 		personDetails.addresses[0].buildingNumber = "   ";
 		personDetails.addresses[0].streetName = "Funny Street";
 
-		expect(()=>{personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0], logger);}).toThrow(new AppError(HttpCodesEnum.BAD_REQUEST, "Missing all mandatory postalAddress fields, unable to create the session"));
+		expect(()=>{personIdentityUtils.getYotiStructuredPostalAddress(personDetails.addresses[0]);}).toThrow(new AppError(HttpCodesEnum.BAD_REQUEST, "Missing all mandatory postalAddress fields, unable to create the session"));
 		expect(logger.error).toHaveBeenCalledWith({ "message": "Missing all or some of mandatory postalAddress fields (subBuildingName, buildingName, buildingNumber and streetName), unable to create the session" }, { "messageCode": "MISSING_ALL_MANDATORY_POSTAL_ADDRESS_FIELDS" });
 	});
 
@@ -247,7 +246,6 @@ describe("PersonIdentityUtils", () => {
 				const VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(
 					personDetails,
 					testData,
-					logger,
 				);
 				expect(VcNameParts[0].nameParts).toEqual(expectedVcNameParts.nameParts);
 			},
@@ -264,7 +262,6 @@ describe("PersonIdentityUtils", () => {
 					personIdentityUtils.getNamesFromPersonIdentity(
 						personDetails,
 						testData,
-						logger,
 					),
 				).toThrow(
 					new AppError(HttpCodesEnum.SERVER_ERROR, "FullName mismatch between F2F & YOTI"),

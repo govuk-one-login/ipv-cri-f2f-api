@@ -1,22 +1,11 @@
  
 import {  INVALID_YOTI_TOPIC_SQS_EVENT, VALID_SESSION_COMPLETION_SQS_EVENT, VALID_THANK_YOU_SQS_EVENT, VALID_FIRST_BRANCH_VISIT_SQS_EVENT, } from "./data/sqs-events";
-import { handlerClass, lambdaHandler, logger } from "../../TriggerYotiCallbackStateMachineHandler";
+import { handlerClass, lambdaHandler } from "../../TriggerYotiCallbackStateMachineHandler";
+import { logger } from "@govuk-one-login/cri-logger";
 import { MessageCodes } from "../../models/enums/MessageCodes";
 import { passEntireBatch, failEntireBatch } from "../../utils/SqsBatchResponseHelper";
 
-vi.mock("@aws-lambda-powertools/logger", () => ({
-	Logger: vi.fn(function () {
-		return {
-			debug: vi.fn(),
-			warn: vi.fn(),
-			info: vi.fn(),
-			error: vi.fn(),
-			resetKeys: vi.fn(),
-			addContext: vi.fn(),
-			appendKeys: vi.fn(),
-		};
-	}),
-}));
+vi.mock("@govuk-one-login/cri-logger");
 
 vi.mock("@aws-sdk/client-sfn", () => ({
 	SFNClient: vi.fn(function () {

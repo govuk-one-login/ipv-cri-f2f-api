@@ -1,6 +1,6 @@
 import type { MockInstance } from "vitest";
- 
-import { lambdaHandler, logger } from "../../GeneratePrintedLetterHandler";
+import { logger } from "@govuk-one-login/cri-logger";
+import { lambdaHandler } from "../../GeneratePrintedLetterHandler";
 import { GeneratePrintedLetterProcessor } from "../../services/GeneratePrintedLetterProcessor";
 import { mock } from "vitest-mock-extended";
 import { CONTEXT } from "./data/context";

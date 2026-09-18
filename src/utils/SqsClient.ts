@@ -2,12 +2,7 @@ import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import AWSXRay from "aws-xray-sdk-core";
 import { mockSqsClient } from "../tests/contract/mocks/sqsClient";
-import { Logger } from "@aws-lambda-powertools/logger";
-
-const logger = new Logger({
-	logLevel: "INFO",
-	serviceName: "SqsClient",
-});
+import { logger } from "@govuk-one-login/cri-logger";
 
 const createSqsClient = () => {
 	let sqsClient: SQSClient;

@@ -1,5 +1,4 @@
-import { Logger } from "@aws-lambda-powertools/logger";
-import { LogLevel } from "@aws-lambda-powertools/logger/lib/esm/types/Logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Response } from "./utils/Response";
 import { ReminderEmailProcessor } from "./services/ReminderEmailProcessor";
@@ -12,11 +11,9 @@ import { APIGatewayProxyResult } from "aws-lambda";
 
 const {
 	POWERTOOLS_METRICS_NAMESPACE = "F2F-CRI",
-	POWERTOOLS_LOG_LEVEL = "DEBUG",
 	POWERTOOLS_SERVICE_NAME = Constants.REMINDER_EMAIL_LOGGER_SVC_NAME,
 } = process.env;
 
-const logger = new Logger({ logLevel: POWERTOOLS_LOG_LEVEL as LogLevel, serviceName: POWERTOOLS_SERVICE_NAME });
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 class Session implements LambdaInterface {
@@ -30,7 +27,7 @@ class Session implements LambdaInterface {
 		try {
 			logger.info("Starting ReminderEmailProcessor");
 			logger.info("checking service has redeployed");
-			return await ReminderEmailProcessor.getInstance(logger, metrics).processRequest();
+			return await ReminderEmailProcessor.getInstance(metrics).processRequest();
 		} catch (error: any) {
 			const statusCode = error instanceof AppError ? error.statusCode : HttpCodesEnum.SERVER_ERROR;
 			logger.error("An error has occurred.", { messageCode: MessageCodes.SERVER_ERROR });

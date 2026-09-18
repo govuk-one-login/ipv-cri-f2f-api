@@ -1,11 +1,9 @@
  
-import { Logger } from "@aws-lambda-powertools/logger";
 import { VerifiableCredentialService } from "../../../services/VerifiableCredentialService";
 import { AppError } from "../../../utils/AppError";
 import { Constants } from "../../../utils/Constants";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { KmsJwtAdapter } from "../../../utils/KmsJwtAdapter";
-import { mock } from "vitest-mock-extended";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import Ajv, { ValidateFunction } from "ajv";
@@ -22,8 +20,7 @@ describe("VerifiableCredentialService", () => {
 	let verifiableCredentialService: VerifiableCredentialService;
 	const tableName = "test-table";
 	const issuer = "test-issuer";
-	const logger = mock<Logger>();
-	const kmsJwtAdapter = new KmsJwtAdapter("kid", logger);
+	const kmsJwtAdapter = new KmsJwtAdapter("kid");
 	const dnsSuffix = "dnsSuffix123";
 
 	const credentialSubject = {
@@ -99,7 +96,6 @@ describe("VerifiableCredentialService", () => {
 			tableName,
 			kmsJwtAdapter,
 			issuer,
-			logger,
 			dnsSuffix,
 		);
 	});

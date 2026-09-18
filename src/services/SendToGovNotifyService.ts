@@ -5,7 +5,7 @@ import { NotifyClient } from "notifications-node-client";
 import { EmailResponse } from "../models/EmailResponse";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
@@ -37,8 +37,6 @@ export class SendToGovNotifyService {
 
   private readonly environmentVariables: EnvironmentVariables;
 
-  private readonly logger: Logger;
-
   private readonly metrics: Metrics;
 
   private readonly f2fService: F2fService;
@@ -56,15 +54,12 @@ export class SendToGovNotifyService {
    * @private
    */
   private constructor(
-  	logger: Logger,
   	metrics: Metrics,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
   ) {
-  	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(
-  		logger,
   		ServicesEnum.GOV_NOTIFY_SERVICE,
   	);
   	this.GOV_NOTIFY_SERVICE_ID = govnotifyServiceId;
@@ -72,7 +67,6 @@ export class SendToGovNotifyService {
   	this.govNotifyErrorMapper = new GovNotifyErrorMapper();
   	this.f2fService = F2fService.getInstance(
   		this.environmentVariables.sessionTable(),
-  		this.logger,
 		this.metrics,
   		createDynamoDbClient(),
   	);
@@ -87,14 +81,12 @@ export class SendToGovNotifyService {
   }
 
   static getInstance(
-  	logger: Logger,
   	metrics: Metrics,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
   ): SendToGovNotifyService {
   	if (!this.instance) {
   		this.instance = new SendToGovNotifyService(
-  			logger,
   			metrics,
   			GOVUKNOTIFY_API_KEY,
   			govnotifyServiceId,
@@ -106,13 +98,13 @@ export class SendToGovNotifyService {
   async sendYotiInstructions(sessionId: string): Promise<EmailResponse> {
   	// Fetch the Yoti PDF from S3
   	try {
-  		this.logger.info("checking service has redeployed");
+  		logger.info("checking service has redeployed");
   		const f2fSessionInfo = await this.f2fService.getSessionById(
   			sessionId,
   		);
 
   		if (!f2fSessionInfo) {
-  			this.logger.warn("Missing details in SESSION table", {
+  			logger.warn("Missing details in SESSION table", {
   				messageCode: MessageCodes.SESSION_NOT_FOUND,
   			});
   			throw new AppError(
@@ -123,11 +115,10 @@ export class SendToGovNotifyService {
   		const clientConfig = getClientConfig(
   			this.environmentVariables.clientConfig(),
   			f2fSessionInfo.clientId,
-  			this.logger,
   		);
 
   		if (!clientConfig) {
-  			this.logger.error("Unrecognised client in request", {
+  			logger.error("Unrecognised client in request", {
   				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
   			});
   			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Bad Request");
@@ -136,7 +127,7 @@ export class SendToGovNotifyService {
   		const f2fPersonInfo = await this.f2fService.getPersonIdentityById(sessionId, this.environmentVariables.personIdentityTableName());
 
 		  if (!f2fPersonInfo) {
-  			this.logger.warn("Missing details in PERSON table", {
+  			logger.warn("Missing details in PERSON table", {
   				messageCode: MessageCodes.PERSON_NOT_FOUND,
   			});
   			throw new AppError(
@@ -160,8 +151,8 @@ export class SendToGovNotifyService {
 				  this.metrics.addMetric("SendToGovNotify_fetched_merged_pdf", MetricUnit.Count, 1);
 
   				if (mergedPdf) {
-  					this.logger.debug("sendLetter", SendToGovNotifyService.name);
-  					this.logger.info("Sending precompiled letter");
+  					logger.debug("sendLetter", SendToGovNotifyService.name);
+  					logger.info("Sending precompiled letter");
 
   					await this.sendGovNotificationLetter(
   						mergedPdf,
@@ -172,7 +163,7 @@ export class SendToGovNotifyService {
   					await this.sendF2FLetterSentEvent(f2fSessionInfo, f2fPersonInfo);
   				}
   			} catch (err: any) {
-  				this.logger.error("sendYotiInstructions - Cannot send letter", {
+  				logger.error("sendYotiInstructions - Cannot send letter", {
   					message: err, messageCode: MessageCodes.FAILED_TO_SEND_PDF_LETTER,
   				});
   				this.metrics.addMetric("SendToGovNotify_notify_letter_failed_generic_error", MetricUnit.Count, 1);
@@ -184,8 +175,8 @@ export class SendToGovNotifyService {
   		if (instructionsPdf) {
   			this.metrics.addMetric("SendToGovNotify_pdf_instructions_retreived", MetricUnit.Count, 1);
 
-  			this.logger.debug("sendEmail", SendToGovNotifyService.name);
-  			this.logger.info("Sending Yoti PDF email");
+  			logger.debug("sendEmail", SendToGovNotifyService.name);
+  			logger.info("Sending Yoti PDF email");
 
 			  const encoded = Buffer.from(instructionsPdf, "binary").toString(
   				"base64",
@@ -212,7 +203,7 @@ export class SendToGovNotifyService {
   			};
 
   			const emailResponse = await this.sendGovNotificationEmail(
-  				this.environmentVariables.getPdfEmailTemplateId(this.logger),
+  				this.environmentVariables.getPdfEmailTemplateId(),
   				f2fPersonInfo,
   				govNotify,
   				options,
@@ -221,7 +212,7 @@ export class SendToGovNotifyService {
   			await this.sendF2FYotiEmailedEvent(f2fSessionInfo, f2fPersonInfo);
   			return emailResponse;
   		} else {
-  			this.logger.error("Failed to fetch the Instructions pdf", {
+  			logger.error("Failed to fetch the Instructions pdf", {
   				messageCode: MessageCodes.FAILED_FETCHING_YOTI_PDF,
   			});
   			throw new AppError(
@@ -230,7 +221,7 @@ export class SendToGovNotifyService {
   			);
   		}
   	} catch (err: any) {
-  		this.logger.error("sendYotiInstructions - Cannot send Email", {
+  		logger.error("sendYotiInstructions - Cannot send Email", {
   			message: err, messageCode: MessageCodes.FAILED_TO_SEND_PDF_EMAIL,
   		});
   		throw new AppError(
@@ -245,11 +236,11 @@ export class SendToGovNotifyService {
   	const folder = folderName;
   	const key = `${folder}-${f2fSessionInfo.yotiSessionId}`; 
 
-  	this.logger.info("Fetching the pdf file from the S3 bucket. ", { bucket, key }); 
+  	logger.info("Fetching the pdf file from the S3 bucket. ", { bucket, key }); 
   	try {
   		return await fetchEncodedFileFromS3Bucket(this.s3Client, bucket, key);
   	} catch (error) {
-  		this.logger.error({ message: "Error fetching the pdf file from S3 bucket", error, messageCode: MessageCodes.ERROR_FETCHING_PDF_FILE_FROM_S3_BUCKET });
+  		logger.error({ message: "Error fetching the pdf file from S3 bucket", error, messageCode: MessageCodes.ERROR_FETCHING_PDF_FILE_FROM_S3_BUCKET });
   		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error fetching the pdf file from S3 bucket");
   	}	
 	
@@ -281,7 +272,7 @@ export class SendToGovNotifyService {
 			// ignored so as not log PII
 			/* eslint-disable @typescript-eslint/no-unused-vars */
   		} catch (error) {
-  			this.logger.error(
+  			logger.error(
   				"Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.",
   			);
   		}
@@ -315,7 +306,7 @@ export class SendToGovNotifyService {
   				},
   			});
   		} catch (error) {
-  			this.logger.error(
+  			logger.error(
   				"Failed to write TXMA event F2F_YOTI_PDF_LETTER_POSTED to SQS queue, session not found for sessionId: ",
   			f2fSessionInfo.sessionId,
   			);
@@ -331,10 +322,8 @@ export class SendToGovNotifyService {
   	let retryCount = 0;
   	//retry for maxRetry count configured value if fails
   	while (retryCount <= this.environmentVariables.maxRetries()) {
-  		this.logger.info("sendEmail - trying to send email message", {
-  			templateId: this.environmentVariables.getPdfEmailTemplateId(
-  				this.logger,
-  			),
+  		logger.info("sendEmail - trying to send email message", {
+  			templateId: this.environmentVariables.getPdfEmailTemplateId(),
   			referenceId: options.reference,
   			retryCount,
   		});
@@ -347,12 +336,12 @@ export class SendToGovNotifyService {
 
   			const { data } = emailResponse;
 
-  			this.logger.info(
+  			logger.info(
   				"sendEmail - response status after sending Email",
   				SendToGovNotifyService.name,
   				emailResponse.status,
   			);
-  			this.logger.info("Email notification_id = " + data.id);
+  			logger.info("Email notification_id = " + data.id);
 
   			this.metrics.addMetric("SendToGovNotify_email_sent_successfully", MetricUnit.Count, 1);
 
@@ -367,10 +356,10 @@ export class SendToGovNotifyService {
   			);
   			return serviceResponse;
   		} catch (err: any) {
-  			this.logger.error("sendEmail - GOV UK Notify threw an error");
+  			logger.error("sendEmail - GOV UK Notify threw an error");
 
   			if (err.response) {
-  				this.logger.error(`GOV UK Notify error: ${err}`, {
+  				logger.error(`GOV UK Notify error: ${err}`, {
   					statusCode: err.response.data.status_code,
   					errors: err.response.data.errors,
   				});
@@ -388,11 +377,11 @@ export class SendToGovNotifyService {
   				appError.obj!.shouldRetry &&
           retryCount < this.environmentVariables.maxRetries()
   			) {
-  				this.logger.error(
+  				logger.error(
   					`sendEmail - Mapped error ${SendToGovNotifyService.name}`,
   					{ appError },
   				);
-  				this.logger.error(
+  				logger.error(
   					`sendEmail - Retrying to send the email. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${
   						SendToGovNotifyService.name
   					} ${new Date().toISOString()}`,
@@ -401,7 +390,7 @@ export class SendToGovNotifyService {
   				await sleep(this.environmentVariables.backoffPeriod());
   				retryCount++;
   			} else {
-  				this.logger.error(
+  				logger.error(
   					`sendEmail - Cannot send Email after ${this.environmentVariables.maxRetries()} retries`,
   				);
   				this.metrics.addMetric("SendToGovNotify_email_sent_failed_all_attempts", MetricUnit.Count, 1);
@@ -425,7 +414,7 @@ export class SendToGovNotifyService {
   	let retryCount = 0;
   	//retry for maxRetry count configured value if fails
   	while (retryCount <= this.environmentVariables.maxRetries()) {
-  		this.logger.info("sendletter - trying to send letter message", {
+  		logger.info("sendletter - trying to send letter message", {
   			referenceId: `${referenceId}-letter`,
   			retryCount,
   		});
@@ -434,7 +423,7 @@ export class SendToGovNotifyService {
   			const letterResponse = await govNotify.sendPrecompiledLetter(`${referenceId}-letter`, pdf);
   			const { data } = letterResponse;
 
-  			this.logger.info("Letter notification_id = " + data.id);
+  			logger.info("Letter notification_id = " + data.id);
 
   			const singleMetric = this.metrics.singleMetric();
   			singleMetric.addDimension("status_code", letterResponse.status.toString());
@@ -442,22 +431,22 @@ export class SendToGovNotifyService {
 
   			this.metrics.addMetric("SendToGovNotify_letter_sent_successfully", MetricUnit.Count, 1);
 
-  			this.logger.info(
+  			logger.info(
   				"sendLetter - response status after sending letter",
   				SendToGovNotifyService.name,
   				letterResponse.status,
   			);
   			return letterResponse.status;
   		} catch (err: any) {
-  			this.logger.error("sendLetter- GOV UK Notify threw an error");
+  			logger.error("sendLetter- GOV UK Notify threw an error");
 
   			if (err.response) {
-  				this.logger.error(`GOV UK Notify error ${SendToGovNotifyService.name}`, {
+  				logger.error(`GOV UK Notify error ${SendToGovNotifyService.name}`, {
   					statusCode: err.response.data.status_code,
   					errors: err.response.data.errors,
   				});
 
-				  this.logger.error("sendYotiInstructions - Cannot send letter", err.response.data.errors);
+				  logger.error("sendYotiInstructions - Cannot send letter", err.response.data.errors);
 				  const singleMetric = this.metrics.singleMetric();
 				  singleMetric.addDimension("status_code", err.response.data.status_code.toString());
 				  singleMetric.addMetric("SendToGovNotify_notify_letter_response", MetricUnit.Count, 1);
@@ -472,11 +461,11 @@ export class SendToGovNotifyService {
   				appError.obj!.shouldRetry &&
           retryCount < this.environmentVariables.maxRetries()
   			) {
-  				this.logger.error(
+  				logger.error(
   					`sendLetter - Mapped error ${SendToGovNotifyService.name}`,
   					{ appError },
   				);
-  				this.logger.error(
+  				logger.error(
   					`sendLetter- Retrying to send the letter. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${
   						SendToGovNotifyService.name
   					} ${new Date().toISOString()}`,
@@ -489,7 +478,7 @@ export class SendToGovNotifyService {
   			}
   		}
   	}
-  	this.logger.error(
+  	logger.error(
   		`sendLetter - Cannot send Letter after ${this.environmentVariables.maxRetries()} retries`,
   	);
 

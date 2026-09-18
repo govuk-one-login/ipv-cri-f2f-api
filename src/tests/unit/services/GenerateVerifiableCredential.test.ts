@@ -1,7 +1,7 @@
  
  
 import { mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { GenerateVerifiableCredential } from "../../../services/GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../../../utils/YotiPayloadEnums";
 import {
@@ -15,7 +15,7 @@ import {
 import { Metrics } from "@aws-lambda-powertools/metrics";
 
 describe("GenerateVerifiableCredential", () => {
-	const logger = mock<Logger>();
+	vi.mock("@govuk-one-login/cri-logger");
 	const metrics = mock<Metrics>();
 
 	let generateVerifiableCredential: GenerateVerifiableCredential;
@@ -35,7 +35,7 @@ describe("GenerateVerifiableCredential", () => {
 	];
 
 	beforeEach(() => {
-		generateVerifiableCredential = GenerateVerifiableCredential.getInstance(logger, metrics);
+		generateVerifiableCredential = GenerateVerifiableCredential.getInstance(metrics);
 		metrics.singleMetric.mockReturnValue(metrics);
 	});
 

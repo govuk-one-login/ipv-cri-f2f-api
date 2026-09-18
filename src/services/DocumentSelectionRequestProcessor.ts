@@ -5,7 +5,7 @@ import { F2fService } from "./F2fService";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { YotiService } from "./YotiService";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
@@ -30,8 +30,6 @@ export class DocumentSelectionRequestProcessor {
 
 	private static instance: DocumentSelectionRequestProcessor;
 
-	private readonly logger: Logger;
-
 	private readonly metrics: Metrics;
 
 	private yotiService!: YotiService;
@@ -47,24 +45,22 @@ export class DocumentSelectionRequestProcessor {
 	private readonly stepFunctionsClient: SFNClient;
 
 
-	constructor(logger: Logger, metrics: Metrics, YOTI_PRIVATE_KEY: string) {
-		this.logger = logger;
+	constructor(metrics: Metrics, YOTI_PRIVATE_KEY: string) {
 		this.metrics = metrics;
-		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
+		this.environmentVariables = new EnvironmentVariables(ServicesEnum.DOCUMENT_SELECTION_SERVICE);
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.stepFunctionsClient = new SFNClient({ region: process.env.REGION, credentials: fromEnv() });
 	}
 
 	static getInstance(
-		logger: Logger,
 		metrics: Metrics,
 		YOTI_PRIVATE_KEY: string,
 	): DocumentSelectionRequestProcessor {
 		if (!DocumentSelectionRequestProcessor.instance) {
 			DocumentSelectionRequestProcessor.instance =
-				new DocumentSelectionRequestProcessor(logger, metrics, YOTI_PRIVATE_KEY);
+				new DocumentSelectionRequestProcessor(metrics, YOTI_PRIVATE_KEY);
 		}
 		return DocumentSelectionRequestProcessor.instance;
 	}
@@ -81,7 +77,7 @@ export class DocumentSelectionRequestProcessor {
 		let postalAddress: PersonIdentityAddress;
 
 		if (!event.body) {
-			this.logger.error("No body present in post request", {
+			logger.error("No body present in post request", {
 				messageCode: MessageCodes.EMPTY_REQUEST,
 			});
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "No body present in post request");
@@ -96,7 +92,7 @@ export class DocumentSelectionRequestProcessor {
 			postalAddress = eventBody.postal_address;
 		
   		if (!postOfficeSelection || !selectedDocument || !pdfPreference) {
-  			this.logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", {
+  			logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", {
   				messageCode: MessageCodes.MISSING_MANDATORY_FIELDS,
   			});
 				const singleMetric = this.metrics.singleMetric();
@@ -114,7 +110,7 @@ export class DocumentSelectionRequestProcessor {
   			return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
   		} else if (postalAddress && (!postalAddress.postalCode || (!postalAddress.buildingNumber && !postalAddress.buildingName))
 			) {
-				this.logger.error("Postal address missing mandatory fields in postal address", {
+				logger.error("Postal address missing mandatory fields in postal address", {
 					messageCode: MessageCodes.MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS,
 				});
 				this.metrics.addMetric("DocSelect_missing_mandatory_fields_in_postal_address", MetricUnit.Count, 1);
@@ -123,7 +119,7 @@ export class DocumentSelectionRequestProcessor {
 		// ignored so as not log PII
 		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (error) {
-  		this.logger.error("Error parsing the payload", {
+  		logger.error("Error parsing the payload", {
   			messageCode: MessageCodes.ERROR_PARSING_PAYLOAD,
   		});
   		return Response(HttpCodesEnum.SERVER_ERROR, "An error occurred parsing the payload");
@@ -131,38 +127,38 @@ export class DocumentSelectionRequestProcessor {
 
 
   	const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
-  	this.logger.appendKeys({
+  	logger.appendKeys({
   		govuk_signin_journey_id: f2fSessionInfo?.clientSessionId,
   	});
 
 		const personDetails = await this.f2fService.saveUserPdfPreferences(sessionId, pdfPreference, postalAddress, this.environmentVariables.personIdentityTableName());
 	
   	if (!personDetails || !f2fSessionInfo) {
-  		this.logger.warn("Missing details in SESSION or PERSON IDENTITY tables", {
+  		logger.warn("Missing details in SESSION or PERSON IDENTITY tables", {
   			messageCode: MessageCodes.SESSION_NOT_FOUND,
   		});
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION or PERSON IDENTITY tables");
   	}
 		
 		//Initialise Yoti Service base on session client_id
-		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSessionInfo.clientId, this.logger);
+		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSessionInfo.clientId);
 
 		if (!clientConfig) {
-			this.logger.error("Unrecognised client in request", {
+			logger.error("Unrecognised client in request", {
 				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
 			});
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY);
+		this.yotiService = YotiService.getInstance(this.metrics, this.YOTI_PRIVATE_KEY);
 
 		// Reject the request when session store does not contain email, familyName or GivenName fields
 		const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);
 		if (data.errorMessage.length > 0) {
-			this.logger.error(data.errorMessage + " in the PERSON IDENTITY table", { messageCode: data.errorMessageCode });
+			logger.error(data.errorMessage + " in the PERSON IDENTITY table", { messageCode: data.errorMessageCode });
 			return Response(HttpCodesEnum.SERVER_ERROR, data.errorMessage + " in the PERSON IDENTITY table");
 		}
-		this.logger.info("checking service has redeployed");
+		logger.info("checking service has redeployed");
 		if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_SESSION_CREATED && !f2fSessionInfo.yotiSessionId) {
 
 			try {
@@ -190,13 +186,13 @@ export class DocumentSelectionRequestProcessor {
 					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
 					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
 				} else {
-					this.logger.error(`No session found with yotiSessionId ${yotiSessionId}`);
+					logger.error(`No session found with yotiSessionId ${yotiSessionId}`);
 					this.metrics.addMetric("DocSelect_error_yoti_session_does_not_exist", MetricUnit.Count, 1);
 					throw new AppError(HttpCodesEnum.BAD_REQUEST, `No session found with yotiSessionId ${yotiSessionId}`);
 				}
 
 			} catch (error: any) {
-				this.logger.error("Error occurred during documentSelection orchestration", error.message,
+				logger.error("Error occurred during documentSelection orchestration", error.message,
 					{ messageCode: MessageCodes.FAILED_DOCUMENT_SELECTION_ORCHESTRATION });
 				if (error instanceof AppError) {
 					return Response(HttpCodesEnum.SERVER_ERROR, error.message);
@@ -229,7 +225,7 @@ export class DocumentSelectionRequestProcessor {
 					docType = DocumentTypes.NATIONAL_ID;
 					break;
 				default:
-					this.logger.error({ message: `Unable to find document type ${selectedDocument}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
+					logger.error({ message: `Unable to find document type ${selectedDocument}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
 			}
 
@@ -238,10 +234,10 @@ export class DocumentSelectionRequestProcessor {
 			singleMetric.addMetric("DocSelect_document_selected", MetricUnit.Count, 1);
 
 			try {
-				this.logger.info("Updating documentUsed in Session Table: ", { documentUsed: docType });
+				logger.info("Updating documentUsed in Session Table: ", { documentUsed: docType });
 				await this.f2fService.addUsersSelectedDocument(f2fSessionInfo.sessionId, docType, this.environmentVariables.sessionTable());
 			} catch (error: any) {
-				this.logger.error("Error occurred during documentSelection orchestration", error.message,
+				logger.error("Error occurred during documentSelection orchestration", error.message,
 					{ messageCode: MessageCodes.FAILED_DOCUMENT_SELECTION_ORCHESTRATION });
 				if (error instanceof AppError) {
 					return Response(HttpCodesEnum.SERVER_ERROR, error.message);
@@ -296,14 +292,14 @@ export class DocumentSelectionRequestProcessor {
 			// ignored so as not log PII
 			/* eslint-disable @typescript-eslint/no-unused-vars */
 			} catch (error) {
-				this.logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
+				logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
 			}
 
 			this.metrics.addMetric("DocSelect_doc_select_complete", MetricUnit.Count, 1);
 			return Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 
 		} else {
-			this.logger.warn(`Yoti session already exists or session for journey ${f2fSessionInfo?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_SESSION_CREATED}, actual state - ${f2fSessionInfo.authSessionState}`, {
+			logger.warn(`Yoti session already exists or session for journey ${f2fSessionInfo?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_SESSION_CREATED}, actual state - ${f2fSessionInfo.authSessionState}`, {
 				messageCode: MessageCodes.INCORRECT_SESSION_STATE,
 			});
 			this.metrics.addMetric("DocSelect_error_user_state_incorrect", MetricUnit.Count, 1);
@@ -319,21 +315,21 @@ export class DocumentSelectionRequestProcessor {
 		selectedDocument: string,
 		countryCode: string,
 	): Promise<string> {
-		this.logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
+		logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
 
 		const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, yotiBaseUrl, this.environmentVariables.yotiCallbackUrl());
 		this.metrics.addMetric("DocSelect_yoti_session_created", MetricUnit.Count, 1);
 
 		if (!yotiSessionId) {
-			this.logger.error("An error occurred when creating Yoti Session", { messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });
+			logger.error("An error occurred when creating Yoti Session", { messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when creating Yoti Session");
 		}
 
-		this.logger.info("Fetching Session Info");
+		logger.info("Fetching Session Info");
 		const yotiSessionInfo = await this.yotiService.fetchSessionInfo(yotiSessionId, yotiBaseUrl);
 
 		if (!yotiSessionInfo) {
-			this.logger.error("An error occurred when fetching Yoti Session", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
+			logger.error("An error occurred when fetching Yoti Session", { messageCode: MessageCodes.FAILED_FETCHING_YOTI_SESSION });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when fetching Yoti Session");
 		}
 
@@ -363,11 +359,11 @@ export class DocumentSelectionRequestProcessor {
 			});
 
 		if (!requirements) {
-			this.logger.error("Empty required resources in Yoti");
+			logger.error("Empty required resources in Yoti");
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Empty required resources in Yoti");
 		}
 
-		this.logger.info({ message: "Generating Instructions PDF" });
+		logger.info({ message: "Generating Instructions PDF" });
 		const generateInstructionsResponse = await this.yotiService.generateInstructions(
 			yotiSessionId,
 			personDetails,
@@ -377,7 +373,7 @@ export class DocumentSelectionRequestProcessor {
 		);
 
 		if (generateInstructionsResponse !== HttpCodesEnum.OK) {
-			this.logger.error("An error occurred when generating Yoti instructions pdf", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
+			logger.error("An error occurred when generating Yoti instructions pdf", { messageCode: MessageCodes.FAILED_YOTI_PUT_INSTRUCTIONS });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "An error occurred when generating Yoti instructions pdf");
 		}
 
@@ -385,7 +381,7 @@ export class DocumentSelectionRequestProcessor {
 	}
 	
 	async startStateMachine(sessionId: string, yotiSessionID: string, govuk_signin_journey_id: string, pdfPreference: string): Promise<any> {
-		this.logger.info({ message: "Starting Yoti letter state machine" });
+		logger.info({ message: "Starting Yoti letter state machine" });
 		const params = {
 			input: JSON.stringify({ sessionId, pdfPreference, yotiSessionID, govuk_signin_journey_id }),
 			name: `${sessionId}-${Date.now()}`,
@@ -395,7 +391,7 @@ export class DocumentSelectionRequestProcessor {
 			const invokeCommand: StartExecutionCommand = new StartExecutionCommand(params);
 			await this.stepFunctionsClient.send(invokeCommand);
 		} catch (error) {
-			this.logger.error({ message: "There was an error executing the yoti letter step function", error });
+			logger.error({ message: "There was an error executing the yoti letter step function", error });
 			throw error;
 		}
 	}

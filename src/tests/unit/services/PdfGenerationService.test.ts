@@ -1,10 +1,5 @@
- 
- 
 import fs from "fs";
-
-import { Logger } from "@aws-lambda-powertools/logger";
 import { mock } from "vitest-mock-extended";
-
 import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
 import { person, personAddressAllAddressFields } from "../data/postalAddress-events";
 import { F2fService } from "../../../services/F2fService";
@@ -14,14 +9,13 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 let pdfGenerationService: PDFGenerationService;
 const mockF2fService = mock<F2fService>();
 
-const logger = mock<Logger>();
 const metrics = mock<Metrics>();
 
 const sessionId = "sessionId";
 
 describe("PdfGenerationServiceTest", () => {
 	beforeAll(() => {
-		pdfGenerationService = PDFGenerationService.getInstance(logger, metrics);
+		pdfGenerationService = PDFGenerationService.getInstance(metrics);
 		// @ts-expect-error linting to be updated
 		pdfGenerationService.f2fService = mockF2fService;
 	});

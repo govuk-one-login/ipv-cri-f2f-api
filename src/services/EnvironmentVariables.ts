@@ -1,5 +1,5 @@
  
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { Constants } from "../utils/Constants";
@@ -81,7 +81,7 @@ export class EnvironmentVariables {
 	 * This function performs validation on env variable values.
 	 * If certain variables have unexpected values the constructor will throw an error and/or log an error message
 	 */
-	private verifyEnvVariablesByServiceType(serviceType: ServicesEnum, logger: Logger): void {
+	private verifyEnvVariablesByServiceType(serviceType: ServicesEnum): void {
 		switch (serviceType) {
 			case ServicesEnum.GOV_NOTIFY_SERVICE: {
 				if (!this.ISSUER || this.ISSUER.trim().length === 0 ||
@@ -357,15 +357,15 @@ export class EnvironmentVariables {
 	/**
 	 * Constructor reads all necessary environment variables by ServiceType
 	 */
-	constructor(logger: Logger, serviceType: ServicesEnum) {
-		this.verifyEnvVariablesByServiceType(serviceType, logger);
+	constructor(serviceType: ServicesEnum) {
+		this.verifyEnvVariablesByServiceType(serviceType);
 	}
 
 	/**
 	 * Accessor methods for env variable values
 	 */
 
-	getPdfEmailTemplateId(logger: Logger): any {
+	getPdfEmailTemplateId(): any {
 		if (!this.GOVUKNOTIFY_PDF_TEMPLATE_ID || this.GOVUKNOTIFY_PDF_TEMPLATE_ID.trim().length === 0) {
 			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -373,7 +373,7 @@ export class EnvironmentVariables {
 		return this.GOVUKNOTIFY_PDF_TEMPLATE_ID;
 	}
 
-	getReminderEmailTemplateId(logger: Logger): any {
+	getReminderEmailTemplateId(): any {
 		if (!this.GOVUKNOTIFY_REMINDER_TEMPLATE_ID || this.GOVUKNOTIFY_REMINDER_TEMPLATE_ID.trim().length === 0) {
 			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -381,7 +381,7 @@ export class EnvironmentVariables {
 		return this.GOVUKNOTIFY_REMINDER_TEMPLATE_ID;
 	}
 
-	getDynamicReminderEmailTemplateId(logger: Logger): any {
+	getDynamicReminderEmailTemplateId(): any {
 		if (!this.GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID || this.GOVUKNOTIFY_DYNAMIC_REMINDER_TEMPLATE_ID.trim().length === 0) {
 			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -417,7 +417,7 @@ export class EnvironmentVariables {
 		return this.YOTI_KEY_SSM_PATH;
 	}
 
-	getGovNotifyQueueURL(logger: Logger): string {
+	getGovNotifyQueueURL(): string {
 		if (!this.GOV_NOTIFY_QUEUE_URL || this.GOV_NOTIFY_QUEUE_URL.trim().length === 0) {
 			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);
@@ -425,7 +425,7 @@ export class EnvironmentVariables {
 		return this.GOV_NOTIFY_QUEUE_URL;
 	}
 
-	getIpvCoreQueueURL(logger: Logger): string {
+	getIpvCoreQueueURL(): string {
 		if (!this.IPV_CORE_QUEUE_URL || this.IPV_CORE_QUEUE_URL.trim().length === 0) {
 			logger.error(`GovNotifyService - Misconfigured external API's key ${EnvironmentVariables.name}`);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, Constants.ENV_VAR_UNDEFINED);

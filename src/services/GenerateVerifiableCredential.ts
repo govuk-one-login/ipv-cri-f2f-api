@@ -1,5 +1,5 @@
  
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { YOTI_CHECKS, YotiSessionDocument, DOCUMENT_TYPES_WITH_CHIPS } from "../utils/YotiPayloadEnums";
@@ -13,20 +13,18 @@ import {
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 
 export class GenerateVerifiableCredential {
-  readonly logger: Logger;
   readonly metrics: Metrics;
 
   private static instance: GenerateVerifiableCredential;
 
-  constructor(logger: Logger, metrics: Metrics) {
-  	this.logger = logger;
+  constructor(metrics: Metrics) {
 	this.metrics = metrics
   }
 
-  static getInstance(logger: Logger, metrics: Metrics): GenerateVerifiableCredential {
+  static getInstance(metrics: Metrics): GenerateVerifiableCredential {
   	if (!GenerateVerifiableCredential.instance) {
   		GenerateVerifiableCredential.instance = new GenerateVerifiableCredential(
-  			logger, metrics
+  			metrics
   		);
   	}
   	return GenerateVerifiableCredential.instance;
@@ -150,7 +148,7 @@ export class GenerateVerifiableCredential {
   				case "DIFFERENT_PERSON":
   					addToCI("V01");
   					rejectionReasons.push({ ci: "V01", reason });
-  					this.logger.info({ message: "Handling face match rejection", reason, contraIndicator: "V01" });
+  					logger.info({ message: "Handling face match rejection", reason, contraIndicator: "V01" });
   					break;
   				default:
   					break;
@@ -186,7 +184,7 @@ export class GenerateVerifiableCredential {
   					break;
   			}
 
-  			this.logger.info({ message: "Handling authenticity rejection", reason, contraIndicator });
+  			logger.info({ message: "Handling authenticity rejection", reason, contraIndicator });
   			if (contraIndicator) {
   				addToCI(contraIndicator);
   				if (reason) rejectionReasons.push({ ci: contraIndicator, reason });
@@ -342,7 +340,7 @@ export class GenerateVerifiableCredential {
   		issueDate: documentFields.date_of_issue, 
   		expiryDate: documentFields.expiration_date,
   	};
-  	this.logger.info({ message: "Completed Yoti Session Info" }, docInfo );
+  	logger.info({ message: "Completed Yoti Session Info" }, docInfo );
 
   	const findCheck = (type: string) =>
   		checks.find((checkCompleted: { type: string }) => checkCompleted.type === type);
@@ -355,7 +353,7 @@ export class GenerateVerifiableCredential {
   			breakdown: check.report.breakdown,
   		};
 			
-  		this.logger.info("Checks result:", { Check: checkObject.object, State: checkObject.state, Recommendation: checkObject.recommendation, Breakdown: checkObject.breakdown });
+  		logger.info("Checks result:", { Check: checkObject.object, State: checkObject.state, Recommendation: checkObject.recommendation, Breakdown: checkObject.breakdown });
   		return checkObject;
   	};
 
@@ -368,7 +366,7 @@ export class GenerateVerifiableCredential {
   		PROFILE_DOCUMENT_MATCH: findCheck(YOTI_CHECKS.PROFILE_DOCUMENT_MATCH.type) ? getCheckObject(findCheck(YOTI_CHECKS.PROFILE_DOCUMENT_MATCH.type)) : null,
   	};
 
-  	this.logger.info({ message: "Yoti Mandatory Checks" });
+  	logger.info({ message: "Yoti Mandatory Checks" });
 
   	if (Object.values(MANDATORY_CHECKS).some((check) => check?.object === undefined)) {
 		this.constructNotReturnedErrorMetric("Missing mandatory checks in Yoti completed payload")
@@ -418,7 +416,7 @@ export class GenerateVerifiableCredential {
   		MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.breakdown,
   	);
 
-  	this.logger.info({ message: "Checking if document contains a valid chip" }, { documentContainsValidChip });
+  	logger.info({ message: "Checking if document contains a valid chip" }, { documentContainsValidChip });
 
   	const manualFaceMatchCheck = MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.breakdown.some(
   		(subCheck: { sub_check: string; result: string }) =>
@@ -426,7 +424,7 @@ export class GenerateVerifiableCredential {
 				subCheck.result === YotiSessionDocument.SUBCHECK_PASS,
   	);
 
-  	this.logger.info({ message: "Result of Manual FaceMatch Check", manualFaceMatchCheck });
+  	logger.info({ message: "Result of Manual FaceMatch Check", manualFaceMatchCheck });
 
   	const validityScore = this.calculateValidityScore(MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation.value, documentContainsValidChip);
   	const verificationScore  = this.calculateVerificationProcessLevel(validityScore, MANDATORY_CHECKS.ID_DOCUMENT_FACE_MATCH?.recommendation.value);
@@ -442,7 +440,7 @@ export class GenerateVerifiableCredential {
 
   	const DocumentAuthenticity = MANDATORY_CHECKS.ID_DOCUMENT_AUTHENTICITY?.recommendation;
   	if (validityScore === 0 && DocumentAuthenticity.value && DocumentAuthenticity.reason) {
-  		this.logger.info("Validity Score 0", { value: DocumentAuthenticity.value, reason: DocumentAuthenticity.reason });
+  		logger.info("Validity Score 0", { value: DocumentAuthenticity.value, reason: DocumentAuthenticity.reason });
   	}
 
   	let rejectionReasons: any = [];
@@ -487,7 +485,7 @@ export class GenerateVerifiableCredential {
   		}
   	}
 
-  	this.logger.info({ message: "Calculated Scores for VC" });
+  	logger.info({ message: "Calculated Scores for VC" });
 
   	return {
   		credentialSubject,

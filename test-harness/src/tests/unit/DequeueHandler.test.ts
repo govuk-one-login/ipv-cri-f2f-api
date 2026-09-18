@@ -1,5 +1,5 @@
 import { SQSEvent } from "aws-lambda";
-import { lambdaHandler, logger, s3Client } from "../../DequeueHandler";
+import { lambdaHandler, s3Client } from "../../DequeueHandler";
 import { BatchItemFailure } from "../../utils/BatchItemFailure";
 
 vi.useFakeTimers().setSystemTime(new Date("2020-01-01"));

@@ -1,5 +1,5 @@
 import { ISessionItem } from "../models/ISessionItem";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { AppError } from "../utils/AppError";
 import { DynamoDBDocument, GetCommand, QueryCommandInput, UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -29,31 +29,28 @@ export class F2fService {
 
 	private readonly dynamo: DynamoDBDocument;
 
-	readonly logger: Logger;
-
 	private readonly metrics: Metrics;
 
 	private readonly environmentVariables: EnvironmentVariables;
 
 	private static instance: F2fService;
 
-	constructor(tableName: any, logger: Logger, metrics: Metrics, dynamoDbClient: DynamoDBDocument) {
+	constructor(tableName: any, metrics: Metrics, dynamoDbClient: DynamoDBDocument) {
 		this.tableName = tableName;
 		this.dynamo = dynamoDbClient;
-		this.logger = logger;
 		this.metrics = metrics
-		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.NA);
+		this.environmentVariables = new EnvironmentVariables(ServicesEnum.NA);
 	}
 
-	static getInstance(tableName: string, logger: Logger, metrics: Metrics, dynamoDbClient: DynamoDBDocument): F2fService {
+	static getInstance(tableName: string, metrics: Metrics, dynamoDbClient: DynamoDBDocument): F2fService {
 		if (!F2fService.instance) {
-			F2fService.instance = new F2fService(tableName, logger, metrics, dynamoDbClient);
+			F2fService.instance = new F2fService(tableName, metrics, dynamoDbClient);
 		}
 		return F2fService.instance;
 	}
 
 	async getSessionById(sessionId: string, tableName: string = this.tableName): Promise<ISessionItem | undefined> {
-		this.logger.debug("Table name " + tableName);
+		logger.debug("Table name " + tableName);
 		const getSessionCommand = new GetCommand({
 			TableName: this.tableName,
 			Key: {
@@ -65,7 +62,7 @@ export class F2fService {
 		try {
 			session = await this.dynamo.send(getSessionCommand);
 		} catch (error) {
-			this.logger.error({ message: "getSessionById - failed executing get from dynamodb:" }, {
+			logger.error({ message: "getSessionById - failed executing get from dynamodb:" }, {
 				messageCode: MessageCodes.FAILED_FETCHING_SESSION,
 				error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session");
@@ -73,7 +70,7 @@ export class F2fService {
 
 		if (session.Item) {
 			if (session.Item.expiryDate < absoluteTimeNow()) {
-				this.logger.error({ message: `Session with session id: ${sessionId} has expired` }, { messageCode: MessageCodes.EXPIRED_SESSION });
+				logger.error({ message: `Session with session id: ${sessionId} has expired` }, { messageCode: MessageCodes.EXPIRED_SESSION });
 				throw new AppError(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionId} has expired`);
 			}
 			return session.Item as ISessionItem;
@@ -81,7 +78,7 @@ export class F2fService {
 	}
 
 	async getPersonIdentityById(sessionId: string, tableName: string = this.tableName): Promise<PersonIdentityItem | undefined> {
-		this.logger.debug("Table name " + tableName);
+		logger.debug("Table name " + tableName);
 		const getPersonIdentityCommand = new GetCommand({
 			TableName: tableName,
 			Key: {
@@ -93,7 +90,7 @@ export class F2fService {
 		try {
 			PersonInfo = await this.dynamo.send(getPersonIdentityCommand);
 		} catch (error: any) {
-			this.logger.error({ message: "getSessionById - failed executing get from dynamodb" }, {
+			logger.error({ message: "getSessionById - failed executing get from dynamodb" }, {
 				messageCode: MessageCodes.FAILED_FETCHING_PERSON_IDENTITY,
 				error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session");
@@ -105,7 +102,7 @@ export class F2fService {
 	}
 
 	async getSessionByYotiId(yotiSessionId: string, tableName: string = this.tableName): Promise<ISessionItem | undefined> {
-		this.logger.debug("Table name " + tableName);
+		logger.debug("Table name " + tableName);
 		const params: QueryCommandInput = {
 			TableName: tableName,
 			IndexName: Constants.YOTI_SESSION_ID_INDEX_NAME,
@@ -118,13 +115,13 @@ export class F2fService {
 		const sessionItem = await this.dynamo.query(params);
 
 		if (!sessionItem?.Items || sessionItem?.Items?.length !== 1) {
-			this.logger.error({ message: "Error retrieving Session by yoti session id" }, {
+			logger.error({ message: "Error retrieving Session by yoti session id" }, {
 				messageCode: MessageCodes.FAILED_FETCHING_BY_YOTI_SESSIONID });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session by yoti session id");
 		}
 
 		if (sessionItem.Items[0].expiryDate < absoluteTimeNow()) {
-			this.logger.error(`Session with session id: ${sessionItem.Items[0].sessionId} has expired`);
+			logger.error(`Session with session id: ${sessionItem.Items[0].sessionId} has expired`);
 			throw new AppError(HttpCodesEnum.UNAUTHORIZED, `Session with has expired`);
 		}
 
@@ -144,15 +141,15 @@ export class F2fService {
 			},
 		});
 
-		this.logger.info( { message: "updating authorizationCode dynamodb" }, { tableName: this.tableName } );
+		logger.info( { message: "updating authorizationCode dynamodb" }, { tableName: this.tableName } );
 
 		try {
 			await this.dynamo.send(updateSessionCommand);
 			this.metrics.addMetric("state-F2F_AUTH_CODE_ISSUED", MetricUnit.Count, 1);
 
-			this.logger.info({ message: "updated authorizationCode in dynamodb" });
+			logger.info({ message: "updated authorizationCode in dynamodb" });
 		} catch (error: any) {
-			this.logger.error({ message: "Error updating authorizationCode" }, {
+			logger.error({ message: "Error updating authorizationCode" }, {
 				messageCode: MessageCodes.FAILED_UPDATING_SESSION,
 				error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Failed to update the authorizationCode ");
@@ -195,15 +192,15 @@ export class F2fService {
 				QueueUrl: process.env.TXMA_QUEUE_URL,
 			};
 
-			this.logger.info({ message: "Sending message to TxMA", eventName: event.event_name });
+			logger.info({ message: "Sending message to TxMA", eventName: event.event_name });
 
 			await createSqsClient().send(new SendMessageCommand(params));
-			this.logger.info("Sent message to TxMA");
+			logger.info("Sent message to TxMA");
 
 			const obfuscatedObject = await this.obfuscateJSONValues(event, Constants.TXMA_FIELDS_TO_SHOW);
-			this.logger.info({ message: "Obfuscated TxMA Event", txmaEvent: JSON.stringify(obfuscatedObject, null, 2) });
+			logger.info({ message: "Obfuscated TxMA Event", txmaEvent: JSON.stringify(obfuscatedObject, null, 2) });
 		} catch (error) {
-			this.logger.error({ message: "Error when sending message to TXMA Queue", error });
+			logger.error({ message: "Error when sending message to TXMA Queue", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to txma queue - failed ");
 		}
 	}
@@ -213,12 +210,12 @@ export class F2fService {
 			const messageBody = JSON.stringify(event);
 			const params = {
 				MessageBody: messageBody,
-				QueueUrl: this.environmentVariables.getGovNotifyQueueURL(this.logger),
+				QueueUrl: this.environmentVariables.getGovNotifyQueueURL(),
 			};
 			await createSqsClient().send(new SendMessageCommand(params));
-			this.logger.info("Sent message to Gov Notify");
+			logger.info("Sent message to Gov Notify");
 		} catch (error) {
-			this.logger.error({ message: "Error when sending message to GovNotify Queue", error });
+			logger.error({ message: "Error when sending message to GovNotify Queue", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to govNotify queue - failed ");
 		}
 	}
@@ -226,18 +223,18 @@ export class F2fService {
 	async sendToIPVCore(event: IPVCoreEvent): Promise<void> {
 		try {
 			const messageBody = JSON.stringify(event);
-			const queueUrl = this.environmentVariables.getIpvCoreQueueURL(this.logger);
+			const queueUrl = this.environmentVariables.getIpvCoreQueueURL();
 			const params = {
 				MessageBody: messageBody,
 				QueueUrl: queueUrl,
 			};
 
-			this.logger.info({ message: "Sending message to IPV Core Queue", queueUrl });
+			logger.info({ message: "Sending message to IPV Core Queue", queueUrl });
 
 			await createSqsClient().send(new SendMessageCommand(params));
-			this.logger.info("Sent message to IPV Core");
+			logger.info("Sent message to IPV Core");
 		} catch (error) {
-			this.logger.error({ message: "Error when sending message to IPV Core Queue", error });
+			logger.error({ message: "Error when sending message to IPV Core Queue", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "sending event to ipv core queue - failed ");
 		}
 	}
@@ -255,14 +252,14 @@ export class F2fService {
 		const sessionItem = await this.dynamo.query(params);
 
 		if (!sessionItem?.Items || sessionItem?.Items?.length !== 1) {
-			this.logger.error("Error retrieving Session by authorization code", {
+			logger.error("Error retrieving Session by authorization code", {
 				messageCode: MessageCodes.FAILED_FETCHING_SESSION_BY_AUTH_CODE,
 			});
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Session by authorization code");
 		}
 
 		if (sessionItem.Items[0].expiryDate < absoluteTimeNow()) {
-			this.logger.error(`Session with session id: ${sessionItem.Items[0].sessionId} has expired`, {
+			logger.error(`Session with session id: ${sessionItem.Items[0].sessionId} has expired`, {
 				messageCode: MessageCodes.EXPIRED_SESSION,
 			});
 			throw new AppError(HttpCodesEnum.UNAUTHORIZED, `Session with session id: ${sessionItem.Items[0].sessionId} has expired`);
@@ -309,12 +306,12 @@ export class F2fService {
 			},
 		});
 
-		this.logger.info({ message: "Setting reminderEmailSent to be: ", reminderEmailSent });
+		logger.info({ message: "Setting reminderEmailSent to be: ", reminderEmailSent });
 		try {
 			await this.dynamo.send(updateStateCommand);
-			this.logger.info({ message: "Updated reminderEmailSent flag in session table" });
+			logger.info({ message: "Updated reminderEmailSent flag in session table" });
 		} catch (error) {
-			this.logger.error({ message: "Got error setting reminderEmailSent flag", error });
+			logger.error({ message: "Got error setting reminderEmailSent flag", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error setting reminderEmailSent flag");
 		}
 	}
@@ -333,9 +330,9 @@ export class F2fService {
 		try {
 			await this.dynamo.send(updateStateCommand);
 			this.metrics.addMetric("state-F2F_SESSION_EXPIRED", MetricUnit.Count, 1);
-			this.logger.info({ message: "Session marked as expired", sessionId });
+			logger.info({ message: "Session marked as expired", sessionId });
 		} catch (error) {
-			this.logger.error({ message: "Got error marking session as expired", error });
+			logger.error({ message: "Got error marking session as expired", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error marking session as expired");
 		}
 	}
@@ -351,14 +348,14 @@ export class F2fService {
 			},
 		});
 
-		this.logger.info({ message: "updating Access token details in dynamodb" }, { tableName: this.tableName });
+		logger.info({ message: "updating Access token details in dynamodb" }, { tableName: this.tableName });
 		try {
 			await this.dynamo.send(updateAccessTokenDetailsCommand);
 			this.metrics.addMetric("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnit.Count, 1);
 
-			this.logger.info({ message: "updated Access token details in dynamodb" });
+			logger.info({ message: "updated Access token details in dynamodb" });
 		} catch (error) {
-			this.logger.error({ message: "got error updating Access token details", error }, { messageCode: MessageCodes.FAILED_UPDATING_SESSION });
+			logger.error({ message: "got error updating Access token details", error }, { messageCode: MessageCodes.FAILED_UPDATING_SESSION });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error updating Access token details");
 		}
 	}
@@ -369,12 +366,12 @@ export class F2fService {
 			Item: session,
 		});
 
-		this.logger.info({ message: "Saving session data in DynamoDB" });
+		logger.info({ message: "Saving session data in DynamoDB" });
 		try {
 			await this.dynamo.send(putSessionCommand);
-			this.logger.info("Successfully created session in dynamodb");
+			logger.info("Successfully created session in dynamodb");
 		} catch (error) {
-			this.logger.error("got error " + error);
+			logger.error("got error " + error);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "saveItem - failed " );
 		}
 	}
@@ -390,12 +387,12 @@ export class F2fService {
 			},
 		});
 
-		this.logger.info({ message: "Updating session table with Yoti session details", updateYotiDetailsCommand });
+		logger.info({ message: "Updating session table with Yoti session details", updateYotiDetailsCommand });
 		try {
 			await this.dynamo.send(updateYotiDetailsCommand);
-			this.logger.info({ message: "Updated Yoti session details in dynamodb" });
+			logger.info({ message: "Updated Yoti session details in dynamodb" });
 		} catch (error) {
-			this.logger.error("FAILED_TO_UPDATE_YOTI_STATUS", {
+			logger.error("FAILED_TO_UPDATE_YOTI_STATUS", {
 				yotiSessionId,
 				reason: "Yoti session created, failed to update session table in dynamodb",
 				error,
@@ -492,12 +489,12 @@ export class F2fService {
 					":addresses": personDetailsAddressArray,
 				},
 			});
-			this.logger.info({ message: "Updating person table with letter preference and postal address" });
+			logger.info({ message: "Updating person table with letter preference and postal address" });
 			try {
 				await this.dynamo.send(updateUserDetails);
-				this.logger.info({ message: "Updated postal address and pdfPreference details in dynamodb" });
+				logger.info({ message: "Updated postal address and pdfPreference details in dynamodb" });
 			} catch (error) {
-				this.logger.error({ message: `Got error updating pdfPreference or postal address details in ${tableName}`, error });
+				logger.error({ message: `Got error updating pdfPreference or postal address details in ${tableName}`, error });
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating pdfPreference or postal address details in ${tableName}`);
 			}
 		} else {
@@ -509,12 +506,12 @@ export class F2fService {
 					":pdfPreference": pdfPreference,
 				},
 			});
-			this.logger.info({ message: `No postal address provided - Updating pdfPreference in ${tableName}` });
+			logger.info({ message: `No postal address provided - Updating pdfPreference in ${tableName}` });
 			try {
 				await this.dynamo.send(updateUserPreference);
-				this.logger.info({ message: `Updated ${tableName} with pdfPreference` });
+				logger.info({ message: `Updated ${tableName} with pdfPreference` });
 			} catch (error) {
-				this.logger.error({ message: `Got error updating pdfPreference in ${tableName}`, error });
+				logger.error({ message: `Got error updating pdfPreference in ${tableName}`, error });
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating pdfPreference in ${tableName}`);
 			}
 		}
@@ -532,12 +529,12 @@ export class F2fService {
 			},
 		});
 
-		this.logger.info({ message: "Updating session table with auth state details", updateStateCommand });
+		logger.info({ message: "Updating session table with auth state details", updateStateCommand });
 		try {
 			await this.dynamo.send(updateStateCommand);
-			this.logger.info({ message: "Updated auth state details in dynamodb" });
+			logger.info({ message: "Updated auth state details in dynamodb" });
 		} catch (error) {
-			this.logger.error({ message: "Got error saving auth state details", error });
+			logger.error({ message: "Got error saving auth state details", error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "updateItem - failed: got error saving auth state details");
 		}
 	}
@@ -552,12 +549,12 @@ export class F2fService {
 			},
 		});
 
-		this.logger.info({ message: `Updating ${tableName} table TTL`, updateStateCommand });
+		logger.info({ message: `Updating ${tableName} table TTL`, updateStateCommand });
 		try {
 			await this.dynamo.send(updateStateCommand);
-			this.logger.info({ message: `Updated ${tableName} TTL in dynamodb` });
+			logger.info({ message: `Updated ${tableName} TTL in dynamodb` });
 		} catch (error) {
-			this.logger.error({ message: `Got error updating ${tableName} ttl`, error });
+			logger.error({ message: `Got error updating ${tableName} ttl`, error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName} ttl`);
 		}
 	}
@@ -572,12 +569,12 @@ export class F2fService {
 			},
 		});
 
-		this.logger.info({ message: `Updating documentUsed in ${tableName}`, updateStateCommand });
+		logger.info({ message: `Updating documentUsed in ${tableName}`, updateStateCommand });
 		try {
 			await this.dynamo.send(updateStateCommand);
-			this.logger.info({ message: `Updated ${tableName} with documentUsed` });
+			logger.info({ message: `Updated ${tableName} with documentUsed` });
 		} catch (error) {
-			this.logger.error({ message: `Got error updating documentUsed in ${tableName}`, error });
+			logger.error({ message: `Got error updating documentUsed in ${tableName}`, error });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, `updateItem - failed: got error updating ${tableName}`);
 		}
 	}

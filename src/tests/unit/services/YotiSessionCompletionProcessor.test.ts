@@ -3,7 +3,7 @@
  
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { YotiSessionCompletionProcessor } from "../../../services/YotiSessionCompletionProcessor";
@@ -26,7 +26,7 @@ let mockCompletedSessionProcessor: YotiSessionCompletionProcessor;
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 vi.mock("crypto", async () => ({
 	...(await vi.importActual<typeof import("crypto")>("crypto")),
@@ -112,7 +112,7 @@ const VALID_REQUEST = {
 describe("YotiSessionCompletionProcessor", () => {
 	let f2fSessionItem: ISessionItem, personIdentityItem: PersonIdentityItem, completedYotiSession: YotiCompletedSession, documentFields: any;
 	beforeAll(() => {
-		mockCompletedSessionProcessor = new YotiSessionCompletionProcessor(logger, metrics, "YOTIPRIM");
+		mockCompletedSessionProcessor = new YotiSessionCompletionProcessor(metrics, "YOTIPRIM");
 		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.f2fService = mockF2fService;
 

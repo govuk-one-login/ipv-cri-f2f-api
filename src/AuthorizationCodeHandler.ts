@@ -1,6 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { Logger } from "@aws-lambda-powertools/logger";
-import { LogLevel } from "@aws-lambda-powertools/logger/lib/esm/types/Logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Response } from "./utils/Response";
 import { AppError } from "./utils/AppError";
@@ -11,13 +10,7 @@ import { AuthorizationRequestProcessor } from "./services/AuthorizationRequestPr
 import { MessageCodes } from "./models/enums/MessageCodes";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
-const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.AUTHORIZATIONCODE_LOGGER_SVC_NAME;
-
-const logger = new Logger({
-	logLevel: POWERTOOLS_LOG_LEVEL as LogLevel,
-	serviceName: POWERTOOLS_SERVICE_NAME,
-});
 
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
@@ -52,7 +45,7 @@ class AuthorizationCodeHandler implements LambdaInterface {
 				return Response(HttpCodesEnum.BAD_REQUEST, "Empty headers");
 			}
 			logger.info("Starting AuthorizationRequestProcessor");
-			return await AuthorizationRequestProcessor.getInstance(logger, metrics).processRequest(event, sessionId);
+			return await AuthorizationRequestProcessor.getInstance(metrics).processRequest(event, sessionId);
 		} catch (err: any) {
 			logger.error({ message: "An error has occurred.", err });
 			if (err instanceof AppError) {

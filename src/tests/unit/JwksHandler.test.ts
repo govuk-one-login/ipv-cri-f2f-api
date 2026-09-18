@@ -1,16 +1,9 @@
-import { handlerClass, lambdaHandler, logger} from "../../JwksHandler";
+import { handlerClass, lambdaHandler} from "../../JwksHandler";
 import { Jwk, Algorithm } from "../../utils/IVeriCredential";
+import { logger } from "@govuk-one-login/cri-logger";
 import crypto from "crypto";
 
-vi.mock("@aws-lambda-powertools/logger", () => ({
-	Logger: vi.fn(function () {
-		return {
-			info: vi.fn(),
-			error: vi.fn(),
-			warn: vi.fn(),
-		};
-	}),
-}));
+vi.mock("@govuk-one-login/cri-logger");
 
 vi.mock("@aws-sdk/client-kms", () => ({
 	KMS: vi.fn(function () {

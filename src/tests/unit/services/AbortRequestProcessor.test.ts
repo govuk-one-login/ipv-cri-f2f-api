@@ -1,6 +1,6 @@
 import { mock } from "vitest-mock-extended";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { AbortRequestProcessor } from "../../../services/AbortRequestProcessor";
 import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
@@ -11,7 +11,7 @@ import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 import { APIGatewayProxyResult } from "aws-lambda";
 
 const mockF2fService = mock<F2fService>();
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 
 let abortRequestProcessor: AbortRequestProcessor;
 let f2fSessionItem: ISessionItem;
@@ -43,7 +43,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("AbortRequestProcessor", () => {
 	beforeAll(() => {
-		abortRequestProcessor = new AbortRequestProcessor(logger, metrics);
+		abortRequestProcessor = new AbortRequestProcessor(metrics);
     		// @ts-expect-error linting to be updated
 		abortRequestProcessor.f2fService = mockF2fService;
 		f2fSessionItem = getMockSessionItem();

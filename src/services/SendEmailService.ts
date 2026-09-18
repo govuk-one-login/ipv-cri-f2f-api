@@ -7,7 +7,7 @@ import { Email } from "../models/Email";
 import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
@@ -36,8 +36,6 @@ export class SendEmailService {
 
   private readonly environmentVariables: EnvironmentVariables;
 
-  private readonly logger: Logger;
-
   private readonly metrics: Metrics;
 
 	private readonly validationHelper: ValidationHelper;
@@ -59,16 +57,13 @@ export class SendEmailService {
    * @private
    */
   private constructor(
-  	logger: Logger,
   	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
   ) {
-  	this.logger = logger;
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(
-  		logger,
   		ServicesEnum.GOV_NOTIFY_SERVICE,
   	);
   	this.GOV_NOTIFY_SERVICE_ID = govnotifyServiceId;
@@ -76,7 +71,6 @@ export class SendEmailService {
   	this.govNotifyErrorMapper = new GovNotifyErrorMapper();
   	this.f2fService = F2fService.getInstance(
   		this.environmentVariables.sessionTable(),
-  		this.logger,
 		this.metrics,
   		createDynamoDbClient(),
   	);
@@ -85,7 +79,6 @@ export class SendEmailService {
   }
 
   static getInstance(
-  	logger: Logger,
   	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
   	GOVUKNOTIFY_API_KEY: string,
@@ -93,7 +86,6 @@ export class SendEmailService {
   ): SendEmailService {
   	if (!this.instance) {
   		this.instance = new SendEmailService(
-  			logger,
   			metrics,
   			YOTI_PRIVATE_KEY,
   			GOVUKNOTIFY_API_KEY,
@@ -124,8 +116,8 @@ export class SendEmailService {
   			sessionConfigObject.clientConfig.YotiBaseUrl,
   		);
   		if (encoded) {
-  			this.logger.debug("sendEmail", SendEmailService.name);
-  			this.logger.info("Sending Yoti PDF email");
+  			logger.debug("sendEmail", SendEmailService.name);
+  			logger.info("Sending Yoti PDF email");
 
   			const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
 
@@ -146,7 +138,7 @@ export class SendEmailService {
   			};
 
   			const emailResponse = await this.sendGovNotification(
-  				this.environmentVariables.getPdfEmailTemplateId(this.logger),
+  				this.environmentVariables.getPdfEmailTemplateId(),
   				message,
   				options,
   				sessionConfigObject.clientConfig.GovNotifyApi,
@@ -154,7 +146,7 @@ export class SendEmailService {
   			await this.sendF2FYotiEmailedEvent(message);
   			return emailResponse;
   		} else {
-  			this.logger.error("Failed to fetch the Instructions pdf", {
+  			logger.error("Failed to fetch the Instructions pdf", {
   				messageCode: MessageCodes.FAILED_FETCHING_YOTI_PDF,
   			});
   			throw new AppError(
@@ -165,7 +157,7 @@ export class SendEmailService {
 		// ignored so as not log PII
 		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (err: any) {
-  		this.logger.error("sendYotiPdfEmail - Cannot send Email", {
+  		logger.error("sendYotiPdfEmail - Cannot send Email", {
   			messageCode: MessageCodes.FAILED_TO_SEND_PDF_EMAIL,
   		});
   		throw new AppError(
@@ -176,7 +168,7 @@ export class SendEmailService {
   }
 
   async sendReminderEmail(message: ReminderEmail): Promise<EmailResponse> {
-  	this.logger.info("Sending reminder email");
+  	logger.info("Sending reminder email");
 
   	try {
   		const sessionConfigObject = await this.fetchSessionAndConfigInfo(message.sessionId);
@@ -203,7 +195,7 @@ export class SendEmailService {
   		};
 
   		const emailResponse = await this.sendGovNotification(
-  			this.environmentVariables.getReminderEmailTemplateId(this.logger),
+  			this.environmentVariables.getReminderEmailTemplateId(),
   			message,
   			options,
   			sessionConfigObject.clientConfig.GovNotifyApi,
@@ -212,7 +204,7 @@ export class SendEmailService {
 		// ignored so as not log PII
 		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (err: any) {
-  		this.logger.error("Failed to send Reminder Email", {
+  		logger.error("Failed to send Reminder Email", {
   			messageCode: MessageCodes.FAILED_TO_SEND_REMINDER_EMAIL,
   		});
   		throw new AppError(
@@ -225,7 +217,7 @@ export class SendEmailService {
   async sendDynamicReminderEmail(
   	message: DynamicReminderEmail,
   ): Promise<EmailResponse> {
-  	this.logger.info("Sending dynamic reminder email");
+  	logger.info("Sending dynamic reminder email");
 
   	try {
   		const sessionConfigObject = await this.fetchSessionAndConfigInfo(message.sessionId);
@@ -256,9 +248,7 @@ export class SendEmailService {
   		};
 
   		const emailResponse = await this.sendGovNotification(
-  			this.environmentVariables.getDynamicReminderEmailTemplateId(
-  				this.logger,
-  			),
+  			this.environmentVariables.getDynamicReminderEmailTemplateId(),
   			message,
   			options,
   			sessionConfigObject.clientConfig.GovNotifyApi,
@@ -267,7 +257,7 @@ export class SendEmailService {
 		// ignored so as not log PII
 		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (err: any) {
-  		this.logger.error("Failed to send Dynamic Reminder Email", {
+  		logger.error("Failed to send Dynamic Reminder Email", {
   			messageCode: MessageCodes.FAILED_TO_SEND_REMINDER_EMAIL,
   		});
   		throw new AppError(
@@ -305,12 +295,12 @@ export class SendEmailService {
 			// ignored so as not log PII
 			/* eslint-disable @typescript-eslint/no-unused-vars */
   		} catch (error) {
-  			this.logger.error(
+  			logger.error(
   				"Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.",
   			);
   		}
   	} else {
-  		this.logger.error(
+  		logger.error(
   			"Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue, session not found for sessionId: ",
   			message.sessionId,
   		);
@@ -326,10 +316,8 @@ export class SendEmailService {
   	let retryCount = 0;
   	//retry for maxRetry count configured value if fails
   	while (retryCount <= this.environmentVariables.maxRetries()) {
-  		this.logger.info("sendEmail - trying to send email message", {
-  			templateId: this.environmentVariables.getPdfEmailTemplateId(
-  				this.logger,
-  			),
+  		logger.info("sendEmail - trying to send email message", {
+  			templateId: this.environmentVariables.getPdfEmailTemplateId(),
   			referenceId: message.referenceId,
   			retryCount,
   		});
@@ -345,7 +333,7 @@ export class SendEmailService {
   				message.emailAddress,
   				options,
   			);
-  			this.logger.debug(
+  			logger.debug(
   				"sendEmail - response status after sending Email",
   				SendEmailService.name,
   				emailResponse.status,
@@ -357,10 +345,10 @@ export class SendEmailService {
   				emailResponse.data.id,
   			);
   		} catch (err: any) {
-  			this.logger.error("sendEmail - GOV UK Notify threw an error");
+  			logger.error("sendEmail - GOV UK Notify threw an error");
 
   			if (err.response) {
-  				this.logger.error(`GOV UK Notify error ${SendEmailService.name}`, {
+  				logger.error(`GOV UK Notify error ${SendEmailService.name}`, {
   					statusCode: err.response.data.status_code,
   					errors: err.response.data.errors,
   				});
@@ -375,11 +363,11 @@ export class SendEmailService {
   				appError.obj!.shouldRetry &&
           retryCount < this.environmentVariables.maxRetries()
   			) {
-  				this.logger.error(
+  				logger.error(
   					`sendEmail - Mapped error ${SendEmailService.name}`,
   					{ appError },
   				);
-  				this.logger.error(
+  				logger.error(
   					`sendEmail - Retrying to send the email. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${
   						SendEmailService.name
   					} ${new Date().toISOString()}`,
@@ -392,7 +380,7 @@ export class SendEmailService {
   			}
   		}
   	}
-  	this.logger.error(
+  	logger.error(
   		`sendEmail - Cannot send Email after ${this.environmentVariables.maxRetries()} retries`,
   	);
   	throw new AppError(
@@ -412,14 +400,13 @@ export class SendEmailService {
   		yotiInstructionsPdfRetryCount <=
       this.environmentVariables.yotiInstructionsPdfMaxRetries()
   	) {
-  		this.logger.info(
+  		logger.info(
   			"Fetching the Instructions Pdf from yoti for sessionId: ",
   			message.yotiSessionId,
   		);
   		try {
-  			this.logger.info("BASE_URL", yotiBaseUrl);
+  			logger.info("BASE_URL", yotiBaseUrl);
   			this.yotiService = YotiService.getInstance(
-  				this.logger,
   				this.metrics,
   				this.YOTI_PRIVATE_KEY,
   			);
@@ -434,7 +421,7 @@ export class SendEmailService {
   				return encoded;
   			}
   		} catch (err: any) {
-  			this.logger.error(
+  			logger.error(
   				"Error while fetching Instructions pdf or encoding the pdf.",
   				{ err },
   			);
@@ -443,7 +430,7 @@ export class SendEmailService {
           yotiInstructionsPdfRetryCount <
             this.environmentVariables.yotiInstructionsPdfMaxRetries()
   			) {
-  				this.logger.error(
+  				logger.error(
   					`sendEmail - Retrying to fetch the Instructions Pdf from yoti for sessionId : ${
   						message.yotiSessionId
   					}. Sleeping for ${this.environmentVariables.backoffPeriod()} ms ${
@@ -460,7 +447,7 @@ export class SendEmailService {
   			}
   		}
   	}
-  	this.logger.error(
+  	logger.error(
   		`sendEmail - Could not fetch Instructions pdf after ${this.environmentVariables.yotiInstructionsPdfMaxRetries()} retries`,
   	);
   	throw new AppError(
@@ -484,7 +471,7 @@ export class SendEmailService {
   	);
 
   	if (!f2fSessionInfo) {
-  		this.logger.warn("Missing details in SESSION table", {
+  		logger.warn("Missing details in SESSION table", {
   			messageCode: MessageCodes.SESSION_NOT_FOUND,
   		});
   		throw new AppError(
@@ -495,11 +482,10 @@ export class SendEmailService {
   	const clientConfig = getClientConfig(
   		this.environmentVariables.clientConfig(),
   		f2fSessionInfo.clientId,
-  		this.logger,
   	);
 	
   	if (!clientConfig) {
-  		this.logger.error("Unrecognised client in request", {
+  		logger.error("Unrecognised client in request", {
   			messageCode: MessageCodes.UNRECOGNISED_CLIENT,
   		});
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Bad Request");

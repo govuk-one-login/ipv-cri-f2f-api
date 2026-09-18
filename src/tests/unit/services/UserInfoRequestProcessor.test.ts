@@ -1,7 +1,7 @@
 import { UserInfoRequestProcessor } from "../../../services/UserInfoRequestProcessor";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { MISSING_AUTH_HEADER_USERINFO, VALID_USERINFO } from "../data/userInfo-events";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { ISessionItem } from "../../../models/ISessionItem";
@@ -16,7 +16,7 @@ const mockF2fService = mock<F2fService>();
 let mockSession: ISessionItem;
 const passingKmsJwtAdapterFactory = () => new MockKmsJwtAdapter(true);
 const failingKmsJwtAdapterFactory = () => new MockKmsJwtAdapter(false);
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 
 function getMockSessionItem(): ISessionItem {
@@ -47,7 +47,7 @@ function getMockSessionItem(): ISessionItem {
 describe("UserInfoRequestProcessor", () => {
 	beforeAll(() => {
 		mockSession = getMockSessionItem();
-		userInforequestProcessorTest = new UserInfoRequestProcessor(logger, metrics);
+		userInforequestProcessorTest = new UserInfoRequestProcessor(metrics);
 		// @ts-expect-error linting to be updated
 		userInforequestProcessorTest.f2fService = mockF2fService;
 	});

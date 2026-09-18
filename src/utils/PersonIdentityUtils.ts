@@ -1,6 +1,6 @@
 import { PersonIdentityAddress, PersonIdentityItem } from "../models/PersonIdentityItem";
 import { YOTI_DOCUMENT_COUNTRY, YOTI_DOCUMENT_COUNTRY_CODE, YOTI_ADDRESS_FORMAT_CODE } from "./YotiPayloadEnums";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { AppError } from "./AppError";
 import { HttpCodesEnum } from "./HttpCodesEnum";
@@ -16,7 +16,7 @@ export const personIdentityUtils = {
 		return [{ nameParts }];
 	},
 
-	getNamesFromPersonIdentity(personDetails: PersonIdentityItem, documentFields: any, logger: Logger): Name[] {
+	getNamesFromPersonIdentity(personDetails: PersonIdentityItem, documentFields: any): Name[] {
 		const { full_name: yotiFullName } = documentFields;
 		const { givenNames, familyNames } = this.getNames(personDetails);
 		const f2fGivenNames = givenNames.join(" ");
@@ -63,10 +63,10 @@ export const personIdentityUtils = {
 		return personDetails.emailAddress;
 	},
 
-	getYotiStructuredPostalAddress(address: PersonIdentityAddress, logger: Logger) : { address_format: number; building_number: string; sub_building: string; building: string; address_line1: string; address_line2: string; town_city: string; postal_code: string; country_iso: string; country: string } {
+	getYotiStructuredPostalAddress(address: PersonIdentityAddress) : { address_format: number; building_number: string; sub_building: string; building: string; address_line1: string; address_line2: string; town_city: string; postal_code: string; country_iso: string; country: string } {
 
 		try {
-			const { addressLine1, addressLine2 } = this.getAddressLines(address, logger);
+			const { addressLine1, addressLine2 } = this.getAddressLines(address);
 			return {
 				address_format: YOTI_ADDRESS_FORMAT_CODE,
 				building_number: address.buildingNumber ? address.buildingNumber.trim() : "",
@@ -85,10 +85,10 @@ export const personIdentityUtils = {
 
 	},
 
-	getStructuredPostalAddress(address: PersonIdentityAddress, logger: Logger) : { address_line1: string; address_line2: string; town_city: string; postal_code: string } {
+	getStructuredPostalAddress(address: PersonIdentityAddress) : { address_line1: string; address_line2: string; town_city: string; postal_code: string } {
 
 		try {
-			const { addressLine1, addressLine2 } = this.getAddressLines(address, logger);
+			const { addressLine1, addressLine2 } = this.getAddressLines(address);
 			return {
 				address_line1: addressLine1,
 				address_line2: addressLine2,
@@ -102,7 +102,7 @@ export const personIdentityUtils = {
 	},
 
 
-	getAddressLines(address: PersonIdentityAddress, logger: Logger) : { addressLine1: string; addressLine2: string } {
+	getAddressLines(address: PersonIdentityAddress) : { addressLine1: string; addressLine2: string } {
 
 		const validationHelper = new ValidationHelper();
 		let addressLine1, addressLine2;

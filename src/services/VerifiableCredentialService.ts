@@ -1,4 +1,4 @@
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
 import { ISessionItem } from "../models/ISessionItem";
 import { AppError } from "../utils/AppError";
@@ -16,8 +16,6 @@ export class VerifiableCredentialService {
 
   readonly tableName: string;
 
-  readonly logger: Logger;
-
   readonly issuer: string;
 
   readonly dnsSuffix: string;	
@@ -30,12 +28,10 @@ export class VerifiableCredentialService {
   	tableName: string,
   	kmsJwtAdapter: KmsJwtAdapter,
   	issuer: string,
-  	logger: Logger,
   	dnsSuffix: string,
   ) {
   	this.issuer = issuer;
   	this.tableName = tableName;
-  	this.logger = logger;
   	this.kmsJwtAdapter = kmsJwtAdapter;
   	this.dnsSuffix = dnsSuffix;
   }
@@ -44,11 +40,10 @@ export class VerifiableCredentialService {
   	tableName: string,
   	kmsJwtAdapter: KmsJwtAdapter,
   	issuer: string,
-  	logger: Logger,
   	dnsSuffix: string,
   ): VerifiableCredentialService {
   	if (!VerifiableCredentialService.instance) {
-  		VerifiableCredentialService.instance = new VerifiableCredentialService(tableName, kmsJwtAdapter, issuer, logger, dnsSuffix);
+  		VerifiableCredentialService.instance = new VerifiableCredentialService(tableName, kmsJwtAdapter, issuer, dnsSuffix);
   	}
   	return VerifiableCredentialService.instance;
   }
@@ -58,7 +53,7 @@ export class VerifiableCredentialService {
   		if (result) {
   			// Sign the VC
   			const signedJwt = await this.kmsJwtAdapter.sign(result, this.dnsSuffix);
-  			this.logger.info({ message: "Successfully Signed Generated Verified Credential jwt" });
+  			logger.info({ message: "Successfully Signed Generated Verified Credential jwt" });
   			return signedJwt;
   		}
   		return "";
@@ -87,7 +82,7 @@ export class VerifiableCredentialService {
   		vc: verifiedCredential,
   	};
 
-  	this.logger.info({ message: "Generated Verified Credential jwt" });
+  	logger.info({ message: "Generated Verified Credential jwt" });
   	return result;
   }
 

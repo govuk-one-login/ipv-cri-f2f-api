@@ -8,7 +8,7 @@ import { importJWK, JWTPayload, jwtVerify } from "jose";
 import axios from "axios";
 import { createKmsClient } from "./KMSClient";
 import * as AWS from "@aws-sdk/client-kms";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Constants } from "./Constants";
 
 export class KmsJwtAdapter {
@@ -20,17 +20,14 @@ export class KmsJwtAdapter {
 
 	private cachedTime: Date | undefined;
 
-	private readonly logger: Logger;
-
 	/**
 	 * An implemention the JWS standard using KMS to sign Jwts
 	 *
 	 * kid: The key Id of the KMS key
 	 */
-	constructor(kid: string, logger: Logger) {
+	constructor(kid: string) {
 		this.kid = kid;
 		this.kms = createKmsClient();
-		this.logger = logger;
 	}
 
 	getCachedDataForTest() {
@@ -90,7 +87,7 @@ export class KmsJwtAdapter {
 
 	async verifyWithJwks(urlEncodedJwt: string, publicKeyEndpoint: string, targetKid?: string): Promise<JWTPayload | null> {
 		if (!this.cachedJwks || (this.cachedTime && new Date() > this.cachedTime)) {
-			this.logger.info(`No cached keys found or cache time has expired, retrieving new JWKS from '${publicKeyEndpoint}'`);
+			logger.info(`No cached keys found or cache time has expired, retrieving new JWKS from '${publicKeyEndpoint}'`);
 			const oidcProviderJwks = (await axios.get(publicKeyEndpoint));
 			this.cachedJwks = oidcProviderJwks.data.keys;
 			const cacheControl = oidcProviderJwks.headers['cache-control'];
@@ -153,16 +150,16 @@ export class KmsJwtAdapter {
 			if (process.env.KEY_ROTATION_ENABLED === "true") {
 				for (const alias of Constants.ENCRYPTION_KEY_ALIASES) {
 					try {
-						this.logger.info(`Attempting decryption with key alias: ${alias}`)
+						logger.info(`Attempting decryption with key alias: ${alias}`)
 						const output: DecryptCommandOutput = await this.sendDecryptRequest(`alias/${alias}`, encryptedKey);
 						if (output.Plaintext) {
-							this.logger.info(`Decryption succesfull with key alias: ${alias}`)
+							logger.info(`Decryption succesfull with key alias: ${alias}`)
 							cek = output.Plaintext;
 							break; 
 						}
 					// eslint-disable-next-line @typescript-eslint/no-unused-vars
 					} catch (error) {
-						this.logger.info(`Decryption failed with key alias ${alias}: ${error}`);
+						logger.info(`Decryption failed with key alias ${alias}: ${error}`);
       				}
 				}
 			}
@@ -175,12 +172,12 @@ export class KmsJwtAdapter {
 				}
 
 				try {
-					this.logger.info(`Attempting decryption with legacy key with kid: ${encryptionKeyId}`)
+					logger.info(`Attempting decryption with legacy key with kid: ${encryptionKeyId}`)
 					const output: DecryptCommandOutput = await this.sendDecryptRequest(encryptionKeyId, encryptedKey)
 					cek = output.Plaintext;
-					this.logger.info(`Decryption succesfull with legacy key with kid ${encryptionKeyId}`)
+					logger.info(`Decryption succesfull with legacy key with kid ${encryptionKeyId}`)
 				} catch (error) {
-					this.logger.info(`Decryption failed with legacy key with kid ${encryptionKeyId}: ${error}`);
+					logger.info(`Decryption failed with legacy key with kid ${encryptionKeyId}: ${error}`);
 				} 
 			}
 
