@@ -19,7 +19,7 @@ const {
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 class YotiSessionCompletionHandler implements LambdaInterface {
-	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
+	private readonly environmentVariables = new EnvironmentVariables(ServicesEnum.CALLBACK_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: YotiCallbackPayload, context: any): Promise<void | AppError> {
@@ -29,7 +29,7 @@ class YotiSessionCompletionHandler implements LambdaInterface {
 
 		try {
 			logger.appendKeys({	yotiSessionId: event.session_id });
-			const yotiPrivateKey = await YotiPrivateKeyProvider.getYotiPrivateKey(logger, this.environmentVariables);
+			const yotiPrivateKey = await YotiPrivateKeyProvider.getYotiPrivateKey(this.environmentVariables);
 			await YotiSessionCompletionProcessor.getInstance(metrics, yotiPrivateKey).processRequest(event);
 			logger.debug("Finished processing record from SQS");
 

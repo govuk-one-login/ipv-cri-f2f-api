@@ -2,7 +2,7 @@
  
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { F2fResponse } from "../../../utils/F2fResponse";
@@ -17,9 +17,8 @@ import { MessageCodes } from "../../../models/enums/MessageCodes";
 let authorizationRequestProcessorTest: AuthorizationRequestProcessor;
 const mockF2fService = mock<F2fService>();
 
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
-
 
 function getMockSessionItem(): ISessionItem {
 	const sess: ISessionItem = {
@@ -46,7 +45,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("AuthorizationRequestProcessor", () => {
 	beforeAll(() => {
-		authorizationRequestProcessorTest = new AuthorizationRequestProcessor(logger, metrics);
+		authorizationRequestProcessorTest = new AuthorizationRequestProcessor(metrics);
 		// @ts-expect-error linting to be updated
 		authorizationRequestProcessorTest.f2fService = mockF2fService;
 	});

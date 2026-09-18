@@ -25,7 +25,7 @@ export class AbortRequestProcessor {
 
   constructor(metrics: Metrics) {
   	this.metrics = metrics;
-  	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.ABORT_SERVICE);
+  	this.environmentVariables = new EnvironmentVariables(ServicesEnum.ABORT_SERVICE);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
   }
 

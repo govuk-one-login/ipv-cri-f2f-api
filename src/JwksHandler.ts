@@ -20,7 +20,7 @@ class JwksHandler implements LambdaInterface {
 			socketTimeout: 29000,
 		}),
 	});
-	readonly environmentVariables: EnvironmentVariables = new EnvironmentVariables(logger, ServicesEnum.JWKS_SERVICE);
+	readonly environmentVariables: EnvironmentVariables = new EnvironmentVariables(ServicesEnum.JWKS_SERVICE);
 	
 	readonly kmsClient = new AWS.KMS({
 		region: process.env.REGION,

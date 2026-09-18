@@ -17,7 +17,7 @@ let key: string;
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 export class PersonInfoKeyHandler implements LambdaInterface {
-    private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.PERSON_INFO_KEY_SERVICE);
+    private readonly environmentVariables = new EnvironmentVariables(ServicesEnum.PERSON_INFO_KEY_SERVICE);
 
     @metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 

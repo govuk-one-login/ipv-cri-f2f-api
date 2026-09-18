@@ -37,7 +37,7 @@ export class SendEmailProcessor {
   	switch (messageType) {
   		case Constants.PDF_EMAIL: {
   			email = Email.parseRequest(JSON.stringify(eventBody.Message));
-  			await this.validationHelper.validateModel(email, logger);
+  			await this.validationHelper.validateModel(email);
   			const pdfEmailResponse = this.govNotifyService.sendYotiPdfEmail(email);
 
 			singleMetric.addDimension("emailType", "Pdf");

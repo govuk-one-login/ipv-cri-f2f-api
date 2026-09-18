@@ -5,7 +5,7 @@ import type { MockInstance } from "vitest";
  
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "../../../services/DocumentSelectionRequestProcessor";
@@ -38,7 +38,7 @@ let yotiLetterStateMachineSpy: MockInstance;
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 const encodedHeader = "ENCHEADER";
 
@@ -201,7 +201,7 @@ vi.mock("@aws-sdk/client-sfn", () => ({
 describe("DocumentSelectionRequestProcessor", () => {
 	let personIdentityItem: PersonIdentityItem, f2fSessionItem: ISessionItem, yotiSessionInfo: YotiSessionInfo;
 	beforeAll(() => {
-		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(logger, metrics, "YOTIPRIM");
+		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(metrics, "YOTIPRIM");
 		// @ts-expect-error linting to be updated
 		mockDocumentSelectionRequestProcessor.f2fService = mockF2fService;
 

@@ -20,7 +20,7 @@ const {
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 class PostOfficeVisitHandler implements LambdaInterface {
-	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.THANK_YOU_EMAIL_SERVICE);
+	private readonly environmentVariables = new EnvironmentVariables(ServicesEnum.THANK_YOU_EMAIL_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: YotiCallbackPayload, context: any): Promise<void | AppError> {
@@ -35,7 +35,7 @@ class PostOfficeVisitHandler implements LambdaInterface {
 
 			let yotiPrivateKey: string | undefined;
 			if (event.topic === YotiCallbackTopics.THANK_YOU_EMAIL_REQUESTED) {
-				yotiPrivateKey = await YotiPrivateKeyProvider.getYotiPrivateKey(logger, this.environmentVariables);
+				yotiPrivateKey = await YotiPrivateKeyProvider.getYotiPrivateKey(this.environmentVariables);
 			}
 
 			await PostOfficeVisitProcessor.getInstance(metrics, yotiPrivateKey).processRequest(event);

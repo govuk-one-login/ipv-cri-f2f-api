@@ -142,7 +142,7 @@ export class PostOfficeVisitProcessor {
 		}
 
 		//Initialise Yoti Service based on session client_id
-		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId, logger);
+		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId);
 
 		if (!clientConfig) {
 			logger.error("Unrecognised client in request", {

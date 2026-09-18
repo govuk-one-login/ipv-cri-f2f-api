@@ -57,7 +57,7 @@ export class PersonInfoRequestProcessor {
   		return Response(HttpCodesEnum.UNAUTHORIZED, `No person found with the session id: ${sessionId}`);
   	}
 
-  	const address = personIdentityUtils.getStructuredPostalAddress(person.addresses[0], logger);
+  	const address = personIdentityUtils.getStructuredPostalAddress(person.addresses[0]);
   	const encryptedResponseValue = this.encryptResponse(address);
 
   	return Response(HttpCodesEnum.OK, encryptedResponseValue);

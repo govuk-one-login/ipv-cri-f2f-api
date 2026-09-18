@@ -3,7 +3,7 @@ import type { Mocked } from "vitest";
  
 import axios from "axios";
 import { YotiService } from "../../../services/YotiService";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
@@ -180,7 +180,7 @@ const generateInstructionsPayload = {
 
  
 describe("YotiService", () => {
-	const logger = mock<Logger>();
+	vi.mock("@govuk-one-login/cri-logger");
 	const metrics = mock<Metrics>();
 	
 	let axiosMock: Mocked<typeof axios>;
@@ -191,7 +191,6 @@ describe("YotiService", () => {
 		axiosMock = axios as Mocked<typeof axios>;
 
 		yotiService = new YotiService(
-			logger,
 			metrics,
 			"CLIENT_SDK_ID",
 			1209600,

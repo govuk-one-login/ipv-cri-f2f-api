@@ -2,7 +2,7 @@
  
 import fs from "fs";
 
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { mock } from "vitest-mock-extended";
 
 import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
@@ -14,14 +14,14 @@ import { Metrics } from "@aws-lambda-powertools/metrics";
 let pdfGenerationService: PDFGenerationService;
 const mockF2fService = mock<F2fService>();
 
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 
 const sessionId = "sessionId";
 
 describe("PdfGenerationServiceTest", () => {
 	beforeAll(() => {
-		pdfGenerationService = PDFGenerationService.getInstance(logger, metrics);
+		pdfGenerationService = PDFGenerationService.getInstance(metrics);
 		// @ts-expect-error linting to be updated
 		pdfGenerationService.f2fService = mockF2fService;
 	});

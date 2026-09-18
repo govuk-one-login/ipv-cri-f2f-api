@@ -47,7 +47,7 @@ export class DocumentSelectionRequestProcessor {
 
 	constructor(metrics: Metrics, YOTI_PRIVATE_KEY: string) {
 		this.metrics = metrics;
-		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.DOCUMENT_SELECTION_SERVICE);
+		this.environmentVariables = new EnvironmentVariables(ServicesEnum.DOCUMENT_SELECTION_SERVICE);
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
@@ -141,7 +141,7 @@ export class DocumentSelectionRequestProcessor {
   	}
 		
 		//Initialise Yoti Service base on session client_id
-		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSessionInfo.clientId, logger);
+		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSessionInfo.clientId);
 
 		if (!clientConfig) {
 			logger.error("Unrecognised client in request", {
@@ -150,7 +150,7 @@ export class DocumentSelectionRequestProcessor {
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(metrics, this.YOTI_PRIVATE_KEY);
+		this.yotiService = YotiService.getInstance(this.metrics, this.YOTI_PRIVATE_KEY);
 
 		// Reject the request when session store does not contain email, familyName or GivenName fields
 		const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);

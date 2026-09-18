@@ -66,7 +66,7 @@ export const personIdentityUtils = {
 	getYotiStructuredPostalAddress(address: PersonIdentityAddress) : { address_format: number; building_number: string; sub_building: string; building: string; address_line1: string; address_line2: string; town_city: string; postal_code: string; country_iso: string; country: string } {
 
 		try {
-			const { addressLine1, addressLine2 } = this.getAddressLines(address, logger);
+			const { addressLine1, addressLine2 } = this.getAddressLines(address);
 			return {
 				address_format: YOTI_ADDRESS_FORMAT_CODE,
 				building_number: address.buildingNumber ? address.buildingNumber.trim() : "",
@@ -88,7 +88,7 @@ export const personIdentityUtils = {
 	getStructuredPostalAddress(address: PersonIdentityAddress) : { address_line1: string; address_line2: string; town_city: string; postal_code: string } {
 
 		try {
-			const { addressLine1, addressLine2 } = this.getAddressLines(address, logger);
+			const { addressLine1, addressLine2 } = this.getAddressLines(address);
 			return {
 				address_line1: addressLine1,
 				address_line2: addressLine2,

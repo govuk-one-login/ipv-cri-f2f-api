@@ -1,6 +1,6 @@
  
  
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { mock } from "vitest-mock-extended";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 
@@ -25,12 +25,12 @@ let pdfServiceTest: PDFService;
 const mockPdfGenerationService = mock<PDFGenerationService>();
 
 const metrics = mock<Metrics>();
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const sessionId = "sessionId";
 
 describe("PdfServiceTest", () => {
 	beforeAll(() => {
-		pdfServiceTest = PDFService.getInstance(logger, metrics);
+		pdfServiceTest = PDFService.getInstance(metrics);
 		// @ts-expect-error linting to be updated
 		pdfServiceTest.pdfGenerationService = mockPdfGenerationService;
 		// @ts-expect-error linting to be updated

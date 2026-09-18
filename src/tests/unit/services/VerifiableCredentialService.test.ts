@@ -1,5 +1,5 @@
  
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { VerifiableCredentialService } from "../../../services/VerifiableCredentialService";
 import { AppError } from "../../../utils/AppError";
 import { Constants } from "../../../utils/Constants";
@@ -22,8 +22,8 @@ describe("VerifiableCredentialService", () => {
 	let verifiableCredentialService: VerifiableCredentialService;
 	const tableName = "test-table";
 	const issuer = "test-issuer";
-	const logger = mock<Logger>();
-	const kmsJwtAdapter = new KmsJwtAdapter("kid", logger);
+	vi.mock("@govuk-one-login/cri-logger");
+	const kmsJwtAdapter = new KmsJwtAdapter("kid");
 	const dnsSuffix = "dnsSuffix123";
 
 	const credentialSubject = {
@@ -99,7 +99,6 @@ describe("VerifiableCredentialService", () => {
 			tableName,
 			kmsJwtAdapter,
 			issuer,
-			logger,
 			dnsSuffix,
 		);
 	});

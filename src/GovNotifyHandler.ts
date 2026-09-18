@@ -18,7 +18,7 @@ const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceNa
 let YOTI_PRIVATE_KEY: string;
 let GOVUKNOTIFY_API_KEY: string;
 class GovNotifyHandler implements LambdaInterface {
-	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+	private readonly environmentVariables = new EnvironmentVariables(ServicesEnum.GOV_NOTIFY_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: SQSEvent, context: Context): Promise<SQSBatchResponse> {

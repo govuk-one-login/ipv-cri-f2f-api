@@ -56,7 +56,7 @@ export class YotiSessionCompletionProcessor {
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(ServicesEnum.CALLBACK_SERVICE);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
-  	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn(), logger);
+  	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
   	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.environmentVariables.dnsSuffix());
   	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.metrics);
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
@@ -126,7 +126,7 @@ export class YotiSessionCompletionProcessor {
 		const govUkSignInJourneyId = f2fSession.clientSessionId;
 
 		//Initialise Yoti Service base on session client_id
-		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId, logger);
+		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId);
 
 		if (!clientConfig) {
 			logger.error("Unrecognised client in request", {
@@ -289,7 +289,7 @@ export class YotiSessionCompletionProcessor {
 
   				logger.info("Getting NameParts using F2F Person Identity Info");
 				try {
-  					VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(personDetails, documentFields, logger);
+  					VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(personDetails, documentFields);
 				} catch (error: any) {
 					await this.sendErrorMessageToIPVCore(f2fSession, error.message, govUkSignInJourneyId, yotiSessionID);
   					throw new AppError(HttpCodesEnum.SERVER_ERROR, error.message);

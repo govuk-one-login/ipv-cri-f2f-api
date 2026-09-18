@@ -1,7 +1,7 @@
  
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
@@ -19,7 +19,7 @@ vi.mock("../../../utils/Config", () => {
 	};
 });
 
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = new Metrics({ namespace: "F2F" });
 
 function getMockSessionItem(): ISessionItem {
@@ -47,7 +47,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("SessionConfigRequestProcessor", () => {
 	beforeAll(() => {
-		sessionConfigRequestProcessorTest = new SessionConfigRequestProcessor(logger, metrics);
+		sessionConfigRequestProcessorTest = new SessionConfigRequestProcessor(metrics);
 		// @ts-expect-error linting to be updated
 		sessionConfigRequestProcessorTest.f2fService = mockF2fService;
 	});

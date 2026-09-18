@@ -25,7 +25,7 @@ export class AddressLocationsProcessor {
 
 	constructor(metrics: Metrics, osApiKey: string) {
 		this.osApiKey = osApiKey;
-		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.ADDRESS_LOCATIONS_SERVICE);
+		this.environmentVariables = new EnvironmentVariables(ServicesEnum.ADDRESS_LOCATIONS_SERVICE);
   		this.metrics = metrics;
   		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
 	}
@@ -51,7 +51,7 @@ export class AddressLocationsProcessor {
 			govuk_signin_journey_id: session?.clientSessionId,
 		});
 		
-		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), session.clientId, logger);
+		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), session.clientId);
 		logger.info("CLIENTS:", { clientConfig });
 
 		if (!clientConfig) {

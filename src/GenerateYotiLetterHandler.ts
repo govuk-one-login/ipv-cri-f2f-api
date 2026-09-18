@@ -22,7 +22,7 @@ let yotiPrivateKey: string;
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 
 export class GenerateYotiLetterHandler implements LambdaInterface {
-	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_YOTI_LETTER_SERVICE);
+	private readonly environmentVariables = new EnvironmentVariables(ServicesEnum.GENERATE_YOTI_LETTER_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: { sessionId: string; pdfPreference: string }, context: any): Promise<any> {

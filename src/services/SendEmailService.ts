@@ -482,7 +482,6 @@ export class SendEmailService {
   	const clientConfig = getClientConfig(
   		this.environmentVariables.clientConfig(),
   		f2fSessionInfo.clientId,
-  		logger,
   	);
 	
   	if (!clientConfig) {

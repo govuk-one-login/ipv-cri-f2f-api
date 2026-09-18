@@ -77,7 +77,7 @@ export class GenerateYotiLetterProcessor {
   	}
 		
 		//Initialise Yoti Service base on session client_id
-		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSessionInfo.clientId, logger);
+		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSessionInfo.clientId);
 
 		if (!clientConfig) {
 			logger.error("Unrecognised client in request", {

@@ -24,7 +24,7 @@ export class AuthorizationRequestProcessor {
 	private readonly environmentVariables: EnvironmentVariables;
 
 	constructor(metrics: Metrics) {
-		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
+		this.environmentVariables = new EnvironmentVariables(ServicesEnum.AUTHORIZATION_SERVICE);
 		this.metrics = metrics;
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
 	}

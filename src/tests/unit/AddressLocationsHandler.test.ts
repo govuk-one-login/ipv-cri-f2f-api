@@ -1,6 +1,6 @@
 import type { MockInstance } from "vitest";
- 
-import { lambdaHandler, logger } from "../../AddressLocationsHandler";
+import { logger } from "@govuk-one-login/cri-logger";
+import { lambdaHandler } from "../../AddressLocationsHandler";
 import { VALID_ADDRESS_LOCATIONS } from "./data//addressLocations-event";
 import { CONTEXT } from "./data/context";
 import { mock } from "vitest-mock-extended";

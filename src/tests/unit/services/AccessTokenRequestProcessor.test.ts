@@ -2,7 +2,7 @@
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { MetricUnit } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { ISessionItem } from "../../../models/ISessionItem";
@@ -26,7 +26,7 @@ let mockSession: ISessionItem;
 let request: APIGatewayProxyEvent;
 
 vi.mock("../../../utils/KmsJwtAdapter");
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 const mockF2fService = mock<F2fService>();
 const mockAccessTokenRequestValidationHelper = mock<AccessTokenRequestValidationHelper>();
@@ -65,7 +65,7 @@ const clientAssertionJwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVkNmVj
 describe("AccessTokenRequestProcessor", () => {
 	beforeAll(() => {
 		mockSession = getMockSessionItem();
-		accessTokenRequestProcessorTest = new AccessTokenRequestProcessor(logger, metrics);
+		accessTokenRequestProcessorTest = new AccessTokenRequestProcessor(metrics);
 		//@ts-expect-error linting to be updated
 		accessTokenRequestProcessorTest.f2fService = mockF2fService;
 		request = VALID_ACCESSTOKEN;
@@ -106,7 +106,7 @@ describe("AccessTokenRequestProcessor", () => {
 	 });
 
 	it("Returns 401 Unauthorized response when body is invalid", async () => {
-		const tempAccessTokenRequestProcessorTest = new AccessTokenRequestProcessor(logger, metrics);
+		const tempAccessTokenRequestProcessorTest = new AccessTokenRequestProcessor(metrics);
 		//@ts-expect-error linting to be updated
 		tempAccessTokenRequestProcessorTest.f2fService = mockF2fService;
 		//@ts-expect-error linting to be updated

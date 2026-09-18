@@ -1,6 +1,6 @@
 import type { MockInstance } from "vitest";
- 
-import { lambdaHandler, logger } from "../../PersonInfoHandler";
+import { logger } from "@govuk-one-login/cri-logger";
+import { lambdaHandler } from "../../PersonInfoHandler";
 import { VALID_PERSON_INFO } from "./data/person-info-events";
 import { CONTEXT } from "./data/context";
 import { mock } from "vitest-mock-extended";

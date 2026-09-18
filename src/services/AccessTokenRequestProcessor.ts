@@ -38,8 +38,8 @@ export class AccessTokenRequestProcessor {
 	private readonly clientConfig: string;
 
 	constructor(metrics: Metrics) {
-		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.AUTHORIZATION_SERVICE);
-		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn(), logger);
+		this.environmentVariables = new EnvironmentVariables(ServicesEnum.AUTHORIZATION_SERVICE);
+		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
 		this.accessTokenRequestValidationHelper = new AccessTokenRequestValidationHelper();
 		this.metrics = metrics;
 		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
