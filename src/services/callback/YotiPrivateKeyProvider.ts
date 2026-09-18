@@ -1,4 +1,4 @@
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { EnvironmentVariables } from "../EnvironmentVariables";
 import { getParameter } from "../../utils/Config";
 import { MessageCodes } from "../../models/enums/MessageCodes";
@@ -8,7 +8,7 @@ import { HttpCodesEnum } from "../../utils/HttpCodesEnum";
 export class YotiPrivateKeyProvider {
 	private static yotiPrivateKey: string | undefined;
 
-	static async getYotiPrivateKey(logger: Logger, environmentVariables: EnvironmentVariables): Promise<string> {
+	static async getYotiPrivateKey(environmentVariables: EnvironmentVariables): Promise<string> {
 		if (!this.yotiPrivateKey) {
 			try {
 				logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });

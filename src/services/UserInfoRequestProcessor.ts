@@ -1,7 +1,7 @@
 import { Response } from "../utils/Response";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { ValidationHelper } from "../utils/ValidationHelper";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -17,8 +17,6 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 export class UserInfoRequestProcessor {
     private static instance: UserInfoRequestProcessor;
 
-    private readonly logger: Logger;
-
     private readonly metrics: Metrics;
 
     private readonly validationHelper: ValidationHelper;
@@ -29,18 +27,17 @@ export class UserInfoRequestProcessor {
 
 	private readonly environmentVariables: EnvironmentVariables;
 
-	constructor(logger: Logger, metrics: Metrics) {
-		this.logger = logger;
-		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.USERINFO_SERVICE);
+	constructor(metrics: Metrics) {
+		this.environmentVariables = new EnvironmentVariables(ServicesEnum.USERINFO_SERVICE);
 		this.validationHelper = new ValidationHelper();
 		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
 		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn(), logger);
 	}
 
-	static getInstance(logger: Logger, metrics: Metrics): UserInfoRequestProcessor {
+	static getInstance(metrics: Metrics): UserInfoRequestProcessor {
     	if (!UserInfoRequestProcessor.instance) {
-    		UserInfoRequestProcessor.instance = new UserInfoRequestProcessor(logger, metrics);
+    		UserInfoRequestProcessor.instance = new UserInfoRequestProcessor(metrics);
     	}
     	return UserInfoRequestProcessor.instance;
 	}
@@ -52,7 +49,7 @@ export class UserInfoRequestProcessor {
     		sub = await this.validationHelper.eventToSubjectIdentifier(this.kmsJwtAdapter, event);
     	} catch (error) {
     		if (error instanceof AppError) {
-    			this.logger.error({ message: "Error validating Authentication Access token from headers", error });
+    			logger.error({ message: "Error validating Authentication Access token from headers", error });
     			return Response( HttpCodesEnum.BAD_REQUEST, "Failed to Validate - Authentication header: " + error.message );
     		}
     	}
@@ -61,23 +58,23 @@ export class UserInfoRequestProcessor {
     	try {
     		session = await this.f2fService.getSessionById(sub as string);
     		if (!session) {
-				this.logger.error(`No session found with the sessionId: ${sub}`, { messageCode: MessageCodes.SESSION_NOT_FOUND });
+				logger.error(`No session found with the sessionId: ${sub}`, { messageCode: MessageCodes.SESSION_NOT_FOUND });
     			return Response(HttpCodesEnum.BAD_REQUEST, `No session found with the sessionId: ${sub}`);
     		}
-			this.logger.info({ message :"Found Session: " });
-			this.logger.appendKeys({ sessionId: session.sessionId });
-			this.logger.appendKeys({
+			logger.info({ message :"Found Session: " });
+			logger.appendKeys({ sessionId: session.sessionId });
+			logger.appendKeys({
 				govuk_signin_journey_id: session?.clientSessionId,
 			});
     	} catch (error) {
-			this.logger.error({ message: "Error processing userInfo request", error });
+			logger.error({ message: "Error processing userInfo request", error });
     		return Response(HttpCodesEnum.BAD_REQUEST, `No session found with the sessionId: ${sub}`);
     	}
 
     	this.metrics.addMetric("found session", MetricUnit.Count, 1);
     	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
     	if (session.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED) {
-			this.logger.info("Returning success response");
+			logger.info("Returning success response");
 			this.metrics.addMetric("UserInfo_pending_VC_returned", MetricUnit.Count, 1);
 
 			return Response(HttpCodesEnum.ACCEPTED, JSON.stringify({
@@ -86,7 +83,7 @@ export class UserInfoRequestProcessor {
 			}));
 		} else {
 			this.metrics.addMetric("UserInfo_error_user_state_incorrect", MetricUnit.Count, 1);
-			this.logger.error({ message: `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state - ${session.authSessionState}` }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
+			logger.error({ message: `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state - ${session.authSessionState}` }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
 			return Response(HttpCodesEnum.UNAUTHORIZED, `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state - ${session.authSessionState}`);
 		}
 	}

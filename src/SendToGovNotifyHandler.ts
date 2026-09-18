@@ -1,7 +1,6 @@
  
 import { Context  } from "aws-lambda";
-import { Logger } from "@aws-lambda-powertools/logger";
-import { LogLevel } from "@aws-lambda-powertools/logger/lib/esm/types/Logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { Constants } from "./utils/Constants";
@@ -15,13 +14,7 @@ import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.EMAIL_METRICS_NAMESPACE;
-const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.INFO;
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.EMAIL_LOGGER_SVC_NAME;
-
-const logger = new Logger({
-	logLevel: POWERTOOLS_LOG_LEVEL as LogLevel,
-	serviceName: POWERTOOLS_SERVICE_NAME,
-});
 
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
@@ -64,7 +57,7 @@ class SendToGovNotifyHandler implements LambdaInterface {
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, message);
 			}
 			const sessionId = event.sessionId;
-			return await SendToGovNotifyProcessor.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(sessionId);
+			return await SendToGovNotifyProcessor.getInstance(metrics, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(sessionId);
 
 		} catch (error) {
 			const message = "Email could not be sent. Returning failed message";

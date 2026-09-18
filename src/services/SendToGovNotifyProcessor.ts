@@ -1,6 +1,6 @@
  
  
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { SendToGovNotifyService } from "./SendToGovNotifyService";
 import { EmailResponse } from "../models/EmailResponse";
 import { MessageCodes } from "../models/enums/MessageCodes";
@@ -13,18 +13,15 @@ export class SendToGovNotifyProcessor {
 
   private readonly sendToGovNotifyService: SendToGovNotifyService;
 
-  private readonly logger: Logger;
-
   private readonly metrics: Metrics;
 
-  constructor(logger: Logger, metrics: Metrics, GOVUKNOTIFY_API_KEY: string, sendToGovNotifyServiceId: string) {
+  constructor(metrics: Metrics, GOVUKNOTIFY_API_KEY: string, sendToGovNotifyServiceId: string) {
   	this.metrics = metrics;
-  	this.logger = logger;
-  	this.sendToGovNotifyService = SendToGovNotifyService.getInstance(this.logger, this.metrics, GOVUKNOTIFY_API_KEY, sendToGovNotifyServiceId);
+  	this.sendToGovNotifyService = SendToGovNotifyService.getInstance(metrics, GOVUKNOTIFY_API_KEY, sendToGovNotifyServiceId);
   }
 
-  static getInstance(logger: Logger, metrics: Metrics, GOVUKNOTIFY_API_KEY: string, sendToGovNotifyServiceId: string): SendToGovNotifyProcessor {
-  	return this.instance || (this.instance = new SendToGovNotifyProcessor(logger, metrics, GOVUKNOTIFY_API_KEY, sendToGovNotifyServiceId));
+  static getInstance(metrics: Metrics, GOVUKNOTIFY_API_KEY: string, sendToGovNotifyServiceId: string): SendToGovNotifyProcessor {
+  	return this.instance || (this.instance = new SendToGovNotifyProcessor(metrics, GOVUKNOTIFY_API_KEY, sendToGovNotifyServiceId));
   }
 
   async processRequest(sessionId: string): Promise<EmailResponse | undefined> {  	
@@ -33,7 +30,7 @@ export class SendToGovNotifyProcessor {
 		// ignored so as not log PII
 		/* eslint-disable @typescript-eslint/no-unused-vars */
   	} catch (err: any) {
-  		this.logger.error("sendYotiInstructions - Cannot send Email", {
+  		logger.error("sendYotiInstructions - Cannot send Email", {
   			messageCode: MessageCodes.FAILED_TO_SEND_PDF_EMAIL,
   		});
 		

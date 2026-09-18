@@ -2,7 +2,7 @@ import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { YotiService } from "./YotiService";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
@@ -31,8 +31,6 @@ export class YotiSessionCompletionProcessor {
 
   private static instance: YotiSessionCompletionProcessor;
 
-  private readonly logger: Logger;
-
   private readonly metrics: Metrics;
 
   private yotiService!: YotiService;
@@ -52,17 +50,15 @@ export class YotiSessionCompletionProcessor {
 	private readonly validationHelper: ValidationHelper;
 
 	constructor(
-  	logger: Logger,
   	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
 	) {
-  	this.logger = logger;
   	this.metrics = metrics;
-  	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.CALLBACK_SERVICE);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
+  	this.environmentVariables = new EnvironmentVariables(ServicesEnum.CALLBACK_SERVICE);
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
   	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn(), logger);
-  	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.logger, this.environmentVariables.dnsSuffix());
-  	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.logger, this.metrics);
+  	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.environmentVariables.dnsSuffix());
+  	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.metrics);
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.validationHelper = new ValidationHelper();
 	}
@@ -79,13 +75,11 @@ export class YotiSessionCompletionProcessor {
 	}
 
 	static getInstance(
-  	logger: Logger,
   	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
 	): YotiSessionCompletionProcessor {
   	if (!YotiSessionCompletionProcessor.instance) {
   		YotiSessionCompletionProcessor.instance = new YotiSessionCompletionProcessor(
-  			logger,
   			metrics,
   			YOTI_PRIVATE_KEY,
   		);
@@ -101,13 +95,13 @@ export class YotiSessionCompletionProcessor {
 
 		const yotiSessionID = eventBody.session_id;
 		if (!yotiSessionID) {
-			this.logger.error("No yoti sessionId provided", {
+			logger.error("No yoti sessionId provided", {
 				messageCode: MessageCodes.MISSING_SESSION_ID,
 			});
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "");
 		}
 
-		this.logger.info("Fetching F2F Session info with Yoti SessionID", { yotiSessionID });
+		logger.info("Fetching F2F Session info with Yoti SessionID", { yotiSessionID });
 		let f2fSession: ISessionItem | undefined;
 		try {
 			f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
@@ -117,14 +111,14 @@ export class YotiSessionCompletionProcessor {
 		}
 
 		if (!f2fSession) {
-			this.logger.error("Session not found", {
+			logger.error("Session not found", {
 				messageCode: MessageCodes.SESSION_NOT_FOUND,
 			});
 			this.constructNotReturnedErrorMetric("Session not found");
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
 		}
 
-		this.logger.appendKeys({
+		logger.appendKeys({
 			sessionId: f2fSession.sessionId,
 			govuk_signin_journey_id: f2fSession.clientSessionId,
 		});
@@ -132,19 +126,19 @@ export class YotiSessionCompletionProcessor {
 		const govUkSignInJourneyId = f2fSession.clientSessionId;
 
 		//Initialise Yoti Service base on session client_id
-		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId, this.logger);
+		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), f2fSession.clientId, logger);
 
 		if (!clientConfig) {
-			this.logger.error("Unrecognised client in request", {
+			logger.error("Unrecognised client in request", {
 				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
 			});
 			this.constructNotReturnedErrorMetric("Unrecognised client in request");
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(this.logger, this.metrics, this.YOTI_PRIVATE_KEY);
+		this.yotiService = YotiService.getInstance(this.metrics, this.YOTI_PRIVATE_KEY);
 
-		this.logger.info({ message: "Fetching status for Yoti SessionID" });
+		logger.info({ message: "Fetching status for Yoti SessionID" });
 
 		let completedYotiSessionInfo;
 		try {
@@ -154,7 +148,7 @@ export class YotiSessionCompletionProcessor {
 			throw error;
 		}
 		if (!completedYotiSessionInfo) {
-			this.logger.error({ message: "No YOTI Session found with ID:" }, {
+			logger.error({ message: "No YOTI Session found with ID:" }, {
 				messageCode: MessageCodes.VENDOR_SESSION_NOT_FOUND,
 			});
 			await this.sendErrorMessageToIPVCore(f2fSession, "Yoti Session not found", govUkSignInJourneyId, yotiSessionID);
@@ -162,21 +156,21 @@ export class YotiSessionCompletionProcessor {
 		}
 
 		if (completedYotiSessionInfo.state !== YotiSessionDocument.COMPLETED) {
-			this.logger.error({ message: "Session in Yoti does not have status COMPLETED" }, {
+			logger.error({ message: "Session in Yoti does not have status COMPLETED" }, {
 				messageCode: MessageCodes.VENDOR_SESSION_STATE_MISMATCH,
 			});
 			await this.sendErrorMessageToIPVCore(f2fSession, "Yoti Session not complete", govUkSignInJourneyId, yotiSessionID);
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Yoti Session not complete", { shouldThrow: true });
 		}
 
-		this.logger.appendKeys({
+		logger.appendKeys({
 			yotiUserTrackingId: completedYotiSessionInfo.user_tracking_id,
 		});
 
   		const idDocuments = completedYotiSessionInfo.resources.id_documents;
 		
 		if (idDocuments.length < 1) {
-			this.logger.error({ message: "No documents found in Yoti response" }, {
+			logger.error({ message: "No documents found in Yoti response" }, {
 				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
 			});
 			await this.sendErrorMessageToIPVCore(f2fSession, "No documents found in Yoti response", govUkSignInJourneyId, yotiSessionID);
@@ -186,7 +180,7 @@ export class YotiSessionCompletionProcessor {
 		const idDocumentAuthenticityCheck = completedYotiSessionInfo.checks.find((check) => check.type === YOTI_CHECKS.ID_DOCUMENT_AUTHENTICITY.type)
 
 		if (idDocumentAuthenticityCheck && idDocumentAuthenticityCheck.resources_used.length > 1) {
-			this.logger.error({ message: "Multiple IDs used in completed Yoti Session" }, {
+			logger.error({ message: "Multiple IDs used in completed Yoti Session" }, {
 				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
 			});
 			await this.sendErrorMessageToIPVCore(f2fSession, "Multiple IDs used in completed Yoti Session", govUkSignInJourneyId, yotiSessionID);
@@ -196,7 +190,7 @@ export class YotiSessionCompletionProcessor {
 		const documentUsedInVerification = idDocuments.filter((document) => document.id === idDocumentAuthenticityCheck?.resources_used[0])
 
 		if (documentUsedInVerification.length < 1) {
-			this.logger.error({ message: "Unsuccessful attempt to match document IDs" }, {
+			logger.error({ message: "Unsuccessful attempt to match document IDs" }, {
 				messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE,
 			});
 			await this.sendErrorMessageToIPVCore(f2fSession, "Unsuccessful attempt to match document IDs", govUkSignInJourneyId, yotiSessionID);
@@ -206,7 +200,7 @@ export class YotiSessionCompletionProcessor {
 		if (!documentUsedInVerification[0].document_fields) {
   			// If there is no document_fields, yoti have told us there will always be ID_DOCUMENT_TEXT_DATA_CHECK
   			const documentTextDataCheck = completedYotiSessionInfo.checks.find((check) => check.type === "ID_DOCUMENT_TEXT_DATA_CHECK");
-			  this.logger.error({ message: "No document_fields found in completed Yoti Session" }, {
+			  logger.error({ message: "No document_fields found in completed Yoti Session" }, {
 				messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
   				ID_DOCUMENT_TEXT_DATA_CHECK: documentTextDataCheck?.report?.recommendation,
 			  });
@@ -217,7 +211,7 @@ export class YotiSessionCompletionProcessor {
 		  const documentFieldsId = documentUsedInVerification[0].document_fields.media.id;
 
 		  if (!documentFieldsId) {
-			  this.logger.error({ message: "No media ID found in completed Yoti Session" }, {
+			  logger.error({ message: "No media ID found in completed Yoti Session" }, {
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 			  });
 			  await this.sendErrorMessageToIPVCore(f2fSession, "Yoti document_fields media ID not found", govUkSignInJourneyId, yotiSessionID);
@@ -226,7 +220,7 @@ export class YotiSessionCompletionProcessor {
 
 		  const documentFields = await this.yotiService.getMediaContent(yotiSessionID, clientConfig.YotiBaseUrl, documentFieldsId); 
 		  if (!documentFields) {
-			  this.logger.error({ message: "No document fields info found" }, {
+			  logger.error({ message: "No document fields info found" }, {
 				  documentFieldsId,
 				  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 			  });
@@ -257,7 +251,7 @@ export class YotiSessionCompletionProcessor {
 				// ignored so as not log PII
 				/* eslint-disable @typescript-eslint/no-unused-vars */
 			  } catch (error) {
-				  this.logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", {
+				  logger.error("Failed to write TXMA event F2F_YOTI_RESPONSE_RECEIVED to SQS queue.", {
 					  messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
 				  });
 			  }
@@ -271,11 +265,11 @@ export class YotiSessionCompletionProcessor {
   			const missingFullName = this.checkMissingField(full_name, "full_name");
   			let VcNameParts: Name[];
 
-  			this.logger.info("Missing details check", { missingGivenName, missingFamilyName, missingFullName });
+  			logger.info("Missing details check", { missingGivenName, missingFamilyName, missingFullName });
 
   			// If all three name fields are missing, log an error and throw an exception
   			if (missingGivenName && missingFamilyName && missingFullName) {
-  				this.logger.error({ message: "Missing Name Info in DocumentFields" }, {
+  				logger.error({ message: "Missing Name Info in DocumentFields" }, {
   					messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
   				});
   				await this.sendErrorMessageToIPVCore(f2fSession, "Missing Name Info in DocumentFields", govUkSignInJourneyId, yotiSessionID);
@@ -286,22 +280,22 @@ export class YotiSessionCompletionProcessor {
   				const personDetails = await this.f2fService.getPersonIdentityById(f2fSession.sessionId, this.environmentVariables.personIdentityTableName());
 
   				if (!personDetails) {
-  					this.logger.warn("Missing details in PERSON IDENTITY tables", {
+  					logger.warn("Missing details in PERSON IDENTITY tables", {
   						messageCode: MessageCodes.PERSON_NOT_FOUND,
   					});
   					await this.sendErrorMessageToIPVCore(f2fSession, "Missing details in PERSON IDENTITY tables", govUkSignInJourneyId, yotiSessionID);
   					throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in PERSON IDENTITY tables");
   				}
 
-  				this.logger.info("Getting NameParts using F2F Person Identity Info");
+  				logger.info("Getting NameParts using F2F Person Identity Info");
 				try {
-  					VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(personDetails, documentFields, this.logger);
+  					VcNameParts = personIdentityUtils.getNamesFromPersonIdentity(personDetails, documentFields, logger);
 				} catch (error: any) {
 					await this.sendErrorMessageToIPVCore(f2fSession, error.message, govUkSignInJourneyId, yotiSessionID);
   					throw new AppError(HttpCodesEnum.SERVER_ERROR, error.message);
 				}
   			} else {
-  				this.logger.info("Getting NameParts using Yoti DocumentFields Info");
+  				logger.info("Getting NameParts using Yoti DocumentFields Info");
   				VcNameParts = personIdentityUtils.getNamesFromYoti(given_names, family_name);
   			}
 
@@ -318,7 +312,7 @@ export class YotiSessionCompletionProcessor {
 			  }
 
 			  if (!credentialSubject || !evidence) {
-				  this.logger.error({ message: "Missing Credential Subject or Evidence payload" }, {
+				  logger.error({ message: "Missing Credential Subject or Evidence payload" }, {
 					  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
 				  });
 				  await this.sendErrorMessageToIPVCore(f2fSession, "Missing Credential Subject or Evidence payload", govUkSignInJourneyId, yotiSessionID);
@@ -333,7 +327,7 @@ export class YotiSessionCompletionProcessor {
 				  }
 			  } catch (error) {
 				  if (error instanceof AppError) {
-					  this.logger.error({ message: "Error generating signed verifiable credential jwt" }, {
+					  logger.error({ message: "Error generating signed verifiable credential jwt" }, {
 						  error,
 						  messageCode: MessageCodes.FAILED_SIGNING_JWT,
 					  });
@@ -356,7 +350,7 @@ export class YotiSessionCompletionProcessor {
 					  "https://vocab.account.gov.uk/v1/credentialJWT": [signedJWT],
 				  });
 			  } catch (error) {
-				  this.logger.error({ message: "Failed to send VC to IPV Core Queue" }, {
+				  logger.error({ message: "Failed to send VC to IPV Core Queue" }, {
 					  error,
 					  messageCode: MessageCodes.FAILED_SENDING_VC,
 				  });
@@ -375,7 +369,7 @@ export class YotiSessionCompletionProcessor {
 			return Response(HttpCodesEnum.OK, "OK");
 		}
 
-		this.logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
+		logger.error({ message: "AuthSession is in wrong Auth state", sessionState: f2fSession.authSessionState });
 		await this.sendErrorMessageToIPVCore(f2fSession, "AuthSession is in wrong Auth state", govUkSignInJourneyId, yotiSessionID);
 		return Response(
 			HttpCodesEnum.UNAUTHORIZED,
@@ -385,7 +379,7 @@ export class YotiSessionCompletionProcessor {
 
 	checkMissingField(field: string, fieldName: string): boolean {
   	if (!field || field.trim() === "") {
-  		this.logger.info({ message: `Missing ${fieldName} field in documentFields response` });
+  		logger.info({ message: `Missing ${fieldName} field in documentFields response` });
   		return true;
   	}
   	return false;
@@ -434,7 +428,7 @@ export class YotiSessionCompletionProcessor {
 			  };
 			  break;
 		  default:
-			  this.logger.error({ message: `Unable to find document type ${documentFields.document_type}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
+			  logger.error({ message: `Unable to find document type ${documentFields.document_type}`, messageCode: MessageCodes.INVALID_DOCUMENT_TYPE });
 			  throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
 	  }
 	  try {
@@ -468,7 +462,7 @@ export class YotiSessionCompletionProcessor {
 		  });
 
 	  } catch (error) {
-		  this.logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", {
+		  logger.error("Failed to write TXMA event F2F_CRI_VC_ISSUED to SQS queue.", {
 			  error,
 			  messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
 		  });
@@ -478,14 +472,14 @@ export class YotiSessionCompletionProcessor {
 	async sendErrorMessageToIPVCore(f2fSession: ISessionItem, errorMessage: string, govUkSignInJourneyId: string, yotiSessionID: string, numberOfDocumentFields?: number) : Promise<any> {
 	
 	if (numberOfDocumentFields) {
-		this.logger.error(`VC generation failed : ${errorMessage}`, {		
+		logger.error(`VC generation failed : ${errorMessage}`, {		
 			messageCode: MessageCodes.ERROR_GENERATING_VC,
 			govUkSignInJourneyId: govUkSignInJourneyId,
 			yotiSessionID: yotiSessionID,
 			numberOfDocumentFields: numberOfDocumentFields,
 		});
 	} else {
-		this.logger.error(`VC generation failed : ${errorMessage}`, {		
+		logger.error(`VC generation failed : ${errorMessage}`, {		
 			messageCode: MessageCodes.ERROR_GENERATING_VC,
 			govUkSignInJourneyId: govUkSignInJourneyId,
 			yotiSessionID: yotiSessionID,
@@ -503,7 +497,7 @@ export class YotiSessionCompletionProcessor {
   			error_description: `VC generation failed : ${errorMessage}`,
   		});
   	} catch (error) {
-  		this.logger.error({ message: "Failed to send error message to IPV Core Queue" }, {
+  		logger.error({ message: "Failed to send error message to IPV Core Queue" }, {
   			error,
   			messageCode: MessageCodes.FAILED_SENDING_VC,
   		});		

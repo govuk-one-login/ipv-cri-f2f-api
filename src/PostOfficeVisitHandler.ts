@@ -1,5 +1,4 @@
-import { Logger } from "@aws-lambda-powertools/logger";
-import { LogLevel } from "@aws-lambda-powertools/logger/lib/esm/types/Logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
@@ -15,14 +14,8 @@ import { YotiPrivateKeyProvider } from "./services/callback/YotiPrivateKeyProvid
 
 const {
 	POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE,
-	POWERTOOLS_LOG_LEVEL = Constants.DEBUG,
 	POWERTOOLS_SERVICE_NAME = Constants.YOTI_CALLBACK_SVC_NAME,
 } = process.env;
-
-export const logger = new Logger({
-	logLevel: POWERTOOLS_LOG_LEVEL as LogLevel,
-	serviceName: POWERTOOLS_SERVICE_NAME,
-});
 
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
@@ -45,7 +38,7 @@ class PostOfficeVisitHandler implements LambdaInterface {
 				yotiPrivateKey = await YotiPrivateKeyProvider.getYotiPrivateKey(logger, this.environmentVariables);
 			}
 
-			await PostOfficeVisitProcessor.getInstance(logger, metrics, yotiPrivateKey).processRequest(event);
+			await PostOfficeVisitProcessor.getInstance(metrics, yotiPrivateKey).processRequest(event);
 			logger.info("Finished processing record from SQS");
 
 		} catch (error: any) {

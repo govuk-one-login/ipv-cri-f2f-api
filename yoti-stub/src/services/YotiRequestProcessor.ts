@@ -1,12 +1,12 @@
-import {Response} from "../utils/Response";
-import {PDFDocument} from "pdf-lib"
-import {Metrics} from "@aws-lambda-powertools/metrics";
-import {randomUUID} from "crypto";
-import {Logger} from "@aws-lambda-powertools/logger";
-import {sleep} from "../utils/Sleep";
-import {HttpCodesEnum} from "../utils/HttpCodesEnum";
-import {YotiSessionItem} from "../models/YotiSessionItem";
-import {YotiSessionRequest} from "../models/YotiSessionRequest";
+import { Response } from "../utils/Response";
+import { PDFDocument } from "pdf-lib"
+import { Metrics } from "@aws-lambda-powertools/metrics";
+import { randomUUID } from "crypto";
+import { logger } from "@govuk-one-login/cri-logger";
+import { sleep } from "../utils/Sleep";
+import { HttpCodesEnum } from "../utils/HttpCodesEnum";
+import { YotiSessionItem } from "../models/YotiSessionItem";
+import { YotiSessionRequest } from "../models/YotiSessionRequest";
 
 // Request mappings
 import {
@@ -114,23 +114,19 @@ import { GET_SESSIONS_503 } from "../data/getSessions/getSessions503";
 export class YotiRequestProcessor {
     private static instance: YotiRequestProcessor;
 
-    private readonly logger: Logger;
-
     private readonly metrics: Metrics;
 
     private yotiRequestCount: number;
 
-    constructor(logger: Logger, metrics: Metrics) {
-        this.logger = logger;
-
+    constructor(metrics: Metrics) {
         this.metrics = metrics;
 
         this.yotiRequestCount = 0;
     }
 
-    static getInstance(logger: Logger, metrics: Metrics): YotiRequestProcessor {
+    static getInstance(metrics: Metrics): YotiRequestProcessor {
         if (!YotiRequestProcessor.instance) {
-            YotiRequestProcessor.instance = new YotiRequestProcessor(logger, metrics);
+            YotiRequestProcessor.instance = new YotiRequestProcessor(metrics);
         }
         return YotiRequestProcessor.instance;
     }
@@ -142,12 +138,12 @@ export class YotiRequestProcessor {
      */
     async createSession(incomingPayload: any): Promise<Response> {
         
-        this.logger.info("START OF CREATESESSION")
-	    this.logger.info("/createSession Payload", {incomingPayload});
+        logger.info("START OF CREATESESSION")
+	    logger.info("/createSession Payload", {incomingPayload});
         if( (!incomingPayload.resources.applicant_profile.structured_postal_address.building_number || incomingPayload.resources.applicant_profile.structured_postal_address.building_number === "") &&
             (!incomingPayload.resources.applicant_profile.structured_postal_address.sub_building || incomingPayload.resources.applicant_profile.structured_postal_address.sub_building === "") &&
             (!incomingPayload.resources.applicant_profile.structured_postal_address.building || incomingPayload.resources.applicant_profile.structured_postal_address.building === "") ){
-            this.logger.error("Bad Request: structured_postal_address is INVALID");
+            logger.error("Bad Request: structured_postal_address is INVALID");
             return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SESSIONS_INVALID_ADDRESS_400), ERROR_RESPONSE_HEADERS);
         }
         const fullName = incomingPayload.resources.applicant_profile.full_name;
@@ -155,7 +151,7 @@ export class YotiRequestProcessor {
         const yotiSessionId = randomUUID();
 
         const lastYotiUuidChars = yotiSessionId.slice(-4);
-        this.logger.info("lastYotiUuid", {lastYotiUuidChars});
+        logger.info("lastYotiUuid", {lastYotiUuidChars});
 
         //For IPV Integration happy path
         if (IPV_INTEG_FULL_NAME_HAPPY === fullName) {
@@ -210,18 +206,18 @@ export class YotiRequestProcessor {
         const lastFullNameChars = fullName.match(/\d+/g)[0];
         const firstTwoChars = lastFullNameChars.slice(0, 2);
 
-        this.logger.info("lastFullNameChars", {lastFullNameChars});
+        logger.info("lastFullNameChars", {lastFullNameChars});
         const replacedYotiSessionId = yotiSessionId.replace(lastYotiUuidChars, lastFullNameChars);
-        this.logger.info(replacedYotiSessionId)
+        logger.info(replacedYotiSessionId)
 
         yotiSessionItem.session_id = replacedYotiSessionId
-        this.logger.info("CREATED SESSION ITEM", {yotiSessionItem})
+        logger.info("CREATED SESSION ITEM", {yotiSessionItem})
 
-        this.logger.info("Create Session Success Scenarios", { SUPPORTED_DOCUMENTS });
+        logger.info("Create Session Success Scenarios", { SUPPORTED_DOCUMENTS });
 
         if (SUPPORTED_DOCUMENTS.includes(firstTwoChars)) {
-            this.logger.debug(JSON.stringify(yotiSessionItem));
-            this.logger.info("Yoti Session Item", JSON.stringify(yotiSessionItem));
+            logger.debug(JSON.stringify(yotiSessionItem));
+            logger.info("Yoti Session Item", JSON.stringify(yotiSessionItem));
             return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
         }
 
@@ -231,25 +227,25 @@ export class YotiRequestProcessor {
 
         switch (lastFullNameChars) {
             case '1400':
-                this.logger.info({message: "last 4 ID chars", lastFullNameChars});
+                logger.info({message: "last 4 ID chars", lastFullNameChars});
                 return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SESSIONS_400), ERROR_RESPONSE_HEADERS)
             case '1401':
-                this.logger.info({message: "last 4 ID chars", lastFullNameChars});
+                logger.info({message: "last 4 ID chars", lastFullNameChars});
                 return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(POST_SESSIONS_401), ERROR_RESPONSE_HEADERS)
             case '1403':
-                this.logger.info({message: "last 4 ID chars", lastFullNameChars});
+                logger.info({message: "last 4 ID chars", lastFullNameChars});
                 return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(POST_SESSIONS_403), ERROR_RESPONSE_HEADERS)
             case '1404':
-                this.logger.info({message: "last 4 ID chars", lastFullNameChars});
+                logger.info({message: "last 4 ID chars", lastFullNameChars});
                 return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(POST_SESSIONS_404), ERROR_RESPONSE_HEADERS)
             case '1503':
-                this.logger.info({message: "last 4 ID chars", lastFullNameChars});
+                logger.info({message: "last 4 ID chars", lastFullNameChars});
                 return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(POST_SESSIONS_503), ERROR_RESPONSE_HEADERS)
             case '1999':
                 // This will result in 504 timeout currently as sleep interval is 30s
-                this.logger.info("sleeping for 30 secs");
+                logger.info("sleeping for 30 secs");
                 await sleep(30000)
-                this.logger.info("I am awake, returning now");
+                logger.info("I am awake, returning now");
                 return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
             case '1601': // Retries - 2 fails then success
                 if (this.yotiRequestCount < 2) {
@@ -271,11 +267,10 @@ export class YotiRequestProcessor {
     async getSession(sessionId: string): Promise<Response> {
         const lastUuidChars = sessionId.slice(-4);
         const firstTwoChars = lastUuidChars.slice(0, 2);
-        this.logger.info({message: "last 4 ID chars", lastUuidChars});
+        logger.info({message: "last 4 ID chars", lastUuidChars});
         let modifiedPayload;
 
         const processPositiveScenario = (lastUuidChars: string, sessionId: string): Response | undefined => {
-            const logger = this.logger;
             const yotiSessionRequest = new YotiSessionRequest(sessionId);
 
             if (firstTwoChars === DocumentMapping.UK_DL) { // UK - Driving Licence Scenarios
@@ -1205,12 +1200,12 @@ export class YotiRequestProcessor {
             } else {
                 this.yotiRequestCount = 0;
                 const yotiSessionRequest = new YotiSessionRequest(sessionId);
-                this.logger.debug(JSON.stringify(yotiSessionRequest));
+                logger.debug(JSON.stringify(yotiSessionRequest));
                 const VALID_DL_RESPONSE_0429 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
                 VALID_DL_RESPONSE_0429.session_id = sessionId;
                 VALID_DL_RESPONSE_0429.resources.id_documents[0].document_fields.media.id = sessionId; 
                 VALID_DL_RESPONSE_0429.resources.id_documents[0].document_fields.media.id = replaceLastUuidChars(VALID_DL_RESPONSE_0429.resources.id_documents[0].document_fields.media.id, UK_DL_MEDIA_ID);
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE_0429));
             }                
         }
@@ -1218,23 +1213,23 @@ export class YotiRequestProcessor {
         // Error scenarios
         switch (lastUuidChars) {
             case '5400':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_SESSIONS_400), ERROR_RESPONSE_HEADERS);
             case '5401':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(POST_SESSIONS_401), ERROR_RESPONSE_HEADERS);
             case '5404':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(POST_SESSIONS_404), ERROR_RESPONSE_HEADERS);
             case '5429':
-                this.logger.info({message: "Responding with 429 error response", lastUuidChars});
+                logger.info({message: "Responding with 429 error response", lastUuidChars});
                 return new Response(HttpCodesEnum.TOO_MANY_REQUESTS, JSON.stringify(GET_SESSIONS_429), ERROR_RESPONSE_HEADERS);
             case '5999':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 await sleep(30000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE));
             case '5503':
-                this.logger.info({message: "Responding with 503 error response", lastUuidChars});
+                logger.info({message: "Responding with 503 error response", lastUuidChars});
                 return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(GET_SESSIONS_503), ERROR_RESPONSE_HEADERS);        
             default:
                 return new Response(HttpCodesEnum.SERVER_ERROR, `Incoming yotiSessionId ${sessionId} didn't match any of the use cases`, ERROR_RESPONSE_HEADERS);
@@ -1249,35 +1244,35 @@ export class YotiRequestProcessor {
 
         const lastUuidChars = sessionId.slice(-4);
         const firstTwoChars = lastUuidChars.slice(0, 2);
-        this.logger.info({message: "last 4 ID chars", lastUuidChars});
+        logger.info({message: "last 4 ID chars", lastUuidChars});
 
-        this.logger.info("getSessionConfiguration", { SUPPORTED_DOCUMENTS });
+        logger.info("getSessionConfiguration", { SUPPORTED_DOCUMENTS });
 
         if (SUPPORTED_DOCUMENTS.includes(firstTwoChars)) {
             VALID_GET_SESSION_CONFIG_RESPONSE.session_id = sessionId;
-            this.logger.info("Getting Session Config", JSON.stringify(VALID_GET_SESSION_CONFIG_RESPONSE));
+            logger.info("Getting Session Config", JSON.stringify(VALID_GET_SESSION_CONFIG_RESPONSE));
             return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_GET_SESSION_CONFIG_RESPONSE));
         }
 
         switch (lastUuidChars) {
             case '2400':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(GET_SESSIONS_CONFIG_400), ERROR_RESPONSE_HEADERS);
             case '2401':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(GET_SESSIONS_CONFIG_401), ERROR_RESPONSE_HEADERS);
             case '2404':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(GET_SESSIONS_CONFIG_404), ERROR_RESPONSE_HEADERS);
             case '2409':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.CONFLICT, JSON.stringify(GET_SESSIONS_CONFIG_409), ERROR_RESPONSE_HEADERS);
             case '2503':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(GET_SESSIONS_CONFIG_503), ERROR_RESPONSE_HEADERS);
             case '2999':
                 // This will result in 504 timeout currently as sleep interval is 30s
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 await sleep(30000);
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_GET_SESSION_CONFIG_RESPONSE));
             case '1601': // Retries - 2 fails then success
@@ -1300,47 +1295,47 @@ export class YotiRequestProcessor {
     async updateSessionInstructions(sessionId: string, fadCode: string): Promise<Response> {
         const lastUuidChars = sessionId.slice(-4);
         const firstTwoChars = lastUuidChars.slice(0, 2);
-        this.logger.info({message: "last 4 ID chars", lastUuidChars});
+        logger.info({message: "last 4 ID chars", lastUuidChars});
 
         const validFadCodeFormat = /^[a-zA-Z0-9]{7}$/;
         const lastFadCodeChars = fadCode.slice(-4);
 
-        this.logger.info("getSessionConfiguration", { SUPPORTED_DOCUMENTS });
+        logger.info("getSessionConfiguration", { SUPPORTED_DOCUMENTS });
 
         if (!fadCode) {
-            this.logger.info("Fad Code not included", JSON.stringify(FAD_CODE_NOT_INCLUDED));
+            logger.info("Fad Code not included", JSON.stringify(FAD_CODE_NOT_INCLUDED));
             return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(FAD_CODE_NOT_INCLUDED), ERROR_RESPONSE_HEADERS);
         } else if (!validFadCodeFormat.test(fadCode)) {
-            this.logger.info("Fad Code format incorrect", JSON.stringify(FAD_CODE_INCORRECT_FORMAT));
+            logger.info("Fad Code format incorrect", JSON.stringify(FAD_CODE_INCORRECT_FORMAT));
             return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(FAD_CODE_INCORRECT_FORMAT), ERROR_RESPONSE_HEADERS);
         } else if (lastFadCodeChars === 'XXXX') {
-            this.logger.info("Fad Code invalid", JSON.stringify(FAD_CODE_INVALID));
+            logger.info("Fad Code invalid", JSON.stringify(FAD_CODE_INVALID));
             return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(FAD_CODE_INVALID), ERROR_RESPONSE_HEADERS);
         }
         
         if (SUPPORTED_DOCUMENTS.includes(firstTwoChars)) {
-            this.logger.info("Put Instructions Response", JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
+            logger.info("Put Instructions Response", JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
             return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
         }
 
         switch (lastUuidChars) {
             case '3400':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(PUT_INSTRUCTIONS_400), ERROR_RESPONSE_HEADERS)
             case '3401':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(PUT_INSTRUCTIONS_401), ERROR_RESPONSE_HEADERS)
             case '3404':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(PUT_INSTRUCTIONS_404), ERROR_RESPONSE_HEADERS)
             case '3409':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.CONFLICT, JSON.stringify(PUT_INSTRUCTIONS_409), ERROR_RESPONSE_HEADERS)
             case '3503':
                 return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(PUT_INSTRUCTIONS_500), ERROR_RESPONSE_HEADERS);
             case '3999':
                 // This will result in 504 timeout currently as sleep interval is 30s
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 await new Promise(resolve => setTimeout(resolve, 30000));
                 return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_PUT_INSTRUCTIONS_RESPONSE));
             case '1601': // Retries - 2 fails then success
@@ -1365,7 +1360,7 @@ export class YotiRequestProcessor {
         let successResp;
         const lastUuidChars = sessionId.slice(-4);
         const firstTwoChars = lastUuidChars.slice(0, 2);
-        this.logger.info({message: "last 4 ID chars", lastUuidChars});
+        logger.info({message: "last 4 ID chars", lastUuidChars});
         try {
             const pdfDoc = await PDFDocument.create();
             const page = pdfDoc.addPage();
@@ -1384,7 +1379,7 @@ export class YotiRequestProcessor {
             }
 
             if (SUPPORTED_DOCUMENTS.includes(firstTwoChars)) {
-                this.logger.info("fetchInstructionsPdf",JSON.stringify(successResp));
+                logger.info("fetchInstructionsPdf",JSON.stringify(successResp));
                 return successResp;
             }
 
@@ -1395,25 +1390,25 @@ export class YotiRequestProcessor {
 
         switch (lastUuidChars) {
             case '4400':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(GET_INSTRUCTIONS_PDF_400), ERROR_RESPONSE_HEADERS);
             case '4401':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.UNAUTHORIZED, JSON.stringify(GET_INSTRUCTIONS_PDF_401), ERROR_RESPONSE_HEADERS);
             case '4404':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.NOT_FOUND, JSON.stringify(GET_INSTRUCTIONS_PDF_404), ERROR_RESPONSE_HEADERS);
             case '4409':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.CONFLICT, JSON.stringify(GET_INSTRUCTIONS_PDF_409), ERROR_RESPONSE_HEADERS);
             case '4500':
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(GET_INSTRUCTIONS_PDF_500), ERROR_RESPONSE_HEADERS);
             case '4503':
                 return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(GET_INSTRUCTIONS_PDF_503), ERROR_RESPONSE_HEADERS);
             case '4999':
                 // This will result in 504 timeout currently as sleep interval is 30s
-                this.logger.info({message: "last 4 ID chars", lastUuidChars});
+                logger.info({message: "last 4 ID chars", lastUuidChars});
                 await sleep(30000);
                 return successResp;
             case '1601': // Retries - 2 fails then success
@@ -1422,7 +1417,7 @@ export class YotiRequestProcessor {
                     return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(GET_INSTRUCTIONS_PDF_503), ERROR_RESPONSE_HEADERS);
                 } else {
                     this.yotiRequestCount = 0;
-                    this.logger.info("fetchInstructionsPdf",JSON.stringify(successResp));
+                    logger.info("fetchInstructionsPdf",JSON.stringify(successResp));
                     return successResp;
                 }
             default:
@@ -1436,7 +1431,6 @@ export class YotiRequestProcessor {
      */
     async getMediaContent(mediaId: string): Promise<Response> {
         const lastUuidChars = mediaId.slice(-4);
-        const logger = this.logger;
         logger.info({message: "last 4 ID chars", lastUuidChars});
 
         switch (lastUuidChars) {

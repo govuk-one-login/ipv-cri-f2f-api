@@ -1,7 +1,7 @@
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { F2fService } from "./F2fService";
 import { Metrics } from "@aws-lambda-powertools/metrics";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
@@ -17,13 +17,13 @@ export class ExpiredSessionsProcessor {
 
   private readonly f2fService: F2fService;
 
-  constructor(private readonly logger: Logger, private readonly metrics: Metrics) {
-  	const envVariables = new EnvironmentVariables(logger, ServicesEnum.REMINDER_SERVICE);
+  constructor(private readonly metrics: Metrics) {
+  	const envVariables = new EnvironmentVariables(ServicesEnum.REMINDER_SERVICE);
   	this.f2fService = F2fService.getInstance(envVariables.sessionTable(), logger, metrics, createDynamoDbClient());
   }
 
-  static getInstance(logger: Logger, metrics: Metrics): ExpiredSessionsProcessor {
-  	return this.instance || (this.instance = new ExpiredSessionsProcessor(logger, metrics));
+  static getInstance(metrics: Metrics): ExpiredSessionsProcessor {
+  	return this.instance || (this.instance = new ExpiredSessionsProcessor(metrics));
   }
 
   async processRequest(): Promise<APIGatewayProxyResult> {
@@ -38,7 +38,7 @@ export class ExpiredSessionsProcessor {
   		const records = await this.f2fService.getSessionsByAuthSessionStates(sessionStates, Constants.EXPIRED_SESSIONS_INDEX_NAME);
 
   		if (!records.length) {
-  			this.logger.info(`No users with session states ${sessionStates}`);
+  			logger.info(`No users with session states ${sessionStates}`);
   			return { statusCode: HttpCodesEnum.OK, body: "No Session Records matching state" };
   		}
 
@@ -54,11 +54,11 @@ export class ExpiredSessionsProcessor {
   		);
 
   		if (!sessionsToExpire.length) {
-  			this.logger.info(`No users with session states ${sessionStates} older than ${yotiSessionTTL + 1} days`);
+  			logger.info(`No users with session states ${sessionStates} older than ${yotiSessionTTL + 1} days`);
   			return { statusCode: HttpCodesEnum.OK, body: "No Sessions older than specified TTL" };
   		}
 
-  		this.logger.info("Total num. of user sessions to send expired notifications:", { numOfExpiredSessions: sessionsToExpire.length });
+  		logger.info("Total num. of user sessions to send expired notifications:", { numOfExpiredSessions: sessionsToExpire.length });
 
   		const ipvCoreSessionLogs: string[] = [];
 
@@ -72,7 +72,7 @@ export class ExpiredSessionsProcessor {
   				});
   				ipvCoreSessionLogs.push(session.sessionId);
   			} catch (error) {
-  				this.logger.error("Failed to send error message to IPV Core Queue", {
+  				logger.error("Failed to send error message to IPV Core Queue", {
   					sessionId: session.sessionId,
   					error,
   					session,
@@ -81,7 +81,7 @@ export class ExpiredSessionsProcessor {
   			}
   		}));
 
-  		this.logger.info("Successfully sent error message to IPV Core Queue", { count: ipvCoreSessionLogs.length, sessions: ipvCoreSessionLogs });
+  		logger.info("Successfully sent error message to IPV Core Queue", { count: ipvCoreSessionLogs.length, sessions: ipvCoreSessionLogs });
 
   		const markSessionsLogs: string[] = [];
 
@@ -90,18 +90,18 @@ export class ExpiredSessionsProcessor {
   				await this.f2fService.markSessionAsExpired(session.sessionId);
   				markSessionsLogs.push(session.sessionId);
   			} catch (error) {
-  				this.logger.error("Failed to set expired notification flag", {
+  				logger.error("Failed to set expired notification flag", {
   					sessionId: session.sessionId,
   					error,
   				});
   			}
   		}));
 
-  		this.logger.info("Sessions marked as Expired", { count: markSessionsLogs.length, sessions: markSessionsLogs });
+  		logger.info("Sessions marked as Expired", { count: markSessionsLogs.length, sessions: markSessionsLogs });
 
-  		this.logger.info("All expired session notifications have been processed.");
+  		logger.info("All expired session notifications have been processed.");
   	} catch (error) {
-  		this.logger.error("Unexpected error accessing session table", {
+  		logger.error("Unexpected error accessing session table", {
   			error,
   			messageCode: MessageCodes.FAILED_FETCHING_SESSIONS,
   		});
