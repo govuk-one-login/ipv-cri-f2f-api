@@ -1,5 +1,6 @@
 import { SQSEvent } from "aws-lambda";
 import { lambdaHandler, s3Client } from "../../DequeueHandler";
+import { logger } from "@govuk-one-login/cri-logger";
 import { BatchItemFailure } from "../../utils/BatchItemFailure";
 
 vi.useFakeTimers().setSystemTime(new Date("2020-01-01"));
@@ -15,14 +16,7 @@ vi.mock("@aws-sdk/client-s3", () => ({
 	}),
 }));
 
-vi.mock("@aws-lambda-powertools/logger", () => ({
-	Logger: vi.fn().mockImplementation(function () {
-		return {
-		info: vi.fn(),
-		error: vi.fn(),
-		};
-	}),
-}));
+vi.mock("@govuk-one-login/cri-logger");
 
 describe("DequeueHandler", () => {
   const body1 = JSON.stringify({
