@@ -6,6 +6,9 @@ on:
       - main
     paths:
       - 'yoti-stub/**'
+      - 'src/.npmrc'
+      - 'src/package.json'
+      - 'src/package-lock.json'
       - .github/workflows/post-merge-deploy-yoti-stub.yml
   workflow_dispatch:
     inputs:
@@ -71,7 +74,9 @@ jobs:
         run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml
 
       - name: SAM Build
-        run: sam build -t template.yaml
+        run: |
+          cp ../src/.npmrc ../src/package.json ../src/package-lock.json src/
+          sam build -t template.yaml
 
       - name: Deploy SAM app
         uses: govuk-one-login/devplatform-upload-action@v3.14.0
