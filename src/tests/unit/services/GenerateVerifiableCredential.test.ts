@@ -13,9 +13,9 @@ import {
 	mockCompletedYotiSessionPayload,
 } from "../data/yoti-session";
 import { Metrics } from "@aws-lambda-powertools/metrics";
+vi.mock("@govuk-one-login/cri-logger");
 
 describe("GenerateVerifiableCredential", () => {
-	vi.mock("@govuk-one-login/cri-logger");
 	const metrics = mock<Metrics>();
 
 	let generateVerifiableCredential: GenerateVerifiableCredential;

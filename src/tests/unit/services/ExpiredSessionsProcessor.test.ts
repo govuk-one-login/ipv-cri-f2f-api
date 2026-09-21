@@ -4,11 +4,11 @@ import { F2fService } from "../../../services/F2fService";
 import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
+vi.mock("@govuk-one-login/cri-logger");
 
 describe("ExpiredSessionsProcessor", () => {
 	let expiredSessionsProcessor: ExpiredSessionsProcessor;
 	const mockF2fService = mock<F2fService>();
-	vi.mock("@govuk-one-login/cri-logger");
 	const mockMetrics = mock<Metrics>();
 
 	const F2FSessionsWithYotiSession = [

@@ -11,7 +11,7 @@ import { mock } from "vitest-mock-extended";
 import { sleep } from "../../../utils/Sleep";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 
-vi.mock("@aws-lambda-powertools/logger");
+vi.mock("@govuk-one-login/cri-logger");
 vi.mock("axios");
 vi.mock(("../../../utils/Sleep"), () => ({
 	sleep: vi.fn(),
@@ -180,7 +180,6 @@ const generateInstructionsPayload = {
 
  
 describe("YotiService", () => {
-	vi.mock("@govuk-one-login/cri-logger");
 	const metrics = mock<Metrics>();
 	
 	let axiosMock: Mocked<typeof axios>;

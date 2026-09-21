@@ -8,12 +8,13 @@ import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { ISessionItem } from "../../../models/ISessionItem";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 
+vi.mock("@govuk-one-login/cri-logger");
+
 describe("ReminderEmailProcessor", () => {
 	let mockSessionItem: ISessionItem;
 	let personIdentityItem: PersonIdentityItem;
 	let reminderEmailProcessor: ReminderEmailProcessor;
 	const mockF2fService = mock<F2fService>();
-	vi.mock("@govuk-one-login/cri-logger");
 	const mockMetrics = mock<Metrics>();
 
 	const F2FSessionsWithYotiSession = [
