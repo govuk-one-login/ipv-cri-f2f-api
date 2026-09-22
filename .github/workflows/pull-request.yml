@@ -65,8 +65,11 @@ jobs:
           path: ${{ steps.offline-mirror-path.outputs.mirror-dir }}
           key: offline-mirror-oauth
 
+      - name: Check workspace dependency policy
+        run: cd .. && npm run check:workspaces
+
       - name: Install dependencies
-        run: npm ci
+        run: cd .. && npm ci --workspace=ipv-cri-f2f-api
 
       - name: Run lint
         run: npm run lint
@@ -108,6 +111,14 @@ jobs:
         with:
           use-installer: true
 
+      - name: Setup nodeJS v24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: cd .. && npm ci --workspace=ipv-cri-f2f-api
+
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -127,7 +138,7 @@ jobs:
         run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml
 
       - name: SAM Build
-        run: sam build -t template.yaml
+        run: sam build --build-in-source -t template.yaml
 
   pre-merge-checks:
     uses: ./.github/workflows/pre-merge-checks.yml

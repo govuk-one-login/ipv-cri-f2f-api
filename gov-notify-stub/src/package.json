@@ -1,0 +1,13 @@
+{
+  "name": "ipv-cri-f2f-gov-notify-stub",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.*"
+  },
+  "scripts": {
+    "compile": "tsc --noEmit",
+    "lint": "eslint -c eslint.config.mjs --ext *.ts ."
+  }
+}

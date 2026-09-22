@@ -211,20 +211,8 @@ Resources:
             Path: /v1/locations/search
             Method: post
             RestApiId: !Ref MockPostOfficeRestApi
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - MockPostOfficeHandler.ts
-        UseNpmCi: true
+    Metadata:
+      BuildMethod: makefile
 
   MockPostOfficeFunctionLogGroup:
     Type: AWS::Logs::LogGroup

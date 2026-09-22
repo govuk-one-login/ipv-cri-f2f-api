@@ -1,0 +1,8 @@
+{
+  "name": "ipv-cri-f2f-infra-l2-kms",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:infra": "vitest run --config ../../vitest.infra.config.ts tests/infra"
+  }
+}

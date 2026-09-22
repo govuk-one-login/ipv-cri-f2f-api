@@ -6,9 +6,9 @@ on:
       - main
     paths:
       - 'post-office-stub/**'
-      - 'src/.npmrc'
-      - 'src/package.json'
-      - 'src/package-lock.json'
+      - '.npmrc'
+      - 'package.json'
+      - 'package-lock.json'
       - .github/workflows/post-merge-deploy-postoffice-mock.yml
   workflow_dispatch:
     inputs:
@@ -64,6 +64,14 @@ jobs:
         with:
           use-installer: true
 
+      - name: Setup nodeJS v24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: cd .. && npm ci --workspace=ipv-cri-f2f-api
+
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -74,9 +82,7 @@ jobs:
         run: sam validate --region ${{ env.AWS_REGION }} -t template.yaml
 
       - name: SAM Build
-        run: |
-          cp ../src/.npmrc ../src/package.json ../src/package-lock.json src/
-          sam build -t template.yaml
+        run: sam build --build-in-source -t template.yaml
 
       - name: Deploy SAM app
         uses: govuk-one-login/devplatform-upload-action@v3.14.0

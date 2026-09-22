@@ -7,6 +7,8 @@
     "sourceMap": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "typeRoots": ["../../src/node_modules/@types", "../../node_modules/@types"],
+    "types": ["node"],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
