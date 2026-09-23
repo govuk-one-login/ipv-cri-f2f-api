@@ -58,7 +58,7 @@ jobs:
         run: cd ../.. && npm run check:workspaces
 
       - name: Install dependencies
-        run: cd ../.. && npm ci --workspace=ipv-cri-f2f-api
+        run: cd ../.. && npm ci --workspace=ipv-cri-f2f-yoti-stub
 
       - name: Compile
         run: npm run compile
@@ -87,7 +87,7 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        run: cd .. && npm ci --workspace=ipv-cri-f2f-api
+        run: cd .. && npm ci --workspace=ipv-cri-f2f-yoti-stub
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v6

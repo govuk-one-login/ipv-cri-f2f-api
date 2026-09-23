@@ -107,18 +107,17 @@ npm run lint --workspace=ipv-cri-f2f-api
 npm run test:unit --workspace=ipv-cri-f2f-api
 ```
 
-`src/package.json` is the repository's single dependency manifest. Stub and
-infrastructure workspaces retain only their package metadata and scripts; their
-builds use the complete dependency tree installed for the API workspace. Run the
-policy check before committing dependency changes:
+Each workspace declares only the dependencies directly required by its code and
+scripts. npm resolves all workspace manifests into the single root dependency
+tree and lockfile. Run the policy check before committing dependency changes:
 
 ```sh
 npm run check:workspaces
 ```
 
-Add dependencies to `src/package.json`, never to a sibling workspace. Do not
-create workspace-level lockfiles. `package-lock.json` at the repository root is
-the only npm lockfile. Both rules are checked by CI.
+Add dependencies to the workspace that directly uses them. Do not create
+workspace-level lockfiles: `package-lock.json` at the repository root is the only
+npm lockfile, and CI enforces that rule.
 
 > [!NOTE]
 > This repo does not document a supported sam local start-api workflow. Integration tests are designed to run against a deployed stack.
@@ -219,7 +218,7 @@ npm run test:api-retry
 
 ### Infra tests
 ```sh
-npm ci --workspace=ipv-cri-f2f-api
+npm ci --workspace=ipv-cri-f2f-infra-l2-dynamo --workspace=ipv-cri-f2f-infra-l2-kms --workspace=ipv-cri-f2f-infra-l2-outbound-proxy
 npm run test:infra --workspace=ipv-cri-f2f-infra-l2-dynamo
 npm run test:infra --workspace=ipv-cri-f2f-infra-l2-kms
 npm run test:infra --workspace=ipv-cri-f2f-infra-l2-outbound-proxy

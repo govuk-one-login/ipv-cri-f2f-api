@@ -59,7 +59,7 @@ jobs:
         run: cd .. && npm run check:workspaces
 
       - name: Install dependencies
-        run: cd .. && npm ci --workspace=ipv-cri-f2f-api
+        run: cd .. && npm ci --workspace=ipv-cri-f2f-infra-l2-kms
 
       - name: Run Infra checks
         run: cd .. && npm run test:infra --workspace=ipv-cri-f2f-infra-l2-kms

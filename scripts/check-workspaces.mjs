@@ -16,10 +16,6 @@ if (!Array.isArray(workspacePaths)) {
 const errors = [];
 
 for (const workspacePath of workspacePaths) {
-  const manifest = await readJson(
-    join(repositoryRoot, workspacePath, "package.json"),
-  );
-
   for (const lockfile of ["package-lock.json", "npm-shrinkwrap.json"]) {
     const lockfilePath = join(repositoryRoot, workspacePath, lockfile);
     try {
@@ -32,21 +28,6 @@ for (const workspacePath of workspacePaths) {
     }
   }
 
-  if (workspacePath === "src") continue;
-
-  for (const dependencyType of [
-    "dependencies",
-    "devDependencies",
-    "optionalDependencies",
-    "peerDependencies",
-  ]) {
-    const dependencies = Object.keys(manifest[dependencyType] ?? {});
-    if (dependencies.length > 0) {
-      errors.push(
-        `${workspacePath}: move ${dependencyType} (${dependencies.join(", ")}) to src/package.json`,
-      );
-    }
-  }
 }
 
 if (errors.length > 0) {
@@ -55,6 +36,6 @@ if (errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log(
-    "Workspace dependency policy passed: dependencies are centralised in src/package.json with one root lockfile.",
+    "Workspace dependency policy passed: all workspaces use the root lockfile.",
   );
 }
