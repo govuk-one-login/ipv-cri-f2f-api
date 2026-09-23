@@ -93,20 +93,31 @@ At a high level it:
 ## Getting started
 
 Prerequisites:
-- Node.js version per `src/package.json` (`engines.node`) for local development
+- Node.js version per the root `package.json` (`engines.node`) for local development
 - AWS Lambda runtime: nodejs24.x (see `deploy/template.yaml`)
 - npm
 - AWS credentials (only required to run tests against a deployed stack)
 
-Common local dev commands are defined in `src/package.json` under `scripts`. A typical workflow is:
+Dependencies are installed from the single root lockfile. The package scripts remain in each workspace manifest. A typical API workflow is:
 
 ```sh
-cd src
-npm ci
-npm run compile
-npm run lint
-npm run test:unit
+npm ci --workspace=ipv-cri-f2f-api
+npm run compile --workspace=ipv-cri-f2f-api
+npm run lint --workspace=ipv-cri-f2f-api
+npm run test:unit --workspace=ipv-cri-f2f-api
 ```
+
+Each workspace declares only the dependencies directly required by its code and
+scripts. npm resolves all workspace manifests into the single root dependency
+tree and lockfile. Run the policy check before committing dependency changes:
+
+```sh
+npm run check:workspaces
+```
+
+Add dependencies to the workspace that directly uses them. Do not create
+workspace-level lockfiles: `package-lock.json` at the repository root is the only
+npm lockfile, and CI enforces that rule.
 
 > [!NOTE]
 > This repo does not document a supported sam local start-api workflow. Integration tests are designed to run against a deployed stack.
@@ -178,8 +189,9 @@ After deploying, update the test harness SAM config in `test-harness/deploy/samc
 
 ### Local and ephemeral deployment (exceptional)
 ```sh
+npm ci --workspace=ipv-cri-f2f-api
 cd deploy
-sam build --parallel
+sam build --build-in-source --parallel
 sam deploy --resolve-s3 --stack-name "YOUR_STACK_NAME" --confirm-changeset --config-env dev
 ```
 
@@ -206,8 +218,10 @@ npm run test:api-retry
 
 ### Infra tests
 ```sh
-cd src
-npm run test:infra
+npm ci --workspace=ipv-cri-f2f-infra-l2-dynamo --workspace=ipv-cri-f2f-infra-l2-kms --workspace=ipv-cri-f2f-infra-l2-outbound-proxy
+npm run test:infra --workspace=ipv-cri-f2f-infra-l2-dynamo
+npm run test:infra --workspace=ipv-cri-f2f-infra-l2-kms
+npm run test:infra --workspace=ipv-cri-f2f-infra-l2-outbound-proxy
 ```
 
 ### Log and PII checks
@@ -314,12 +328,11 @@ Based on the alerts returned flag any to the team reported as 'high' or 'critica
 
 Utilise descriptions preovided from audit result to directly update the vulnerable package or for transitive, the vulnerable parent version - rerunning to ensure it is no longer pulling the vulnerability.
 
-To ensure the `package.json` and `package-lock.json` are aligned after updates ensure you have installed the fixed versions then run:
+To ensure all workspace manifests and the root `package-lock.json` remain aligned after dependency updates, regenerate the lockfile from the repository root:
 
 ```sh
-rm -rf node_modules package-lock.json
+npm install --package-lock-only --ignore-scripts
 ```
-then re-install
 
 ---
 
@@ -328,12 +341,12 @@ then re-install
 Ensure AWS credentials exist in your environment (CloudFormation outputs are queried).
 
 ### “Lint” or “compile” failures
-Run from `src/`:
+Run from the repository root:
 
 ```sh
-npm ci
-npm run compile
-npm run lint
+npm ci --workspace=ipv-cri-f2f-api
+npm run compile --workspace=ipv-cri-f2f-api
+npm run lint --workspace=ipv-cri-f2f-api
 ```
 
 ### Tests failing unexpectedly

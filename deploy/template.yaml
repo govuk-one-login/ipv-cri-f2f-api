@@ -742,19 +742,7 @@ Resources:
             Resource: '*'
 
     Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false
-        EntryPoints:
-          - DeleteBucketHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   DeleteBucketFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1036,19 +1024,7 @@ Resources:
             RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - SessionHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   SessionFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1398,19 +1374,7 @@ Resources:
             RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - SessionConfigHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   SessionConfigFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1653,19 +1617,7 @@ Resources:
             Method: post
             RestApiId: !Ref F2FRestApi
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - AccessTokenHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   TokenFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1905,19 +1857,7 @@ Resources:
             RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - AuthorizationCodeHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   AuthorizationFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2207,19 +2147,7 @@ Resources:
             Method: post
             RestApiId: !Ref F2FRestApi
     Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - DocumentSelectionHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   DocumentSelectionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2457,19 +2385,7 @@ Resources:
             Method: post
             RestApiId: !Ref F2FRestApi
     Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - AbortHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   AbortLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2650,19 +2566,7 @@ Resources:
             RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false
-        EntryPoints:
-          - PersonInfoHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   PersonInfoFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3074,19 +2978,7 @@ Resources:
             RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false
-        EntryPoints:
-          - PersonInfoKeyHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   PersonInfoKeyFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3308,19 +3200,7 @@ Resources:
             RestApiId: !Ref F2FRestApi
 
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false
-        EntryPoints:
-          - AddressLocationsHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   AddressLocationsFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3626,6 +3506,7 @@ Resources:
 
       Environment:
         Variables:
+          NODE_OPTIONS: --enable-source-maps
           JWKS_BUCKET_NAME: !Ref JsonWebKeysBucket
           PUBLISHED_KEYS_BUCKET_NAME: !Sub "govuk-one-login-f2f-published-keys-${Environment}"
           SIGNING_KEY_IDS:
@@ -3633,19 +3514,7 @@ Resources:
           ENCRYPTION_KEY_IDS:
             Fn::ImportValue: !Sub "${L2KMSStackName}-encryption-key"
     Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: true
-        EntryPoints:
-          - JwksHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   JsonWebKeysLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3837,19 +3706,7 @@ Resources:
             FunctionResponseTypes:
               - ReportBatchItemFailures
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - GovNotifyHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   GovNotifyFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4044,19 +3901,7 @@ Resources:
             Method: post
             RestApiId: !Ref F2FRestApi
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - UserInfoHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   UserInfoFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4308,19 +4153,7 @@ Resources:
 
 
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - ReminderEmailHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   ReminderEmailFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4503,19 +4336,7 @@ Resources:
 
 
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - ExpiredSessionsHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   ExpiredSessionsFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -4750,19 +4571,7 @@ Resources:
             FunctionResponseTypes:
               - ReportBatchItemFailures
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - TriggerYotiCallbackStateMachineHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   TriggerYotiCallbackStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
@@ -5018,19 +4827,7 @@ Resources:
               - "kms:GenerateDataKey"
             Resource: !GetAtt IPVCoreQueueEncryptionKey.Arn
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - YotiSessionCompletionHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   YotiCallbackFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -5139,19 +4936,7 @@ Resources:
               - "kms:GenerateDataKey"
             Resource: !GetAtt IPVCoreQueueEncryptionKey.Arn
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - PostOfficeVisitHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   PostOfficeVisitFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -5354,19 +5139,7 @@ Resources:
             KeyId: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-session-table-key-id"
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - GenerateYotiLetterHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   GenerateYotiLetterFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -5535,22 +5308,7 @@ Resources:
             KeyId: !ImportValue
               Fn::Sub: "${L2DynamoStackName}-person-identity-table-key-id"
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Loader:
-          - .ttf=file
-          - .png=file
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - GeneratePrintedLetterHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   GeneratePrintedLetterFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -5749,19 +5507,7 @@ Resources:
               Resource: !GetAtt GovNotifyEncryptionKey.Arn
       
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - SendToGovNotifyHandler.ts
-        UseNpmCi: true
+      BuildMethod: makefile
 
   SendToGovNotifyFunctionLogGroup:
     Type: AWS::Logs::LogGroup
