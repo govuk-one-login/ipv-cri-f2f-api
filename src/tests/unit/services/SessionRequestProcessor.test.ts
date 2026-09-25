@@ -1,7 +1,7 @@
  
  
 import { SessionRequestProcessor } from "../../../services/SessionRequestProcessor";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";

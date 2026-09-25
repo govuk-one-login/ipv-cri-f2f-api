@@ -1,4 +1,4 @@
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { SQSEvent } from "aws-lambda";
 import { VALID_SQS_EVENT, VALID_DYNAMIC_REMINDER_SQS_EVENT, VALID_REMINDER_SQS_EVENT } from "../data/sqs-events";
 import { SendEmailProcessor } from "../../../services/SendEmailProcessor";

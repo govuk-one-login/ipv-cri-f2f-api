@@ -15,7 +15,7 @@ import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
 import SESSION_RECORD from "../data/db_record.json";
 import { ISessionItem } from "../../../models/ISessionItem";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { IPVCoreEvent } from "../../../utils/IPVCoreEvent";
 
 vi.mock("@govuk-one-login/cri-logger");

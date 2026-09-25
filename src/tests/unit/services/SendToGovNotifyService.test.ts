@@ -15,7 +15,7 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { SendToGovNotifyService } from "../../../services/SendToGovNotifyService";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { fetchEncodedFileFromS3Bucket } from "../../../utils/S3Client";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 
 vi.mock("notifications-node-client", () => {
 	return {

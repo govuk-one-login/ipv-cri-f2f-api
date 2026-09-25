@@ -1,6 +1,6 @@
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { AddressLocationsProcessor } from "./services/AddressLocationsProcessor";
 import { HttpCodesEnum } from "./models/enums/HttpCodesEnum";
@@ -13,11 +13,9 @@ import { Response } from "./utils/Response";
 import { getSessionIdHeaderErrors } from "./utils/Validations";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 
-const { POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE, POWERTOOLS_SERVICE_NAME = Constants.ADDRESS_LOCATIONS_LOGGER_SVC_NAME } = process.env;
+const { POWERTOOLS_SERVICE_NAME = Constants.ADDRESS_LOCATIONS_LOGGER_SVC_NAME } = process.env;
 
 let OS_API_KEY: string;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 export class AddressLocationsHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(ServicesEnum.ADDRESS_LOCATIONS_SERVICE);

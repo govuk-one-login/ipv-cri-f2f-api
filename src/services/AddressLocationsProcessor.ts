@@ -1,4 +1,4 @@
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "./F2fService";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";

@@ -1,7 +1,7 @@
  
 import { captor, mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { GeneratePrintedLetterProcessor } from "../../../services/GeneratePrintedLetterProcessor";
 import { F2fService } from "../../../services/F2fService";
 import { MessageCodes } from "../../../models/enums/MessageCodes";

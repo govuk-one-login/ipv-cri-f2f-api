@@ -1,4 +1,4 @@
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { SendEmailService } from "./SendEmailService";
 import { Constants } from "../utils/Constants";
 import { Email } from "../models/Email";

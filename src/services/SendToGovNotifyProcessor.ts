@@ -6,7 +6,7 @@ import { EmailResponse } from "../models/EmailResponse";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 
 export class SendToGovNotifyProcessor {
   private static instance: SendToGovNotifyProcessor;

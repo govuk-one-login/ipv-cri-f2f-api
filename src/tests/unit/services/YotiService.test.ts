@@ -9,7 +9,7 @@ import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { mock } from "vitest-mock-extended";
 import { sleep } from "../../../utils/Sleep";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 
 vi.mock("@govuk-one-login/cri-logger");
 vi.mock("axios");

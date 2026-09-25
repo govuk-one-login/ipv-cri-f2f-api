@@ -5,7 +5,7 @@ import { GeneratePrintedLetterProcessor } from "../../services/GeneratePrintedLe
 import { mock } from "vitest-mock-extended";
 import { CONTEXT } from "./data/context";
 import { MessageCodes } from "../../models/enums/MessageCodes";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 
 const mockedGeneratePrintedLetterProcessor = mock<GeneratePrintedLetterProcessor>();
 

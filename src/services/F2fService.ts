@@ -22,7 +22,7 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { IPVCoreEvent } from "../utils/IPVCoreEvent";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { PdfPreferenceEnum } from "../utils/PdfPreferenceEnum";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 
 export class F2fService {
 	readonly tableName: string;

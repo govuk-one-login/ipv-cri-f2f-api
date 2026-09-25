@@ -1,7 +1,7 @@
 import { SendToGovNotifyService } from "../../../services/SendToGovNotifyService";
 import { SendToGovNotifyProcessor } from "../../../services/SendToGovNotifyProcessor";
 import { mock } from "vitest-mock-extended";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 
 
 let sendToGovNotifyProcessor: SendToGovNotifyProcessor;

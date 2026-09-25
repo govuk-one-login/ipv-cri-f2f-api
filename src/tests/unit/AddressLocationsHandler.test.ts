@@ -9,7 +9,7 @@ import { AddressLocationsProcessor } from "../../services/AddressLocationsProces
 import { Constants } from "../../utils/Constants";
 import { MessageCodes } from "../../models/enums/MessageCodes";
 import { randomUUID } from "crypto";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 
 vi.mock("../../utils/Config", () => ({
 	getParameter: (parameter: string) => parameter,

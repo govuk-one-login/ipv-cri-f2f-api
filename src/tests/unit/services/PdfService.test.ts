@@ -1,7 +1,7 @@
  
  
 import { mock } from "vitest-mock-extended";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 
 import { PDFService } from "../../../services/PdfService";
 import { S3Client } from "@aws-sdk/client-s3";

@@ -1,7 +1,7 @@
 import { F2fService } from "./F2fService";
 import { AppError } from "../utils/AppError";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { EnvironmentVariables } from "./EnvironmentVariables";

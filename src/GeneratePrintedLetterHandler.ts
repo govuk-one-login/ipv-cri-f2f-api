@@ -1,5 +1,5 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { Constants } from "./utils/Constants";
 import { AppError } from "./utils/AppError";

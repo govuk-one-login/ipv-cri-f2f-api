@@ -10,7 +10,7 @@ import {
 	VerifiedCredentialSubject,
 	Name,
 } from "../utils/IVeriCredential";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 
 export class GenerateVerifiableCredential {
   readonly metrics: Metrics;
