@@ -230,6 +230,11 @@ export class SendToGovNotifyService {
                     "en-GB",
                 );
 
+                const welshFormattedDate = formatPostOfficeExpiryDate(
+                    f2fSessionInfo,
+                    "cy-GB",
+                );
+
                 const { GOV_NOTIFY_OPTIONS } = Constants;
 
                 const lastNameIndex =
@@ -243,6 +248,7 @@ export class SendToGovNotifyService {
                             f2fPersonInfo.name[0].nameParts[lastNameIndex]
                                 .value,
                         [GOV_NOTIFY_OPTIONS.DATE]: englishFormattedDate,
+                        [GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
                         [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
                             file: encoded,
                             confirm_email_before_download: true,

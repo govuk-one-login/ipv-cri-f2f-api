@@ -132,6 +132,11 @@ export class SendEmailService {
                     "en-GB",
                 );
 
+                const welshFormattedDate = formatPostOfficeExpiryDate(
+                    sessionConfigObject.f2fSessionInfo,
+                    "cy-GB",
+                );
+
                 const { GOV_NOTIFY_OPTIONS } = Constants;
 
                 const options = {
@@ -139,6 +144,7 @@ export class SendEmailService {
                         [GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
                         [GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
                         [GOV_NOTIFY_OPTIONS.DATE]: englishFormattedDate,
+                        [GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
                         [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
                             file: encoded,
                             confirm_email_before_download: true,
@@ -198,11 +204,17 @@ export class SendEmailService {
                 "en-GB",
             );
 
+            const welshFormattedDate = formatPostOfficeExpiryDate(
+                sessionConfigObject.f2fSessionInfo,
+                "cy-GB",
+            );
+
             const { GOV_NOTIFY_OPTIONS } = Constants;
 
             const options = {
                 personalisation: {
                     [GOV_NOTIFY_OPTIONS.DATE]: englishFormattedDate,
+                    [GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
                     [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
                         file: encoded,
                         confirm_email_before_download: true,
@@ -249,18 +261,24 @@ export class SendEmailService {
                 sessionConfigObject.clientConfig.YotiBaseUrl,
             );
 
-            const { GOV_NOTIFY_OPTIONS } = Constants;
-
             const englishFormattedDate = formatPostOfficeExpiryDate(
                 sessionConfigObject.f2fSessionInfo,
                 "en-GB",
             );
+
+            const welshFormattedDate = formatPostOfficeExpiryDate(
+                sessionConfigObject.f2fSessionInfo,
+                "cy-GB",
+            );
+
+            const { GOV_NOTIFY_OPTIONS } = Constants;
 
             const options = {
                 personalisation: {
                     [GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
                     [GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
                     [GOV_NOTIFY_OPTIONS.DATE]: englishFormattedDate,
+                    [GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
                     [GOV_NOTIFY_OPTIONS.CHOSEN_PHOTO_ID]: message.documentUsed,
                     [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
                         file: encoded,
