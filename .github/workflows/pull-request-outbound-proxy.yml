@@ -11,6 +11,9 @@ on:
       - synchronize
     paths:
       - 'infra-l2-outbound-proxy/**'
+      - 'src/.npmrc'
+      - 'src/package.json'
+      - 'src/package-lock.json'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -50,6 +53,9 @@ jobs:
         with:
           path: ${{ steps.offline-mirror-path.outputs.mirror-dir }}
           key: offline-mirror-oauth
+
+      - name: Check dependency layout policy
+        run: cd ../src && npm run check:dependency-layout
 
       - name: Install dependencies
         run: cd ../src && npm ci

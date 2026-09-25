@@ -43,6 +43,15 @@ jobs:
         with:
           use-installer: true
 
+      - name: Setup nodeJS v24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install API dependencies
+        working-directory: ./src
+        run: npm ci
+
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -51,7 +60,7 @@ jobs:
 
       - name: SAM Build API stack
         working-directory: ./deploy
-        run: sam build -t template.yaml
+        run: sam build --build-in-source -t template.yaml
 
       - name: SAM Deploy API stack
         working-directory: ./deploy
@@ -188,4 +197,3 @@ jobs:
           echo "Deleting API stack: pre-merge-${{ needs.setup.outputs.sha_short }}"
           aws cloudformation delete-stack --region eu-west-2 --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}"
           aws cloudformation wait stack-delete-complete --region eu-west-2 --stack-name "pre-merge-${{ needs.setup.outputs.sha_short }}"
-          

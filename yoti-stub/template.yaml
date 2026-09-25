@@ -236,20 +236,8 @@ Resources:
             Path: /sessions/{sessionId}/media/{mediaId}/content
             Method: get
             RestApiId: !Ref MockYotiRestApi
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        Banner:
-          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-        Sourcemap: false # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
-        EntryPoints:
-          - MockYotiSessionHandler.ts
-        UseNpmCi: true
+    Metadata:
+      BuildMethod: makefile
 
   MockYotiSessionFunctionLogGroup:
     Type: AWS::Logs::LogGroup

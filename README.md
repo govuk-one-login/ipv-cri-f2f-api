@@ -98,7 +98,9 @@ Prerequisites:
 - npm
 - AWS credentials (only required to run tests against a deployed stack)
 
-Common local dev commands are defined in `src/package.json` under `scripts`. A typical workflow is:
+`src/package.json` and `src/package-lock.json` are the canonical dependency
+source for the API, third-party stubs and L2 infrastructure tests. All managed
+consumers install the complete dependency tree from `src`:
 
 ```sh
 cd src
@@ -107,6 +109,19 @@ npm run compile
 npm run lint
 npm run test:unit
 ```
+
+The managed stub and infra source folders do not own separate manifests or
+lockfiles. Their CI jobs install the `src` dependency tree, and their TypeScript,
+test and SAM build commands resolve tooling from `src/node_modules`. Run the
+layout policy before committing dependency changes:
+
+```sh
+npm run check:dependency-layout
+```
+
+Add and update managed dependencies only in `src/package.json`, regenerate
+`src/package-lock.json`, and do not create package manifests or lockfiles under
+the managed stub or infra source folders.
 
 > [!NOTE]
 > This repo does not document a supported sam local start-api workflow. Integration tests are designed to run against a deployed stack.
@@ -178,8 +193,10 @@ After deploying, update the test harness SAM config in `test-harness/deploy/samc
 
 ### Local and ephemeral deployment (exceptional)
 ```sh
-cd deploy
-sam build --parallel
+cd src
+npm ci
+cd ../deploy
+sam build --build-in-source --parallel
 sam deploy --resolve-s3 --stack-name "YOUR_STACK_NAME" --confirm-changeset --config-env dev
 ```
 
@@ -207,7 +224,10 @@ npm run test:api-retry
 ### Infra tests
 ```sh
 cd src
-npm run test:infra
+npm ci
+npm run test:infra:dynamo
+npm run test:infra:kms
+npm run test:infra:outbound-proxy
 ```
 
 ### Log and PII checks
@@ -314,12 +334,13 @@ Based on the alerts returned flag any to the team reported as 'high' or 'critica
 
 Utilise descriptions preovided from audit result to directly update the vulnerable package or for transitive, the vulnerable parent version - rerunning to ensure it is no longer pulling the vulnerability.
 
-To ensure the `package.json` and `package-lock.json` are aligned after updates ensure you have installed the fixed versions then run:
+To keep the canonical manifest and lockfile aligned after dependency updates,
+regenerate the lockfile from `src`:
 
 ```sh
-rm -rf node_modules package-lock.json
+cd src
+npm install --package-lock-only --ignore-scripts
 ```
-then re-install
 
 ---
 
@@ -328,9 +349,10 @@ then re-install
 Ensure AWS credentials exist in your environment (CloudFormation outputs are queried).
 
 ### “Lint” or “compile” failures
-Run from `src/`:
+Run from the canonical dependency directory:
 
 ```sh
+cd src
 npm ci
 npm run compile
 npm run lint

@@ -6,6 +6,11 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "moduleResolution": "node",
+    "baseUrl": "../../src",
+    "paths": {
+      "*": ["node_modules/*", "node_modules/@types/*"]
+    },
+    "typeRoots": ["../../src/node_modules/@types"],
     "resolveJsonModule": true,
     "types": ["node"],
     "esModuleInterop": true,
