@@ -49,7 +49,8 @@ jobs:
           node-version: 24
 
       - name: Install API dependencies
-        run: npm ci --workspace=ipv-cri-f2f-api
+        working-directory: ./src
+        run: npm ci
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v6
@@ -158,7 +159,7 @@ jobs:
       
       - name: Install dependencies
         working-directory: ./src
-        run: cd .. && npm ci --workspace=ipv-cri-f2f-api
+        run: npm ci
 
       - name: Run API tests
         working-directory: ./src

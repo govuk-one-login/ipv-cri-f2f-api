@@ -11,9 +11,9 @@ on:
       - synchronize
     paths:
       - 'infra-l2-kms/**'
-      - '.npmrc'
-      - 'package.json'
-      - 'package-lock.json'
+      - 'src/.npmrc'
+      - 'src/package.json'
+      - 'src/package-lock.json'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -55,14 +55,14 @@ jobs:
           path: ${{ steps.offline-mirror-path.outputs.mirror-dir }}
           key: offline-mirror-oauth
 
-      - name: Check workspace dependency policy
-        run: cd .. && npm run check:workspaces
+      - name: Check dependency layout policy
+        run: cd ../src && npm run check:dependency-layout
 
       - name: Install dependencies
-        run: cd .. && npm ci --workspace=ipv-cri-f2f-infra-l2-kms
+        run: cd ../src && npm ci
 
       - name: Run Infra checks
-        run: cd .. && npm run test:infra --workspace=ipv-cri-f2f-infra-l2-kms
+        run: cd ../src && npm run test:infra:kms
   sam-validate:
     name: SAM Validate
     runs-on: ubuntu-latest

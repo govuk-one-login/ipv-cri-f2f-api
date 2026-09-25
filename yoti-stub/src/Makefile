@@ -1,6 +1,7 @@
 ROOT_DIR := $(abspath $(CURDIR)/../..)
-ESBUILD := $(ROOT_DIR)/node_modules/.bin/esbuild
+DEPENDENCY_DIR := $(ROOT_DIR)/src
+ESBUILD := $(DEPENDENCY_DIR)/node_modules/.bin/esbuild
 ESBUILD_FLAGS := --bundle --platform=node --minify --target=es2022 --format=esm --out-extension:.js=.mjs --banner:js="import { createRequire } from 'module'; const require = createRequire(import.meta.url);"
 
 build-MockYotiSessionFunction:
-	NODE_PATH=$(ROOT_DIR)/node_modules $(ESBUILD) MockYotiSessionHandler.ts $(ESBUILD_FLAGS) --outdir=$(ARTIFACTS_DIR)
+	NODE_PATH=$(DEPENDENCY_DIR)/node_modules $(ESBUILD) MockYotiSessionHandler.ts $(ESBUILD_FLAGS) --outdir=$(ARTIFACTS_DIR)

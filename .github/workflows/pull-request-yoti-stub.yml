@@ -11,9 +11,9 @@ on:
       - synchronize
     paths:
       - 'yoti-stub/**'
-      - '.npmrc'
-      - 'package.json'
-      - 'package-lock.json'
+      - 'src/.npmrc'
+      - 'src/package.json'
+      - 'src/package-lock.json'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -54,14 +54,14 @@ jobs:
           path: ${{ steps.offline-mirror-path.outputs.mirror-dir }}
           key: offline-mirror-oauth
 
-      - name: Check workspace dependency policy
-        run: cd ../.. && npm run check:workspaces
+      - name: Check dependency layout policy
+        run: cd ../../src && npm run check:dependency-layout
 
       - name: Install dependencies
-        run: cd ../.. && npm ci --workspace=ipv-cri-f2f-yoti-stub
+        run: cd ../../src && npm ci
 
       - name: Compile
-        run: npm run compile
+        run: cd ../../src && npm run compile:yoti-stub
 
   sam-validate:
     name: SAM Validate
@@ -87,7 +87,7 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        run: cd .. && npm ci --workspace=ipv-cri-f2f-yoti-stub
+        run: cd ../src && npm ci
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v6

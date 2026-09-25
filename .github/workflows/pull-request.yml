@@ -65,11 +65,11 @@ jobs:
           path: ${{ steps.offline-mirror-path.outputs.mirror-dir }}
           key: offline-mirror-oauth
 
-      - name: Check workspace dependency policy
-        run: cd .. && npm run check:workspaces
+      - name: Check dependency layout policy
+        run: npm run check:dependency-layout
 
       - name: Install dependencies
-        run: cd .. && npm ci --workspace=ipv-cri-f2f-api
+        run: npm ci
 
       - name: Run lint
         run: npm run lint
@@ -117,7 +117,7 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        run: cd .. && npm ci --workspace=ipv-cri-f2f-api
+        run: cd ../src && npm ci
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v6

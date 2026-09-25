@@ -93,31 +93,35 @@ At a high level it:
 ## Getting started
 
 Prerequisites:
-- Node.js version per the root `package.json` (`engines.node`) for local development
+- Node.js version per `src/package.json` (`engines.node`) for local development
 - AWS Lambda runtime: nodejs24.x (see `deploy/template.yaml`)
 - npm
 - AWS credentials (only required to run tests against a deployed stack)
 
-Dependencies are installed from the single root lockfile. The package scripts remain in each workspace manifest. A typical API workflow is:
+`src/package.json` and `src/package-lock.json` are the canonical dependency
+source for the API, third-party stubs and L2 infrastructure tests. All managed
+consumers install the complete dependency tree from `src`:
 
 ```sh
-npm ci --workspace=ipv-cri-f2f-api
-npm run compile --workspace=ipv-cri-f2f-api
-npm run lint --workspace=ipv-cri-f2f-api
-npm run test:unit --workspace=ipv-cri-f2f-api
+cd src
+npm ci
+npm run compile
+npm run lint
+npm run test:unit
 ```
 
-Each workspace declares only the dependencies directly required by its code and
-scripts. npm resolves all workspace manifests into the single root dependency
-tree and lockfile. Run the policy check before committing dependency changes:
+The managed stub and infra source folders do not own separate manifests or
+lockfiles. Their CI jobs install the `src` dependency tree, and their TypeScript,
+test and SAM build commands resolve tooling from `src/node_modules`. Run the
+layout policy before committing dependency changes:
 
 ```sh
-npm run check:workspaces
+npm run check:dependency-layout
 ```
 
-Add dependencies to the workspace that directly uses them. Do not create
-workspace-level lockfiles: `package-lock.json` at the repository root is the only
-npm lockfile, and CI enforces that rule.
+Add and update managed dependencies only in `src/package.json`, regenerate
+`src/package-lock.json`, and do not create package manifests or lockfiles under
+the managed stub or infra source folders.
 
 > [!NOTE]
 > This repo does not document a supported sam local start-api workflow. Integration tests are designed to run against a deployed stack.
@@ -189,8 +193,9 @@ After deploying, update the test harness SAM config in `test-harness/deploy/samc
 
 ### Local and ephemeral deployment (exceptional)
 ```sh
-npm ci --workspace=ipv-cri-f2f-api
-cd deploy
+cd src
+npm ci
+cd ../deploy
 sam build --build-in-source --parallel
 sam deploy --resolve-s3 --stack-name "YOUR_STACK_NAME" --confirm-changeset --config-env dev
 ```
@@ -218,10 +223,11 @@ npm run test:api-retry
 
 ### Infra tests
 ```sh
-npm ci --workspace=ipv-cri-f2f-infra-l2-dynamo --workspace=ipv-cri-f2f-infra-l2-kms --workspace=ipv-cri-f2f-infra-l2-outbound-proxy
-npm run test:infra --workspace=ipv-cri-f2f-infra-l2-dynamo
-npm run test:infra --workspace=ipv-cri-f2f-infra-l2-kms
-npm run test:infra --workspace=ipv-cri-f2f-infra-l2-outbound-proxy
+cd src
+npm ci
+npm run test:infra:dynamo
+npm run test:infra:kms
+npm run test:infra:outbound-proxy
 ```
 
 ### Log and PII checks
@@ -328,9 +334,11 @@ Based on the alerts returned flag any to the team reported as 'high' or 'critica
 
 Utilise descriptions preovided from audit result to directly update the vulnerable package or for transitive, the vulnerable parent version - rerunning to ensure it is no longer pulling the vulnerability.
 
-To ensure all workspace manifests and the root `package-lock.json` remain aligned after dependency updates, regenerate the lockfile from the repository root:
+To keep the canonical manifest and lockfile aligned after dependency updates,
+regenerate the lockfile from `src`:
 
 ```sh
+cd src
 npm install --package-lock-only --ignore-scripts
 ```
 
@@ -341,12 +349,13 @@ npm install --package-lock-only --ignore-scripts
 Ensure AWS credentials exist in your environment (CloudFormation outputs are queried).
 
 ### “Lint” or “compile” failures
-Run from the repository root:
+Run from the canonical dependency directory:
 
 ```sh
-npm ci --workspace=ipv-cri-f2f-api
-npm run compile --workspace=ipv-cri-f2f-api
-npm run lint --workspace=ipv-cri-f2f-api
+cd src
+npm ci
+npm run compile
+npm run lint
 ```
 
 ### Tests failing unexpectedly

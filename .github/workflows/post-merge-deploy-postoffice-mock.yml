@@ -6,9 +6,9 @@ on:
       - main
     paths:
       - 'post-office-stub/**'
-      - '.npmrc'
-      - 'package.json'
-      - 'package-lock.json'
+      - 'src/.npmrc'
+      - 'src/package.json'
+      - 'src/package-lock.json'
       - .github/workflows/post-merge-deploy-postoffice-mock.yml
   workflow_dispatch:
     inputs:
@@ -70,7 +70,7 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        run: cd .. && npm ci --workspace=ipv-cri-f2f-post-office-stub
+        run: cd ../src && npm ci
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v6

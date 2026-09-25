@@ -1,5 +1,5 @@
-ROOT_DIR := $(abspath $(CURDIR)/..)
-ESBUILD := $(ROOT_DIR)/node_modules/.bin/esbuild
+DEPENDENCY_DIR := $(CURDIR)
+ESBUILD := $(DEPENDENCY_DIR)/node_modules/.bin/esbuild
 ESBUILD_FLAGS := --bundle --platform=node --minify --target=es2022 --format=esm --out-extension:.js=.mjs --banner:js="import { createRequire } from 'module'; const require = createRequire(import.meta.url);"
 
 ENTRY_DeleteBucketFunction := DeleteBucketHandler.ts
@@ -28,4 +28,4 @@ EXTRA_JsonWebKeysFunction := --sourcemap
 EXTRA_GeneratePrintedLetterFunction := --loader:.ttf=file --loader:.png=file
 
 build-%:
-	NODE_PATH=$(ROOT_DIR)/node_modules $(ESBUILD) $(ENTRY_$*) $(ESBUILD_FLAGS) $(EXTRA_$*) --outdir=$(ARTIFACTS_DIR)
+	NODE_PATH=$(DEPENDENCY_DIR)/node_modules $(ESBUILD) $(ENTRY_$*) $(ESBUILD_FLAGS) $(EXTRA_$*) --outdir=$(ARTIFACTS_DIR)

@@ -1,5 +1,10 @@
-import ts from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
+import { createRequire } from 'node:module';
+
+const requireFromCanonicalManifest = createRequire(
+  new URL('../../src/package.json', import.meta.url),
+);
+const ts = requireFromCanonicalManifest('@typescript-eslint/eslint-plugin');
+const tsParser = requireFromCanonicalManifest('@typescript-eslint/parser');
 
 export default [
   {
