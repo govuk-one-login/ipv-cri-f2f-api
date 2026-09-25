@@ -1,5 +1,5 @@
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "./F2fService";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { MessageCodes } from "../models/enums/MessageCodes";
@@ -15,8 +15,6 @@ import { AppError } from "../utils/AppError";
 export class AddressLocationsProcessor {
 	private static instance: AddressLocationsProcessor;
 
-  	private readonly logger: Logger;
-
   	private readonly metrics: Metrics;
 
   	private readonly f2fService: F2fService;
@@ -25,17 +23,16 @@ export class AddressLocationsProcessor {
 
 	private readonly environmentVariables: EnvironmentVariables;
 
-	constructor(logger: Logger, metrics: Metrics, osApiKey: string) {
+	constructor(metrics: Metrics, osApiKey: string) {
 		this.osApiKey = osApiKey;
-		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.ADDRESS_LOCATIONS_SERVICE);
-		this.logger = logger;
+		this.environmentVariables = new EnvironmentVariables(ServicesEnum.ADDRESS_LOCATIONS_SERVICE);
   		this.metrics = metrics;
-  		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
+  		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
 	}
 
-	static getInstance(logger: Logger, metrics: Metrics, osApiKey: string): AddressLocationsProcessor {
+	static getInstance(metrics: Metrics, osApiKey: string): AddressLocationsProcessor {
   	if (!AddressLocationsProcessor.instance) {
-			AddressLocationsProcessor.instance = new AddressLocationsProcessor(logger, metrics, osApiKey);
+			AddressLocationsProcessor.instance = new AddressLocationsProcessor(metrics, osApiKey);
   	}
   	return AddressLocationsProcessor.instance;
 	}
@@ -44,21 +41,21 @@ export class AddressLocationsProcessor {
 		
 		const session = await this.f2fService.getSessionById(sessionId);
 		if (!session) {
-			this.logger.error("No session found for session id", {
+			logger.error("No session found for session id", {
 				messageCode: MessageCodes.SESSION_NOT_FOUND,
 			});
 			return Response(HttpCodesEnum.UNAUTHORIZED, `No session found with the session id: ${sessionId}`);
 		}
 
-		this.logger.appendKeys({
+		logger.appendKeys({
 			govuk_signin_journey_id: session?.clientSessionId,
 		});
 		
-		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), session.clientId, this.logger);
-		this.logger.info("CLIENTS:", { clientConfig });
+		const clientConfig = getClientConfig(this.environmentVariables.clientConfig(), session.clientId);
+		logger.info("CLIENTS:", { clientConfig });
 
 		if (!clientConfig) {
-			this.logger.error("Unrecognised client in request", {
+			logger.error("Unrecognised client in request", {
 				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
 			});
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
@@ -94,9 +91,9 @@ export class AddressLocationsProcessor {
 					singleMetric.addMetric("OS_response", MetricUnit.Count, 1);
 				}
 
-				this.logger.error("Error response data:", error.response?.data);
+				logger.error("Error response data:", error.response?.data);
 			  } else {
-				this.logger.error("Error retrieving OS locations data");
+				logger.error("Error retrieving OS locations data");
 			  }
     		const message = "Error retrieving OS locations data";
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, message);

@@ -2,7 +2,7 @@ import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { AppError } from "../utils/AppError";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { buildCoreEventFields } from "../utils/TxmaEvent";
@@ -17,40 +17,36 @@ export class AbortRequestProcessor {
 
   private static instance: AbortRequestProcessor;
 
-  private readonly logger: Logger;
-
   private readonly metrics: Metrics;
 
   private readonly f2fService: F2fService;
 
   private readonly environmentVariables: EnvironmentVariables;
 
-  constructor(logger: Logger, metrics: Metrics) {
-  	this.logger = logger;
+  constructor(metrics: Metrics) {
   	this.metrics = metrics;
-  	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.ABORT_SERVICE);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
+  	this.environmentVariables = new EnvironmentVariables(ServicesEnum.ABORT_SERVICE);
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
   }
 
   static getInstance(
-  	logger: Logger,
   	metrics: Metrics,
   ): AbortRequestProcessor {
   	if (!AbortRequestProcessor.instance) {
   		AbortRequestProcessor.instance =
-        new AbortRequestProcessor(logger, metrics);
+        new AbortRequestProcessor(metrics);
   	}
   	return AbortRequestProcessor.instance;
   }
 
   async processRequest(sessionId: string, encodedHeader: string): Promise<APIGatewayProxyResult> {
   	const f2fSessionInfo = await this.f2fService.getSessionById(sessionId);
-  	this.logger.appendKeys({
+  	logger.appendKeys({
   		govuk_signin_journey_id: f2fSessionInfo?.clientSessionId,
   	});
 
   	if (!f2fSessionInfo) {
-  		this.logger.warn("Missing details in SESSION TABLE", {
+  		logger.warn("Missing details in SESSION TABLE", {
   			messageCode: MessageCodes.SESSION_NOT_FOUND,
   		});
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION table");
@@ -61,7 +57,7 @@ export class AbortRequestProcessor {
   	const redirectUri = `${decodedRedirectUri}${hasQuestionMark ? "&" : "?"}error=access_denied&state=${f2fSessionInfo.state}`;
 
   	if (f2fSessionInfo.authSessionState === AuthSessionState.F2F_CRI_SESSION_ABORTED) {
-  		this.logger.info("Session has already been aborted");
+  		logger.info("Session has already been aborted");
   		return Response(HttpCodesEnum.OK, "Session has already been aborted", { Location: encodeURIComponent(redirectUri) });
   	}
 
@@ -70,7 +66,7 @@ export class AbortRequestProcessor {
 	  this.metrics.addMetric("state-F2F_CRI_SESSION_ABORTED", MetricUnit.Count, 1);
 
   	} catch (error) {
-  		this.logger.error("Error occurred while aborting the session", {
+  		logger.error("Error occurred while aborting the session", {
   			error,
   			messageCode: MessageCodes.SERVER_ERROR,
   		});
@@ -96,7 +92,7 @@ export class AbortRequestProcessor {
   			},
   		}, encodedHeader);
   	} catch (error) {
-  		this.logger.error("Auth session successfully aborted. Failed to send F2F_CRI_SESSION_ABORTED event to TXMA", {
+  		logger.error("Auth session successfully aborted. Failed to send F2F_CRI_SESSION_ABORTED event to TXMA", {
   			error,
   			messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
   		});

@@ -1,6 +1,5 @@
 import { SQSEvent, SQSRecord } from "aws-lambda";
-import { Logger } from "@aws-lambda-powertools/logger";
-import { LogLevel } from "@aws-lambda-powertools/logger/lib/esm/types/Logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
@@ -12,14 +11,8 @@ import { passEntireBatch, failEntireBatch } from "./utils/SqsBatchResponseHelper
 
 const {
 	POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE,
-	POWERTOOLS_LOG_LEVEL = Constants.DEBUG,
 	POWERTOOLS_SERVICE_NAME = Constants.TRIGGER_YOTI_STATE_MACHINE_SVC_NAME,
 } = process.env;
-
-export const logger = new Logger({
-	logLevel: POWERTOOLS_LOG_LEVEL as LogLevel,
-	serviceName: POWERTOOLS_SERVICE_NAME,
-});
 
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
@@ -40,14 +33,14 @@ class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 
 		if (event.Records.length === 1) {
 			const record: SQSRecord = event.Records[0];
-			logger.debug("Starting to process record");
+			logger.info("Starting to process record");
 
 			const body = JSON.parse(record.body);
 			logger.appendKeys({
 				yotiSessionId: body.session_id,
 			});
 
-			logger.debug("Parsed SQS event body", body);
+			logger.info("Parsed SQS event body", body);
 
 			if (
 				body.topic === YotiCallbackTopics.SESSION_COMPLETION ||

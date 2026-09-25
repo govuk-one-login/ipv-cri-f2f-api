@@ -1,8 +1,7 @@
 import type { MockInstance } from "vitest";
- 
- 
+import { logger } from "@govuk-one-login/cri-logger";
 import { mock } from "vitest-mock-extended";
-import { lambdaHandler, logger } from "../../AbortHandler";
+import { lambdaHandler } from "../../AbortHandler";
 import { AbortRequestProcessor } from "../../services/AbortRequestProcessor";
 import { VALID_REQUEST, INVALID_SESSION_ID, MISSING_SESSION_ID } from "./data/abort-events";
 import { Constants } from "../../utils/Constants";

@@ -24,4 +24,3 @@ app.listen(port, () => {
 
 app.use(Constants.TOKEN_ENDPOINT, accessTokenRouter);
 app.use(Constants.USERINFO_ENDPOINT, userInfoRouter);
-

@@ -1,6 +1,7 @@
 import type { MockInstance } from "vitest";
 import { mock } from "vitest-mock-extended";
-import { lambdaHandler, logger } from "../../PostOfficeVisitHandler";
+import { logger } from "@govuk-one-login/cri-logger";
+import { lambdaHandler } from "../../PostOfficeVisitHandler";
 import { PostOfficeVisitProcessor } from "../../services/PostOfficeVisitProcessor";
 import { YotiPrivateKeyProvider } from "../../services/callback/YotiPrivateKeyProvider";
 import { HttpCodesEnum } from "../../utils/HttpCodesEnum";

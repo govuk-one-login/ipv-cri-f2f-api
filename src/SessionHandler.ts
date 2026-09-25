@@ -1,6 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { Logger } from "@aws-lambda-powertools/logger";
-import { LogLevel } from "@aws-lambda-powertools/logger/lib/esm/types/Logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Response } from "./utils/Response";
 import { SessionRequestProcessor } from "./services/SessionRequestProcessor";
@@ -11,13 +10,7 @@ import { Constants } from "./utils/Constants";
 import { MessageCodes } from "./models/enums/MessageCodes";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : "F2F-CRI";
-const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.SESSION_LOGGER_SVC_NAME;
-
-const logger = new Logger({
-	logLevel: POWERTOOLS_LOG_LEVEL as LogLevel,
-	serviceName: POWERTOOLS_SERVICE_NAME,
-});
 
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
@@ -34,7 +27,7 @@ class Session implements LambdaInterface {
 
 		try {
 			logger.info("Starting SessionRequestProcessor");
-			return await SessionRequestProcessor.getInstance(logger, metrics).processRequest(event);
+			return await SessionRequestProcessor.getInstance(metrics).processRequest(event);
 		} catch (error: any) {
 			logger.error("An error has occurred.", {
 				messageCode: MessageCodes.SERVER_ERROR,

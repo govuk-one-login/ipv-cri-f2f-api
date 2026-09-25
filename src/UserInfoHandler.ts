@@ -1,6 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { Logger } from "@aws-lambda-powertools/logger";
-import { LogLevel } from "@aws-lambda-powertools/logger/lib/esm/types/Logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Response } from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
@@ -10,12 +9,7 @@ import { Constants } from "./utils/Constants";
 import { MessageCodes } from "./models/enums/MessageCodes";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
-const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : "DEBUG";
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.USERINFO_LOGGER_SVC_NAME;
-const logger = new Logger({
-	logLevel: POWERTOOLS_LOG_LEVEL as LogLevel,
-	serviceName: POWERTOOLS_SERVICE_NAME,
-});
 
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 
@@ -33,7 +27,7 @@ class UserInfo implements LambdaInterface {
 		try {
 			logger.info("Received userInfo request:", { requestId: event.requestContext.requestId });
 			logger.info("Starting UserInfoRequestProcessor");
-			return await UserInfoRequestProcessor.getInstance(logger, metrics).processRequest(event);
+			return await UserInfoRequestProcessor.getInstance(metrics).processRequest(event);
 		} catch (err) {
 			logger.error({ message: "An error has occurred. ", err }, { messageCode: MessageCodes.SERVER_ERROR });
 			return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");

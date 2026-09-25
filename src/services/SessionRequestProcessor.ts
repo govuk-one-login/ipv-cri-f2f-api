@@ -4,7 +4,7 @@ import { Response, SECURITY_HEADERS } from "../utils/Response";
 import { F2fService } from "./F2fService";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
@@ -29,8 +29,6 @@ interface ClientConfig {
 export class SessionRequestProcessor {
   private static instance: SessionRequestProcessor;
 
-  private readonly logger: Logger;
-
   private readonly metrics: Metrics;
 
   private readonly f2fService: F2fService;
@@ -41,20 +39,18 @@ export class SessionRequestProcessor {
 
   private readonly environmentVariables: EnvironmentVariables;
 
-  constructor(logger: Logger, metrics: Metrics) {
-  	this.logger = logger;
+  constructor(metrics: Metrics) {
   	this.metrics = metrics;
-  	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.SESSION_SERVICE);
-  	logger.debug("metrics is  " + JSON.stringify(this.metrics));
+  	this.environmentVariables = new EnvironmentVariables(ServicesEnum.SESSION_SERVICE);
   	this.metrics.addMetric("Called", MetricUnit.Count, 1);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
-  	this.kmsDecryptor = new KmsJwtAdapter(this.environmentVariables.encryptionKeyIds(), logger);
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+  	this.kmsDecryptor = new KmsJwtAdapter(this.environmentVariables.encryptionKeyIds());
   	this.validationHelper = new ValidationHelper();
   }
 
-  static getInstance(logger: Logger, metrics: Metrics): SessionRequestProcessor {
+  static getInstance(metrics: Metrics): SessionRequestProcessor {
   	if (!SessionRequestProcessor.instance) {
-  		SessionRequestProcessor.instance = new SessionRequestProcessor(logger, metrics);
+  		SessionRequestProcessor.instance = new SessionRequestProcessor(metrics);
   	}
   	return SessionRequestProcessor.instance;
   }
@@ -77,7 +73,7 @@ export class SessionRequestProcessor {
   		const config = JSON.parse(this.environmentVariables.clientConfig()) as ClientConfig[];
   		configClient = config.find(c => c.clientId === requestBodyClientId);
   	} catch (error) {
-  		this.logger.error("Invalid or missing client configuration table", {
+  		logger.error("Invalid or missing client configuration table", {
   			error,
   			messageCode: MessageCodes.MISSING_CONFIGURATION,
   		});
@@ -85,7 +81,7 @@ export class SessionRequestProcessor {
   	}
 
   	if (!configClient) {
-  		this.logger.error("Unrecognised client in request", {
+  		logger.error("Unrecognised client in request", {
   			messageCode: MessageCodes.UNRECOGNISED_CLIENT,
   		});
   		return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
@@ -95,7 +91,7 @@ export class SessionRequestProcessor {
   	try {
   		urlEncodedJwt = await this.kmsDecryptor.decrypt(deserialisedRequestBody.request);
   	} catch (error) {
-  		this.logger.error("Failed to decrypt supplied JWE request", {
+  		logger.error("Failed to decrypt supplied JWE request", {
   			error,
   			messageCode: MessageCodes.FAILED_DECRYPTING_JWE,
   		});
@@ -106,7 +102,7 @@ export class SessionRequestProcessor {
   	try {
   		parsedJwt = this.kmsDecryptor.decode(urlEncodedJwt);
   	} catch (error) {
-  		this.logger.error("Failed to decode supplied JWT", {
+  		logger.error("Failed to decode supplied JWT", {
   			error,
   			messageCode: MessageCodes.FAILED_DECODING_JWT,
   		});
@@ -115,7 +111,7 @@ export class SessionRequestProcessor {
 
   	const jwtPayload: JwtPayload = parsedJwt.payload;
 	const jwtTargetKid: string | undefined = parsedJwt.header?.kid;
-  	this.logger.appendKeys({
+  	logger.appendKeys({
   		govuk_signin_journey_id: jwtPayload.govuk_signin_journey_id as string,
   		sessionId,
   	});
@@ -123,19 +119,19 @@ export class SessionRequestProcessor {
   		if (configClient?.jwksEndpoint) {
   			const payload = await this.kmsDecryptor.verifyWithJwks(urlEncodedJwt, configClient.jwksEndpoint, jwtTargetKid);
   			if (!payload) {
-  				this.logger.error("Failed to verify JWT", {
+  				logger.error("Failed to verify JWT", {
   					messageCode: MessageCodes.FAILED_VERIFYING_JWT,
   				});
   				return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   			}
   		} else {
-  			this.logger.error("Incomplete Client Configuration", {
+  			logger.error("Incomplete Client Configuration", {
   				messageCode: MessageCodes.MISSING_CONFIGURATION,
   			});
   			return Response(HttpCodesEnum.SERVER_ERROR, "Server Error");
   		}
   	} catch (error) {
-  		this.logger.error("Could not verify JWT", {
+  		logger.error("Could not verify JWT", {
   			error,
   			messageCode: MessageCodes.FAILED_VERIFYING_JWT,
   		});
@@ -144,7 +140,7 @@ export class SessionRequestProcessor {
 
   	const JwtErrors = this.validationHelper.isJwtValid(jwtPayload, requestBodyClientId, configClient.redirectUri);
   	if (JwtErrors.length > 0) {
-  		this.logger.error(JwtErrors, {
+  		logger.error(JwtErrors, {
   			messageCode: MessageCodes.FAILED_VALIDATING_JWT,
   		});
   		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
@@ -153,20 +149,20 @@ export class SessionRequestProcessor {
   	// Validate the user details of the shared_claims received from the JWT.
   	const data = this.validationHelper.isPersonDetailsValid(jwtPayload.shared_claims.emailAddress, jwtPayload.shared_claims.name);
   	if (data.errorMessage.length > 0) {
-  		this.logger.error( { message: data.errorMessage + "  from shared claims data" }, { messageCode : data.errorMessageCode });
+  		logger.error( { message: data.errorMessage + "  from shared claims data" }, { messageCode : data.errorMessageCode });
   		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
 
   	// Validate the address format of the shared_claims received from the JWT.
   	const { errorMessage, errorMessageCode } = this.validationHelper.isAddressFormatValid(jwtPayload);
   	if (errorMessage.length > 0) {
-  		this.logger.error( { message: errorMessage }, { messageCode : errorMessageCode });
+  		logger.error( { message: errorMessage }, { messageCode : errorMessageCode });
   		return Response(HttpCodesEnum.UNAUTHORIZED, "Unauthorized");
   	}
 
   	try {
   		if (await this.f2fService.getSessionById(sessionId)) {
-  			this.logger.error("SESSION_ALREADY_EXISTS", {
+  			logger.error("SESSION_ALREADY_EXISTS", {
   				fieldName: "sessionId",
   				value: sessionId,
   				reason: "sessionId already exists in the database",
@@ -175,7 +171,7 @@ export class SessionRequestProcessor {
   			return Response(HttpCodesEnum.SERVER_ERROR, "Internal server error");
   		}
   	} catch (error) {
-  		this.logger.error("Unexpected error accessing session table", {
+  		logger.error("Unexpected error accessing session table", {
   			error,
   			messageCode: MessageCodes.UNEXPECTED_ERROR_SESSION_EXISTS,
   		});
@@ -202,7 +198,7 @@ export class SessionRequestProcessor {
   		await this.f2fService.createAuthSession(session);
 		this.metrics.addMetric("state-F2F_SESSION_CREATED", MetricUnit.Count, 1);
   	} catch (error) {
-  		this.logger.error("Failed to create session in session table", {
+  		logger.error("Failed to create session in session table", {
   			error,
   			messageCode: MessageCodes.FAILED_CREATING_SESSION,
   		});
@@ -216,7 +212,7 @@ export class SessionRequestProcessor {
 
   		await this.f2fService.savePersonIdentity(jwtPayload.shared_claims, sessionId);
   	} catch (error) {
-  		this.logger.error("Failed to create session in person identity table", {
+  		logger.error("Failed to create session in person identity table", {
   			error,
   			messageCode: MessageCodes.FAILED_SAVING_PERSON_IDENTITY,
   		});
@@ -234,14 +230,14 @@ export class SessionRequestProcessor {
   			},  			
   		}, encodedHeader);
   	} catch (error) {
-  		this.logger.error("Auth session successfully created. Failed to send CIC_CRI_START event to TXMA", {
+  		logger.error("Auth session successfully created. Failed to send CIC_CRI_START event to TXMA", {
   			sessionId: session.sessionId,
   			error,
   			messageCode: MessageCodes.FAILED_TO_WRITE_TXMA,
   		});
   	}
 
-  	this.logger.info("Session created successfully. Returning 200OK");
+  	logger.info("Session created successfully. Returning 200OK");
 
 	this.metrics.addMetric("session_created", MetricUnit.Count, 1);
 

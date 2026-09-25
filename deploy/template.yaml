@@ -379,7 +379,7 @@ Globals:
           - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
         # These should always be alphabetically organised.
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
-        POWERTOOLS_LOG_LEVEL: !If [IsNotProdLikeEnvironment, "DEBUG", "INFO"] # The LogLevel for the AWS PowerTools LogHelper
+        POWERTOOLS_LOG_LEVEL: "INFO" # The LogLevel for the Common CRI Logger
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
         RESOURCES_TTL_SECS:
             !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
