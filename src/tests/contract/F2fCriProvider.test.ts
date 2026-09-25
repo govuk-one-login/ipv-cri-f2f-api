@@ -28,7 +28,7 @@ describe("Pact Verification", () => {
 	});  
 	
 	it("tests against potential new contracts", async () => {
-		logger.info("Starting Pact Verification");
+		logger.debug("Starting Pact Verification");
 		let result;
 		await new Verifier(opts)
 			.verifyProvider()
