@@ -50,7 +50,7 @@ export class F2fService {
 	}
 
 	async getSessionById(sessionId: string, tableName: string = this.tableName): Promise<ISessionItem | undefined> {
-		logger.debug("Table name " + tableName);
+		logger.info("Table name " + tableName);
 		const getSessionCommand = new GetCommand({
 			TableName: this.tableName,
 			Key: {
@@ -78,7 +78,7 @@ export class F2fService {
 	}
 
 	async getPersonIdentityById(sessionId: string, tableName: string = this.tableName): Promise<PersonIdentityItem | undefined> {
-		logger.debug("Table name " + tableName);
+		logger.info("Table name " + tableName);
 		const getPersonIdentityCommand = new GetCommand({
 			TableName: tableName,
 			Key: {
@@ -102,7 +102,7 @@ export class F2fService {
 	}
 
 	async getSessionByYotiId(yotiSessionId: string, tableName: string = this.tableName): Promise<ISessionItem | undefined> {
-		logger.debug("Table name " + tableName);
+		logger.info("Table name " + tableName);
 		const params: QueryCommandInput = {
 			TableName: tableName,
 			IndexName: Constants.YOTI_SESSION_ID_INDEX_NAME,

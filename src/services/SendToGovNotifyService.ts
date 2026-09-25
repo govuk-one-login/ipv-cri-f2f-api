@@ -151,7 +151,6 @@ export class SendToGovNotifyService {
 				  this.metrics.addMetric("SendToGovNotify_fetched_merged_pdf", MetricUnit.Count, 1);
 
   				if (mergedPdf) {
-  					logger.debug("sendLetter", SendToGovNotifyService.name);
   					logger.info("Sending precompiled letter");
 
   					await this.sendGovNotificationLetter(
@@ -175,7 +174,6 @@ export class SendToGovNotifyService {
   		if (instructionsPdf) {
   			this.metrics.addMetric("SendToGovNotify_pdf_instructions_retreived", MetricUnit.Count, 1);
 
-  			logger.debug("sendEmail", SendToGovNotifyService.name);
   			logger.info("Sending Yoti PDF email");
 
 			  const encoded = Buffer.from(instructionsPdf, "binary").toString(

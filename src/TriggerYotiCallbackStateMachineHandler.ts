@@ -33,14 +33,14 @@ class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 
 		if (event.Records.length === 1) {
 			const record: SQSRecord = event.Records[0];
-			logger.debug("Starting to process record");
+			logger.info("Starting to process record");
 
 			const body = JSON.parse(record.body);
 			logger.appendKeys({
 				yotiSessionId: body.session_id,
 			});
 
-			logger.debug("Parsed SQS event body", body);
+			logger.info("Parsed SQS event body", body);
 
 			if (
 				body.topic === YotiCallbackTopics.SESSION_COMPLETION ||

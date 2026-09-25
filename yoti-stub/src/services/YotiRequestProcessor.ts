@@ -216,7 +216,7 @@ export class YotiRequestProcessor {
         logger.info("Create Session Success Scenarios", { SUPPORTED_DOCUMENTS });
 
         if (SUPPORTED_DOCUMENTS.includes(firstTwoChars)) {
-            logger.debug(JSON.stringify(yotiSessionItem));
+            logger.info(JSON.stringify(yotiSessionItem));
             logger.info("Yoti Session Item", JSON.stringify(yotiSessionItem));
             return new Response(HttpCodesEnum.CREATED, JSON.stringify(yotiSessionItem));
         }
@@ -276,7 +276,7 @@ export class YotiRequestProcessor {
             if (firstTwoChars === DocumentMapping.UK_DL) { // UK - Driving Licence Scenarios
                 switch (lastUuidChars) {
                     case '0000': // UK Driving License Success - Face Match automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_DL_RESPONSE_0000 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
                         VALID_DL_RESPONSE_0000.session_id = sessionId; // Sets the session_id in the JSON response to match this function's
                         VALID_DL_RESPONSE_0000.resources.id_documents[0].document_fields.media.id = sessionId; // Media.id is also assigned the sessionId
@@ -285,7 +285,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE_0000));
 
                     case '0001': // UK Driving License Success - Face Match not automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_DL_RESPONSE_0001 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
                         VALID_DL_RESPONSE_0001.session_id = sessionId;
                         VALID_DL_RESPONSE_0001.resources.id_documents[0].document_fields.media.id = sessionId;
@@ -316,7 +316,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(updatedPayload));
 
                     case '0002': // UK Driving License Success - Non Space Characters in Name Returned Differently
-                    logger.debug(JSON.stringify(yotiSessionRequest));
+                    logger.info(JSON.stringify(yotiSessionRequest));
                     const VALID_DL_RESPONSE_0002 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
                     VALID_DL_RESPONSE_0002.session_id = sessionId;
                     VALID_DL_RESPONSE_0002.resources.id_documents[0].document_fields.media.id = sessionId;
@@ -324,7 +324,7 @@ export class YotiRequestProcessor {
                     return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE_0002));
 
                     case '0003': // UK Driving License Success - No formatted_address in structural_address
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_DL_RESPONSE_0003 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
                         VALID_DL_RESPONSE_0003.session_id = sessionId; 
                         VALID_DL_RESPONSE_0003.resources.id_documents[0].document_fields.media.id = sessionId;
@@ -338,7 +338,7 @@ export class YotiRequestProcessor {
             if (firstTwoChars === DocumentMapping.UK_PASSPORT) { // UK - Passport Scenarios
                 switch (lastUuidChars) {
                     case '0100': // UK Passport Success - Chip Readable & Face Match automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0100 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0100.session_id = sessionId;
@@ -347,7 +347,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0100));
 
                     case '0101': // UK Passport Success - Chip NOT readable & Face Match automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_0101 = JSON.parse(JSON.stringify(VALID_RESPONSE));
 
                         VALID_RESPONSE_0101.session_id = sessionId;
@@ -356,7 +356,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_0101));
 
                     case '0102': // UK Passport Success - Chip Readable & Face Match NOT automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const AI_FAIL_MANUAL_PASS_0102 = JSON.parse(JSON.stringify(AI_FAIL_MANUAL_PASS));
 
                         AI_FAIL_MANUAL_PASS_0102.session_id = sessionId;
@@ -365,7 +365,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(AI_FAIL_MANUAL_PASS_0102));
 
                     case '0103': // UK Passport Success - Chip NOT readable & Face Match NOT automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const AI_PASS_0103 = JSON.parse(JSON.stringify(AI_PASS));
 
                         AI_PASS_0103.session_id = sessionId;
@@ -374,7 +374,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(AI_PASS_0103));
 
                     case '0104': // UK Passport - Different Person
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const DIFFERENT_PERSON_RESPONSE_0104 = JSON.parse(JSON.stringify(DIFFERENT_PERSON_RESPONSE));
 
                         DIFFERENT_PERSON_RESPONSE_0104.session_id = sessionId;
@@ -383,7 +383,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(DIFFERENT_PERSON_RESPONSE_0104));
 
                     case '0105': // UK Passport - Expired
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const EXPIRED_PASSPORT_RESPONSE_0105 = JSON.parse(JSON.stringify(EXPIRED_PASSPORT_RESPONSE));
 
                         EXPIRED_PASSPORT_RESPONSE_0105.session_id = sessionId;
@@ -392,7 +392,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(EXPIRED_PASSPORT_RESPONSE_0105));
 
                     case '0106': // UK Passport - Tampered
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const TAMPERED_DOCUMENT_RESPONSE_0106 = JSON.parse(JSON.stringify(TAMPERED_DOCUMENT_RESPONSE));
 
                         TAMPERED_DOCUMENT_RESPONSE_0106.session_id = sessionId;
@@ -401,7 +401,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(TAMPERED_DOCUMENT_RESPONSE_0106));
 
                     case '0107': // UK Passport - FaceCheck Failed
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const AI_FAIL_MANUAL_FAIL_0107 = JSON.parse(JSON.stringify(AI_FAIL_MANUAL_FAIL));
 
                         AI_FAIL_MANUAL_FAIL_0107.session_id = sessionId;
@@ -411,7 +411,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(AI_FAIL_MANUAL_FAIL_0107));
 
                     case '0108': // UK Passport Fails due to FACE_NOT_GENUINE
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0108 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0108.session_id = sessionId;
@@ -431,7 +431,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0109': // UK Passport Fails due to LARGE_AGE_GAP
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0109 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0109.session_id = sessionId;
@@ -451,7 +451,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0110': // UK Passport - PHOTO_OF_MASK
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0110 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0110.session_id = sessionId;
@@ -471,7 +471,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0111': // UK Passport - PHOTO_OF_PHOTO
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0111 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0111.session_id = sessionId;
@@ -491,7 +491,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0112': // UK Passport - DIFFERENT_PERSON
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_012 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_012.session_id = sessionId;
@@ -511,7 +511,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0113': // UK Passport - COUNTERFEIT
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0113 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0113.session_id = sessionId;
@@ -531,7 +531,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0114': // UK Passport - EXPIRED_DOCUMENT
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0114 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0114.session_id = sessionId;
@@ -551,7 +551,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0115': // UK Passport - FRAUD_LIST_MATCH
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0115 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0115.session_id = sessionId;
@@ -571,7 +571,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0116': // UK Passport - DIFFERENT_PERSON
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0116 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0116.session_id = sessionId;
@@ -591,7 +591,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0117': // UK Passport - ISSUING_AUTHORITY_INVALID
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0117 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0117.session_id = sessionId;
@@ -611,7 +611,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0118': // UK Passport - TAMPERED
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0118 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0118.session_id = sessionId;
@@ -631,7 +631,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0119': // UK Passport - MISSING_HOLOGRAM
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0119 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0119.session_id = sessionId;
@@ -651,7 +651,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0120': // UK Passport - NO_HOLOGRAM_MOVEMENT
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0120 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0120.session_id = sessionId;
@@ -671,7 +671,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0121': // UK Passport - DATA_MISMATCH
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0121 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0121.session_id = sessionId;
@@ -691,7 +691,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0122': // UK Passport - DOC_NUMBER_INVALID
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0122 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0122.session_id = sessionId;
@@ -711,7 +711,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0123': // UK Passport - CHIP_DATA_INTEGRITY_FAILED
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0123 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0123.session_id = sessionId;
@@ -731,7 +731,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0124': // UK Passport - CHIP_SIGNATURE_VERIFICATION_FAILED
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0124 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0124.session_id = sessionId;
@@ -751,7 +751,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0125': // UK Passport - CHIP_CSCA_VERIFICATION_FAILED
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0125 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0125.session_id = sessionId;
@@ -772,7 +772,7 @@ export class YotiRequestProcessor {
 
 
                     case '0126': // UK Passport - IBV_VISUAL_REVIEW_CHECK
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0126 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0126.session_id = sessionId;
@@ -792,7 +792,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0127': // UK Passport - DOCUMENT_SCHEME_VALIDITY_CHECK
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0127 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0127.session_id = sessionId;
@@ -812,7 +812,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0128': // UK Passport - PROFILE_DOCUMENT_MATCH
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0128 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0128.session_id = sessionId;
@@ -832,7 +832,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0129': // UK Passport Success -JOYCE
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0129 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0129.session_id = sessionId;
@@ -841,7 +841,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0129));
 
                     case '0130': // UK Passport Success -PAUL
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0130 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0130.session_id = sessionId;
@@ -850,7 +850,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0130));
 
                     case '0131': // UK Passport Success -ANTHONY
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0131 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0131.session_id = sessionId;
@@ -859,7 +859,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0131));
 
                     case '0132': // UK Passport Success -SUZIE
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0132 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0132.session_id = sessionId;
@@ -868,7 +868,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0132));
 
                     case '0133': // UK Passport Success - document_fields object 2nd in list of resources
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const DOCUMENT_FIELDS_SECOND_0133 = JSON.parse(JSON.stringify(DOCUMENT_FIELDS_SECOND));
 
                         DOCUMENT_FIELDS_SECOND_0133.session_id = sessionId;
@@ -877,7 +877,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(DOCUMENT_FIELDS_SECOND_0133));
 										
                     case '0134': // UK Passport Success - Multiple objects in id_documents array with different ids
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const MULTIPLE_DOCUMENT_FIELDS_0134 = JSON.parse(JSON.stringify(MULTIPLE_DOCUMENT_FIELDS));
                         
                         MULTIPLE_DOCUMENT_FIELDS_0134.session_id = sessionId;
@@ -886,7 +886,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(MULTIPLE_DOCUMENT_FIELDS_0134));
 
                     case '0150': // UK Passport Success - Only FullName in DocumentFields
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0150 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0150.session_id = sessionId;
@@ -895,7 +895,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0150));
 
                     case '0151': // UK Passport Success - Only FullName & GivenName in DocumentFields
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0151 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0151.session_id = sessionId;
@@ -904,7 +904,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0151));
 
                     case '0152': // UK Passport Success - Only FullName & FamilyName in DocumentFields
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0152 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0152.session_id = sessionId;
@@ -913,7 +913,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0152));
 
                     case '0153': // UK Passport Success - Wrong Split of GivenNames in DocumentFields
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0153 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0153.session_id = sessionId
@@ -922,7 +922,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0153));
 
                     case '0160': // UK Passport - manual text extraction failed
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0160 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         delete VALID_RESPONSE_NFC_0160.resources.id_documents[0].document_fields;
@@ -950,14 +950,14 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0160));
 
                     case '0170': // UK Passport - Yoti document_fields media ID not found
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0170 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         delete VALID_RESPONSE_NFC_0170.resources.id_documents[0].document_fields.media.id;
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0170));
                         
                     case '0180': // UK Passport - FullName mismatch between F2F & YOTI
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0180 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0180.session_id = sessionId;
@@ -973,7 +973,7 @@ export class YotiRequestProcessor {
             if (firstTwoChars === DocumentMapping.NON_UK_PASSPORT) { // Non-UK - Passport Scenarios
                 switch (lastUuidChars) {
                     case '0200': // Non-UK Passport Success - Chip Readable & Face Match automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0200 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0200.session_id = sessionId;
@@ -983,7 +983,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_NFC_0200));
 
                     case '0201': // Non-UK Passport Success - Chip NOT readable & Face Match automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_0201 = JSON.parse(JSON.stringify(VALID_RESPONSE));
 
                         VALID_RESPONSE_0201.session_id = sessionId;
@@ -993,7 +993,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_RESPONSE_0201));
 
                     case '0202': // Non-UK Passport Success - Chip Readable & Face Match NOT automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const AI_FAIL_MANUAL_PASS_0202 = JSON.parse(JSON.stringify(AI_FAIL_MANUAL_PASS));
 
                         AI_FAIL_MANUAL_PASS_0202.session_id = sessionId;
@@ -1003,7 +1003,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(AI_FAIL_MANUAL_PASS_0202));
 
                     case '0203': // Non-UK Passport Success - Chip NOT readable & Face Match NOT automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const AI_PASS_0203 = JSON.parse(JSON.stringify(AI_PASS));
 
                         AI_PASS_0203.session_id = sessionId;
@@ -1013,7 +1013,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(AI_PASS_0203));
 
                     case '0204': // Non-UK Passport Fails due to FACE_NOT_GENUINE
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0204 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0204.session_id = sessionId;
@@ -1031,7 +1031,7 @@ export class YotiRequestProcessor {
                         };
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
                     case '0205': // Non-UK Passport - ID_DOCUMENT_AUTHENTICITY
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_RESPONSE_NFC_0205 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                         VALID_RESPONSE_NFC_0205.session_id = sessionId;
@@ -1051,7 +1051,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(modifiedPayload));
 
                     case '0206': // Non-UK Passport Success - Surnames Split Incorrectly
-                    logger.debug(JSON.stringify(yotiSessionRequest));
+                    logger.info(JSON.stringify(yotiSessionRequest));
                     const VALID_RESPONSE_NFC_0206 = JSON.parse(JSON.stringify(VALID_RESPONSE_NFC));
 
                     VALID_RESPONSE_NFC_0206.session_id = sessionId;
@@ -1068,7 +1068,7 @@ export class YotiRequestProcessor {
             if (firstTwoChars === DocumentMapping.EU_DL) { // EU - Driving Licence Scenarios
                 switch (lastUuidChars) {
                     case '0400': // EU Driving Licence Success - Face Match Automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_DL_RESPONSE_0400 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
 
                         VALID_DL_RESPONSE_0400.session_id = sessionId;
@@ -1078,7 +1078,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(VALID_DL_RESPONSE_0400));
 
                     case '0401':// EU Driving Licence Success & Face Match NOT automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_DL_RESPONSE_0401 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
 
                         VALID_DL_RESPONSE_0401.session_id = sessionId;
@@ -1121,7 +1121,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(updatedPayload));
 
                         case '0402': // EU Driving Licence Success - Incorrect Sequence of Names
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const VALID_DL_RESPONSE_0402 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
 
                         VALID_DL_RESPONSE_0402.session_id = sessionId;
@@ -1138,7 +1138,7 @@ export class YotiRequestProcessor {
             if (firstTwoChars === DocumentMapping.EEA_ID) { // EEA National ID Card Scenarios
                 switch (lastUuidChars) {
                     case '0500': // EEA Success - Chip Readable & Face Match automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const EEA_VALID_RESPONSE_NFC_0500 = JSON.parse(JSON.stringify(EEA_VALID_RESPONSE_NFC));
 
                         EEA_VALID_RESPONSE_NFC_0500.session_id = sessionId;
@@ -1147,7 +1147,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(EEA_VALID_RESPONSE_NFC_0500));
 
                     case '0501': // EEA Success - Chip NOT Readable & Face Match automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const EEA_AI_MATCH_NO_CHIP_0501 = JSON.parse(JSON.stringify(EEA_AI_MATCH_NO_CHIP));
 
                         EEA_AI_MATCH_NO_CHIP_0501.session_id = sessionId;
@@ -1156,7 +1156,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(EEA_AI_MATCH_NO_CHIP_0501));
 
                     case '0502': // EEA Success - Chip Readable & Face Match NOT automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const EEA_AI_FAIL_MANUAL_PASS_0502 = JSON.parse(JSON.stringify(EEA_AI_FAIL_MANUAL_PASS));
 
                         EEA_AI_FAIL_MANUAL_PASS_0502.session_id = sessionId;
@@ -1165,7 +1165,7 @@ export class YotiRequestProcessor {
                         return new Response(HttpCodesEnum.OK, JSON.stringify(EEA_AI_FAIL_MANUAL_PASS_0502));
 
                     case '0503': // EEA Success - Chip NOT Readable & Face Match NOT automated
-                        logger.debug(JSON.stringify(yotiSessionRequest));
+                        logger.info(JSON.stringify(yotiSessionRequest));
                         const EEA_MANUAL_PASS_0503 = JSON.parse(JSON.stringify(EEA_MANUAL_PASS));
 
                         EEA_MANUAL_PASS_0503.session_id = sessionId;
@@ -1200,7 +1200,7 @@ export class YotiRequestProcessor {
             } else {
                 this.yotiRequestCount = 0;
                 const yotiSessionRequest = new YotiSessionRequest(sessionId);
-                logger.debug(JSON.stringify(yotiSessionRequest));
+                logger.info(JSON.stringify(yotiSessionRequest));
                 const VALID_DL_RESPONSE_0429 = JSON.parse(JSON.stringify(VALID_DL_RESPONSE));
                 VALID_DL_RESPONSE_0429.session_id = sessionId;
                 VALID_DL_RESPONSE_0429.resources.id_documents[0].document_fields.media.id = sessionId; 

@@ -31,12 +31,11 @@ class GovNotifyHandler implements LambdaInterface {
 
 		if (event.Records.length === 1) {
 			const record: SQSRecord = event.Records[0];
-			logger.debug("Starting to process record");
+			logger.info("Starting to process record");
 
 			try {
-				logger.info("checking service has redeployed");
 				const body = JSON.parse(record.body);
-				logger.debug("Parsed SQS event body");
+				logger.info("Parsed SQS event body");
 				if (!YOTI_PRIVATE_KEY) {
 					logger.info({ message: "Fetching YOTI_PRIVATE_KEY from SSM" });
 					try {
@@ -69,7 +68,7 @@ class GovNotifyHandler implements LambdaInterface {
 					return failEntireBatch;
 				}
 				await SendEmailProcessor.getInstance(metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(body);
-				logger.debug("Finished processing record from SQS");
+				logger.info("Finished processing record from SQS");
 				return passEntireBatch;
 
 

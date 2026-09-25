@@ -31,7 +31,7 @@ class YotiSessionCompletionHandler implements LambdaInterface {
 			logger.appendKeys({	yotiSessionId: event.session_id });
 			const yotiPrivateKey = await YotiPrivateKeyProvider.getYotiPrivateKey(this.environmentVariables);
 			await YotiSessionCompletionProcessor.getInstance(metrics, yotiPrivateKey).processRequest(event);
-			logger.debug("Finished processing record from SQS");
+			logger.info("Finished processing record from SQS");
 
 		} catch (error: any) {
 			logger.error({ message: "Failed to process session_completion event",

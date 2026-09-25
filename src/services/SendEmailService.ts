@@ -116,7 +116,6 @@ export class SendEmailService {
   			sessionConfigObject.clientConfig.YotiBaseUrl,
   		);
   		if (encoded) {
-  			logger.debug("sendEmail", SendEmailService.name);
   			logger.info("Sending Yoti PDF email");
 
   			const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
@@ -333,7 +332,7 @@ export class SendEmailService {
   				message.emailAddress,
   				options,
   			);
-  			logger.debug(
+  			logger.info(
   				"sendEmail - response status after sending Email",
   				SendEmailService.name,
   				emailResponse.status,

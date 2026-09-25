@@ -18,7 +18,7 @@ export function getClientConfig(clientConfig: string, sessionClientId: string): 
 		const config = JSON.parse(clientConfig) as ClientConfig[];
 		const usersConfig = config.find(c => c.clientId === sessionClientId);
 
-		logger.debug("CLIENT_CONFIG", {
+		logger.info("CLIENT_CONFIG", {
 			client_id: sessionClientId,
 			usersConfig,
 		});

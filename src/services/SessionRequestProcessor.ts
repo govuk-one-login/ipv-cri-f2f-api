@@ -42,7 +42,6 @@ export class SessionRequestProcessor {
   constructor(metrics: Metrics) {
   	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(ServicesEnum.SESSION_SERVICE);
-  	logger.debug("metrics is  " + JSON.stringify(this.metrics));
   	this.metrics.addMetric("Called", MetricUnit.Count, 1);
   	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
   	this.kmsDecryptor = new KmsJwtAdapter(this.environmentVariables.encryptionKeyIds());
