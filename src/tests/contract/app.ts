@@ -2,8 +2,13 @@ import express from "express";
 import { accessTokenRouter } from "./routes/AccessTokenRoute";
 import { userInfoRouter } from "./routes/UserInfoRoute";
 import bodyParser from "body-parser";
-import { logger } from "@govuk-one-login/cri-logger";
+import { Logger } from "@aws-lambda-powertools/logger";
 import { Constants } from "./utils/Constants";
+
+const logger = new Logger({
+	logLevel: "DEBUG",
+	serviceName: "F2fCriProvider",
+});
 
 const app = express();
 app.use(express.json());
@@ -19,4 +24,3 @@ app.listen(port, () => {
 
 app.use(Constants.TOKEN_ENDPOINT, accessTokenRouter);
 app.use(Constants.USERINFO_ENDPOINT, userInfoRouter);
-
