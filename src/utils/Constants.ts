@@ -104,6 +104,7 @@ export class Constants {
 		FIRST_NAME: "first name",
 		LAST_NAME: "last name",
 		DATE: "date",
+		WELSH_DATE: "welsh date",
 		LINK_TO_FILE: "link_to_file",
 		CHOSEN_PHOTO_ID: "chosen photo ID",
 	};
