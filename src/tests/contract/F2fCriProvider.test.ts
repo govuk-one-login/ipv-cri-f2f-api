@@ -1,12 +1,7 @@
  
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Verifier, VerifierOptions } from "@pact-foundation/pact";
 import { Constants } from "./utils/Constants";
-
-const logger = new Logger({
-	logLevel: "INFO",
-	serviceName: "F2fCriProviderTest",
-});
 
 let opts: VerifierOptions;
 // Verify that the provider meets all consumer expectations

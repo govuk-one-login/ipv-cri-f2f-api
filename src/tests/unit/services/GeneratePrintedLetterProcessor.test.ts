@@ -1,7 +1,7 @@
  
 import { captor, mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { logger } from "@govuk-one-login/cri-logger";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { GeneratePrintedLetterProcessor } from "../../../services/GeneratePrintedLetterProcessor";
 import { F2fService } from "../../../services/F2fService";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
@@ -15,7 +15,7 @@ import { PDFService } from "../../../services/PdfService";
 
 const mockF2fService = mock<F2fService>();
 const mockPdfService = mock<PDFService>();
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 
 vi.mock("@aws-sdk/client-s3", () => ({
@@ -64,7 +64,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("GenerateYotiLetterProcessor", () => {
 	beforeAll(() => {
-		generatePrintedLetterProcessor = new GeneratePrintedLetterProcessor(logger, metrics);
+		generatePrintedLetterProcessor = new GeneratePrintedLetterProcessor(metrics);
 		// @ts-expect-error linting to be updated
 		generatePrintedLetterProcessor.f2fService = mockF2fService;
 		// @ts-expect-error linting to be updated

@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "./enums/HttpCodesEnum";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 
 /**
  * Object to represent data contained in email messages sent by this lambda
@@ -17,7 +17,7 @@ export class ReminderEmail {
 		this.referenceId = randomUUID();
 	}
 
-	static parseRequest(data: any, logger: Logger): ReminderEmail {
+	static parseRequest(data: any): ReminderEmail {
 		try {
 			return new ReminderEmail(JSON.parse(data));
 			// ignored so as not log PII

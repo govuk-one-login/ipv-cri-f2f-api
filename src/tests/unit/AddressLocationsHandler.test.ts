@@ -1,6 +1,6 @@
 import type { MockInstance } from "vitest";
- 
-import { lambdaHandler, logger } from "../../AddressLocationsHandler";
+import { logger } from "@govuk-one-login/cri-logger";
+import { lambdaHandler } from "../../AddressLocationsHandler";
 import { VALID_ADDRESS_LOCATIONS } from "./data//addressLocations-event";
 import { CONTEXT } from "./data/context";
 import { mock } from "vitest-mock-extended";
@@ -9,7 +9,7 @@ import { AddressLocationsProcessor } from "../../services/AddressLocationsProces
 import { Constants } from "../../utils/Constants";
 import { MessageCodes } from "../../models/enums/MessageCodes";
 import { randomUUID } from "crypto";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 
 vi.mock("../../utils/Config", () => ({
 	getParameter: (parameter: string) => parameter,

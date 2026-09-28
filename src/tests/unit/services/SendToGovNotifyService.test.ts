@@ -6,7 +6,7 @@ import type { Mock } from "vitest";
 // @ts-expect-error linting to be updated
 import { NotifyClient } from "notifications-node-client";
 import { EmailResponse } from "../../../models/EmailResponse";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 import { mock } from "vitest-mock-extended";
@@ -15,7 +15,7 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { SendToGovNotifyService } from "../../../services/SendToGovNotifyService";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { fetchEncodedFileFromS3Bucket } from "../../../utils/S3Client";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 
 vi.mock("notifications-node-client", () => {
 	return {
@@ -42,7 +42,7 @@ vi.mock("../../../utils/S3Client", () => ({
 let sendToGovNotifyServiceTest: SendToGovNotifyService;
 // pragma: allowlist nextline secret
 const GOVUKNOTIFY_API_KEY = "sdhohofsdf";
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 const mockF2fService = mock<F2fService>();
 function getMockSessionItem(): ISessionItem {
@@ -155,7 +155,7 @@ describe("SendToGovNotifyService", () => {
 				sendPrecompiledLetter: mockSendPrecompiledLetter,
 			};
 		});
-		sendToGovNotifyServiceTest = SendToGovNotifyService.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, "serviceId");
+		sendToGovNotifyServiceTest = SendToGovNotifyService.getInstance(metrics, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-expect-error linting to be updated
 		sendToGovNotifyServiceTest.f2fService = mockF2fService;
 		metrics.singleMetric.mockReturnValue(metrics);

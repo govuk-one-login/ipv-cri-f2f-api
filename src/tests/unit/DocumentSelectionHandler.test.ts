@@ -1,10 +1,10 @@
 import type { MockInstance } from "vitest";
  
  
-import { lambdaHandler, logger } from "../../DocumentSelectionHandler";
+import { lambdaHandler } from "../../DocumentSelectionHandler";
 import { mock } from "vitest-mock-extended";
 import { VALID_REQUEST, INVALID_SESSION_ID, MISSING_SESSION_ID } from "./data/documentSelection-events";
-
+import { logger } from "@govuk-one-login/cri-logger";
 import { DocumentSelectionRequestProcessor } from "../../services/DocumentSelectionRequestProcessor";
 import { Constants } from "../../utils/Constants";
 import { MessageCodes } from "../../models/enums/MessageCodes";

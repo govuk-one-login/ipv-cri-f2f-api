@@ -1,6 +1,6 @@
  
  
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { SQSEvent } from "aws-lambda";
 // @ts-expect-error linting to be updated
 import { NotifyClient } from "notifications-node-client";
@@ -31,7 +31,7 @@ let sendEmailServiceTest: SendEmailService;
 const YOTI_PRIVATE_KEY = "sdfsdf";
 // pragma: allowlist nextline secret
 const GOVUKNOTIFY_API_KEY = "sdhohofsdf";
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = new Metrics({ namespace: "F2F" });
 
 let sqsEvent: SQSEvent;
@@ -71,7 +71,7 @@ describe("SendEmailProcessor", () => {
 				sendEmail: mockSendEmail,
 			};
 		});
-		sendEmailServiceTest = SendEmailService.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
+		sendEmailServiceTest = SendEmailService.getInstance(metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-expect-error linting to be updated
 		sendEmailServiceTest.f2fService = mockF2fService;
 		sqsEvent = VALID_SQS_EVENT;
@@ -99,7 +99,7 @@ describe("SendEmailProcessor", () => {
 		mockSendEmail.mockResolvedValue({ status: 201, data: mockEmailResponse });
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
 		const emailResponse = await sendEmailServiceTest.sendYotiPdfEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
@@ -144,7 +144,7 @@ describe("SendEmailProcessor", () => {
 			},
 		});
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
 		await expect(sendEmailServiceTest.sendYotiPdfEmail(email)).rejects.toThrow();
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
 	});
@@ -167,7 +167,7 @@ describe("SendEmailProcessor", () => {
 		});
 
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
 		await expect(sendEmailServiceTest.sendYotiPdfEmail(email)).rejects.toThrow();
 		expect(mockSendEmail).toHaveBeenCalledTimes(4);
 	});
@@ -190,7 +190,7 @@ describe("SendEmailProcessor", () => {
 		});
 
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
 		await expect(sendEmailServiceTest.sendYotiPdfEmail(email)).rejects.toThrow();
 		expect(mockSendEmail).toHaveBeenCalledTimes(4);
 	});
@@ -204,7 +204,7 @@ describe("SendEmailProcessor", () => {
 		mockSendEmail.mockResolvedValue({ status: 201, data: mockEmailResponse });
 		mockYotiService.fetchInstructionsPdf.mockResolvedValue("gkiiho");
 		const eventBody = JSON.parse(sqsEvent.Records[0].body);
-		const email = Email.parseRequest(JSON.stringify(eventBody.Message), logger);
+		const email = Email.parseRequest(JSON.stringify(eventBody.Message));
 		const emailResponse = await sendEmailServiceTest.sendYotiPdfEmail(email);
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
@@ -218,7 +218,7 @@ describe("SendEmailProcessor", () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201, "1006");
 		mockSendEmail.mockResolvedValue({ status: 201, data: mockEmailResponse });
 		const eventBody = JSON.parse(reminderEmailEvent.Records[0].body);
-		const email = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
+		const email = ReminderEmail.parseRequest(JSON.stringify(eventBody.Message));
 		email.referenceId = mockReference;
 		const emailResponse = await sendEmailServiceTest.sendReminderEmail(email);
 
@@ -239,7 +239,7 @@ describe("SendEmailProcessor", () => {
 		const mockEmailResponse = new EmailResponse(new Date().toISOString(), "", 201, "1007");
 		mockSendEmail.mockResolvedValue({ status: 201, data: mockEmailResponse });
 		const eventBody = JSON.parse(dynamicEmailEvent.Records[0].body);
-		const email = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message), logger);
+		const email = DynamicReminderEmail.parseRequest(JSON.stringify(eventBody.Message));
 		email.referenceId = mockReference;
 		const emailResponse = await sendEmailServiceTest.sendDynamicReminderEmail(email);
 

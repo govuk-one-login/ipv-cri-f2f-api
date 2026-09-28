@@ -2,7 +2,7 @@ import type { MockInstance } from "vitest";
 import * as AWS from "@aws-sdk/client-ssm";
 import { mockSsmClient } from "../../contract/mocks/ssmClient";
 import { createSsmClient } from "../../../utils/SSMClient";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import AWSXRay from "aws-xray-sdk-core";
 
 vi.mock("aws-xray-sdk-core", () => ({
@@ -17,7 +17,7 @@ describe("createSsmClient", () => {
 	let loggerSpy: MockInstance;
 
 	beforeEach(() => {
-		loggerSpy = vi.spyOn(Logger.prototype, 'info');
+		loggerSpy = vi.spyOn(logger, 'info');
 	});
 
     afterEach(() => {

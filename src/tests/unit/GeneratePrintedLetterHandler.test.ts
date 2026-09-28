@@ -1,11 +1,11 @@
 import type { MockInstance } from "vitest";
- 
-import { lambdaHandler, logger } from "../../GeneratePrintedLetterHandler";
+import { logger } from "@govuk-one-login/cri-logger";
+import { lambdaHandler } from "../../GeneratePrintedLetterHandler";
 import { GeneratePrintedLetterProcessor } from "../../services/GeneratePrintedLetterProcessor";
 import { mock } from "vitest-mock-extended";
 import { CONTEXT } from "./data/context";
 import { MessageCodes } from "../../models/enums/MessageCodes";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 
 const mockedGeneratePrintedLetterProcessor = mock<GeneratePrintedLetterProcessor>();
 

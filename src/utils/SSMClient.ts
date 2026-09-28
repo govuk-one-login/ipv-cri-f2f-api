@@ -1,12 +1,7 @@
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import AWSXRay from "aws-xray-sdk-core";
 import { mockSsmClient } from "../tests/contract/mocks/ssmClient";
-import { Logger } from "@aws-lambda-powertools/logger";
-
-const logger = new Logger({
-	logLevel: "INFO",
-	serviceName: "SSMClient",
-});
+import { logger } from "@govuk-one-login/cri-logger";
 
 const createSsmClient = () => {
 	let ssmClient: SSMClient;

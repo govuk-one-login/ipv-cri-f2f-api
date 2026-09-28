@@ -1,6 +1,5 @@
 import { Context, SQSBatchResponse, SQSEvent, SQSRecord } from "aws-lambda";
-import { Logger } from "@aws-lambda-powertools/logger";
-import { LogLevel } from "@aws-lambda-powertools/logger/lib/esm/types/Logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { Constants } from "./utils/Constants";
@@ -12,20 +11,14 @@ import { failEntireBatch, passEntireBatch } from "./utils/SqsBatchResponseHelper
 import { MessageCodes } from "./models/enums/MessageCodes";
 
 const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.EMAIL_METRICS_NAMESPACE;
-const POWERTOOLS_LOG_LEVEL = process.env.POWERTOOLS_LOG_LEVEL ? process.env.POWERTOOLS_LOG_LEVEL : Constants.DEBUG;
 const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.EMAIL_LOGGER_SVC_NAME;
-
-const logger = new Logger({
-	logLevel: POWERTOOLS_LOG_LEVEL as LogLevel,
-	serviceName: POWERTOOLS_SERVICE_NAME,
-});
 
 const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 let YOTI_PRIVATE_KEY: string;
 let GOVUKNOTIFY_API_KEY: string;
 class GovNotifyHandler implements LambdaInterface {
-	private readonly environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GOV_NOTIFY_SERVICE);
+	private readonly environmentVariables = new EnvironmentVariables(ServicesEnum.GOV_NOTIFY_SERVICE);
 
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
 	async handler(event: SQSEvent, context: Context): Promise<SQSBatchResponse> {
@@ -75,7 +68,7 @@ class GovNotifyHandler implements LambdaInterface {
 					logger.error("failed to extract govnotifyServiceId from the GOVUKNOTIFY_API_KEY", { error });
 					return failEntireBatch;
 				}
-				await SendEmailProcessor.getInstance(logger, metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(body);
+				await SendEmailProcessor.getInstance(metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, govnotifyServiceId).processRequest(body);
 				logger.debug("Finished processing record from SQS");
 				return passEntireBatch;
 

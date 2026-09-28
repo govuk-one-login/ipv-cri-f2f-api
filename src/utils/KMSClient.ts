@@ -1,12 +1,7 @@
 import * as AWS from "@aws-sdk/client-kms";
 import AWSXRay from "aws-xray-sdk-core";
 import { mockKmsClient } from "../tests/contract/mocks/kmsClient";
-import { Logger } from "@aws-lambda-powertools/logger";
-
-const logger = new Logger({
-	logLevel: "INFO",
-	serviceName: "KMSClient",
-});
+import { logger } from "@govuk-one-login/cri-logger";
 
 const createKmsClient = () => {    
 
