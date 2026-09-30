@@ -3,7 +3,7 @@
 import { SessionRequestProcessor } from "../../../services/SessionRequestProcessor";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
 import { VALID_SESSION, SESSION_WITH_INVALID_CLIENT, VALID_SESSION_MISSING_XFORWARDEDFOR } from "../data/session-events";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
@@ -19,7 +19,7 @@ import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 let sessionRequestProcessor: SessionRequestProcessor;
 const mockF2fService = mock<F2fService>();
 const mockKmsJwtAdapter = mock<KmsJwtAdapter>();
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 const mockValidationHelper = mock<ValidationHelper>();
 vi.mock("crypto", async () => ({
@@ -132,7 +132,7 @@ describe("SessionRequestProcessor", () => {
 	});
 
 	beforeAll(() => {
-		sessionRequestProcessor = new SessionRequestProcessor(logger, metrics);
+		sessionRequestProcessor = new SessionRequestProcessor(metrics);
 		// @ts-expect-error linting to be updated
 		sessionRequestProcessor.f2fService = mockF2fService;
 		// @ts-expect-error linting to be updated

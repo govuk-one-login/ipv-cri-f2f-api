@@ -1,4 +1,4 @@
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { HttpCodesEnum } from "./HttpCodesEnum";
 import { AppError } from "./AppError";
@@ -12,13 +12,13 @@ type ClientConfig = {
 	OsLocationsApi: string;
 };
 
-export function getClientConfig(clientConfig: string, sessionClientId: string, logger: Logger): ClientConfig | undefined {
+export function getClientConfig(clientConfig: string, sessionClientId: string): ClientConfig | undefined {
 	try {
 		logger.info("CLIENT_ID", sessionClientId);
 		const config = JSON.parse(clientConfig) as ClientConfig[];
 		const usersConfig = config.find(c => c.clientId === sessionClientId);
 
-		logger.debug("CLIENT_CONFIG", {
+		logger.info("CLIENT_CONFIG", {
 			client_id: sessionClientId,
 			usersConfig,
 		});

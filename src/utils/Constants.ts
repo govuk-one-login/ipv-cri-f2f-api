@@ -32,14 +32,6 @@ export class Constants {
 
 	static readonly PERSON_INFO_KEY_LOGGER_SVC_NAME : "PersonInfoKeyHandler";
 
-	static readonly DEBUG = "DEBUG";
-
-	static readonly INFO = "INFO";
-
-	static readonly WARN = "WARN";
-
-	static readonly ERROR = "ERROR";
-
 	static readonly BEARER = "Bearer";
 
 	static readonly CODE = "code";

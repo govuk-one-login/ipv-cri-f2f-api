@@ -2,7 +2,6 @@
 import PDFDocument from "pdfkit";
 
 import { EnvironmentVariables } from "./EnvironmentVariables";
-import { Logger } from "@aws-lambda-powertools/logger";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { ServicesEnum } from "../models/enums/ServicesEnum";
 
@@ -24,26 +23,22 @@ export class PDFGenerationService {
 
   private readonly environmentVariables: EnvironmentVariables;
 
-  private readonly logger: Logger;
-
   private readonly metrics: Metrics;
 
-  private constructor(logger: Logger, metrics: Metrics) {
-  	this.logger = logger;
+  private constructor(metrics: Metrics) {
 	this.metrics = metrics;
-  	this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
+  	this.environmentVariables = new EnvironmentVariables(ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
   }
 
 mmToPt = (mm: number) => mm * 2.83465;
 
 static getInstance(
-	logger: Logger,
 	metrics: Metrics
 ): PDFGenerationService {
 	if (!PDFGenerationService.instance) {
 		PDFGenerationService.instance = new PDFGenerationService(
-			logger, metrics
+			metrics
 		);
 	}
 	return PDFGenerationService.instance;

@@ -1,4 +1,4 @@
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import crypto, { randomUUID } from "crypto";
 import axios, { AxiosRequestConfig } from "axios";
@@ -14,8 +14,6 @@ import { ValidationHelper } from "../utils/ValidationHelper";
 import { sleep } from "../utils/Sleep";
 
 export class YotiService {
-	readonly logger: Logger;
-
 	readonly metrics: Metrics;
 
 	private static instance: YotiService;
@@ -34,23 +32,21 @@ export class YotiService {
 
 	readonly validationHelper: ValidationHelper;
 
-	constructor(logger: Logger, metrics: Metrics, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number,  FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: number, FETCH_YOTI_SESSION_MAX_RETRIES: number, PEM_KEY: string) {
+	constructor(metrics: Metrics, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number,  FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: number, FETCH_YOTI_SESSION_MAX_RETRIES: number, PEM_KEY: string) {
     	this.RESOURCES_TTL_SECS = RESOURCES_TTL_SECS;
     	this.YOTI_SESSION_TTL_DAYS = YOTI_SESSION_TTL_DAYS;
 		this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS = FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
 		this.FETCH_YOTI_SESSION_MAX_RETRIES = FETCH_YOTI_SESSION_MAX_RETRIES
-    	this.logger = logger;
 		this.metrics = metrics;
     	this.CLIENT_SDK_ID = CLIENT_SDK_ID;
     	this.PEM_KEY = PEM_KEY;
     	this.validationHelper = new ValidationHelper();
 	}
 
-	static getInstance(logger: Logger, metrics: Metrics, PEM_KEY: string): YotiService {
+	static getInstance(metrics: Metrics, PEM_KEY: string): YotiService {
 		if (!YotiService.instance) {
 			const { YOTISDK, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS, FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS, FETCH_YOTI_SESSION_MAX_RETRIES } = process.env;
 			YotiService.instance = new YotiService(
-				logger,
 				metrics,
 				YOTISDK!,
 				Number(RESOURCES_TTL_SECS),
@@ -80,14 +76,14 @@ export class YotiService {
 
     	const address = personDetails.addresses[0];
     	if (!this.validationHelper.checkIfValidCountryCode(address.addressCountry)) {
-    		this.logger.error({ message: "Invalid country code in the postalAddress" }, { messageCode: MessageCodes.INVALID_COUNTRY_CODE });
+    		logger.error({ message: "Invalid country code in the postalAddress" }, { messageCode: MessageCodes.INVALID_COUNTRY_CODE });
     		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Invalid country code");
     	}
 		
     	return {
     		full_name: `${givenNames} ${familyNames}`,
     		date_of_birth: `${personDetails.birthDate.map((bd) => ({ value: bd.value }))[0].value}`,
-    		structured_postal_address: personIdentityUtils.getYotiStructuredPostalAddress(address, this.logger),
+    		structured_postal_address: personIdentityUtils.getYotiStructuredPostalAddress(address),
     	};
 	}
 
@@ -120,13 +116,13 @@ export class YotiService {
 
     	let messageSignature;
     	try {
-    		this.logger.info("Creating Yoti Message Signature");
+    		logger.info("Creating Yoti Message Signature");
     		messageSignature = this.getRSASignatureForMessage(
     			`${method}&${endpointPath}${base64String}`,
     		);
-    		this.logger.info("Yoti Message Signature Created");
+    		logger.info("Yoti Message Signature Created");
     	} catch (err) {
-    		this.logger.error({ message: "An error occurred when creating Yoti message signature ", err });
+    		logger.error({ message: "An error occurred when creating Yoti message signature ", err });
     		throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error create Yoti signature");
     	}
 
@@ -212,7 +208,7 @@ export class YotiService {
 		const messageCode = MessageCodes.FAILED_CREATING_YOTI_SESSION;
 
 		const sessionResponse = await this.makeRetryableYotiRequest(() => this.yotiPostRequest(yotiRequest, payloadJSON, requestMetricName), yotiRequestName, messageCode);
-		this.logger.appendKeys({ yotiSessionId: sessionResponse?.session_id });
+		logger.appendKeys({ yotiSessionId: sessionResponse?.session_id });
 		return sessionResponse?.session_id
 	}
 
@@ -223,7 +219,7 @@ export class YotiService {
     		endpoint: `/sessions/${sessionId}/configuration`,
     	});
 
-		this.logger.info({
+		logger.info({
 			message: "fetchSessionInfo - trying to fetch Yoti session", 
 			yotiSessionId: sessionId,
     	});
@@ -333,7 +329,7 @@ export class YotiService {
 			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
 
 			if (retryCount === maxRetries) {
-				this.logger.error({ message: `${yotiRequestName} - cannot get response from yoti even after ${maxRetries} retries.`, 
+				logger.error({ message: `${yotiRequestName} - cannot get response from yoti even after ${maxRetries} retries.`, 
 					messageCode: MessageCodes.YOTI_RETRIES_EXCEEDED, 
 					xRequestId });
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, `${yotiRequestName} - cannot get response from yoti even after ${maxRetries} retries.`);
@@ -343,7 +339,7 @@ export class YotiService {
 			const shouldRetry = (is5xx || error.response?.status === 429);
 
 			if (shouldRetry) {
-				this.logger.warn({ message: `${yotiRequestName} - Retrying request. Sleeping for ${backoffPeriodMs} ms`, 
+				logger.warn({ message: `${yotiRequestName} - Retrying request. Sleeping for ${backoffPeriodMs} ms`, 
 					retryCount, 
 					yotiErrorMessage: error.message, 
 					yotiErrorCode: error.code,
@@ -355,7 +351,7 @@ export class YotiService {
 			} else {
 
 				const message = "An error occurred when calling Yoti " + yotiRequestName;
-				this.logger.error({ message, yotiErrorMessage: error.message, 
+				logger.error({ message, yotiErrorMessage: error.message, 
 					yotiErrorCode: error.code, 
 					messageCode: messageCode, 
 					xRequestId });
@@ -388,7 +384,7 @@ export class YotiService {
 			);
 			const { data } = response;
 			this.collectResponseMetric(requestMetricName, response)
-			this.logger.appendKeys({ yotiSessionId: data.session_id });
+			logger.appendKeys({ yotiSessionId: data.session_id });
 			return data;
 		} catch (error: any) {
 			if (error.status) {
@@ -407,7 +403,7 @@ export class YotiService {
 			);
 			const { data } = response;
 			this.collectResponseMetric(requestMetricName, response)
-			this.logger.appendKeys({ yotiSessionId: data.session_id });
+			logger.appendKeys({ yotiSessionId: data.session_id });
 			return data;
 		} catch (error: any) {
 			if (error.status) {

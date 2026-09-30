@@ -1,6 +1,6 @@
  
 import { mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { GenerateYotiLetterProcessor } from "../../../services/GenerateYotiLetterProcessor";
 import { F2fService } from "../../../services/F2fService";
@@ -13,7 +13,7 @@ import { S3Client } from "@aws-sdk/client-s3";
 
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 
 vi.mock("@aws-sdk/client-s3", () => ({
@@ -59,7 +59,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("GenerateYotiLetterProcessor", () => {
 	beforeAll(() => {
-		generateYotiLetterProcessor = new GenerateYotiLetterProcessor(logger, metrics, yotiPrivateKey );
+		generateYotiLetterProcessor = new GenerateYotiLetterProcessor(metrics, yotiPrivateKey );
 		// @ts-expect-error linting to be updated
 		generateYotiLetterProcessor.f2fService = mockF2fService;
 		YotiService.getInstance = vi.fn(() => mockYotiService);

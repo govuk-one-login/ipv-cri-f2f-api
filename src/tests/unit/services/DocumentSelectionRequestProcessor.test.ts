@@ -5,7 +5,7 @@ import type { MockInstance } from "vitest";
  
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { DocumentSelectionRequestProcessor } from "../../../services/DocumentSelectionRequestProcessor";
@@ -38,7 +38,7 @@ let yotiLetterStateMachineSpy: MockInstance;
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 const encodedHeader = "ENCHEADER";
 
@@ -201,7 +201,7 @@ vi.mock("@aws-sdk/client-sfn", () => ({
 describe("DocumentSelectionRequestProcessor", () => {
 	let personIdentityItem: PersonIdentityItem, f2fSessionItem: ISessionItem, yotiSessionInfo: YotiSessionInfo;
 	beforeAll(() => {
-		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(logger, metrics, "YOTIPRIM");
+		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(metrics, "YOTIPRIM");
 		// @ts-expect-error linting to be updated
 		mockDocumentSelectionRequestProcessor.f2fService = mockF2fService;
 
@@ -714,7 +714,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(mockDocumentSelectionRequestProcessor.stepFunctionsClient.send).toHaveBeenCalledWith(
 			{ "input": "{\"sessionId\":\"RandomF2FSessionID\",\"pdfPreference\":\"PRINTED_LETTER\",\"yotiSessionID\":\"b83d54ce-1565-42ee-987a-97a1f48f27dg\",\"govuk_signin_journey_id\":\"sdfssg\"}", "name": "RandomF2FSessionID-1585695600000", "stateMachineArn": "MockSendYotiLetterStateMachine.Arn" },
 		);
-		expect(logger.info).toHaveBeenNthCalledWith(6, { message: "Starting Yoti letter state machine" });
+		expect(logger.info).toHaveBeenNthCalledWith(7, { message: "Starting Yoti letter state machine" });
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "pdf_preference", "PRINTED_LETTER");
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "DocSelect_yoti_session_created", MetricUnit.Count, 1);
 		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "DocSelect_comms_choice", MetricUnit.Count, 1);

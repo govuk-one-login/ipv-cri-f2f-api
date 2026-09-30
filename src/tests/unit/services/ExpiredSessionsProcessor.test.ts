@@ -1,14 +1,14 @@
  
 import { ExpiredSessionsProcessor } from "../../../services/ExpiredSessionsProcessor";
 import { F2fService } from "../../../services/F2fService";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
+vi.mock("@govuk-one-login/cri-logger");
 
 describe("ExpiredSessionsProcessor", () => {
 	let expiredSessionsProcessor: ExpiredSessionsProcessor;
 	const mockF2fService = mock<F2fService>();
-	const mockLogger = mock<Logger>();
 	const mockMetrics = mock<Metrics>();
 
 	const F2FSessionsWithYotiSession = [
@@ -63,7 +63,7 @@ describe("ExpiredSessionsProcessor", () => {
 	];
 
 	beforeAll(() => {
-		expiredSessionsProcessor = new ExpiredSessionsProcessor(mockLogger, mockMetrics);
+		expiredSessionsProcessor = new ExpiredSessionsProcessor(mockMetrics);
 		// @ts-expect-error linting to be updated
 		expiredSessionsProcessor.f2fService = mockF2fService;
 		mockF2fService.getSessionsByAuthSessionStates.mockResolvedValue(F2FSessionsWithYotiSession);
@@ -76,10 +76,10 @@ describe("ExpiredSessionsProcessor", () => {
 		const result = await expiredSessionsProcessor.processRequest();
 
 		expect(result).toEqual({ statusCode: 200, body: "Success" });
-		expect(mockLogger.info).toHaveBeenNthCalledWith(1, "Total num. of user sessions to send expired notifications:", { numOfExpiredSessions: 3 });
-		expect(mockLogger.info).toHaveBeenNthCalledWith(2, "Successfully sent error message to IPV Core Queue", { count: 3, sessions: ["1b655a2e-44e4-4b21-a626-7825abd9c93e", "3b655a2e-44e4-4b21-a626-7825abd9c93g", "4b655a2e-44e4-4b21-a626-7825abd9c93h"] });
-		expect(mockLogger.info).toHaveBeenNthCalledWith(3, "Sessions marked as Expired", { count: 3, sessions: ["1b655a2e-44e4-4b21-a626-7825abd9c93e", "3b655a2e-44e4-4b21-a626-7825abd9c93g", "4b655a2e-44e4-4b21-a626-7825abd9c93h"] });
-		expect(mockLogger.info).toHaveBeenNthCalledWith(4, "All expired session notifications have been processed.");
+		expect(logger.info).toHaveBeenNthCalledWith(1, "Total num. of user sessions to send expired notifications:", { numOfExpiredSessions: 3 });
+		expect(logger.info).toHaveBeenNthCalledWith(2, "Successfully sent error message to IPV Core Queue", { count: 3, sessions: ["1b655a2e-44e4-4b21-a626-7825abd9c93e", "3b655a2e-44e4-4b21-a626-7825abd9c93g", "4b655a2e-44e4-4b21-a626-7825abd9c93h"] });
+		expect(logger.info).toHaveBeenNthCalledWith(3, "Sessions marked as Expired", { count: 3, sessions: ["1b655a2e-44e4-4b21-a626-7825abd9c93e", "3b655a2e-44e4-4b21-a626-7825abd9c93g", "4b655a2e-44e4-4b21-a626-7825abd9c93h"] });
+		expect(logger.info).toHaveBeenNthCalledWith(4, "All expired session notifications have been processed.");
 		expect(mockF2fService.getSessionsByAuthSessionStates).toHaveBeenCalledWith([
 			"F2F_YOTI_SESSION_CREATED",
 			"F2F_AUTH_CODE_ISSUED",
@@ -117,7 +117,7 @@ describe("ExpiredSessionsProcessor", () => {
 		const result = await expiredSessionsProcessor.processRequest();
 
 		expect(result).toEqual({ statusCode: 200, body: "No Session Records matching state" });
-		expect(mockLogger.info).toHaveBeenCalledWith("No users with session states F2F_YOTI_SESSION_CREATED,F2F_AUTH_CODE_ISSUED,F2F_ACCESS_TOKEN_ISSUED,F2F_POST_OFFICE_VISITED");
+		expect(logger.info).toHaveBeenCalledWith("No users with session states F2F_YOTI_SESSION_CREATED,F2F_AUTH_CODE_ISSUED,F2F_ACCESS_TOKEN_ISSUED,F2F_POST_OFFICE_VISITED");
 	});
 
 	it("should log if no sessions older than specified TTL", async () => {
@@ -135,7 +135,7 @@ describe("ExpiredSessionsProcessor", () => {
 		const result = await expiredSessionsProcessor.processRequest();
 
 		expect(result).toEqual({ statusCode: 200, body: "No Sessions older than specified TTL" });
-		expect(mockLogger.info).toHaveBeenCalledWith("No users with session states F2F_YOTI_SESSION_CREATED,F2F_AUTH_CODE_ISSUED,F2F_ACCESS_TOKEN_ISSUED,F2F_POST_OFFICE_VISITED older than 11 days");
+		expect(logger.info).toHaveBeenCalledWith("No users with session states F2F_YOTI_SESSION_CREATED,F2F_AUTH_CODE_ISSUED,F2F_ACCESS_TOKEN_ISSUED,F2F_POST_OFFICE_VISITED older than 11 days");
 	});
 
 	it("should handle error during processing", async () => {
@@ -144,7 +144,7 @@ describe("ExpiredSessionsProcessor", () => {
 		const result = await expiredSessionsProcessor.processRequest();
 
 		expect(result.statusCode).toBe(500);
-		expect(mockLogger.error).toHaveBeenCalledWith("Unexpected error accessing session table", {
+		expect(logger.error).toHaveBeenCalledWith("Unexpected error accessing session table", {
 			error: new Error("Error"),
 			messageCode: "FAILED_FETCHING_SESSIONS",
 		});
@@ -156,7 +156,7 @@ describe("ExpiredSessionsProcessor", () => {
 
 		await expiredSessionsProcessor.processRequest();
 
-		expect(mockLogger.error).toHaveBeenCalledWith("Failed to set expired notification flag", { error: new Error("Unable to set expired notification flag"), sessionId: expect.any(String) });
+		expect(logger.error).toHaveBeenCalledWith("Failed to set expired notification flag", { error: new Error("Unable to set expired notification flag"), sessionId: expect.any(String) });
 	});
 
 	it("should throw an error if not able to access session table", async () => {
@@ -164,7 +164,7 @@ describe("ExpiredSessionsProcessor", () => {
 
 		await expiredSessionsProcessor.processRequest();
 
-		expect(mockLogger.error).toHaveBeenCalledWith("Unexpected error accessing session table", {
+		expect(logger.error).toHaveBeenCalledWith("Unexpected error accessing session table", {
 			error: new Error("Permission Denied"),
 			messageCode: "FAILED_FETCHING_SESSIONS",
 		});

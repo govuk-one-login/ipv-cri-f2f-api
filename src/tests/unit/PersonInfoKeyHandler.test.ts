@@ -1,6 +1,6 @@
 import type { Mock, MockInstance } from "vitest";
- 
-import { lambdaHandler, logger } from "../../PersonInfoKeyHandler";
+import { logger } from "@govuk-one-login/cri-logger";
+import { lambdaHandler } from "../../PersonInfoKeyHandler";
 import { VALID_AUTHCODE } from "./data/auth-events";
 import { CONTEXT } from "./data/context";
 import { HttpCodesEnum } from "../../models/enums/HttpCodesEnum";

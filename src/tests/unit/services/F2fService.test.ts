@@ -1,7 +1,7 @@
 import type { Mock } from "vitest";
 import { mock } from "vitest-mock-extended";
 import { F2fService } from "../../../services/F2fService";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { randomUUID } from "crypto";
 import { createDynamoDbClient } from "../../../utils/DynamoDBFactory";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
@@ -18,7 +18,7 @@ import { ISessionItem } from "../../../models/ISessionItem";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { IPVCoreEvent } from "../../../utils/IPVCoreEvent";
 
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 
 let f2fService: F2fService;
@@ -83,7 +83,7 @@ describe("F2f Service", () => {
 
 	beforeEach(() => {
 		vi.resetAllMocks();
-		f2fService = F2fService.getInstance(tableName, logger, metrics, mockDynamoDbClient);
+		f2fService = F2fService.getInstance(tableName, metrics, mockDynamoDbClient);
 		mockSend = vi.fn();
 		(SQSClient as Mock).mockImplementation(function () {
 			return {

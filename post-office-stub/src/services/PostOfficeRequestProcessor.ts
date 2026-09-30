@@ -2,7 +2,7 @@ import { Response } from "../utils/Response";
 import { POST_OFFICE_RESPONSE } from "../data/postOfficeResponse/postOfficeSuccessResponse";
 import { POST_OFFICE_RESPONSE_INCOMPLETE_DATA } from "../data/postOfficeResponse/postOfficeResponseIncompleteData";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { POST_REPONSE_400 } from "../data/postOfficeResponse/postResponse400";
 import { POST_REPONSE_403 } from "../data/postOfficeResponse/postResponse403";
@@ -14,19 +14,15 @@ import { POST_OFFICE_LESS_THAN_FIVE_BRANCHES_RESPONSE } from "../data/postOffice
 export class PostOfficeRequestProcessor {
     private static instance: PostOfficeRequestProcessor;
 
-    private readonly logger: Logger;
-
     private readonly metrics: Metrics;
 
-    constructor(logger: Logger, metrics: Metrics) {
-    	this.logger = logger;
-
+    constructor(metrics: Metrics) {
     	this.metrics = metrics;
     }
 
-    static getInstance(logger: Logger, metrics: Metrics): PostOfficeRequestProcessor {
+    static getInstance(metrics: Metrics): PostOfficeRequestProcessor {
     	if (!PostOfficeRequestProcessor.instance) {
-    		PostOfficeRequestProcessor.instance = new PostOfficeRequestProcessor(logger, metrics);
+    		PostOfficeRequestProcessor.instance = new PostOfficeRequestProcessor(metrics);
     	}
     	return PostOfficeRequestProcessor.instance;
     }
@@ -37,35 +33,35 @@ export class PostOfficeRequestProcessor {
      */    
     async mockSearchLocations(searchString: any): Promise<any> {
     	const lastCodeChars = searchString.split("@")[0].slice(-3);
-    	this.logger.info({ message: "last 3 digit chars", lastCodeChars });
+    	logger.info({ message: "last 3 digit chars", lastCodeChars });
 
     	switch (lastCodeChars) {
     		case "400":
-    			this.logger.info({ message: "Returning 400 response back" });
+    			logger.info({ message: "Returning 400 response back" });
     			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_REPONSE_400));
     		case "403":
-    			this.logger.info({ message: "Returning 403 response back" });
+    			logger.info({ message: "Returning 403 response back" });
     			return new Response(HttpCodesEnum.FORBIDDEN, JSON.stringify(POST_REPONSE_403));
     		case "429":
-    			this.logger.info({ message: "Returning 429 response back" });
+    			logger.info({ message: "Returning 429 response back" });
     			return new Response(HttpCodesEnum.TOO_MANY_REQUESTS, JSON.stringify(POST_REPONSE_429));
     		case "500":
-    			this.logger.info({ message: "Returning 500 response back" });
+    			logger.info({ message: "Returning 500 response back" });
     			return new Response(HttpCodesEnum.SERVER_ERROR, JSON.stringify(POST_REPONSE_500));
     		case "503":
-    			this.logger.info({ message: "Returning 503 response back" });
+    			logger.info({ message: "Returning 503 response back" });
     			return new Response(HttpCodesEnum.SERVICE_UNAVAILABLE, JSON.stringify(POST_REPONSE_503));
     		case "MNE":
-    			this.logger.info({ message: "Returning incomplete data" });
+    			logger.info({ message: "Returning incomplete data" });
     			return new Response(HttpCodesEnum.BAD_REQUEST, JSON.stringify(POST_OFFICE_RESPONSE_INCOMPLETE_DATA));
 			case "1DD":
-				this.logger.info({ message: "Returning 2 branches for KW15 1DD" });
+				logger.info({ message: "Returning 2 branches for KW15 1DD" });
 				return new Response(HttpCodesEnum.OK, JSON.stringify(POST_OFFICE_LESS_THAN_FIVE_BRANCHES_RESPONSE));
 			case "1AD":
-				this.logger.info({ message: "Returning 0 branch for IM1 1AD" });
+				logger.info({ message: "Returning 0 branch for IM1 1AD" });
 				return new Response(HttpCodesEnum.OK, JSON.stringify([]));
     		default:
-    			this.logger.info({ message: "Successful request" });
+    			logger.info({ message: "Successful request" });
     			return new Response(HttpCodesEnum.OK, JSON.stringify(POST_OFFICE_RESPONSE));
     	}
     }

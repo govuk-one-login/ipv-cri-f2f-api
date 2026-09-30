@@ -62,5 +62,4 @@ export const IPV_INTEG_FULL_NAME_PAUL_BUTTIVANT_UNHAPPY = "Paul BUTTIVANT"
 export class Constants {
 	static readonly AUTHORIZATIONCODE_LOGGER_SVC_NAME = "AuthorizationCodeHandler";
 	static readonly F2F_METRICS_NAMESPACE = "F2F-CRI";
-	static readonly DEBUG = "DEBUG";
 }

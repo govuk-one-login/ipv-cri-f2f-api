@@ -19,9 +19,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const port = Constants.LOCAL_APP_PORT;
 
 app.listen(port, () => {
-	logger.debug(`Contract testing app listening on port ${port}`);
+	logger.info(`Contract testing app listening on port ${port}`);
 });
 
 app.use(Constants.TOKEN_ENDPOINT, accessTokenRouter);
 app.use(Constants.USERINFO_ENDPOINT, userInfoRouter);
-

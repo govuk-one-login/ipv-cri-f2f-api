@@ -1,4 +1,3 @@
-import { Logger } from "@aws-lambda-powertools/logger";
 import { SendToGovNotifyService } from "../../../services/SendToGovNotifyService";
 import { SendToGovNotifyProcessor } from "../../../services/SendToGovNotifyProcessor";
 import { mock } from "vitest-mock-extended";
@@ -9,15 +8,11 @@ let sendToGovNotifyProcessor: SendToGovNotifyProcessor;
 const mockSendToGovNotifyService = mock<SendToGovNotifyService>();
 // pragma: allowlist nextline secret
 const GOVUKNOTIFY_API_KEY = "sdhohofsdf";
-const logger = new Logger({
-	logLevel: "DEBUG",
-	serviceName: "F2F",
-});
 const metrics = mock<Metrics>();
 
 describe("SendToGovNotify processor", () => {
 	beforeAll(() => {
-		sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(logger, metrics, GOVUKNOTIFY_API_KEY, "serviceId");
+		sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(metrics, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-expect-error linting to be updated
 		sendToGovNotifyProcessor.sendToGovNotifyService = mockSendToGovNotifyService;
 	});

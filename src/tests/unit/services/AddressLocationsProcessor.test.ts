@@ -1,7 +1,7 @@
 import type { Mocked } from "vitest";
  
 import { mock } from "vitest-mock-extended";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { F2fService } from "../../../services/F2fService";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
@@ -14,7 +14,7 @@ import axios from "axios";
 const mockF2fService = mock<F2fService>();
 vi.mock("axios");
 
-const logger = mock<Logger>();
+vi.mock("@govuk-one-login/cri-logger");
 const metrics = mock<Metrics>();
 
 let addressLocationsProcessor: AddressLocationsProcessor;
@@ -51,7 +51,7 @@ describe("AddressLocationsProcessor", () => {
 		
 		axiosMock = axios as Mocked<typeof axios>;
 
-		addressLocationsProcessor = new AddressLocationsProcessor(logger, metrics, "osAPIKey" );
+		addressLocationsProcessor = new AddressLocationsProcessor(metrics, "osAPIKey" );
 		// @ts-expect-error linting to be updated
 		addressLocationsProcessor.f2fService = mockF2fService;
 	});

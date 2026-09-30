@@ -1,6 +1,6 @@
 import { F2fService } from "./F2fService";
 import { AppError } from "../utils/AppError";
-import { Logger } from "@aws-lambda-powertools/logger";
+import { logger } from "@govuk-one-login/cri-logger";
 import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
@@ -18,8 +18,6 @@ export class GeneratePrintedLetterProcessor {
 
 	private static instance: GeneratePrintedLetterProcessor;
 
-	private readonly logger: Logger;
-
 	private readonly metrics: Metrics;
 
 	private readonly f2fService: F2fService;
@@ -30,12 +28,11 @@ export class GeneratePrintedLetterProcessor {
 
 	private s3Client: S3Client;
 
-	constructor(logger: Logger, metrics: Metrics) {
-		this.logger = logger;
+	constructor(metrics: Metrics) {
 		this.metrics = metrics;
-		this.environmentVariables = new EnvironmentVariables(logger, ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.logger, this.metrics, createDynamoDbClient());
-		this.pdfService = PDFService.getInstance(logger, metrics);
+		this.environmentVariables = new EnvironmentVariables(ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+		this.pdfService = PDFService.getInstance(metrics);
 		this.s3Client = new S3Client({
 			region: process.env.REGION,
 			maxAttempts: 2,
@@ -47,12 +44,11 @@ export class GeneratePrintedLetterProcessor {
 	}
 
 	static getInstance(
-		logger: Logger,
 		metrics: Metrics,
 	): GeneratePrintedLetterProcessor {
 		if (!GeneratePrintedLetterProcessor.instance) {
 			GeneratePrintedLetterProcessor.instance =
-				new GeneratePrintedLetterProcessor(logger, metrics);
+				new GeneratePrintedLetterProcessor(metrics);
 		}
 		return GeneratePrintedLetterProcessor.instance;
 	}
@@ -60,12 +56,12 @@ export class GeneratePrintedLetterProcessor {
 	async processRequest(event: any): Promise<any> {
 
 		const f2fSessionInfo = await this.f2fService.getSessionById(event.sessionId);
-		this.logger.appendKeys({
+		logger.appendKeys({
 			govuk_signin_journey_id: f2fSessionInfo?.clientSessionId,
 		});
 		
 		if (!f2fSessionInfo) {
-			this.logger.error("Missing details in SESSION table", {
+			logger.error("Missing details in SESSION table", {
 				messageCode: MessageCodes.SESSION_NOT_FOUND,
 			});
 			throw new AppError(HttpCodesEnum.BAD_REQUEST, "Missing details in SESSION table");
@@ -89,7 +85,7 @@ export class GeneratePrintedLetterProcessor {
 		};
 
 		try {
-			this.logger.info(`Retrieving yoti pdf with key ${yotiInstructionskey} from bucket ${bucket}`);
+			logger.info(`Retrieving yoti pdf with key ${yotiInstructionskey} from bucket ${bucket}`);
 			const yotiPdfdata = await this.s3Client.send(new GetObjectCommand(yotiPdfSearchParams));
 
 			if (yotiPdfdata.Body) {
@@ -99,16 +95,16 @@ export class GeneratePrintedLetterProcessor {
 				}
 				yotiPdfBuffer = Buffer.concat(chunks);
 			
-				this.logger.info("Yoti PDF file downloaded successfully."); 
+				logger.info("Yoti PDF file downloaded successfully."); 
 			} else {
-				this.logger.error("Error: No data found in the S3.");
+				logger.error("Error: No data found in the S3.");
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Yoti PDF from S3 bucket. No data found");
 
 			}
 			// ignored so as not log PII
 			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error) {
-			this.logger.error("Error retrieving Yoti PDF from S3 bucket", { messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS });
+			logger.error("Error retrieving Yoti PDF from S3 bucket", { messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS });
 
 			const singleMetric = this.metrics.singleMetric();
 			singleMetric.addDimension("error", "unable_to_retrieve_yoti_instructions");
@@ -121,18 +117,18 @@ export class GeneratePrintedLetterProcessor {
 
 		// Merge retrieved PDF's
 		try {
-			this.logger.info("Attempting to merge PDF's"); 
+			logger.info("Attempting to merge PDF's"); 
 
 			const merger = new PDFMerger();
 			await merger.add(coverLetterPdfBuffer);
 			await merger.add(yotiPdfBuffer);
 
 			mergedPdfBuffer = await merger.saveAsBuffer(); 
-			this.logger.info("PDF's merged succesfully"); 
+			logger.info("PDF's merged succesfully"); 
 			// ignored so as not log PII
 			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error) {
-			this.logger.error("Error merging PDFs", { messageCode: MessageCodes.FAILED_PDF_MERGE });
+			logger.error("Error merging PDFs", { messageCode: MessageCodes.FAILED_PDF_MERGE });
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error merging PDFs");
 		}
 
@@ -148,12 +144,12 @@ export class GeneratePrintedLetterProcessor {
 				ContentType: "application/octet-stream",
 			};
 
-			this.logger.info(`Uploading merged PDF: ${mergedUploadParams.Key}`);
+			logger.info(`Uploading merged PDF: ${mergedUploadParams.Key}`);
 			await this.s3Client.send(new PutObjectCommand(mergedUploadParams));
 			// ignored so as not log PII
 			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error) {
-			this.logger.error("Error uploading merged or resizing PDF", { messageCode: MessageCodes.FAILED_MERGED_PDF_PUT });
+			logger.error("Error uploading merged or resizing PDF", { messageCode: MessageCodes.FAILED_MERGED_PDF_PUT });
 
 			const singleMetric = this.metrics.singleMetric();
 			singleMetric.addDimension("error", "unable_to_save_merged_pdf");

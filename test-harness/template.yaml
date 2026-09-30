@@ -93,7 +93,7 @@ Globals:
     Environment:
       Variables:
         AWS_STACK_NAME: !Sub ${AWS::StackName}
-        POWERTOOLS_LOG_LEVEL: DEBUG
+        POWERTOOLS_LOG_LEVEL: INFO
         POWERTOOLS_METRICS_NAMESPACE: F2F-CRI
     AutoPublishAlias: live
 
