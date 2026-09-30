@@ -13,7 +13,6 @@ import govUkLogo from "../static/GOVUKOneLogin.png";
 
 import { PersonIdentityAddress } from "../models/PersonIdentityItem";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 
 export class PDFGenerationService {
 
@@ -23,23 +22,16 @@ export class PDFGenerationService {
 
   private readonly environmentVariables: EnvironmentVariables;
 
-  private readonly metrics: Metrics;
-
-  private constructor(metrics: Metrics) {
-	this.metrics = metrics;
+  private constructor() {
   	this.environmentVariables = new EnvironmentVariables(ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
   }
 
 mmToPt = (mm: number) => mm * 2.83465;
 
-static getInstance(
-	metrics: Metrics
-): PDFGenerationService {
+static getInstance(): PDFGenerationService {
 	if (!PDFGenerationService.instance) {
-		PDFGenerationService.instance = new PDFGenerationService(
-			metrics
-		);
+		PDFGenerationService.instance = new PDFGenerationService();
 	}
 	return PDFGenerationService.instance;
 }

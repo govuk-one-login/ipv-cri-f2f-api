@@ -100,7 +100,7 @@ describe("AddressLocationsProcessor", () => {
 		}));
 
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "400");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "OS_response", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "OS_response");
 	});
 
 	it("throws error if OS returns 500", async () => {
@@ -115,7 +115,7 @@ describe("AddressLocationsProcessor", () => {
 		}));
 
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "500");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "OS_response", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "OS_response");
 	});
 
 	it("Address successfully retrieved from OS and returned", async () => {
@@ -126,8 +126,8 @@ describe("AddressLocationsProcessor", () => {
         
 		expect(axios.get).toHaveBeenCalledWith("https://test-os-locations-stub", {"headers": {"key": "osAPIKey"}, "params": {"postcode": "postcode"}});
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "200");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "OS_response", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "OSAddress_success", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "OS_response");
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "OSAddress_success");
 
 		expect(response.body).toBe("{\"address\":\"12 test street\"}");
 	});

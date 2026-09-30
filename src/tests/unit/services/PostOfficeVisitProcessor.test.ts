@@ -159,7 +159,7 @@ describe("PostOfficeVisitProcessor", () => {
 				sessionId: "RandomF2FSessionID",
 				govuk_signin_journey_id: "govuk-journey-id",
 			});
-			expect(captureMetric).toHaveBeenCalledWith("first_branch_visit", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenCalledWith("first_branch_visit");
 		});
 
 		it("changes AuthSessionState to F2F_POST_OFFICE_VISITED", async () => {
@@ -241,7 +241,7 @@ describe("PostOfficeVisitProcessor", () => {
 				},
 			});
 			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "7 February 2023", postOfficeTimeOfVisit: "2:30 pm" });
-			expect(captureMetric).toHaveBeenCalledWith("document_uploaded_at_PO", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenCalledWith("document_uploaded_at_PO");
 		});
 
 		it("adjusts for BST correctly", async () => {
@@ -270,7 +270,7 @@ describe("PostOfficeVisitProcessor", () => {
 				},
 			});
 			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "7 September 2023", postOfficeTimeOfVisit: "3:30 pm" });
-			expect(captureMetric).toHaveBeenCalledWith("document_uploaded_at_PO", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenCalledWith("document_uploaded_at_PO");
 		});
 
 		it("changes AuthSessionState to F2F_YOTI_SESSION_COMPLETE", async () => {

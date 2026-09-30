@@ -168,7 +168,7 @@ describe("AuthorizationRequestProcessor", () => {
 		expect(logger.warn).toHaveBeenCalledWith(
 					{ message: "Session for journey sdfssg is in the wrong Auth state: expected state - F2F_YOTI_SESSION_CREATED, actual state - F2F_AUTH_CODE_ISSUED" }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
 		);
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "AuthRequest_error_user_state_incorrect", MetricUnit.Count, 1);	
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "AuthRequest_error_user_state_incorrect");	
 
 		expect(out.body).toBe("Session for journey sdfssg is in the wrong Auth state: expected state - F2F_YOTI_SESSION_CREATED, actual state - F2F_AUTH_CODE_ISSUED");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);

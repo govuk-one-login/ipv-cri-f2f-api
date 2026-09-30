@@ -1,4 +1,3 @@
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { logger } from "@govuk-one-login/cri-logger";
 import  NodeRSA  from "node-rsa";
 import { F2fService } from "./F2fService";
@@ -14,24 +13,21 @@ import { APIGatewayProxyResult } from "aws-lambda";
 export class PersonInfoRequestProcessor {
 	private static instance: PersonInfoRequestProcessor;
 
-  	private readonly metrics: Metrics;
-
   	private readonly f2fService: F2fService;
 
 	private readonly publicKey: string;
 
 	private readonly environmentVariables: EnvironmentVariables;
 
-	constructor(metrics: Metrics, publicKey: string) {
+	constructor(publicKey: string) {
 		this.publicKey = publicKey;
 		this.environmentVariables = new EnvironmentVariables(ServicesEnum.PERSON_INFO_SERVICE);
-  		this.metrics = metrics;
-  		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+  		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
 	}
 
-	static getInstance(metrics: Metrics, publicKey: string): PersonInfoRequestProcessor {
+	static getInstance(publicKey: string): PersonInfoRequestProcessor {
   	if (!PersonInfoRequestProcessor.instance) {
-  		PersonInfoRequestProcessor.instance = new PersonInfoRequestProcessor(metrics, publicKey);
+  		PersonInfoRequestProcessor.instance = new PersonInfoRequestProcessor(publicKey);
   	}
   	return PersonInfoRequestProcessor.instance;
 	}

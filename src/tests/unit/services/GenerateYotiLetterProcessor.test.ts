@@ -117,7 +117,7 @@ describe("GenerateYotiLetterProcessor", () => {
 			sessionId: "RandomF2FSessionID",
 			pdfPreference: "post",
 		});
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "GenerateYotiLetter_instructions_saved", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "GenerateYotiLetter_instructions_saved");
 
 	});
 

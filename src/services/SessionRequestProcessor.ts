@@ -2,7 +2,7 @@
  
 import { Response, SECURITY_HEADERS } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { logger } from "@govuk-one-login/cri-logger";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -29,8 +29,6 @@ interface ClientConfig {
 export class SessionRequestProcessor {
   private static instance: SessionRequestProcessor;
 
-  private readonly metrics: Metrics;
-
   private readonly f2fService: F2fService;
 
   private readonly kmsDecryptor: KmsJwtAdapter;
@@ -39,18 +37,17 @@ export class SessionRequestProcessor {
 
   private readonly environmentVariables: EnvironmentVariables;
 
-  constructor(metrics: Metrics) {
-  	this.metrics = metrics;
+  constructor() {
   	this.environmentVariables = new EnvironmentVariables(ServicesEnum.SESSION_SERVICE);
-  	captureMetric("Called", MetricUnit.Count, 1);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+  	captureMetric("Called");
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
   	this.kmsDecryptor = new KmsJwtAdapter(this.environmentVariables.encryptionKeyIds());
   	this.validationHelper = new ValidationHelper();
   }
 
-  static getInstance(metrics: Metrics): SessionRequestProcessor {
+  static getInstance(): SessionRequestProcessor {
   	if (!SessionRequestProcessor.instance) {
-  		SessionRequestProcessor.instance = new SessionRequestProcessor(metrics);
+  		SessionRequestProcessor.instance = new SessionRequestProcessor();
   	}
   	return SessionRequestProcessor.instance;
   }
@@ -196,7 +193,7 @@ export class SessionRequestProcessor {
 
   	try {
   		await this.f2fService.createAuthSession(session);
-		captureMetric("state-F2F_SESSION_CREATED", MetricUnit.Count, 1);
+		captureMetric("state-F2F_SESSION_CREATED");
   	} catch (error) {
   		logger.error("Failed to create session in session table", {
   			error,
@@ -239,7 +236,7 @@ export class SessionRequestProcessor {
 
   	logger.info("Session created successfully. Returning 200OK");
 
-	captureMetric("session_created", MetricUnit.Count, 1);
+	captureMetric("session_created");
 
   	return {
   		statusCode: HttpCodesEnum.OK,

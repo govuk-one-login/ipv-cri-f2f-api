@@ -8,7 +8,6 @@ import { DynamicReminderEmail } from "../models/DynamicReminderEmail";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { logger } from "@govuk-one-login/cri-logger";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
@@ -35,10 +34,8 @@ export class SendEmailService {
   private static instance: SendEmailService;
 
   private readonly environmentVariables: EnvironmentVariables;
-
-  private readonly metrics: Metrics;
-
-	private readonly validationHelper: ValidationHelper;
+  
+  private readonly validationHelper: ValidationHelper;
 
   private yotiService!: YotiService;
 
@@ -57,12 +54,10 @@ export class SendEmailService {
    * @private
    */
   private constructor(
-  	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
   ) {
-  	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(
   		ServicesEnum.GOV_NOTIFY_SERVICE,
   	);
@@ -71,7 +66,6 @@ export class SendEmailService {
   	this.govNotifyErrorMapper = new GovNotifyErrorMapper();
   	this.f2fService = F2fService.getInstance(
   		this.environmentVariables.sessionTable(),
-		this.metrics,
   		createDynamoDbClient(),
   	);
   	this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
@@ -79,14 +73,12 @@ export class SendEmailService {
   }
 
   static getInstance(
-  	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
   ): SendEmailService {
   	if (!this.instance) {
   		this.instance = new SendEmailService(
-  			metrics,
   			YOTI_PRIVATE_KEY,
   			GOVUKNOTIFY_API_KEY,
   			govnotifyServiceId,
@@ -406,7 +398,6 @@ export class SendEmailService {
   		try {
   			logger.info("BASE_URL", yotiBaseUrl);
   			this.yotiService = YotiService.getInstance(
-  				this.metrics,
   				this.YOTI_PRIVATE_KEY,
   			);
   			const instructionsPdf = await this.yotiService.fetchInstructionsPdf(

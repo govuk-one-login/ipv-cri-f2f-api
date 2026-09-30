@@ -1,5 +1,5 @@
 import { F2fService } from "./F2fService";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { logger } from "@govuk-one-login/cri-logger";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { MessageCodes } from "../models/enums/MessageCodes";
@@ -23,8 +23,6 @@ import { YotiCallbackTopics } from "../models/enums/YotiCallbackTopics";
 export class PostOfficeVisitProcessor {
 	private static instance: PostOfficeVisitProcessor;
 
-	private readonly metrics: Metrics;
-
 	f2fService: F2fService;
 
 	private yotiService!: YotiService;
@@ -36,23 +34,19 @@ export class PostOfficeVisitProcessor {
 	private readonly validationHelper: ValidationHelper;
 
 	constructor(
-		metrics: Metrics,
 		YOTI_PRIVATE_KEY?: string,
 	) {
-		this.metrics = metrics;
 		this.environmentVariables = new EnvironmentVariables(ServicesEnum.THANK_YOU_EMAIL_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.validationHelper = new ValidationHelper();
 	}
 
 	static getInstance(
-		metrics: Metrics,
 		YOTI_PRIVATE_KEY?: string,
 	): PostOfficeVisitProcessor {
 		if (!PostOfficeVisitProcessor.instance) {
 			PostOfficeVisitProcessor.instance = new PostOfficeVisitProcessor(
-				metrics,
 				YOTI_PRIVATE_KEY,
 			);
 		}
@@ -96,7 +90,7 @@ export class PostOfficeVisitProcessor {
 			govuk_signin_journey_id: f2fSession.clientSessionId,
 		});
 
-		captureMetric("first_branch_visit", MetricUnit.Count, 1);
+		captureMetric("first_branch_visit");
 
 		logger.info({
 			message: "Recorded FIRST_BRANCH_VISIT metric",
@@ -151,7 +145,7 @@ export class PostOfficeVisitProcessor {
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(this.metrics, this.YOTI_PRIVATE_KEY);
+		this.yotiService = YotiService.getInstance(this.YOTI_PRIVATE_KEY);
 
 		logger.info({ message: "Fetching yoti session" });
 		const yotiSessionInfo: YotiCompletedSession | undefined = await this.yotiService.getCompletedSessionInfo(yotiSessionID, clientConfig.YotiBaseUrl);
@@ -193,7 +187,7 @@ export class PostOfficeVisitProcessor {
 			AuthSessionState.F2F_YOTI_SESSION_COMPLETE,
 		);
 
-		captureMetric("document_uploaded_at_PO", MetricUnit.Count, 1);
+		captureMetric("document_uploaded_at_PO");
 		return Response(HttpCodesEnum.OK, "OK");
 	}
 }

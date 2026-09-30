@@ -1,7 +1,7 @@
 import { F2fService } from "./F2fService";
 import { AppError } from "../utils/AppError";
 import { logger } from "@govuk-one-login/cri-logger";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { EnvironmentVariables } from "./EnvironmentVariables";
@@ -18,8 +18,6 @@ export class GeneratePrintedLetterProcessor {
 
 	private static instance: GeneratePrintedLetterProcessor;
 
-	private readonly metrics: Metrics;
-
 	private readonly f2fService: F2fService;
 
 	private readonly environmentVariables: EnvironmentVariables;
@@ -28,11 +26,10 @@ export class GeneratePrintedLetterProcessor {
 
 	private s3Client: S3Client;
 
-	constructor(metrics: Metrics) {
-		this.metrics = metrics;
+	constructor() {
 		this.environmentVariables = new EnvironmentVariables(ServicesEnum.GENERATE_PRINTED_LETTER_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
-		this.pdfService = PDFService.getInstance(metrics);
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
+		this.pdfService = PDFService.getInstance();
 		this.s3Client = new S3Client({
 			region: process.env.REGION,
 			maxAttempts: 2,
@@ -43,12 +40,10 @@ export class GeneratePrintedLetterProcessor {
 		});
 	}
 
-	static getInstance(
-		metrics: Metrics,
-	): GeneratePrintedLetterProcessor {
+	static getInstance(): GeneratePrintedLetterProcessor {
 		if (!GeneratePrintedLetterProcessor.instance) {
 			GeneratePrintedLetterProcessor.instance =
-				new GeneratePrintedLetterProcessor(metrics);
+				new GeneratePrintedLetterProcessor();
 		}
 		return GeneratePrintedLetterProcessor.instance;
 	}
@@ -105,10 +100,7 @@ export class GeneratePrintedLetterProcessor {
 			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error) {
 			logger.error("Error retrieving Yoti PDF from S3 bucket", { messageCode: MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS });
-
-			const singleMetric = this.metrics.singleMetric();
-			singleMetric.addDimension("error", "unable_to_retrieve_yoti_instructions");
-			singleMetric.addMetric("GeneratePrintedLetter_error", MetricUnit.Count, 1);
+			captureMetricWithDimensions("GeneratePrintedLetter_error", { "error": "unable_to_retrieve_yoti_instructions" });
 
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error retrieving Yoti PDF from S3 bucket");
 		}
@@ -150,10 +142,7 @@ export class GeneratePrintedLetterProcessor {
 			/* eslint-disable @typescript-eslint/no-unused-vars */
 		} catch (error) {
 			logger.error("Error uploading merged or resizing PDF", { messageCode: MessageCodes.FAILED_MERGED_PDF_PUT });
-
-			const singleMetric = this.metrics.singleMetric();
-			singleMetric.addDimension("error", "unable_to_save_merged_pdf");
-			singleMetric.addMetric("GeneratePrintedLetter_error", MetricUnit.Count, 1);
+			captureMetricWithDimensions("GeneratePrintedLetter_error", { "error": "unable_to_save_merged_pdf" });
 
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error uploading merged PDF");
 		}

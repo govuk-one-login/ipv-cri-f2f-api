@@ -88,7 +88,7 @@ describe("AbortRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
 		expect(out.headers?.Location).toBe(encodeURIComponent(`${f2fSessionItem.redirectUri}?error=access_denied&state=${f2fSessionItem.state}`));
-		expect(captureMetric).toHaveBeenCalledWith("state-F2F_CRI_SESSION_ABORTED", MetricUnit.Count, 1)
+		expect(captureMetric).toHaveBeenCalledWith("state-F2F_CRI_SESSION_ABORTED")
 	});
 
 	it("Returns successful response if session has not been aborted and redirectUri contains f2f id", async () => {
@@ -103,7 +103,7 @@ describe("AbortRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
 		expect(out.headers?.Location).toContain(encodeURIComponent(`${f2fSessionItem.redirectUri}&error=access_denied&state=${f2fSessionItem.state}`));
-		expect(captureMetric).toHaveBeenCalledWith("state-F2F_CRI_SESSION_ABORTED", MetricUnit.Count, 1)
+		expect(captureMetric).toHaveBeenCalledWith("state-F2F_CRI_SESSION_ABORTED")
 	});
 
 	it("sends TxMA event after auth session state has been updated", async () => {
@@ -115,7 +115,7 @@ describe("AbortRequestProcessor", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledWith(expect.objectContaining({
 			event_name: TxmaEventNames.F2F_CRI_SESSION_ABORTED,
 		}), encodedHeader);
-		expect(captureMetric).toHaveBeenCalledWith("state-F2F_CRI_SESSION_ABORTED", MetricUnit.Count, 1)
+		expect(captureMetric).toHaveBeenCalledWith("state-F2F_CRI_SESSION_ABORTED")
 	});
 
 	it("logs error if sending TxMA event fails, but successful response is still returned", async () => {
@@ -131,7 +131,7 @@ describe("AbortRequestProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Session has been aborted");
-		expect(captureMetric).toHaveBeenCalledWith("state-F2F_CRI_SESSION_ABORTED", MetricUnit.Count, 1)
+		expect(captureMetric).toHaveBeenCalledWith("state-F2F_CRI_SESSION_ABORTED")
 	});
 
 	it("returns failed response if auth session state cannot be updated", async () => {

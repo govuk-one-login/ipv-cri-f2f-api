@@ -208,10 +208,10 @@ describe("SendToGovNotifyService", () => {
 			},
 		});
 		expect(emailResponse.emailFailureMessage).toBe("");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_pdf_instructions_retreived", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_email_sent_successfully", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_pdf_instructions_retreived");
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_email_sent_successfully");
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "201");
-		expect(captureMetric).toHaveBeenNthCalledWith(3, "SendToGovNotify_notify_email_response", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(3, "SendToGovNotify_notify_email_response");
 
 	});
 
@@ -240,9 +240,9 @@ describe("SendToGovNotifyService", () => {
 		
 		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow("sendYotiInstructions - Cannot send Email");
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_pdf_instructions_retreived", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_pdf_instructions_retreived");
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "status_code", "400");
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_notify_email_response", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_notify_email_response");
 	});
     
 	it("SendToGovNotifyService retries when GovNotify throws a 500 error", async () => {
@@ -270,8 +270,8 @@ describe("SendToGovNotifyService", () => {
 		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow("sendYotiInstructions - Cannot send Email");
 		expect(mockSendEmail).toHaveBeenCalledTimes(4);
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "500");
-		expect(captureMetric).toHaveBeenCalledWith("SendToGovNotify_notify_email_response", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(6, "SendToGovNotify_email_sent_failed_all_attempts", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenCalledWith("SendToGovNotify_notify_email_response");
+		expect(captureMetric).toHaveBeenNthCalledWith(6, "SendToGovNotify_email_sent_failed_all_attempts");
 
 	});
     
@@ -300,8 +300,8 @@ describe("SendToGovNotifyService", () => {
 		await expect(sendToGovNotifyServiceTest.sendYotiInstructions(session.sessionId)).rejects.toThrow("sendYotiInstructions - Cannot send Email");
 		expect(mockSendEmail).toHaveBeenCalledTimes(4);
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "429");
-		expect(captureMetric).toHaveBeenCalledWith("SendToGovNotify_notify_email_response", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(6, "SendToGovNotify_email_sent_failed_all_attempts", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenCalledWith("SendToGovNotify_notify_email_response");
+		expect(captureMetric).toHaveBeenNthCalledWith(6, "SendToGovNotify_email_sent_failed_all_attempts");
 
 	});
     
@@ -324,10 +324,10 @@ describe("SendToGovNotifyService", () => {
 		expect(mockF2fService.sendToTXMA).toHaveBeenCalledTimes(1);
 		expect(logger.error).toHaveBeenCalledWith("Failed to write TXMA event F2F_YOTI_PDF_EMAILED to SQS queue.");
 		expect(emailResponse?.emailFailureMessage).toBe("");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_pdf_instructions_retreived", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_email_sent_successfully", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_pdf_instructions_retreived");
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_email_sent_successfully");
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "201");
-		expect(captureMetric).toHaveBeenNthCalledWith(3, "SendToGovNotify_notify_email_response", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(3, "SendToGovNotify_notify_email_response");
 
 
 	});
@@ -411,16 +411,16 @@ describe("SendToGovNotifyService", () => {
 			},
 		});
 		expect(emailResponse.emailFailureMessage).toBe("");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_opted_for_printed_letter", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_fetched_merged_pdf", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(3, "SendToGovNotify_notify_letter_response", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_opted_for_printed_letter");
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_fetched_merged_pdf");
+		expect(captureMetric).toHaveBeenNthCalledWith(3, "SendToGovNotify_notify_letter_response");
 		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "201");
-		expect(captureMetric).toHaveBeenNthCalledWith(4, "SendToGovNotify_letter_sent_successfully", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(4, "SendToGovNotify_letter_sent_successfully");
 
-		expect(captureMetric).toHaveBeenNthCalledWith(5, "SendToGovNotify_pdf_instructions_retreived", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(5, "SendToGovNotify_pdf_instructions_retreived");
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(2, "status_code", "201");
-		expect(captureMetric).toHaveBeenNthCalledWith(6, "SendToGovNotify_email_sent_successfully", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(7, "SendToGovNotify_notify_email_response", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(6, "SendToGovNotify_email_sent_successfully");
+		expect(captureMetric).toHaveBeenNthCalledWith(7, "SendToGovNotify_notify_email_response");
 
 
 	});
@@ -532,15 +532,15 @@ describe("SendToGovNotifyService", () => {
 			},
 		});
 		expect(emailResponse.emailFailureMessage).toBe("");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_opted_for_printed_letter", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_fetched_merged_pdf", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_opted_for_printed_letter");
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "SendToGovNotify_fetched_merged_pdf");
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "status_code", "400");
-		expect(captureMetric).toHaveBeenNthCalledWith(3, "SendToGovNotify_notify_letter_response", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(4, "SendToGovNotify_notify_letter_failed_generic_error", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(5, "SendToGovNotify_pdf_instructions_retreived", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(6, "SendToGovNotify_email_sent_successfully", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(3, "SendToGovNotify_notify_letter_response");
+		expect(captureMetric).toHaveBeenNthCalledWith(4, "SendToGovNotify_notify_letter_failed_generic_error");
+		expect(captureMetric).toHaveBeenNthCalledWith(5, "SendToGovNotify_pdf_instructions_retreived");
+		expect(captureMetric).toHaveBeenNthCalledWith(6, "SendToGovNotify_email_sent_successfully");
 		expect(metrics.addDimension).toHaveBeenNthCalledWith(2, "status_code", "201");
-		expect(captureMetric).toHaveBeenNthCalledWith(7, "SendToGovNotify_notify_email_response", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(7, "SendToGovNotify_notify_email_response");
 
 
 	});

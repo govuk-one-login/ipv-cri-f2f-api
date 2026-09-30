@@ -45,8 +45,8 @@ describe("SendEmailProcessor", () => {
 			expect(emailResponse?.emailSentDateTime).toEqual(expectedDateTime);
 			expect(emailResponse?.emailFailureMessage).toBe("");
 			expect(metrics.addDimension).toHaveBeenCalledWith("emailType", "Pdf");
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent", MetricUnit.Count, 1);
-			expect(captureMetric).toHaveBeenNthCalledWith(2, "GovNotify_PDF_email_sent", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent");
+			expect(captureMetric).toHaveBeenNthCalledWith(2, "GovNotify_PDF_email_sent");
 		});
 
 		it.each([
@@ -74,7 +74,7 @@ describe("SendEmailProcessor", () => {
 			expect(emailResponse?.emailSentDateTime).toEqual(expectedDateTime);
 			expect(emailResponse?.emailFailureMessage).toBe("");
 			expect(metrics.addDimension).toHaveBeenCalledWith("emailType", "reminder");
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent");
 		});
 
 		it.each([
@@ -100,7 +100,7 @@ describe("SendEmailProcessor", () => {
 			expect(emailResponse?.emailSentDateTime).toEqual(expectedDateTime);
 			expect(emailResponse?.emailFailureMessage).toBe("");
 			expect(metrics.addDimension).toHaveBeenCalledWith("emailType", "dynamic_reminder");
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent");
 		});
 
 		it.each([

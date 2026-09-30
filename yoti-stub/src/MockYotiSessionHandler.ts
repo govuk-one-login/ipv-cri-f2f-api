@@ -1,18 +1,12 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { logger } from "@govuk-one-login/cri-logger";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { Response } from "./utils/Response";
 import { ResourcesEnum } from "./models/enums/ResourcesEnum";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import {AppError} from "./utils/AppError";
 import {YotiRequestProcessor} from "./services/YotiRequestProcessor";
-import { Constants } from "./utils/Constants";
-
-const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
-const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.AUTHORIZATIONCODE_LOGGER_SVC_NAME;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 class MockYotiSessionHandler implements LambdaInterface {
 
@@ -37,7 +31,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 
 							logger.info("PARSED JSON", {payloadParsed})
 							logger.info("Creating Mock YOTI Sessions");
-							return await YotiRequestProcessor.getInstance(metrics).createSession(payloadParsed);
+							return await YotiRequestProcessor.getInstance().createSession(payloadParsed);
 						}
 
 					} catch (err: any) {
@@ -59,7 +53,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 							const sessionId = event.pathParameters?.sessionId;
 								 if(sessionId){
 									logger.info("Getting Mock YOTI Sessions");
-									return await YotiRequestProcessor.getInstance(metrics).getSession(sessionId);
+									return await YotiRequestProcessor.getInstance().getSession(sessionId);
 								 }
 						}
 					} catch (err: any) {
@@ -82,7 +76,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 							const sessionId = event.pathParameters?.sessionId;
 							if(sessionId){
 							logger.info("Getting Mock YOTI Session Config");
-								return await YotiRequestProcessor.getInstance(metrics).getSessionConfiguration(sessionId);
+								return await YotiRequestProcessor.getInstance().getSessionConfiguration(sessionId);
 							}
 						}
 
@@ -120,7 +114,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 							 const fadCode = payloadParsed.branch?.fad_code;
 							 if(sessionId){
 								logger.info("Updating Mock YOTI Session Instructions");
-								return await YotiRequestProcessor.getInstance(metrics).updateSessionInstructions(sessionId, fadCode);
+								return await YotiRequestProcessor.getInstance().updateSessionInstructions(sessionId, fadCode);
 							 }
 						 }
 
@@ -144,7 +138,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 							const sessionId = event.pathParameters?.sessionId;
 							if(sessionId){
 								logger.info("Fetching Mock YOTI Session PDF");
-								return YotiRequestProcessor.getInstance(metrics).fetchInstructionsPdf(sessionId);
+								return YotiRequestProcessor.getInstance().fetchInstructionsPdf(sessionId);
 							}
 						}
 
@@ -168,7 +162,7 @@ class MockYotiSessionHandler implements LambdaInterface {
 							const mediaId = event.pathParameters?.mediaId;
 							if(mediaId){
 								logger.info("Fetching Mock YOTI Session Media Content");
-								return YotiRequestProcessor.getInstance(metrics).getMediaContent(mediaId);
+								return YotiRequestProcessor.getInstance().getMediaContent(mediaId);
 							}
 						}
 

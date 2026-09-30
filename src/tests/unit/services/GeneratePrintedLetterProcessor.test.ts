@@ -155,7 +155,7 @@ describe("GenerateYotiLetterProcessor", () => {
 			message: "Error retrieving Yoti PDF from S3 bucket",
 		}));
 		expect(metrics.addDimension).toHaveBeenCalledWith("error", "unable_to_retrieve_yoti_instructions");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error");
 	});
 
 });

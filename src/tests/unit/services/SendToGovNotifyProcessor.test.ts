@@ -33,7 +33,7 @@ describe("SendToGovNotify processor", () => {
 
 		await expect(sendToGovNotifyProcessor.processRequest("sessionId")).rejects.toThrow("sendYotiInstructions - Cannot send Email");
 		 
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_failed_to_send_instructions", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_failed_to_send_instructions");
 
 	});
 

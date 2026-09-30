@@ -37,7 +37,7 @@ describe("GeneratePrintedLetterHandler", () => {
 		await lambdaHandler(({ "sessionId":"", "pdfPreference":"POST" }), CONTEXT);
 
 		expect(logger.error).toHaveBeenCalledWith({ message: "Invalid request: missing sessionId", messageCode: MessageCodes.MISSING_SESSION_ID });
-		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter", MetricUnit.Count, 1);
+		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter");
 
 	});
 
@@ -48,7 +48,7 @@ describe("GeneratePrintedLetterHandler", () => {
 		await lambdaHandler(({ "sessionId":"abcdefgh", "pdfPreference":"POST" }), CONTEXT);
 
 		expect(logger.error).toHaveBeenCalledWith({ message: "Invalid request: sessionId is not a valid uuid", messageCode: MessageCodes.INVALID_SESSION_ID });
-		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter", MetricUnit.Count, 1);
+		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter");
 	});
 
 	it("calls GenerateYotiLetterProcessor if required attributes are present", async () => {

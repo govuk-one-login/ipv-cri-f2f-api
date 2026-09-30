@@ -163,7 +163,7 @@ describe("AccessTokenRequestProcessor", () => {
 	 	expect(logger.warn).toHaveBeenCalledWith(
 	 				"Session for journey sdfssg is in the wrong Auth state: expected state - F2F_AUTH_CODE_ISSUED, actual state - F2F_ACCESS_TOKEN_ISSUED", { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
 	 	);
-	 	expect(captureMetric).toHaveBeenNthCalledWith(1, "AccessToken_error_user_state_incorrect", MetricUnit.Count, 1);	
+	 	expect(captureMetric).toHaveBeenNthCalledWith(1, "AccessToken_error_user_state_incorrect");	
 
 	 	expect(out.body).toBe("Session for journey sdfssg is in the wrong Auth state: expected state - F2F_AUTH_CODE_ISSUED, actual state - F2F_ACCESS_TOKEN_ISSUED");
 	 	expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);

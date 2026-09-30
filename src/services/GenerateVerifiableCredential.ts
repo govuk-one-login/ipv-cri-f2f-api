@@ -1,5 +1,6 @@
  
 import { logger } from "@govuk-one-login/cri-logger";
+import { captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { AppError } from "../utils/AppError";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { YOTI_CHECKS, YotiSessionDocument, DOCUMENT_TYPES_WITH_CHIPS } from "../utils/YotiPayloadEnums";
@@ -10,22 +11,14 @@ import {
 	VerifiedCredentialSubject,
 	Name,
 } from "../utils/IVeriCredential";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 
 export class GenerateVerifiableCredential {
-  readonly metrics: Metrics;
-
+  
   private static instance: GenerateVerifiableCredential;
 
-  constructor(metrics: Metrics) {
-	this.metrics = metrics
-  }
-
-  static getInstance(metrics: Metrics): GenerateVerifiableCredential {
+  static getInstance(): GenerateVerifiableCredential {
   	if (!GenerateVerifiableCredential.instance) {
-  		GenerateVerifiableCredential.instance = new GenerateVerifiableCredential(
-  			metrics
-  		);
+  		GenerateVerifiableCredential.instance = new GenerateVerifiableCredential();
   	}
   	return GenerateVerifiableCredential.instance;
   }
@@ -59,7 +52,7 @@ export class GenerateVerifiableCredential {
    * NonUK Driving Licence
    * National ID without valid chip
    *
-   * Confulence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545465037/Draft+-+Generating+Strength+from+Yoti+Results
+   * Confluence Link: https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3545465037/Draft+-+Generating+Strength+from+Yoti+Results
    **/
   private calculateStrengthScore(documentType: string, issuingCountry: string, documentContainsValidChip: boolean): number {
 	try {
@@ -89,7 +82,7 @@ export class GenerateVerifiableCredential {
 			}
 		}
 	} catch (error: any) {
-		this.constructNotReturnedErrorMetric(error.message);
+		captureMetricWithDimensions("Session_Completion_Error_Not_Returned_To_Core", { "error": error.message } );
 		throw error
 	}
   }
@@ -313,7 +306,7 @@ export class GenerateVerifiableCredential {
   		}
 	}
 	} catch (error: any) {
-		this.constructNotReturnedErrorMetric(error.message);
+		captureMetricWithDimensions("Session_Completion_Error_Not_Returned_To_Core", { "error": error.message } );
 		throw error;
   	}
   	return credentialSubject;
@@ -369,7 +362,7 @@ export class GenerateVerifiableCredential {
   	logger.info({ message: "Yoti Mandatory Checks" });
 
   	if (Object.values(MANDATORY_CHECKS).some((check) => check?.object === undefined)) {
-		this.constructNotReturnedErrorMetric("Missing mandatory checks in Yoti completed payload")
+		captureMetricWithDimensions("Session_Completion_Error_Not_Returned_To_Core", { "error": "Missing mandatory checks in Yoti completed payload" } );
   		throw new AppError(
   			HttpCodesEnum.BAD_REQUEST,
   			"Missing mandatory checks in Yoti completed payload",
@@ -382,7 +375,7 @@ export class GenerateVerifiableCredential {
   			(check) => check?.state !== YotiSessionDocument.DONE_STATE,
   		)
   	) {
-		this.constructNotReturnedErrorMetric("Mandatory checks not all completed")
+		captureMetricWithDimensions("Session_Completion_Error_Not_Returned_To_Core", { "error": "Mandatory checks not all completed" } );
   		throw new AppError(HttpCodesEnum.BAD_REQUEST, "Mandatory checks not all completed");
   	}
 
@@ -493,10 +486,4 @@ export class GenerateVerifiableCredential {
   		rejectionReasons,
   	};
   }
-
-  private constructNotReturnedErrorMetric(dimension: string) {
-	const singleMetric = this.metrics.singleMetric();
-	singleMetric.addDimension("error", dimension);
-	singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnit.Count, 1);
-}
 }

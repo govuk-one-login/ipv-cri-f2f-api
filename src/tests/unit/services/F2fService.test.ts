@@ -119,7 +119,7 @@ describe("F2f Service", () => {
 	it("Should not throw an error and return undefined when set AuthorizationCode F2F data doesn't exist", async () => {
 		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 		await expect(f2fService.setAuthorizationCode(sessionId, randomUUID())).resolves.toBeUndefined();
-		expect(captureMetric).toHaveBeenCalledWith("state-F2F_AUTH_CODE_ISSUED", MetricUnit.Count, 1)
+		expect(captureMetric).toHaveBeenCalledWith("state-F2F_AUTH_CODE_ISSUED")
 	});
 
 	it("should throw 500 if request fails when setting AuthorizationCode", async () => {
@@ -127,7 +127,7 @@ describe("F2f Service", () => {
 		await expect(f2fService.setAuthorizationCode(FAILURE_VALUE, randomUUID())).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 		}));
-		expect(captureMetric).not.toHaveBeenCalledWith("state-F2F_AUTH_CODE_ISSUED", MetricUnit.Count, 1)
+		expect(captureMetric).not.toHaveBeenCalledWith("state-F2F_AUTH_CODE_ISSUED")
 	});
 
 	it("should throw 500 if request fails during update Session data with access token details", async () => {
@@ -136,14 +136,14 @@ describe("F2f Service", () => {
 		await expect(f2fService.updateSessionWithAccessTokenDetails(sessionId, 12345)).rejects.toThrow(expect.objectContaining({
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 		}));
-		expect(captureMetric).not.toHaveBeenCalledWith("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnit.Count, 1)
+		expect(captureMetric).not.toHaveBeenCalledWith("state-F2F_ACCESS_TOKEN_ISSUED")
 	});
 
 	it("Should not throw an error and return undefined when set access token details do not exist", async () => {
 		mockDynamoDbClient.send = vi.fn().mockResolvedValue({});
 
 		await expect(f2fService.updateSessionWithAccessTokenDetails(sessionId, 12345)).resolves.toBeUndefined();
-		expect(captureMetric).toHaveBeenCalledWith("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnit.Count, 1)
+		expect(captureMetric).toHaveBeenCalledWith("state-F2F_ACCESS_TOKEN_ISSUED")
 	});
 
 	it("should throw 500 if request fails during update Session data with yoti session details", async () => {
@@ -380,7 +380,7 @@ describe("F2f Service", () => {
 				UpdateExpression: "SET expiredNotificationSent = :expiredNotificationSent, authSessionState = :authSessionState",
 			},
 		}));
-		expect(captureMetric).toHaveBeenCalledWith("state-F2F_SESSION_EXPIRED", MetricUnit.Count, 1)
+		expect(captureMetric).toHaveBeenCalledWith("state-F2F_SESSION_EXPIRED")
 	});
 
 

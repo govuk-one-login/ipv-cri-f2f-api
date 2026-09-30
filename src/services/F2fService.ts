@@ -1,6 +1,6 @@
 import { ISessionItem } from "../models/ISessionItem";
 import { logger } from "@govuk-one-login/cri-logger";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { AppError } from "../utils/AppError";
 import { DynamoDBDocument, GetCommand, QueryCommandInput, UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -142,7 +142,7 @@ export class F2fService {
 
 		try {
 			await this.dynamo.send(updateSessionCommand);
-			captureMetric("state-F2F_AUTH_CODE_ISSUED", MetricUnit.Count, 1);
+			captureMetric("state-F2F_AUTH_CODE_ISSUED");
 
 			logger.info({ message: "updated authorizationCode in dynamodb" });
 		} catch (error: any) {
@@ -326,7 +326,7 @@ export class F2fService {
 
 		try {
 			await this.dynamo.send(updateStateCommand);
-			captureMetric("state-F2F_SESSION_EXPIRED", MetricUnit.Count, 1);
+			captureMetric("state-F2F_SESSION_EXPIRED");
 			logger.info({ message: "Session marked as expired", sessionId });
 		} catch (error) {
 			logger.error({ message: "Got error marking session as expired", error });
@@ -348,7 +348,7 @@ export class F2fService {
 		logger.info({ message: "updating Access token details in dynamodb" }, { tableName: this.tableName });
 		try {
 			await this.dynamo.send(updateAccessTokenDetailsCommand);
-			captureMetric("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnit.Count, 1);
+			captureMetric("state-F2F_ACCESS_TOKEN_ISSUED");
 
 			logger.info({ message: "updated Access token details in dynamodb" });
 		} catch (error) {

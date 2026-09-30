@@ -1,5 +1,5 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import crypto, { randomUUID } from "crypto";
 import axios, { AxiosRequestConfig } from "axios";
 import { AppError } from "../utils/AppError";
@@ -14,7 +14,6 @@ import { ValidationHelper } from "../utils/ValidationHelper";
 import { sleep } from "../utils/Sleep";
 
 export class YotiService {
-	readonly metrics: Metrics;
 
 	private static instance: YotiService;
 
@@ -32,22 +31,20 @@ export class YotiService {
 
 	readonly validationHelper: ValidationHelper;
 
-	constructor(metrics: Metrics, CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number,  FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: number, FETCH_YOTI_SESSION_MAX_RETRIES: number, PEM_KEY: string) {
+	constructor(CLIENT_SDK_ID: string, RESOURCES_TTL_SECS: number, YOTI_SESSION_TTL_DAYS: number,  FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS: number, FETCH_YOTI_SESSION_MAX_RETRIES: number, PEM_KEY: string) {
     	this.RESOURCES_TTL_SECS = RESOURCES_TTL_SECS;
     	this.YOTI_SESSION_TTL_DAYS = YOTI_SESSION_TTL_DAYS;
 		this.FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS = FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS;
 		this.FETCH_YOTI_SESSION_MAX_RETRIES = FETCH_YOTI_SESSION_MAX_RETRIES
-		this.metrics = metrics;
     	this.CLIENT_SDK_ID = CLIENT_SDK_ID;
     	this.PEM_KEY = PEM_KEY;
     	this.validationHelper = new ValidationHelper();
 	}
 
-	static getInstance(metrics: Metrics, PEM_KEY: string): YotiService {
+	static getInstance(PEM_KEY: string): YotiService {
 		if (!YotiService.instance) {
 			const { YOTISDK, RESOURCES_TTL_SECS, YOTI_SESSION_TTL_DAYS, FETCH_YOTI_SESSION_BACKOFF_PERIOD_MS, FETCH_YOTI_SESSION_MAX_RETRIES } = process.env;
 			YotiService.instance = new YotiService(
-				metrics,
 				YOTISDK!,
 				Number(RESOURCES_TTL_SECS),
 				Number(YOTI_SESSION_TTL_DAYS),
@@ -364,11 +361,11 @@ export class YotiService {
 				try {
 					const response = await axios.get(yotiRequest.url, yotiRequest.config);
 					const { data } = response;
-					this.collectResponseMetric(requestMetricName, response)
+					captureMetricWithDimensions(requestMetricName, { "status_code": response.status.toString() });
 					return data;
 				} catch (error: any) {
 					if (error.status) {
-						this.collectResponseMetric(requestMetricName, error);
+						captureMetricWithDimensions(requestMetricName, { "status_code": error.response.status.toString() });
 					}
 					return {isError: true, error: error};
 
@@ -383,12 +380,12 @@ export class YotiService {
 				yotiRequest.config,
 			);
 			const { data } = response;
-			this.collectResponseMetric(requestMetricName, response)
+			captureMetricWithDimensions(requestMetricName, { "status_code": response.status.toString() });
 			logger.appendKeys({ yotiSessionId: data.session_id });
 			return data;
 		} catch (error: any) {
 			if (error.status) {
-				this.collectResponseMetric(requestMetricName, error);
+				captureMetricWithDimensions(requestMetricName, { "status_code": error.response.status.toString() });
 			}
 			return {isError: true, error: error};
 		}
@@ -402,20 +399,14 @@ export class YotiService {
 				yotiRequest.config,
 			);
 			const { data } = response;
-			this.collectResponseMetric(requestMetricName, response)
+			captureMetricWithDimensions(requestMetricName, { "status_code": response.status.toString() });
 			logger.appendKeys({ yotiSessionId: data.session_id });
 			return data;
 		} catch (error: any) {
 			if (error.status) {
-				this.collectResponseMetric(requestMetricName, error);
+				captureMetricWithDimensions(requestMetricName, { "status_code": error.response.status.toString() });
 			}
 			return {isError: true, error: error};
 		}
-	}
-
-	collectResponseMetric(requestMetricName:string, response: any) {
-		const singleMetric = this.metrics.singleMetric();
-		singleMetric.addDimension("status_code", response.status.toString());
-		singleMetric.addMetric(requestMetricName, MetricUnit.Count, 1);
 	}
 }

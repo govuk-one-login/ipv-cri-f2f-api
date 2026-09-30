@@ -378,8 +378,8 @@ describe("SessionRequestProcessor", () => {
 			sessionId: expect.any(String),
 			govuk_signin_journey_id: "abcdef",
 		});
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "state-F2F_SESSION_CREATED", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "session_created", MetricUnit.Count, 1)
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "state-F2F_SESSION_CREATED");
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "session_created")
 	});
 
 	it("ip_address is X_FORWARDED_FOR header if present in event header", async () => {
@@ -458,8 +458,8 @@ describe("SessionRequestProcessor", () => {
 			sessionId: expect.any(String),
 			govuk_signin_journey_id: "abcdef",
 		});
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "state-F2F_SESSION_CREATED", MetricUnit.Count, 1);
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "session_created", MetricUnit.Count, 1)
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "state-F2F_SESSION_CREATED");
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "session_created")
 	});
 
 	// the test below fails as the session processor is not writing the expiryDate value correctly in

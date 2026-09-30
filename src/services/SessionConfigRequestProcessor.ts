@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { logger } from "@govuk-one-login/cri-logger";
 import { ValidationHelper } from "../utils/ValidationHelper";
@@ -14,8 +14,6 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 export class SessionConfigRequestProcessor {
 	private static instance: SessionConfigRequestProcessor;
 
-	private readonly metrics: Metrics;
-
 	private readonly validationHelper: ValidationHelper;
 
 	private readonly f2fService: F2fService;
@@ -23,16 +21,15 @@ export class SessionConfigRequestProcessor {
 	private readonly environmentVariables: EnvironmentVariables;
 	
 
-	constructor(metrics: Metrics) {
+	constructor() {
 		this.environmentVariables = new EnvironmentVariables(ServicesEnum.SESSION_CONFIG_SERVICE);
 		this.validationHelper = new ValidationHelper();
-		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
 	}
 
-	static getInstance(metrics: Metrics): SessionConfigRequestProcessor {
+	static getInstance(): SessionConfigRequestProcessor {
 		if (!SessionConfigRequestProcessor.instance) {
-			SessionConfigRequestProcessor.instance = new SessionConfigRequestProcessor(metrics);
+			SessionConfigRequestProcessor.instance = new SessionConfigRequestProcessor();
 		}
 		return SessionConfigRequestProcessor.instance;
 	}
@@ -54,7 +51,7 @@ export class SessionConfigRequestProcessor {
 				govuk_signin_journey_id: session?.clientSessionId,
 			});
 
-			captureMetric("found session", MetricUnit.Count, 1);
+			captureMetric("found session");
 
 			const f2fResp : { [key: string]: any } = {
 				evidence_requested: session.evidence_requested,

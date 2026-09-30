@@ -1,5 +1,5 @@
 import { Response } from "../utils/Response";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { logger } from "@govuk-one-login/cri-logger";
 import { ValidationHelper } from "../utils/ValidationHelper";
@@ -17,8 +17,6 @@ import { MessageCodes } from "../models/enums/MessageCodes";
 export class UserInfoRequestProcessor {
     private static instance: UserInfoRequestProcessor;
 
-    private readonly metrics: Metrics;
-
     private readonly validationHelper: ValidationHelper;
 
     private readonly f2fService: F2fService;
@@ -27,17 +25,16 @@ export class UserInfoRequestProcessor {
 
 	private readonly environmentVariables: EnvironmentVariables;
 
-	constructor(metrics: Metrics) {
+	constructor() {
 		this.environmentVariables = new EnvironmentVariables(ServicesEnum.USERINFO_SERVICE);
 		this.validationHelper = new ValidationHelper();
-		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
 		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
 	}
 
-	static getInstance(metrics: Metrics): UserInfoRequestProcessor {
+	static getInstance(): UserInfoRequestProcessor {
     	if (!UserInfoRequestProcessor.instance) {
-    		UserInfoRequestProcessor.instance = new UserInfoRequestProcessor(metrics);
+    		UserInfoRequestProcessor.instance = new UserInfoRequestProcessor();
     	}
     	return UserInfoRequestProcessor.instance;
 	}
@@ -71,18 +68,18 @@ export class UserInfoRequestProcessor {
     		return Response(HttpCodesEnum.BAD_REQUEST, `No session found with the sessionId: ${sub}`);
     	}
 
-    	captureMetric("found session", MetricUnit.Count, 1);
+    	captureMetric("found session");
     	// Validate the AuthSessionState to be "F2F_ACCESS_TOKEN_ISSUED"
     	if (session.authSessionState === AuthSessionState.F2F_ACCESS_TOKEN_ISSUED) {
 			logger.info("Returning success response");
-			captureMetric("UserInfo_pending_VC_returned", MetricUnit.Count, 1);
+			captureMetric("UserInfo_pending_VC_returned");
 
 			return Response(HttpCodesEnum.ACCEPTED, JSON.stringify({
 				sub: session.subject,
 				"https://vocab.account.gov.uk/v1/credentialStatus": "pending",
 			}));
 		} else {
-			captureMetric("UserInfo_error_user_state_incorrect", MetricUnit.Count, 1);
+			captureMetric("UserInfo_error_user_state_incorrect");
 			logger.error({ message: `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state - ${session.authSessionState}` }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
 			return Response(HttpCodesEnum.UNAUTHORIZED, `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_ACCESS_TOKEN_ISSUED}, actual state - ${session.authSessionState}`);
 		}

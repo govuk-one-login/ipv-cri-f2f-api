@@ -63,7 +63,7 @@ describe("PdfServiceTest", () => {
 				
 				expect(metrics.addDimension).toHaveBeenCalledWith("error", "unable_to_create_cover_letter");
 				
-				expect(captureMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error", MetricUnit.Count, 1);
+				expect(captureMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error");
 			}
 		});
 	});
