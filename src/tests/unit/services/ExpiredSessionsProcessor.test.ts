@@ -2,7 +2,7 @@
 import { ExpiredSessionsProcessor } from "../../../services/ExpiredSessionsProcessor";
 import { F2fService } from "../../../services/F2fService";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 vi.mock("@govuk-one-login/cri-logger");
 

@@ -6,7 +6,7 @@ import { EmailResponse } from "../models/EmailResponse";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
@@ -145,10 +145,10 @@ export class SendToGovNotifyService {
   		);
 
   		if (f2fPersonInfo.pdfPreference === PdfPreferenceEnum.PRINTED_LETTER) {
-  			this.metrics.addMetric("SendToGovNotify_opted_for_printed_letter", MetricUnit.Count, 1);
+  			captureMetric("SendToGovNotify_opted_for_printed_letter", MetricUnit.Count, 1);
   			try {
   				const mergedPdf = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.mergedLetterBucketPDFFolder());
-				  this.metrics.addMetric("SendToGovNotify_fetched_merged_pdf", MetricUnit.Count, 1);
+				  captureMetric("SendToGovNotify_fetched_merged_pdf", MetricUnit.Count, 1);
 
   				if (mergedPdf) {
   					logger.info("Sending precompiled letter");
@@ -165,14 +165,14 @@ export class SendToGovNotifyService {
   				logger.error("sendYotiInstructions - Cannot send letter", {
   					message: err, messageCode: MessageCodes.FAILED_TO_SEND_PDF_LETTER,
   				});
-  				this.metrics.addMetric("SendToGovNotify_notify_letter_failed_generic_error", MetricUnit.Count, 1);
+  				captureMetric("SendToGovNotify_notify_letter_failed_generic_error", MetricUnit.Count, 1);
   			}
   		}
 		
   		const instructionsPdf = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.yotiLetterBucketPDFFolder());
 
   		if (instructionsPdf) {
-  			this.metrics.addMetric("SendToGovNotify_pdf_instructions_retreived", MetricUnit.Count, 1);
+  			captureMetric("SendToGovNotify_pdf_instructions_retreived", MetricUnit.Count, 1);
 
   			logger.info("Sending Yoti PDF email");
 
@@ -341,7 +341,7 @@ export class SendToGovNotifyService {
   			);
   			logger.info("Email notification_id = " + data.id);
 
-  			this.metrics.addMetric("SendToGovNotify_email_sent_successfully", MetricUnit.Count, 1);
+  			captureMetric("SendToGovNotify_email_sent_successfully", MetricUnit.Count, 1);
 
   			const singleMetric = this.metrics.singleMetric();
   			singleMetric.addDimension("status_code", emailResponse.status.toString());
@@ -391,7 +391,7 @@ export class SendToGovNotifyService {
   				logger.error(
   					`sendEmail - Cannot send Email after ${this.environmentVariables.maxRetries()} retries`,
   				);
-  				this.metrics.addMetric("SendToGovNotify_email_sent_failed_all_attempts", MetricUnit.Count, 1);
+  				captureMetric("SendToGovNotify_email_sent_failed_all_attempts", MetricUnit.Count, 1);
   				throw appError;
   			}
   		}
@@ -427,7 +427,7 @@ export class SendToGovNotifyService {
   			singleMetric.addDimension("status_code", letterResponse.status.toString());
   			singleMetric.addMetric("SendToGovNotify_notify_letter_response", MetricUnit.Count, 1);
 
-  			this.metrics.addMetric("SendToGovNotify_letter_sent_successfully", MetricUnit.Count, 1);
+  			captureMetric("SendToGovNotify_letter_sent_successfully", MetricUnit.Count, 1);
 
   			logger.info(
   				"sendLetter - response status after sending letter",

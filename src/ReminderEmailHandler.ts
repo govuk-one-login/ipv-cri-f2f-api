@@ -1,20 +1,14 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { Response } from "./utils/Response";
 import { ReminderEmailProcessor } from "./services/ReminderEmailProcessor";
 import { AppError } from "./utils/AppError";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
-import { Constants } from "./utils/Constants";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { APIGatewayProxyResult } from "aws-lambda";
 
-const {
-	POWERTOOLS_METRICS_NAMESPACE = "F2F-CRI",
-	POWERTOOLS_SERVICE_NAME = Constants.REMINDER_EMAIL_LOGGER_SVC_NAME,
-} = process.env;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME;
 
 class Session implements LambdaInterface {
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })

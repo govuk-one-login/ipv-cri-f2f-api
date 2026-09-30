@@ -16,7 +16,7 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { ReminderEmail } from "../../../models/ReminderEmail";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 import { DynamicReminderEmail } from "../../../models/DynamicReminderEmail";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 
 
 vi.mock("notifications-node-client", () => {

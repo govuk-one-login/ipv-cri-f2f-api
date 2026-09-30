@@ -1,20 +1,14 @@
 import { SQSEvent, SQSRecord } from "aws-lambda";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { fromEnv } from "@aws-sdk/credential-providers";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { YotiCallbackTopics } from "./models/enums/YotiCallbackTopics";
-import { Constants } from "./utils/Constants";
 import { passEntireBatch, failEntireBatch } from "./utils/SqsBatchResponseHelper";
 
-const {
-	POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE,
-	POWERTOOLS_SERVICE_NAME = Constants.TRIGGER_YOTI_STATE_MACHINE_SVC_NAME,
-} = process.env;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME;
 
 class TriggerYotiCallbackStateMachineHandler implements LambdaInterface {
 	stepFunctionsClient: SFNClient;

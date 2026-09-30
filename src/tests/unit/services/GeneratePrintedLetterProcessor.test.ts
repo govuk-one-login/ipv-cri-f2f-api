@@ -1,7 +1,7 @@
  
 import { captor, mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { GeneratePrintedLetterProcessor } from "../../../services/GeneratePrintedLetterProcessor";
 import { F2fService } from "../../../services/F2fService";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
@@ -155,7 +155,7 @@ describe("GenerateYotiLetterProcessor", () => {
 			message: "Error retrieving Yoti PDF from S3 bucket",
 		}));
 		expect(metrics.addDimension).toHaveBeenCalledWith("error", "unable_to_retrieve_yoti_instructions");
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error", MetricUnit.Count, 1);
 	});
 
 });

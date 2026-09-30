@@ -1,5 +1,5 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
@@ -119,7 +119,7 @@ describe("PostOfficeVisitProcessor", () => {
 				"Missing session_id in FIRST_BRANCH_VISIT payload",
 				{ messageCode: MessageCodes.UNEXPECTED_VENDOR_MESSAGE },
 			);
-			expect(metrics.addMetric).not.toHaveBeenCalled();
+			expect(captureMetric).not.toHaveBeenCalled();
 		});
 
 		it("throws error if session cannot be found", async () => {
@@ -140,7 +140,7 @@ describe("PostOfficeVisitProcessor", () => {
 			expect(logger.error).toHaveBeenCalledWith("Session not found", {
 				messageCode: MessageCodes.SESSION_NOT_FOUND,
 			});
-			expect(metrics.addMetric).not.toHaveBeenCalled();
+			expect(captureMetric).not.toHaveBeenCalled();
 		});
 
 		it("records metric when session exists", async () => {
@@ -159,7 +159,7 @@ describe("PostOfficeVisitProcessor", () => {
 				sessionId: "RandomF2FSessionID",
 				govuk_signin_journey_id: "govuk-journey-id",
 			});
-			expect(metrics.addMetric).toHaveBeenCalledWith("first_branch_visit", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenCalledWith("first_branch_visit", MetricUnit.Count, 1);
 		});
 
 		it("changes AuthSessionState to F2F_POST_OFFICE_VISITED", async () => {
@@ -185,7 +185,7 @@ describe("PostOfficeVisitProcessor", () => {
 			expect(logger.error).toHaveBeenCalledWith("Event does not include yoti session_id", {
 				messageCode: MessageCodes.MISSING_SESSION_ID,
 			});
-			expect(metrics.addMetric).not.toHaveBeenCalled();
+			expect(captureMetric).not.toHaveBeenCalled();
 		});
 
 		it("throws error if F2F session can't be found", async () => {
@@ -198,7 +198,7 @@ describe("PostOfficeVisitProcessor", () => {
 			expect(logger.error).toHaveBeenCalledWith("Session not found", {
 				messageCode: MessageCodes.SESSION_NOT_FOUND,
 			});
-			expect(metrics.addMetric).not.toHaveBeenCalled();
+			expect(captureMetric).not.toHaveBeenCalled();
 		});
 
 		it("throws error if yoti session can't be found", async () => {
@@ -213,7 +213,7 @@ describe("PostOfficeVisitProcessor", () => {
 				yotiSessionID: sessionId,
 				messageCode: MessageCodes.VENDOR_SESSION_NOT_FOUND,
 			});
-			expect(metrics.addMetric).not.toHaveBeenCalled();
+			expect(captureMetric).not.toHaveBeenCalled();
 		});
 
 		it("records metric and sends correctly formatted message to TxMA if all checks pass", async () => {
@@ -241,7 +241,7 @@ describe("PostOfficeVisitProcessor", () => {
 				},
 			});
 			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "7 February 2023", postOfficeTimeOfVisit: "2:30 pm" });
-			expect(metrics.addMetric).toHaveBeenCalledWith("document_uploaded_at_PO", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenCalledWith("document_uploaded_at_PO", MetricUnit.Count, 1);
 		});
 
 		it("adjusts for BST correctly", async () => {
@@ -270,7 +270,7 @@ describe("PostOfficeVisitProcessor", () => {
 				},
 			});
 			expect(logger.info).toHaveBeenCalledWith("Post office visit details", { postOfficeDateOfVisit: "7 September 2023", postOfficeTimeOfVisit: "3:30 pm" });
-			expect(metrics.addMetric).toHaveBeenCalledWith("document_uploaded_at_PO", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenCalledWith("document_uploaded_at_PO", MetricUnit.Count, 1);
 		});
 
 		it("changes AuthSessionState to F2F_YOTI_SESSION_COMPLETE", async () => {

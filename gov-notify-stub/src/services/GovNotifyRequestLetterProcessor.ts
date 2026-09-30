@@ -5,20 +5,13 @@ import { POST_SEND_LETTER_429 } from "../data/postSendLetter/postSendLetter429";
 import { POST_SEND_LETTER_500 } from "../data/postSendLetter/postSendLetter500";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
 
 export class GovNotifyRequestLetterProcessor {
     private static instance: GovNotifyRequestLetterProcessor;
 
-    private readonly metrics: Metrics;
-
-    constructor(metrics: Metrics) {
-    	this.metrics = metrics;
-    }
-
-    static getInstance(metrics: Metrics): GovNotifyRequestLetterProcessor {
+    static getInstance(): GovNotifyRequestLetterProcessor {
     	if (!GovNotifyRequestLetterProcessor.instance) {
-    		GovNotifyRequestLetterProcessor.instance = new GovNotifyRequestLetterProcessor(metrics);
+    		GovNotifyRequestLetterProcessor.instance = new GovNotifyRequestLetterProcessor();
     	}
     	return GovNotifyRequestLetterProcessor.instance;
     }

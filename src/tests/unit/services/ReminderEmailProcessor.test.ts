@@ -2,7 +2,7 @@
 import { ReminderEmailProcessor } from "../../../services/ReminderEmailProcessor";
 import { F2fService } from "../../../services/F2fService";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { PersonIdentityItem } from "../../../models/PersonIdentityItem";
 import { ISessionItem } from "../../../models/ISessionItem";

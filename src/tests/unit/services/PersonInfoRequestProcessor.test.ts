@@ -1,6 +1,6 @@
  
  
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { logger } from "@govuk-one-login/cri-logger";
 import { mock } from "vitest-mock-extended";
 import NodeRSA from "node-rsa";

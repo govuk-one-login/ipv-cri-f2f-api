@@ -9,7 +9,7 @@ import { AppError } from "../../../utils/AppError";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { mock } from "vitest-mock-extended";
 import { sleep } from "../../../utils/Sleep";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 
 vi.mock("@govuk-one-login/cri-logger");
 vi.mock("axios");
@@ -276,7 +276,7 @@ describe("YotiService", () => {
 			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", createSessionPayload, {});
 			expect(sessionId).toBe("session123");
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "201");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_session_creation_response", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "YotiService_session_creation_response", MetricUnit.Count, 1);
 		});
 
 		it("should calculate session_deadline correctly", async () => {
@@ -323,7 +323,7 @@ describe("YotiService", () => {
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.post).toHaveBeenCalledWith("https://example.com/api/sessions", expect.any(Object), expect.any(Object));
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "401");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_session_creation_response", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "YotiService_session_creation_response", MetricUnit.Count, 1);
 		});
 
 		it("createSession retries when there is a 429 error creating the Yoti session", async () => {
@@ -570,7 +570,7 @@ describe("YotiService", () => {
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123/configuration", {});
 			expect(sessionInfo).toEqual(expectedResponse);
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "201");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_fetch_session_response", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "YotiService_fetch_session_response", MetricUnit.Count, 1);
 		});
 
 		it("should throw an AppError if there is an error fetching the Yoti session info", async () => {
@@ -594,7 +594,7 @@ describe("YotiService", () => {
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123/configuration", expect.any(Object));
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "404");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_fetch_session_response", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "YotiService_fetch_session_response", MetricUnit.Count, 1);
 		});
 
 		it("fetchSessionInfo retries when there is a 429 error fetching the Yoti instructions", async () => {
@@ -702,7 +702,7 @@ describe("YotiService", () => {
 			);
 			expect(statusCode).toBe(HttpCodesEnum.OK);
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "200");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_generate_instructions_response", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "YotiService_generate_instructions_response", MetricUnit.Count, 1);
 		});
 
 		it("should throw an AppError if there is an error generating the instructions PDF", async () => {
@@ -732,7 +732,7 @@ describe("YotiService", () => {
 				expect.any(Object),
 			);
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "400");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_generate_instructions_response", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "YotiService_generate_instructions_response", MetricUnit.Count, 1);
 		});
 
 		it("generateInstructions retries when there is a 429 error fetching the Yoti instructions", async () => {
@@ -824,7 +824,7 @@ describe("YotiService", () => {
 			);
 			expect(fetchedPdf).toBe(pdfData);
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "200");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_fetch_instructions_response", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "YotiService_fetch_instructions_response", MetricUnit.Count, 1);
 		});
 
 		it("should throw an AppError if there is an error fetching the Yoti instructions PDF", async () => {
@@ -854,7 +854,7 @@ describe("YotiService", () => {
 				expect.any(Object),
 			);
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "500");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_fetch_instructions_response", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "YotiService_fetch_instructions_response", MetricUnit.Count, 1);
 		});
 
 		it("fetchInstructionsPdf retries when there is a 429 error fetching the Yoti instructions", async () => {
@@ -939,7 +939,7 @@ describe("YotiService", () => {
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123", {});
 			expect(completedSessionInfo).toEqual({});
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "200");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_get_completed_session_response", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "YotiService_get_completed_session_response", MetricUnit.Count, 1);
 		});
 
 		it("should throw an AppError if there is an error fetching the completed Yoti session info", async () => {
@@ -965,7 +965,7 @@ describe("YotiService", () => {
 			expect(generateYotiRequestMock).toHaveBeenCalled();
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123", expect.any(Object));
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "404");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_get_completed_session_response", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "YotiService_get_completed_session_response", MetricUnit.Count, 1);
 		});
 
 		it("should throw an AppError and doesn't retry if there is a non 5XX or 429 error while fetching the completed Yoti session info", async () => {
@@ -994,7 +994,7 @@ describe("YotiService", () => {
 			expect(axios.get).toHaveBeenCalledTimes(1);
 			expect(axios.get).toHaveBeenCalledWith("https://example.com/api/sessions/session123", expect.any(Object));
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "404");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_get_completed_session_response", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "YotiService_get_completed_session_response", MetricUnit.Count, 1);
 		});
 	
 		it("getCompletedSessionInfo retries when there is a 429 error fetching the completed Yoti session info", async () => {
@@ -1030,7 +1030,7 @@ describe("YotiService", () => {
 			expect(sleep).toHaveBeenNthCalledWith(3, 2000);
 			expect(axios.get).toHaveBeenCalledTimes(4);
 			expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "429");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "YotiService_get_completed_session_response", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "YotiService_get_completed_session_response", MetricUnit.Count, 1);
 			
 		});
 	});

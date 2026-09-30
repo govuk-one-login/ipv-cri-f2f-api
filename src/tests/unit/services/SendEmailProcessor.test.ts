@@ -1,4 +1,4 @@
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { SQSEvent } from "aws-lambda";
 import { VALID_SQS_EVENT, VALID_DYNAMIC_REMINDER_SQS_EVENT, VALID_REMINDER_SQS_EVENT } from "../data/sqs-events";
 import { SendEmailProcessor } from "../../../services/SendEmailProcessor";
@@ -45,8 +45,8 @@ describe("SendEmailProcessor", () => {
 			expect(emailResponse?.emailSentDateTime).toEqual(expectedDateTime);
 			expect(emailResponse?.emailFailureMessage).toBe("");
 			expect(metrics.addDimension).toHaveBeenCalledWith("emailType", "Pdf");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent", MetricUnit.Count, 1);
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "GovNotify_PDF_email_sent", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(2, "GovNotify_PDF_email_sent", MetricUnit.Count, 1);
 		});
 
 		it.each([
@@ -59,7 +59,7 @@ describe("SendEmailProcessor", () => {
 			delete eventBodyMessage[attribute];
 			eventBody.Message = eventBodyMessage;
 			await expect(sendEmailProcessorTest.processRequest(eventBody)).rejects.toThrow();
-			expect(metrics.addMetric).not.toHaveBeenCalled();
+			expect(captureMetric).not.toHaveBeenCalled();
 		});
 	});
 
@@ -74,7 +74,7 @@ describe("SendEmailProcessor", () => {
 			expect(emailResponse?.emailSentDateTime).toEqual(expectedDateTime);
 			expect(emailResponse?.emailFailureMessage).toBe("");
 			expect(metrics.addDimension).toHaveBeenCalledWith("emailType", "reminder");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent", MetricUnit.Count, 1);
 		});
 
 		it.each([
@@ -85,7 +85,7 @@ describe("SendEmailProcessor", () => {
 			delete eventBodyMessage[attribute];
 			eventBody.Message = eventBodyMessage;
 			await expect(sendEmailProcessorTest.processRequest(eventBody)).rejects.toThrow();
-			expect(metrics.addMetric).not.toHaveBeenCalled();
+			expect(captureMetric).not.toHaveBeenCalled();
 		});
 	});
 
@@ -100,7 +100,7 @@ describe("SendEmailProcessor", () => {
 			expect(emailResponse?.emailSentDateTime).toEqual(expectedDateTime);
 			expect(emailResponse?.emailFailureMessage).toBe("");
 			expect(metrics.addDimension).toHaveBeenCalledWith("emailType", "dynamic_reminder");
-			expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent", MetricUnit.Count, 1);
+			expect(captureMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent", MetricUnit.Count, 1);
 		});
 
 		it.each([
@@ -115,7 +115,7 @@ describe("SendEmailProcessor", () => {
 			delete eventBodyMessage[attribute];
 			eventBody.Message = eventBodyMessage;
 			await expect(sendEmailProcessorTest.processRequest(eventBody)).rejects.toThrow();
-			expect(metrics.addMetric).not.toHaveBeenCalled();
+			expect(captureMetric).not.toHaveBeenCalled();
 		});
 	});
 

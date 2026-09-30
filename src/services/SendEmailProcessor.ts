@@ -1,4 +1,4 @@
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { SendEmailService } from "./SendEmailService";
 import { Constants } from "../utils/Constants";
 import { Email } from "../models/Email";
@@ -41,7 +41,7 @@ export class SendEmailProcessor {
 
 			singleMetric.addDimension("emailType", "Pdf");
   			singleMetric.addMetric("GovNotify_email_sent", MetricUnit.Count, 1);
-			this.metrics.addMetric("GovNotify_PDF_email_sent", MetricUnit.Count, 1);
+			captureMetric("GovNotify_PDF_email_sent", MetricUnit.Count, 1);
 			return pdfEmailResponse;
 		}
   		case Constants.REMINDER_EMAIL_DYNAMIC: {

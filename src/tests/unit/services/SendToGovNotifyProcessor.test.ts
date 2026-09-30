@@ -1,7 +1,7 @@
 import { SendToGovNotifyService } from "../../../services/SendToGovNotifyService";
 import { SendToGovNotifyProcessor } from "../../../services/SendToGovNotifyProcessor";
 import { mock } from "vitest-mock-extended";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 
 
 let sendToGovNotifyProcessor: SendToGovNotifyProcessor;
@@ -33,7 +33,7 @@ describe("SendToGovNotify processor", () => {
 
 		await expect(sendToGovNotifyProcessor.processRequest("sessionId")).rejects.toThrow("sendYotiInstructions - Cannot send Email");
 		 
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_failed_to_send_instructions", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "SendToGovNotify_failed_to_send_instructions", MetricUnit.Count, 1);
 
 	});
 

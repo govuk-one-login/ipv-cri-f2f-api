@@ -13,7 +13,7 @@ import govUkLogo from "../static/GOVUKOneLogin.png";
 
 import { PersonIdentityAddress } from "../models/PersonIdentityItem";
 import { personIdentityUtils } from "../utils/PersonIdentityUtils";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 
 export class PDFGenerationService {
 

@@ -1,5 +1,5 @@
 import { UserInfoRequestProcessor } from "../../../services/UserInfoRequestProcessor";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { MISSING_AUTH_HEADER_USERINFO, VALID_USERINFO } from "../data/userInfo-events";
@@ -79,8 +79,8 @@ describe("UserInfoRequestProcessor", () => {
 		expect(logger.appendKeys).toHaveBeenCalledWith({
 			sessionId: "sdfsdg",
 		});
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "found session", MetricUnit.Count, 1);
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "UserInfo_pending_VC_returned", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "found session", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "UserInfo_pending_VC_returned", MetricUnit.Count, 1);
 	});
 
 	it("Return 401 when Authorization header is missing in the request", async () => {
@@ -88,7 +88,7 @@ describe("UserInfoRequestProcessor", () => {
 
 		expect(out.body).toBe("Failed to Validate - Authentication header: Missing header: Authorization header value is missing or invalid auth_scheme");
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
-		expect(metrics.addMetric).not.toHaveBeenCalled();
+		expect(captureMetric).not.toHaveBeenCalled();
 	});
 
 	it("Return 401 when access_token JWT validation fails", async () => {
@@ -98,7 +98,7 @@ describe("UserInfoRequestProcessor", () => {
 
 		expect(out.body).toBe("Failed to Validate - Authentication header: Verification of JWT failed");
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
-		expect(metrics.addMetric).not.toHaveBeenCalled();
+		expect(captureMetric).not.toHaveBeenCalled();
 	});
 
 	it("Return 401 when sub is missing from JWT access_token", async () => {
@@ -108,7 +108,7 @@ describe("UserInfoRequestProcessor", () => {
 
 		expect(out.body).toBe("Failed to Validate - Authentication header: sub missing");
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
-		expect(metrics.addMetric).not.toHaveBeenCalled();
+		expect(captureMetric).not.toHaveBeenCalled();
 	});
 
 	it("Return 401 when we receive expired JWT access_token", async () => {
@@ -118,7 +118,7 @@ describe("UserInfoRequestProcessor", () => {
 
 		expect(out.body).toBe("Failed to Validate - Authentication header: Verification of exp failed");
 		expect(out.statusCode).toBe(HttpCodesEnum.BAD_REQUEST);
-		expect(metrics.addMetric).not.toHaveBeenCalled();
+		expect(captureMetric).not.toHaveBeenCalled();
 	});
 
 	it("Return 401 when session (based upon sub) was not found in the DB", async () => {
@@ -134,7 +134,7 @@ describe("UserInfoRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			"No session found with the sessionId: sessionId", { messageCode: MessageCodes.SESSION_NOT_FOUND },
 		);
-		expect(metrics.addMetric).not.toHaveBeenCalled();
+		expect(captureMetric).not.toHaveBeenCalled();
 	});
 
 	it("Return 401 when AuthSessionState is not F2F_ACCESS_TOKEN_ISSUED", async () => {
@@ -150,8 +150,8 @@ describe("UserInfoRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			{ message: "Session for journey sdfssg is in the wrong Auth state: expected state - F2F_ACCESS_TOKEN_ISSUED, actual state - F2F_AUTH_CODE_ISSUED" }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
 		);
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "found session", MetricUnit.Count, 1);
-		expect(metrics.addMetric).not.toHaveBeenNthCalledWith(2, "UserInfo_pending_VC_returned", MetricUnit.Count, 1);	
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "UserInfo_error_user_state_incorrect", MetricUnit.Count, 1);	
+		expect(captureMetric).toHaveBeenNthCalledWith(1, "found session", MetricUnit.Count, 1);
+		expect(captureMetric).not.toHaveBeenNthCalledWith(2, "UserInfo_pending_VC_returned", MetricUnit.Count, 1);	
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "UserInfo_error_user_state_incorrect", MetricUnit.Count, 1);	
 	});
 });

@@ -4,7 +4,7 @@ import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
 import { person, personAddressAllAddressFields } from "../data/postalAddress-events";
 import { F2fService } from "../../../services/F2fService";
 import { PDFGenerationService } from "../../../services/pdfGenerationService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 
 let pdfGenerationService: PDFGenerationService;
 const mockF2fService = mock<F2fService>();

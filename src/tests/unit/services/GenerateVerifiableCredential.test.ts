@@ -12,7 +12,7 @@ import {
 	visualReviewCheck,
 	mockCompletedYotiSessionPayload,
 } from "../data/yoti-session";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 vi.mock("@govuk-one-login/cri-logger");
 
 describe("GenerateVerifiableCredential", () => {
@@ -42,7 +42,7 @@ describe("GenerateVerifiableCredential", () => {
 	afterEach(() => {
 		vi.resetAllMocks();
 		vi.restoreAllMocks();
-		expect(metrics.addMetric).not.toHaveBeenCalled();
+		expect(captureMetric).not.toHaveBeenCalled();
 	});
 
 	describe("doesDocumentContainValidChip", () => {

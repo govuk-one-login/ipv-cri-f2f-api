@@ -1,6 +1,6 @@
  
  
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
@@ -168,7 +168,7 @@ describe("AuthorizationRequestProcessor", () => {
 		expect(logger.warn).toHaveBeenCalledWith(
 					{ message: "Session for journey sdfssg is in the wrong Auth state: expected state - F2F_YOTI_SESSION_CREATED, actual state - F2F_AUTH_CODE_ISSUED" }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
 		);
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "AuthRequest_error_user_state_incorrect", MetricUnit.Count, 1);	
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "AuthRequest_error_user_state_incorrect", MetricUnit.Count, 1);	
 
 		expect(out.body).toBe("Session for journey sdfssg is in the wrong Auth state: expected state - F2F_YOTI_SESSION_CREATED, actual state - F2F_AUTH_CODE_ISSUED");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);

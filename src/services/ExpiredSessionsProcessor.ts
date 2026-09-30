@@ -1,6 +1,5 @@
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { F2fService } from "./F2fService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
 import { logger } from "@govuk-one-login/cri-logger";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { EnvironmentVariables } from "./EnvironmentVariables";
@@ -17,13 +16,13 @@ export class ExpiredSessionsProcessor {
 
   private readonly f2fService: F2fService;
 
-  constructor(private readonly metrics: Metrics) {
+  constructor() {
   	const envVariables = new EnvironmentVariables(ServicesEnum.REMINDER_SERVICE);
-  	this.f2fService = F2fService.getInstance(envVariables.sessionTable(), metrics, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(envVariables.sessionTable(), createDynamoDbClient());
   }
 
-  static getInstance(metrics: Metrics): ExpiredSessionsProcessor {
-  	return this.instance || (this.instance = new ExpiredSessionsProcessor(metrics));
+  static getInstance(): ExpiredSessionsProcessor {
+  	return this.instance || (this.instance = new ExpiredSessionsProcessor());
   }
 
   async processRequest(): Promise<APIGatewayProxyResult> {

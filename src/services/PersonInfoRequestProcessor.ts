@@ -1,4 +1,4 @@
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { logger } from "@govuk-one-login/cri-logger";
 import  NodeRSA  from "node-rsa";
 import { F2fService } from "./F2fService";

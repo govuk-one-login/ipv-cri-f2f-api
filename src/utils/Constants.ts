@@ -4,33 +4,7 @@ export class Constants {
 
 	static readonly SESSION_ID = "session-id";
 
-	static readonly ACCESSTOKEN_LOGGER_SVC_NAME = "AccessTokenHandler";
-
-	static readonly AUTHORIZATIONCODE_LOGGER_SVC_NAME = "AuthorizationCodeHandler";
-
-	static readonly DOCUMENT_SELECTION_LOGGER_SVC_NAME = "DocumentSelectionHandler";
-
-	static readonly ABORT_LOGGER_SVC_NAME = "AbortHandler";
-
-	static readonly USERINFO_LOGGER_SVC_NAME = "UserInfoHandler";
-
-	static readonly SESSIONCONFIG_LOGGER_SVC_NAME = "SessionConfigHandler";
-
-	static readonly YOTI_CALLBACK_SVC_NAME = "YotiCallbackHandler";
-
-	static readonly TRIGGER_YOTI_STATE_MACHINE_SVC_NAME = "TriggerYotiCallbackStateMachineHandler";
-
 	static readonly F2F_METRICS_NAMESPACE = "F2F-CRI";
-
-	static readonly JWKS_LOGGER_SVC_NAME = "JwksHandler";
-
-	static readonly SESSION_LOGGER_SVC_NAME : "SessionHandler";
-
-	static readonly REMINDER_EMAIL_LOGGER_SVC_NAME : "ReminderEmail";
-
-	static readonly EXPIRED_SESSIONS_LOGGER_SVC_NAME : "ExpiredSessions";
-
-	static readonly PERSON_INFO_KEY_LOGGER_SVC_NAME : "PersonInfoKeyHandler";
 
 	static readonly BEARER = "Bearer";
 
@@ -66,12 +40,6 @@ export class Constants {
 
 	static readonly EMAIL_DISABLED = "EMAIL_DISABLED";
 
-	static readonly EMAIL_METRICS_SVC_NAME = "SendEmailHandler";
-
-	static readonly EMAIL_LOGGER_SVC_NAME = "SendEmailHandler";
-
-	static readonly GENERATE_YOTI_LETTER_SVC_NAME = "GenerateYotiLetterHandler";
-
 	static readonly EMAIL_METRICS_NAMESPACE = "F2F-CRI";
 
 	static readonly W3_BASE_CONTEXT = "https://www.w3.org/2018/credentials/v1";
@@ -89,8 +57,6 @@ export class Constants {
 	static readonly PCL_PREFERENCE_EMAIL = "EMAIL";
 
 	static readonly PCL_PREFERENCE_LETTER = "LETTER";
-
-	static readonly ADDRESS_LOCATIONS_LOGGER_SVC_NAME : "AddressLocationsHandler";
 
 	static readonly GOV_NOTIFY_OPTIONS = {
 		FIRST_NAME: "first name",

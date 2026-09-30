@@ -1,5 +1,6 @@
 import { ISessionItem } from "../models/ISessionItem";
 import { logger } from "@govuk-one-login/cri-logger";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { AppError } from "../utils/AppError";
 import { DynamoDBDocument, GetCommand, QueryCommandInput, UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -22,29 +23,25 @@ import { ServicesEnum } from "../models/enums/ServicesEnum";
 import { IPVCoreEvent } from "../utils/IPVCoreEvent";
 import { MessageCodes } from "../models/enums/MessageCodes";
 import { PdfPreferenceEnum } from "../utils/PdfPreferenceEnum";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
 
 export class F2fService {
 	readonly tableName: string;
 
 	private readonly dynamo: DynamoDBDocument;
 
-	private readonly metrics: Metrics;
-
 	private readonly environmentVariables: EnvironmentVariables;
 
 	private static instance: F2fService;
 
-	constructor(tableName: any, metrics: Metrics, dynamoDbClient: DynamoDBDocument) {
+	constructor(tableName: any, dynamoDbClient: DynamoDBDocument) {
 		this.tableName = tableName;
 		this.dynamo = dynamoDbClient;
-		this.metrics = metrics
 		this.environmentVariables = new EnvironmentVariables(ServicesEnum.NA);
 	}
 
-	static getInstance(tableName: string, metrics: Metrics, dynamoDbClient: DynamoDBDocument): F2fService {
+	static getInstance(tableName: string, dynamoDbClient: DynamoDBDocument): F2fService {
 		if (!F2fService.instance) {
-			F2fService.instance = new F2fService(tableName, metrics, dynamoDbClient);
+			F2fService.instance = new F2fService(tableName, dynamoDbClient);
 		}
 		return F2fService.instance;
 	}
@@ -145,7 +142,7 @@ export class F2fService {
 
 		try {
 			await this.dynamo.send(updateSessionCommand);
-			this.metrics.addMetric("state-F2F_AUTH_CODE_ISSUED", MetricUnit.Count, 1);
+			captureMetric("state-F2F_AUTH_CODE_ISSUED", MetricUnit.Count, 1);
 
 			logger.info({ message: "updated authorizationCode in dynamodb" });
 		} catch (error: any) {
@@ -329,7 +326,7 @@ export class F2fService {
 
 		try {
 			await this.dynamo.send(updateStateCommand);
-			this.metrics.addMetric("state-F2F_SESSION_EXPIRED", MetricUnit.Count, 1);
+			captureMetric("state-F2F_SESSION_EXPIRED", MetricUnit.Count, 1);
 			logger.info({ message: "Session marked as expired", sessionId });
 		} catch (error) {
 			logger.error({ message: "Got error marking session as expired", error });
@@ -351,7 +348,7 @@ export class F2fService {
 		logger.info({ message: "updating Access token details in dynamodb" }, { tableName: this.tableName });
 		try {
 			await this.dynamo.send(updateAccessTokenDetailsCommand);
-			this.metrics.addMetric("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnit.Count, 1);
+			captureMetric("state-F2F_ACCESS_TOKEN_ISSUED", MetricUnit.Count, 1);
 
 			logger.info({ message: "updated Access token details in dynamodb" });
 		} catch (error) {

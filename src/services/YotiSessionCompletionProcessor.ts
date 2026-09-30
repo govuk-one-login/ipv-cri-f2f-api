@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { AppError } from "../utils/AppError";
 import { logger } from "@govuk-one-login/cri-logger";
 import { YotiService } from "./YotiService";
@@ -256,7 +256,7 @@ export class YotiSessionCompletionProcessor {
 				  });
 			  }
 			
-			this.metrics.addMetric("SessionCompletion_yoti_response_parsed", MetricUnit.Count, 1);
+			captureMetric("SessionCompletion_yoti_response_parsed", MetricUnit.Count, 1);
 
   			const { given_names, family_name, full_name } = documentFields;
 
@@ -364,8 +364,8 @@ export class YotiSessionCompletionProcessor {
 				  AuthSessionState.F2F_CREDENTIAL_ISSUED,
 			  );
 
-			this.metrics.addMetric("state-F2F_CREDENTIAL_ISSUED", MetricUnit.Count, 1);
-			this.metrics.addMetric("SessionCompletion_VC_issued_successfully", MetricUnit.Count, 1);
+			captureMetric("state-F2F_CREDENTIAL_ISSUED", MetricUnit.Count, 1);
+			captureMetric("SessionCompletion_VC_issued_successfully", MetricUnit.Count, 1);
 			return Response(HttpCodesEnum.OK, "OK");
 		}
 

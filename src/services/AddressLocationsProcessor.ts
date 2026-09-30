@@ -1,4 +1,4 @@
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "./F2fService";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
@@ -15,24 +15,21 @@ import { AppError } from "../utils/AppError";
 export class AddressLocationsProcessor {
 	private static instance: AddressLocationsProcessor;
 
-  	private readonly metrics: Metrics;
-
   	private readonly f2fService: F2fService;
 
 	private readonly osApiKey: string;
 
 	private readonly environmentVariables: EnvironmentVariables;
 
-	constructor(metrics: Metrics, osApiKey: string) {
+	constructor(osApiKey: string) {
 		this.osApiKey = osApiKey;
 		this.environmentVariables = new EnvironmentVariables(ServicesEnum.ADDRESS_LOCATIONS_SERVICE);
-  		this.metrics = metrics;
-  		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+  		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
 	}
 
-	static getInstance(metrics: Metrics, osApiKey: string): AddressLocationsProcessor {
+	static getInstance(osApiKey: string): AddressLocationsProcessor {
   	if (!AddressLocationsProcessor.instance) {
-			AddressLocationsProcessor.instance = new AddressLocationsProcessor(metrics, osApiKey);
+			AddressLocationsProcessor.instance = new AddressLocationsProcessor(osApiKey);
   	}
   	return AddressLocationsProcessor.instance;
 	}
@@ -77,18 +74,14 @@ export class AddressLocationsProcessor {
 				},
 			});
 			const { data } = response;	
-			const singleMetric = this.metrics.singleMetric();
-			singleMetric.addDimension("status_code", response.status.toString());
-			singleMetric.addMetric("OS_response", MetricUnit.Count, 1);
-			this.metrics.addMetric("OSAddress_success", MetricUnit.Count, 1);
+			captureMetricWithDimensions("OS_response", { "status_code": response.status.toString()});
+			captureMetric("OSAddress_success");
 
 			return JSON.stringify(data.results);
 		} catch (error: any) {
 			if (axios.isAxiosError(error)) {
 				if (error?.response?.status) {
-					const singleMetric = this.metrics.singleMetric();
-					singleMetric.addDimension("status_code", error.response.status.toString());
-					singleMetric.addMetric("OS_response", MetricUnit.Count, 1);
+					captureMetricWithDimensions("OS_response", { "status_code": error.response.status.toString()});
 				}
 
 				logger.error("Error response data:", error.response?.data);

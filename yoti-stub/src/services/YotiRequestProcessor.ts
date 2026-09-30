@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { PDFDocument } from "pdf-lib"
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { randomUUID } from "crypto";
 import { logger } from "@govuk-one-login/cri-logger";
 import { sleep } from "../utils/Sleep";
