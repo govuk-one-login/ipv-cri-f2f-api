@@ -3,7 +3,6 @@ import { POST_OFFICE_RESPONSE } from "../data/postOfficeResponse/postOfficeSucce
 import { POST_OFFICE_RESPONSE_INCOMPLETE_DATA } from "../data/postOfficeResponse/postOfficeResponseIncompleteData";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
 import { POST_REPONSE_400 } from "../data/postOfficeResponse/postResponse400";
 import { POST_REPONSE_403 } from "../data/postOfficeResponse/postResponse403";
 import { POST_REPONSE_429 } from "../data/postOfficeResponse/postResponse429";
@@ -14,15 +13,9 @@ import { POST_OFFICE_LESS_THAN_FIVE_BRANCHES_RESPONSE } from "../data/postOffice
 export class PostOfficeRequestProcessor {
     private static instance: PostOfficeRequestProcessor;
 
-    private readonly metrics: Metrics;
-
-    constructor(metrics: Metrics) {
-    	this.metrics = metrics;
-    }
-
-    static getInstance(metrics: Metrics): PostOfficeRequestProcessor {
+	static getInstance(): PostOfficeRequestProcessor {
     	if (!PostOfficeRequestProcessor.instance) {
-    		PostOfficeRequestProcessor.instance = new PostOfficeRequestProcessor(metrics);
+    		PostOfficeRequestProcessor.instance = new PostOfficeRequestProcessor();
     	}
     	return PostOfficeRequestProcessor.instance;
     }

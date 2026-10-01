@@ -1,5 +1,5 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { metrics, captureMetric } from "@govuk-one-login/cri-metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { Constants } from "./utils/Constants";
 import { AppError } from "./utils/AppError";
@@ -8,12 +8,6 @@ import { MessageCodes } from "./models/enums/MessageCodes";
 import { GeneratePrintedLetterProcessor } from "./services/GeneratePrintedLetterProcessor";
 import { Response } from "./utils/Response";
 
-const {
-	POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE,
-	POWERTOOLS_SERVICE_NAME = "TODO",
-} = process.env;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 export class GeneratePrintedLetterHandler implements LambdaInterface {
 
@@ -27,7 +21,7 @@ export class GeneratePrintedLetterHandler implements LambdaInterface {
 			logger.info("Starting GeneratePrintedLetterProcessor");
 
 			this.validateEvent(event);
-			return await GeneratePrintedLetterProcessor.getInstance(metrics).processRequest(event);
+			return await GeneratePrintedLetterProcessor.getInstance().processRequest(event);
 
 		} catch (error: any) {
 			logger.error({ message: "An error has occurred",
@@ -35,7 +29,7 @@ export class GeneratePrintedLetterHandler implements LambdaInterface {
 				messageCode: MessageCodes.SERVER_ERROR,
 			});
 
-			metrics.addMetric("GeneratePrintedLetter_error_generating_printed_letter", MetricUnit.Count, 1);
+			captureMetric("GeneratePrintedLetter_error_generating_printed_letter");
 
 			if (error instanceof AppError) {
 				return Response(error.statusCode, error.message);

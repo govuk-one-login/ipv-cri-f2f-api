@@ -1,7 +1,6 @@
- 
 import { captor, mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { GeneratePrintedLetterProcessor } from "../../../services/GeneratePrintedLetterProcessor";
 import { F2fService } from "../../../services/F2fService";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
@@ -16,7 +15,7 @@ import { PDFService } from "../../../services/PdfService";
 const mockF2fService = mock<F2fService>();
 const mockPdfService = mock<PDFService>();
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 
 vi.mock("@aws-sdk/client-s3", () => ({
 	S3Client: vi.fn(function () {
@@ -64,15 +63,13 @@ function getMockSessionItem(): ISessionItem {
 
 describe("GenerateYotiLetterProcessor", () => {
 	beforeAll(() => {
-		generatePrintedLetterProcessor = new GeneratePrintedLetterProcessor(metrics);
+		generatePrintedLetterProcessor = new GeneratePrintedLetterProcessor();
 		// @ts-expect-error linting to be updated
 		generatePrintedLetterProcessor.f2fService = mockF2fService;
 		// @ts-expect-error linting to be updated
 		generatePrintedLetterProcessor.s3Client = mockS3Client;
 		// @ts-expect-error linting to be updated
 		generatePrintedLetterProcessor.pdfService = mockPdfService;
-
-		metrics.singleMetric.mockReturnValue(metrics);
 	});
 
 	beforeEach(() => {
@@ -154,8 +151,9 @@ describe("GenerateYotiLetterProcessor", () => {
 			name: "Error",
 			message: "Error retrieving Yoti PDF from S3 bucket",
 		}));
-		expect(metrics.addDimension).toHaveBeenCalledWith("error", "unable_to_retrieve_yoti_instructions");
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error", MetricUnit.Count, 1);
+		expect(captureMetricWithDimensions).toHaveBeenCalledWith("GeneratePrintedLetter_error", {
+			"error": "unable_to_retrieve_yoti_instructions"
+		});
 	});
 
 });

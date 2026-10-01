@@ -1,6 +1,6 @@
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { PersonInfoRequestProcessor } from "./services/PersonInfoRequestProcessor";
 import { HttpCodesEnum } from "./models/enums/HttpCodesEnum";
@@ -13,11 +13,9 @@ import { Response } from "./utils/Response";
 import { getSessionIdHeaderErrors } from "./utils/Validations";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 
-const { POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE, POWERTOOLS_SERVICE_NAME = Constants.ABORT_LOGGER_SVC_NAME } = process.env;
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME;
 
 let PRIVATE_KEY: string;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 export class PersonInfoHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(ServicesEnum.PERSON_INFO_SERVICE);
@@ -36,7 +34,7 @@ export class PersonInfoHandler implements LambdaInterface {
 			PRIVATE_KEY = PRIVATE_KEY ?? await getParameter(privateKeyPath);
 
 			logger.info("Starting PersonInfoRequestProcessor");
-			return await PersonInfoRequestProcessor.getInstance(metrics, PRIVATE_KEY).processRequest(sessionId);
+			return await PersonInfoRequestProcessor.getInstance(PRIVATE_KEY).processRequest(sessionId);
 		} catch (error: any) {
 			logger.error({ message: "PersonInfoRequestProcessor encountered an error.", error, messageCode: MessageCodes.SERVER_ERROR });
 			if (error instanceof AppError) {

@@ -5,7 +5,7 @@ import { GeneratePrintedLetterProcessor } from "../../services/GeneratePrintedLe
 import { mock } from "vitest-mock-extended";
 import { CONTEXT } from "./data/context";
 import { MessageCodes } from "../../models/enums/MessageCodes";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 
 const mockedGeneratePrintedLetterProcessor = mock<GeneratePrintedLetterProcessor>();
 
@@ -19,6 +19,8 @@ vi.mock("../../utils/Config", () => ({
 	getParameter: vi.fn(),
 }));
 
+vi.mock("@govuk-one-login/cri-metrics");
+
 describe("GeneratePrintedLetterHandler", () => {
 	// Used for testing
 	/* eslint-disable @typescript-eslint/no-unused-vars */
@@ -26,7 +28,6 @@ describe("GeneratePrintedLetterHandler", () => {
 	let metricsSpy: MockInstance;
 
 	beforeEach(() => {
-		metricsSpy = vi.spyOn(Metrics.prototype, "addMetric");
 		loggerSpy = vi.spyOn(logger, "error");
 	});
 
@@ -37,7 +38,7 @@ describe("GeneratePrintedLetterHandler", () => {
 		await lambdaHandler(({ "sessionId":"", "pdfPreference":"POST" }), CONTEXT);
 
 		expect(logger.error).toHaveBeenCalledWith({ message: "Invalid request: missing sessionId", messageCode: MessageCodes.MISSING_SESSION_ID });
-		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter");
 
 	});
 
@@ -48,7 +49,7 @@ describe("GeneratePrintedLetterHandler", () => {
 		await lambdaHandler(({ "sessionId":"abcdefgh", "pdfPreference":"POST" }), CONTEXT);
 
 		expect(logger.error).toHaveBeenCalledWith({ message: "Invalid request: sessionId is not a valid uuid", messageCode: MessageCodes.INVALID_SESSION_ID });
-		expect(metricsSpy).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter", MetricUnit.Count, 1);
+		expect(captureMetric).toHaveBeenCalledWith("GeneratePrintedLetter_error_generating_printed_letter");
 	});
 
 	it("calls GenerateYotiLetterProcessor if required attributes are present", async () => {

@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { AppError } from "../utils/AppError";
 import { logger } from "@govuk-one-login/cri-logger";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -17,24 +17,19 @@ export class AbortRequestProcessor {
 
   private static instance: AbortRequestProcessor;
 
-  private readonly metrics: Metrics;
-
   private readonly f2fService: F2fService;
 
   private readonly environmentVariables: EnvironmentVariables;
 
-  constructor(metrics: Metrics) {
-  	this.metrics = metrics;
+  constructor() {
   	this.environmentVariables = new EnvironmentVariables(ServicesEnum.ABORT_SERVICE);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
   }
 
-  static getInstance(
-  	metrics: Metrics,
-  ): AbortRequestProcessor {
+  static getInstance(): AbortRequestProcessor {
   	if (!AbortRequestProcessor.instance) {
   		AbortRequestProcessor.instance =
-        new AbortRequestProcessor(metrics);
+        new AbortRequestProcessor();
   	}
   	return AbortRequestProcessor.instance;
   }
@@ -63,7 +58,7 @@ export class AbortRequestProcessor {
 
   	try {
   	  await this.f2fService.updateSessionAuthState(f2fSessionInfo.sessionId, AuthSessionState.F2F_CRI_SESSION_ABORTED);
-	  this.metrics.addMetric("state-F2F_CRI_SESSION_ABORTED", MetricUnit.Count, 1);
+	  captureMetric("state-F2F_CRI_SESSION_ABORTED");
 
   	} catch (error) {
   		logger.error("Error occurred while aborting the session", {

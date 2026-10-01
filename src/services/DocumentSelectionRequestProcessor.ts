@@ -2,7 +2,7 @@
  
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { AppError } from "../utils/AppError";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { logger } from "@govuk-one-login/cri-logger";
@@ -30,8 +30,6 @@ export class DocumentSelectionRequestProcessor {
 
 	private static instance: DocumentSelectionRequestProcessor;
 
-	private readonly metrics: Metrics;
-
 	private yotiService!: YotiService;
 
 	private readonly f2fService: F2fService;
@@ -45,22 +43,20 @@ export class DocumentSelectionRequestProcessor {
 	private readonly stepFunctionsClient: SFNClient;
 
 
-	constructor(metrics: Metrics, YOTI_PRIVATE_KEY: string) {
-		this.metrics = metrics;
+	constructor(YOTI_PRIVATE_KEY: string) {
 		this.environmentVariables = new EnvironmentVariables(ServicesEnum.DOCUMENT_SELECTION_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.stepFunctionsClient = new SFNClient({ region: process.env.REGION, credentials: fromEnv() });
 	}
 
 	static getInstance(
-		metrics: Metrics,
 		YOTI_PRIVATE_KEY: string,
 	): DocumentSelectionRequestProcessor {
 		if (!DocumentSelectionRequestProcessor.instance) {
 			DocumentSelectionRequestProcessor.instance =
-				new DocumentSelectionRequestProcessor(metrics, YOTI_PRIVATE_KEY);
+				new DocumentSelectionRequestProcessor(YOTI_PRIVATE_KEY);
 		}
 		return DocumentSelectionRequestProcessor.instance;
 	}
@@ -95,17 +91,15 @@ export class DocumentSelectionRequestProcessor {
   			logger.error("Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", {
   				messageCode: MessageCodes.MISSING_MANDATORY_FIELDS,
   			});
-				const singleMetric = this.metrics.singleMetric();
 				if (!postOfficeSelection) {
-					singleMetric.addDimension("validation_failure", "missingPostOfficeSelection");
+					captureMetricWithDimensions("DocSelect_validation_failed", { "validation_failure": "missingPostOfficeSelection" });
 				}
 				if (!selectedDocument) {
-					singleMetric.addDimension("validation_failure", "missingDocumentInfo");
+					captureMetricWithDimensions("DocSelect_validation_failed", { "validation_failure": "missingDocumentInfo" });
 				}
 				if (!pdfPreference) {
-					singleMetric.addDimension("validation_failure", "missingPdfPreference");
+					captureMetricWithDimensions("DocSelect_validation_failed", { "validation_failure": "missingPdfPreference" });
 				}
-				singleMetric.addMetric("DocSelect_validation_failed", MetricUnit.Count, 1);
 
   			return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in request payload");
   		} else if (postalAddress && (!postalAddress.postalCode || (!postalAddress.buildingNumber && !postalAddress.buildingName))
@@ -113,7 +107,7 @@ export class DocumentSelectionRequestProcessor {
 				logger.error("Postal address missing mandatory fields in postal address", {
 					messageCode: MessageCodes.MISSING_MANDATORY_FIELDS_IN_POSTAL_ADDRESS,
 				});
-				this.metrics.addMetric("DocSelect_missing_mandatory_fields_in_postal_address", MetricUnit.Count, 1);
+				captureMetric("DocSelect_missing_mandatory_fields_in_postal_address");
 				return Response(HttpCodesEnum.BAD_REQUEST, "Missing mandatory fields in postal address");
 			}
 		// ignored so as not log PII
@@ -150,7 +144,7 @@ export class DocumentSelectionRequestProcessor {
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(this.metrics, this.YOTI_PRIVATE_KEY);
+		this.yotiService = YotiService.getInstance(this.YOTI_PRIVATE_KEY);
 
 		// Reject the request when session store does not contain email, familyName or GivenName fields
 		const data = this.validationHelper.isPersonDetailsValid(personDetails.emailAddress, personDetails.name);
@@ -171,23 +165,22 @@ export class DocumentSelectionRequestProcessor {
 					countryCode,
 				);
 				if (yotiSessionId) {
-					const singleMetric = this.metrics.singleMetric();
-					singleMetric.addDimension("pdf_preference", pdfPreference);
-					singleMetric.addMetric("DocSelect_comms_choice", MetricUnit.Count, 1);
+					captureMetricWithDimensions("DocSelect_comms_choice", { "pdf_preference": pdfPreference });
+					
 					await this.startStateMachine(sessionId, yotiSessionId, f2fSessionInfo?.clientSessionId, pdfPreference);
 					await this.f2fService.updateSessionWithYotiIdAndStatus(
 						f2fSessionInfo.sessionId,
 						yotiSessionId,
 						AuthSessionState.F2F_YOTI_SESSION_CREATED,
 					);
-					this.metrics.addMetric("state-F2F_YOTI_SESSION_CREATED", MetricUnit.Count, 1);
+					captureMetric("state-F2F_YOTI_SESSION_CREATED");
 
 					const updatedTtl = absoluteTimeNow() + this.environmentVariables.authSessionTtlInSecs();
 					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.sessionTable());
 					await this.f2fService.updateSessionTtl(f2fSessionInfo.sessionId, updatedTtl, this.environmentVariables.personIdentityTableName());
 				} else {
 					logger.error(`No session found with yotiSessionId ${yotiSessionId}`);
-					this.metrics.addMetric("DocSelect_error_yoti_session_does_not_exist", MetricUnit.Count, 1);
+					captureMetric("DocSelect_error_yoti_session_does_not_exist");
 					throw new AppError(HttpCodesEnum.BAD_REQUEST, `No session found with yotiSessionId ${yotiSessionId}`);
 				}
 
@@ -229,9 +222,7 @@ export class DocumentSelectionRequestProcessor {
 					throw new AppError(HttpCodesEnum.SERVER_ERROR, "Unknown document type");
 			}
 
-			const singleMetric = this.metrics.singleMetric();
-			singleMetric.addDimension("document_type", selectedDocument);
-			singleMetric.addMetric("DocSelect_document_selected", MetricUnit.Count, 1);
+			captureMetricWithDimensions("DocSelect_document_selected", { "document_type": selectedDocument });
 
 			try {
 				logger.info("Updating documentUsed in Session Table: ", { documentUsed: docType });
@@ -295,14 +286,14 @@ export class DocumentSelectionRequestProcessor {
 				logger.error("Failed to write TXMA event F2F_YOTI_START to SQS queue.", { messageCode: MessageCodes.ERROR_WRITING_TXMA });
 			}
 
-			this.metrics.addMetric("DocSelect_doc_select_complete", MetricUnit.Count, 1);
+			captureMetric("DocSelect_doc_select_complete");
 			return Response(HttpCodesEnum.OK, "Instructions PDF Generated");
 
 		} else {
 			logger.warn(`Yoti session already exists or session for journey ${f2fSessionInfo?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_SESSION_CREATED}, actual state - ${f2fSessionInfo.authSessionState}`, {
 				messageCode: MessageCodes.INCORRECT_SESSION_STATE,
 			});
-			this.metrics.addMetric("DocSelect_error_user_state_incorrect", MetricUnit.Count, 1);
+			captureMetric("DocSelect_error_user_state_incorrect");
 			return Response(HttpCodesEnum.UNAUTHORIZED, `Yoti session already exists or session for journey ${f2fSessionInfo?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_SESSION_CREATED}, actual state - ${f2fSessionInfo.authSessionState}`);
 		}
 	}
@@ -318,7 +309,7 @@ export class DocumentSelectionRequestProcessor {
 		logger.info("Creating new session in Yoti for: ", { "sessionId": f2fSessionInfo.sessionId });
 
 		const yotiSessionId = await this.yotiService.createSession(personDetails, selectedDocument, countryCode, yotiBaseUrl, this.environmentVariables.yotiCallbackUrl());
-		this.metrics.addMetric("DocSelect_yoti_session_created", MetricUnit.Count, 1);
+		captureMetric("DocSelect_yoti_session_created");
 
 		if (!yotiSessionId) {
 			logger.error("An error occurred when creating Yoti Session", { messageCode: MessageCodes.FAILED_CREATING_YOTI_SESSION });

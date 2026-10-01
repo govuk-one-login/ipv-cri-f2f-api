@@ -1,5 +1,3 @@
- 
- 
 import { logger } from "@govuk-one-login/cri-logger";
 import { SQSEvent } from "aws-lambda";
 // @ts-expect-error linting to be updated
@@ -16,8 +14,6 @@ import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { ReminderEmail } from "../../../models/ReminderEmail";
 import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 import { DynamicReminderEmail } from "../../../models/DynamicReminderEmail";
-import { Metrics } from "@aws-lambda-powertools/metrics";
-
 
 vi.mock("notifications-node-client", () => {
 	return {
@@ -32,7 +28,6 @@ const YOTI_PRIVATE_KEY = "sdfsdf";
 // pragma: allowlist nextline secret
 const GOVUKNOTIFY_API_KEY = "sdhohofsdf";
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = new Metrics({ namespace: "F2F" });
 
 let sqsEvent: SQSEvent;
 let reminderEmailEvent: SQSEvent;
@@ -71,7 +66,7 @@ describe("SendEmailProcessor", () => {
 				sendEmail: mockSendEmail,
 			};
 		});
-		sendEmailServiceTest = SendEmailService.getInstance(metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
+		sendEmailServiceTest = SendEmailService.getInstance(YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-expect-error linting to be updated
 		sendEmailServiceTest.f2fService = mockF2fService;
 		sqsEvent = VALID_SQS_EVENT;
