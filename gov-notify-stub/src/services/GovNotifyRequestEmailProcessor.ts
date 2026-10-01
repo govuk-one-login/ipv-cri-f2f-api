@@ -5,14 +5,13 @@ import { POST_SEND_EMAIL_429 } from "../data/postSendEmail/postSendEmail429";
 import { POST_SEND_EMAIL_500 } from "../data/postSendEmail/postSendEmail500";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { logger } from "@govuk-one-login/cri-logger";
-import { metrics } from "@govuk-one-login/cri-metrics";
 
 export class GovNotifyRequestEmailProcessor {
     private static instance: GovNotifyRequestEmailProcessor;
 
     static getInstance(): GovNotifyRequestEmailProcessor {
     	if (!GovNotifyRequestEmailProcessor.instance) {
-    		GovNotifyRequestEmailProcessor.instance = new GovNotifyRequestEmailProcessor(metrics);
+    		GovNotifyRequestEmailProcessor.instance = new GovNotifyRequestEmailProcessor();
     	}
     	return GovNotifyRequestEmailProcessor.instance;
     }

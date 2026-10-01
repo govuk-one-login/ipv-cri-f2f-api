@@ -2,7 +2,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { logger } from "@govuk-one-login/cri-logger";
 import { metrics  } from "@govuk-one-login/cri-metrics";
 import { Response } from "./utils/Response";
-
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { AppError } from "./utils/AppError";
@@ -29,7 +28,7 @@ class MockGovNotifyHandler implements LambdaInterface {
 					logger.info("PARSED JSON", { payloadParsed });
 					logger.info("PARSED EMAIL", payloadParsed.email_address);
 					logger.info("Starting GovNotifyRequestEmailProcessor");
-					return await GovNotifyRequestEmailProcessor.getInstance(metrics).mockSendEmail(payloadParsed.email_address);
+					return await GovNotifyRequestEmailProcessor.getInstance().mockSendEmail(payloadParsed.email_address);
 				} else {
 					logger.info("Event body", { payload });
 					if (event.isBase64Encoded) {
@@ -41,7 +40,7 @@ class MockGovNotifyHandler implements LambdaInterface {
 					logger.info("PARSED JSON", { payloadParsed });
 					logger.info("PARSED REFERENCE", payloadParsed.reference);
 					logger.info("Starting GovNotifyRequestLetterProcessor");
-					return await GovNotifyRequestLetterProcessor.getInstance(metrics).mockSendLetter(payloadParsed.reference);
+					return await GovNotifyRequestLetterProcessor.getInstance().mockSendLetter(payloadParsed.reference);
 				}
 			} else {
 				const errorMessage = "No payload passed to stub";
