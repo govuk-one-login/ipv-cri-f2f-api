@@ -1,8 +1,5 @@
- 
- 
 import { mock } from "vitest-mock-extended";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
-
+import { captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { PDFService } from "../../../services/PdfService";
 import { S3Client } from "@aws-sdk/client-s3";
 import { PDFGenerationService } from "../../../services/pdfGenerationService";
@@ -23,18 +20,16 @@ const mockS3Client = new S3Client({});
 let pdfServiceTest: PDFService;
 const mockPdfGenerationService = mock<PDFGenerationService>();
 
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 const sessionId = "sessionId";
 
 describe("PdfServiceTest", () => {
 	beforeAll(() => {
-		pdfServiceTest = PDFService.getInstance(metrics);
+		pdfServiceTest = PDFService.getInstance();
 		// @ts-expect-error linting to be updated
 		pdfServiceTest.pdfGenerationService = mockPdfGenerationService;
 		// @ts-expect-error linting to be updated
 		pdfServiceTest.s3Client = mockS3Client;
-
-		metrics.singleMetric.mockReturnValue(metrics);
 	});
 
 	describe("#processRequest", () => {
@@ -60,10 +55,10 @@ describe("PdfServiceTest", () => {
 			} catch (error:any) {
 				
 				expect(mockPdfGenerationService.generatePDF).toHaveBeenCalledTimes(1);
-				
-				expect(metrics.addDimension).toHaveBeenCalledWith("error", "unable_to_create_cover_letter");
-				
-				expect(captureMetric).toHaveBeenNthCalledWith(1, "GeneratePrintedLetter_error");
+								
+				expect(captureMetricWithDimensions).toHaveBeenCalledWith("GeneratePrintedLetter_error", {
+					"error": "unable_to_create_cover_letter"
+				});
 			}
 		});
 	});

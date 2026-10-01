@@ -9,21 +9,20 @@ import { AddressLocationsProcessor } from "../../services/AddressLocationsProces
 import { Constants } from "../../utils/Constants";
 import { MessageCodes } from "../../models/enums/MessageCodes";
 import { randomUUID } from "crypto";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 
 vi.mock("../../utils/Config", () => ({
 	getParameter: (parameter: string) => parameter,
 }));
 
+vi.mock("@govuk-one-login/cri-metrics");
+
 const mockedAddressLocationsProcessor = mock<AddressLocationsProcessor>();
 
- 
 describe("AddressLocationsHandler", () => {
 	let loggerSpy: MockInstance;
 	let metricsSpy: MockInstance;
-
 	beforeEach(() => {
-		metricsSpy = vi.spyOn(Metrics.prototype, "addMetric");
 		loggerSpy = vi.spyOn(logger, "error");
 	});
 
@@ -35,7 +34,7 @@ describe("AddressLocationsHandler", () => {
 		expect(response.statusCode).toEqual(HttpCodesEnum.BAD_REQUEST);
 		expect(response.body).toBe(message);
 		expect(loggerSpy).toHaveBeenCalledWith({ message, messageCode: MessageCodes.INVALID_SESSION_ID });
-		expect(metricsSpy).toHaveBeenCalledWith("AddressLocations_failed_to_retrieve_address");
+		expect(captureMetric).toHaveBeenCalledWith("AddressLocations_failed_to_retrieve_address");
 	});
 
 	it("returns error when x-govuk-signin-session-id header isn't passed", async () => {
@@ -46,7 +45,7 @@ describe("AddressLocationsHandler", () => {
 		expect(response.statusCode).toEqual(HttpCodesEnum.BAD_REQUEST);
 		expect(response.body).toBe(message);
 		expect(loggerSpy).toHaveBeenCalledWith({ message, messageCode: MessageCodes.INVALID_SESSION_ID });
-		expect(metricsSpy).toHaveBeenCalledWith("AddressLocations_failed_to_retrieve_address");
+		expect(captureMetric).toHaveBeenCalledWith("AddressLocations_failed_to_retrieve_address");
 	});
 
 	it("returns error when x-govuk-signin-session-id header is invalid", async () => {
@@ -57,7 +56,7 @@ describe("AddressLocationsHandler", () => {
 		expect(response.statusCode).toEqual(HttpCodesEnum.BAD_REQUEST);
 		expect(response.body).toBe(message);
 		expect(loggerSpy).toHaveBeenCalledWith({ message, messageCode: MessageCodes.INVALID_SESSION_ID });
-		expect(metricsSpy).toHaveBeenCalledWith("AddressLocations_failed_to_retrieve_address");
+		expect(captureMetric).toHaveBeenCalledWith("AddressLocations_failed_to_retrieve_address");
 	});
 
 	it("returns error when postcode header isn't passed", async () => {
@@ -67,7 +66,7 @@ describe("AddressLocationsHandler", () => {
 
 		expect(response.statusCode).toEqual(HttpCodesEnum.BAD_REQUEST);
 		expect(response.body).toBe(message);
-		expect(metricsSpy).toHaveBeenCalledWith("AddressLocations_failed_to_retrieve_address");
+		expect(captureMetric).toHaveBeenCalledWith("AddressLocations_failed_to_retrieve_address");
 		expect(loggerSpy).toHaveBeenCalledWith({ message, messageCode: MessageCodes.MISSING_POSTCODE });
 	});
 
@@ -90,6 +89,6 @@ describe("AddressLocationsHandler", () => {
 		expect(mockedAddressLocationsProcessor.processRequest).toHaveBeenCalledTimes(1);
 		expect(response.statusCode).toEqual(HttpCodesEnum.SERVER_ERROR);
 		expect(response.body).toBe("Server Error");
-		expect(metricsSpy).toHaveBeenCalledWith("AddressLocations_failed_to_retrieve_address");
+		expect(captureMetric).toHaveBeenCalledWith("AddressLocations_failed_to_retrieve_address");
 	});
 });

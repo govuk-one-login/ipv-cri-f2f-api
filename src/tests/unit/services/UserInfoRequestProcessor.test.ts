@@ -1,5 +1,5 @@
 import { UserInfoRequestProcessor } from "../../../services/UserInfoRequestProcessor";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { MISSING_AUTH_HEADER_USERINFO, VALID_USERINFO } from "../data/userInfo-events";
@@ -17,7 +17,7 @@ let mockSession: ISessionItem;
 const passingKmsJwtAdapterFactory = () => new MockKmsJwtAdapter(true);
 const failingKmsJwtAdapterFactory = () => new MockKmsJwtAdapter(false);
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 
 function getMockSessionItem(): ISessionItem {
 	const sess: ISessionItem = {
@@ -47,7 +47,7 @@ function getMockSessionItem(): ISessionItem {
 describe("UserInfoRequestProcessor", () => {
 	beforeAll(() => {
 		mockSession = getMockSessionItem();
-		userInforequestProcessorTest = new UserInfoRequestProcessor(metrics);
+		userInforequestProcessorTest = new UserInfoRequestProcessor();
 		// @ts-expect-error linting to be updated
 		userInforequestProcessorTest.f2fService = mockF2fService;
 	});

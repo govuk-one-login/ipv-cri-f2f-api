@@ -1,6 +1,3 @@
- 
- 
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { logger } from "@govuk-one-login/cri-logger";
 import { mock } from "vitest-mock-extended";
 import NodeRSA from "node-rsa";
@@ -27,7 +24,6 @@ let personInfoRequestProcessorTest: PersonInfoRequestProcessor;
 const mockF2fService = mock<F2fService>();
 
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = new Metrics({ namespace: "F2F" });
 const PRIVATE_KEY_SSM_PARAM = "argadfgadf";
 const sessionId = "sessionId";
 
@@ -99,7 +95,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("PersonInfoRequestProcessor", () => {
 	beforeAll(() => {
-		personInfoRequestProcessorTest = new PersonInfoRequestProcessor(metrics, PRIVATE_KEY_SSM_PARAM);
+		personInfoRequestProcessorTest = new PersonInfoRequestProcessor(PRIVATE_KEY_SSM_PARAM);
 		// @ts-expect-error linting to be updated
 		personInfoRequestProcessorTest.f2fService = mockF2fService;
 	});

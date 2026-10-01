@@ -1,5 +1,5 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { metrics } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { F2fService } from "./F2fService";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";

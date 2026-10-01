@@ -302,7 +302,7 @@ export class YotiSessionCompletionProcessor {
 				};
 				captureMetricWithDimensions("Yoti_Check_Failure", { "failure_reasons": failureReasons.toString() } );
 			  }
-
+			  console.log("PIE!")
 			  if (!credentialSubject || !evidence) {
 				  logger.error({ message: "Missing Credential Subject or Evidence payload" }, {
 					  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
@@ -312,18 +312,24 @@ export class YotiSessionCompletionProcessor {
 			  }
 			  let signedJWT;
 			  let unsignedJWT;
+			  console.log("CAKE!")
 			  try {
 				  unsignedJWT = this.verifiableCredentialService.generateVerifiableCredentialJwt(f2fSession, credentialSubject, evidence, absoluteTimeNow);
 				  if (unsignedJWT) {
+					console.log("APPLE!")
 					  signedJWT = await this.verifiableCredentialService.signGeneratedVerifiableCredentialJwt(unsignedJWT);
 				  }
 			  } catch (error) {
+				console.log("ORANGE!")
 				  if (error instanceof AppError) {
+					console.log("PEAR!")
 					  logger.error({ message: "Error generating signed verifiable credential jwt" }, {
 						  error,
 						  messageCode: MessageCodes.FAILED_SIGNING_JWT,
 					  });
+					  console.log("PLUM!")
 					  await this.sendErrorMessageToIPVCore(f2fSession, "Failed to sign the verifiableCredential Jwt", govUkSignInJourneyId, yotiSessionID);
+					  console.log("FROG!")
 					  return Response(HttpCodesEnum.SERVER_ERROR, "Failed to sign the verifiableCredential Jwt");
 				  }
 			  }

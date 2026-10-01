@@ -1,7 +1,4 @@
- 
- 
- 
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
@@ -27,7 +24,7 @@ const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 vi.mock("crypto", async () => ({
 	...(await vi.importActual<typeof import("crypto")>("crypto")),
 	randomUUID: () => "sdfsdf",
@@ -112,7 +109,7 @@ const VALID_REQUEST = {
 describe("YotiSessionCompletionProcessor", () => {
 	let f2fSessionItem: ISessionItem, personIdentityItem: PersonIdentityItem, completedYotiSession: YotiCompletedSession, documentFields: any;
 	beforeAll(() => {
-		mockCompletedSessionProcessor = new YotiSessionCompletionProcessor(metrics, "YOTIPRIM");
+		mockCompletedSessionProcessor = new YotiSessionCompletionProcessor("YOTIPRIM");
 		// @ts-expect-error linting to be updated
 		mockCompletedSessionProcessor.f2fService = mockF2fService;
 
@@ -126,7 +123,6 @@ describe("YotiSessionCompletionProcessor", () => {
 	});
 
 	beforeEach(() => {
-		metrics.singleMetric.mockReturnValue(metrics);
 		vi.clearAllMocks();
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date(1585695600000));
@@ -889,8 +885,9 @@ describe("YotiSessionCompletionProcessor", () => {
 				message: "FullName mismatch between F2F & YOTI",
 			}));
 			expect(captureMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed");
-			expect(captureMetric).toHaveBeenNthCalledWith(2, "Session_Completion_Error_Returned_To_Core");
-			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "FullName mismatch between F2F & YOTI");
+			expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", {
+				"error": "FullName mismatch between F2F & YOTI"
+			});
 		});
 	});
 
@@ -914,8 +911,9 @@ describe("YotiSessionCompletionProcessor", () => {
 				error: "access_denied",
     			error_description: "VC generation failed : Yoti Session not found",
 			});
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core");
-			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Yoti Session not found");
+			expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", {
+				"error": "Yoti Session not found"
+			});
 		});
 
 		it("Throws server error if session in Yoti is not completed", async () => {
@@ -939,8 +937,9 @@ describe("YotiSessionCompletionProcessor", () => {
 				error: "access_denied",
     			error_description: "VC generation failed : Yoti Session not complete",
 			});
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core");
-			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Yoti Session not complete");
+			expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", {
+				"error": "Yoti Session not complete"
+			});
 		});
 
 		it("Throws server error if session in Yoti does not contain document fields", async () => {
@@ -1023,8 +1022,9 @@ describe("YotiSessionCompletionProcessor", () => {
 				error: "access_denied",
     			error_description: "VC generation failed : Yoti document_fields not populated",
 			});
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core");
-			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Yoti document_fields not populated");
+			expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", {
+				"error": "Yoti document_fields not populated"
+			});
 		});
 
 		it("Throws server error if multiple resources used in ID_DOCUMENT_AUTHENTICITY check", async () => {
@@ -1062,8 +1062,9 @@ describe("YotiSessionCompletionProcessor", () => {
 				error: "access_denied",
     			error_description: "VC generation failed : Multiple IDs used in completed Yoti Session",
 			});
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core");
-			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Multiple IDs used in completed Yoti Session");
+			expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", {
+				"error": "Multiple IDs used in completed Yoti Session"
+			});
 		});
 
 		it("Returns successful response with 200 OK when one document id out of multiple in id_document array matches resource used in ID_DOCUMENT_AUTHENTICITY check", async () => {
@@ -1203,8 +1204,9 @@ describe("YotiSessionCompletionProcessor", () => {
 				error: "access_denied",
     			error_description: "VC generation failed : Unsuccessful attempt to match document IDs",
 			});
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core");
-			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Unsuccessful attempt to match document IDs");
+			expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", {
+				"error": "Unsuccessful attempt to match document IDs"
+			});
 		});
 
 		it("Throws server error if Yoti response contains no id_documents", async () => {
@@ -1229,8 +1231,9 @@ describe("YotiSessionCompletionProcessor", () => {
 				error: "access_denied",
     			error_description: "VC generation failed : No documents found in Yoti response",
 			});
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core");
-			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "No documents found in Yoti response");
+			expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", {
+				"error": "No documents found in Yoti response"
+			});
 		});
 
 		it("Throws server error if session in Yoti does not contain media ID", async () => {
@@ -1255,8 +1258,9 @@ describe("YotiSessionCompletionProcessor", () => {
 				error: "access_denied",
     			error_description: "VC generation failed : Yoti document_fields media ID not found",
 			});
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core");
-			expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Yoti document_fields media ID not found");
+			expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", {
+				"error": "Yoti document_fields media ID not found"
+			});
 		});
 	});
 
@@ -1269,8 +1273,9 @@ describe("YotiSessionCompletionProcessor", () => {
 			statusCode: HttpCodesEnum.SERVER_ERROR,
 			message: "Missing Info in Session Table",
 		}));
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Not_Returned_To_Core");
-		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Session not found");
+		expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Not_Returned_To_Core", {
+			"error": "Session not found"
+		});
 	});
 
 	it("Should throw an error when session is in wrong AuthSessionState", async () => {
@@ -1295,8 +1300,9 @@ describe("YotiSessionCompletionProcessor", () => {
 		});
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);
 		expect(out.body).toBe("AuthSession is in wrong Auth state: Expected state- F2F_POST_OFFICE_VISITED actual state- F2F_YOTI_SESSION_CREATED");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core");
-		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "AuthSession is in wrong Auth state");
+		expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", {
+			"error": "AuthSession is in wrong Auth state"
+		});
 	});
 
 	it("Return 200 when write to txMA fails", async () => {
@@ -1357,8 +1363,9 @@ describe("YotiSessionCompletionProcessor", () => {
 			error_description: "VC generation failed : Unable to create signed JWT",
 		});
 		expect(captureMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed");
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "Session_Completion_Error_Returned_To_Core");
-		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Unable to create signed JWT");
+		expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", {
+			"error": "Unable to create signed JWT"
+		});
 		expect(captureMetric).not.toHaveBeenNthCalledWith(3, "state-F2F_CREDENTIAL_ISSUED");
 		expect(captureMetric).not.toHaveBeenNthCalledWith(4, "SessionCompletion_VC_issued_successfully");
 	});
@@ -1386,8 +1393,9 @@ describe("YotiSessionCompletionProcessor", () => {
 			error_description: "VC generation failed : Failed to sign the verifiableCredential Jwt",
 		});
 		expect(captureMetric).toHaveBeenNthCalledWith(1, "SessionCompletion_yoti_response_parsed");
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "Session_Completion_Error_Returned_To_Core");
-		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "error", "Failed to sign the verifiableCredential Jwt");
+		expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "Session_Completion_Error_Returned_To_Core", { 
+			"error": "Failed to sign the verifiableCredential Jwt"
+		});
 		expect(captureMetric).not.toHaveBeenNthCalledWith(3, "state-F2F_CREDENTIAL_ISSUED");
 		expect(captureMetric).not.toHaveBeenNthCalledWith(4, "SessionCompletion_VC_issued_successfully");
 	

@@ -4,18 +4,15 @@ import { PersonIdentityAddress } from "../../../models/PersonIdentityItem";
 import { person, personAddressAllAddressFields } from "../data/postalAddress-events";
 import { F2fService } from "../../../services/F2fService";
 import { PDFGenerationService } from "../../../services/pdfGenerationService";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 
 let pdfGenerationService: PDFGenerationService;
 const mockF2fService = mock<F2fService>();
-
-const metrics = mock<Metrics>();
 
 const sessionId = "sessionId";
 
 describe("PdfGenerationServiceTest", () => {
 	beforeAll(() => {
-		pdfGenerationService = PDFGenerationService.getInstance(metrics);
+		pdfGenerationService = PDFGenerationService.getInstance();
 		// @ts-expect-error linting to be updated
 		pdfGenerationService.f2fService = mockF2fService;
 	});

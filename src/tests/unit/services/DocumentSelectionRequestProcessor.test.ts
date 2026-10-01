@@ -1,9 +1,5 @@
 import type { MockInstance } from "vitest";
- 
- 
- 
- 
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
@@ -39,7 +35,7 @@ const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 const encodedHeader = "ENCHEADER";
 
 function getMockSessionItem(): ISessionItem {
@@ -201,7 +197,7 @@ vi.mock("@aws-sdk/client-sfn", () => ({
 describe("DocumentSelectionRequestProcessor", () => {
 	let personIdentityItem: PersonIdentityItem, f2fSessionItem: ISessionItem, yotiSessionInfo: YotiSessionInfo;
 	beforeAll(() => {
-		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor(metrics, "YOTIPRIM");
+		mockDocumentSelectionRequestProcessor = new DocumentSelectionRequestProcessor("YOTIPRIM");
 		// @ts-expect-error linting to be updated
 		mockDocumentSelectionRequestProcessor.f2fService = mockF2fService;
 
@@ -211,7 +207,6 @@ describe("DocumentSelectionRequestProcessor", () => {
 
 		yotiSessionInfo = getYotiSessionInfo();
 		f2fSessionItem = getMockSessionItem();
-		metrics.singleMetric.mockReturnValue(metrics);
 	});
 
 	beforeEach(() => {
@@ -250,9 +245,13 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
 		expect(captureMetric).toHaveBeenCalledWith("DocSelect_yoti_session_created")
-		expect(captureMetric).toHaveBeenCalledWith("DocSelect_comms_choice")
+		expect(captureMetricWithDimensions).toHaveBeenCalledWith("DocSelect_comms_choice", {
+			"pdf_preference": "EMAIL_ONLY"
+		})
 		expect(captureMetric).toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED")
-		expect(captureMetric).toHaveBeenCalledWith("DocSelect_document_selected")
+		expect(captureMetricWithDimensions).toHaveBeenCalledWith("DocSelect_document_selected", {
+			"document_type": "ukPassport"
+		})
 		expect(captureMetric).toHaveBeenCalledWith("DocSelect_doc_select_complete")
 	});
 
@@ -280,9 +279,13 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
 		expect(captureMetric).toHaveBeenCalledWith("DocSelect_yoti_session_created")
-		expect(captureMetric).toHaveBeenCalledWith("DocSelect_comms_choice")
+		expect(captureMetricWithDimensions).toHaveBeenCalledWith("DocSelect_comms_choice", {
+			"pdf_preference": "EMAIL_ONLY"
+		})
 		expect(captureMetric).toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED")
-		expect(captureMetric).toHaveBeenCalledWith("DocSelect_document_selected")
+		expect(captureMetricWithDimensions).toHaveBeenCalledWith("DocSelect_document_selected", {
+			"document_type": "nonUkPassport"
+		})
 		expect(captureMetric).toHaveBeenCalledWith("DocSelect_doc_select_complete")
 	});
 
@@ -313,9 +316,13 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 		expect(out.body).toBe("Instructions PDF Generated");
 		expect(captureMetric).toHaveBeenCalledWith("DocSelect_yoti_session_created")
-		expect(captureMetric).toHaveBeenCalledWith("DocSelect_comms_choice")
+		expect(captureMetricWithDimensions).toHaveBeenCalledWith("DocSelect_comms_choice", {
+			"pdf_preference": "EMAIL_ONLY"
+		})
 		expect(captureMetric).toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED")
-		expect(captureMetric).toHaveBeenCalledWith("DocSelect_document_selected")
+		expect(captureMetricWithDimensions).toHaveBeenCalledWith("DocSelect_document_selected", {
+			"document_type": "eeaIdentityCard"
+		})
 		expect(captureMetric).toHaveBeenCalledWith("DocSelect_doc_select_complete")
 	});
 
@@ -341,8 +348,9 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(logger.error).toHaveBeenCalledWith(
 			"Missing mandatory fields (post_office_selection, document_selection.document_selected or pdf_preference) in request payload", { messageCode: "MISSING_MANDATORY_FIELDS" },
 		);
-		expect(metrics.addDimension).toHaveBeenCalledWith("validation_failure", "missingPdfPreference");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "DocSelect_validation_failed");
+		expect(captureMetricWithDimensions).toHaveBeenCalledWith("DocSelect_validation_failed", {
+			"validation_failure": "missingPdfPreference"
+		});
 		expect(captureMetric).not.toHaveBeenCalledWith("state-F2F_YOTI_SESSION_CREATED");
 	});
 
@@ -666,7 +674,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");
 		expect(captureMetric).toHaveBeenCalledWith("DocSelect_yoti_session_created")
-		expect(captureMetric).toHaveBeenNthCalledWith(3, "state-F2F_YOTI_SESSION_CREATED");
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "state-F2F_YOTI_SESSION_CREATED");
 	});
 
 	it("Return 500 when add users documentUsed returns an error", async () => {
@@ -688,7 +696,7 @@ describe("DocumentSelectionRequestProcessor", () => {
 		expect(out.statusCode).toBe(HttpCodesEnum.SERVER_ERROR);
 		expect(out.body).toBe("An error has occurred");
 		expect(captureMetric).toHaveBeenCalledWith("DocSelect_yoti_session_created")
-		expect(captureMetric).toHaveBeenNthCalledWith(3, "state-F2F_YOTI_SESSION_CREATED");
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "state-F2F_YOTI_SESSION_CREATED");
 	});
 
 	it.each([
@@ -715,14 +723,16 @@ describe("DocumentSelectionRequestProcessor", () => {
 			{ "input": "{\"sessionId\":\"RandomF2FSessionID\",\"pdfPreference\":\"PRINTED_LETTER\",\"yotiSessionID\":\"b83d54ce-1565-42ee-987a-97a1f48f27dg\",\"govuk_signin_journey_id\":\"sdfssg\"}", "name": "RandomF2FSessionID-1585695600000", "stateMachineArn": "MockSendYotiLetterStateMachine.Arn" },
 		);
 		expect(logger.info).toHaveBeenNthCalledWith(7, { message: "Starting Yoti letter state machine" });
-		expect(metrics.addDimension).toHaveBeenNthCalledWith(1, "pdf_preference", "PRINTED_LETTER");
 		expect(captureMetric).toHaveBeenNthCalledWith(1, "DocSelect_yoti_session_created");
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "DocSelect_comms_choice");
+		expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(1, "DocSelect_comms_choice", {
+			"pdf_preference": "PRINTED_LETTER"
+		});
 	
-		expect(metrics.addDimension).toHaveBeenNthCalledWith(2, "document_type", "ukPassport");
-		expect(captureMetric).toHaveBeenNthCalledWith(3, "state-F2F_YOTI_SESSION_CREATED");
-		expect(captureMetric).toHaveBeenNthCalledWith(4, "DocSelect_document_selected");
-		expect(captureMetric).toHaveBeenNthCalledWith(5, "DocSelect_doc_select_complete");
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "state-F2F_YOTI_SESSION_CREATED");
+		expect(captureMetricWithDimensions).toHaveBeenNthCalledWith(2, "DocSelect_document_selected", {
+			"document_type": "ukPassport"
+		});
+		expect(captureMetric).toHaveBeenNthCalledWith(3, "DocSelect_doc_select_complete");
 		expect(out.statusCode).toBe(HttpCodesEnum.OK);
 
 	});

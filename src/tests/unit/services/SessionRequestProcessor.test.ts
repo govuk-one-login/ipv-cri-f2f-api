@@ -1,7 +1,5 @@
- 
- 
 import { SessionRequestProcessor } from "../../../services/SessionRequestProcessor";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
@@ -20,7 +18,7 @@ let sessionRequestProcessor: SessionRequestProcessor;
 const mockF2fService = mock<F2fService>();
 const mockKmsJwtAdapter = mock<KmsJwtAdapter>();
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 const mockValidationHelper = mock<ValidationHelper>();
 vi.mock("crypto", async () => ({
 	...(await vi.importActual<typeof import("crypto")>("crypto")),
@@ -132,7 +130,7 @@ describe("SessionRequestProcessor", () => {
 	});
 
 	beforeAll(() => {
-		sessionRequestProcessor = new SessionRequestProcessor(metrics);
+		sessionRequestProcessor = new SessionRequestProcessor();
 		// @ts-expect-error linting to be updated
 		sessionRequestProcessor.f2fService = mockF2fService;
 		// @ts-expect-error linting to be updated

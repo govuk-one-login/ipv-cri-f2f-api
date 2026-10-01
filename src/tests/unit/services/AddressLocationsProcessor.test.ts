@@ -1,8 +1,7 @@
 import type { Mocked } from "vitest";
- 
 import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { F2fService } from "../../../services/F2fService";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
 import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
@@ -15,7 +14,7 @@ const mockF2fService = mock<F2fService>();
 vi.mock("axios");
 
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 
 let addressLocationsProcessor: AddressLocationsProcessor;
 const sessionId = "RandomF2FSessionID";
@@ -46,12 +45,10 @@ function getMockSessionItem(): ISessionItem {
 describe("AddressLocationsProcessor", () => {
 	let axiosMock: Mocked<typeof axios>;
 
-	beforeAll(() => {
-		metrics.singleMetric.mockReturnValue(metrics);
-		
+	beforeAll(() => {		
 		axiosMock = axios as Mocked<typeof axios>;
 
-		addressLocationsProcessor = new AddressLocationsProcessor(metrics, "osAPIKey" );
+		addressLocationsProcessor = new AddressLocationsProcessor("osAPIKey" );
 		// @ts-expect-error linting to be updated
 		addressLocationsProcessor.f2fService = mockF2fService;
 	});
@@ -99,8 +96,9 @@ describe("AddressLocationsProcessor", () => {
 			message: "Error retrieving OS locations data",
 		}));
 
-		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "400");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "OS_response");
+		expect(captureMetricWithDimensions).toHaveBeenCalledWith("OS_response", {
+			"status_code": "400"
+		});
 	});
 
 	it("throws error if OS returns 500", async () => {
@@ -114,8 +112,9 @@ describe("AddressLocationsProcessor", () => {
 			message: "Error retrieving OS locations data",
 		}));
 
-		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "500");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "OS_response");
+		expect(captureMetricWithDimensions).toHaveBeenCalledWith("OS_response", {
+			"status_code": "500"
+		});
 	});
 
 	it("Address successfully retrieved from OS and returned", async () => {
@@ -125,9 +124,10 @@ describe("AddressLocationsProcessor", () => {
 		const response = await addressLocationsProcessor.processRequest(sessionId, "postcode");
         
 		expect(axios.get).toHaveBeenCalledWith("https://test-os-locations-stub", {"headers": {"key": "osAPIKey"}, "params": {"postcode": "postcode"}});
-		expect(metrics.addDimension).toHaveBeenCalledWith("status_code", "200");
-		expect(captureMetric).toHaveBeenNthCalledWith(1, "OS_response");
-		expect(captureMetric).toHaveBeenNthCalledWith(2, "OSAddress_success");
+		expect(captureMetricWithDimensions).toHaveBeenCalledWith("OS_response", {
+			"status_code": "200"
+		});
+		expect(captureMetric).toHaveBeenCalledWith("OSAddress_success");
 
 		expect(response.body).toBe("{\"address\":\"12 test street\"}");
 	});

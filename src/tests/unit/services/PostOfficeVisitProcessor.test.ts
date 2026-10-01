@@ -1,5 +1,5 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { AuthSessionState } from "../../../models/enums/AuthSessionState";
 import { MessageCodes } from "../../../models/enums/MessageCodes";
@@ -17,7 +17,7 @@ import { mockYotiSessionItemBST, mockYotiSessionItemGMT } from "../data/yoti-ses
 const mockF2fService = mock<F2fService>();
 const mockYotiService = mock<YotiService>();
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 // pragma: allowlist nextline secret
 const YOTI_PRIVATE_KEY = "YOTI_PRIVATE_KEY";
 const sessionId = "RandomF2FSessionID";
@@ -51,7 +51,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("PostOfficeVisitProcessor", () => {
 	beforeAll(() => {
-		postOfficeVisitProcessor = new PostOfficeVisitProcessor(metrics, YOTI_PRIVATE_KEY);
+		postOfficeVisitProcessor = new PostOfficeVisitProcessor(YOTI_PRIVATE_KEY);
 		postOfficeVisitProcessor.f2fService = mockF2fService;
 		YotiService.getInstance = vi.fn(() => mockYotiService);
 

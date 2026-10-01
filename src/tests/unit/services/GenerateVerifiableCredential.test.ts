@@ -1,6 +1,3 @@
- 
- 
-import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { GenerateVerifiableCredential } from "../../../services/GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../../../utils/YotiPayloadEnums";
@@ -12,11 +9,12 @@ import {
 	visualReviewCheck,
 	mockCompletedYotiSessionPayload,
 } from "../data/yoti-session";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
+
 vi.mock("@govuk-one-login/cri-logger");
+vi.mock("@govuk-one-login/cri-metrics");
 
 describe("GenerateVerifiableCredential", () => {
-	const metrics = mock<Metrics>();
 
 	let generateVerifiableCredential: GenerateVerifiableCredential;
 	const VcNameParts = [
@@ -35,8 +33,7 @@ describe("GenerateVerifiableCredential", () => {
 	];
 
 	beforeEach(() => {
-		generateVerifiableCredential = GenerateVerifiableCredential.getInstance(metrics);
-		metrics.singleMetric.mockReturnValue(metrics);
+		generateVerifiableCredential = GenerateVerifiableCredential.getInstance();
 	});
 
 	afterEach(() => {

@@ -1,4 +1,4 @@
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { SQSEvent } from "aws-lambda";
 import { VALID_SQS_EVENT, VALID_DYNAMIC_REMINDER_SQS_EVENT, VALID_REMINDER_SQS_EVENT } from "../data/sqs-events";
 import { SendEmailProcessor } from "../../../services/SendEmailProcessor";
@@ -12,7 +12,7 @@ const mockGovNotifyService = mock<SendEmailService>();
 const YOTI_PRIVATE_KEY = "sdfsdf";
 // pragma: allowlist nextline secret
 const GOVUKNOTIFY_API_KEY = "sdhohofsdf";
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 let sqsEvent: SQSEvent;
 let reminderEmailEvent: SQSEvent;
 let dynamicEmailEvent: SQSEvent;
@@ -20,7 +20,7 @@ let dynamicEmailEvent: SQSEvent;
 describe("SendEmailProcessor", () => {
 	beforeAll(() => {
 
-		sendEmailProcessorTest = new SendEmailProcessor(metrics, YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
+		sendEmailProcessorTest = new SendEmailProcessor(YOTI_PRIVATE_KEY, GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-expect-error linting to be updated
 		sendEmailProcessorTest.govNotifyService = mockGovNotifyService;
 		sqsEvent = VALID_SQS_EVENT;
@@ -31,7 +31,6 @@ describe("SendEmailProcessor", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		sqsEvent = VALID_SQS_EVENT;
-		metrics.singleMetric.mockReturnValue(metrics);
 	});
 
 	describe("PDF_EMAIL", () => {
@@ -44,9 +43,10 @@ describe("SendEmailProcessor", () => {
 
 			expect(emailResponse?.emailSentDateTime).toEqual(expectedDateTime);
 			expect(emailResponse?.emailFailureMessage).toBe("");
-			expect(metrics.addDimension).toHaveBeenCalledWith("emailType", "Pdf");
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent");
-			expect(captureMetric).toHaveBeenNthCalledWith(2, "GovNotify_PDF_email_sent");
+			expect(captureMetricWithDimensions).toHaveBeenCalledWith("GovNotify_email_sent", {
+				"emailType": "Pdf"
+			});
+			expect(captureMetric).toHaveBeenCalledWith("GovNotify_PDF_email_sent");
 		});
 
 		it.each([
@@ -73,8 +73,9 @@ describe("SendEmailProcessor", () => {
 
 			expect(emailResponse?.emailSentDateTime).toEqual(expectedDateTime);
 			expect(emailResponse?.emailFailureMessage).toBe("");
-			expect(metrics.addDimension).toHaveBeenCalledWith("emailType", "reminder");
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent");
+			expect(captureMetricWithDimensions).toHaveBeenCalledWith("GovNotify_email_sent", {
+				"emailType": "reminder"
+			});
 		});
 
 		it.each([
@@ -99,8 +100,9 @@ describe("SendEmailProcessor", () => {
 
 			expect(emailResponse?.emailSentDateTime).toEqual(expectedDateTime);
 			expect(emailResponse?.emailFailureMessage).toBe("");
-			expect(metrics.addDimension).toHaveBeenCalledWith("emailType", "dynamic_reminder");
-			expect(captureMetric).toHaveBeenNthCalledWith(1, "GovNotify_email_sent");
+			expect(captureMetricWithDimensions).toHaveBeenCalledWith("GovNotify_email_sent", {
+				"emailType": "dynamic_reminder"
+			});
 		});
 
 		it.each([

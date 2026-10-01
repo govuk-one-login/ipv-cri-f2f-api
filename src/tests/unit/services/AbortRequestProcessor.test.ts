@@ -1,5 +1,5 @@
 import { mock } from "vitest-mock-extended";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { logger } from "@govuk-one-login/cri-logger";
 import { AbortRequestProcessor } from "../../../services/AbortRequestProcessor";
 import { F2fService } from "../../../services/F2fService";
@@ -15,7 +15,7 @@ vi.mock("@govuk-one-login/cri-logger");
 
 let abortRequestProcessor: AbortRequestProcessor;
 let f2fSessionItem: ISessionItem;
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 const sessionId = "RandomF2FSessionID";
 const encodedHeader = "ENCHEADER";
 function getMockSessionItem(): ISessionItem {
@@ -43,7 +43,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("AbortRequestProcessor", () => {
 	beforeAll(() => {
-		abortRequestProcessor = new AbortRequestProcessor(metrics);
+		abortRequestProcessor = new AbortRequestProcessor();
     		// @ts-expect-error linting to be updated
 		abortRequestProcessor.f2fService = mockF2fService;
 		f2fSessionItem = getMockSessionItem();

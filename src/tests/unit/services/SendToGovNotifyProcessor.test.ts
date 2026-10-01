@@ -1,18 +1,17 @@
 import { SendToGovNotifyService } from "../../../services/SendToGovNotifyService";
 import { SendToGovNotifyProcessor } from "../../../services/SendToGovNotifyProcessor";
 import { mock } from "vitest-mock-extended";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
-
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 
 let sendToGovNotifyProcessor: SendToGovNotifyProcessor;
 const mockSendToGovNotifyService = mock<SendToGovNotifyService>();
 // pragma: allowlist nextline secret
 const GOVUKNOTIFY_API_KEY = "sdhohofsdf";
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 
 describe("SendToGovNotify processor", () => {
 	beforeAll(() => {
-		sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(metrics, GOVUKNOTIFY_API_KEY, "serviceId");
+		sendToGovNotifyProcessor = SendToGovNotifyProcessor.getInstance(GOVUKNOTIFY_API_KEY, "serviceId");
 		// @ts-expect-error linting to be updated
 		sendToGovNotifyProcessor.sendToGovNotifyService = mockSendToGovNotifyService;
 	});

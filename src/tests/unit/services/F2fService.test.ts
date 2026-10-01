@@ -1,5 +1,4 @@
 import type { Mock } from "vitest";
-import { mock } from "vitest-mock-extended";
 import { F2fService } from "../../../services/F2fService";
 import { logger } from "@govuk-one-login/cri-logger";
 import { randomUUID } from "crypto";
@@ -15,11 +14,11 @@ import { TxmaEventNames } from "../../../models/enums/TxmaEvents";
 import { PdfPreferenceEnum } from "../../../utils/PdfPreferenceEnum";
 import SESSION_RECORD from "../data/db_record.json";
 import { ISessionItem } from "../../../models/ISessionItem";
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { IPVCoreEvent } from "../../../utils/IPVCoreEvent";
 
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 
 let f2fService: F2fService;
 const tableName = "SESSIONTABLE";
@@ -83,7 +82,7 @@ describe("F2f Service", () => {
 
 	beforeEach(() => {
 		vi.resetAllMocks();
-		f2fService = F2fService.getInstance(tableName, metrics, mockDynamoDbClient);
+		f2fService = F2fService.getInstance(tableName, mockDynamoDbClient);
 		mockSend = vi.fn();
 		(SQSClient as Mock).mockImplementation(function () {
 			return {

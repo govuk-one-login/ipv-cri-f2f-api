@@ -275,11 +275,9 @@ export class YotiService {
     		configResponseType: "arraybuffer",
     		configResponseEncoding: "binary",
     	});
-
 		const requestMetricName = "YotiService_fetch_instructions_response";
 		const yotiRequestName = "fetchInstructionsPdf";
 		const messageCode = MessageCodes.FAILED_YOTI_GET_INSTRUCTIONS;
-
 		return await this.makeRetryableYotiRequest(() => this.yotiGetRequest(yotiRequest, requestMetricName), yotiRequestName, messageCode)
 	}
 
@@ -321,20 +319,16 @@ export class YotiService {
 			if (!yotiResponse.isError) { 
 				return yotiResponse
 			}
-
 			const error = yotiResponse.error;
 			const xRequestId = error.response ? error.response.headers["x-request-id"] : undefined;
-
 			if (retryCount === maxRetries) {
 				logger.error({ message: `${yotiRequestName} - cannot get response from yoti even after ${maxRetries} retries.`, 
 					messageCode: MessageCodes.YOTI_RETRIES_EXCEEDED, 
 					xRequestId });
 				throw new AppError(HttpCodesEnum.SERVER_ERROR, `${yotiRequestName} - cannot get response from yoti even after ${maxRetries} retries.`);
 			}
-
 			const is5xx = (error.response?.status >= 500 && error.response?.status < 600);
 			const shouldRetry = (is5xx || error.response?.status === 429);
-
 			if (shouldRetry) {
 				logger.warn({ message: `${yotiRequestName} - Retrying request. Sleeping for ${backoffPeriodMs} ms`, 
 					retryCount, 
@@ -346,7 +340,6 @@ export class YotiService {
 				await sleep(backoffPeriodMs * retryCount);
 				retryCount++;
 			} else {
-
 				const message = "An error occurred when calling Yoti " + yotiRequestName;
 				logger.error({ message, yotiErrorMessage: error.message, 
 					yotiErrorCode: error.code, 
@@ -365,7 +358,7 @@ export class YotiService {
 					return data;
 				} catch (error: any) {
 					if (error.status) {
-						captureMetricWithDimensions(requestMetricName, { "status_code": error.response.status.toString() });
+						captureMetricWithDimensions(requestMetricName, { "status_code": error.status.toString() });
 					}
 					return {isError: true, error: error};
 
@@ -404,7 +397,7 @@ export class YotiService {
 			return data;
 		} catch (error: any) {
 			if (error.status) {
-				captureMetricWithDimensions(requestMetricName, { "status_code": error.response.status.toString() });
+				captureMetricWithDimensions(requestMetricName, { "status_code": error.status.toString() });
 			}
 			return {isError: true, error: error};
 		}

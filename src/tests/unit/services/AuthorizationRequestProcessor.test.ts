@@ -1,6 +1,4 @@
- 
- 
-import { metrics, captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
@@ -18,7 +16,7 @@ let authorizationRequestProcessorTest: AuthorizationRequestProcessor;
 const mockF2fService = mock<F2fService>();
 
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 
 function getMockSessionItem(): ISessionItem {
 	const sess: ISessionItem = {
@@ -45,7 +43,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("AuthorizationRequestProcessor", () => {
 	beforeAll(() => {
-		authorizationRequestProcessorTest = new AuthorizationRequestProcessor(metrics);
+		authorizationRequestProcessorTest = new AuthorizationRequestProcessor();
 		// @ts-expect-error linting to be updated
 		authorizationRequestProcessorTest.f2fService = mockF2fService;
 	});

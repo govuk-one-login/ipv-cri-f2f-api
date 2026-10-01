@@ -20,7 +20,7 @@ export class AccessToken implements LambdaInterface {
 		try {
 			logger.info("Received token request", { requestId: event.requestContext.requestId });
 			logger.info("Starting AccessTokenRequestProcessor");
-			return await AccessTokenRequestProcessor.getInstance(metrics).processRequest(event);
+			return await AccessTokenRequestProcessor.getInstance().processRequest(event);
 		} catch (error) {
 			logger.error({ message: "AccessTokenRequestProcessor encountered an error.",
 				error,
