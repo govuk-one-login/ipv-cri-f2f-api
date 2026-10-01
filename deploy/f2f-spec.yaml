@@ -1100,7 +1100,7 @@ paths:
       operationId: getOsPlacesData
       summary: Query the Ordnance Survey API for address locations based on postcode
       tags:
-        Backend - F2F CRI specific
+        - Backend - F2F CRI specific
       parameters:
         - $ref: '#/components/parameters/SessionId'
         - $ref: '#/components/parameters/PostCode'
