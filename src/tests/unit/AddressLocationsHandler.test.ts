@@ -21,7 +21,6 @@ const mockedAddressLocationsProcessor = mock<AddressLocationsProcessor>();
 
 describe("AddressLocationsHandler", () => {
 	let loggerSpy: MockInstance;
-	let metricsSpy: MockInstance;
 	beforeEach(() => {
 		loggerSpy = vi.spyOn(logger, "error");
 	});
