@@ -23,7 +23,7 @@ import { Constants } from "../utils/Constants";
 import { getClientConfig } from "../utils/ClientConfig";
 import { TxmaEventNames } from "../models/enums/TxmaEvents";
 import { ValidationHelper } from "../utils/ValidationHelper";
-import { ISessionItem } from "../models/ISessionItem";
+import { formatPostOfficeExpiryDate } from "../utils/DateTimeUtils";
 
 /**
  * Class to send emails using gov notify service
@@ -118,7 +118,15 @@ export class SendEmailService {
   		if (encoded) {
   			logger.info("Sending Yoti PDF email");
 
-  			const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
+  			const englishFormattedDate = formatPostOfficeExpiryDate(
+						sessionConfigObject.f2fSessionInfo,
+						'en-GB'
+				);
+
+				const welshFormattedDate = formatPostOfficeExpiryDate(
+						sessionConfigObject.f2fSessionInfo,
+						"cy-GB",
+				);
 
   			const { GOV_NOTIFY_OPTIONS } = Constants;
 
@@ -126,7 +134,8 @@ export class SendEmailService {
   				personalisation: {
   					[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
   					[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
-  					[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
+  					[GOV_NOTIFY_OPTIONS.ENGLISH_DATE]: englishFormattedDate,
+					  [GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
   					[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   						file: encoded,
   						confirm_email_before_download: true,
@@ -177,13 +186,22 @@ export class SendEmailService {
   			sessionConfigObject.clientConfig.YotiBaseUrl,
   		);
 
-  		const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
+        const englishFormattedDate = formatPostOfficeExpiryDate(
+            sessionConfigObject.f2fSessionInfo,
+            "en-GB",
+				);
+			
+				const welshFormattedDate = formatPostOfficeExpiryDate(
+						sessionConfigObject.f2fSessionInfo,
+						"cy-GB",
+				);
 
   		const { GOV_NOTIFY_OPTIONS } = Constants;
 
   		const options = {
   			personalisation: {
-  				[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
+				  [GOV_NOTIFY_OPTIONS.ENGLISH_DATE]: englishFormattedDate,
+				  [GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
   				[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   					file: encoded,
   					confirm_email_before_download: true,
@@ -226,16 +244,24 @@ export class SendEmailService {
   			sessionConfigObject.clientConfig.YotiBaseUrl,
   		);
 
-  		const { GOV_NOTIFY_OPTIONS } = Constants;
-
-  		const formattedDate = this.formatExpiryDate(sessionConfigObject.f2fSessionInfo);
-
+        const englishFormattedDate = formatPostOfficeExpiryDate(
+            sessionConfigObject.f2fSessionInfo,
+            "en-GB",
+				);
+			
+				const welshFormattedDate = formatPostOfficeExpiryDate(
+						sessionConfigObject.f2fSessionInfo,
+						"cy-GB",
+				);
+			
+			const { GOV_NOTIFY_OPTIONS } = Constants;
   	
   		const options = {
   			personalisation: {
   				[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
   				[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
-  				[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
+				  [GOV_NOTIFY_OPTIONS.ENGLISH_DATE]: englishFormattedDate,
+				  [GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
   				[GOV_NOTIFY_OPTIONS.CHOSEN_PHOTO_ID]: message.documentUsed,
 				  [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   					file: encoded,
@@ -453,15 +479,6 @@ export class SendEmailService {
   		HttpCodesEnum.SERVER_ERROR,
   		`sendEmail - Could not fetch Instructions pdf after ${this.environmentVariables.yotiInstructionsPdfMaxRetries()} retries`,
   	);
-  }
-
-  formatExpiryDate(f2fSessionInfo: ISessionItem): string {
-  	const createdDate = f2fSessionInfo.createdDate;
-  	const expiryDate = createdDate + 15 * 86400;
-	  
-  	const dateObject = new Date(expiryDate * 1000);
-  	const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
-  	return formattedDate;
   }
 
   async fetchSessionAndConfigInfo(sessionId: string): Promise<any> {
