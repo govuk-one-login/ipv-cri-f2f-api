@@ -134,8 +134,8 @@ export class SendEmailService {
   				personalisation: {
   					[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
   					[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
-  					[GOV_NOTIFY_OPTIONS.DATE]: englishFormattedDate,
-						[GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
+  					[GOV_NOTIFY_OPTIONS.ENGLISH_DATE]: englishFormattedDate,
+					  [GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
   					[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   						file: encoded,
   						confirm_email_before_download: true,
@@ -200,8 +200,8 @@ export class SendEmailService {
 
   		const options = {
   			personalisation: {
-					[GOV_NOTIFY_OPTIONS.DATE]: englishFormattedDate,
-					[GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
+				  [GOV_NOTIFY_OPTIONS.ENGLISH_DATE]: englishFormattedDate,
+				  [GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
   				[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   					file: encoded,
   					confirm_email_before_download: true,
@@ -260,8 +260,8 @@ export class SendEmailService {
   			personalisation: {
   				[GOV_NOTIFY_OPTIONS.FIRST_NAME]: message.firstName,
   				[GOV_NOTIFY_OPTIONS.LAST_NAME]: message.lastName,
-					[GOV_NOTIFY_OPTIONS.DATE]: englishFormattedDate,
-					[GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
+				  [GOV_NOTIFY_OPTIONS.ENGLISH_DATE]: englishFormattedDate,
+				  [GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
   				[GOV_NOTIFY_OPTIONS.CHOSEN_PHOTO_ID]: message.documentUsed,
 				  [GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   					file: encoded,

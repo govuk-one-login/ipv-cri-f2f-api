@@ -224,7 +224,7 @@ describe("SendEmailProcessor", () => {
 
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
 		expect(mockSendEmail).toHaveBeenCalledWith("59cdab0d-3b81-4711-ae47-6cfb80b07f56", "user@digital.cabinet-office.gov.uk", { "personalisation": { 
-			"date": "18 February 2023",
+			"english date": "18 February 2023",
 			"welsh date": "18 Chwefror 2023",
 			"link_to_file": { 
 				"confirm_email_before_download": true, 
@@ -247,7 +247,7 @@ describe("SendEmailProcessor", () => {
 		expect(mockSendEmail).toHaveBeenCalledTimes(1);
 		expect(mockSendEmail).toHaveBeenCalledWith("c403df64-adcd-487b-bedf-ae649c80ee5a", "user@digital.cabinet-office.gov.uk", { "personalisation": { 
 			"chosen photo ID": "PASSPORT",
-			"date": "18 February 2023",
+			"english date": "18 February 2023",
 			"welsh date": "18 Chwefror 2023",
 			"first name": "Frederick", 
 			"last name": "Flintstone",
