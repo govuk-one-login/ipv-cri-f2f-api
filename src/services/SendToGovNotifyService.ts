@@ -199,8 +199,8 @@ export class SendToGovNotifyService {
   				personalisation: {
   					[GOV_NOTIFY_OPTIONS.FIRST_NAME]: f2fPersonInfo.name[0].nameParts[0].value,
   					[GOV_NOTIFY_OPTIONS.LAST_NAME]: f2fPersonInfo.name[0].nameParts[lastNameIndex].value,
-						[GOV_NOTIFY_OPTIONS.DATE]: englishFormattedDate,
-						[GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
+					  [GOV_NOTIFY_OPTIONS.ENGLISH_DATE]: englishFormattedDate,
+					  [GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
   					[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   						file: encoded,
   						confirm_email_before_download: true,
