@@ -91,7 +91,7 @@ Mappings:
       apiTracingEnabled: false
     production:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables #pragma: allowlist secret
-      logretentionindays: 30
+      logretentionindays: 365 # To align with Splunk log retention
       apiTracingEnabled: false
 
   PlatformConfiguration:
