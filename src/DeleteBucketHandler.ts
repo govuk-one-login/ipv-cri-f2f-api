@@ -1,15 +1,9 @@
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
-import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { DeleteBucketProcessor } from "./services/DeleteBucketProcessor";
-import { Response } from "./utils/Response";
 
 export class DeleteBucketHandler implements LambdaInterface {
   async handler(event: any): Promise<any> {
-    try {
-      return await DeleteBucketProcessor.getInstance().processRequest(event);
-    } catch {
-        return Response(HttpCodesEnum.SERVER_ERROR, "An error has occured")
-    }
+      await DeleteBucketProcessor.getInstance().processRequest(event);
   }
 }
 
