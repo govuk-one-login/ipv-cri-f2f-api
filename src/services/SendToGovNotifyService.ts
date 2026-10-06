@@ -25,6 +25,7 @@ import { ISessionItem } from "../models/ISessionItem";
 import { PersonIdentityItem } from "../models/PersonIdentityItem";
 import { randomUUID } from "crypto";
 import { PdfPreferenceEnum } from "../utils/PdfPreferenceEnum";
+import { formatPostOfficeExpiryDate } from "../utils/DateTimeUtils";
 
 /**
  * Class to send emails using gov notify service
@@ -180,7 +181,15 @@ export class SendToGovNotifyService {
   				"base64",
   			);
 
-  			const formattedDate = this.formatExpiryDate(f2fSessionInfo);
+				const englishFormattedDate = formatPostOfficeExpiryDate(
+					f2fSessionInfo,
+					"en-GB",
+				);
+
+				const welshFormattedDate = formatPostOfficeExpiryDate(
+					f2fSessionInfo,
+					"cy-GB",
+				);
 
   			const { GOV_NOTIFY_OPTIONS } = Constants;
 
@@ -190,7 +199,8 @@ export class SendToGovNotifyService {
   				personalisation: {
   					[GOV_NOTIFY_OPTIONS.FIRST_NAME]: f2fPersonInfo.name[0].nameParts[0].value,
   					[GOV_NOTIFY_OPTIONS.LAST_NAME]: f2fPersonInfo.name[0].nameParts[lastNameIndex].value,
-  					[GOV_NOTIFY_OPTIONS.DATE]: formattedDate,
+					  [GOV_NOTIFY_OPTIONS.ENGLISH_DATE]: englishFormattedDate,
+					  [GOV_NOTIFY_OPTIONS.WELSH_DATE]: welshFormattedDate,
   					[GOV_NOTIFY_OPTIONS.LINK_TO_FILE]: {
   						file: encoded,
   						confirm_email_before_download: true,
@@ -484,14 +494,5 @@ export class SendToGovNotifyService {
   		HttpCodesEnum.SERVER_ERROR,
   		`sendLetter - Cannot send Letter after ${this.environmentVariables.maxRetries()} retries`,
   	);
-  }
-
-  formatExpiryDate(f2fSessionInfo: ISessionItem): string {
-  	const createdDate = f2fSessionInfo.createdDate;
-  	const expiryDate = createdDate + 15 * 86400;
-	
-  	const dateObject = new Date(expiryDate * 1000);
-  	const formattedDate = dateObject.toLocaleDateString("en-GB", { month: "long", day: "numeric" });
-  	return formattedDate;
   }
 }
