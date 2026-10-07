@@ -39,9 +39,7 @@ export class Constants {
 	static readonly REMINDER_EMAIL_DYNAMIC = "REMINDER_EMAIL_DYNAMIC";
 
 	static readonly EMAIL_DISABLED = "EMAIL_DISABLED";
-
-	static readonly EMAIL_METRICS_NAMESPACE = "F2F-CRI";
-
+	
 	static readonly W3_BASE_CONTEXT = "https://www.w3.org/2018/credentials/v1";
 
   	static readonly DI_CONTEXT = "https://vocab.account.gov.uk/contexts/identity-v1.jsonld";

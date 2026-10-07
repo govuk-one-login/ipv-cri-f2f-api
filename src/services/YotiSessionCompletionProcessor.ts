@@ -126,7 +126,7 @@ export class YotiSessionCompletionProcessor {
 			logger.error("Unrecognised client in request", {
 				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
 			});
-			captureMetricWithDimensions("Session_Completion_Error_Not_Returned_To_Core", { "error": "Session not found" } );
+			captureMetricWithDimensions("Session_Completion_Error_Not_Returned_To_Core", { "error": "Unrecognised client in request" } );
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
