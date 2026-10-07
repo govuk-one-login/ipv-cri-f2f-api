@@ -1,6 +1,5 @@
 import { Response } from "../utils/Response";
 import { PDFDocument } from "pdf-lib"
-import { Metrics } from "@aws-lambda-powertools/metrics";
 import { randomUUID } from "crypto";
 import { logger } from "@govuk-one-login/cri-logger";
 import { sleep } from "../utils/Sleep";
@@ -114,19 +113,15 @@ import { GET_SESSIONS_503 } from "../data/getSessions/getSessions503";
 export class YotiRequestProcessor {
     private static instance: YotiRequestProcessor;
 
-    private readonly metrics: Metrics;
-
     private yotiRequestCount: number;
 
-    constructor(metrics: Metrics) {
-        this.metrics = metrics;
-
+    constructor() {
         this.yotiRequestCount = 0;
     }
 
-    static getInstance(metrics: Metrics): YotiRequestProcessor {
+    static getInstance(): YotiRequestProcessor {
         if (!YotiRequestProcessor.instance) {
-            YotiRequestProcessor.instance = new YotiRequestProcessor(metrics);
+            YotiRequestProcessor.instance = new YotiRequestProcessor();
         }
         return YotiRequestProcessor.instance;
     }

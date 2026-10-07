@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { AppError } from "../utils/AppError";
 import { logger } from "@govuk-one-login/cri-logger";
 import { YotiService } from "./YotiService";
@@ -19,8 +19,6 @@ export class GenerateYotiLetterProcessor {
 
 	private static instance: GenerateYotiLetterProcessor;
 
-	private readonly metrics: Metrics;
-
 	private yotiService!: YotiService;
 
 	private s3Client: S3Client;
@@ -33,10 +31,9 @@ export class GenerateYotiLetterProcessor {
 
 	private readonly YOTI_PRIVATE_KEY: string;
 
-	constructor(metrics: Metrics, YOTI_PRIVATE_KEY: string) {
-		this.metrics = metrics;
+	constructor(YOTI_PRIVATE_KEY: string) {
 		this.environmentVariables = new EnvironmentVariables(ServicesEnum.GENERATE_YOTI_LETTER_SERVICE);
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
 		this.validationHelper = new ValidationHelper();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.s3Client = new S3Client({
@@ -50,12 +47,11 @@ export class GenerateYotiLetterProcessor {
 	}
 
 	static getInstance(
-		metrics: Metrics,
 		YOTI_PRIVATE_KEY: string,
 	): GenerateYotiLetterProcessor {
 		if (!GenerateYotiLetterProcessor.instance) {
 			GenerateYotiLetterProcessor.instance =
-				new GenerateYotiLetterProcessor(metrics, YOTI_PRIVATE_KEY);
+				new GenerateYotiLetterProcessor(YOTI_PRIVATE_KEY);
 		}
 		return GenerateYotiLetterProcessor.instance;
 	}
@@ -86,7 +82,7 @@ export class GenerateYotiLetterProcessor {
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(this.metrics, this.YOTI_PRIVATE_KEY);
+		this.yotiService = YotiService.getInstance(this.YOTI_PRIVATE_KEY);
 
 		logger.info(
 			"Fetching the Instructions Pdf from yoti for sessionId: ",
@@ -119,7 +115,7 @@ export class GenerateYotiLetterProcessor {
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Error uploading Yoti PDF to S3 bucket");
 		}
 
-		this.metrics.addMetric("GenerateYotiLetter_instructions_saved", MetricUnit.Count, 1);
+		captureMetric("GenerateYotiLetter_instructions_saved");
 		return {
 			sessionId: event.sessionId,
 			pdfPreference: event.pdfPreference,

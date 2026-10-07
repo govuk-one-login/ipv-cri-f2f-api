@@ -1,5 +1,5 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 import { MessageCodes } from "./models/enums/MessageCodes";
@@ -9,15 +9,9 @@ import { PostOfficeVisitProcessor } from "./services/PostOfficeVisitProcessor";
 import { YotiCallbackPayload } from "./type/YotiCallbackPayload";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { AppError } from "./utils/AppError";
-import { Constants } from "./utils/Constants";
 import { YotiPrivateKeyProvider } from "./services/callback/YotiPrivateKeyProvider";
 
-const {
-	POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE,
-	POWERTOOLS_SERVICE_NAME = Constants.YOTI_CALLBACK_SVC_NAME,
-} = process.env;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME;
 
 class PostOfficeVisitHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(ServicesEnum.THANK_YOU_EMAIL_SERVICE);
@@ -38,7 +32,7 @@ class PostOfficeVisitHandler implements LambdaInterface {
 				yotiPrivateKey = await YotiPrivateKeyProvider.getYotiPrivateKey(this.environmentVariables);
 			}
 
-			await PostOfficeVisitProcessor.getInstance(metrics, yotiPrivateKey).processRequest(event);
+			await PostOfficeVisitProcessor.getInstance(yotiPrivateKey).processRequest(event);
 			logger.info("Finished processing record from SQS");
 
 		} catch (error: any) {

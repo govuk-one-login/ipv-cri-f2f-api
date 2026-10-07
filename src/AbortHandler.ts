@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { logger } from "@govuk-one-login/cri-logger";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { Constants } from "./utils/Constants";
@@ -9,10 +9,6 @@ import { Response } from "./utils/Response";
 import { AppError } from "./utils/AppError";
 import { AbortRequestProcessor } from "./services/AbortRequestProcessor";
 import { getSessionIdHeaderErrors } from "./utils/Validations";
-
-const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 
 export class AbortHandler implements LambdaInterface {
 	@metrics.logMetrics({ throwOnEmptyMetrics: false, captureColdStartMetric: true })
@@ -25,7 +21,7 @@ export class AbortHandler implements LambdaInterface {
 		try {
 			const { sessionId, encodedHeader } = this.validateEvent(event);
 			logger.info("Starting AbortRequestProcessor");
-			return await AbortRequestProcessor.getInstance(metrics).processRequest(sessionId, encodedHeader);
+			return await AbortRequestProcessor.getInstance().processRequest(sessionId, encodedHeader);
 		} catch (error) {
 			logger.error({ message: "AbortRequestProcessor encoundered an error.",
 				error,
