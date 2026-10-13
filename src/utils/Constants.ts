@@ -4,8 +4,6 @@ export class Constants {
 
 	static readonly SESSION_ID = "session-id";
 
-	static readonly F2F_METRICS_NAMESPACE = "F2F-CRI";
-
 	static readonly BEARER = "Bearer";
 
 	static readonly CODE = "code";

@@ -100,7 +100,9 @@ Globals:
         # These should always be alphabetically organised.
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
         POWERTOOLS_LOG_LEVEL: INFO # The LogLevel for the AWS PowerTools LogHelper
-        POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
+        POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # DO NOT REMOVE - Value only present in template
+        # The Metric Namespace for the AWS PowerTools MetricHelper
+        # Used in MockYotiSessionHandler.ts
     AutoPublishAlias: live
 
 Resources:
@@ -193,7 +195,7 @@ Resources:
       CodeUri: ./src/
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: MockYotiSessionHandler
+          POWERTOOLS_SERVICE_NAME: MockYotiSessionHandler # DO NOT REMOVE - Value only present in template
 
       Policies:
         - AWSLambdaBasicExecutionRole
