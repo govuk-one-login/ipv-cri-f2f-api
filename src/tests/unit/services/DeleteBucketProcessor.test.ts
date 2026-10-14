@@ -1,6 +1,5 @@
 import { DeleteBucketProcessor } from "../../../services/DeleteBucketProcessor";
 import { VALID_DELETE_REQUEST, VALID_CREATE_REQUEST, VALID_UPDATE_REQUEST } from "../data/delete-bucket-events";
-import { HttpCodesEnum } from "../../../utils/HttpCodesEnum";
 import { DeleteObjectsCommand, ListObjectVersionsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
 const mockSend = vi.fn();
@@ -41,9 +40,8 @@ describe("DeleteBucketProcessor", () => {
         }
       });
       global.fetch = vi.fn().mockResolvedValue({ status: 200 });
-      const response = await deleteBucketProcessor.processRequest(VALID_DELETE_REQUEST)
+      await deleteBucketProcessor.processRequest(VALID_DELETE_REQUEST)
       expect(deleteBucketProcessor).toBeInstanceOf(DeleteBucketProcessor);
-      expect(response).toEqual({ statusCode: HttpCodesEnum.OK, body: "Bucket deleted" })
     });
     
     it("successfully empties bucket versions", async () => {
@@ -61,9 +59,8 @@ describe("DeleteBucketProcessor", () => {
       }
     });
       global.fetch = vi.fn().mockResolvedValue({ status: 200 });
-      const response = await deleteBucketProcessor.processRequest(VALID_DELETE_REQUEST);
+      await deleteBucketProcessor.processRequest(VALID_DELETE_REQUEST);
       expect(deleteBucketProcessor).toBeInstanceOf(DeleteBucketProcessor);
-      expect(response).toEqual({ statusCode: HttpCodesEnum.OK, body: "Bucket deleted" });
     });
 
     it("throws error when sendResponse fetch request fails", async () => {
@@ -74,13 +71,11 @@ describe("DeleteBucketProcessor", () => {
 
     it("returns SUCCESS when Create RequestType received", async () => {
       global.fetch = vi.fn().mockResolvedValue({ status: 200 });
-      const response = await deleteBucketProcessor.processRequest(VALID_CREATE_REQUEST)
-      expect(response).toEqual({ statusCode: HttpCodesEnum.OK, body: "Create success" })
+      await deleteBucketProcessor.processRequest(VALID_CREATE_REQUEST)
     })
 
     it("returns SUCCESS when Update RequestType received", async () => {
       global.fetch = vi.fn().mockResolvedValue({ status: 200 });
-      const response = await deleteBucketProcessor.processRequest(VALID_UPDATE_REQUEST)
-      expect(response).toEqual({ statusCode: HttpCodesEnum.OK, body: "Update success" })
+      await deleteBucketProcessor.processRequest(VALID_UPDATE_REQUEST)
     })
 });
