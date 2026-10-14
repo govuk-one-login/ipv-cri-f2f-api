@@ -1,6 +1,4 @@
- 
-import { Metrics } from "@aws-lambda-powertools/metrics";
-import { MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
@@ -27,7 +25,7 @@ let request: APIGatewayProxyEvent;
 
 vi.mock("../../../utils/KmsJwtAdapter");
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 const mockF2fService = mock<F2fService>();
 const mockAccessTokenRequestValidationHelper = mock<AccessTokenRequestValidationHelper>();
 
@@ -65,7 +63,7 @@ const clientAssertionJwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVkNmVj
 describe("AccessTokenRequestProcessor", () => {
 	beforeAll(() => {
 		mockSession = getMockSessionItem();
-		accessTokenRequestProcessorTest = new AccessTokenRequestProcessor(metrics);
+		accessTokenRequestProcessorTest = new AccessTokenRequestProcessor();
 		//@ts-expect-error linting to be updated
 		accessTokenRequestProcessorTest.f2fService = mockF2fService;
 		request = VALID_ACCESSTOKEN;
@@ -106,7 +104,7 @@ describe("AccessTokenRequestProcessor", () => {
 	 });
 
 	it("Returns 401 Unauthorized response when body is invalid", async () => {
-		const tempAccessTokenRequestProcessorTest = new AccessTokenRequestProcessor(metrics);
+		const tempAccessTokenRequestProcessorTest = new AccessTokenRequestProcessor();
 		//@ts-expect-error linting to be updated
 		tempAccessTokenRequestProcessorTest.f2fService = mockF2fService;
 		//@ts-expect-error linting to be updated
@@ -163,7 +161,7 @@ describe("AccessTokenRequestProcessor", () => {
 	 	expect(logger.warn).toHaveBeenCalledWith(
 	 				"Session for journey sdfssg is in the wrong Auth state: expected state - F2F_AUTH_CODE_ISSUED, actual state - F2F_ACCESS_TOKEN_ISSUED", { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
 	 	);
-	 	expect(metrics.addMetric).toHaveBeenNthCalledWith(1, "AccessToken_error_user_state_incorrect", MetricUnit.Count, 1);	
+	 	expect(captureMetric).toHaveBeenNthCalledWith(1, "AccessToken_error_user_state_incorrect");	
 
 	 	expect(out.body).toBe("Session for journey sdfssg is in the wrong Auth state: expected state - F2F_AUTH_CODE_ISSUED, actual state - F2F_ACCESS_TOKEN_ISSUED");
 	 	expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);

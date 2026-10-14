@@ -1,5 +1,3 @@
- 
-import { Metrics } from "@aws-lambda-powertools/metrics";
 import { mock } from "vitest-mock-extended";
 import { F2fService } from "../../../services/F2fService";
 import { ISessionItem } from "../../../models/ISessionItem";
@@ -18,7 +16,7 @@ vi.mock("../../../utils/Config", () => {
 	};
 });
 
-const metrics = new Metrics({ namespace: "F2F" });
+
 
 function getMockSessionItem(): ISessionItem {
 	const sess: ISessionItem = {
@@ -45,7 +43,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("SessionConfigRequestProcessor", () => {
 	beforeAll(() => {
-		sessionConfigRequestProcessorTest = new SessionConfigRequestProcessor(metrics);
+		sessionConfigRequestProcessorTest = new SessionConfigRequestProcessor();
 		// @ts-expect-error linting to be updated
 		sessionConfigRequestProcessorTest.f2fService = mockF2fService;
 	});

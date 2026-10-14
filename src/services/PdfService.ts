@@ -1,5 +1,5 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 
 import { PDFGenerationService } from "./pdfGenerationService";
 
@@ -8,23 +8,15 @@ export class PDFService {
   private static instance: PDFService;
 
   private readonly pdfGenerationService: PDFGenerationService;
-  
-  private readonly metrics: Metrics;
 
 
-  private constructor(metrics: Metrics) {
-  	this.metrics = metrics;
-  	this.pdfGenerationService = PDFGenerationService.getInstance(this.metrics);
-	
+  private constructor() {
+  	this.pdfGenerationService = PDFGenerationService.getInstance();
   }
 
-  static getInstance(
-  	metrics: Metrics,
-  ): PDFService {
+  static getInstance(): PDFService {
   	if (!PDFService.instance) {
-  		PDFService.instance = new PDFService(
-  			metrics,
-  		);
+  		PDFService.instance = new PDFService();
   	}
   	return PDFService.instance;
   }
@@ -37,10 +29,7 @@ export class PDFService {
   		return pdf;
   	} catch (error) {
   		logger.error("Error processing PDF request:" + error);
-		
-  		const singleMetric = this.metrics.singleMetric();
-  		singleMetric.addDimension("error", "unable_to_create_cover_letter");
-  		singleMetric.addMetric("GeneratePrintedLetter_error", MetricUnit.Count, 1);
+  		captureMetricWithDimensions("GeneratePrintedLetter_error", { "error": "unable_to_create_cover_letter" });
 
   		throw error;
   	}

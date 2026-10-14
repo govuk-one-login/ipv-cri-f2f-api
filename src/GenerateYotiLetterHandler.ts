@@ -1,5 +1,5 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { Constants } from "./utils/Constants";
 import { AppError } from "./utils/AppError";
@@ -11,14 +11,9 @@ import { GenerateYotiLetterProcessor } from "./services/GenerateYotiLetterProces
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 
-const {
-	POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE,
-	POWERTOOLS_SERVICE_NAME = Constants.GENERATE_YOTI_LETTER_SVC_NAME,
-} = process.env;
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME;
 
 let yotiPrivateKey: string;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 
 export class GenerateYotiLetterHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(ServicesEnum.GENERATE_YOTI_LETTER_SERVICE);
@@ -44,7 +39,7 @@ export class GenerateYotiLetterHandler implements LambdaInterface {
 
 			logger.info("Starting GenerateYotiLetterProcessor");
 
-			return await GenerateYotiLetterProcessor.getInstance(metrics, yotiPrivateKey).processRequest(event);
+			return await GenerateYotiLetterProcessor.getInstance(yotiPrivateKey).processRequest(event);
 
 		} catch (error: any) {
 			logger.error({ message: "An error has occurred",

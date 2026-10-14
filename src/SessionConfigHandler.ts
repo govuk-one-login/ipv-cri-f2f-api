@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { Response } from "./utils/Response";
 import { AppError } from "./utils/AppError";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
@@ -9,10 +9,7 @@ import { Constants } from "./utils/Constants";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { SessionConfigRequestProcessor } from "./services/SessionConfigRequestProcessor";
 
-const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : "F2F-CRI";
-const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.SESSIONCONFIG_LOGGER_SVC_NAME;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME;
 
 class SessionConfigHandler implements LambdaInterface {
 
@@ -44,7 +41,7 @@ class SessionConfigHandler implements LambdaInterface {
 			}
 	
 			logger.info("Starting SessionConfigRequestProcessor");
-			return await SessionConfigRequestProcessor.getInstance(metrics).processRequest(event, sessionId);
+			return await SessionConfigRequestProcessor.getInstance().processRequest(event, sessionId);
 		} catch (err) {
 			const errorMessage = "SessionConfigProcessor encoundered an error.";
 			logger.error({ message: errorMessage, err });

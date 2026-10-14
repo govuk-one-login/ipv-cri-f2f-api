@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { AppError } from "../utils/AppError";
 import { logger } from "@govuk-one-login/cri-logger";
 import { YotiService } from "./YotiService";
@@ -31,8 +31,6 @@ export class YotiSessionCompletionProcessor {
 
   private static instance: YotiSessionCompletionProcessor;
 
-  private readonly metrics: Metrics;
-
   private yotiService!: YotiService;
 
   private readonly f2fService: F2fService;
@@ -50,15 +48,13 @@ export class YotiSessionCompletionProcessor {
 	private readonly validationHelper: ValidationHelper;
 
 	constructor(
-  	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
 	) {
-  	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(ServicesEnum.CALLBACK_SERVICE);
-  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
   	this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
   	this.verifiableCredentialService = VerifiableCredentialService.getInstance(this.environmentVariables.sessionTable(), this.kmsJwtAdapter, this.environmentVariables.issuer(), this.environmentVariables.dnsSuffix());
-  	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance(this.metrics);
+  	this.generateVerifiableCredential = GenerateVerifiableCredential.getInstance();
 		this.YOTI_PRIVATE_KEY = YOTI_PRIVATE_KEY;
 		this.validationHelper = new ValidationHelper();
 	}
@@ -75,12 +71,10 @@ export class YotiSessionCompletionProcessor {
 	}
 
 	static getInstance(
-  	metrics: Metrics,
   	YOTI_PRIVATE_KEY: string,
 	): YotiSessionCompletionProcessor {
   	if (!YotiSessionCompletionProcessor.instance) {
   		YotiSessionCompletionProcessor.instance = new YotiSessionCompletionProcessor(
-  			metrics,
   			YOTI_PRIVATE_KEY,
   		);
   	}
@@ -106,7 +100,7 @@ export class YotiSessionCompletionProcessor {
 		try {
 			f2fSession = await this.f2fService.getSessionByYotiId(yotiSessionID);
 		} catch (error: any) {
-			this.constructNotReturnedErrorMetric(error.message);
+			captureMetricWithDimensions("Session_Completion_Error_Not_Returned_To_Core", { "error": error.message } );
 			throw error;
 		}
 
@@ -114,7 +108,7 @@ export class YotiSessionCompletionProcessor {
 			logger.error("Session not found", {
 				messageCode: MessageCodes.SESSION_NOT_FOUND,
 			});
-			this.constructNotReturnedErrorMetric("Session not found");
+			captureMetricWithDimensions("Session_Completion_Error_Not_Returned_To_Core", { "error": "Session not found" } );
 			throw new AppError(HttpCodesEnum.SERVER_ERROR, "Missing Info in Session Table");
 		}
 
@@ -132,11 +126,11 @@ export class YotiSessionCompletionProcessor {
 			logger.error("Unrecognised client in request", {
 				messageCode: MessageCodes.UNRECOGNISED_CLIENT,
 			});
-			this.constructNotReturnedErrorMetric("Unrecognised client in request");
+			captureMetricWithDimensions("Session_Completion_Error_Not_Returned_To_Core", { "error": "Unrecognised client in request" } );
 			return Response(HttpCodesEnum.BAD_REQUEST, "Bad Request");
 		}
 
-		this.yotiService = YotiService.getInstance(this.metrics, this.YOTI_PRIVATE_KEY);
+		this.yotiService = YotiService.getInstance(this.YOTI_PRIVATE_KEY);
 
 		logger.info({ message: "Fetching status for Yoti SessionID" });
 
@@ -144,7 +138,7 @@ export class YotiSessionCompletionProcessor {
 		try {
 			completedYotiSessionInfo = await this.yotiService.getCompletedSessionInfo(yotiSessionID, clientConfig.YotiBaseUrl);
 		} catch (error: any) {
-			this.constructNotReturnedErrorMetric(error.message);
+			captureMetricWithDimensions("Session_Completion_Error_Not_Returned_To_Core", { "error": error.message } );
 			throw error;
 		}
 		if (!completedYotiSessionInfo) {
@@ -256,7 +250,7 @@ export class YotiSessionCompletionProcessor {
 				  });
 			  }
 			
-			this.metrics.addMetric("SessionCompletion_yoti_response_parsed", MetricUnit.Count, 1);
+			captureMetric("SessionCompletion_yoti_response_parsed");
 
   			const { given_names, family_name, full_name } = documentFields;
 
@@ -302,15 +296,12 @@ export class YotiSessionCompletionProcessor {
 			  const { credentialSubject, evidence, rejectionReasons } = this.generateVerifiableCredential.getVerifiedCredentialInformation(yotiSessionID, completedYotiSessionInfo, documentFields, VcNameParts);
 
 			  if (rejectionReasons.length > 0) {
-				const singleMetric = this.metrics.singleMetric();
 				let failureReasons: string[] = [];
 				for (const rejectionReason of rejectionReasons) {
 					failureReasons.push(rejectionReason.reason)
 				};
-				singleMetric.addDimension("failure_reasons", failureReasons.toString());
-				singleMetric.addMetric("Yoti_Check_Failure", MetricUnit.Count, 1);
+				captureMetricWithDimensions("Yoti_Check_Failure", { "failure_reasons": failureReasons.toString() } );
 			  }
-
 			  if (!credentialSubject || !evidence) {
 				  logger.error({ message: "Missing Credential Subject or Evidence payload" }, {
 					  messageCode: MessageCodes.VENDOR_SESSION_MISSING_DATA,
@@ -364,8 +355,8 @@ export class YotiSessionCompletionProcessor {
 				  AuthSessionState.F2F_CREDENTIAL_ISSUED,
 			  );
 
-			this.metrics.addMetric("state-F2F_CREDENTIAL_ISSUED", MetricUnit.Count, 1);
-			this.metrics.addMetric("SessionCompletion_VC_issued_successfully", MetricUnit.Count, 1);
+			captureMetric("state-F2F_CREDENTIAL_ISSUED");
+			captureMetric("SessionCompletion_VC_issued_successfully");
 			return Response(HttpCodesEnum.OK, "OK");
 		}
 
@@ -485,10 +476,7 @@ export class YotiSessionCompletionProcessor {
 			yotiSessionID: yotiSessionID,
 		});
 	}
-  	
-	const singleMetric = this.metrics.singleMetric();
-	singleMetric.addDimension("error", errorMessage);
-	singleMetric.addMetric("Session_Completion_Error_Returned_To_Core", MetricUnit.Count, 1);
+	captureMetricWithDimensions("Session_Completion_Error_Returned_To_Core", { "error": errorMessage });
   	try {
   		await this.f2fService.sendToIPVCore({
   			sub: f2fSession.subject,
@@ -502,11 +490,5 @@ export class YotiSessionCompletionProcessor {
   			messageCode: MessageCodes.FAILED_SENDING_VC,
   		});		
   	}
-	}
-
-	private constructNotReturnedErrorMetric(errorDimension: string) {
-		const singleMetric = this.metrics.singleMetric();
-		singleMetric.addDimension("error", errorDimension);
-		singleMetric.addMetric("Session_Completion_Error_Not_Returned_To_Core", MetricUnit.Count, 1);
 	}
 }

@@ -1,17 +1,12 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Constants } from "./utils/Constants";
 import { Response } from "./utils/Response";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { AccessTokenRequestProcessor } from "./services/AccessTokenRequestProcessor";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { AppError } from "./utils/AppError";
-
-const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
 
 export class AccessToken implements LambdaInterface {
 
@@ -25,7 +20,7 @@ export class AccessToken implements LambdaInterface {
 		try {
 			logger.info("Received token request", { requestId: event.requestContext.requestId });
 			logger.info("Starting AccessTokenRequestProcessor");
-			return await AccessTokenRequestProcessor.getInstance(metrics).processRequest(event);
+			return await AccessTokenRequestProcessor.getInstance().processRequest(event);
 		} catch (error) {
 			logger.error({ message: "AccessTokenRequestProcessor encountered an error.",
 				error,

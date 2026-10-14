@@ -6,7 +6,7 @@ import { EmailResponse } from "../models/EmailResponse";
 import { GovNotifyErrorMapper } from "./GovNotifyErrorMapper";
 import { EnvironmentVariables } from "./EnvironmentVariables";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetric, captureMetricWithDimensions } from "@govuk-one-login/cri-metrics";
 import { HttpCodesEnum } from "../models/enums/HttpCodesEnum";
 import { AppError } from "../utils/AppError";
 import { sleep } from "../utils/Sleep";
@@ -38,8 +38,6 @@ export class SendToGovNotifyService {
 
   private readonly environmentVariables: EnvironmentVariables;
 
-  private readonly metrics: Metrics;
-
   private readonly f2fService: F2fService;
 
   private readonly GOV_NOTIFY_SERVICE_ID: string;
@@ -55,11 +53,9 @@ export class SendToGovNotifyService {
    * @private
    */
   private constructor(
-  	metrics: Metrics,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
   ) {
-  	this.metrics = metrics;
   	this.environmentVariables = new EnvironmentVariables(
   		ServicesEnum.GOV_NOTIFY_SERVICE,
   	);
@@ -68,7 +64,6 @@ export class SendToGovNotifyService {
   	this.govNotifyErrorMapper = new GovNotifyErrorMapper();
   	this.f2fService = F2fService.getInstance(
   		this.environmentVariables.sessionTable(),
-		this.metrics,
   		createDynamoDbClient(),
   	);
 	  this.s3Client = new S3Client({
@@ -82,13 +77,11 @@ export class SendToGovNotifyService {
   }
 
   static getInstance(
-  	metrics: Metrics,
   	GOVUKNOTIFY_API_KEY: string,
   	govnotifyServiceId: string,
   ): SendToGovNotifyService {
   	if (!this.instance) {
   		this.instance = new SendToGovNotifyService(
-  			metrics,
   			GOVUKNOTIFY_API_KEY,
   			govnotifyServiceId,
   		);
@@ -146,10 +139,10 @@ export class SendToGovNotifyService {
   		);
 
   		if (f2fPersonInfo.pdfPreference === PdfPreferenceEnum.PRINTED_LETTER) {
-  			this.metrics.addMetric("SendToGovNotify_opted_for_printed_letter", MetricUnit.Count, 1);
+  			captureMetric("SendToGovNotify_opted_for_printed_letter");
   			try {
   				const mergedPdf = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.mergedLetterBucketPDFFolder());
-				  this.metrics.addMetric("SendToGovNotify_fetched_merged_pdf", MetricUnit.Count, 1);
+				  captureMetric("SendToGovNotify_fetched_merged_pdf");
 
   				if (mergedPdf) {
   					logger.info("Sending precompiled letter");
@@ -166,14 +159,14 @@ export class SendToGovNotifyService {
   				logger.error("sendYotiInstructions - Cannot send letter", {
   					message: err, messageCode: MessageCodes.FAILED_TO_SEND_PDF_LETTER,
   				});
-  				this.metrics.addMetric("SendToGovNotify_notify_letter_failed_generic_error", MetricUnit.Count, 1);
+  				captureMetric("SendToGovNotify_notify_letter_failed_generic_error");
   			}
   		}
 		
   		const instructionsPdf = await this.fetchPdfFile(f2fSessionInfo, this.environmentVariables.yotiLetterBucketPDFFolder());
 
   		if (instructionsPdf) {
-  			this.metrics.addMetric("SendToGovNotify_pdf_instructions_retreived", MetricUnit.Count, 1);
+  			captureMetric("SendToGovNotify_pdf_instructions_retreived");
 
   			logger.info("Sending Yoti PDF email");
 
@@ -351,11 +344,8 @@ export class SendToGovNotifyService {
   			);
   			logger.info("Email notification_id = " + data.id);
 
-  			this.metrics.addMetric("SendToGovNotify_email_sent_successfully", MetricUnit.Count, 1);
-
-  			const singleMetric = this.metrics.singleMetric();
-  			singleMetric.addDimension("status_code", emailResponse.status.toString());
-  			singleMetric.addMetric("SendToGovNotify_notify_email_response", MetricUnit.Count, 1);
+  			captureMetric("SendToGovNotify_email_sent_successfully");
+  			captureMetricWithDimensions("SendToGovNotify_notify_email_response", { "status_code": emailResponse.status.toString() });
   			const serviceResponse = new EmailResponse(
   				new Date().toISOString(),
   				"",
@@ -371,9 +361,7 @@ export class SendToGovNotifyService {
   					statusCode: err.response.data.status_code,
   					errors: err.response.data.errors,
   				});
-  				const singleMetric = this.metrics.singleMetric();
-  				singleMetric.addDimension("status_code", err.response.data.status_code.toString());
-  				singleMetric.addMetric("SendToGovNotify_notify_email_response", MetricUnit.Count, 1);
+  				captureMetricWithDimensions("SendToGovNotify_notify_email_response", { "status_code": err.response.data.status_code.toString() });
   			}
 
   			const appError: any = this.govNotifyErrorMapper.map(
@@ -401,7 +389,7 @@ export class SendToGovNotifyService {
   				logger.error(
   					`sendEmail - Cannot send Email after ${this.environmentVariables.maxRetries()} retries`,
   				);
-  				this.metrics.addMetric("SendToGovNotify_email_sent_failed_all_attempts", MetricUnit.Count, 1);
+  				captureMetric("SendToGovNotify_email_sent_failed_all_attempts");
   				throw appError;
   			}
   		}
@@ -433,11 +421,9 @@ export class SendToGovNotifyService {
 
   			logger.info("Letter notification_id = " + data.id);
 
-  			const singleMetric = this.metrics.singleMetric();
-  			singleMetric.addDimension("status_code", letterResponse.status.toString());
-  			singleMetric.addMetric("SendToGovNotify_notify_letter_response", MetricUnit.Count, 1);
+  			captureMetricWithDimensions("SendToGovNotify_notify_letter_response", { "status_code": letterResponse.status.toString() });
 
-  			this.metrics.addMetric("SendToGovNotify_letter_sent_successfully", MetricUnit.Count, 1);
+  			captureMetric("SendToGovNotify_letter_sent_successfully");
 
   			logger.info(
   				"sendLetter - response status after sending letter",
@@ -453,11 +439,8 @@ export class SendToGovNotifyService {
   					statusCode: err.response.data.status_code,
   					errors: err.response.data.errors,
   				});
-
 				  logger.error("sendYotiInstructions - Cannot send letter", err.response.data.errors);
-				  const singleMetric = this.metrics.singleMetric();
-				  singleMetric.addDimension("status_code", err.response.data.status_code.toString());
-				  singleMetric.addMetric("SendToGovNotify_notify_letter_response", MetricUnit.Count, 1);
+				  captureMetricWithDimensions("SendToGovNotify_notify_letter_response", { "status_code": err.response.data.status_code.toString() });
   			}
 
   			const appError: any = this.govNotifyErrorMapper.map(

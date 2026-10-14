@@ -1,5 +1,5 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { F2fService } from "./F2fService";
 import { KmsJwtAdapter } from "../utils/KmsJwtAdapter";
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
@@ -25,8 +25,6 @@ interface ClientConfig {
 export class AccessTokenRequestProcessor {
 	private static instance: AccessTokenRequestProcessor;
 
-	private readonly metrics: Metrics;
-
 	private readonly accessTokenRequestValidationHelper: AccessTokenRequestValidationHelper;
 
 	private readonly f2fService: F2fService;
@@ -37,18 +35,17 @@ export class AccessTokenRequestProcessor {
 
 	private readonly clientConfig: string;
 
-	constructor(metrics: Metrics) {
+	constructor() {
 		this.environmentVariables = new EnvironmentVariables(ServicesEnum.AUTHORIZATION_SERVICE);
 		this.kmsJwtAdapter = new KmsJwtAdapter(this.environmentVariables.kmsKeyArn());
 		this.accessTokenRequestValidationHelper = new AccessTokenRequestValidationHelper();
-		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
 		this.clientConfig = this.environmentVariables.clientConfig();
 	}
 
-	static getInstance(metrics: Metrics): AccessTokenRequestProcessor {
+	static getInstance(): AccessTokenRequestProcessor {
 		if (!AccessTokenRequestProcessor.instance) {
-			AccessTokenRequestProcessor.instance = new AccessTokenRequestProcessor(metrics);
+			AccessTokenRequestProcessor.instance = new AccessTokenRequestProcessor();
 		}
 		return AccessTokenRequestProcessor.instance;
 	}
@@ -166,7 +163,7 @@ export class AccessTokenRequestProcessor {
 					}),
 				};
 			} else {
-				this.metrics.addMetric("AccessToken_error_user_state_incorrect", MetricUnit.Count, 1);
+				captureMetric("AccessToken_error_user_state_incorrect");
 				logger.warn(`Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state - ${session.authSessionState}`, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
 				return Response(HttpCodesEnum.UNAUTHORIZED, `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_AUTH_CODE_ISSUED}, actual state - ${session.authSessionState}`);
 			}

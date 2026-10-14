@@ -1,6 +1,4 @@
- 
- 
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { F2fService } from "../../../services/F2fService";
@@ -18,7 +16,7 @@ let authorizationRequestProcessorTest: AuthorizationRequestProcessor;
 const mockF2fService = mock<F2fService>();
 
 vi.mock("@govuk-one-login/cri-logger");
-const metrics = mock<Metrics>();
+vi.mock("@govuk-one-login/cri-metrics");
 
 function getMockSessionItem(): ISessionItem {
 	const sess: ISessionItem = {
@@ -45,7 +43,7 @@ function getMockSessionItem(): ISessionItem {
 
 describe("AuthorizationRequestProcessor", () => {
 	beforeAll(() => {
-		authorizationRequestProcessorTest = new AuthorizationRequestProcessor(metrics);
+		authorizationRequestProcessorTest = new AuthorizationRequestProcessor();
 		// @ts-expect-error linting to be updated
 		authorizationRequestProcessorTest.f2fService = mockF2fService;
 	});
@@ -168,7 +166,7 @@ describe("AuthorizationRequestProcessor", () => {
 		expect(logger.warn).toHaveBeenCalledWith(
 					{ message: "Session for journey sdfssg is in the wrong Auth state: expected state - F2F_YOTI_SESSION_CREATED, actual state - F2F_AUTH_CODE_ISSUED" }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE },
 		);
-		expect(metrics.addMetric).toHaveBeenNthCalledWith(2, "AuthRequest_error_user_state_incorrect", MetricUnit.Count, 1);	
+		expect(captureMetric).toHaveBeenNthCalledWith(2, "AuthRequest_error_user_state_incorrect");	
 
 		expect(out.body).toBe("Session for journey sdfssg is in the wrong Auth state: expected state - F2F_YOTI_SESSION_CREATED, actual state - F2F_AUTH_CODE_ISSUED");
 		expect(out.statusCode).toBe(HttpCodesEnum.UNAUTHORIZED);

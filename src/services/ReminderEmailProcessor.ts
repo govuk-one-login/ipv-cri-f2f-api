@@ -1,7 +1,6 @@
  
 import { HttpCodesEnum } from "../utils/HttpCodesEnum";
 import { F2fService } from "./F2fService";
-import { Metrics } from "@aws-lambda-powertools/metrics";
 import { logger } from "@govuk-one-login/cri-logger";
 import { createDynamoDbClient } from "../utils/DynamoDBFactory";
 import { EnvironmentVariables } from "./EnvironmentVariables";
@@ -19,13 +18,13 @@ export class ReminderEmailProcessor {
 
   private readonly f2fService: F2fService;
 
-  constructor(private readonly metrics: Metrics) {
+  constructor() {
   	const envVariables = new EnvironmentVariables(ServicesEnum.REMINDER_SERVICE);
-  	this.f2fService = F2fService.getInstance(envVariables.sessionTable(), metrics, createDynamoDbClient());
+  	this.f2fService = F2fService.getInstance(envVariables.sessionTable(), createDynamoDbClient());
   }
 
-  static getInstance(metrics: Metrics): ReminderEmailProcessor {
-  	return this.instance || (this.instance = new ReminderEmailProcessor(metrics));
+  static getInstance(): ReminderEmailProcessor {
+  	return this.instance || (this.instance = new ReminderEmailProcessor());
   }
 
   async processRequest(): Promise<APIGatewayProxyResult> {

@@ -1,6 +1,3 @@
- 
- 
-import { mock } from "vitest-mock-extended";
 import { logger } from "@govuk-one-login/cri-logger";
 import { GenerateVerifiableCredential } from "../../../services/GenerateVerifiableCredential";
 import { YotiSessionDocument } from "../../../utils/YotiPayloadEnums";
@@ -12,11 +9,12 @@ import {
 	visualReviewCheck,
 	mockCompletedYotiSessionPayload,
 } from "../data/yoti-session";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
+
 vi.mock("@govuk-one-login/cri-logger");
+vi.mock("@govuk-one-login/cri-metrics");
 
 describe("GenerateVerifiableCredential", () => {
-	const metrics = mock<Metrics>();
 
 	let generateVerifiableCredential: GenerateVerifiableCredential;
 	const VcNameParts = [
@@ -35,14 +33,13 @@ describe("GenerateVerifiableCredential", () => {
 	];
 
 	beforeEach(() => {
-		generateVerifiableCredential = GenerateVerifiableCredential.getInstance(metrics);
-		metrics.singleMetric.mockReturnValue(metrics);
+		generateVerifiableCredential = GenerateVerifiableCredential.getInstance();
 	});
 
 	afterEach(() => {
 		vi.resetAllMocks();
 		vi.restoreAllMocks();
-		expect(metrics.addMetric).not.toHaveBeenCalled();
+		expect(captureMetric).not.toHaveBeenCalled();
 	});
 
 	describe("doesDocumentContainValidChip", () => {

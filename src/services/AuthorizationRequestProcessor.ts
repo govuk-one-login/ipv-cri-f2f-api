@@ -1,6 +1,6 @@
 import { Response } from "../utils/Response";
 import { F2fService } from "./F2fService";
-import { Metrics, MetricUnit } from "@aws-lambda-powertools/metrics";
+import { captureMetric } from "@govuk-one-login/cri-metrics";
 import { randomUUID } from "crypto";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { logger } from "@govuk-one-login/cri-logger";
@@ -17,21 +17,18 @@ import { TxmaEventNames } from "../models/enums/TxmaEvents";
 export class AuthorizationRequestProcessor {
 	private static instance: AuthorizationRequestProcessor;
 
-	private readonly metrics: Metrics;
-
 	private readonly f2fService: F2fService;
 
 	private readonly environmentVariables: EnvironmentVariables;
 
-	constructor(metrics: Metrics) {
+	constructor() {
 		this.environmentVariables = new EnvironmentVariables(ServicesEnum.AUTHORIZATION_SERVICE);
-		this.metrics = metrics;
-		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), this.metrics, createDynamoDbClient());
+		this.f2fService = F2fService.getInstance(this.environmentVariables.sessionTable(), createDynamoDbClient());
 	}
 
-	static getInstance(metrics: Metrics): AuthorizationRequestProcessor {
+	static getInstance(): AuthorizationRequestProcessor {
 		if (!AuthorizationRequestProcessor.instance) {
-			AuthorizationRequestProcessor.instance = new AuthorizationRequestProcessor(metrics);
+			AuthorizationRequestProcessor.instance = new AuthorizationRequestProcessor();
 		}
 		return AuthorizationRequestProcessor.instance;
 	}
@@ -52,14 +49,14 @@ export class AuthorizationRequestProcessor {
 				govuk_signin_journey_id: session?.clientSessionId,
 			});
 
-			this.metrics.addMetric("found session", MetricUnit.Count, 1);
+			captureMetric("found session");
 			if (session.authSessionState === AuthSessionState.F2F_YOTI_SESSION_CREATED) {
 
 				const authorizationCode = randomUUID();
 
 				await this.f2fService.setAuthorizationCode(sessionId, authorizationCode);
 
-				this.metrics.addMetric("Set authorization code", MetricUnit.Count, 1);
+				captureMetric("Set authorization code");
 				try {
 					const coreEventFields = buildCoreEventFields(session, this.environmentVariables.issuer(), session.clientIpAddress);
 					await this.f2fService.sendToTXMA({
@@ -106,7 +103,7 @@ export class AuthorizationRequestProcessor {
 
 				return Response(HttpCodesEnum.OK, JSON.stringify(f2fResp));
 			} else {
-				this.metrics.addMetric("AuthRequest_error_user_state_incorrect", MetricUnit.Count, 1);
+				captureMetric("AuthRequest_error_user_state_incorrect");
 				logger.warn( { message: `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_YOTI_SESSION_CREATED}, actual state - ${session.authSessionState}` }, { messageCode: MessageCodes.INCORRECT_SESSION_STATE });
 				return Response(HttpCodesEnum.UNAUTHORIZED, `Session for journey ${session?.clientSessionId} is in the wrong Auth state: expected state - ${AuthSessionState.F2F_YOTI_SESSION_CREATED}, actual state - ${session.authSessionState}`);
 			}

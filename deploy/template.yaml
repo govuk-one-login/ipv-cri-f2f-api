@@ -380,7 +380,9 @@ Globals:
         # These should always be alphabetically organised.
         AWS_STACK_NAME: !Sub ${AWS::StackName} # The AWS Stack Name, as passed into the template.
         POWERTOOLS_LOG_LEVEL: "INFO" # The LogLevel for the Common CRI Logger
-        POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # The Metric Namespace for the AWS PowerTools MetricHelper
+        POWERTOOLS_METRICS_NAMESPACE: F2F-CRI # DO NOT REMOVE - Value only present in template
+        # The Metric Namespace for the AWS PowerTools MetricHelper
+        # Used in all /src Handler.ts files
         RESOURCES_TTL_SECS:
             !FindInMap [EnvironmentVariables, !Ref Environment, RESOURCETTLSECS]
         SESSION_TABLE:
@@ -981,7 +983,7 @@ Resources:
         Variables:
           AUTH_SESSION_TTL_SECS:
             !FindInMap [EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS]
-          POWERTOOLS_SERVICE_NAME: SessionHandler
+          POWERTOOLS_SERVICE_NAME: SessionHandler # DO NOT REMOVE - Value only present in template
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
@@ -1375,7 +1377,7 @@ Resources:
       CodeUri: ../src/
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: SessionConfigHandler
+          POWERTOOLS_SERVICE_NAME: SessionConfigHandler # DO NOT REMOVE - Value only present in template
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -1617,7 +1619,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: AccessTokenHandler
+          POWERTOOLS_SERVICE_NAME: AccessTokenHandler # DO NOT REMOVE - Value only present in template
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           KMS_KEY_ARN:
@@ -1867,7 +1869,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: AuthorizationCodeHandler
+          POWERTOOLS_SERVICE_NAME: AuthorizationCodeHandler # DO NOT REMOVE - Value only present in template
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
       Policies:
@@ -2124,7 +2126,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler
+          POWERTOOLS_SERVICE_NAME: DocumentSelectionHandler # DO NOT REMOVE - Value only present in template
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           AUTH_SESSION_TTL_SECS:
             !FindInMap [EnvironmentVariables, !Ref Environment, AUTHSESSIONTTLSECS]
@@ -2421,7 +2423,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: AbortHandler
+          POWERTOOLS_SERVICE_NAME: AbortHandler # DO NOT REMOVE - Value only present in template
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
       Policies:
@@ -2613,7 +2615,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: PersonInfoHandler
+          POWERTOOLS_SERVICE_NAME: PersonInfoHandler # DO NOT REMOVE - Value only present in template
           PRIVATE_KEY_SSM_PATH: !Sub "/${Environment}/person-info/PRIVATE_KEY"
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
@@ -3056,7 +3058,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: PersonInfoKeyHandler
+          POWERTOOLS_SERVICE_NAME: PersonInfoKeyHandler # DO NOT REMOVE - Value only present in template
           PRIVATE_KEY_SSM_PATH: !Sub "/${Environment}/person-info/PRIVATE_KEY"
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
@@ -3279,7 +3281,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: AddressLocationsHandler
+          POWERTOOLS_SERVICE_NAME: AddressLocationsHandler # DO NOT REMOVE - Value only present in template
           OS_API_KEY_SSM_PATH: !Sub "/${Environment}/ordnance-survey/API_KEY"
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -3778,7 +3780,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: GovNotifyHandler
+          POWERTOOLS_SERVICE_NAME: GovNotifyHandler # DO NOT REMOVE - Value only present in template
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
           GOVUKNOTIFY_PDF_TEMPLATE_ID: !FindInMap [ EnvironmentVariables, !Ref Environment, GOVUKNOTIFYPDFTEMPLATEID ]
@@ -4002,7 +4004,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: UserInfoHandler
+          POWERTOOLS_SERVICE_NAME: UserInfoHandler # DO NOT REMOVE - Value only present in template
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           TXMA_QUEUE_URL: !Ref TxMASQSQueue
@@ -4258,7 +4260,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: ReminderEmailHandler
+          POWERTOOLS_SERVICE_NAME: ReminderEmailHandler # DO NOT REMOVE - Value only present in template
           GOV_NOTIFY_QUEUE_URL: !Ref GovNotifySQSQueue
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-name"
@@ -4459,7 +4461,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: ExpiredSessionsHandler
+          POWERTOOLS_SERVICE_NAME: ExpiredSessionsHandler # DO NOT REMOVE - Value only present in template
           KMS_KEY_ARN:
             Fn::ImportValue: !Sub "${L2KMSStackName}-vc-signing-key"
           ENCRYPTION_KEY_IDS:
@@ -4710,7 +4712,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: TriggerYotiCallbackStateMachineHandler
+          POWERTOOLS_SERVICE_NAME: TriggerYotiCallbackStateMachineHandler # DO NOT REMOVE - Value only present in template
           STATE_MACHINE_ARN: !GetAtt YotiCallbackStateMachine.Arn
       Policies:
         - AWSXrayWriteOnlyAccess
@@ -4941,7 +4943,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: YotiSessionCompletionHandler
+          POWERTOOLS_SERVICE_NAME: YotiSessionCompletionHandler # DO NOT REMOVE - Value only present in template
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue:
               !Sub "${L2DynamoStackName}-person-identity-table-name"
@@ -5077,7 +5079,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: PostOfficeVisitHandler
+          POWERTOOLS_SERVICE_NAME: PostOfficeVisitHandler # DO NOT REMOVE - Value only present in template
           YOTISDK: !FindInMap [ EnvironmentVariables, !Ref Environment, YOTISDK ]
           YOTI_SESSION_TTL_DAYS: !FindInMap [EnvironmentVariables, !Ref Environment, YOTISESSIONTTLDAYS]
           ISSUER: !FindInMap [EnvironmentVariables, !Ref Environment, ISSUER]
@@ -5329,7 +5331,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: GenerateYotiLetterHandler
+          POWERTOOLS_SERVICE_NAME: GenerateYotiLetterHandler # DO NOT REMOVE - Value only present in template
           YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
           YOTI_PDF_BUCKET_LETTER_FOLDER: pdf
           YOTI_KEY_SSM_PATH: !Sub "/${Environment}/YOTI/PRIVATEKEY"
@@ -5509,7 +5511,7 @@ Resources:
           PERSON_IDENTITY_TABLE_NAME:
             Fn::ImportValue:
               Fn::Sub: ${L2DynamoStackName}-person-identity-table-name
-          POWERTOOLS_SERVICE_NAME: GeneratePrintedLetterHandler
+          POWERTOOLS_SERVICE_NAME: GeneratePrintedLetterHandler # DO NOT REMOVE - Value only present in template
           YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
           YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER: merged-pdf
           YOTI_PDF_BUCKET_COVER_LETTER_FOLDER: cover-pdf
@@ -5690,7 +5692,7 @@ Resources:
         - !Ref AWS::NoValue
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: SendToGovNotifyHandler
+          POWERTOOLS_SERVICE_NAME: SendToGovNotifyHandler # DO NOT REMOVE - Value only present in template
           YOTI_LETTER_BUCKET: !Sub ${AWS::StackName}-yotiletter-f2f-${Environment}
           YOTI_PDF_BUCKET_LETTER_FOLDER: pdf
           YOTI_PDF_BUCKET_MERGED_LETTER_FOLDER: merged-pdf

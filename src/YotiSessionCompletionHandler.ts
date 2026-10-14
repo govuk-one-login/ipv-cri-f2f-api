@@ -1,22 +1,15 @@
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { YotiSessionCompletionProcessor } from "./services/YotiSessionCompletionProcessor";
 import { YotiCallbackPayload } from "./type/YotiCallbackPayload";
-import { Constants } from "./utils/Constants";
 import { HttpCodesEnum } from "./utils/HttpCodesEnum";
 import { AppError } from "./utils/AppError";
 import { YotiPrivateKeyProvider } from "./services/callback/YotiPrivateKeyProvider";
 
-const {
-	POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE,
-	POWERTOOLS_SERVICE_NAME = Constants.YOTI_CALLBACK_SVC_NAME,
-} = process.env;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 class YotiSessionCompletionHandler implements LambdaInterface {
 	private readonly environmentVariables = new EnvironmentVariables(ServicesEnum.CALLBACK_SERVICE);
@@ -30,7 +23,7 @@ class YotiSessionCompletionHandler implements LambdaInterface {
 		try {
 			logger.appendKeys({	yotiSessionId: event.session_id });
 			const yotiPrivateKey = await YotiPrivateKeyProvider.getYotiPrivateKey(this.environmentVariables);
-			await YotiSessionCompletionProcessor.getInstance(metrics, yotiPrivateKey).processRequest(event);
+			await YotiSessionCompletionProcessor.getInstance(yotiPrivateKey).processRequest(event);
 			logger.info("Finished processing record from SQS");
 
 		} catch (error: any) {

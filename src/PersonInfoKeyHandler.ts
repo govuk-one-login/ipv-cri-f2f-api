@@ -1,20 +1,15 @@
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
 import { logger } from "@govuk-one-login/cri-logger";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { HttpCodesEnum } from "./models/enums/HttpCodesEnum";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { getParameter } from "./utils/Config";
-import { Constants } from "./utils/Constants";
 import { EnvironmentVariables } from "./services/EnvironmentVariables";
 import { Response } from "./utils/Response";
 import { ServicesEnum } from "./models/enums/ServicesEnum";
 
-const { POWERTOOLS_METRICS_NAMESPACE = Constants.F2F_METRICS_NAMESPACE, POWERTOOLS_SERVICE_NAME = Constants.PERSON_INFO_KEY_LOGGER_SVC_NAME } = process.env;
-
 let key: string;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE, serviceName: POWERTOOLS_SERVICE_NAME });
 
 export class PersonInfoKeyHandler implements LambdaInterface {
     private readonly environmentVariables = new EnvironmentVariables(ServicesEnum.PERSON_INFO_KEY_SERVICE);

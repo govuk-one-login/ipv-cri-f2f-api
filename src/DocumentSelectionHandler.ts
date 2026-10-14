@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { LambdaInterface } from "@aws-lambda-powertools/commons/lib/esm/types";
-import { Metrics } from "@aws-lambda-powertools/metrics";
+import { metrics } from "@govuk-one-login/cri-metrics";
 import { logger } from "@govuk-one-login/cri-logger";
 import { Constants } from "./utils/Constants";
 import { Response } from "./utils/Response";
@@ -11,10 +11,7 @@ import { getParameter } from "./utils/Config";
 import { MessageCodes } from "./models/enums/MessageCodes";
 import { getSessionIdHeaderErrors } from "./utils/Validations";
 
-const POWERTOOLS_METRICS_NAMESPACE = process.env.POWERTOOLS_METRICS_NAMESPACE ? process.env.POWERTOOLS_METRICS_NAMESPACE : Constants.F2F_METRICS_NAMESPACE;
-const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME ? process.env.POWERTOOLS_SERVICE_NAME : Constants.DOCUMENT_SELECTION_LOGGER_SVC_NAME;
-
-const metrics = new Metrics({ namespace: POWERTOOLS_METRICS_NAMESPACE });
+const POWERTOOLS_SERVICE_NAME = process.env.POWERTOOLS_SERVICE_NAME;
 
 let YOTI_PRIVATE_KEY: string;
 export class DocumentSelection implements LambdaInterface {
@@ -48,7 +45,7 @@ export class DocumentSelection implements LambdaInterface {
 					return Response(HttpCodesEnum.SERVER_ERROR, "An error has occurred");
 				}
 			}
-			return await DocumentSelectionRequestProcessor.getInstance(metrics, YOTI_PRIVATE_KEY).processRequest(event, sessionId, encodedHeader);
+			return await DocumentSelectionRequestProcessor.getInstance(YOTI_PRIVATE_KEY).processRequest(event, sessionId, encodedHeader);
 		} catch (error) {
 			logger.error({ message: "An error has occurred. ",
 				error,
