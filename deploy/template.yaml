@@ -94,18 +94,6 @@ Mappings:
       logretentionindays: 365
       apiTracingEnabled: false
 
-  PlatformConfiguration:
-    dev:
-      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
-    build:
-      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
-    staging:
-      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
-    integration:
-      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
-    production:
-      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
-
   StaticVariables:
     urls:
       F2FSupportManual: "https://govukverify.atlassian.net/wiki/spaces/Kiwi/pages/4372169068/6.4+F2F+Support+Documentation"
@@ -1063,14 +1051,6 @@ Resources:
           logretentionindays,
         ]
 
-  SessionFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
-      FilterPattern: ""
-      LogGroupName: !Ref SessionFunctionLogGroup
-
   SessionFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -1425,14 +1405,6 @@ Resources:
           logretentionindays,
         ]
 
-  SessionConfigFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
-      FilterPattern: ""
-      LogGroupName: !Ref SessionConfigFunctionLogGroup
-
   SessionConfigFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -1674,15 +1646,6 @@ Resources:
     Properties:
       LogGroupName: !Sub "/aws/lambda/Access-Token-${AWS::StackName}"
       RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logretentionindays ]
-
-  TokenFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-   # Condition: IsProdLikeEnvironment
-    Properties:
-      DestinationArn:
-        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
-      FilterPattern: ""
-      LogGroupName: !Ref TokenFunctionLogGroup
 
   TokenFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -1931,15 +1894,6 @@ Resources:
           !Ref Environment,
           logretentionindays,
         ]
-
-  AuthorizationFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    # Condition: IsProdLikeEnvironment
-    Properties:
-      DestinationArn:
-        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
-      FilterPattern: ""
-      LogGroupName: !Ref AuthorizationFunctionLogGroup
 
   AuthorizationFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -2229,15 +2183,6 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/Document-Selection-${AWS::StackName}"
       RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logretentionindays ]
 
-  DocumentSelectionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    # Condition: IsProdLikeEnvironment
-    Properties:
-      DestinationArn:
-        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
-      FilterPattern: ""
-      LogGroupName: !Ref DocumentSelectionLogGroup
-
   DocumentSelectionPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -2479,15 +2424,6 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/Abort-${AWS::StackName}"
       RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logretentionindays ]
 
-  AbortLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    # Condition: IsProdLikeEnvironment
-    Properties:
-      DestinationArn:
-        !FindInMap [PlatformConfiguration, !Ref Environment, CSLSEGRESS]
-      FilterPattern: ""
-      LogGroupName: !Ref AbortLogGroup
-
   AbortFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
@@ -2676,14 +2612,6 @@ Resources:
           !Ref Environment,
           logretentionindays,
         ]
-
-  PersonInfoFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
-      FilterPattern: ""
-      LogGroupName: !Ref PersonInfoFunctionLogGroup
 
   PersonInfoFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -3864,14 +3792,6 @@ Resources:
           logretentionindays,
         ]
 
-  GovNotifyFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Condition: IsProdLikeEnvironment
-    Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-      FilterPattern: ""
-      LogGroupName: !Ref GovNotifyFunctionLogGroup
-
   GovNotifyFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -4070,15 +3990,6 @@ Resources:
           !Ref Environment,
           logretentionindays,
         ]
-
-  UserInfoFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    # Condition: IsProdLikeEnvironment
-    Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
-      FilterPattern: ""
-      LogGroupName: !Ref UserInfoFunctionLogGroup
 
   UserInfoFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -4335,14 +4246,6 @@ Resources:
           logretentionindays,
         ]
 
-  ReminderEmailFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
-      FilterPattern: ""
-      LogGroupName: !Ref ReminderEmailFunctionLogGroup
-
   ReminderEmailFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -4529,14 +4432,6 @@ Resources:
           !Ref Environment,
           logretentionindays,
         ]
-
-  ExpiredSessionsFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
-      FilterPattern: ""
-      LogGroupName: !Ref ExpiredSessionsFunctionLogGroup
 
   ExpiredSessionsFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -4783,14 +4678,6 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref TriggerYotiCallbackStateMachine
       Principal: apigateway.amazonaws.com
-
-  TriggerYotiCallbackStateMachineFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Properties:
-      DestinationArn:
-        !FindInMap [ PlatformConfiguration, !Ref Environment, CSLSEGRESS ]
-      FilterPattern: ""
-      LogGroupName: !Ref TriggerYotiCallbackStateMachineLogGroup
 
   TriggerYotiCallbackSMFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
@@ -5045,14 +4932,6 @@ Resources:
           logretentionindays,
         ]
 
-  YotiCallbackFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Condition: IsProdLikeEnvironment
-    Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-      FilterPattern: ""
-      LogGroupName: !Ref YotiCallbackFunctionLogGroup
-
   YotiCallbackFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -5165,14 +5044,6 @@ Resources:
           !Ref Environment,
           logretentionindays,
         ]
-
-  PostOfficeVisitFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Condition: IsProdLikeEnvironment
-    Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-      FilterPattern: ""
-      LogGroupName: !Ref PostOfficeVisitFunctionLogGroup
 
   PostOfficeVisitFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -5381,14 +5252,6 @@ Resources:
           logretentionindays,
         ]
 
-  GenerateYotiLetterFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Condition: IsProdLikeEnvironment
-    Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-      FilterPattern: ""
-      LogGroupName: !Ref GenerateYotiLetterFunctionLogGroup
-
   GenerateYotiLetterFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -5564,14 +5427,6 @@ Resources:
           !Ref Environment,
           logretentionindays,
         ]
-
-  GeneratePrintedLetterFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Condition: IsProdLikeEnvironment
-    Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-      FilterPattern: ""
-      LogGroupName: !Ref GeneratePrintedLetterFunctionLogGroup
 
   GeneratePrintedLetterFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -5775,14 +5630,6 @@ Resources:
           !Ref Environment,
           logretentionindays,
         ]
-
-  SendToGovNotifyFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Condition: IsProdLikeEnvironment
-    Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-      FilterPattern: ""
-      LogGroupName: !Ref SendToGovNotifyFunctionLogGroup
 
   SendToGovNotifyFunctionPermission:
     Type: AWS::Lambda::Permission
