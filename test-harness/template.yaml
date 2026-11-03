@@ -35,12 +35,6 @@ Mappings:
       logretentionindays: 3
       apiTracingEnabled: true
 
-  PlatformConfiguration:
-    dev:
-      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
-    build:
-      CSLSEGRESS: arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython
-
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
       TESTHARNESSURL: "testharness.review-o.dev.account.gov.uk"
