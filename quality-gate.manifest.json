@@ -190,15 +190,7 @@
             "path": "jobs.sam-validate",
             "name": "SAM Validate"
           }
-        },
-        {
-          "check-types": ["vulnerability detection"],
-          "provider": "GitHub",
-          "phase": "pre-merge",
-          "config": {
-            "file": ".github/dependabot.yml"
-          }
-        } 
+        }
       ]
     }
   ]
