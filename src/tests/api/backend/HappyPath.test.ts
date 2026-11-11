@@ -399,7 +399,7 @@ describe("/addressLocations endpoint", () => {
 		newf2fStubPayload.yotiMockID = "0000";
 		const { sessionId: newSessionId } = await startStubServiceAndReturnSessionId(newf2fStubPayload);
 		const sessionId = newSessionId;
-		const postCode = "SW1A 2AA"
+		const postCode = "SW1A1AA"
 	
 		const response = await addressLocationsPost(sessionId, postCode);
 		expect(response.status).toBe(200);
