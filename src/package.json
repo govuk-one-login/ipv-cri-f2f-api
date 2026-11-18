@@ -94,7 +94,7 @@
     "eslint": "10.8.1",
     "express": "4.22.3",
     "express-asyncify": "2.1.2",
-    "fast-xml-parser": "5.7.3",
+    "fast-xml-parser": "5.12.1",
     "js-yaml": "4.3.2",
     "pdfjs-dist": "2.16.105",
     "prettier": "3.8.3",
