@@ -17,18 +17,43 @@ tags:
 x-amazon-apigateway-policy:
   Version: "2012-10-17"
   Statement:
+  # Everything except the browser-facing Yoti callback test UI is restricted to callers in this account (SigV4).
+  # NotResource (not Resource) so any newly added path is account-only by default.
   - Effect: "Deny"
     Principal:
       AWS:  "*"
     Action: "execute-api:Invoke"
-    Resource: "execute-api:/*"
+    NotResource:
+      - "execute-api:/*/*/yoti-callback-test-ui"
+      - "execute-api:/*/*/yoti-callback-test-ui/*"
     Condition:
       StringNotEquals:
         "aws:PrincipalAccount":
           - "${AWS::AccountId}"
+  # The Yoti callback test UI is opened in a browser, so it can't be signed with SigV4; restrict it to approved source IPs
+  # instead (mirrors UiAllowedSourceIps in govuk-one-login/ipv-cri-test-infrastructure).
+  - Effect: "Deny"
+    Principal: "*"
+    Action: "execute-api:Invoke"
+    Resource:
+      - "execute-api:/*/*/yoti-callback-test-ui"
+      - "execute-api:/*/*/yoti-callback-test-ui/*"
+    Condition:
+      NotIpAddress:
+        aws:SourceIp:
+          - "217.196.229.77/32"
+          - "217.196.229.79/32"
+          - "217.196.229.80/32"
+          - "217.196.229.81/32"
+          - "51.149.8.0/25"
+          - "51.149.8.128/29"
+          - "159.254.101.107/32"
+          - "159.254.101.75/32"
+          - "164.137.3.121/32"
+          - "164.137.3.89/32"
+          - "3.9.56.99/32"
   - Effect: "Allow"
-    Principal:
-      AWS:  "*"
+    Principal: "*"
     Action: "execute-api:Invoke"
     Resource: "execute-api:/*"
 
@@ -565,6 +590,60 @@ paths:
           default:
             statusCode: "200"
         type: aws
+
+  /yoti-callback-test-ui:
+    get:
+      operationId: getYotiCallbackTestUi
+      summary: Test UI - list F2F sessions and trigger Yoti callbacks
+      description: >-
+        Browser UI, restricted to approved source IPs (not SigV4). Renders a page listing F2F sessions.
+        Use the nextToken query parameter to fetch the next page.
+      responses:
+        "200":
+          description: "HTML page"
+          content:
+            text/html:
+              schema:
+                type: string
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${YotiCallbackTestUI.Arn}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+
+  /yoti-callback-test-ui/{proxy+}:
+    x-amazon-apigateway-any-method:
+      summary: Test UI - static assets and the trigger callbacks form submission
+      description: >-
+        Browser UI, restricted to approved source IPs (not SigV4). Serves the UI stylesheet and favicon, and handles
+        POST /yoti-callback-test-ui/sessions/{sessionId}/callback, which starts the Yoti callback state machine
+        for each topic, in order, for the given F2F session.
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "OK"
+        "302":
+          description: "Redirect back to the sessions list"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${YotiCallbackTestUI.Arn}:live/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
 
 components:
   securitySchemes:

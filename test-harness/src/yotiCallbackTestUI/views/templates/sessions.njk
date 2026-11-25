@@ -1,0 +1,71 @@
+{% extends "layout.njk" %}
+
+{% from "components/button/macro.njk" import govukButton %}
+{% from "components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block containerMaxWidth %}1400px{% endblock %}
+{% block columnClass %}govuk-grid-column-full{% endblock %}
+
+{% block content %}
+  {% if errorList | length %}
+    {{ govukErrorSummary({ titleText: "There is a problem", errorList: errorList }) }}
+  {% endif %}
+
+  <h1 class="govuk-heading-l">{{ title }}</h1>
+  <p class="govuk-body">
+    Trigger the Yoti callback flow for a session without a real Yoti notification.
+    Showing sessions in state <code>F2F_ACCESS_TOKEN_ISSUED</code>, newest first.
+  </p>
+
+  {% if truncated %}
+    <div class="govuk-warning-text">
+      <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+      <strong class="govuk-warning-text__text">
+        <span class="govuk-visually-hidden">Warning</span>
+        The table is too large to scan in full, so some sessions may be missing from this list.
+      </strong>
+    </div>
+  {% endif %}
+
+  {% if sessions | length %}
+    <table class="govuk-table">
+      <caption class="govuk-table__caption govuk-table__caption--m">Sessions</caption>
+      <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+          <th scope="col" class="govuk-table__header">Session ID</th>
+          <th scope="col" class="govuk-table__header">State</th>
+          <th scope="col" class="govuk-table__header">Created (UTC)</th>
+          <th scope="col" class="govuk-table__header">Yoti session ID</th>
+          <th scope="col" class="govuk-table__header"><span class="govuk-visually-hidden">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        {% for session in sessions %}
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell" style="word-break: break-all">{{ session.sessionId }}</td>
+            <td class="govuk-table__cell">{{ session.authSessionState or session.state }}</td>
+            <td class="govuk-table__cell" style="white-space: nowrap">{{ session.createdDate }}</td>
+            <td class="govuk-table__cell" style="word-break: break-all">{{ session.yotiSessionId }}</td>
+            <td class="govuk-table__cell" style="white-space: nowrap">
+              <form method="post" action="{{ basePath }}{{ sessionsPath }}/{{ session.sessionId | urlencode }}/callback">
+                {{ govukButton({
+                  html: 'Trigger<span class="govuk-visually-hidden"> callbacks for session ' + (session.sessionId | escape) + '</span>',
+                  classes: "govuk-button--secondary govuk-!-margin-bottom-0",
+                  disabled: not session.yotiSessionId
+                }) }}
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="govuk-body">No sessions found.</p>
+  {% endif %}
+
+  {% if nextToken %}
+    <p class="govuk-body">
+      <a class="govuk-link" href="{{ basePath }}{{ uiRoot }}?nextToken={{ nextToken | urlencode }}">Next page</a>
+    </p>
+  {% endif %}
+{% endblock %}
