@@ -277,6 +277,8 @@ Conditions:
   IsPersonalIdentifiableInformationEnvironment: !Or
     - !Equals [!Ref Environment, integration]
     - !Equals [!Ref Environment, production]
+  IsNotPersonalIdentifiableInformationEnvironment: !Not
+    - !Condition IsPersonalIdentifiableInformationEnvironment
   IsOutboundSQSConnected: !Or
     - !Equals [!Ref Environment, staging]
     - !Equals [!Ref Environment, integration]
@@ -8691,6 +8693,12 @@ Outputs:
       Fn::ImportValue: !Sub "${L2DynamoStackName}-person-identity-table-key-arn"
     Export:
       Name: !Sub ${AWS::StackName}-PersonIdentityTableEncryptionKey-arn
+  YotiCallbackStateMachineArn:
+    Condition: IsNotPersonalIdentifiableInformationEnvironment
+    Description: "Arn of the Yoti callback state machine, used by the test harness"
+    Value: !GetAtt YotiCallbackStateMachine.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-YotiCallbackStateMachine-arn
   F2FTestHarnessURL:
     Condition: IsNotProdLikeEnvironment
     Description: "F2F Test Harness"
