@@ -60,6 +60,13 @@ describe("Infra", () => {
     });
   });
 
+  it("Exports the Yoti callback state machine ARN for the test harness", () => {
+    template.hasOutput("YotiCallbackStateMachineArn", {
+      Condition: "IsNotPersonalIdentifiableInformationEnvironment",
+      Export: { Name: { "Fn::Sub": "${AWS::StackName}-YotiCallbackStateMachine-arn" } },
+    });
+  });
+
   it("There are 21 lambdas defined, all with at least one specific permission:", () => {
     const lambdaCount = 21;
     const lambdaPermissionCount = 24;
