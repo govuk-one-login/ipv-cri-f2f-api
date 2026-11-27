@@ -19,7 +19,7 @@ To test DynamoDB changes:
 4. Call the `/getRecord/{tableName}/{sessionId}` endpoint
 
 ## Yoti callback test UI
-A browser UI for lower environments that lists F2F sessions and lets you trigger the Yoti callbacks (`first_branch_visit`, `thank_you_email_requested`, `session_completion`, in that order) for a session, by starting the F2F stack's Yoti callback state machine. It is served by the `YotiCallbackTestUI` lambda through the harness API.
+A browser UI that lists F2F sessions and lets you trigger the Yoti callbacks (`first_branch_visit`, `thank_you_email_requested`, `session_completion`, in that order) for a session, by starting the F2F stack's Yoti callback state machine. It is served by the `YotiCallbackTestUI` lambda through the harness API. This is designed to enable a non-Kiwi engineer to conduct an E2E F2F journey in the Staging environment.
 
 - **URL:** `/yoti-callback-test-ui` on the test harness domain (`<stack-name>-` is prefixed to the domain in dev stacks).
 - **Access:** unlike the other harness endpoints (SigV4, same AWS account only), the UI is opened in a browser, so it is restricted to approved source IPs by the API resource policy in `test-harness-spec.yaml`.
