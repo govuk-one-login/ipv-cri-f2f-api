@@ -35,11 +35,16 @@ Mappings:
     build:
       logretentionindays: 3
       apiTracingEnabled: true
+    staging:
+      logretentionindays: 3
+      apiTracingEnabled: true
 
   EnvironmentVariables: # This is all the environment specific environment variables that don't belong in globals.
     dev:
       TESTHARNESSURL: "testharness.review-o.dev.account.gov.uk"
     build:
+      TESTHARNESSURL: "testharness.review-o.build.account.gov.uk"
+    staging:
       TESTHARNESSURL: "testharness.review-o.build.account.gov.uk"
 
 Conditions:
