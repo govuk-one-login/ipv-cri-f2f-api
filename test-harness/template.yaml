@@ -45,7 +45,7 @@ Mappings:
     build:
       TESTHARNESSURL: "testharness.review-o.build.account.gov.uk"
     staging:
-      TESTHARNESSURL: "testharness.review-o.build.account.gov.uk"
+      TESTHARNESSURL: "testharness.review-o.staging.account.gov.uk"
 
 Conditions:
   CreateDevResources: !Equals
