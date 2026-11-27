@@ -45,8 +45,6 @@ export type WaitOptions = {
 const WAIT_MS_DEFAULT = 20_000;
 const POLL_INTERVAL_MS_DEFAULT = 1_000;
 const CAUSE_LENGTH_MAX = 500;
-const NOT_STARTED_PENDING = "Not started: previous topic still running";
-const NOT_STARTED_PREVIOUS_FAILED = "Not started: previous topic did not succeed";
 
 export async function triggerCallbacks(
 	dynamoClient: DynamoClient,
@@ -72,76 +70,26 @@ export async function triggerCallbacks(
 		return { statusCode: 409, body: { message: "Session has no yotiSessionId" } };
 	}
 
-	// Deliberately serial: each topic is started only after the previous execution has SUCCEEDED.
-	// The wait budget is shared across all topics so we stay below the API Gateway timeout.
-	const deadline = Date.now() + waitMs;
-	const finished = await runTopicsInSequence(
+	// Deliberately serial: each topic starts only after the previous StartExecution has returned,
+	// so executions are started in topic order. Chained rather than awaited in a loop.
+	const results = await topics.reduce<Promise<TopicResult[]>>(async (previousResults, topic) => {
+		const resultsSoFar = await previousResults;
+		const result = await startExecution(stepFunctionsClient, yotiSessionId, topic);
+		return [...resultsSoFar, result];
+	}, Promise.resolve([]));
+
+	const finished = await waitForExecutions(
 		stepFunctionsClient,
-		yotiSessionId,
-		topics,
+		results,
+		waitMs,
 		pollIntervalMs,
-		deadline,
 	);
 
-	// RUNNING at the deadline (and topics held back behind it) is not a failure; the page tells
-	// the user to check again later.
+	// RUNNING at the deadline is not a failure; the page tells the user to check again later.
 	const anyFailed = finished.some(
-		(result) =>
-			result.status !== "SUCCEEDED" &&
-			result.status !== "RUNNING" &&
-			result.error !== NOT_STARTED_PENDING,
+		(result) => result.status !== "SUCCEEDED" && result.status !== "RUNNING",
 	);
 	return { statusCode: anyFailed ? 500 : 200, body: { sessionId, results: finished } };
-}
-
-// Start a topic, wait for it to finish, and only continue to the next topic if it SUCCEEDED.
-// Each step depends on the previous one, so this recurses rather than awaiting inside a loop.
-async function runTopicsInSequence(
-	stepFunctionsClient: SFNClient,
-	yotiSessionId: string,
-	topics: YotiCallbackTopics[],
-	pollIntervalMs: number,
-	deadline: number,
-): Promise<TopicResult[]> {
-	const [topic, ...remaining] = topics;
-	if (topic === undefined) {
-		return [];
-	}
-
-	const started = await startExecution(stepFunctionsClient, yotiSessionId, topic);
-	const [finished] = await waitForExecutions(
-		stepFunctionsClient,
-		[started],
-		0,
-		pollIntervalMs,
-		deadline,
-	);
-
-	if (finished.status !== "SUCCEEDED") {
-		// Do not start later topics. If this one is still RUNNING the later ones are merely pending;
-		// otherwise they were skipped because this one did not succeed.
-		const reason =
-			finished.status === "RUNNING" ? NOT_STARTED_PENDING : NOT_STARTED_PREVIOUS_FAILED;
-		return [
-			finished,
-			...remaining.map((skipped): TopicResult => ({
-				topic: skipped,
-				status: "NOT_STARTED",
-				error: reason,
-			})),
-		];
-	}
-
-	return [
-		finished,
-		...(await runTopicsInSequence(
-			stepFunctionsClient,
-			yotiSessionId,
-			remaining,
-			pollIntervalMs,
-			deadline,
-		)),
-	];
 }
 
 // Executions are asynchronous, so poll DescribeExecution (all in parallel) until none are RUNNING
