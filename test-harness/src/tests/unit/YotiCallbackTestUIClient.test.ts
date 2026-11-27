@@ -246,13 +246,49 @@ describe("Yoti callback test UI client", () => {
 					},
 					{
 						topic: "session_completion",
-						status: "SUCCEEDED",
-						executionArn: "arn:exec-3",
-						error: undefined,
-						cause: undefined,
+						status: "NOT_STARTED",
+						error: "Not started: previous topic did not succeed",
 					},
 				],
 			});
+			expect(vi.mocked(StartExecutionCommand)).toHaveBeenCalledTimes(2);
+		});
+
+		it("does not start the next topic until the previous one has succeeded", async () => {
+			session();
+			const events: string[] = [];
+			let started = 0;
+			let describes = 0;
+			sfnSend.mockImplementation(async (command: any) => {
+				if (command.executionArn === undefined) {
+					started += 1;
+					events.push(`start-${started}`);
+					return { executionArn: `arn:exec-${started}` };
+				}
+				describes += 1;
+				events.push(`describe-${command.executionArn}`);
+				return { status: describes % 2 === 0 ? "SUCCEEDED" : "RUNNING" };
+			});
+
+			const response = await triggerCallbacks(
+				dynamoClient,
+				stepFunctionsClient,
+				SESSION_ID,
+				FAST,
+			);
+
+			expect(response.statusCode).toBe(200);
+			expect(events).toEqual([
+				"start-1",
+				"describe-arn:exec-1",
+				"describe-arn:exec-1",
+				"start-2",
+				"describe-arn:exec-2",
+				"describe-arn:exec-2",
+				"start-3",
+				"describe-arn:exec-3",
+				"describe-arn:exec-3",
+			]);
 		});
 
 		it("keeps polling until a running execution finishes", async () => {
@@ -306,7 +342,8 @@ describe("Yoti callback test UI client", () => {
 				"results" in response.body
 					? response.body.results.map((result) => result.status)
 					: [];
-			expect(statuses).toEqual(["SUCCEEDED", "RUNNING", "RUNNING"]);
+			expect(statuses).toEqual(["SUCCEEDED", "RUNNING", "NOT_STARTED"]);
+			expect(vi.mocked(StartExecutionCommand)).toHaveBeenCalledTimes(2);
 		});
 
 		it("does not wait when waitMs is 0", async () => {
@@ -376,7 +413,7 @@ describe("Yoti callback test UI client", () => {
 			expect(statuses).toEqual(["NOT_STARTED", "NOT_STARTED", "NOT_STARTED"]);
 		});
 
-		it("reports a start failure without hiding the other results", async () => {
+		it("stops at a start failure and reports earlier results", async () => {
 			session();
 			let calls = 0;
 			sfnSend.mockImplementation(async (command: any) => {
@@ -402,7 +439,7 @@ describe("Yoti callback test UI client", () => {
 				"results" in response.body
 					? response.body.results.map((result) => result.status)
 					: [];
-			expect(statuses).toEqual(["SUCCEEDED", "NOT_STARTED", "SUCCEEDED"]);
+			expect(statuses).toEqual(["SUCCEEDED", "NOT_STARTED", "NOT_STARTED"]);
 		});
 	});
 });
