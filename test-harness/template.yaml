@@ -13,6 +13,7 @@ Parameters:
     AllowedValues:
       - "dev"
       - "build"
+      - "staging"
   PermissionsBoundary:
     Description: "The ARN of the permissions boundary to apply when creating IAM roles"
     Type: String
