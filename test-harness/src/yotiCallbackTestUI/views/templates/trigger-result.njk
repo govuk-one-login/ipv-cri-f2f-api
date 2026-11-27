@@ -1,0 +1,57 @@
+{% extends "layout.njk" %}
+
+{% block containerMaxWidth %}1400px{% endblock %}
+{% block columnClass %}govuk-grid-column-full{% endblock %}
+
+{% block content %}
+  <h1 class="govuk-heading-l">{{ title }}</h1>
+  <p class="govuk-body">Session <code>{{ sessionId }}</code></p>
+
+  {% if anyFailed %}
+    <div class="govuk-warning-text">
+      <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+      <strong class="govuk-warning-text__text">
+        <span class="govuk-visually-hidden">Warning</span>
+        One or more callbacks did not succeed.
+      </strong>
+    </div>
+  {% endif %}
+
+  {% if anyRunning %}
+    <p class="govuk-body">
+      Some executions were still running when we stopped waiting. They are not failed: check the
+      execution in the Step Functions console, or come back to this session later.
+    </p>
+  {% endif %}
+
+  <table class="govuk-table">
+    <caption class="govuk-table__caption govuk-table__caption--m">Executions, in the order they were started</caption>
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header">Topic</th>
+        <th scope="col" class="govuk-table__header">Status</th>
+        <th scope="col" class="govuk-table__header">Details</th>
+        <th scope="col" class="govuk-table__header">Execution</th>
+      </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+      {% for result in results %}
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">{{ result.topic }}</td>
+          <td class="govuk-table__cell" style="white-space: nowrap">
+            <strong class="govuk-tag {{ result.tagClass }}">{{ result.status | replace("_", " ") }}</strong>
+          </td>
+          <td class="govuk-table__cell" style="word-break: break-word">
+            {% if result.error %}<strong>{{ result.error }}</strong>{% endif %}
+            {% if result.detail %}<br>{{ result.detail }}{% endif %}
+          </td>
+          <td class="govuk-table__cell" style="word-break: break-all">{{ result.executionArn }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="govuk-body">
+    <a class="govuk-link" href="{{ basePath }}{{ uiRoot }}">Back to sessions</a>
+  </p>
+{% endblock %}

@@ -13,7 +13,8 @@ export default [
       "__tests__",
       "eslint.config.mjs",
       "**/eslint.config.mjs",
-      "**/build"
+      "**/build",
+      "**/.build/**"
   ]
 },{
     files: ['**/*.ts'],
